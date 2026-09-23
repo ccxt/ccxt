@@ -835,11 +835,11 @@ func (this *Kalshi) ParseMarket(raw any) any {
 	if (eventTicker != nil) && (eventTicker == nil || *eventTicker != "") {
 		eventParts = ccxt.Split(eventTicker, "-")
 	}
-	var seriesTicker any = eventTicker
+	var seriesTicker *string = eventTicker
 	var eventPartsLength int = ccxt.GetArrayLength(eventParts)
 	if eventPartsLength > 1 {
 		var seriesParts any = this.ArraySlice(eventParts, 0, eventPartsLength-1)
-		seriesTicker = ccxt.Join(seriesParts, "-")
+		seriesTicker = ccxt.SafeStringPtr(ccxt.Join(seriesParts, "-"))
 	}
 	// market symbol (no outcome suffix)
 	var subtitleOrTicker *string = func() *string {

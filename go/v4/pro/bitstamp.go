@@ -259,7 +259,7 @@ func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks any) {
 }
 func (this *Bitstamp) GetCacheIndex(orderbook any, deltas any) any {
 	// we will consider it a fail
-	var firstElement any = ccxt.GetValue(deltas, 0)
+	var firstElement map[string]any = ccxt.MapTyped(ccxt.GetValue(deltas, 0))
 	var firstElementNonce *int64 = this.SafeInteger(firstElement, "microtimestamp")
 	if firstElementNonce == nil {
 		return ccxt.OpNeg(1)
@@ -269,7 +269,7 @@ func (this *Bitstamp) GetCacheIndex(orderbook any, deltas any) any {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		var delta any = ccxt.GetValue(deltas, i)
+		var delta map[string]any = ccxt.MapTyped(ccxt.GetValue(deltas, i))
 		var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
 		if deltaNonce == nonce || (deltaNonce != nil && nonce != nil && *deltaNonce == *nonce) {
 			return i + 1

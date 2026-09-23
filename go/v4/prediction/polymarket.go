@@ -1896,12 +1896,12 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 	var resolutionMs any = ccxt.Multiply(ccxt.Multiply(fidelityMin, 60), 1000)
 	var buckets map[string]any = map[string]any{}
 	for i := 0; i < len(history); i++ {
-		var item any = func() any {
+		var item map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(history) {
 				return ccxt.DerefScalar(history[i])
 			}
 			return nil
-		}()
+		}())
 		var t *int64 = this.SafeInteger(item, "t")
 		var price *float64 = this.SafeNumber(item, "p")
 		if (t == nil) || (price == nil) {
@@ -2936,27 +2936,27 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
 	// CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
 	// native override: params.orderType (GTC, GTD, FOK or FAK)
-	var orderTypeStr any = this.SafeStringUpper(params, "orderType")
-	if ccxt.IsEqual(orderTypeStr, nil) {
+	var orderTypeStr *string = this.SafeStringUpper(params, "orderType")
+	if orderTypeStr == nil {
 		// otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
 		var unifiedTif *string = this.SafeStringUpper(params, "timeInForce")
 		if unifiedTif != nil && *unifiedTif == "GTC" {
-			orderTypeStr = "GTC"
+			orderTypeStr = ccxt.SafeStringPtr("GTC")
 		} else if unifiedTif != nil && *unifiedTif == "FOK" {
-			orderTypeStr = "FOK"
+			orderTypeStr = ccxt.SafeStringPtr("FOK")
 		} else if unifiedTif != nil && *unifiedTif == "IOC" {
-			orderTypeStr = "FAK" // fill-and-kill == immediate-or-cancel
+			orderTypeStr = ccxt.SafeStringPtr("FAK") // fill-and-kill == immediate-or-cancel
 		} else if unifiedTif != nil && *unifiedTif == "GTD" {
-			orderTypeStr = "GTD"
+			orderTypeStr = ccxt.SafeStringPtr("GTD")
 		}
 	}
-	if ccxt.IsEqual(orderTypeStr, nil) {
-		orderTypeStr = func() string {
+	if orderTypeStr == nil {
+		orderTypeStr = ccxt.SafeStringPtr(func() string {
 			if isMarket {
 				return "FOK"
 			}
 			return "GTC"
-		}()
+		}())
 	}
 	if price == nil {
 		if !isMarket {
@@ -4247,22 +4247,22 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 	var rawAsks []any = ccxt.SafeListTyped(event, "asks")
 	var bids []any = []any{}
 	for i := 0; i < len(rawBids); i++ {
-		var b any = func() any {
+		var b map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(rawBids) {
 				return ccxt.DerefScalar(rawBids[i])
 			}
 			return nil
-		}()
+		}())
 		bids = append(bids, []any{this.SafeNumber(b, "price"), this.SafeNumber(b, "size")})
 	}
 	var asks []any = []any{}
 	for j := 0; j < len(rawAsks); j++ {
-		var a any = func() any {
+		var a map[string]any = ccxt.MapTyped(func() any {
 			if j >= 0 && j < len(rawAsks) {
 				return ccxt.DerefScalar(rawAsks[j])
 			}
 			return nil
-		}()
+		}())
 		asks = append(asks, []any{this.SafeNumber(a, "price"), this.SafeNumber(a, "size")})
 	}
 	var outcomeObj any = this.SafeOutcome(outcome)
@@ -4283,12 +4283,12 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	var changes []any = ccxt.SafeListTyped(event, "price_changes")
 	var updated map[string]any = map[string]any{}
 	for i := 0; i < len(changes); i++ {
-		var change any = func() any {
+		var change map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(changes) {
 				return ccxt.DerefScalar(changes[i])
 			}
 			return nil
-		}()
+		}())
 		var tokenId *string = this.SafeString(change, "asset_id")
 		var outcome any = this.TokenIdToSymbol(tokenId)
 		if (outcome == nil) || !(ccxt.InOp(this.Orderbooks, outcome)) {

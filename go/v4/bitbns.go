@@ -671,13 +671,13 @@ func (this *Bitbns) ParseBalance(response any) any {
 		var parts []string = strings.Split(key, "availableorder")
 		var numParts int = len(parts)
 		if numParts > 1 {
-			var currencyId any = DerefScalar(this.SafeString(parts, 1))
+			var currencyId *string = this.SafeString(parts, 1)
 			// note that "Money" stands for INR - the only fiat in bitbns
 			var account map[string]any = this.Account()
 			account["free"] = this.SafeString(data, key)
 			account["used"] = this.SafeString(data, Add("inorder", currencyId))
-			if IsEqual(currencyId, "Money") {
-				currencyId = "INR"
+			if currencyId != nil && *currencyId == "Money" {
+				currencyId = SafeStringPtr("INR")
 			}
 			var code *string = this.SafeCurrencyCode(currencyId)
 			if code != nil {
@@ -781,16 +781,16 @@ func (this *Bitbns) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(order, "id", "entry_id")
 	var datetime *string = this.SafeString(order, "time")
 	var triggerPrice *string = this.SafeString(order, "t_rate")
-	var side any = DerefScalar(this.SafeString(order, "type"))
-	if IsEqual(side, "0") {
-		side = "buy"
-	} else if IsEqual(side, "1") {
-		side = "sell"
+	var side *string = this.SafeString(order, "type")
+	if side != nil && *side == "0" {
+		side = SafeStringPtr("buy")
+	} else if side != nil && *side == "1" {
+		side = SafeStringPtr("sell")
 	}
 	var data *string = this.SafeString(order, "data")
-	var status any = DerefScalar(this.SafeString(order, "status"))
+	var status *string = this.SafeString(order, "status")
 	if data != nil && *data == "Successfully cancelled the order" {
-		status = "cancelled"
+		status = SafeStringPtr("cancelled")
 	} else {
 		status = this.ParseStatus(status)
 	}
@@ -1175,12 +1175,22 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 	timestamp = this.SafeInteger(trade, "timestamp", timestamp)
 	var priceString *string = this.SafeString2(trade, "rate", "price")
 	var amountString *string = this.SafeString(trade, "amount")
-	var side any = this.SafeStringLower(trade, "type")
-	if !IsEqual(side, nil) {
-		if GetIndexOf(side, "buy") >= 0 {
-			side = "buy"
-		} else if GetIndexOf(side, "sell") >= 0 {
-			side = "sell"
+	var side *string = this.SafeStringLower(trade, "type")
+	if side != nil {
+		if func() int {
+			if side == nil {
+				return -1
+			}
+			return strings.Index(*side, "buy")
+		}() >= 0 {
+			side = SafeStringPtr("buy")
+		} else if func() int {
+			if side == nil {
+				return -1
+			}
+			return strings.Index(*side, "sell")
+		}() >= 0 {
+			side = SafeStringPtr("sell")
 		}
 	}
 	var factor *string = this.SafeString(trade, "factor")
@@ -1525,20 +1535,30 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(transaction, "unit")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.Parse8601(this.SafeString2(transaction, "date", "timestamp"))
-	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
+	var typeVar *string = this.SafeString(transaction, "type")
 	var expTime *string = this.SafeString(transaction, "expTime", "")
 	var status any = nil
-	if !IsEqual(typeVar, nil) {
-		if GetIndexOf(typeVar, "deposit") >= 0 {
-			typeVar = "deposit"
+	if typeVar != nil {
+		if func() int {
+			if typeVar == nil {
+				return -1
+			}
+			return strings.Index(*typeVar, "deposit")
+		}() >= 0 {
+			typeVar = SafeStringPtr("deposit")
 			status = "ok"
-		} else if (GetIndexOf(typeVar, "withdraw") >= 0) || (func() int {
+		} else if (func() int {
+			if typeVar == nil {
+				return -1
+			}
+			return strings.Index(*typeVar, "withdraw")
+		}() >= 0) || (func() int {
 			if expTime == nil {
 				return -1
 			}
 			return strings.Index(*expTime, "withdraw")
 		}() >= 0) {
-			typeVar = "withdrawal"
+			typeVar = SafeStringPtr("withdrawal")
 		}
 	}
 	// const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);

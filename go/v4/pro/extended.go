@@ -937,14 +937,14 @@ func (this *Extended) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var price *string = this.SafeString(params, "price")
-	var candleType any = ccxt.DerefScalar(this.SafeString(params, "candleType"))
-	if ccxt.IsEqual(candleType, nil) {
+	var candleType *string = this.SafeString(params, "candleType")
+	if candleType == nil {
 		if price != nil && *price == "mark" {
-			candleType = "mark-prices"
+			candleType = ccxt.SafeStringPtr("mark-prices")
 		} else if price != nil && *price == "index" {
-			candleType = "index-prices"
+			candleType = ccxt.SafeStringPtr("index-prices")
 		} else {
-			candleType = "trades"
+			candleType = ccxt.SafeStringPtr("trades")
 		}
 	}
 	params = ccxt.MapTyped(this.Omit(params, []any{"candleType", "price"}))

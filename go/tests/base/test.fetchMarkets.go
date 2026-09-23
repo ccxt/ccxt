@@ -37,13 +37,13 @@ func DetectMarketConflicts(exchange ccxt.ICoreExchange, marketValues any) any {
 	// detect if there are markets with different ids for the same symbol
 	var ids map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(marketValues); i++ {
-		var market any = GetValue(marketValues, i)
-		var symbol any = GetValue(market, "symbol")
+		var market map[string]any = MapTyped(GetValue(marketValues, i))
+		var symbol any = market["symbol"]
 		if !(InOp(ids, symbol)) {
-			AddElementToObject(ids, symbol, GetValue(market, "id"))
+			AddElementToObject(ids, symbol, market["id"])
 		} else {
-			var isDifferent bool = !IsEqual(GetValue(ids, symbol), GetValue(market, "id"))
-			Assert(!isDifferent, Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchMarkets() has different ids for the same symbol: "), symbol), " "), GetValue(ids, symbol)), " "), GetValue(market, "id")))
+			var isDifferent bool = !IsEqual(GetValue(ids, symbol), market["id"])
+			Assert(!isDifferent, Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchMarkets() has different ids for the same symbol: "), symbol), " "), GetValue(ids, symbol)), " "), market["id"]))
 		}
 	}
 	return true

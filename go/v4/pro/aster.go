@@ -1108,17 +1108,17 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 		return ccxt.GetValue(market, "type")
 	}()
 	var symbol *string = this.SafeSymbol(marketId, market, nil, defaultType)
-	var side any = this.SafeStringLower(trade, "S")
+	var side *string = this.SafeStringLower(trade, "S")
 	var takerOrMaker any = nil
 	var orderId *string = this.SafeString(trade, "i")
 	if ccxt.InOp(trade, "m") {
-		if ccxt.IsEqual(side, nil) {
-			side = func() string {
+		if side == nil {
+			side = ccxt.SafeStringPtr(func() string {
 				if ccxt.IsEqual(ccxt.GetValue(trade, "m"), true) {
 					return "sell"
 				}
 				return "buy"
-			}() // this is reversed intentionally
+			}()) // this is reversed intentionally
 		}
 		takerOrMaker = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(trade, "m"), true) {
@@ -2205,15 +2205,15 @@ func (this *Aster) ParseWsPosition(position any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(position, "s")
 	var contracts *string = this.SafeString(position, "pa")
 	var contractsAbs *string = ccxt.Precise.StringAbs(this.SafeString(position, "pa"))
-	var positionSide any = this.SafeStringLower(position, "ps")
+	var positionSide *string = this.SafeStringLower(position, "ps")
 	var hedged bool = true
-	if ccxt.IsEqual(positionSide, "both") {
+	if positionSide != nil && *positionSide == "both" {
 		hedged = false
 		if !ccxt.Precise.StringEq(contracts, "0") {
 			if ccxt.Precise.StringLt(contracts, "0") {
-				positionSide = "short"
+				positionSide = ccxt.SafeStringPtr("short")
 			} else {
-				positionSide = "long"
+				positionSide = ccxt.SafeStringPtr("long")
 			}
 		}
 	}
@@ -2588,10 +2588,10 @@ func (this *Aster) ParseWsOrder(order any, optionalArgs ...any) any {
 		clientOrderId = this.SafeString(order, "c")
 	}
 	var stopPrice *string = this.SafeStringN(order, []any{"P", "sp", "tp"})
-	var timeInForce any = ccxt.DerefScalar(this.SafeString(order, "f"))
-	if ccxt.IsEqual(timeInForce, "GTX") {
+	var timeInForce *string = this.SafeString(order, "f")
+	if timeInForce != nil && *timeInForce == "GTX" {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-		timeInForce = "PO"
+		timeInForce = ccxt.SafeStringPtr("PO")
 	}
 	return this.SafeOrder(map[string]any{
 		"info":                order,

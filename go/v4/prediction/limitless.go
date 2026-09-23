@@ -2720,15 +2720,15 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarket, false, params)
 	postOnly = ccxt.GetValue(postOnlyparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(postOnlyparamsVariable, 1))
-	var timeInForce any = ccxt.DerefScalar(this.SafeString(params, "timeInForce"))
+	var timeInForce *string = this.SafeString(params, "timeInForce")
 	params = ccxt.MapTyped(this.Omit(params, "timeInForce"))
-	if ccxt.IsEqual(timeInForce, nil) {
-		timeInForce = func() string {
+	if timeInForce == nil {
+		timeInForce = ccxt.SafeStringPtr(func() string {
 			if isMarket {
 				return "FOK"
 			}
 			return "GTC"
-		}()
+		}())
 	}
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	if isMarket && (ccxt.IsEqual(side, "buy")) {
@@ -2933,9 +2933,9 @@ func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
 	var chainId *int64 = this.SafeInteger(this.Options, "chainId", 8453)
 	var token *string = this.SafeString(params, "token", this.SafeString(this.Options, "collateralAddress"))
 	var spender *string = this.SafeString(params, "spender", this.SafeString(this.Options, "exchangeAddress"))
-	var owner any = ccxt.DerefScalar(this.SafeString(params, "owner", this.WalletAddress))
-	if ccxt.IsEqual(owner, nil) {
-		owner = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+	var owner *string = this.SafeString(params, "owner", this.WalletAddress)
+	if owner == nil {
+		owner = ccxt.SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 	}
 	var gasLimit *string = this.SafeString(params, "gasLimit", "0x186a0")
 	var maxUint string = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -3959,7 +3959,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 	var categoryIds []any = []any{}
 	var categoriesLength int = ccxt.GetArrayLength(categories)
 	for i := 0; i < categoriesLength; i++ {
-		var category any = ccxt.GetValue(categories, i)
+		var category map[string]any = ccxt.MapTyped(ccxt.GetValue(categories, i))
 		var name *string = this.SafeStringLower(category, "name", "")
 		var categoryId *string = this.SafeString(category, "id")
 		var matched bool = false

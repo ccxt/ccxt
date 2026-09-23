@@ -1588,8 +1588,8 @@ func (this *Bingx) ParseMarket(market any) any {
 	if !spot {
 		minAmount = this.SafeNumber2(market, "minQty", "tradeMinQuantity")
 	}
-	var timeOnline any = DerefScalar(this.SafeInteger(market, "timeOnline"))
-	if IsEqual(timeOnline, 0) {
+	var timeOnline *int64 = this.SafeInteger(market, "timeOnline")
+	if timeOnline != nil && *timeOnline == 0 {
 		timeOnline = nil
 	}
 	return this.SafeMarketStructure(map[string]any{
@@ -2089,12 +2089,12 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var time any = DerefScalar(this.SafeIntegerN(trade, []any{"time", "filledTm", "T", "tradeTime"}))
+	var time *int64 = this.SafeIntegerN(trade, []any{"time", "filledTm", "T", "tradeTime"})
 	var datetimeId *string = this.SafeString(trade, "filledTm")
 	if datetimeId != nil {
-		time = DerefScalar(this.Parse8601(datetimeId))
+		time = this.Parse8601(datetimeId)
 	}
-	if IsEqual(time, 0) {
+	if time != nil && *time == 0 {
 		time = nil
 	}
 	var cost *string = this.SafeString(trade, "quoteQty")
@@ -2114,26 +2114,26 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	var side any = this.SafeStringLower2(trade, "side", "S")
-	if IsEqual(side, nil) {
+	var side *string = this.SafeStringLower2(trade, "side", "S")
+	if side == nil {
 		if (isBuyerMaker != nil) || (m != nil) {
-			side = func() string {
+			side = SafeStringPtr(func() string {
 				if isMakerSide {
 					return "sell"
 				}
 				return "buy"
-			}()
+			}())
 			takeOrMaker = "taker"
 		}
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 	}
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	if isMaker != nil {
@@ -3225,13 +3225,13 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var close *string = this.SafeString(ticker, "lastPrice")
 	var quoteVolume *string = this.SafeString(ticker, "quoteVolume")
 	var baseVolume *string = this.SafeString(ticker, "volume")
-	var percentage any = DerefScalar(this.SafeString(ticker, "priceChangePercent"))
-	if !IsEqual(percentage, nil) {
-		percentage = Replace(percentage, "%", "")
+	var percentage *string = this.SafeString(ticker, "priceChangePercent")
+	if percentage != nil {
+		percentage = SafeStringPtr(Replace(percentage, "%", ""))
 	}
 	var change *string = this.SafeString(ticker, "priceChange")
-	var ts any = DerefScalar(this.SafeInteger(ticker, "closeTime"))
-	if IsEqual(ts, 0) {
+	var ts *int64 = this.SafeInteger(ticker, "closeTime")
+	if ts != nil && *ts == 0 {
 		ts = nil
 	}
 	var datetime *string = this.Iso8601(ts)
@@ -3746,8 +3746,8 @@ func (this *Bingx) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = DerefScalar(this.SafeString(position, "symbol", ""))
-	marketId = Replace(marketId, "/", "-") // standard return different format
+	var marketId *string = this.SafeString(position, "symbol", "")
+	marketId = SafeStringPtr(Replace(marketId, "/", "-")) // standard return different format
 	var isolated *bool = this.SafeBool(position, "isolated")
 	var marginMode any = nil
 	if isolated != nil {
@@ -4469,7 +4469,7 @@ func (this *Bingx) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	ch <- this.ParseOrders(result, market)
 	return nil
 }
-func (this *Bingx) ParseOrderSide(side any) *string {
+func (this *Bingx) ParseOrderSide(side *string) *string {
 	var sides map[string]any = map[string]any{
 		"BUY":   "buy",
 		"SELL":  "sell",
@@ -5960,20 +5960,20 @@ func (this *Bingx) transferBody(ch chan any, code any, amount any, fromAccount a
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("transfer", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var fromId any = DerefScalar(this.SafeString(accountsByType, fromAccount, fromAccount))
-	var toId any = DerefScalar(this.SafeString(accountsByType, toAccount, toAccount))
-	if IsEqual(fromId, "swap") {
+	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
+	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
+	if fromId != nil && *fromId == "swap" {
 		if IsEqual(subType, "inverse") {
-			fromId = "coinMPerp"
+			fromId = SafeStringPtr("coinMPerp")
 		} else {
-			fromId = "USDTMPerp"
+			fromId = SafeStringPtr("USDTMPerp")
 		}
 	}
-	if IsEqual(toId, "swap") {
+	if toId != nil && *toId == "swap" {
 		if IsEqual(subType, "inverse") {
-			toId = "coinMPerp"
+			toId = SafeStringPtr("coinMPerp")
 		} else {
-			toId = "USDTMPerp"
+			toId = SafeStringPtr("USDTMPerp")
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -6499,10 +6499,10 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 	var network *string = this.SafeString(transaction, "network")
 	var currencyId *string = this.SafeString(transaction, "coin")
-	var code any = DerefScalar(this.SafeCurrencyCode(currencyId, currency))
-	if (code != nil) && (network != nil) && (!IsEqual(code, network)) && (GetIndexOf(code, network) >= 0) {
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	if (code != nil) && (network != nil) && (code != network && (code == nil || network == nil || *code != *network)) && (GetIndexOf(code, network) >= 0) {
 		if network != nil {
-			code = Replace(code, network, "")
+			code = SafeStringPtr(Replace(code, network, ""))
 		}
 	}
 	var rawType *string = this.SafeString(transaction, "transferType")

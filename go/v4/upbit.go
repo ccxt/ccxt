@@ -2234,9 +2234,9 @@ func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var tag any = nil     // not present in the data structure received from the exchange
 	var updatedRaw *string = this.SafeString(transaction, "done_at")
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "created_at", updatedRaw))
-	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
-	if IsEqual(typeVar, "withdraw") {
-		typeVar = "withdrawal"
+	var typeVar *string = this.SafeString(transaction, "type")
+	if typeVar != nil && *typeVar == "withdraw" {
+		typeVar = SafeStringPtr("withdrawal")
 	}
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -2351,30 +2351,30 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "uuid")
-	var side any = this.SafeStringLower(order, "side")
-	if IsEqual(side, "bid") {
-		side = "buy"
-	} else if IsEqual(side, "ask") {
-		side = "sell"
+	var side *string = this.SafeStringLower(order, "side")
+	if side != nil && *side == "bid" {
+		side = SafeStringPtr("buy")
+	} else if side != nil && *side == "ask" {
+		side = SafeStringPtr("sell")
 	}
 	var identifier *string = this.SafeString(order, "identifier")
-	var typeVar any = DerefScalar(this.SafeString(order, "ord_type"))
+	var typeVar *string = this.SafeString(order, "ord_type")
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var lastTradeTimestamp any = nil
-	var price any = DerefScalar(this.SafeString(order, "price"))
+	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "volume")
 	var remaining *string = this.SafeString(order, "remaining_volume")
 	var filled *string = this.SafeString(order, "executed_volume")
 	var cost any = nil
-	if IsEqual(typeVar, "price") {
-		typeVar = "market"
+	if typeVar != nil && *typeVar == "price" {
+		typeVar = SafeStringPtr("market")
 		cost = price
 		price = nil
 	}
 	var average *string = nil
 	var fee any = nil
-	var feeCost any = DerefScalar(this.SafeString(order, "paid_fee"))
+	var feeCost *string = this.SafeString(order, "paid_fee")
 	var marketId *string = this.SafeString(order, "market")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var trades any = this.SafeList(order, "trades", []any{})
@@ -2387,9 +2387,9 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 		// the timestamp in fetchOrder trades is missing
 		lastTradeTimestamp = GetValue(GetValue(trades, numTrades-1), "timestamp")
 		var getFeesFromTrades bool = false
-		if IsEqual(feeCost, nil) {
+		if feeCost == nil {
 			getFeesFromTrades = true
-			feeCost = "0"
+			feeCost = SafeStringPtr("0")
 		}
 		cost = "0"
 		for i := 0; i < numTrades; i++ {
@@ -2405,7 +2405,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		average = Precise.StringDiv(cost, filled)
 	}
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": GetValue(market, "quote"),
 			"cost":     feeCost,

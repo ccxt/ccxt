@@ -628,12 +628,12 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
 	for i := 0; i < len(units); i++ {
-		var entry any = func() any {
+		var entry map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(units) {
 				return ccxt.DerefScalar(units[i])
 			}
 			return nil
-		}()
+		}())
 		var bidPrice *float64 = this.SafeNumber(entry, "bid_price")
 		var bidSize *float64 = this.SafeNumber(entry, "bid_size")
 		var askPrice *float64 = this.SafeNumber(entry, "ask_price")
@@ -1027,12 +1027,12 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	for i := 0; i < len(assets); i++ {
-		var asset any = func() any {
+		var asset map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(assets) {
 				return ccxt.DerefScalar(assets[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(asset, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1246,14 +1246,14 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var timestamp *int64 = this.SafeInteger(order, "order_timestamp")
 	var sideId *string = this.SafeString(order, "ask_bid")
-	var side any = this.SafeStringLower(order, "side")
+	var side *string = this.SafeStringLower(order, "side")
 	if sideId != nil {
-		side = func() string {
+		side = ccxt.SafeStringPtr(func() string {
 			if sideId != nil && *sideId == "BID" {
 				return ("buy")
 			}
 			return ("sell")
-		}()
+		}())
 	}
 	var typeId *string = this.SafeString(order, "order_type")
 	var typeVar any = nil

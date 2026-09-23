@@ -1078,7 +1078,7 @@ func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var close *string = this.SafeString2(ticker, "closing_price", "trade_price")
 	var change *string = this.SafeString2(ticker, "signed_change_price", "change_price")
-	var percentage any = DerefScalar(this.SafeString2(ticker, "signed_change_rate", "change_rate"))
+	var percentage *string = this.SafeString2(ticker, "signed_change_rate", "change_rate")
 	var open *string = this.SafeString(ticker, "opening_price")
 	var nonZeroOpen any = this.OmitZero(open)
 	if (marketId != nil) && (nonZeroOpen != nil) && (close != nil) {
@@ -1702,11 +1702,11 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = Subtract(timestamp, 9*3600000) // they report UTC + 9 hours, server in Korean timezone
 	}
 	var typeVar any = nil
-	var side any = this.SafeStringLower2(trade, "ask_bid", "type")
-	if IsEqual(side, "bid") {
-		side = "buy"
-	} else if IsEqual(side, "ask") {
-		side = "sell"
+	var side *string = this.SafeStringLower2(trade, "ask_bid", "type")
+	if side != nil && *side == "bid" {
+		side = SafeStringPtr("buy")
+	} else if side != nil && *side == "ask" {
+		side = SafeStringPtr("sell")
 	} else {
 		side = nil
 	}
@@ -1955,9 +1955,9 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		panic(InvalidOrder(Add(this.Id+" createOrder() invalid side ", side)))
 	}
 	request["side"] = sideRequest
-	var timeInForce any = this.SafeString2(params, "timeInForce", "time_in_force")
-	if IsEqual(timeInForce, nil) {
-		timeInForce = "GTC"
+	var timeInForce *string = this.SafeString2(params, "timeInForce", "time_in_force")
+	if timeInForce == nil {
+		timeInForce = SafeStringPtr("GTC")
 	} else {
 		params = MapTyped(this.Omit(params, "timeInForce"))
 	}
@@ -1965,12 +1965,12 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var postOnlyparamsVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = MapTyped(GetValue(postOnlyparamsVariable, 1))
-	if (postOnly == true) || (IsEqual(timeInForce, "PO")) {
+	if (postOnly == true) || (timeInForce != nil && *timeInForce == "PO") {
 		request["time_in_force"] = "post_only"
 		params = MapTyped(this.Omit(params, "postOnly"))
-	} else if IsEqual(timeInForce, "FOK") {
+	} else if timeInForce != nil && *timeInForce == "FOK" {
 		request["time_in_force"] = "fok"
-	} else if IsEqual(timeInForce, "IOC") {
+	} else if timeInForce != nil && *timeInForce == "IOC" {
 		request["time_in_force"] = "ioc"
 	}
 	if IsEqual(typeVar, "limit") {
@@ -2547,13 +2547,13 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString2(order, "order_status", "state"))
 	var price *string = this.SafeString2(order, "order_price", "price")
-	var typeVar any = DerefScalar(this.SafeString2(order, "order_type", "ord_type"))
+	var typeVar *string = this.SafeString2(order, "order_type", "ord_type")
 	var progressCount *string = this.SafeString(order, "progress_count")
-	if (IsEqual(typeVar, nil)) && (price != nil) && (progressCount == nil) {
+	if (typeVar == nil) && (price != nil) && (progressCount == nil) {
 		if Precise.StringEquals(price, "0") {
-			typeVar = "market"
+			typeVar = SafeStringPtr("market")
 		} else {
-			typeVar = "limit"
+			typeVar = SafeStringPtr("limit")
 		}
 	}
 	var amount any = this.FixCommaNumber(this.SafeStringN(order, []any{"order_qty", "units", "volume"}))
@@ -2594,9 +2594,9 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var postOnly any = nil
-	var timeInForce any = this.SafeStringUpper(order, "time_in_force")
-	if IsEqual(timeInForce, "POST_ONLY") {
-		timeInForce = "PO"
+	var timeInForce *string = this.SafeStringUpper(order, "time_in_force")
+	if timeInForce != nil && *timeInForce == "POST_ONLY" {
+		timeInForce = SafeStringPtr("PO")
 		postOnly = true
 	}
 	return this.SafeOrder(map[string]any{

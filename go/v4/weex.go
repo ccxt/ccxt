@@ -2180,22 +2180,22 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "time")
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
-	var side any = this.SafeStringLower(trade, "side")
+	var side *string = this.SafeStringLower(trade, "side")
 	var isBuyerMaker *bool = this.SafeBool(trade, "isBuyerMaker")
 	if isBuyer != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 	} else if isBuyerMaker != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var isSpot any = true
 	if market == nil {
@@ -2218,7 +2218,7 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 		var commissionAsset *string = this.SafeString(trade, "commissionAsset")
 		var feeCurrency any = DerefScalar(this.SafeCurrencyCode(commissionAsset))
 		if isSpot == true {
-			if IsEqual(side, "buy") {
+			if side != nil && *side == "buy" {
 				feeCurrency = GetValue(market, "base")
 			} else {
 				feeCurrency = GetValue(market, "quote")
@@ -2584,9 +2584,9 @@ func (this *Weex) ParseBalance(response any) any {
 	var balances any = this.SafeList(response, "balances", response)
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var entry map[string]any = SafeMapTyped(balances, i)
-		var currencyId any = DerefScalar(this.SafeString(entry, "asset"))
-		if (sandboxMode != nil && *sandboxMode == true) && (IsEqual(currencyId, "SUSDT")) {
-			currencyId = "USDT" // demo trading balances are denominated in the demo asset SUSDT
+		var currencyId *string = this.SafeString(entry, "asset")
+		if (sandboxMode != nil && *sandboxMode == true) && (currencyId != nil && *currencyId == "SUSDT") {
+			currencyId = SafeStringPtr("USDT") // demo trading balances are denominated in the demo asset SUSDT
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -4450,12 +4450,12 @@ func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}() >= 0 {
 		direction = "out"
 	}
-	var rawType any = DerefScalar(this.SafeString2(item, "bizType", "incomeType"))
+	var rawType *string = this.SafeString2(item, "bizType", "incomeType")
 	var transferReason *string = this.SafeString(item, "transferReason")
 	var isContractEntry bool = (transferReason != nil)
 	if isContractEntry {
-		if (IsEqual(rawType, "withdraw")) || (IsEqual(rawType, "deposit")) {
-			rawType = "transfer"
+		if (rawType != nil && *rawType == "withdraw") || (rawType != nil && *rawType == "deposit") {
+			rawType = SafeStringPtr("transfer")
 		}
 	}
 	return this.SafeLedgerEntry(map[string]any{
@@ -4479,7 +4479,7 @@ func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		},
 	}, currency)
 }
-func (this *Weex) ParseLedgerType(typeVar any) *string {
+func (this *Weex) ParseLedgerType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"transfer_in":          "transfer",
 		"transfer_out":         "transfer",

@@ -1225,7 +1225,7 @@ func (this *Coinone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Coinone) ParseOrderStatus(status any) *string {
+func (this *Coinone) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"live":               "open",
 		"partially_filled":   "open",
@@ -1301,24 +1301,24 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	if timestamp == nil {
 		timestamp = this.SafeInteger2(order, "ordered_at", "updated_at") // v2.1 sends milliseconds
 	}
-	var side any = this.SafeStringLower2(order, "type", "side")
-	if (IsEqual(side, "limit")) || (IsEqual(side, "market")) || (IsEqual(side, "stop_limit")) {
+	var side *string = this.SafeStringLower2(order, "type", "side")
+	if (side != nil && *side == "limit") || (side != nil && *side == "market") || (side != nil && *side == "stop_limit") {
 		side = this.SafeStringLower(order, "side") // in v2.1 rows the type field carries the order type, the side lives in side
 	}
-	if IsEqual(side, "ask") {
-		side = "sell"
-	} else if IsEqual(side, "bid") {
-		side = "buy"
+	if side != nil && *side == "ask" {
+		side = SafeStringPtr("sell")
+	} else if side != nil && *side == "bid" {
+		side = SafeStringPtr("buy")
 	}
 	var remainingString *string = this.SafeString2(order, "remainQty", "remain_qty")
 	var amountString *string = this.SafeStringN(order, []any{"originalQty", "qty", "original_qty"})
-	var status any = DerefScalar(this.SafeString(order, "status"))
+	var status *string = this.SafeString(order, "status")
 	// https://github.com/ccxt/ccxt/pull/7067
-	if IsEqual(status, "live") {
+	if status != nil && *status == "live" {
 		if (remainingString != nil) && (amountString != nil) {
 			var isLessThan bool = Precise.StringLt(remainingString, amountString)
 			if isLessThan {
-				status = "canceled"
+				status = SafeStringPtr("canceled")
 			}
 		}
 	}
@@ -1327,7 +1327,7 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(order, "fee")
 	if feeCostString != nil {
 		var feeCurrencyCode any = func() any {
-			if IsEqual(side, "sell") {
+			if side != nil && *side == "sell" {
 				return quote
 			}
 			return base

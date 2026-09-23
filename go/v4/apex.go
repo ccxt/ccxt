@@ -1690,16 +1690,16 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	if isMarket && (price == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
-	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
+	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	if IsEqual(timeInForce, nil) {
-		timeInForce = "GOOD_TIL_CANCEL"
+	if timeInForce == nil {
+		timeInForce = SafeStringPtr("GOOD_TIL_CANCEL")
 	}
 	if !isMarket {
 		if postOnly {
-			timeInForce = "POST_ONLY"
-		} else if IsEqual(timeInForce, "ioc") {
-			timeInForce = "IMMEDIATE_OR_CANCEL"
+			timeInForce = SafeStringPtr("POST_ONLY")
+		} else if timeInForce != nil && *timeInForce == "ioc" {
+			timeInForce = SafeStringPtr("IMMEDIATE_OR_CANCEL")
 		}
 	}
 	params = MapTyped(this.Omit(params, "timeInForce"))

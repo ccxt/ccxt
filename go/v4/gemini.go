@@ -2168,10 +2168,10 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if !IsEqual(typeVar, "limit") {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var clientOrderId any = DerefScalar(this.SafeString2(params, "clientOrderId", "client_order_id"))
+	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_order_id"}))
-	if IsEqual(clientOrderId, nil) {
-		clientOrderId = ToString(this.Milliseconds())
+	if clientOrderId == nil {
+		clientOrderId = SafeStringPtr(ToString(this.Milliseconds()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var amountString any = this.AmountToPrecision(symbol, amount)

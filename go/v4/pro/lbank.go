@@ -630,15 +630,15 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var parts []string = ccxt.Split(rawSide, "_")
 	var firstPart *string = this.SafeString(parts, 0)
 	var secondPart *string = this.SafeString(parts, 1)
-	var side any = firstPart
+	var side *string = firstPart
 	// reverse if it was 'maker'
 	if secondPart != nil && *secondPart == "maker" {
-		side = func() string {
-			if ccxt.IsEqual(side, "buy") {
+		side = ccxt.SafeStringPtr(func() string {
+			if side != nil && *side == "buy" {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"timestamp":    timestamp,

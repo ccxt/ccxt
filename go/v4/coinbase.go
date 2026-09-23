@@ -1557,27 +1557,27 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) any
 	}
 	var amountString *string = this.SafeString(amountAndCurrencyObject, "amount")
 	var amountStringAbs *string = Precise.StringAbs(amountString)
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	if IsEqual(status, nil) {
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+	if status == nil {
 		var committed *bool = this.SafeBool(transaction, "committed")
-		status = func() string {
+		status = SafeStringPtr(func() string {
 			if committed != nil && *committed == true {
 				return "ok"
 			}
 			return "pending"
-		}()
+		}())
 	}
 	var id *string = this.SafeString(transaction, "id")
 	var currencyId *string = this.SafeString(amountAndCurrencyObject, "currency")
 	var feeCurrencyId *string = this.SafeString(feeObject, "currency")
 	var datetime *string = this.SafeString(transaction, "created_at")
 	var resource *string = this.SafeString(transaction, "resource")
-	var typeVar any = resource
+	var typeVar *string = resource
 	if !this.InArray(typeVar, []any{"deposit", "withdrawal"}) {
 		if Precise.StringGt(amountString, "0") {
-			typeVar = "deposit"
+			typeVar = SafeStringPtr("deposit")
 		} else if Precise.StringLt(amountString, "0") {
-			typeVar = "withdrawal"
+			typeVar = SafeStringPtr("withdrawal")
 		}
 	}
 	var toObject map[string]any = SafeMapTyped(transaction, "to")
@@ -3886,16 +3886,16 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 		return this.SafeBool2(params, "postOnly", "post_only", false)
 	}()
 	var endTime *string = this.SafeString(params, "end_time")
-	var stopDirection any = DerefScalar(this.SafeString(params, "stop_direction"))
+	var stopDirection *string = this.SafeString(params, "stop_direction")
 	if IsEqual(typeVar, "limit") {
 		if isStop {
-			if IsEqual(stopDirection, nil) {
-				stopDirection = func() string {
+			if stopDirection == nil {
+				stopDirection = SafeStringPtr(func() string {
 					if IsEqual(side, "buy") {
 						return "STOP_DIRECTION_STOP_DOWN"
 					}
 					return "STOP_DIRECTION_STOP_UP"
-				}()
+				}())
 			}
 			if (timeInForce != nil && *timeInForce == "GTD") || (endTime != nil) {
 				if endTime == nil {
@@ -3923,23 +3923,23 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 		} else if isStopLoss || isTakeProfit {
 			var tpslPrice any = nil
 			if isStopLoss {
-				if IsEqual(stopDirection, nil) {
-					stopDirection = func() string {
+				if stopDirection == nil {
+					stopDirection = SafeStringPtr(func() string {
 						if IsEqual(side, "buy") {
 							return "STOP_DIRECTION_STOP_UP"
 						}
 						return "STOP_DIRECTION_STOP_DOWN"
-					}()
+					}())
 				}
 				tpslPrice = this.PriceToPrecision(symbol, stopLossPrice)
 			} else {
-				if IsEqual(stopDirection, nil) {
-					stopDirection = func() string {
+				if stopDirection == nil {
+					stopDirection = SafeStringPtr(func() string {
 						if IsEqual(side, "buy") {
 							return "STOP_DIRECTION_STOP_DOWN"
 						}
 						return "STOP_DIRECTION_STOP_UP"
-					}()
+					}())
 				}
 				tpslPrice = this.PriceToPrecision(symbol, takeProfitPrice)
 			}

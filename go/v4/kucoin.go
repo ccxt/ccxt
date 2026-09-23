@@ -4563,10 +4563,10 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code any, optio
 func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var address any = DerefScalar(this.SafeString(depositAddress, "address"))
+	var address *string = this.SafeString(depositAddress, "address")
 	// BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-	if !IsEqual(address, nil) {
-		address = Replace(address, "bitcoincash:", "")
+	if address != nil {
+		address = SafeStringPtr(Replace(address, "bitcoincash:", ""))
 	}
 	var code any = nil
 	if currency != nil {
@@ -7869,21 +7869,21 @@ func (this *Kucoin) HandleTradeType(optionalArgs ...any) any {
 	_ = isUnified
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var tradeType any = DerefScalar(this.SafeString(params, "tradeType"))
-	if IsEqual(tradeType, nil) {
+	var tradeType *string = this.SafeString(params, "tradeType")
+	if tradeType == nil {
 		if isContractMarket == true {
-			tradeType = "FUTURES"
+			tradeType = SafeStringPtr("FUTURES")
 		} else if marginMode != nil {
-			tradeType = ToUpper(marginMode)
+			tradeType = SafeStringPtr(ToUpper(marginMode))
 			if isUnified == true {
-				if IsEqual(tradeType, "ISOLATED") {
+				if tradeType != nil && *tradeType == "ISOLATED" {
 					panic(NotSupported(this.Id + " spot isolated margin is not supported for unified accountMode"))
 				} else {
-					tradeType = "MARGIN"
+					tradeType = SafeStringPtr("MARGIN")
 				}
 			}
 		} else {
-			tradeType = "SPOT"
+			tradeType = SafeStringPtr("SPOT")
 		}
 	}
 	return tradeType
@@ -9153,8 +9153,8 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 			"rate":     this.SafeString(trade, "feeRate"),
 		}
 	}
-	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
-	if IsEqual(typeVar, "match") {
+	var typeVar *string = this.SafeString(trade, "type")
+	if typeVar != nil && *typeVar == "match" {
 		typeVar = nil
 	}
 	var costString *string = this.SafeString2(trade, "funds", "dealValue")
@@ -9289,8 +9289,8 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 			"rate":     this.SafeString(trade, "feeRate"),
 		}
 	}
-	var typeVar any = DerefScalar(this.SafeString2(trade, "type", "orderType"))
-	if IsEqual(typeVar, "match") {
+	var typeVar *string = this.SafeString2(trade, "type", "orderType")
+	if typeVar != nil && *typeVar == "match" {
 		typeVar = nil
 	}
 	var costString *string = this.SafeString2(trade, "funds", "value")
@@ -10181,9 +10181,9 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	requestedType = GetValue(requestedTypeparamsVariable, 0)
 	params = MapTyped(GetValue(requestedTypeparamsVariable, 1))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	var typeVar any = DerefScalar(this.SafeString(accountsByType, requestedType, requestedType))
+	var typeVar *string = this.SafeString(accountsByType, requestedType, requestedType)
 	params = MapTyped(this.Omit(params, "type"))
-	if IsEqual(typeVar, "contract") {
+	if typeVar != nil && *typeVar == "contract" {
 
 		var retRes818419 map[string]any = MapTyped(PanicOnError((<-this.FetchContractBalanceAsync(params))))
 		ch <- BoxAbsent(retRes818419)
@@ -10193,15 +10193,15 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	hfparamsVariable := this.HandleHfAndParams(params)
 	hf = GetValue(hfparamsVariable, 0)
 	params = MapTyped(GetValue(hfparamsVariable, 1))
-	if (hf == true) && (!IsEqual(typeVar, "main")) {
-		typeVar = "trade_hf"
+	if (hf == true) && (typeVar == nil || *typeVar != "main") {
+		typeVar = SafeStringPtr("trade_hf")
 	}
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	var isolated bool = (IsEqual(marginMode, "isolated")) || (IsEqual(typeVar, "isolated"))
-	var cross bool = (IsEqual(marginMode, "cross")) || (IsEqual(typeVar, "margin"))
+	var isolated bool = (IsEqual(marginMode, "isolated")) || (typeVar != nil && *typeVar == "isolated")
+	var cross bool = (IsEqual(marginMode, "cross")) || (typeVar != nil && *typeVar == "margin")
 	if isolated {
 		if !IsEqual(currency, nil) {
 			request["balanceCurrency"] = GetValue(currency, "id")
@@ -10346,7 +10346,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 				return nil
 			}()
 			var balanceType *string = this.SafeString(balance, "type")
-			if IsEqual(balanceType, typeVar) {
+			if balanceType == typeVar || (balanceType != nil && typeVar != nil && *balanceType == *typeVar) {
 				var currencyId *string = this.SafeString(balance, "currency")
 				var codeInner2 *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()
@@ -11106,12 +11106,12 @@ func (this *Kucoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var bizType *string = this.SafeStringN(item, []any{"bizType", "businessType", "type"})
 	var typeVar *string = this.ParseLedgerEntryType(bizType)
 	var direction *string = this.SafeString2(item, "direction", "type")
-	var account any = DerefScalar(this.SafeString(item, "accountType")) // MAIN, TRADE, MARGIN, or CONTRACT
+	var account *string = this.SafeString(item, "accountType") // MAIN, TRADE, MARGIN, or CONTRACT
 	var timestamp *int64 = this.SafeInteger(item, "createdAt")
 	if timestamp == nil {
 		timestamp = this.SafeInteger(item, "time")
 		if timestamp != nil {
-			account = "CONTRACT" // contract ledger entries do not have an accountType field, so we set it to CONTRACT if the time field is present
+			account = SafeStringPtr("CONTRACT") // contract ledger entries do not have an accountType field, so we set it to CONTRACT if the time field is present
 		} else {
 			timestamp = this.SafeIntegerProduct(item, "ts", 0.000001) // for UTA API
 		}
@@ -13430,14 +13430,14 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 		timestamp = this.SafeIntegerProduct(position, "creationTime", 0.000001)
 	}
 	var size *string = this.SafeStringN(position, []any{"currentQty", "size", "maxSize", "closeSize"})
-	var side any = this.SafeStringLower(position, "side")
+	var side *string = this.SafeStringLower(position, "side")
 	var typeVar *string = this.SafeStringLower(position, "type")
-	if IsEqual(side, nil) {
+	if side == nil {
 		if size != nil {
 			if Precise.StringGt(size, "0") {
-				side = "long"
+				side = SafeStringPtr("long")
 			} else if Precise.StringLt(size, "0") {
-				side = "short"
+				side = SafeStringPtr("short")
 			}
 		} else if typeVar != nil {
 			if func() int {
@@ -13446,9 +13446,9 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 				}
 				return strings.Index(*typeVar, "long")
 			}() > -1 {
-				side = "long"
+				side = SafeStringPtr("long")
 			} else {
-				side = "short"
+				side = SafeStringPtr("short")
 			}
 		}
 	}
@@ -13459,14 +13459,14 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 	var unrealisedPnl *string = this.SafeString2(position, "unrealisedPnl", "unrealizedPnL")
 	var crossMode *bool = this.SafeBool(position, "crossMode")
 	// currently crossMode is always set to false and only isolated positions are supported
-	var marginMode any = this.SafeStringLower(position, "marginMode")
+	var marginMode *string = this.SafeStringLower(position, "marginMode")
 	if crossMode != nil {
-		marginMode = func() string {
+		marginMode = SafeStringPtr(func() string {
 			if crossMode != nil && *crossMode == true {
 				return "cross"
 			}
 			return "isolated"
-		}()
+		}())
 	}
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "closeTime")
 	if lastUpdateTimestamp == nil {
@@ -13914,13 +13914,13 @@ func (this *Kucoin) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 func (this *Kucoin) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marginType any = DerefScalar(this.SafeString(marginMode, "marginMode"))
-	marginType = func() string {
-		if IsEqual(marginType, "ISOLATED") {
+	var marginType *string = this.SafeString(marginMode, "marginMode")
+	marginType = SafeStringPtr(func() string {
+		if marginType != nil && *marginType == "ISOLATED" {
 			return "isolated"
 		}
 		return "cross"
-	}()
+	}())
 	return map[string]any{
 		"info":       marginMode,
 		"symbol":     this.SafeString(market, "symbol"),

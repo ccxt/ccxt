@@ -1490,9 +1490,19 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any,
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var sym any = ccxt.GetValue(symbolAndTimeframe, 0)
-		var tf any = ccxt.GetValue(symbolAndTimeframe, 1)
+		var symbolAndTimeframe []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
+		var sym any = func() any {
+			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[0])
+			}
+			return nil
+		}()
+		var tf any = func() any {
+			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[1])
+			}
+			return nil
+		}()
 		var marketId any = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval
@@ -1551,9 +1561,19 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var sym any = ccxt.GetValue(symbolAndTimeframe, 0)
-		var tf any = ccxt.GetValue(symbolAndTimeframe, 1)
+		var symbolAndTimeframe []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
+		var sym any = func() any {
+			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[0])
+			}
+			return nil
+		}()
+		var tf any = func() any {
+			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[1])
+			}
+			return nil
+		}()
 		var marketId any = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval
@@ -3273,12 +3293,12 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 				} else {
 					var data []any = ccxt.SafeListTyped(message, "data")
 					for i := 0; i < len(data); i++ {
-						var d any = func() any {
+						var d map[string]any = ccxt.MapTyped(func() any {
 							if i >= 0 && i < len(data) {
 								return ccxt.DerefScalar(data[i])
 							}
 							return nil
-						}()
+						}())
 						errorCode = this.SafeString(d, "sCode")
 						if errorCode != nil {
 							this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

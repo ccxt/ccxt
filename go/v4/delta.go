@@ -1027,8 +1027,8 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var typeVar any = DerefScalar(this.SafeString(market, "contract_type"))
-		if (IsEqual(typeVar, "options_combos")) || (IsEqual(typeVar, "binary_call_options")) || (IsEqual(typeVar, "binary_put_options")) {
+		var typeVar *string = this.SafeString(market, "contract_type")
+		if (typeVar != nil && *typeVar == "options_combos") || (typeVar != nil && *typeVar == "binary_call_options") || (typeVar != nil && *typeVar == "binary_put_options") {
 			continue
 		}
 		// const settlingAsset = this.safeValue (market, 'settling_asset', {});
@@ -1044,12 +1044,12 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var callOptions bool = (IsEqual(typeVar, "call_options"))
-		var putOptions bool = (IsEqual(typeVar, "put_options"))
-		var moveOptions bool = (IsEqual(typeVar, "move_options"))
-		var spot bool = (IsEqual(typeVar, "spot"))
-		var swap bool = (IsEqual(typeVar, "perpetual_futures"))
-		var future bool = (IsEqual(typeVar, "futures"))
+		var callOptions bool = (typeVar != nil && *typeVar == "call_options")
+		var putOptions bool = (typeVar != nil && *typeVar == "put_options")
+		var moveOptions bool = (typeVar != nil && *typeVar == "move_options")
+		var spot bool = (typeVar != nil && *typeVar == "spot")
+		var swap bool = (typeVar != nil && *typeVar == "perpetual_futures")
+		var future bool = (typeVar != nil && *typeVar == "futures")
 		var option bool = (callOptions || putOptions || moveOptions)
 		var strike *string = this.SafeString(market, "strike_price")
 		var expiryDatetime *string = this.SafeString(market, "settlement_time")
@@ -1070,7 +1070,7 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			if future || option {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 				if option {
-					typeVar = "option"
+					typeVar = SafeStringPtr("option")
 					var letter string = "C"
 					optionType = "call"
 					if putOptions {
@@ -1082,10 +1082,10 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 					}
 					symbol = Add(Add(Add(Add(symbol, "-"), strike), "-"), letter)
 				} else {
-					typeVar = "future"
+					typeVar = SafeStringPtr("future")
 				}
 			} else {
-				typeVar = "swap"
+				typeVar = SafeStringPtr("swap")
 			}
 		}
 		var state *string = this.SafeString(market, "state")
@@ -1775,19 +1775,19 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(product, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var sellerRole *string = this.SafeString(trade, "seller_role")
-	var side any = DerefScalar(this.SafeString(trade, "side"))
-	if IsEqual(side, nil) {
+	var side *string = this.SafeString(trade, "side")
+	if side == nil {
 		if sellerRole != nil && *sellerRole == "taker" {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		} else if sellerRole != nil && *sellerRole == "maker" {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		}
 	}
 	var takerOrMaker *string = this.SafeString(trade, "role")
 	var metaData map[string]any = SafeMapTyped(trade, "meta_data")
-	var typeVar any = DerefScalar(this.SafeString(metaData, "order_type"))
-	if !IsEqual(typeVar, nil) {
-		typeVar = Replace(typeVar, "_order", "")
+	var typeVar *string = this.SafeString(metaData, "order_type")
+	if typeVar != nil {
+		typeVar = SafeStringPtr(Replace(typeVar, "_order", ""))
 	}
 	var feeCostString *string = this.SafeString(trade, "commission")
 	var fee any = nil
@@ -2320,9 +2320,9 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	}()
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var side *string = this.SafeString(order, "side")
-	var typeVar any = DerefScalar(this.SafeString(order, "order_type"))
-	if !IsEqual(typeVar, nil) {
-		typeVar = Replace(typeVar, "_order", "")
+	var typeVar *string = this.SafeString(order, "order_type")
+	if typeVar != nil {
+		typeVar = SafeStringPtr(Replace(typeVar, "_order", ""))
 	}
 	var price *string = this.SafeString(order, "limit_price")
 	var amount *string = this.SafeString(order, "size")

@@ -188,7 +188,7 @@ func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "tickerSubs"), market["id"], true) // we need to re-subscribe to all tickers upon watching a new ticker
-	var tickerSubs any = ccxt.GetValue(this.Options, "tickerSubs")
+	var tickerSubs map[string]any = ccxt.MapTyped(ccxt.GetValue(this.Options, "tickerSubs"))
 	var request []string = ccxt.ObjectKeys(tickerSubs)
 	var messageHash any = ccxt.Add(ccxt.Add(name, "::"), market["symbol"])
 

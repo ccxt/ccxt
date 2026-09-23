@@ -1685,18 +1685,18 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(trade, "t", "time")
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var side any = this.SafeStringLower(trade, "side") // swap trades have side param
-	if !IsEqual(side, nil) {
-		side = DerefScalar(this.SafeString(Split(side, "_"), 0))
+	var side *string = this.SafeStringLower(trade, "side") // swap trades have side param
+	if side != nil {
+		side = this.SafeString(Split(side, "_"), 0)
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 	}
 	var takerOrMaker any = nil
 	var isMaker *bool = this.SafeBool2(trade, "isMaker", "isMarker")
@@ -1712,12 +1712,12 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	// if public trade
 	if isBuyerMaker != nil {
 		takerOrMaker = "taker"
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var feeCost *string = this.SafeString(trade, "commission")
 	var feeCurrncyId *string = this.SafeString(trade, "commissionAsset")
@@ -2269,8 +2269,8 @@ func (this *Hashkey) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	this.CheckAddress(address)
-	var tag any = DerefScalar(this.SafeString(depositAddress, "addressExt"))
-	if IsEqual(tag, "") {
+	var tag *string = this.SafeString(depositAddress, "addressExt")
+	if tag != nil && *tag == "" {
 		tag = nil
 	}
 	return map[string]any{
@@ -2552,15 +2552,15 @@ func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) any 
 	_ = currency
 	var id *string = this.SafeString2(transaction, "id", "orderId")
 	var address *string = this.SafeString(transaction, "address")
-	var status any = DerefScalar(this.SafeString(transaction, "status")) // for fetchDeposits
-	if IsEqual(status, nil) {
+	var status *string = this.SafeString(transaction, "status") // for fetchDeposits
+	if status == nil {
 		var success *bool = this.SafeBool(transaction, "success", false) // for withdraw
 		if success != nil && *success == true {
-			status = "ok"
+			status = SafeStringPtr("ok")
 		} else {
 			var addressUrl *string = this.SafeString(transaction, "addressUrl") // for fetchWithdrawals
 			if addressUrl != nil {
-				status = "ok"
+				status = SafeStringPtr("ok")
 			}
 		}
 	}
@@ -2600,7 +2600,7 @@ func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"fee":         fee,
 	}
 }
-func (this *Hashkey) ParseTransactionStatus(status any) *string {
+func (this *Hashkey) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"1":          "pending",
 		"2":          "pending",
@@ -4141,8 +4141,8 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) any {
 	sidereduceOnlyVariable := this.ParseOrderSideAndReduceOnly(side)
 	side = GetValue(sidereduceOnlyVariable, 0)
 	reduceOnly = GetValue(sidereduceOnlyVariable, 1)
-	var feeCurrncyId any = DerefScalar(this.SafeString(order, "feeCoin"))
-	if IsEqual(feeCurrncyId, "") {
+	var feeCurrncyId *string = this.SafeString(order, "feeCoin")
+	if feeCurrncyId != nil && *feeCurrncyId == "" {
 		feeCurrncyId = nil
 	}
 	return this.SafeOrder(map[string]any{

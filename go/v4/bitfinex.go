@@ -2193,13 +2193,13 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 			}
 		}
 	}
-	var price any = DerefScalar(this.SafeString(orderList, 16))
+	var price *string = this.SafeString(orderList, 16)
 	var triggerPrice *string = nil
 	if (orderType != nil && *orderType == "EXCHANGE STOP") || (orderType != nil && *orderType == "EXCHANGE STOP LIMIT") {
 		price = nil
 		triggerPrice = this.SafeString(orderList, 16)
 		if orderType != nil && *orderType == "EXCHANGE STOP LIMIT" {
-			price = DerefScalar(this.SafeString(orderList, 19))
+			price = this.SafeString(orderList, 19)
 		}
 	}
 	var status *string = nil

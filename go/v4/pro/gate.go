@@ -236,8 +236,8 @@ func (this *Gate) createOrdersWsBody(ch chan any, orders any, optionalArgs ...an
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = this.CreateOrdersRequest(orders, params)
-	var firstOrder any = ccxt.GetValue(orders, 0)
-	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(firstOrder, "symbol")))
+	var firstOrder map[string]any = ccxt.MapTyped(ccxt.GetValue(orders, 0))
+	var market map[string]any = ccxt.MapTyped(this.Market(firstOrder["symbol"]))
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " createOrdersWs is not supported for swap markets"))
 	}
@@ -932,7 +932,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 		}()
 		if ccxt.IsEqual(cacheLength, waitAmount) {
 			// max limit is 100
-			var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			var subscription map[string]any = ccxt.MapTyped(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash))
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{}) // needed for c#, number of args needs to match
 		}
@@ -955,13 +955,13 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 }
 func (this *Gate) GetCacheIndex(orderBook any, cache any) any {
 	var nonce *int64 = this.SafeInteger(orderBook, "nonce")
-	var firstDelta any = ccxt.GetValue(cache, 0)
+	var firstDelta map[string]any = ccxt.MapTyped(ccxt.GetValue(cache, 0))
 	var firstDeltaStart *int64 = this.SafeInteger(firstDelta, "U")
 	if (nonce != nil) && (firstDeltaStart != nil) && (*nonce < *firstDeltaStart) {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(cache); i++ {
-		var delta any = ccxt.GetValue(cache, i)
+		var delta map[string]any = ccxt.MapTyped(ccxt.GetValue(cache, i))
 		var deltaStart *int64 = this.SafeInteger(delta, "U")
 		var deltaEnd *int64 = this.SafeInteger(delta, "u")
 		if (nonce != nil) && (deltaStart != nil) && (deltaEnd != nil) && (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) && (*nonce < *deltaEnd) {
@@ -1799,7 +1799,7 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 	var result any = this.SafeList(message, "result", []any{})
 	ccxt.AddElementToObject(this.Balance, "info", result)
 	for i := 0; i < ccxt.GetArrayLength(result); i++ {
-		var rawBalance any = ccxt.GetValue(result, i)
+		var rawBalance map[string]any = ccxt.MapTyped(ccxt.GetValue(result, i))
 		var account map[string]any = this.Account()
 		var currencyId *string = this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
 		var code *string = this.SafeCurrencyCode(currencyId)

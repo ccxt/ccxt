@@ -974,19 +974,19 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	// bit2c order type:
 	// 0 = LMT,  1 = MKT
-	var typeVar any = DerefScalar(this.SafeString(orderUnified, "order_type"))
-	if IsEqual(typeVar, "0") {
-		typeVar = "limit"
-	} else if IsEqual(typeVar, "1") {
-		typeVar = "market"
+	var typeVar *string = this.SafeString(orderUnified, "order_type")
+	if typeVar != nil && *typeVar == "0" {
+		typeVar = SafeStringPtr("limit")
+	} else if typeVar != nil && *typeVar == "1" {
+		typeVar = SafeStringPtr("market")
 	}
 	// bit2c side:
 	// 0 = buy, 1 = sell
-	var side any = DerefScalar(this.SafeString(orderUnified, "type"))
-	if IsEqual(side, "0") {
-		side = "buy"
-	} else if IsEqual(side, "1") {
-		side = "sell"
+	var side *string = this.SafeString(orderUnified, "type")
+	if side != nil && *side == "0" {
+		side = SafeStringPtr("buy")
+	} else if side != nil && *side == "1" {
+		side = SafeStringPtr("sell")
 	}
 	var price *string = this.SafeString(orderUnified, "price")
 	var amount *string = nil

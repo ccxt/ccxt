@@ -1442,7 +1442,7 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger2(trade, "T", "time")
-	var tradeId any = ccxt.DerefScalar(this.SafeString2(trade, "t", "tradeId"))
+	var tradeId *string = this.SafeString2(trade, "t", "tradeId")
 	if timestamp == nil {
 		timestamp = this.SafeInteger(trade, "t")
 		tradeId = nil

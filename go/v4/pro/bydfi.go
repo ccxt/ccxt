@@ -1291,12 +1291,12 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 			"datetime":  this.Iso8601(timestamp),
 		}
 		for i := 0; i < len(balances); i++ {
-			var balance any = func() any {
+			var balance map[string]any = ccxt.MapTyped(func() any {
 				if i >= 0 && i < len(balances) {
 					return ccxt.DerefScalar(balances[i])
 				}
 				return nil
-			}()
+			}())
 			var currencyId *string = this.SafeString(balance, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()

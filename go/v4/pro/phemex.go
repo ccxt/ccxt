@@ -417,7 +417,7 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 	//
 	ccxt.AddElementToObject(this.Balance, "info", message)
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
-		var balance any = ccxt.GetValue(message, i)
+		var balance map[string]any = ccxt.MapTyped(ccxt.GetValue(message, i))
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency map[string]any = ccxt.SafeMapTyped(this.Currencies, code)
@@ -1575,8 +1575,8 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "orderID")
-	var clientOrderId any = ccxt.DerefScalar(this.SafeString(order, "clOrdID"))
-	if (!ccxt.IsEqual(clientOrderId, nil)) && (ccxt.GetLength(clientOrderId) < 1) {
+	var clientOrderId *string = this.SafeString(order, "clOrdID")
+	if (clientOrderId != nil) && (ccxt.GetLength(clientOrderId) < 1) {
 		clientOrderId = nil
 	}
 	var marketId *string = this.SafeString(order, "symbol")
@@ -1592,8 +1592,8 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	var remaining *string = this.SafeString(order, "leavesQty")
 	var timestamp *int64 = this.SafeIntegerProduct(order, "actionTimeNs", 0.000001)
 	var cost *string = this.SafeString(order, "cumValueRv", this.FromEv(this.SafeString(order, "cumValueEv"), market))
-	var lastTradeTimestamp any = this.SafeIntegerProduct(order, "transactTimeNs", 0.000001)
-	if ccxt.IsEqual(lastTradeTimestamp, 0) {
+	var lastTradeTimestamp *int64 = this.SafeIntegerProduct(order, "transactTimeNs", 0.000001)
+	if lastTradeTimestamp != nil && *lastTradeTimestamp == 0 {
 		lastTradeTimestamp = nil
 	}
 	var timeInForce any = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))

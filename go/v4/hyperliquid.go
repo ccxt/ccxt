@@ -1114,15 +1114,15 @@ func (this *Hyperliquid) ParseMarket(market any) any {
 		return *collateralTokenCode
 	}()
 	var baseName *string = this.SafeString(market, "name")
-	var base any = DerefScalar(this.SafeCurrencyCode(baseName))
+	var base *string = this.SafeCurrencyCode(baseName)
 	if base == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing base currency"))
 	}
-	base = Replace(base, ":", "-") // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
+	base = SafeStringPtr(Replace(base, ":", "-")) // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var baseId *string = this.SafeString(market, "baseId")
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = Add(*base+"/", quote)
 	var contract bool = true
 	var swap bool = true
 	if contract {
@@ -2320,9 +2320,9 @@ func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan any) any {
 			var builder *string = this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 			// when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
 			// but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
-			var maxFeeRate any = DerefScalar(this.SafeString(this.Options, "feeRate", "0.01%"))
+			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0.01%")
 			if buildFee == nil || *buildFee != true {
-				maxFeeRate = "0%"
+				maxFeeRate = SafeStringPtr("0%")
 			}
 
 			PanicOnError((<-this.ApproveBuilderFeeAsync(builder, maxFeeRate)))
@@ -2838,8 +2838,8 @@ func (this *Hyperliquid) CreateOrderRequest(symbol any, typeVar any, side any, a
 	if postOnly != nil && *postOnly == true {
 		defaultTimeInForce = "alo"
 	}
-	var timeInForce any = this.SafeStringLower(params, "timeInForce", defaultTimeInForce)
-	timeInForce = this.Capitalize(timeInForce)
+	var timeInForce *string = this.SafeStringLower(params, "timeInForce", defaultTimeInForce)
+	timeInForce = SafeStringPtr(this.Capitalize(timeInForce))
 	var triggerPrice any = DerefScalar(this.SafeString2(params, "triggerPrice", "stopPrice"))
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
@@ -2944,7 +2944,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		var symbol any = market["symbol"]
 		var typeVar *string = this.SafeStringUpper(rawOrder, "type")
 		var side *string = this.SafeStringUpper(rawOrder, "side")
-		var amount any = DerefScalar(this.SafeString(rawOrder, "amount"))
+		var amount *string = this.SafeString(rawOrder, "amount")
 		var price *string = this.SafeString(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var slippage *string = this.SafeString(orderParams, "slippage", defaultSlippage)
@@ -2958,16 +2958,16 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		if hasStopLoss || hasTakeProfit {
 			// grouping opposed orders for sl/tp
 			var stopLossOrderTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
-			var stopLossOrderType any = DerefScalar(this.SafeString(stopLoss, "type", "limit"))
+			var stopLossOrderType *string = this.SafeString(stopLoss, "type", "limit")
 			var stopLossOrderLimitPrice *string = this.SafeString2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice)
 			var takeProfitOrderTriggerPrice *string = this.SafeString2(takeProfit, "triggerPrice", "stopPrice")
-			var takeProfitOrderType any = DerefScalar(this.SafeString(takeProfit, "type", "limit"))
+			var takeProfitOrderType *string = this.SafeString(takeProfit, "type", "limit")
 			var takeProfitOrderLimitPrice *string = this.SafeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
 			grouping = DerefScalar(this.SafeString(orderParams, "grouping", "normalTpsl"))
 			if IsEqual(grouping, "positionTpsl") {
-				amount = "0"
-				stopLossOrderType = "market"
-				takeProfitOrderType = "market"
+				amount = SafeStringPtr("0")
+				stopLossOrderType = SafeStringPtr("market")
+				takeProfitOrderType = SafeStringPtr("market")
 			} else if IsEqual(grouping, "normalTpsl") {
 				orderReq = append(orderReq, mainOrderObj)
 			} else {
@@ -3524,8 +3524,8 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 		if postOnly != nil && *postOnly == true {
 			defaultTimeInForce = "alo"
 		}
-		var timeInForce any = this.SafeStringLower(orderParams, "timeInForce", defaultTimeInForce)
-		timeInForce = this.Capitalize(timeInForce)
+		var timeInForce *string = this.SafeStringLower(orderParams, "timeInForce", defaultTimeInForce)
+		timeInForce = SafeStringPtr(this.Capitalize(timeInForce))
 		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
 		var triggerPrice any = DerefScalar(this.SafeString2(orderParams, "triggerPrice", "stopPrice"))
 		var stopLossPrice *string = this.SafeString(orderParams, "stopLossPrice", triggerPrice)
@@ -4428,14 +4428,14 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 	var status *string = this.SafeString2(order, "status", "ccxtStatus")
 	order = this.Omit(order, []any{"ccxtStatus"})
-	var side any = DerefScalar(this.SafeString(entry, "side"))
-	if !IsEqual(side, nil) {
-		side = func() string {
-			if IsEqual(side, "A") {
+	var side *string = this.SafeString(entry, "side")
+	if side != nil {
+		side = SafeStringPtr(func() string {
+			if side != nil && *side == "A" {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var totalAmount *string = this.SafeString2(entry, "origSz", "totalSz")
 	var remaining *string = this.SafeString(entry, "sz")
@@ -4646,14 +4646,14 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
 	market = MapTyped(this.SafeMarket(marketId))
 	var symbol any = GetValue(market, "symbol")
 	var id *string = this.SafeString(trade, "tid")
-	var side any = DerefScalar(this.SafeString(trade, "side"))
-	if !IsEqual(side, nil) {
-		side = func() string {
-			if IsEqual(side, "A") {
+	var side *string = this.SafeString(trade, "side")
+	if side != nil {
+		side = SafeStringPtr(func() string {
+			if side != nil && *side == "A" {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var fee *string = this.SafeString(trade, "fee")
 	var takerOrMaker any = nil

@@ -368,7 +368,7 @@ func (this *Coinex) HandleBalance(client any, message map[string]any) {
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var balances any = this.SafeList(data, "balance_list", []any{})
-	var firstEntry any = ccxt.GetValue(balances, 0)
+	var firstEntry map[string]any = ccxt.MapTyped(ccxt.GetValue(balances, 0))
 	var updated *int64 = this.SafeInteger(firstEntry, "updated_at")
 	var unrealizedPnl *string = this.SafeString(firstEntry, "unrealized_pnl")
 	var isSpot bool = (updated != nil)

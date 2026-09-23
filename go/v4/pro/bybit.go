@@ -927,10 +927,20 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(data, 0)))
+		var data []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
+		var market map[string]any = ccxt.MapTyped(this.Market(func() any {
+			if 0 >= 0 && 0 < len(data) {
+				return ccxt.DerefScalar(data[0])
+			}
+			return nil
+		}()))
 		var symbolString any = market["symbol"]
-		var unfiedTimeframe any = ccxt.GetValue(data, 1)
+		var unfiedTimeframe any = func() any {
+			if 1 >= 0 && 1 < len(data) {
+				return ccxt.DerefScalar(data[1])
+			}
+			return nil
+		}()
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		rawHashes = append(rawHashes, ccxt.Add("kline."+*timeframeId+".", market["id"]))
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolString), "::"), unfiedTimeframe))
@@ -982,10 +992,20 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(data, 0)))
+		var data []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
+		var market map[string]any = ccxt.MapTyped(this.Market(func() any {
+			if 0 >= 0 && 0 < len(data) {
+				return ccxt.DerefScalar(data[0])
+			}
+			return nil
+		}()))
 		var symbolString any = market["symbol"]
-		var unfiedTimeframe any = ccxt.GetValue(data, 1)
+		var unfiedTimeframe any = func() any {
+			if 1 >= 0 && 1 < len(data) {
+				return ccxt.DerefScalar(data[1])
+			}
+			return nil
+		}()
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		rawHashes = append(rawHashes, ccxt.Add("kline."+*timeframeId+".", market["id"]))
 		subMessageHashes = append(subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolString), "::"), unfiedTimeframe))
@@ -1651,16 +1671,16 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, marketType))
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeInteger2(trade, "t", "T")
-	var side any = this.SafeStringLower(trade, "S")
+	var side *string = this.SafeStringLower(trade, "S")
 	var takerOrMaker any = nil
 	var m any = this.SafeValue(trade, "m")
-	if ccxt.IsEqual(side, nil) {
-		side = func() string {
+	if side == nil {
+		side = ccxt.SafeStringPtr(func() string {
 			if m == true {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 	} else {
 		// spot private
 		takerOrMaker = m
@@ -1744,13 +1764,13 @@ func (this *Bybit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"unified": "execution",
 		"usdc":    "user.openapi.perp.trade",
 	}
-	var topic any = ccxt.DerefScalar(this.SafeString(topicByMarket, this.GetPrivateType(url)))
+	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
 	var executionFast bool = false
 	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValueBool(executionFastparamsVariable, 0, false)
 	params = ccxt.MapTyped(ccxt.GetValue(executionFastparamsVariable, 1))
 	if executionFast {
-		topic = "execution.fast"
+		topic = ccxt.SafeStringPtr("execution.fast")
 	}
 
 	trades := (<-this.WatchTopicsAsync(url, []any{messageHash}, []any{topic}, params))
@@ -1807,13 +1827,13 @@ func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"unified": "execution",
 		"usdc":    "user.openapi.perp.trade",
 	}
-	var topic any = ccxt.DerefScalar(this.SafeString(topicByMarket, this.GetPrivateType(url)))
+	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
 	var executionFast bool = false
 	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValueBool(executionFastparamsVariable, 0, false)
 	params = ccxt.MapTyped(ccxt.GetValue(executionFastparamsVariable, 1))
 	if executionFast {
-		topic = "execution.fast"
+		topic = ccxt.SafeStringPtr("execution.fast")
 	}
 
 	retRes138515 := (<-this.UnWatchTopicsAsync(url, "myTrades", []any{}, []any{messageHash}, []any{subHash}, []any{topic}, params))
@@ -1942,9 +1962,9 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 			parsed = this.ParseWsTrade(rawTrade)
 		} else {
 			// filter unified trades
-			var execType any = ccxt.DerefScalar(this.SafeString(rawTrade, "execType", ""))
+			var execType *string = this.SafeString(rawTrade, "execType", "")
 			if executionFast {
-				execType = "Trade"
+				execType = ccxt.SafeStringPtr("Trade")
 			}
 			if (!ccxt.IsEqual(execTypes, nil)) && !this.InArray(execType, execTypes) {
 				continue
@@ -2077,9 +2097,14 @@ func (this *Bybit) loadPositionsSnapshotBody(ch chan any, client any, messageHas
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache any = this.Positions
 	for i := 0; i < ccxt.GetArrayLength(promises); i++ {
-		var positions any = ccxt.GetValue(promises, i)
-		for ii := 0; ii < ccxt.GetArrayLength(positions); ii++ {
-			var position any = ccxt.GetValue(positions, ii)
+		var positions []any = ccxt.ArrayTyped(ccxt.GetValue(promises, i))
+		for ii := 0; ii < len(positions); ii++ {
+			var position any = func() any {
+				if ii >= 0 && ii < len(positions) {
+					return ccxt.DerefScalar(positions[ii])
+				}
+				return nil
+			}()
 			cache.(ccxt.Appender).Append(position)
 		}
 	}

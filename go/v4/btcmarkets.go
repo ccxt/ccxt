@@ -579,9 +579,9 @@ func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) a
 	_ = currency
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "creationTime"))
 	var lastUpdate *int64 = this.Parse8601(this.SafeString(transaction, "lastUpdate"))
-	var typeVar any = this.ParseTransactionType(this.SafeStringLower(transaction, "type"))
-	if IsEqual(typeVar, "withdraw") {
-		typeVar = "withdrawal"
+	var typeVar *string = this.ParseTransactionType(this.SafeStringLower(transaction, "type"))
+	if typeVar != nil && *typeVar == "withdraw" {
+		typeVar = SafeStringPtr("withdrawal")
 	}
 	var cryptoPaymentDetail map[string]any = SafeMapTyped(transaction, "paymentDetail")
 	var txid *string = this.SafeString(cryptoPaymentDetail, "txId")
@@ -1113,11 +1113,11 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 		return GetValue(market, "base")
 	}()
-	var side any = DerefScalar(this.SafeString(trade, "side"))
-	if IsEqual(side, "Bid") {
-		side = "buy"
-	} else if IsEqual(side, "Ask") {
-		side = "sell"
+	var side *string = this.SafeString(trade, "side")
+	if side != nil && *side == "Bid" {
+		side = SafeStringPtr("buy")
+	} else if side != nil && *side == "Ask" {
+		side = SafeStringPtr("sell")
 	}
 	var id *string = this.SafeString(trade, "id")
 	var priceString *string = this.SafeString(trade, "price")
@@ -1493,11 +1493,11 @@ func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "creationTime"))
 	var marketId *string = this.SafeString(order, "marketId")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var side any = DerefScalar(this.SafeString(order, "side"))
-	if IsEqual(side, "Bid") {
-		side = "buy"
-	} else if IsEqual(side, "Ask") {
-		side = "sell"
+	var side *string = this.SafeString(order, "side")
+	if side != nil && *side == "Bid" {
+		side = SafeStringPtr("buy")
+	} else if side != nil && *side == "Ask" {
+		side = SafeStringPtr("sell")
 	}
 	var typeVar *string = this.SafeStringLower(order, "type")
 	var price *string = this.SafeString(order, "price")

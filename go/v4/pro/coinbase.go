@@ -590,12 +590,12 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 	var timestamp *int64 = this.Parse8601(datetime)
 	var newTickers []any = []any{}
 	for i := 0; i < len(events); i++ {
-		var tickersObj any = func() any {
+		var tickersObj map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(events) {
 				return ccxt.DerefScalar(events[i])
 			}
 			return nil
-		}()
+		}())
 		var tickers []any = ccxt.SafeListTyped(tickersObj, "tickers")
 		for j := 0; j < len(tickers); j++ {
 			var ticker any = func() any {
@@ -1037,7 +1037,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 	}
 	for i := 0; i < ccxt.GetArrayLength(events); i++ {
-		var currentEvent any = ccxt.GetValue(events, i)
+		var currentEvent map[string]any = ccxt.MapTyped(ccxt.GetValue(events, i))
 		var currentTrades any = this.SafeList(currentEvent, "trades")
 		if ccxt.IsEqual(currentTrades, nil) {
 			continue
@@ -1091,7 +1091,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	for i := 0; i < ccxt.GetArrayLength(events); i++ {
-		var event any = ccxt.GetValue(events, i)
+		var event map[string]any = ccxt.MapTyped(ccxt.GetValue(events, i))
 		var responseOrders any = this.SafeList(event, "orders")
 		if ccxt.IsEqual(responseOrders, nil) {
 			continue
@@ -1177,7 +1177,7 @@ func (this *Coinbase) ParseWsOrder(order any, optionalArgs ...any) any {
 }
 func (this *Coinbase) HandleOrderBookHelper(orderbook any, updates any) {
 	for i := 0; i < ccxt.GetArrayLength(updates); i++ {
-		var trade any = ccxt.GetValue(updates, i)
+		var trade map[string]any = ccxt.MapTyped(ccxt.GetValue(updates, i))
 		var sideId *string = this.SafeString(trade, "side")
 		var side *string = this.SafeString(ccxt.GetValue(this.Options, "sides"), sideId)
 		var price *float64 = this.SafeNumber(trade, "price_level")
@@ -1221,7 +1221,7 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 	}
 	var datetime *string = this.SafeString(message, "timestamp")
 	for i := 0; i < ccxt.GetArrayLength(events); i++ {
-		var event any = ccxt.GetValue(events, i)
+		var event map[string]any = ccxt.MapTyped(ccxt.GetValue(events, i))
 		var updates any = this.SafeList(event, "updates", []any{})
 		var marketId *string = this.SafeString(event, "product_id")
 		// sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases

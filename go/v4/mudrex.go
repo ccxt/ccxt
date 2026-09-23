@@ -670,21 +670,21 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Mudrex) ParseMarket(asset any) any {
 	var ms *string = this.SafeString(asset, "symbol")
-	var base any = ms
+	var base *string = ms
 	if (ms != nil) && EndsWith(ms, "USDT") {
-		base = func() string {
+		base = SafeStringPtr(func() string {
 			if ms == nil {
 				return ""
 			}
 			str := *ms
 			return str[0 : len(str)-4]
-		}()
+		}())
 	}
 	var quote string = "USDT"
 	var settle string = "USDT"
 	var symbol any = nil
-	if !IsEqual(base, nil) {
-		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+	if base != nil {
+		symbol = *base + "/" + quote + ":" + settle
 	}
 	var priceStep *string = this.SafeString(asset, "price_step", "0.01")
 	var qtyStep *string = this.SafeString(asset, "quantity_step", "0.001")
@@ -785,9 +785,9 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetFuturesFunds(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	}
-	var currency any = requested
-	if IsEqual(currency, nil) {
-		currency = "USDT"
+	var currency *string = requested
+	if currency == nil {
+		currency = SafeStringPtr("USDT")
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " fetchBalance() returned empty response"))
@@ -1114,7 +1114,7 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
 	// stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
 	var isRiskOrder bool = (rawSide != nil && *rawSide == "STOPLOSS") || (rawSide != nil && *rawSide == "TAKEPROFIT")
 	var priceString *string = this.SafeString2(order, "price", "order_price")
-	var orderPrice any = priceString
+	var orderPrice *string = priceString
 	var triggerPrice *string = nil
 	var stopLossPrice *string = nil
 	var takeProfitPrice *string = nil

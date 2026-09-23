@@ -3419,16 +3419,16 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 		"symbol":  market["id"],
 		"origQty": this.AmountToPrecision(symbol, amount),
 	}
-	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
+	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnly any = nil
-	var postOnlyparamsVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), IsEqual(timeInForce, "GTX"), params)
+	var postOnlyparamsVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (timeInForce != nil && *timeInForce == "GTX"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = MapTyped(GetValue(postOnlyparamsVariable, 1))
 	if postOnly == true {
-		timeInForce = "GTX"
+		timeInForce = SafeStringPtr("GTX")
 	}
 	params = MapTyped(this.Omit(params, []any{"timeInForce", "postOnly"}))
-	if !IsEqual(timeInForce, nil) {
+	if timeInForce != nil {
 		request["timeInForce"] = timeInForce
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
@@ -3506,7 +3506,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 		}
 	} else if isTrigger {
 		request["timeInForce"] = func() any {
-			if IsEqual(timeInForce, nil) {
+			if timeInForce == nil {
 				return "GTC"
 			}
 			return timeInForce
@@ -5011,17 +5011,17 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) any {
 		return Precise.StringMul(this.NumberToString(filledQuantity), this.NumberToString(GetValue(market, "contractSize")))
 	}()
 	var lastUpdatedTimestamp *int64 = this.SafeInteger(order, "updatedTime")
-	var timeInForce any = DerefScalar(this.SafeString(order, "timeInForce"))
+	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly any = nil
-	if !IsEqual(timeInForce, nil) {
-		if IsEqual(timeInForce, "GTX") {
+	if timeInForce != nil {
+		if timeInForce != nil && *timeInForce == "GTX" {
 			// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-			timeInForce = "PO"
+			timeInForce = SafeStringPtr("PO")
 		}
-		postOnly = (IsEqual(timeInForce, "PO"))
+		postOnly = (timeInForce != nil && *timeInForce == "PO")
 	}
-	var side any = this.SafeStringLower2(order, "side", "orderSide")
-	if IsEqual(side, nil) {
+	var side *string = this.SafeStringLower2(order, "side", "orderSide")
+	if side == nil {
 		// the stop loss and take profit entries carry only the position
 		// side, they close the position, so a long position closes with a
 		// sell and a short position closes with a buy
@@ -5029,9 +5029,9 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) any {
 		var positionSide *string = this.SafeString(order, "positionSide")
 		if positionSide != nil {
 			if positionSide != nil && *positionSide == "LONG" {
-				side = "sell"
+				side = SafeStringPtr("sell")
 			} else {
-				side = "buy"
+				side = SafeStringPtr("buy")
 			}
 		}
 	}

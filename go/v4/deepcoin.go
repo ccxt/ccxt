@@ -3172,8 +3172,8 @@ func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var state *string = this.SafeString(order, "state")
 	var orderType *string = this.SafeString(order, "ordType")
-	var average any = DerefScalar(this.SafeString(order, "avgPx"))
-	if IsEqual(average, "") {
+	var average *string = this.SafeString(order, "avgPx")
+	if average != nil && *average == "" {
 		average = nil
 	}
 	var feeCurrencyId *string = this.SafeString(order, "feeCcy")

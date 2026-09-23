@@ -1055,9 +1055,9 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			var totalAmount any = "0"
 			var trades any = ccxt.GetValue(previousOrder, "trades")
 			for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-				var currentTrade any = ccxt.GetValue(trades, i)
-				totalCost = ccxt.Precise.StringAdd(totalCost, this.NumberToString(ccxt.GetValue(currentTrade, "cost")))
-				totalAmount = ccxt.Precise.StringAdd(totalAmount, this.NumberToString(ccxt.GetValue(currentTrade, "amount")))
+				var currentTrade map[string]any = ccxt.MapTyped(ccxt.GetValue(trades, i))
+				totalCost = ccxt.Precise.StringAdd(totalCost, this.NumberToString(currentTrade["cost"]))
+				totalAmount = ccxt.Precise.StringAdd(totalAmount, this.NumberToString(currentTrade["amount"]))
 			}
 			if ccxt.Precise.StringGt(totalAmount, "0") {
 				ccxt.AddElementToObject(previousOrder, "average", ccxt.Precise.StringDiv(totalCost, totalAmount))
@@ -1495,14 +1495,14 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 		return
 	}
 	for i := 0; i < ccxt.GetArrayLength(bids); i++ {
-		var bid any = ccxt.GetValue(bids, i)
+		var bid map[string]any = ccxt.MapTyped(ccxt.GetValue(bids, i))
 		var price *float64 = this.SafeNumber(bid, "price")
 		var qty *float64 = this.SafeNumber(bid, "qty")
 		var bidsSide any = ccxt.GetValue(orderbook, "bids")
 		bidsSide.(ccxt.IOrderBookSide).Store(price, qty)
 	}
 	for i := 0; i < ccxt.GetArrayLength(asks); i++ {
-		var ask any = ccxt.GetValue(asks, i)
+		var ask map[string]any = ccxt.MapTyped(ccxt.GetValue(asks, i))
 		var price *float64 = this.SafeNumber(ask, "price")
 		var qty *float64 = this.SafeNumber(ask, "qty")
 		var asksSide any = ccxt.GetValue(orderbook, "asks")
