@@ -5031,6 +5031,8 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     // the scalar-literal locals of the same shape
     installCcxtGoScalarLiteralLift (goTranspiler);
     installCcxtGoElementReadUnbox (goTranspiler);
+    // string locals grown by `x += s` / `x = x + s`
+    installCcxtGoStringConcatJoin (goTranspiler);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -5173,6 +5175,164 @@ function installCcxtGoElementReadUnbox (goTranspiler) {
         return innerListValue.call (this, declaration, identation);
     };
     goTranspiler.__ccxtGoElementReadUnboxInstalled = true;
+}
+
+// ------------------------- G6b: string concat write-site join -------------------------
+// `var x any = "lit"` later grown by `x += s` / `x = x + s`: the printer concatenates natively
+// once x is `string` and every other leaf is a Go string. This mirrors that proof, assuming
+// the local itself is `string` (coinductively) so the self-reference does not recurse.
+function ccxtGoConcatJoinLeafIsString (goTranspiler, node, declaration, derefOk) {
+    if ((node?.kind === ts.SyntaxKind.Identifier) && (node.escapedText === declaration.name.escapedText)) {
+        let target;
+        try {
+            target = goTranspiler.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+        } catch (e) {
+            return false;
+        }
+        return target === declaration;
+    }
+    if (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        return ccxtGoConcatJoinLeafIsString (goTranspiler, node.expression, declaration, false);
+    }
+    if ((node?.kind === ts.SyntaxKind.BinaryExpression) && (node.operatorToken?.kind === ts.SyntaxKind.PlusToken)
+        && ccxtGoConcatJoinMentions (node, declaration.name.escapedText)) {
+        return ccxtGoConcatJoinLeafIsString (goTranspiler, node.left, declaration, true)
+            && ccxtGoConcatJoinLeafIsString (goTranspiler, node.right, declaration, true);
+    }
+    if (ccxtGoConcatJoinMentions (node, declaration.name.escapedText)) {
+        return false; // any other shape reading x would print it before x is resolved
+    }
+    const printed = goTranspiler.printNode (node, 0);
+    return derefOk
+        ? (goTranspiler.goStringConcatOperandType (node, printed) === 'string')
+        : (goTranspiler.goOperandStaticType (node, printed) === 'string');
+}
+
+function ccxtGoConcatJoinMentions (node, name) {
+    if (node === undefined) {
+        return false;
+    }
+    if ((node.kind === ts.SyntaxKind.Identifier) && (node.escapedText === name)) {
+        return true;
+    }
+    return ts.forEachChild (node, (child) => (ccxtGoConcatJoinMentions (child, name) ? true : undefined)) === true;
+}
+
+// true when every use the shipped scan vetoes is a string-growing write, and no read needs
+// the box (nil comparison, member read, non-string literal comparison, spread, destructuring)
+function ccxtGoStringConcatJoinIsSafe (goTranspiler, scope, declaration, varName) {
+    if ((scope === undefined) || (declaration?.kind !== ts.SyntaxKind.VariableDeclaration)
+        || (declaration.name?.kind !== ts.SyntaxKind.Identifier)
+        || (declaration.parent?.parent?.kind !== ts.SyntaxKind.FirstStatement)
+        || (typeof goTranspiler.goStringConcatOperandType !== 'function')
+        || (typeof goTranspiler.goOperandStaticType !== 'function')) {
+        return false;
+    }
+    const init = declaration.initializer;
+    if ((init?.kind !== ts.SyntaxKind.StringLiteral) && (init?.kind !== ts.SyntaxKind.NoSubstitutionTemplateLiteral)) {
+        return false;
+    }
+    let grown = 0;
+    let unsafe = false;
+    const visit = (n) => {
+        if (unsafe) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)) {
+            const parent = n.parent;
+            if ((parent?.kind === ts.SyntaxKind.VariableDeclaration) || (parent?.kind === ts.SyntaxKind.Parameter)) {
+                unsafe = true; // a second binding of the name
+                return;
+            }
+            if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)) {
+                const op = parent.operatorToken.kind;
+                if (op === ts.SyntaxKind.EqualsToken) {
+                    if (ccxtGoConcatJoinMentions (parent.right, varName)) {
+                        if (!ccxtGoConcatJoinLeafIsString (goTranspiler, parent.right, declaration, true)) {
+                            unsafe = true;
+                            return;
+                        }
+                        grown += 1;
+                    } else if (goTranspiler.goTypeOfInitializer (parent.right, goTranspiler.printNode (parent.right, 0)) !== 'string') {
+                        unsafe = true;
+                        return;
+                    }
+                    ts.forEachChild (parent.right, visitReadsOnly);
+                    return;
+                }
+                if (op === ts.SyntaxKind.PlusEqualsToken) {
+                    if (!ccxtGoConcatJoinLeafIsString (goTranspiler, parent.right, declaration, false)
+                        || ((parent.right.kind !== ts.SyntaxKind.BinaryExpression)
+                            && (goTranspiler.goOperandStaticType (parent.right, goTranspiler.printNode (parent.right, 0)) !== 'string'))) {
+                        unsafe = true;
+                        return;
+                    }
+                    grown += 1;
+                    return;
+                }
+                unsafe = true;
+                return;
+            }
+            if (ccxtGoStringConcatReadVetoes (n, parent)) {
+                unsafe = true;
+                return;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    // reads nested in a write's right-hand side still take the read vetoes
+    const visitReadsOnly = (n) => {
+        if (unsafe) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && ccxtGoStringConcatReadVetoes (n, n.parent)) {
+            unsafe = true;
+            return;
+        }
+        ts.forEachChild (n, visitReadsOnly);
+    };
+    ts.forEachChild (scope, visit);
+    return !unsafe && (grown > 0);
+}
+
+function ccxtGoStringConcatReadVetoes (n, parent) {
+    if (parent === undefined) {
+        return true;
+    }
+    if (((parent.kind === ts.SyntaxKind.PrefixUnaryExpression) || (parent.kind === ts.SyntaxKind.PostfixUnaryExpression))
+        && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken))) {
+        return true;
+    }
+    if (((parent.kind === ts.SyntaxKind.PropertyAccessExpression) || (parent.kind === ts.SyntaxKind.ElementAccessExpression))
+        && (parent.expression === n)) {
+        return true; // `x.length` / `x[i]`
+    }
+    if ((parent.kind === ts.SyntaxKind.SpreadElement) || ((parent.kind === ts.SyntaxKind.CallExpression) && (parent.expression === n))
+        || isDestructuringTarget (n)) {
+        return true;
+    }
+    if ((parent.kind === ts.SyntaxKind.BinaryExpression) && ((parent.left === n) || (parent.right === n))) {
+        const other = (parent.left === n) ? parent.right : parent.left;
+        if (isNilLiteralExpression (other) || isNonStringLiteralOperand (other)) {
+            return true; // `x == nil` / `x == 0` do not compile against a Go string
+        }
+    }
+    return false;
+}
+
+function installCcxtGoStringConcatJoin (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoStringConcatJoinInstalled
+        || (typeof goTranspiler.goLocalIsSafeToType !== 'function')) {
+        return;
+    }
+    const upstreamSafe = goTranspiler.goLocalIsSafeToType;
+    goTranspiler.goLocalIsSafeToType = function (scope, declaration, varName, goType) {
+        if (upstreamSafe.call (this, scope, declaration, varName, goType)) {
+            return true;
+        }
+        return (goType === 'string') && ccxtGoStringConcatJoinIsSafe (this, scope, declaration, varName);
+    };
+    goTranspiler.__ccxtGoStringConcatJoinInstalled = true;
 }
 
 // ---------------------------------------------------------------------------------------------
