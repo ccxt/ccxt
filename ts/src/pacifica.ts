@@ -3611,7 +3611,7 @@ export default class pacifica extends Exchange {
         const signature = this.signMessage (signatureHeader, sigPayload, this.privateKey);
         const finalHeaders: Dict = { };
         const [ agentAddress, paramsAgentAddress ] = this.handleOptionAndParams (paramsExpiryWindow, 'postActionRequest', 'agentAddress');
-        const [ originAddress ] = this.handleOriginAndSingleAddress ('postActionRequest', paramsAgentAddress);
+        const originAddress = this.handleOriginAndSingleAddress ('postActionRequest', paramsAgentAddress)[0];
         if (originAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }

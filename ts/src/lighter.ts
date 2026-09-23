@@ -401,7 +401,7 @@ export default class lighter extends Exchange {
         if (signer !== undefined) {
             return signer;
         }
-        const [ libraryPath ] = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath');
+        const libraryPath = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath')[0];
         const lighterPrivateKeyIsSet = (privateKey !== undefined) && (privateKey !== '');
         if (lighterPrivateKeyIsSet && (libraryPath !== undefined) && (apiKeyIndex !== undefined) && (accountIndex !== undefined)) {
             // load lighter library, and create lighter client
@@ -466,7 +466,7 @@ export default class lighter extends Exchange {
      */
     async preLoadLighterLibrary (params: Dict = {}): Promise<boolean> {
         const [ apiKeyIndex, paramsApiKeyIndex ] = this.handleApiKeyIndex (params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
-        const [ accountIndex ] = await this.handleAccountIndex (paramsApiKeyIndex, 'loadAccount', 'accountIndex', 'account_index');
+        const accountIndex = (await this.handleAccountIndex (paramsApiKeyIndex, 'loadAccount', 'accountIndex', 'account_index'))[0];
         if (accountIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' requires accountIndex or account_index');
         }
@@ -898,7 +898,7 @@ export default class lighter extends Exchange {
             return nonceInOptions;
         }
         // avoid skipNonce for l1 operations
-        const [ skipNonce ] = this.handleOptionAndParams (params, 'fetchNonce', 'skipNonce', true);
+        const skipNonce = this.handleOptionAndParams (params, 'fetchNonce', 'skipNonce', true)[0];
         if (skipNonce) {
             return this.milliseconds ();
         }

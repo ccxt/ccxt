@@ -1593,7 +1593,7 @@ export default class dydx extends Exchange {
         const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
         const orderFlags = this.safeInteger (paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
         const subAccountId = 0;
-        const [ subAccountIdOption ] = this.handleOptionAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId);
+        const subAccountIdOption = this.handleOptionAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0];
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder (this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }

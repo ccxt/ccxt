@@ -742,13 +742,13 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const type = 'spot';
-        const [ typeMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
+        const typeMarketType = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type)[0];
         const messageHash = 'balance:' + typeMarketType;
         const url = this.getPrivateUrl (listenKey);
         const client = this.client (url);
         this.setBalanceCache (client, typeMarketType, messageHash);
-        const [ fetchBalanceSnapshot ] = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        const [ awaitBalanceSnapshot ] = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
+        const fetchBalanceSnapshot = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
+        const awaitBalanceSnapshot = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (typeMarketType + ':fetchBalanceSnapshot');
         }

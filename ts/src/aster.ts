@@ -4030,7 +4030,7 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn ();
         await this.loadLeverageBrackets (false, params);
         const response = await this.fapiPrivateGetV4Account (params);
-        const [ filterClosed ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'filterClosed', false);
+        const filterClosed = this.handleOptionAndParams (params, 'fetchAccountPositions', 'filterClosed', false)[0];
         const result = this.parseAccountPositions (response, filterClosed);
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);

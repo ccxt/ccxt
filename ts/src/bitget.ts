@@ -6616,7 +6616,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ productType ] = this.handleProductTypeAndParams (market, params);
+        const productType = this.handleProductTypeAndParams (market, params)[0];
         const requestList: List = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = ids[i];

@@ -220,7 +220,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
-        const [ channel ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
+        const channel = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades')[0];
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -267,7 +267,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
-        const [ channel ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
+        const channel = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades')[0];
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -564,7 +564,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const [ channel ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
+        const channel = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers')[0];
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -789,7 +789,7 @@ export default class okx extends okxRest {
             messageHashes.push (messageHash);
         }
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', market, params);
+        const marketType = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', market, params)[0];
         const channel = 'liquidation-orders';
         let type: Str = marketType;
         if (marketType === 'spot') {
@@ -1268,7 +1268,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
-        const [ depthOption ] = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books');
+        const depthOption = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books')[0];
         let depth: Str = depthOption;
         if (limit !== undefined) {
             if (limit === 1) {

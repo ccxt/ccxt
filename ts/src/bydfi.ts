@@ -1211,7 +1211,7 @@ export default class bydfi extends Exchange {
         const market = this.market (symbol);
         let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         const wallet = 'W001';
-        const [ walletOption ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
+        const walletOption = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet)[0];
         orderRequest = this.extend (orderRequest, { 'wallet': walletOption });
         const response = await this.privatePostV1FapiTradePlaceOrder (orderRequest);
         //
@@ -1434,7 +1434,7 @@ export default class bydfi extends Exchange {
         }
         const request = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, params);
         const wallet = 'W001';
-        const [ walletOption ] = this.handleOptionAndParams (params, 'editOrder', 'wallet', wallet);
+        const walletOption = this.handleOptionAndParams (params, 'editOrder', 'wallet', wallet)[0];
         request['wallet'] = walletOption;
         const response = await this.privatePostV1FapiTradeEditOrder (request);
         const data = this.safeDict (response, 'data', {});
