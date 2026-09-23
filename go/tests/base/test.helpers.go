@@ -352,6 +352,62 @@ func GetArg(v []interface{}, index int, def interface{}) interface{} {
 	return ccxt.GetArg(v, index, def)
 }
 
+func MapTyped(v any) map[string]any {
+	return ccxt.MapTyped(v)
+}
+
+func ListTyped(v any) []any {
+	return ccxt.ListTyped(v)
+}
+
+func GetArgMap(args []any, index int, def map[string]any) map[string]any {
+	return ccxt.GetArgMap(args, index, def)
+}
+
+func GetArgAnySlice(args []any, index int, def []any) []any {
+	return ccxt.GetArgAnySlice(args, index, def)
+}
+
+func GetArgStringSlice(args []any, index int, def []string) []string {
+	return ccxt.GetArgStringSlice(args, index, def)
+}
+
+func GetArgMapSlice(args []any, index int, def []map[string]any) []map[string]any {
+	return ccxt.GetArgMapSlice(args, index, def)
+}
+
+func GetArgString(args []any, index int, def string) string {
+	return ccxt.GetArgString(args, index, def)
+}
+
+func GetArgBool(args []any, index int, def bool) bool {
+	return ccxt.GetArgBool(args, index, def)
+}
+
+func GetArgInt64(args []any, index int, def int64) int64 {
+	return ccxt.GetArgInt64(args, index, def)
+}
+
+func GetArgFloat64(args []any, index int, def float64) float64 {
+	return ccxt.GetArgFloat64(args, index, def)
+}
+
+func GetArgStringPtr(args []any, index int, def *string) *string {
+	return ccxt.GetArgStringPtr(args, index, def)
+}
+
+func GetArgInt64Ptr(args []any, index int, def *int64) *int64 {
+	return ccxt.GetArgInt64Ptr(args, index, def)
+}
+
+func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
+	return ccxt.GetArgFloat64Ptr(args, index, def)
+}
+
+func GetArgBoolPtr(args []any, index int, def *bool) *bool {
+	return ccxt.GetArgBoolPtr(args, index, def)
+}
+
 func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{} {
 	return ccxt.Ternary(cond, whenTrue, whenFalse)
 }
@@ -416,9 +472,8 @@ func CallInternalMethod(cache *sync.Map, itf interface{}, name2 string, args ...
 	return ccxt.CallInternalMethod(cache, itf, name2, args...)
 }
 
-func PanicOnError(msg interface{}) {
-	// Print("Inside panic onError: " + ToString(msg))
-	ccxt.PanicOnError(msg)
+func PanicOnError(msg interface{}) interface{} {
+	return ccxt.PanicOnError(msg)
 }
 
 func getCallerName() string {

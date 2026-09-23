@@ -159,6 +159,13 @@ func SafeListTypedDefault(m any, key any, defaultValue any) []any {
 // listValueToTypedSlice converts the array kinds IsArray admits ([]any, *[]any, IOrderBookSide,
 // IArrayCache and every other slice reflect finds) into a []any of the same length and elements,
 // exactly as SafeListTyped does.
+// ArrayTyped converts a boxed array into a plain slice: every slice kind IsArray admits is copied
+// element by element, an array cache or order-book side hands back its own data, anything else
+// (including nil) reads as a nil slice, exactly what the boxed value answered through
+func ArrayTyped(v any) []any {
+	return listValueToTypedSlice(v)
+}
+
 func listValueToTypedSlice(value any) []any {
 	res := derefScalar(value)
 	if res == nil {

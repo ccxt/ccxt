@@ -120,6 +120,20 @@ export const CCXT_GO_BOOL_METHOD_NAMES = [
 
 
 export const CCXT_GO_HELPER_RETURN_TYPES = {
+    // Typed twins of GetArg (go/v4/exchange_helpers.go) -- the `var x <T> = GetArg<T>(...)`
+    // locals the printer declares for a provable optional argument (SPEC-go-getarg.md)
+    'GetArgMap': 'map[string]any',
+    'GetArgMapSlice': '[]map[string]any',
+    'GetArgAnySlice': '[]any',
+    'GetArgStringSlice': '[]string',
+    'GetArgString': 'string',
+    'GetArgBool': 'bool',
+    'GetArgInt64': 'int64',
+    'GetArgFloat64': 'float64',
+    'GetArgStringPtr': '*string',
+    'GetArgInt64Ptr': '*int64',
+    'GetArgFloat64Ptr': '*float64',
+    'GetArgBoolPtr': '*bool',
     // generated boolean-returning methods (see CCXT_GO_BOOL_METHOD_NAMES above)
     ...Object.fromEntries (CCXT_GO_BOOL_METHOD_NAMES.map ((name) => [ 'this.' + name, 'bool' ])),
     // exchange_functions.go / exchange_generic.go
@@ -1940,6 +1954,18 @@ export const CCXT_GO_ARRAY_BINDING_HOLDERS = [
     'HandleParamString',
     'HandleParamString2',
     'HandleMarketTypeAndParams',
+    'HandleUntilOption',
+    'HandleMarginModeAndParams',
+    'HandleSubTypeAndParams',
+    'HandleNetworkCodeAndParams',
+    'HandleWithdrawTagAndParams',
+    'HandlePostOnly',
+    'HandleParamBool',
+    'HandleParamBool2',
+    'HandleParamInteger',
+    'HandleParamInteger2',
+    'HandleTriggerPricesAndParams',
+    'HandleTriggerDirectionAndParams',
 ];
 
 // `<indent><a><b>Variable := <callee> (` — the shape of the printer's synthetic holder
@@ -2914,6 +2940,203 @@ function installCcxtGoNilDeclaredJoin (goTranspiler) {
     };
 }
 
+// --------------------- write-site typing: `x = <dictionary producer>(…)` -------------------------
+// A dictionary-annotated local can be declared typed while every later self-assignment carries that
+// Go type; the producers below return a dictionary through an `any` signature.
+export const CCXT_GO_WRITESITE_CONVERSIONS = {
+    'this.SafeMarket': { 'map[string]any': 'MapTyped' },
+    'this.SafeCurrency': { 'map[string]any': 'MapTyped' },
+    'this.Omit': { 'map[string]any': 'MapTyped' },
+    'this.OmitN': { 'map[string]any': 'MapTyped' },
+    'this.OmitMap': { 'map[string]any': 'MapTyped' },
+};
+
+// the printed callee of a whole call node (`this.Omit`), undefined for every other shape; the
+// `exchange.<name>` spelling is the same method on the same receiver
+function ccxtGoWriteSiteCallee (goTranspiler, node) {
+    if ((node?.kind !== ts.SyntaxKind.CallExpression) || (typeof goTranspiler.printNode !== 'function')) {
+        return undefined;
+    }
+    const printed = (goTranspiler.printNode (node.expression, 0) ?? '').trim ();
+    if (!/^[A-Za-z_][\w.]*$/.test (printed)) {
+        return undefined;
+    }
+    return printed.startsWith ('exchange.') ? ('this.' + printed.substring (9)) : printed;
+}
+
+// the write-site conversion admitted for a declared Go type, or undefined when the right-hand
+// side is not a whole admitted producer call
+function ccxtGoWriteSiteConversion (goTranspiler, goType, right) {
+    const callee = ccxtGoWriteSiteCallee (goTranspiler, right);
+    if (callee === undefined) {
+        return undefined;
+    }
+    const admitted = CCXT_GO_WRITESITE_CONVERSIONS[callee];
+    return (admitted === undefined) ? undefined : admitted[goType];
+}
+
+// the veto cases of the shipped goLocalIsSafeToType, re-stated for the re-check below
+function ccxtGoWriteSiteShippedVeto (goTranspiler, n, parent, goType) {
+    if ((parent?.kind === ts.SyntaxKind.PropertyAccessExpression) && (parent.expression === n)
+    && (parent.name?.escapedText === 'push')) {
+        return (goType !== '[]any') || !goTranspiler.goIsNativeAppendShape (n, parent.parent);
+    }
+    if ((parent?.kind === ts.SyntaxKind.VariableDeclaration) && (parent.name === n)) {
+        return false; // a sibling block-scoped declaration; it gets its own type
+    }
+    if ((parent?.kind === ts.SyntaxKind.PostfixUnaryExpression) || (parent?.kind === ts.SyntaxKind.PrefixUnaryExpression)) {
+        const op = parent.operator;
+        if ((op === ts.SyntaxKind.PlusPlusToken) || (op === ts.SyntaxKind.MinusMinusToken)) {
+            return true;
+        }
+    }
+    if (parent?.kind === ts.SyntaxKind.SpreadElement) {
+        return true;
+    }
+    if ((parent?.kind === ts.SyntaxKind.ArrayLiteralExpression)
+    && (parent.parent?.kind === ts.SyntaxKind.BinaryExpression)
+    && (parent.parent.left === parent)
+    && (parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+        return true;
+    }
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)) {
+        const op = parent.operatorToken.kind;
+        if ((op >= ts.SyntaxKind.FirstCompoundAssignment) && (op <= ts.SyntaxKind.LastCompoundAssignment)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// reads that tell an absent box from an empty map (AddElementToObject panics on a nil map)
+const CCXT_GO_WRITESITE_NIL_OBSERVING_READS = { 'deepExtend': 1, 'keys': 0, 'addElementToObject': 0 };
+
+function ccxtGoWriteSiteReadObservesNil (call, n) {
+    const callee = call.expression;
+    const name = callee?.name?.escapedText ?? callee?.escapedText;
+    const index = CCXT_GO_WRITESITE_NIL_OBSERVING_READS[name];
+    return (index !== undefined) && (call.arguments?.[index] === n);
+}
+
+// the shipped veto refuses a local because a later assignment does not name the same Go type; the
+// write-site family carries that type instead, so a vetoing use is admitted only when it is a
+// convertible `x = <producer>(…)`. Any other vetoing use keeps the local's box.
+function ccxtGoWriteSiteVetoesAreConvertible (goTranspiler, scope, declaration, varName, goType) {
+    if ((scope === undefined) || (declaration?.kind !== ts.SyntaxKind.Parameter)) {
+        return false; // the optional-argument locals only
+    }
+    if ((typeof goTranspiler.hasNodeWhere !== 'function') || (typeof goTranspiler.goTypeOfInitializer !== 'function')
+        || (typeof goTranspiler.printNode !== 'function')) {
+        return false;
+    }
+    let convertible = 0;
+    const unsafe = goTranspiler.hasNodeWhere (scope, (n) => {
+        if ((n.kind !== ts.SyntaxKind.Identifier) || (n.escapedText !== varName) || (n === declaration.name)) {
+            return false;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)
+        && (parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken)) {
+            if (goTranspiler.goTypeOfInitializer (parent.right, goTranspiler.printNode (parent.right, 0)) === goType) {
+                return false; // the printer's own proof already accepts this write
+            }
+            if (ccxtGoWriteSiteConversion (goTranspiler, goType, parent.right) !== undefined) {
+                convertible += 1;
+                return false;
+            }
+            return true;
+        }
+        if ((parent?.kind === ts.SyntaxKind.CallExpression) && ccxtGoWriteSiteReadObservesNil (parent, n)) {
+            return true;
+        }
+        return ccxtGoWriteSiteShippedVeto (goTranspiler, n, parent, goType);
+    });
+    return (!unsafe) && (convertible > 0);
+}
+
+// the Go type the value half reads back for an assignment target: a local the printer already
+// typed, or an optional parameter whose own binding is declared with that type
+function ccxtGoWriteSiteLocalGoType (goTranspiler, node) {
+    if (typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function') {
+        const declared = goTranspiler.goDeclaredTypeOfIdentifier (node);
+        if (declared !== undefined) {
+            return declared;
+        }
+    }
+    if ((typeof goTranspiler.goGetArgLocalType !== 'function') || (typeof goTranspiler.goEnclosingFunction !== 'function')
+        || (typeof goTranspiler.printNode !== 'function') || (typeof goTranspiler.getChecker !== 'function')) {
+        return undefined;
+    }
+    let param;
+    try {
+        param = goTranspiler.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        param = undefined;
+    }
+    if ((param?.kind !== ts.SyntaxKind.Parameter) || (param.initializer === undefined)) {
+        return undefined;
+    }
+    const body = goTranspiler.goEnclosingFunction (param);
+    if (body === undefined) {
+        return undefined;
+    }
+    return goTranspiler.goGetArgLocalType (body, param, goTranspiler.printNode (param.initializer, 0));
+}
+
+// the printed statement of a `x = <producer>(…)` the write-site family converts, or undefined.
+// Fail closed on an assignment another custom-operator rule owns.
+function ccxtGoWriteSiteAssignment (goTranspiler, node, identation) {
+    if ((node?.operatorToken?.kind !== ts.SyntaxKind.EqualsToken) || (node.left?.kind !== ts.SyntaxKind.Identifier)) {
+        return undefined;
+    }
+    const goType = ccxtGoWriteSiteLocalGoType (goTranspiler, node.left);
+    if (goType === undefined) {
+        return undefined;
+    }
+    const conversion = ccxtGoWriteSiteConversion (goTranspiler, goType, node.right);
+    if (conversion === undefined) {
+        return undefined;
+    }
+    if ((typeof goTranspiler.getCustomOperatorIfAny === 'function')
+        && (goTranspiler.getCustomOperatorIfAny (node.left, node.right, node.operatorToken) !== undefined)) {
+        return undefined;
+    }
+    const leftVar = goTranspiler.printNode (node.left, 0);
+    const rightVar = goTranspiler.printNode (node.right, identation);
+    const separator = (typeof goTranspiler.goBinarySeparator === 'function')
+        ? goTranspiler.goBinarySeparator ('=', rightVar.trim (), node.left, node.right)
+        : ' ';
+    return leftVar + separator + '=' + separator + conversion + '(' + rightVar.trim () + ')';
+}
+
+// the type half (a later convertible assignment does not veto the local) and the value half (the
+// assignment text) are installed together, so the two can never disagree
+function installCcxtGoWriteSiteConversions (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoWriteSiteConversionsInstalled) {
+        return;
+    }
+    if ((typeof goTranspiler.goLocalIsSafeToType !== 'function') || (typeof goTranspiler.printBinaryExpression !== 'function')
+        || (typeof goTranspiler.goTypeOfInitializer !== 'function')) {
+        return; // older printer without the local typing: nothing to extend
+    }
+    const shippedIsSafe = goTranspiler.goLocalIsSafeToType;
+    goTranspiler.goLocalIsSafeToType = function (scope, declaration, varName, goType) {
+        if (shippedIsSafe.call (this, scope, declaration, varName, goType)) {
+            return true;
+        }
+        return ccxtGoWriteSiteVetoesAreConvertible (this, scope, declaration, varName, goType);
+    };
+    const shippedBinary = goTranspiler.printBinaryExpression;
+    goTranspiler.printBinaryExpression = function (node, identation) {
+        const assignment = ccxtGoWriteSiteAssignment (this, node, identation);
+        if (assignment !== undefined) {
+            return assignment;
+        }
+        return shippedBinary.call (this, node, identation);
+    };
+    goTranspiler.__ccxtGoWriteSiteConversionsInstalled = true;
+}
+
 // --------------------- printer ternary-IIFE locals: name the scalar join type ---------------------
 // `var x any = func() any { … }()` keeps its body, its call position and its boxed value; only the
 // declaration head learns the type every arm already produces. Anything unproven keeps `any`.
@@ -3168,6 +3391,1089 @@ function installCcxtGoClosurePointerJoin (goTranspiler) {
     };
 }
 
+// declared TypeScript type of a nil-defaulted parameter -> the Go type of its typed GetArg twin
+export const CCXT_GO_GETARG_DECLARED_TYPES = {
+    'Str': '*string',
+    'String': '*string',
+    'Int': '*int64',
+    'Num': '*float64',
+    'number': '*float64',
+    'Bool': '*bool',
+    'boolean': '*bool',
+    'Dict': 'map[string]any',
+    'NullableDict': 'map[string]any',
+    'Market': 'map[string]any',
+    'Currency': 'map[string]any',
+    'Order': 'map[string]any',
+    'Ticker': 'map[string]any',
+    'Trade': 'map[string]any',
+    'OHLCV': 'map[string]any',
+    'Strings': '[]string',
+    'Dict[]': '[]map[string]any',
+    'List': '[]any',
+};
+
+// Positions a typed GetArg local may be handed to: `deref` consumers unwrap a pointer twin,
+// `container` ones decide on nil-ness (container locals only), `*` accepts any typed local.
+export const CCXT_GO_GETARG_SAFE_CONSUMERS = {
+    // deref-aware helpers (value and key/dict arguments)
+    'GetValue': '*', 'InOp': '*', 'IsEqual': '*', 'IsDictionary': '*', 'EvalTruthy': '*',
+    'GetArrayLength': '*', 'Add': '*', 'Multiply': '*', 'Divide': '*', 'Subtract': '*',
+    'PlusEqual': '*', 'MathMin': '*', 'MathMax': '*', 'MathFloor': '*', 'MathCeil': '*',
+    'MathRound': '*', 'MathAbs': '*', 'Ternary': '*', 'IsString': '*', 'IsNumber': '*',
+    'IsInteger': '*', 'IsFloat': '*', 'IsBool': '*', 'IsArray': '*', 'IsObject': '*',
+    'ToUpper': '*', 'ToLower': '*', 'ToString': '*', 'ToFloat64': '*', 'ParseInt': '*',
+    'NumberToString': '*', 'Iso8601': '*', 'Sum': '*', 'ToArray': '*',
+    'SafeString': '*', 'SafeString2': '*', 'SafeStringN': '*', 'SafeInteger': '*',
+    'SafeNumber': '*', 'SafeBool': '*', 'SafeSymbol': '*', 'SafeMarket': '*',
+    'SafeCurrency': '*', 'SafeCurrencyCode': '*', 'SafeDict': '*', 'SafeList': '*',
+    'SafeValue2': '*', 'SafeMapTyped': '*', 'MapTyped': '*', 'DerefScalar': '*',
+    // the AddElementToObject value/key arguments (its container argument is separate)
+    'AddElementToObject': {'0': 'container', '1': 'deref', '2': 'deref'},
+    // typed/typed-by-ABI methods of the port: GetArg derefs, so a pointer or a container reads
+    // exactly like the raw value (measured consumers, SPEC-go-getarg.md section 5)
+    'Market': '*', 'MarketId': '*', 'Currency': '*', 'MarketSymbols': '*',
+    'PriceToPrecision': '*', 'AmountToPrecision': '*', 'DecimalToPrecision': '*',
+    'ImplodeParams': '*', 'ParseTimeframe': {'0': 'unsafe'},
+    'HandleOptionAndParams': '*', 'HandleMarketTypeAndParams': '*', 'HandleSubTypeAndParams': '*',
+    // the TypeScript-side spellings the printer's AST sees (mathMin/MathMin), the cache limit
+    // accessor (derefs both arguments, exchange_cache.go:322-330) and the request builder
+    // (symbol/type/side/amount are `any` in the generated Go: the tail is a GetArg ABI)
+    'mathMin': '*', 'mathMax': '*', 'GetLimit': '*', 'CreateOrderRequest': '*',
+    'HandleMarginModeAndParams': '*', 'HandleUntilOption': '*', 'HandleProductTypeAndParams': '*',
+    'HandleParamString': '*', 'HandleParamBool': '*', 'HandleParamInt': '*',
+    'FilterBySinceLimit': '*', 'FilterBySymbolSinceLimit': '*', 'FilterBySymbolsSinceLimit': '*',
+    'FilterByValueSinceLimit': '*', 'FilterByCurrencySinceLimit': '*',
+    'ParseTrades': '*', 'ParseOrders': '*', 'ParseOHLCVs': '*', 'ParseTransactions': '*',
+    'ParseLedger': '*', 'ParseTransfers': '*', 'ParseIncomes': '*', 'ParseConversions': '*',
+    'ParseLiquidations': '*', 'ParseFundingRateHistories': '*', 'ParsePredictionTrades': '*',
+    'ParsePredictionOrders': '*', 'Outcome': '*',
+    // every `XxxAsync`/`XxxBody` pair forwards the optionalArgs tail into a GetArg binding
+    'LoadMarketsAsync': '*', 'LoadOutcomeAsync': '*', 'FetchOrdersAsync': '*',
+    'FetchOrdersByStatusAsync': '*', 'FetchOrdersByStateAsync': '*',
+    'FetchCanceledAndClosedOrdersAsync': '*', 'FetchOpenOrdersAsync': '*',
+    'FetchMyTradesAsync': '*', 'FetchPaginatedCallDynamicAsync': '*',
+    'FetchPaginatedCallCursorAsync': '*', 'FetchPaginatedCallDeterministicAsync': '*',
+    'FetchPaginatedCallIncrementalAsync': '*', 'FetchTransactionsHelperAsync': '*',
+    'FetchTransactionsWithMethodAsync': '*', 'FetchDepositsWithdrawalsAsync': '*',
+    'WatchTradesForSymbolsAsync': '*', 'WatchOrderBookForSymbolsAsync': '*',
+    'WatchOHLCVForSymbolsAsync': '*',
+    // consumers that decide on the nil-ness of the box (container argument only)
+    'DeepExtend': {'*': 'container'},
+    'SubstituteString': '*',
+};
+
+// Typed async receive: `x := <-this.FooAsync(..)` + PanicOnError(x) becomes
+// `var x T = MapTyped(PanicOnError(<-this.FooAsync(..)))`; the channel stays `chan any` and
+// PanicOnError runs first. Element types are per method (R1 body sends, R2 Promise<T>), fail closed.
+export const CCXT_GO_ASYNC_ELEM_TYPES = {
+    // R1 concrete container send in the body
+    'AddMarginAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'ApproveBuilderCodeAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CancelAllContractOrdersAsync': '[]any',
+    // R1 concrete container send in the body
+    'CancelAllOrdersAfterAsync': 'map[string]any',
+    // concrete []any
+    'CancelAllOrdersAsync': '[]any',
+    // R1 concrete container send in the body
+    'CancelAllOrdersRequestAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'CancelAllOrdersWsAsync': '[]any',
+    // R1 concrete container send in the body
+    'CancelAllSpotOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'CancelAllUtaOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CancelContractOrderAsync': 'map[string]any',
+    // concrete map[string]any; TS Promise<Order>
+    'CancelOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CancelOrderWsAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CancelOrdersAsync': '[]any',
+    // R1 concrete container send in the body
+    'CancelOrdersForSymbolsAsync': '[]any',
+    // R1 concrete container send in the body
+    'CancelOrdersRequestAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'CancelOrdersWsAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CancelSpotOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CancelTwapOrderAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CancelUnifiedOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CancelUtaOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'CancelUtaOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'ClosePositionAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'CompleteRawTopicsAsync': '[]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'CreateApiKeyAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CreateContractOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'CreateContractOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Conversion>'] -> map[string]any
+    'CreateConvertTradeAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CreateDepositAddressAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CreateExtendedOrderRequestAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CreateGiftCodeAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CreateMarketBuyOrderWithCostAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CreateMarketOrderWithCostAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CreateMarketSellOrderWithCostAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'CreateOrDeriveApiKeyAsync': 'map[string]any',
+    // bodies send map[string]any (concrete) e.g. ParseOrder(map[string]any); TS Promise<Order>
+    'CreateOrderAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CreateOrderRequestAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CreateOrderWsAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CreateOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'CreateOrdersWsAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CreateSpotOrderAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CreateSpotOrderRequestAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'CreateSpotOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CreateSwapOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CreateTrailingAmountOrderAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'CreateTrailingPercentOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CreateTwapOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'CreateUtaOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'CreateUtaOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'EditContractOrderAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'EditOrderRequestAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'EditOrderWsAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'EditOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'EditSpotOrderAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'EstimateTxFeeAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Account>'] -> map[string]any
+    'FetchAccountAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchAccountHelperAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Position[]>'] -> []any
+    'FetchAccountPositionsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchAccountSettingsAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchAccountsAsync': '[]any',
+    // R2 TS annotations ['Promise<Account[]>'] -> []any
+    'FetchAccountsV2Async': '[]any',
+    // R2 TS annotations ['Promise<Account[]>'] -> []any
+    'FetchAccountsV3Async': '[]any',
+    // R2 TS annotations ['Promise<PredictionOrder[]>'] -> []any
+    'FetchAmmOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'FetchApiKeyAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'FetchApiKeysAsync': 'map[string]any',
+    // TS Promise<Balances> (Dict-shaped); NewBalances(res) asserts map[string]any
+    'FetchBalanceAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Balances>'] -> map[string]any
+    'FetchBalanceWsAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Tickers>'] -> map[string]any
+    'FetchBidsAsksAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<BorrowInterest[]>'] -> []any
+    'FetchBorrowInterestAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchBorrowRateHistoriesAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict[]>'] -> []any
+    'FetchBorrowRateHistoryAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchCanceledAndClosedOrdersAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchCanceledOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchClosedContractOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'FetchClosedOrderAsync': 'map[string]any',
+    // concrete []any; TS Promise<Order[]>
+    'FetchClosedOrdersAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchClosedOrdersWsAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchClosedSpotOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Balances>'] -> map[string]any
+    'FetchContractBalanceAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchContractDepositAddressAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Transaction[]>'] -> []any
+    'FetchContractDepositsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchContractMarketsAsync': '[]any',
+    // R2 TS annotations ['Promise<OHLCV[]>'] -> []any
+    'FetchContractOHLCVAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'FetchContractOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchContractOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchContractOrdersByStatusAsync': '[]any',
+    // R2 TS annotations ['Promise<Tickers>'] -> map[string]any
+    'FetchContractTickersAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Transaction[]>'] -> []any
+    'FetchContractWithdrawalsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchConvertCurrenciesAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Conversion>'] -> map[string]any
+    'FetchConvertQuoteAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Conversion>'] -> map[string]any
+    'FetchConvertTradeAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Conversion[]>'] -> []any
+    'FetchConvertTradeHistoryAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchCrossBorrowRatesAsync': 'map[string]any',
+    // concrete map[string]any; TS Promise<Currencies>
+    'FetchCurrenciesAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'FetchCurrenciesFromCacheAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchCurrenciesFromWebAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchCurrencyAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchCurrencyByIdAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchDefaultMarketsAsync': '[]any',
+    // TS Promise<DepositAddress>
+    'FetchDepositAddressAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchDepositAddressDefaultAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchDepositAddressSupplementAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchDepositAddressesAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchDepositAddressesByNetworkAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Transaction>'] -> map[string]any
+    'FetchDepositAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchDepositMethodIdAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict[]>'] -> []any
+    'FetchDepositMethodIdsAsync': '[]any',
+    // R2 TS annotations ['Promise<Dict[]>'] -> []any
+    'FetchDepositMethodsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchDepositWithdrawFeesAsync': 'map[string]any',
+    // concrete []any; TS Promise<Transaction[]>
+    'FetchDepositsAsync': '[]any',
+    // R2 TS annotations ['Promise<Transaction[]>'] -> []any
+    'FetchDepositsOrWithdrawalsHelperAsync': '[]any',
+    // R2 TS annotations ['Promise<Transaction[]>'] -> []any
+    'FetchDepositsWithdrawalsAsync': '[]any',
+    // R2 TS annotations ['Promise<Transaction[]>'] -> []any
+    'FetchDepositsWsAsync': '[]any',
+    // R2 TS annotations ['Promise<LeverageTier[]>'] -> []any
+    'FetchDerivativesMarketLeverageTiersAsync': '[]any',
+    // R2 TS annotations ['Promise<OpenInterest[]>'] -> []any
+    'FetchDerivativesOpenInterestHistoryAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchEventsByQueryAsync': '[]any',
+    // R2 TS annotations ['Promise<Balances>'] -> map[string]any
+    'FetchFinancialBalanceAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchFundingHistoryAsync': '[]any',
+    // R2 TS annotations ['Promise<FundingRate>'] -> map[string]any
+    'FetchFundingIntervalAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<FundingRates>'] -> map[string]any
+    'FetchFundingIntervalsAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchFundingLimitsAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchFundingRateAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchFundingRateHistoryAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchFundingRatesAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchFutureMarketsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchGreeksAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchHip3MarketsAsync': '[]any',
+    // R2 TS annotations ['Promise<Market[]>'] -> []any
+    'FetchInverseSwapMarketsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchL2OrderBookAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchL3OrderBookAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<LedgerEntry[]>'] -> []any
+    'FetchLedgerAsync': '[]any',
+    // R2 TS annotations ['Promise<LedgerEntry[]>'] -> []any
+    'FetchLedgerByEntriesAsync': '[]any',
+    // R2 TS annotations ['Promise<LedgerEntry[]>'] -> []any
+    'FetchLedgerEntriesByIdsAsync': '[]any',
+    // R2 TS annotations ['Promise<LedgerEntry>'] -> map[string]any
+    'FetchLedgerEntryAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchLeverageAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchLeverageTiersAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Liquidation[]>'] -> []any
+    'FetchLiquidationsAsync': '[]any',
+    // R2 TS annotations ['Promise<LongShortRatio[]>'] -> []any
+    'FetchLongShortRatioHistoryAsync': '[]any',
+    // R2 TS annotations ['Promise<MarginModification[]>'] -> []any
+    'FetchMarginAdjustmentHistoryAsync': '[]any',
+    // R2 TS annotations ['Promise<Balances>'] -> map[string]any
+    'FetchMarginBalanceAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchMarginModeAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<OHLCV[]>'] -> []any
+    'FetchMarkOHLCVAsync': '[]any',
+    // R2 TS annotations ['Promise<Ticker>'] -> map[string]any
+    'FetchMarkPriceAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Tickers>'] -> map[string]any
+    'FetchMarkPricesAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Market>'] -> map[string]any
+    'FetchMarketAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Market>'] -> map[string]any
+    'FetchMarketByIdAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<LeverageTier[]>'] -> []any
+    'FetchMarketLeverageTiersAsync': '[]any',
+    // concrete []any (ParseMarkets); TS Promise<Market[]>
+    'FetchMarketsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchMarketsByTypeAndSubTypeAsync': '[]any',
+    // R2 TS annotations ['Promise<Market[]>'] -> []any
+    'FetchMarketsByTypeAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchMarketsFromAPIAsync': '[]any',
+    // R2 TS annotations ['Promise<Dict[]>'] -> []any
+    'FetchMarketsFromCacheAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchMarketsFromWebAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchMarketsV1Async': '[]any',
+    // R1 concrete container send in the body
+    'FetchMarketsV2Async': '[]any',
+    // R1 concrete container send in the body
+    'FetchMarketsV3Async': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'FetchMyBuysAsync': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'FetchMyContractTradesAsync': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'FetchMyDustTradesAsync': '[]any',
+    // R2 TS annotations ['Promise<Liquidation[]>'] -> []any
+    'FetchMyLiquidationsAsync': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'FetchMySellsAsync': '[]any',
+    // R2 TS annotations ['Promise<Dict[]>'] -> []any
+    'FetchMySettlementHistoryAsync': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'FetchMySpotTradesAsync': '[]any',
+    // concrete []any; TS Promise<Trade[]>
+    'FetchMyTradesAsync': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'FetchMyTradesWsAsync': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'FetchMyUtaTradesAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchNetworkDepositAddressAsync': 'map[string]any',
+    // concrete []any; TS Promise<OHLCV[]>
+    'FetchOHLCVAsync': '[]any',
+    // R2 TS annotations ['Promise<OHLCV[]>'] -> []any
+    'FetchOHLCVWsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchOpenInterestAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<OpenInterest[]>'] -> []any
+    'FetchOpenInterestHistoryAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'FetchOpenOrderAsync': 'map[string]any',
+    // concrete []any; TS Promise<Order[]>
+    'FetchOpenOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOpenOrdersV1Async': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOpenOrdersV2Async': '[]any',
+    // R1 concrete container send in the body
+    'FetchOpenOrdersWsAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOpenSpotOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOpenSwapOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Option>'] -> map[string]any
+    'FetchOptionAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<OptionChain>'] -> map[string]any
+    'FetchOptionChainAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchOptionMarketsAsync': '[]any',
+    // R2 TS annotations ['Promise<OHLCV[]>'] -> []any
+    'FetchOptionOHLCVAsync': '[]any',
+    // R2 TS annotations ['Promise<Position[]>'] -> []any
+    'FetchOptionPositionsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchOptionUnderlyingsAsync': '[]any',
+    // TS Promise<Order>
+    'FetchOrderAsync': 'map[string]any',
+    // binance.go:fetchOrderBookBody `var orderbook map[string]any = this.ParseOrderBook(...)` then `ch <- 
+    'FetchOrderBookAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchOrderBooksAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'FetchOrderClassicAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'FetchOrderDefaultAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'FetchOrderSupplementAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchOrderTradesAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'FetchOrderWsAsync': 'map[string]any',
+    // concrete []any sends; TS Promise<Order[]>
+    'FetchOrdersAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchOrdersByIdsAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOrdersByStateAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOrdersByStatesAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOrdersByStatusAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOrdersByStatusWsAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOrdersByTypeAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOrdersClassicAsync': '[]any',
+    // R2 TS annotations ['Promise<PredictionOrder[]>'] -> []any
+    'FetchOrdersHelperAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOrdersWithMethodAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchOrdersWsAsync': '[]any',
+    // same FilterBy* tail
+    'FetchPaginatedCallCursorAsync': '[]any',
+    // exchange_generated.go fetchPaginatedCallDynamicBody `ch <- this.FilterBySinceLimit(sortedRes, since,
+    'FetchPaginatedCallDynamicAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchPortfoliosAsync': '[]any',
+    // R2 TS annotations ['Promise<Position>'] -> map[string]any
+    'FetchPositionAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Position[]>'] -> []any
+    'FetchPositionHistoryAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchPositionModeAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Position[]>'] -> []any
+    'FetchPositionWsAsync': '[]any',
+    // R2 TS annotations ['Promise<ADL[]>'] -> []any
+    'FetchPositionsADLRankAsync': '[]any',
+    // concrete []any; TS Promise<Position[]>
+    'FetchPositionsAsync': '[]any',
+    // R2 TS annotations ['Promise<Position[]>'] -> []any
+    'FetchPositionsForSymbolAsync': '[]any',
+    // R2 TS annotations ['Promise<Position[]>'] -> []any
+    'FetchPositionsHistoryAsync': '[]any',
+    // R2 TS annotations ['Promise<Position[]>'] -> []any
+    'FetchPositionsRiskAsync': '[]any',
+    // R2 TS annotations ['Promise<Position[]>'] -> []any
+    'FetchPositionsWsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchPrivateTradingFeeAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchPrivateTradingFeesAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchPrivateTransactionFeesAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchPublicTradingFeeAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchPublicTradingFeesAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchPublicTransactionFeesAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawActiveMarketsAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawEventsBySearchAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawEventsListAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawMarketsBySearchAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawMarketsByTagsAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawMarketsListAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawQuestionsBySearchAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawQuestionsListAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawTopicsAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchRawTopicsByQueriesAsync': '[]any',
+    // R2 TS annotations ['Promise<any[]>'] -> []any
+    'FetchSeriesEventsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchSettlementHistoryAsync': '[]any',
+    // R2 TS annotations ['Promise<Balances>'] -> map[string]any
+    'FetchSpotBalanceAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchSpotMarketsAsync': '[]any',
+    // R2 TS annotations ['Promise<OHLCV[]>'] -> []any
+    'FetchSpotOHLCVAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'FetchSpotOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'FetchSpotOrderTradesAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchSpotOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchSpotOrdersByStatesAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchSpotOrdersByStatusAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchStatusAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Market[]>'] -> []any
+    'FetchSwapAndFutureMarketsAsync': '[]any',
+    // R2 TS annotations ['Promise<Balances>'] -> map[string]any
+    'FetchSwapBalanceAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchSwapMarketsAsync': '[]any',
+    // R2 TS annotations ['Promise<Ticker>'] -> map[string]any
+    'FetchTicker2Async': 'map[string]any',
+    // concrete map[string]any; TS Promise<Ticker>
+    'FetchTickerAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchTickerV1AndV2Async': 'map[string]any',
+    // R2 TS annotations ['Promise<Ticker>'] -> map[string]any
+    'FetchTickerV1Async': 'map[string]any',
+    // R2 TS annotations ['Promise<Ticker>'] -> map[string]any
+    'FetchTickerV2Async': 'map[string]any',
+    // R2 TS annotations ['Promise<Ticker>'] -> map[string]any
+    'FetchTickerV3Async': 'map[string]any',
+    // R2 TS annotations ['Promise<Ticker>'] -> map[string]any
+    'FetchTickerWsAsync': 'map[string]any',
+    // concrete map[string]any sends; TS Promise<Tickers> (Dict) is contradicted by some []any impls -> map
+    'FetchTickersAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Tickers>'] -> map[string]any
+    'FetchTickersV2Async': 'map[string]any',
+    // R2 TS annotations ['Promise<Tickers>'] -> map[string]any
+    'FetchTickersV3Async': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'FetchTradeQuoteAsync': 'map[string]any',
+    // concrete []any; TS Promise<Trade[]>
+    'FetchTradesAsync': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'FetchTradesWsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchTradingFeeAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchTradingFeesAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<TradingFees>'] -> map[string]any
+    'FetchTradingFeesWsAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchTradingLimitsAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchTradingLimitsByIdAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchTransactionFeeAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchTransactionFeesAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchTransactionsAsync': '[]any',
+    // R2 TS annotations ['Promise<Transaction[]>'] -> []any
+    'FetchTransactionsByTypeAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchTransactionsHelperAsync': '[]any',
+    // R2 TS annotations ['Promise<Transaction[]>'] -> []any
+    'FetchTransactionsWithMethodAsync': '[]any',
+    // R2 TS annotations ['Promise<TransferEntry>'] -> map[string]any
+    'FetchTransferAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'FetchTransfersAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchUSDTMarketsAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchUTAMarketsAsync': '[]any',
+    // R2 TS annotations ['Promise<OHLCV[]>'] -> []any
+    'FetchUTAOHLCVAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchUnderlyingAssetsAsync': '[]any',
+    // R2 TS annotations ['Promise<Balances>'] -> map[string]any
+    'FetchUtaBalanceAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchUtaCanceledAndClosedOrdersAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchUtaMarketsAsync': '[]any',
+    // R2 TS annotations ['Promise<Order>'] -> map[string]any
+    'FetchUtaOrderAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'FetchUtaOrdersByStatusAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchVolatilityHistoryAsync': '[]any',
+    // R1 concrete container send in the body
+    'FetchWithdrawAddressesAsync': '[]any',
+    // R2 TS annotations ['Promise<Transaction>'] -> map[string]any
+    'FetchWithdrawalAsync': 'map[string]any',
+    // concrete []any; TS Promise<Transaction[]>
+    'FetchWithdrawalsAsync': '[]any',
+    // R2 TS annotations ['Promise<Transaction[]>'] -> []any
+    'FetchWithdrawalsWsAsync': '[]any',
+    // R1 concrete container send in the body
+    'GetAssetHistoryRowsAsync': '[]any',
+    // R1 concrete container send in the body
+    'HandleAccountIndexAsync': '[]any',
+    // R1 concrete container send in the body
+    'HandleNetworkIdAndParamsAsync': '[]any',
+    // R1 concrete container send in the body
+    'HandlePortfolioAndParamsAsync': '[]any',
+    // R1 concrete container send in the body
+    'HandleUTAAndParamsAsync': '[]any',
+    // R2 TS annotations ['Promise<TransferEntry[]>'] -> []any
+    'InternalFetchTransfersAsync': '[]any',
+    // R1 concrete container send in the body
+    'IsUnifiedEnabledAsync': '[]any',
+    // R2 TS annotations ['Promise<Account[]>'] -> []any
+    'LoadAccountsAsync': '[]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'LoadLeverageBracketsAsync': 'map[string]any',
+    // exchange.go:414-443 sends `this.Markets` (*sync.Map) and `result := this.SetMarkets(...)` (any); Map
+    'LoadMarketsAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'LoadQuoteTokenAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Market>'] -> map[string]any
+    'LoadTradeMarketAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'ModifyLeverageAndMarginModeAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'ModifyMarginHelperAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'PrepareAccountRequestWithCurrencyCodeAsync': '[]any',
+    // R1 concrete container send in the body
+    'PrepareParadexDomainAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Dict>'] -> map[string]any
+    'QueryContractsAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Transaction[]>'] -> []any
+    'QueryTransactionsByEventTypeAsync': '[]any',
+    // R1 concrete container send in the body
+    'RequestWalletHistoryRowsAsync': '[]any',
+    // R2 TS annotations ['Promise<string[]>'] -> []any
+    'ResolveEventSeriesTickersAsync': '[]any',
+    // R1 concrete container send in the body
+    'SetContractLeverageAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'SetLeverageAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'SetMarginAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'SignAndCancelAllOrdersAsync': '[]any',
+    // R1 concrete container send in the body
+    'SignAndCancelOrderAsync': '[]any',
+    // R1 concrete container send in the body
+    'SignAndCreateOrderAsync': '[]any',
+    // R1 concrete container send in the body
+    'SignInWithPrivateKeyAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'TransferAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<TransferEntry>'] -> map[string]any
+    'TransferBetweenMainAndSubAccountAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<TransferEntry>'] -> map[string]any
+    'TransferBetweenSubAccountsAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<TransferEntry>'] -> map[string]any
+    'TransferClassicAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<TransferEntry>'] -> map[string]any
+    'TransferInAsync': 'map[string]any',
+    // R1 concrete container send in the body
+    'TransferOutAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<TransferEntry>'] -> map[string]any
+    'TransferUtaAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Balances>'] -> map[string]any
+    'WatchBalanceAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Tickers>'] -> map[string]any
+    'WatchBidsAsksAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<FundingRate>'] -> map[string]any
+    'WatchFundingRateAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<FundingRates>'] -> map[string]any
+    'WatchFundingRatesAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Liquidation[]>'] -> []any
+    'WatchLiquidationsAsync': '[]any',
+    // R2 TS annotations ['Promise<Liquidation[]>'] -> []any
+    'WatchLiquidationsForSymbolsAsync': '[]any',
+    // R2 TS annotations ['Promise<Ticker>'] -> map[string]any
+    'WatchMarkPriceAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Tickers>'] -> map[string]any
+    'WatchMarkPricesAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Liquidation[]>'] -> []any
+    'WatchMyLiquidationsAsync': '[]any',
+    // R2 TS annotations ['Promise<Liquidation[]>'] -> []any
+    'WatchMyLiquidationsForSymbolsAsync': '[]any',
+    // TS watchMyTrades -> Promise<Trade[]>
+    'WatchMyTradesAsync': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'WatchMyTradesForSymbolsAsync': '[]any',
+    // TS watchOHLCV -> Promise<OHLCV[]>
+    'WatchOHLCVAsync': '[]any',
+    // R2 TS annotations ['Promise<Dictionary<Dictionary<OHLCV[]>>>'] -> map[string]any
+    'WatchOHLCVForSymbolsAsync': 'map[string]any',
+    // TS watchOrders -> Promise<Order[]>
+    'WatchOrdersAsync': '[]any',
+    // R2 TS annotations ['Promise<Order[]>'] -> []any
+    'WatchOrdersForSymbolsAsync': '[]any',
+    // R2 TS annotations ['Promise<Position>'] -> map[string]any
+    'WatchPositionAsync': 'map[string]any',
+    // TS watchPositions -> Promise<Position[]>
+    'WatchPositionsAsync': '[]any',
+    // pro/binance.go watchTickerBody `ch <- ccxt.GetValue(tickers, symbol)`
+    'WatchTickerAsync': 'map[string]any',
+    // `ch <- this.FilterByArray(this.Tickers, "symbol", symbols)`
+    'WatchTickersAsync': 'map[string]any',
+    // TS watchTrades -> Promise<Trade[]>
+    'WatchTradesAsync': '[]any',
+    // R2 TS annotations ['Promise<Trade[]>'] -> []any
+    'WatchTradesForSymbolsAsync': '[]any',
+    // concrete map[string]any; TS Promise<Transaction>
+    'WithdrawAsync': 'map[string]any',
+    // R2 TS annotations ['Promise<Transaction>'] -> map[string]any
+    'WithdrawWsAsync': 'map[string]any',
+    // exchange_helpers.go:1946 `results := make([]any, len(tasks))` ... `ch <- results`; also a `ch <- nil
+    'promiseAll': '[]any',
+};
+
+// methods whose `return await this.X(..)` forward preserves the value, so X's element type carries over
+export const CCXT_GO_ASYNC_FORWARD_SAFE = [
+];
+
+// receivers whose element type is not nameable (the Watch family and interface results): never typed
+export const CCXT_GO_ASYNC_ELEM_EXCLUDED = [
+    'ApproveBuilderFeeAsync',
+    'AuthenticateAsync',
+    'AuthenticateRestAsync',
+    'AuthenticateUtaAsync',
+    'CallDynamically',
+    'ChangeApiKeyAsync',
+    'ConnectCentrifugoAsync',
+    'CreateAmmOrderAsync',
+    'CreateOrderbookOrderAsync',
+    'CreateSubAccountAsync',
+    'EditOrderAsync',
+    'EnsureErc20AllowanceAsync',
+    'EnsureUserDataStreamWsSubscribeListenTokenAsync',
+    'EnsureUserDataStreamWsSubscribeSignatureAsync',
+    'EthRpcAsync',
+    'Fetch2Async',
+    'FetchADLRankAsync',
+    'FetchAccountIdByTypeAsync',
+    'FetchAllGreeksAsync',
+    'FetchAsync',
+    'FetchBuilderApprovalsAsync',
+    'FetchCrossBorrowRateAsync',
+    'FetchDepositWithdrawFeeAsync',
+    'FetchDydxAccountAsync',
+    'FetchEventAsync',
+    'FetchEventsAsync',
+    'FetchExtendedAccountAsync',
+    'FetchIsolatedBorrowRateAsync',
+    'FetchIsolatedBorrowRatesAsync',
+    'FetchLastPricesAsync',
+    'FetchLatestBlockHeightAsync',
+    'FetchLeveragesAsync',
+    'FetchMarginModesAsync',
+    'FetchNonceAsync',
+    'FetchOpenInterestsAsync',
+    'FetchOrderBookWsAsync',
+    'FetchOrderStatusAsync',
+    'FetchOutcomeAsync',
+    'FetchOutcomesAsync',
+    'FetchPaginatedCallDeterministicAsync',
+    'FetchPaginatedCallIncrementalAsync',
+    'FetchPaymentMethodsAsync',
+    'FetchPrivateDepositWithdrawFeesAsync',
+    'FetchPublicDepositWithdrawFeesAsync',
+    'FetchQuoteAsync',
+    'FetchRawEventByTickerAsync',
+    'FetchRawMarketByIdAsync',
+    'FetchRawQuestionByIdAsync',
+    'FetchRawTopicDetailAsync',
+    'FetchRestOrderBookSafeAsync',
+    'FetchSettlementsAsync',
+    'FetchTimeAsync',
+    'FetchWalletAsync',
+    'FetchWebEndpointAsync',
+    'FetchWithdrawalWhitelistAsync',
+    'GetAccountIdAsync',
+    'GetListenKeyAsync',
+    'GetSystemConfigAsync',
+    'GetUrlByMarketTypeAsync',
+    'GetUtaUrlAsync',
+    'GetWithdrawNonceAsync',
+    'GetZKContractSignatureObjAsync',
+    'GetZKTransferSignatureObjAsync',
+    'HandleBuilderFeeApprovalAsync',
+    'HelperForWatchMultipleConstructAsync',
+    'InitializeClientAsync',
+    'IsUTAEnabledAsync',
+    'LoadAccountAsync',
+    'LoadAccountInfosAsync',
+    'LoadAccountSettingsAsync',
+    'LoadApiCredentialsAsync',
+    'LoadApiKeyAsync',
+    'LoadCurrencyNetworksAsync',
+    'LoadDydxProtosAsync',
+    'LoadMarketsAndSignInAsync',
+    'LoadMultiSignAddressAsync',
+    'LoadOutcomeAsync',
+    'LoadOutcomesAsync',
+    'LoadTimeDifferenceAsync',
+    'LoadUnifiedStatusAsync',
+    'NegotiateAsync',
+    'PreLoadLighterLibraryAsync',
+    'PromiseAll',
+    'RequestAsync',
+    'RequestPrivateAsync',
+    'RetrieveAccountAsync',
+    'SeedOrderBookAsync',
+    'SeedPositionBalancesAsync',
+    'SendEvmTransactionAsync',
+    'SetMarginModeAsync',
+    'SetPositionModeAsync',
+    'SignInAsync',
+    'SubscribeAsync',
+    'SubscribeMultipleAsync',
+    'SubscribeMyriadChannelAsync',
+    'SubscribeOpinionChannelAsync',
+    'SubscribePrivateAsync',
+    'SubscribePrivateUtaAsync',
+    'SubscribePublicAsync',
+    'SubscribePublicMultipleAsync',
+    'SubscribePublicMultipleUtaAsync',
+    'SubscribePublicUtaAsync',
+    'SubscribeUserChannelAsync',
+    'TradeRequestAsync',
+    'UnSubscribeAsync',
+    'UnSubscribeMultipleAsync',
+    'UnSubscribePublicMultipleAsync',
+    'UnWatchAsync',
+    'UnWatchBalanceAsync',
+    'UnWatchBidsAsksAsync',
+    'UnWatchChannelAsync',
+    'UnWatchChannelsAsync',
+    'UnWatchFundingRateAsync',
+    'UnWatchMarkPriceAsync',
+    'UnWatchMarkPricesAsync',
+    'UnWatchMyTradesAsync',
+    'UnWatchOHLCVAsync',
+    'UnWatchOHLCVForSymbolsAsync',
+    'UnWatchOrderBookAsync',
+    'UnWatchOrderBookForSymbolsAsync',
+    'UnWatchOrdersAsync',
+    'UnWatchPositionsAsync',
+    'UnWatchPrivateAsync',
+    'UnWatchPublicAsync',
+    'UnWatchPublicMultipleAsync',
+    'UnWatchTickerAsync',
+    'UnWatchTickersAsync',
+    'UnWatchTopicsAsync',
+    'UnWatchTradesAsync',
+    'UnWatchTradesForSymbolsAsync',
+    'UnWatchWalletEventsAsync',
+    'UnsubscribeAsync',
+    'UnsubscribePublicAsync',
+    'UnwatchPublicAsync',
+    'WaitForTransactionReceiptAsync',
+    'WalletEventsTopicAsync',
+    'Watch',
+    'WatchExecuteRequestAsync',
+    'WatchHeartbeatAsync',
+    'WatchManyAsync',
+    'WatchMultiHelperAsync',
+    'WatchMultiTickerHelperAsync',
+    'WatchMultiple',
+    'WatchMultipleSubscriptionAsync',
+    'WatchMultipleWrapperAsync',
+    'WatchOrderBookAsync',
+    'WatchOrderBookForSymbolsAsync',
+    'WatchPrivateAsync',
+    'WatchPrivateMultipleAsync',
+    'WatchPrivateRequestAsync',
+    'WatchPrivateSubscribeAsync',
+    'WatchPublicAsync',
+    'WatchPublicMultipleAsync',
+    'WatchRequestAsync',
+    'WatchSpotPrivateAsync',
+    'WatchSpotPublicAsync',
+    'WatchStockMarketStreamAsync',
+    'WatchSwapPrivateAsync',
+    'WatchSwapPublicAsync',
+    'WatchTopicsAsync',
+    'WatchWalletEventsAsync',
+    'WathPublicAsync',
+];
+
+// the printed receive, `(<-this.FetchTickerAsync(...))` / `(<-ccxt.Watch(...))`
+const CCXT_GO_ASYNC_RECV_CALL = /^\(\s*<-\s*(?:this|ccxt)\.([A-Za-z_]\w*)\s*\(/;
+const CCXT_GO_ASYNC_UNBOX = { 'map[string]any': 'MapTyped', '[]any': 'ListTyped' };
+const CCXT_GO_ASYNC_READ_HELPERS = /^(?:this\.)?(?:Safe[A-Z]\w*|ToArray|FilterBy\w*|Sort\w*|ExtractParams|ArrayConcat|GetArrayLength|EvalTruthy|InOp)$/;
+
+// one later read of the local: only shapes that read the untyped-nil box and a nil container
+// the same qualify, since MapTyped/ListTyped turn absent into a nil map/slice
+function ccxtGoAsyncReceiveReadsTheValue (goTranspiler, node, goType) {
+    const parent = node.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    switch (parent.kind) {
+    case ts.SyntaxKind.ElementAccessExpression: {
+        if (parent.expression !== node) {
+            return false;                       // x used as an index key
+        }
+        const grandparent = parent.parent;
+        if (grandparent !== undefined) {
+            if ((grandparent.kind === ts.SyntaxKind.BinaryExpression) && (grandparent.left === parent)) {
+                return false;                   // x[k] = v / x[k] += v
+            }
+            if ((grandparent.kind === ts.SyntaxKind.PostfixUnaryExpression)
+                || (grandparent.kind === ts.SyntaxKind.PrefixUnaryExpression)
+                || (grandparent.kind === ts.SyntaxKind.DeleteExpression)) {
+                return false;                   // x[k]++ / &x[k] / delete x[k]
+            }
+        }
+        return true;                            // printed GetValue(x, k)
+    }
+    case ts.SyntaxKind.PropertyAccessExpression:
+        // `x.length` prints len(x) / GetArrayLength(x): both answer 0 for nil and nil-slice
+        return (parent.expression === node) && (parent.name?.escapedText === 'length');
+    case ts.SyntaxKind.BinaryExpression:
+        // `k in x` prints InOp(x, k): false for a nil map and for a typed nil map
+        return (parent.operatorToken?.kind === ts.SyntaxKind.InKeyword) && (parent.right === node);
+    case ts.SyntaxKind.CallExpression: {
+        if (parent.expression === node) {
+            return false;                       // the local called as a function
+        }
+        if (parent.arguments.indexOf (node) !== 0) {
+            return false;                       // value position: the box escapes
+        }
+        if (typeof goTranspiler.goPrintedCallee !== 'function') {
+            return false;
+        }
+        const callee = goTranspiler.goPrintedCallee (goTranspiler.printNode (parent, 0));
+        if (callee === undefined) {
+            return false;
+        }
+        const name = callee.replace (/\s+/g, '');
+        return CCXT_GO_ASYNC_READ_HELPERS.test (name.replace (/\(.*$/, ''));
+    }
+    default:
+        return false;
+    }
+}
+
+// The `const x = await ...` declaration the await belongs to; undefined for the bare
+// `await this.x()` statement and for `return await this.x()`.
+function ccxtGoAsyncReceiveDeclaration (awaitNode) {
+    let node = awaitNode;
+    while (node !== undefined) {
+        const kind = node.kind;
+        if (kind === ts.SyntaxKind.VariableDeclaration) {
+            return node;
+        }
+        if ((kind === ts.SyntaxKind.ExpressionStatement) || (kind === ts.SyntaxKind.ReturnStatement)
+            || (kind === ts.SyntaxKind.FunctionDeclaration) || (kind === ts.SyntaxKind.MethodDeclaration)
+            || (kind === ts.SyntaxKind.FunctionExpression) || (kind === ts.SyntaxKind.ArrowFunction)) {
+            return undefined;
+        }
+        node = node.parent;
+    }
+    return undefined;
+}
+
+// The hook the printer consults for all three await shapes.  Fail closed: undefined keeps the
+// boxed `x := (<-...)` + `PanicOnError(x)` emission byte-for-byte.
+export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitializer) {
+    if ((awaitNode === undefined) || (awaitNode.kind !== ts.SyntaxKind.AwaitExpression)) {
+        return undefined;
+    }
+    const text = (printedInitializer ?? '').replace (/\s+/g, ' ').trim ();
+    const printed = CCXT_GO_ASYNC_RECV_CALL.exec (text);
+    if (printed === null) {
+        return undefined;                       // not a plain `<-this.<Method>(` receive
+    }
+    const call = awaitNode.expression;
+    if ((call === undefined) || (call.kind !== ts.SyntaxKind.CallExpression)) {
+        return undefined;
+    }
+    const callee = call.expression;
+    if ((callee === undefined) || (callee.kind !== ts.SyntaxKind.PropertyAccessExpression)) {
+        return undefined;
+    }
+    if (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;                       // this.DerivedExchange.x() / ccxt.x(): keep the box
+    }
+    const method = callee.name?.escapedText;
+    if (method !== printed[1]) {
+        return undefined;                       // the printer's suffix logic disagrees: keep the box
+    }
+    const goType = CCXT_GO_ASYNC_ELEM_TYPES[method];
+    if (goType === undefined) {
+        return undefined;
+    }
+    const conv = CCXT_GO_ASYNC_UNBOX[goType];
+    if (conv === undefined) {
+        return undefined;
+    }
+    const declaration = ccxtGoAsyncReceiveDeclaration (awaitNode);
+    if (declaration !== undefined) {
+        // `const x = await this.X()`: a later rebinding, a shadowing declaration, a write of
+        // another type or any read that would answer differently for a typed nil keeps the
+        // box -- the shipped scanner applies exactly those vetoes
+        if (typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function') {
+            return undefined;
+        }
+        const safe = goTranspiler.goDeclaredLocalTypeIfSafe (declaration, goType,
+            (n) => ccxtGoAsyncReceiveReadsTheValue (goTranspiler, n, goType));
+        if (safe === undefined) {
+            return undefined;
+        }
+    } else if (awaitNode.parent?.kind === ts.SyntaxKind.ReturnStatement) {
+        // `return await this.X()` forwards the value through `ch <- retResNNN`: refused until
+        // the inner value is proven never-absent for this method
+        if (CCXT_GO_ASYNC_FORWARD_SAFE.indexOf (method) < 0) {
+            return undefined;
+        }
+    }
+    return { goType: goType, wrap: (recv) => conv + '(PanicOnError(' + recv.trim () + '))' };
+}
+
+function installCcxtGoAsyncReceiveUnbox (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoAsyncReceiveUnboxInstalled) {
+        return;
+    }
+    if (typeof goTranspiler.goAwaitReceiveUnbox !== 'function') {
+        return;                                 // older printer without the hook: nothing to extend
+    }
+    goTranspiler.goAwaitReceiveUnbox = function (awaitNode, printedInitializer) {
+        return ccxtGoAwaitReceiveUnbox (this, awaitNode, printedInitializer);
+    };
+    goTranspiler.__ccxtGoAsyncReceiveUnboxInstalled = true;
+}
+
 export function installCcxtGoLocalTypes (goTranspiler) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
@@ -3176,6 +4482,9 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     if (typeof goTranspiler.goTypeOfInitializer !== 'function' || typeof goTranspiler.isWholePrintedCall !== 'function') {
         return; // older printer without local typing: nothing to extend
     }
+    // SPEC-go-getarg.md: the typed optional-argument locals read both tables
+    goTranspiler.CCXT_GO_GETARG_DECLARED_TYPES = CCXT_GO_GETARG_DECLARED_TYPES;
+    goTranspiler.CCXT_GO_GETARG_SAFE_CONSUMERS = CCXT_GO_GETARG_SAFE_CONSUMERS;
     installCcxtGoTypedConcat (goTranspiler);
     const upstream = goTranspiler.goTypeOfInitializer;
     goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {
@@ -3267,9 +4576,575 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoArithmeticUnbox (goTranspiler);
     // same for the currency dict the accessors box in `any`
     installCcxtGoCurrencyUnbox (goTranspiler);
+    installCcxtGoWriteSiteConversions (goTranspiler);
     // the container locals the printer's own predicate leaves out: cast-wrapped initializers,
     // non-empty (kept) defaults, the two-key accessors and the Safe* read shapes of the list family
     installCcxtGoSafeCollectionUnbox (goTranspiler);
+    // B1: name the async-receive locals whose element type the core's channel carries
+    installCcxtGoAsyncReceiveUnbox (goTranspiler);
+    installCcxtGoProducerDeclarations (goTranspiler);
+    // destructured element read straight into a scalar local
+    installCcxtGoElementReadJoins (goTranspiler);
+    // the scalar-literal locals of the same shape
+    installCcxtGoScalarLiteralLift (goTranspiler);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Producer declarations: `var x T = <generated producer>(...)`
+//
+const CCXT_GO_PRODUCER_DECLARATIONS = {
+    'this.FindMessageHashes': 'list',
+    'this.MarketIds': 'list',
+    'this.MarketSymbols': 'list',
+    'this.ParseOrders': 'list',
+    'this.OutcomesByMarketId': 'list',
+    'this.ParseSearchQueries': 'list',
+    'this.CreateOrderSettlementData': 'map',
+    'this.ParseEventToMarkets': 'list',
+    'this.WrapAsPostAction': 'map',
+    'this.BuildClobOrderBody': 'map',
+    'this.CreateOrderRequest': 'map',
+    'this.ExpandGroupRows': 'list',
+    'this.GetOrderChannelAndMessageHash': 'list',
+    'this.ParseTradingFee': 'map',
+    'this.BuildOHLCVC': 'list',
+    'this.BuildOrderbookOrder': 'map',
+    'this.HandleTriggerPricesAndParams': 'list',
+    'this.OpinionOrderRawAmounts': 'map',
+    'this.ParseBinaryMarketToOutcomes': 'list',
+    'this.ParseCancelOrders': 'list',
+    'this.ParseFundingRate': 'map',
+    'this.ParseMarketLeverageTiers': 'list',
+    'this.ParseOHLCVs': 'list',
+    'this.ParseTrade': 'map',
+    'this.ParseTransaction': 'map',
+    'this.ParseWsOHLCVs': 'list',
+    'this.PolymarketOrderRawAmounts': 'map',
+    'this.SignPredictfunOrder': 'map',
+    'this.AddKeyInArrayItems': 'list',
+    'this.BuildGen2SubscriptionRequest': 'list',
+    'this.CancelOrderRequest': 'map',
+    'this.CancelOrdersRequest': 'map',
+    'this.ClobOrderMessage': 'map',
+    'this.ConstructPhantomAgent': 'map',
+    'this.ConvertTradingViewToOHLCV': 'list',
+    'this.CreateOrdersRequest': 'list',
+    'this.CreatePublicSubscriptionRequest': 'map',
+    'this.CreateSpotOrderRequest': 'map',
+    'this.CreateTransferSettlementData': 'map',
+    'this.CreateWithdrawalSettlementData': 'map',
+    'this.CurrencyIds': 'list',
+    'this.CustomParseBidAsk': 'list',
+    'this.CustomParseOrderBook': 'map',
+    'this.EditContractOrderRequest': 'map',
+    'this.EditOrderRequest': 'map',
+    'this.EditOrdersRequest': 'map',
+    'this.GetListFromObjectValues': 'list',
+    'this.IndexPositionBreakList': 'map',
+    'this.OrdersToTrades': 'list',
+    'this.ParseAccountPosition': 'map',
+    'this.ParseAccountPositions': 'list',
+    'this.ParseBorrowInterests': 'list',
+    'this.ParseBorrowRate': 'map',
+    'this.ParseContractBidsAsks': 'list',
+    'this.ParseCurrency': 'map',
+    'this.ParseDepositAddress': 'map',
+    'this.ParseFundingRateHistory': 'map',
+    'this.ParseFundingRateWs': 'map',
+    'this.ParseGreeks': 'map',
+    'this.ParseLeverage': 'map',
+    'this.ParseMarginLoan': 'map',
+    'this.ParseMarginModification': 'map',
+    'this.ParseMarginModifications': 'list',
+    'this.ParseMarket': 'map',
+    'this.ParseMarkets': 'list',
+    'this.ParseMyTrade': 'map',
+    'this.ParseMyriadMarket': 'map',
+    'this.ParseOpenInterest': 'map',
+    'this.ParseOpinionMarket': 'map',
+    'this.ParseOrderBookBidAsk': 'list',
+    'this.ParseOrderBookBidsAsks': 'list',
+    'this.ParsePosition': 'map',
+    'this.ParsePredictionPosition': 'map',
+    'this.ParsePredictionPositions': 'list',
+    'this.ParseSettlement': 'map',
+    'this.ParseSettlements': 'list',
+    'this.ParseTopicMarket': 'map',
+    'this.ParseTradingFees': 'map',
+    'this.ParseTransfer': 'map',
+    'this.ParseWsBalance': 'map',
+    'this.ParseWsFundingRate': 'map',
+    'this.ParseWsTrade': 'map',
+    'this.PostActionRequest': 'map',
+    'this.PrepareAccountRequest': 'map',
+    'this.SafePredictionOrder': 'map',
+    'this.SafePredictionPosition': 'map',
+    'this.SafePredictionTicker': 'map',
+    'this.SafePredictionTrade': 'map',
+    'this.SeparateBidsOrAsks': 'list',
+};
+
+const CCXT_GO_PRODUCER_DICT_TYPE = 'map[string]any';
+const CCXT_GO_PRODUCER_LIST_TYPE = '[]any';
+
+// the container type a producer declaration can carry, or undefined when the site keeps its box
+function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
+    if ((declaration === undefined) || (declaration.kind !== ts.SyntaxKind.VariableDeclaration)
+        || (declaration.name === undefined) || (declaration.name.kind !== ts.SyntaxKind.Identifier)) {
+        return undefined;
+    }
+    // only a declaration statement prints `var x T = ...`; a for-init or an assignment keeps the box
+    if ((declaration.parent === undefined) || (declaration.parent.parent === undefined)
+        || (declaration.parent.parent.kind !== ts.SyntaxKind.VariableStatement)) {
+        return undefined;
+    }
+    const initializer = declaration.initializer;
+    if ((initializer === undefined) || (initializer.kind !== ts.SyntaxKind.CallExpression)
+        || (initializer.questionDotToken !== undefined)) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if ((callee === undefined) || (callee.kind !== ts.SyntaxKind.PropertyAccessExpression)
+        || (callee.questionDotToken !== undefined) || (callee.expression === undefined)
+        || (callee.expression.kind !== ts.SyntaxKind.ThisKeyword) || (callee.name === undefined)) {
+        return undefined;
+    }
+    // the table is keyed by the printed Go name; the ts callee is camelCase
+    const goName = callee.name.text.charAt (0).toUpperCase () + callee.name.text.slice (1);
+    if (CCXT_GO_PRODUCER_DECLARATIONS['this.' + goName] !== family) {
+        return undefined;
+    }
+    const dictLike = (family === 'map');
+    const goType = dictLike ? CCXT_GO_PRODUCER_DICT_TYPE : CCXT_GO_PRODUCER_LIST_TYPE;
+    if ((typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function')
+        || (typeof goTranspiler.goSafeDictUseReadsTheMap !== 'function')
+        || (typeof goTranspiler.goSafeListUseReadsTheList !== 'function')) {
+        return undefined; // older printer without the container read scans: nothing to extend
+    }
+    const readsTheValue = dictLike
+        ? (n) => goTranspiler.goSafeDictUseReadsTheMap (n)
+        : (n) => goTranspiler.goSafeListUseReadsTheList (n);
+    return goTranspiler.goDeclaredLocalTypeIfSafe (declaration, goType, readsTheValue);
+}
+
+// the initializer a typed producer local is declared with: the same call, its boxed result
+// re-boxed into the container the declaration names (nil when the call answered absent)
+function ccxtGoProducerUnboxValue (goTranspiler, declaration, identation, family) {
+    if (ccxtGoProducerDeclarationType (goTranspiler, declaration, family) === undefined) {
+        return undefined;
+    }
+    const printed = goTranspiler.printNode (declaration.initializer, identation);
+    return ((family === 'map') ? 'MapTyped(' : 'ArrayTyped(') + printed.trimStart () + ')';
+}
+
+function installCcxtGoProducerDeclarations (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoProducerDeclarationsInstalled) {
+        return;
+    }
+    if ((typeof goTranspiler.goSafeDictLocalUnbox !== 'function') || (typeof goTranspiler.goSafeListLocalUnbox !== 'function')
+        || (typeof goTranspiler.goSafeDictUnboxValue !== 'function') || (typeof goTranspiler.goSafeListUnboxValue !== 'function')) {
+        return; // older printer without the container unbox: nothing to extend
+    }
+    const shippedDictType = goTranspiler.goSafeDictLocalUnbox;
+    const shippedListType = goTranspiler.goSafeListLocalUnbox;
+    const shippedDictValue = goTranspiler.goSafeDictUnboxValue;
+    const shippedListValue = goTranspiler.goSafeListUnboxValue;
+    // the shipped predicate and the CCXT container families decide first, so a site they
+    // already type is emitted byte for byte as before
+    goTranspiler.goSafeDictLocalUnbox = function (declaration) {
+        const known = shippedDictType.call (this, declaration);
+        return (known !== undefined) ? known : ccxtGoProducerDeclarationType (this, declaration, 'map');
+    };
+    goTranspiler.goSafeListLocalUnbox = function (declaration) {
+        const known = shippedListType.call (this, declaration);
+        return (known !== undefined) ? known : ccxtGoProducerDeclarationType (this, declaration, 'list');
+    };
+    // a producer declaration has no shipped unbox record, so it prints its own value first
+    goTranspiler.goSafeDictUnboxValue = function (declaration, identation) {
+        if (shippedDictType.call (this, declaration) === undefined) {
+            const produced = ccxtGoProducerUnboxValue (this, declaration, identation, 'map');
+            if (produced !== undefined) {
+                return produced;
+            }
+        }
+        return shippedDictValue.call (this, declaration, identation);
+    };
+    goTranspiler.goSafeListUnboxValue = function (declaration, identation) {
+        if (shippedListType.call (this, declaration) === undefined) {
+            const produced = ccxtGoProducerUnboxValue (this, declaration, identation, 'list');
+            if (produced !== undefined) {
+                return produced;
+            }
+        }
+        return shippedListValue.call (this, declaration, identation);
+    };
+    goTranspiler.__ccxtGoProducerDeclarationsInstalled = true;
+}
+
+// --- a destructured element read into a scalar local --------------------------------
+// `let x = false; ... [ x, p ] = this.handleOptionAndParams (...)`: the declaration
+// already carries the literal's type, so the element read is the only demoting use.
+
+const CCXT_GO_ELEMENT_READ_TYPES = [
+    { type: 'bool', reader: 'GetValueBool', fallback: 'false' },
+];
+
+const CCXT_GO_ELEMENT_READ_COMPARISONS = [
+    ts.SyntaxKind.EqualsEqualsToken,
+    ts.SyntaxKind.EqualsEqualsEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsEqualsToken,
+];
+
+function ccxtGoElementReadEntry (goType) {
+    const found = CCXT_GO_ELEMENT_READ_TYPES.filter ((entry) => entry.type === goType);
+    return (found.length === 1) ? found[0] : undefined;
+}
+
+// the reads whose answer a folded scalar keeps: a comparison against `true`
+// (a box holding anything else answers false, the folded value does too) or a truthiness
+// test. `x == false` is not one of them, so it stays vetoed.
+function ccxtGoElementReadIsSafe (node) {
+    const parent = node.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    if (parent.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        return ccxtGoElementReadIsSafe (parent);
+    }
+    if (parent.kind === ts.SyntaxKind.BinaryExpression) {
+        const other = (parent.left === node) ? parent.right : parent.left;
+        return (CCXT_GO_ELEMENT_READ_COMPARISONS.indexOf (parent.operatorToken.kind) >= 0)
+            && (other?.kind === ts.SyntaxKind.TrueKeyword);
+    }
+    if ((parent.kind === ts.SyntaxKind.IfStatement) || (parent.kind === ts.SyntaxKind.WhileStatement)
+            || (parent.kind === ts.SyntaxKind.DoStatement)) {
+        return parent.expression === node;
+    }
+    if (parent.kind === ts.SyntaxKind.ForStatement) {
+        return parent.condition === node;
+    }
+    if (parent.kind === ts.SyntaxKind.ConditionalExpression) {
+        return parent.condition === node;
+    }
+    return false;
+}
+
+function ccxtGoElementReadFindDeclaration (scope, name) {
+    let found;
+    const walk = (node) => {
+        if ((found !== undefined) || (typeof node?.kind !== 'number')) {
+            return;
+        }
+        if ((node.kind === ts.SyntaxKind.VariableDeclaration) && isIdentifierNamed (node.name, name)) {
+            found = node;
+            return;
+        }
+        ts.forEachChild (node, walk);
+    };
+    ts.forEachChild (scope, walk);
+    return found;
+}
+
+// the declared type this family can prove for `declaration`, or undefined
+function ccxtGoElementReadDeclarationType (goTranspiler, declaration, varName) {
+    const name = (varName !== undefined) ? varName : (ts.isIdentifier (declaration?.name) ? declaration.name.escapedText : undefined);
+    if (name === undefined) {
+        return undefined;
+    }
+    if ((declaration?.initializer?.kind !== ts.SyntaxKind.TrueKeyword)
+            && (declaration?.initializer?.kind !== ts.SyntaxKind.FalseKeyword)) {
+        return undefined;
+    }
+    const scope = (typeof goTranspiler.goEnclosingFunction === 'function') ? goTranspiler.goEnclosingFunction (declaration) : undefined;
+    if (scope === undefined) {
+        return undefined;
+    }
+    let elementReads = 0;
+    let rejected = false;
+    const walk = (node) => {
+        if (rejected) {
+            return;
+        }
+        if ((node !== scope) && (node !== declaration) && (FUNCTION_LIKE_KINDS.indexOf (node.kind) >= 0)) {
+            rejected = scopeMentionsIdentifier (node, name); // a closure over the local
+            return;
+        }
+        if ((node !== declaration) && (node.kind === ts.SyntaxKind.VariableDeclaration)
+                && isIdentifierNamed (node.name, name)) {
+            rejected = true; // another binding of the name: the reads may belong to it
+            return;
+        }
+        if ((node !== declaration.name) && isIdentifierNamed (node, name)) {
+            const parent = node.parent;
+            const destructuring = parent?.parent;
+            if ((parent?.kind === ts.SyntaxKind.ArrayLiteralExpression)
+                    && (destructuring?.kind === ts.SyntaxKind.BinaryExpression) && (destructuring.left === parent)
+                    && (destructuring.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+                elementReads += 1; // `[ x, p ] = ...`: the write this family rewrites
+            } else if ((parent?.kind === ts.SyntaxKind.BinaryExpression)
+                    && (parent.left === node) && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+                if ((parent.right?.kind !== ts.SyntaxKind.TrueKeyword)
+                        && (parent.right?.kind !== ts.SyntaxKind.FalseKeyword)) {
+                    rejected = true; // another write shape: its value would not survive the type
+                }
+            } else if (!ccxtGoElementReadIsSafe (node)) {
+                rejected = true;
+            }
+            return;
+        }
+        ts.forEachChild (node, walk);
+    };
+    ts.forEachChild (scope, walk);
+    return (rejected || (elementReads === 0)) ? undefined : 'bool';
+}
+
+const CCXT_GO_ARRAY_BINDING_READ = /^([ \t]*)([A-Za-z_]\w*) = GetValue\(([A-Za-z_]\w*), (\d+)\)$/;
+
+// the element read of a proven target, retyped; every other printed line is returned as it is
+function retypeElementReadAssignment (goTranspiler, node, printed) {
+    if ((typeof printed !== 'string') || (node?.operatorToken?.kind !== ts.SyntaxKind.EqualsToken)
+            || (node.left?.kind !== ts.SyntaxKind.ArrayLiteralExpression)) {
+        return printed;
+    }
+    const scope = (typeof goTranspiler.goEnclosingFunction === 'function') ? goTranspiler.goEnclosingFunction (node) : undefined;
+    if (scope === undefined) {
+        return printed;
+    }
+    return printed.split ('\n').map ((line) => {
+        const match = CCXT_GO_ARRAY_BINDING_READ.exec (line);
+        if (match === null) {
+            return line;
+        }
+        const declaration = ccxtGoElementReadFindDeclaration (scope, match[2]);
+        const entry = ccxtGoElementReadEntry (ccxtGoElementReadDeclarationType (goTranspiler, declaration, match[2]));
+        if (entry === undefined) {
+            return line;
+        }
+        return match[1] + match[2] + ' = ' + entry.reader + '(' + match[3] + ', ' + match[4] + ', ' + entry.fallback + ')';
+    }).join ('\n');
+}
+
+// wrap the element read and the one veto that demoted these declarations
+function installCcxtGoElementReadJoins (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoElementReadJoinsInstalled) {
+        return;
+    }
+    if (typeof goTranspiler.goLocalIsSafeToType === 'function') {
+        const upstreamSafe = goTranspiler.goLocalIsSafeToType;
+        goTranspiler.goLocalIsSafeToType = function (scope, declaration, varName, goType) {
+            if (upstreamSafe.call (this, scope, declaration, varName, goType)) {
+                return true;
+            }
+            return ccxtGoElementReadDeclarationType (this, declaration, varName) === goType;
+        };
+    }
+    if (typeof goTranspiler.printCustomBinaryExpressionIfAny === 'function') {
+        const upstreamBinary = goTranspiler.printCustomBinaryExpressionIfAny;
+        goTranspiler.printCustomBinaryExpressionIfAny = function (node, identation) {
+            return retypeElementReadAssignment (this, node, upstreamBinary.call (this, node, identation));
+        };
+    }
+    goTranspiler.__ccxtGoElementReadJoinsInstalled = true;
+}
+
+// ------------------------- L-B: scalar-literal local lift (string) -------------------------
+
+// The string twin of the pinned native-concat family. `var x any = "lit"` and
+// `var x any = "a" + b` hold a plain Go string, but the pinned predicate demotes them
+// when a leaf proof misses the printed form (`*sym` on a derefable `*string`, a call the
+
+// the string-returning helpers the write rule may name: each entry is a pinned Go
+// signature returning a plain `string`, none of them part of the printer tables.
+// go/v4/exchange_helpers.go:1685 `func Replace(input any, old any, new any) string`
+const CCXT_GO_SCALAR_LIFT_WRITE_CALLEES = {
+    'Replace': 'string',
+};
+
+// a leaf of the `+` chain that prints as a non-nil Go string: the printer's own operand
+// proof, or the deref the chain printer adds for an operand it proved derefable
+function ccxtGoScalarLiftLeafIsString (goTranspiler, leaf, chainHasStringProof) {
+    if (goStringOperand (goTranspiler, leaf)) {
+        return true;
+    }
+    if (goPrinterDerefStringOperand (goTranspiler, leaf, chainHasStringProof)) {
+        return true;
+    }
+    // `goNativeBinaryText` prefixes `*` when the operand is a derefable `*string`, so the
+    // printed chain holds the pointee: the ast's own gate for that deref is the proof
+    return (typeof goTranspiler.goDerefableStringOperand === 'function')
+        && (goTranspiler.goDerefableStringOperand (leaf) === true);
+}
+
+// the initializer a lifted declaration is printed with: a string literal, or a `+` chain
+// the printer concatenated natively and whose every leaf is a Go string
+function ccxtGoScalarLiftInitializer (goTranspiler, node, declaration) {
+    const initializer = declaration?.initializer;
+    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    if ((initializer?.kind === ts.SyntaxKind.StringLiteral)
+        || (initializer?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral)) {
+        return initializer;
+    }
+    if ((initializer?.kind !== ts.SyntaxKind.BinaryExpression)
+        || (initializer.operatorToken?.kind !== ts.SyntaxKind.PlusToken)) {
+        return undefined;
+    }
+    if (node?.parent?.kind !== ts.SyntaxKind.FirstStatement) {
+        return undefined; // a `for` initializer prints `x := ...`: nothing to declare
+    }
+    if (goPrintedTextHasBareAddCall (goTranspiler.printNode (initializer, 0))) {
+        return undefined; // the `Add(...)` shape belongs to the typed-concat families
+    }
+    const leaves = goNativeConcatLeaves (initializer);
+    if (leaves.length < 2) {
+        return undefined;
+    }
+    const chainHasStringProof = leaves.some ((leaf) => goStringOperand (goTranspiler, leaf));
+    for (const leaf of leaves) {
+        if (!ccxtGoScalarLiftLeafIsString (goTranspiler, leaf, chainHasStringProof)) {
+            return undefined;
+        }
+    }
+    return initializer;
+}
+
+// the call a write hands its value to, as the printer spells it, or undefined
+function ccxtGoScalarLiftWrittenType (goTranspiler, right) {
+    if (right?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = right.expression;
+    const name = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) ? callee.name?.escapedText
+        : ((callee?.kind === ts.SyntaxKind.Identifier) ? callee.escapedText : undefined);
+    if (typeof name !== 'string') {
+        return undefined;
+    }
+    const printed = goTranspiler.printNode (right, 0);
+    const known = goTranspiler.goTypeOfInitializer (right, printed);
+    if (known !== undefined) {
+        return known;
+    }
+    return (CCXT_GO_SCALAR_LIFT_WRITE_CALLEES[name] !== undefined)
+        ? CCXT_GO_SCALAR_LIFT_WRITE_CALLEES[name]
+        : ((CCXT_GO_HELPER_RETURN_TYPES[name] !== undefined) ? CCXT_GO_HELPER_RETURN_TYPES[name] : undefined);
+}
+
+// true when a later mention of the local makes the declared type a lie: every write has to
+// keep the literal's type and every read has to be a value position
+function ccxtGoScalarLiftVetoed (goTranspiler, declaration, varName, goType) {
+    if (typeof goTranspiler.goEnclosingFunction !== 'function') {
+        return true; // no scope to scan: never answer a type
+    }
+    const scope = goTranspiler.goEnclosingFunction (declaration);
+    if (scope === undefined) {
+        return true;
+    }
+    let vetoed = false;
+    const visit = (n) => {
+        if (vetoed) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)) {
+            const parent = n.parent;
+            if (parent === undefined) {
+                vetoed = true; // nothing to prove the position from
+                return;
+            }
+            if ((parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)) {
+                const op = parent.operatorToken.kind;
+                if (op === ts.SyntaxKind.EqualsToken) {
+                    if (ccxtGoScalarLiftWrittenType (goTranspiler, parent.right) !== goType) {
+                        vetoed = true; // `x = <other value>`: the box was widened for it
+                        return;
+                    }
+                } else if ((op >= ts.SyntaxKind.FirstCompoundAssignment) && (op <= ts.SyntaxKind.LastCompoundAssignment)) {
+                    vetoed = true; // `x += ...`
+                    return;
+                }
+            }
+            if (((parent.kind === ts.SyntaxKind.PrefixUnaryExpression) || (parent.kind === ts.SyntaxKind.PostfixUnaryExpression))
+                && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken))) {
+                vetoed = true; // `x++`
+                return;
+            }
+            if (((parent.kind === ts.SyntaxKind.PropertyAccessExpression) || (parent.kind === ts.SyntaxKind.ElementAccessExpression))
+                && (parent.expression === n)) {
+                vetoed = true; // `x.key` / `x[i]`: the printer reads those as members
+                return;
+            }
+            if ((parent.kind === ts.SyntaxKind.SpreadElement)
+                || ((parent.kind === ts.SyntaxKind.ArrayLiteralExpression) && (parent.parent?.left === parent))
+                || ((parent.kind === ts.SyntaxKind.CallExpression) && (parent.expression === n))
+                || ((parent.kind === ts.SyntaxKind.PropertyAccessExpression) && (parent.name === n))) {
+                vetoed = true; // `...x`, `[x] = ...`, `x(...)`, `o.x`
+                return;
+            }
+            if ((parent.kind === ts.SyntaxKind.BinaryExpression)
+                && ((parent.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken)
+                    || (parent.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsToken)
+                    || (parent.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken)
+                    || (parent.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken))
+                && (isNilLiteralExpression (parent.left) || isNilLiteralExpression (parent.right))) {
+                vetoed = true; // `x == nil` does not compile against a Go string
+                return;
+            }
+            let container = n;
+            while ((container !== undefined) && ((container.parent?.kind === ts.SyntaxKind.ArrayLiteralExpression)
+                || (container.parent?.kind === ts.SyntaxKind.ObjectLiteralExpression)
+                || (container.parent?.kind === ts.SyntaxKind.PropertyAssignment)
+                || (container.parent?.kind === ts.SyntaxKind.ShorthandPropertyAssignment)
+                || (container.parent?.kind === ts.SyntaxKind.SpreadElement))) {
+                container = container.parent;
+            }
+            const top = container?.parent;
+            if ((top?.kind === ts.SyntaxKind.BinaryExpression) && (top.left === container)
+                && (top.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+                vetoed = true; // `[x, y] = ...` / `({ x } = o)`: the element write is a GetValue
+                return;
+            }
+            if ((top?.kind === ts.SyntaxKind.ForOfStatement) || (top?.kind === ts.SyntaxKind.ForInStatement)) {
+                vetoed = true; // iterating the value reads it as a container
+                return;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return vetoed;
+}
+
+// wrap printVariableDeclarationList: a declaration the pinned predicate left `any` is
+// re-typed when the family's own rule proves the value never leaves the string domain.
+function installCcxtGoScalarLiteralLift (goTranspiler) {
+    if (goTranspiler.__ccxtGoScalarLiteralLiftInstalled || (typeof goTranspiler.printVariableDeclarationList !== 'function')) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    goTranspiler.printVariableDeclarationList = (node, identation) => {
+        const printed = upstream (node, identation);
+        const declaration = (node?.declarations?.length === 1) ? node.declarations[0] : undefined;
+        if (declaration === undefined
+            || (ccxtGoScalarLiftInitializer (goTranspiler, node, declaration) === undefined)) {
+            return printed;
+        }
+        if ((typeof goTranspiler.goTypeNameIsShadowed === 'function')
+            && goTranspiler.goTypeNameIsShadowed (goTranspiler.goEnclosingFunction (declaration), 'string')) {
+            return printed; // a binding named `string` would capture the type name
+        }
+        const nameText = goTranspiler.printNode (declaration.name, 0);
+        const marker = 'var ' + nameText + ' any = ';
+        const at = printed.indexOf (marker);
+        if ((at < 0) || (printed.substring (0, at).trim () !== '')) {
+            return printed; // not the simple `var x any = ...` form of this declaration
+        }
+        if (ccxtGoScalarLiftVetoed (goTranspiler, declaration, declaration.name.escapedText, 'string')) {
+            return printed;
+        }
+        return printed.substring (0, at) + 'var ' + nameText + ' string = ' + printed.substring (at + marker.length);
+    };
+    goTranspiler.__ccxtGoScalarLiteralLiftInstalled = true;
 }
 
 // ------------------------- U01: nil-declared later-write join (string) -------------------------

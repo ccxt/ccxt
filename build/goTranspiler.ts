@@ -351,8 +351,8 @@ function goParamNilCompareText (fn: string, isEqualFn: string): string {
         if ((name === 'this') || (name === 'optionalArgs') || (name === 'chan')) {
             continue;
         }
-        // a variadic optional is bound by `x := GetArg(optionalArgs, i, default)`, which derefs
-        if (new RegExp ('(^|[\\s(])' + name + ' := GetArg\\(').test (body)) {
+        // a defaulted parameter bound by GetArg (or its typed twin) is nil-comparable natively
+        if (new RegExp ('(^|[\\s(])(?:var\\s+)?' + name + '\\s*(?::=|=)\\s*(?:ccxt\\.)?GetArg\\w*\\(').test (body)) {
             continue;
         }
         fn = fn.replace (new RegExp ('(?<![.\\w*"])' + name + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
@@ -519,7 +519,7 @@ function goBoxedPointerNames (fn: string): Set<string> {
     // every `any` box fed by one of those names: `var currency any = requested`, `x = code`.
     // Only the names declared `any` in this block (own declarations, `x := GetArg(...)` and the
     // bare `any` parameters of the signature) can hold the box: a name declared with a pointer
-    // type is compared natively by the printer and needs no rewrite.
+    // a typed GetArg twin's local is compared natively too, so it needs no rewrite
     const anyNames = new Set<string> ();
     const anyDeclRe = /var (\w+) any\b/g;
     while ((match = anyDeclRe.exec (fn)) !== null) {
@@ -2703,6 +2703,8 @@ class NewTranspiler {
             [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
             [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
             [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <-future.(*ccxt.Future).Await()'],
+            // a discarded `await future` is received straight inside PanicOnError
+            [/PanicOnError\(\(?<-future\.\(<-chan any\)\)?\)/g, 'PanicOnError(<-future.(*ccxt.Future).Await())'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.Futures/g, 'client.(ClientInterface).GetFutures()'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
@@ -5235,7 +5237,7 @@ ${caseStatements.join('\n')}
     // AppendToArray, SafeValue/GetValue receiver), and no call site compares the result to a literal.
     coerceTupleHelperSignatures (content: string): string {
         // F04: the `[]any` retag spells the single space before `{` too
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {');
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleSubTypeAndParams|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {');
     }
 
     // ------------------------------------------------------------------
