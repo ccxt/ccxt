@@ -140,10 +140,8 @@ export default class bullish extends bullishRest {
             'symbol': market['id'],
         };
         const trades = await this.watchPublic (url, messageHash, request, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -381,23 +379,22 @@ export default class bullish extends bullishRest {
         }
         const subscribeHash = 'orders';
         let messageHash = subscribeHash;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash = messageHash + '::' + symbol;
+            symbolResolved = this.symbol (symbol);
+            messageHash = messageHash + '::' + symbolResolved;
         }
         const request: Dict = {
             'topic': 'orders',
         };
         const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        const paramsOmitted = (tradingAccountId !== undefined) ? this.omit (params, 'tradingAccountId') : params;
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
-            params = this.omit (params, 'tradingAccountId');
         }
-        const orders = await this.watchPrivate (messageHash, subscribeHash, request, params);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const orders = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: Dict) {
@@ -499,23 +496,22 @@ export default class bullish extends bullishRest {
         }
         const subscribeHash = 'myTrades';
         let messageHash = subscribeHash;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += '::' + symbol;
+            symbolResolved = this.symbol (symbol);
+            messageHash += '::' + symbolResolved;
         }
         const request: Dict = {
             'topic': 'trades',
         };
         const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        const paramsOmitted = (tradingAccountId !== undefined) ? this.omit (params, 'tradingAccountId') : params;
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
-            params = this.omit (params, 'tradingAccountId');
         }
-        const trades = await this.watchPrivate (messageHash, subscribeHash, request, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const trades = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleMyTrades (client: Client, message: Dict) {
@@ -610,12 +606,12 @@ export default class bullish extends bullishRest {
         };
         let messageHash = 'balance';
         const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        const paramsOmitted = (tradingAccountId !== undefined) ? this.omit (params, 'tradingAccountId') : params;
         if (tradingAccountId !== undefined) {
-            params = this.omit (params, 'tradingAccountId');
             request['tradingAccountId'] = tradingAccountId;
             messageHash += '::' + tradingAccountId;
         }
-        return await this.watchPrivate (messageHash, messageHash, request, params);
+        return await this.watchPrivate (messageHash, messageHash, request, paramsOmitted);
     }
 
     handleBalance (client: Client, message: Dict) {
@@ -707,9 +703,10 @@ export default class bullish extends bullishRest {
         }
         const subscribeHash = 'positions';
         let messageHash = subscribeHash;
-        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
-            symbols = this.marketSymbols (symbols);
-            messageHash += '::' + symbols.join (',');
+        const hasSymbols = (symbols !== undefined) && !this.isEmpty (symbols);
+        const symbolsNormalized = (hasSymbols) ? this.marketSymbols (symbols) : symbols;
+        if (hasSymbols) {
+            messageHash += '::' + symbolsNormalized.join (',');
         }
         const request: Dict = {
             'topic': 'derivativesPositionsV2',
@@ -718,7 +715,7 @@ export default class bullish extends bullishRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (positions, symbolsNormalized, since, limit, true);
     }
 
     handlePositions (client: Client, message: Dict) {

@@ -1388,7 +1388,7 @@ export default class woo extends Exchange {
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
+        const paramsOmitted = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
         const orderType = type.toUpperCase ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1399,27 +1399,26 @@ export default class woo extends Exchange {
             'symbol': market['id'],
             'side': orderSide,
         };
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', paramsOmitted);
         if (marginMode !== undefined) {
             request['marginMode'] = this.encodeMarginMode (marginMode);
         }
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
+        const triggerPrice = this.safeString2 (paramsMarginMode, 'triggerPrice', 'stopPrice');
+        const stopLoss = this.safeValue (paramsMarginMode, 'stopLoss');
+        const takeProfit = this.safeValue (paramsMarginMode, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
-        const algoType = this.safeString (params, 'algoType');
-        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString (price));
-        const trailingAmount = this.safeString2 (params, 'trailingAmount', 'callbackValue');
-        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
+        const algoType = this.safeString (paramsMarginMode, 'algoType');
+        const trailingTriggerPrice = this.safeString2 (paramsMarginMode, 'trailingTriggerPrice', 'activatedPrice', this.numberToString (price));
+        const trailingAmount = this.safeString2 (paramsMarginMode, 'trailingAmount', 'callbackValue');
+        const trailingPercent = this.safeString2 (paramsMarginMode, 'trailingPercent', 'callbackRate');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-        const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (params, 'childOrders') !== undefined);
+        const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (paramsMarginMode, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
-        const timeInForce = this.safeStringLower (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        const timeInForce = this.safeStringLower (paramsMarginMode, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, undefined, paramsMarginMode);
         const clientOrderIdKey = isConditional ? 'clientAlgoOrderId' : 'clientOrderId';
         request['type'] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional) {
@@ -1437,10 +1436,11 @@ export default class woo extends Exchange {
         if (!isMarket && price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (isMarket && !isConditional) {
+        const isMarketNotConditional = isMarket && !isConditional;
+        const paramsCost = (isMarketNotConditional) ? this.omit (paramsMarginMode, [ 'cost', 'order_amount', 'orderAmount' ]) : paramsMarginMode;
+        if (isMarketNotConditional) {
             // for market buy it requires the amount of quote currency to spend
-            const cost = this.safeStringN (params, [ 'cost', 'order_amount', 'orderAmount' ]);
-            params = this.omit (params, [ 'cost', 'order_amount', 'orderAmount' ]);
+            const cost = this.safeStringN (paramsMarginMode, [ 'cost', 'order_amount', 'orderAmount' ]);
             const isPriceProvided = price !== undefined;
             if ((market['spot'] === true) && (isPriceProvided || (cost !== undefined))) {
                 let quoteAmount: Str = undefined;
@@ -1459,7 +1459,7 @@ export default class woo extends Exchange {
         } else if (algoType !== 'POSITIONAL_TP_SL') {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        const clientOrderId = this.safeStringN (paramsCost, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId !== undefined) {
             request[clientOrderIdKey] = clientOrderId;
         }
@@ -1514,10 +1514,10 @@ export default class woo extends Exchange {
             }
             request['childOrders'] = [ outterOrder ];
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
+        const paramsRequest = this.omit (paramsCost, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
         let response = undefined;
         if (isConditional) {
-            response = await this.v3PrivatePostTradeAlgoOrder (this.extend (request, params));
+            response = await this.v3PrivatePostTradeAlgoOrder (this.extend (request, paramsRequest));
             //
             // {
             //     "success": true,
@@ -1535,7 +1535,7 @@ export default class woo extends Exchange {
             // }
             //
         } else {
-            response = await this.v3PrivatePostTradeOrder (this.extend (request, params));
+            response = await this.v3PrivatePostTradeOrder (this.extend (request, paramsRequest));
             //
             //     {
             //         "success": true,
@@ -2466,14 +2466,15 @@ export default class woo extends Exchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap', true, true);
+        let paramsRequest: Dict = params;
         if (symbolsNormalized === undefined) {
-            let marketType: Str = undefined;
-            [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params, 'swap');
+            const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params, 'swap');
             if (marketType !== 'swap') {
                 throw new NotSupported (this.id + ' fetchTickers() supports swap markets only');
             }
+            paramsRequest = paramsMarketType;
         }
-        const response = await this.v3PublicGetFutures (params);
+        const response = await this.v3PublicGetFutures (paramsRequest);
         //
         // same as fetchTicker, with multiple rows
         //
@@ -2886,16 +2887,15 @@ export default class woo extends Exchange {
     }
 
     getDedicatedNetworkId (currency: any, params: Dict): any {
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        networkCode = this.networkIdToCode (networkCode, currency['code']);
+        const [ networkCodeRaw, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
+        const networkCode = this.networkIdToCode (networkCodeRaw, currency['code']);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry === undefined) {
             const supportedNetworks = Object.keys (currency['networks']);
             throw new BadRequest (this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json (supportedNetworks));
         }
         const currentyNetworkId = this.safeString (networkEntry, 'currencyNetworkId');
-        return [ currentyNetworkId, params ];
+        return [ currentyNetworkId, paramsNetworkCode ];
     }
 
     override parseDepositAddress (depositEntry: any, currency: Currency = undefined): DepositAddress {
@@ -3063,9 +3063,8 @@ export default class woo extends Exchange {
             if (partsLength > 2) {
                 currencyId += '_' + this.safeString (parts, 2);
             }
-            currency = this.safeCurrency (currencyId);
+            return this.safeCurrency (currencyId);
         }
-        return currency;
     }
 
     /**
@@ -3439,11 +3438,7 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
+        const symbolResolved = (symbol !== undefined) ? this.market (symbol)['symbol'] : undefined;
         const currency = this.currency (code);
         const request: Dict = {
             'token': currency['id'], // interest token that you want to repay
@@ -3458,7 +3453,7 @@ export default class woo extends Exchange {
         const transaction: MarginLoan = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
-            'symbol': symbol,
+            'symbol': symbolResolved,
         });
     }
 
@@ -3484,22 +3479,23 @@ export default class woo extends Exchange {
     }
 
     override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][access]);
         url += '/' + version + '/';
-        params = this.omit (params, this.extractParams (path));
-        params = this.keysort (params);
+        const paramsSorted: Dict = this.keysort (this.omit (params, this.extractParams (path)));
         if (access === 'public') {
             url += access + '/' + pathWithParams;
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (paramsSorted).length > 0) {
+                url += '?' + this.urlencode (paramsSorted);
             }
         } else if (access === 'pub') {
             url += pathWithParams;
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (paramsSorted).length > 0) {
+                url += '?' + this.urlencode (paramsSorted);
             }
         } else {
             this.checkRequiredCredentials ();
@@ -3510,48 +3506,50 @@ export default class woo extends Exchange {
                     const brokerId = this.safeString (this.options, 'brokerId', applicationId);
                     const isTrigger = path.indexOf ('algo') > -1;
                     if (isTrigger) {
-                        params['brokerId'] = brokerId;
+                        paramsSorted['brokerId'] = brokerId;
                     } else {
-                        params['broker_id'] = brokerId;
+                        paramsSorted['broker_id'] = brokerId;
                     }
                 }
-                params = this.keysort (params);
             }
+            const paramsSigned: Dict = this.keysort (paramsSorted);
             let auth = '';
             const ts = this.nonce ().toString ();
             url += pathWithParams;
-            headers = {
+            requestHeaders = {
                 'x-api-key': this.apiKey,
                 'x-api-timestamp': ts,
             };
             if (version === 'v3') {
                 auth = ts + method + '/' + version + '/' + pathWithParams;
                 if (method === 'POST' || method === 'PUT') {
-                    body = this.json (params);
-                    auth += body;
-                    headers['content-type'] = 'application/json';
+                    requestBody = this.json (paramsSigned);
+                    auth += requestBody;
+                    requestHeaders['content-type'] = 'application/json';
                 } else {
-                    if (Object.keys (params).length > 0) {
-                        const query = this.urlencode (params);
+                    if (Object.keys (paramsSigned).length > 0) {
+                        const query = this.urlencode (paramsSigned);
                         url += '?' + query;
                         auth += '?' + query;
                     }
                 }
             } else {
-                auth = this.urlencode (params);
+                auth = this.urlencode (paramsSigned);
                 if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                    body = auth;
+                    requestBody = auth;
                 } else {
-                    if (Object.keys (params).length > 0) {
+                    if (Object.keys (paramsSigned).length > 0) {
                         url += '?' + auth;
                     }
                 }
                 auth += '|' + ts;
-                headers['content-type'] = 'application/x-www-form-urlencoded';
+                requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
             }
-            headers['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            requestHeaders['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -3986,10 +3984,9 @@ export default class woo extends Exchange {
             const request: Dict = {
                 'symbol': market['id'],
             };
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params, 'cross');
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchLeverage', params, 'cross');
             request['marginMode'] = this.encodeMarginMode (marginMode);
-            response = await this.v3PrivateGetFuturesLeverage (this.extend (request, params));
+            response = await this.v3PrivateGetFuturesLeverage (this.extend (request, paramsMarginMode));
             //
             // HEDGE_MODE
             //     {
@@ -4098,10 +4095,9 @@ export default class woo extends Exchange {
             return await this.v3PrivatePostSpotMarginLeverage (this.extend (request, params));
         } else if (this.safeBool (market, 'swap') === true) {
             request['symbol'] = this.safeString (market, 'id');
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
             request['marginMode'] = this.encodeMarginMode (marginMode);
-            return await this.v3PrivatePutFuturesLeverage (this.extend (request, params));
+            return await this.v3PrivatePutFuturesLeverage (this.extend (request, paramsMarginMode));
         } else {
             throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + this.safeString (market, 'type') + ' markets');
         }

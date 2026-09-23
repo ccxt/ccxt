@@ -260,10 +260,8 @@ export default class bitvavo extends bitvavoRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const trades = await this.watchPublic ('trades', symbolValue, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -330,12 +328,10 @@ export default class bitvavo extends bitvavoRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watchMultiple (url, messageHashes, message, messageHashes);
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -419,10 +415,8 @@ export default class bitvavo extends bitvavoRest {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleFetchOHLCV (client: Client, message: Dict) {
@@ -532,10 +526,8 @@ export default class bitvavo extends bitvavoRest {
         };
         const message = this.extend (request, params);
         const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, message, messageHashes);
-        if (this.newUpdates) {
-            limit = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? candles.getLimit (symbol, limit) : limit;
+        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -1005,10 +997,8 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const orders = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolValue, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolValue, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolValue, since, limitResolved, true);
     }
 
     /**
@@ -1045,10 +1035,8 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const trades = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
     /**

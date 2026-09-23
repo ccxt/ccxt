@@ -181,10 +181,8 @@ export default class onetrading extends onetradingRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
-            symbols = [];
-        }
+        const symbolsNormalized = this.marketSymbols (symbols);
+        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
         const subscriptionHash = 'MARKET_TICKER';
         const messageHash = 'tickers';
         const request: Dict = {
@@ -196,8 +194,8 @@ export default class onetrading extends onetradingRest {
                 },
             ],
         };
-        const tickers = await this.watchMany (messageHash, request, subscriptionHash, symbols, params);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        const tickers = await this.watchMany (messageHash, request, subscriptionHash, symbolsList, params);
+        return this.filterByArray (tickers, 'symbol', symbolsList);
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -285,10 +283,11 @@ export default class onetrading extends onetradingRest {
             await this.loadMarkets ();
         }
         let messageHash = 'myTrades';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = market['symbol'];
+            messageHash += ':' + symbolResolved;
         }
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
@@ -305,13 +304,11 @@ export default class onetrading extends onetradingRest {
         };
         const request = this.deepExtend (subscribe, params);
         let trades = await this.watch (url, messageHash, request, subscribeHash, request);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        trades = this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        trades = this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved);
         const numTrades = trades.length;
         if (numTrades === 0) {
-            return await this.watchMyTrades (symbol, since, limit, params);
+            return await this.watchMyTrades (symbolResolved, since, limitResolved, params);
         }
         return trades;
     }
@@ -452,10 +449,11 @@ export default class onetrading extends onetradingRest {
             await this.loadMarkets ();
         }
         let messageHash = 'orders';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = market['symbol'];
+            messageHash += ':' + symbolResolved;
         }
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
@@ -472,13 +470,11 @@ export default class onetrading extends onetradingRest {
         };
         const request = this.deepExtend (subscribe, params);
         let orders = await this.watch (url, messageHash, request, subscribeHash, request);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        orders = this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        orders = this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved);
         const numOrders = orders.length;
         if (numOrders === 0) {
-            return await this.watchOrders (symbol, since, limit, params);
+            return await this.watchOrders (symbolResolved, since, limitResolved, params);
         }
         return orders;
     }
@@ -1136,10 +1132,8 @@ export default class onetrading extends onetradingRest {
             ],
         };
         const ohlcv = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -1206,16 +1200,14 @@ export default class onetrading extends onetradingRest {
     }
 
     override findTimeframe (timeframe: any, timeframes: any = undefined): Str {
-        if (timeframes === undefined) {
-            timeframes = this.timeframes;
-        }
-        if (timeframes === undefined) {
+        const timeframesResolved = (timeframes === undefined) ? this.timeframes : timeframes;
+        if (timeframesResolved === undefined) {
             throw new ArgumentsRequired (this.id + ' findTimeframe() timeframes is required');
         }
-        const keys = Object.keys (timeframes);
+        const keys = Object.keys (timeframesResolved);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (timeframes[key]['unit'] === timeframe['unit'] && timeframes[key]['period'] === timeframe['period']) {
+            if (timeframesResolved[key]['unit'] === timeframe['unit'] && timeframesResolved[key]['period'] === timeframe['period']) {
                 return key;
             }
         }

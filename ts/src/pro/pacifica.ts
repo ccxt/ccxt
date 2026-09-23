@@ -618,9 +618,10 @@ export default class pacifica extends pacificaRest {
             await this.loadMarkets ();
         }
         let messageHash = 'myTrades';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            symbolResolved = this.symbol (symbol);
+            messageHash += ':' + symbolResolved;
         }
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
@@ -634,10 +635,8 @@ export default class pacifica extends pacificaRest {
         };
         const message = this.extend (request, paramsOriginAndSingleAddress);
         const trades = await this.watch (url, messageHash, message, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -799,10 +798,8 @@ export default class pacifica extends pacificaRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -987,10 +984,8 @@ export default class pacifica extends pacificaRest {
         const messageHash = 'candles:' + parsedTf + ':' + symbolValue;
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -1087,10 +1082,11 @@ export default class pacifica extends pacificaRest {
         const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('watchOrders', params);
         let market: Market = undefined;
         let messageHash = 'order';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            symbolResolved = market['symbol'];
+            messageHash = messageHash + ':' + symbolResolved;
         }
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
@@ -1104,10 +1100,8 @@ export default class pacifica extends pacificaRest {
         };
         const message = this.extend (request, paramsOriginAndSingleAddress);
         const orders = await this.watch (url, messageHash, message, messageHash);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
