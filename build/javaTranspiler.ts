@@ -20,7 +20,6 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, javaVenueAsyncReturnTable } from './java-local-types.js';
-import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 
@@ -51,18 +50,6 @@ function overwriteFileAndFolder(path: string, content: string) {
         content = applyJavaImports(content);
     }
     overwriteFile(path, content);
-}
-
-// Zero-arg `this.fetchBalance()` (or `this.fetchBalance(null)`) on a whitelisted
-// name would bind TypedSurface's fixed-arity default and return a typed value
-// (JLS 15.12.2 phase 1 beats varargs); `new Object[0]` binds only the varargs core.
-const WHITELISTED_ZERO_ARG_CALL_RE = new RegExp(
-    '\\bthis\\.(' + [...ZERO_REQUIRED_TYPED_WHITELIST].join('|') + ')\\(\\s*(?:null\\s*)?\\)',
-    'g',
-);
-
-function routeWhitelistedInternalCallsToVarargs(javaSource: string): string {
-    return javaSource.replace(WHITELISTED_ZERO_ARG_CALL_RE, 'this.$1(new Object[0])');
 }
 
 // Split a comma-separated argument list, respecting nested () [] {} and
@@ -2845,7 +2832,6 @@ class NewTranspiler {
             // loadOrderBook is provided hand-written (void, WS-snapshot friendly) in Exchange.java;
             // drop the transpiled CompletableFuture version to avoid a redundant overload.
             exchangeBody = this.removeJavaMethod(exchangeBody, 'loadOrderBook');
-            exchangeBody = this.redirectToAsyncOnJoin(exchangeBody);
             exchangeBody = typeCoreReturns(exchangeBody, typedReturnTable('rest'));
             log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
             this.spliceTranspiledJavaBody(EXCHANGE_METHODS_FILE, javaDelimiter, restOfFile, exchangeBody.trim() + '\n}\n', true);
@@ -2937,7 +2923,6 @@ class NewTranspiler {
             // predictionBody ends with the class's closing brace — splice the extras in before it.
             const withoutClose = predictionBody.replace(/\}\s*$/, '');
             let merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
-            merged = this.redirectToAsyncOnJoin(merged, true);
             merged = typeCoreReturns(merged, typedReturnTable('prediction'));
             log.magenta('→', (javaPredictionBase as any).yellow)
             this.spliceTranspiledJavaBody(javaPredictionBase, javaDelimiter, restOfFile, merged, true);
@@ -3484,30 +3469,6 @@ class NewTranspiler {
      * the method body only.
      */
     /**
-     * Collect the typed `default` method names declared on the generated
-     * TypedSurface / PredictionTypedSurface interface. Used by redirectToAsyncOnJoin
-     * to scope the rewrite to methods that shadow the untyped varargs core signature.
-     */
-    _typedSurfaceNames: Map<boolean, Set<string>> = new Map();
-    collectTypedSurfaceMethodNames(prediction = false): Set<string> {
-        const cached = this._typedSurfaceNames.get(prediction);
-        if (cached !== undefined) return new Set(cached);
-        const path = EXCHANGE_WRAPPER_FOLDER + (prediction ? 'PredictionTypedSurface.java' : 'TypedSurface.java');
-        const names = new Set<string>();
-        let content = '';
-        try {
-            content = fs.readFileSync(path, 'utf-8');
-        } catch {
-            log.red(`[java] ${path} missing — run \`tsx build/generateJavaWrappers.ts\` first; typed-call casts skipped`);
-        }
-        const re = /^\s{4}default\s+[^=]+?\s+(\w+)\s*\(/gm;
-        let m;
-        while ((m = re.exec(content)) !== null) names.add(m[1]);
-        this._typedSurfaceNames.set(prediction, names);
-        return new Set(names);
-    }
-
-    /**
      * Collect every method name defined inside the class body of the given
      * file. Used for method-reference-as-value rewriting so we don't need a
      * hardcoded whitelist.
@@ -3523,69 +3484,6 @@ class NewTranspiler {
             names.add(n);
         }
         return names;
-    }
-
-    /**
-     * Rewrite `(this.X(arg1, ...)).join()` / `(super.X(arg1, ...)).join()` in every
-     * transpiled tier, where X carries typed defaults on TypedSurface, to cast every
-     * argument to `(Object)` so the call dispatches to the untyped `X(Object...)` core
-     * signature instead of a typed overload (which returns the typed value and breaks
-     * `.join()`, or is ambiguous between List<String> / String[] on a null).
-     */
-    redirectToAsyncOnJoin(content: string, prediction = false): string {
-        const typedRestMethods = this.collectTypedSurfaceMethodNames(prediction);
-        if (typedRestMethods.size === 0) return content;
-        // loadMarkets has a special typed signature `loadMarkets(boolean reload)`;
-        // the untyped base accepts 0 args, so a zero-arg call is already unambiguous
-        // and we shouldn't touch it.
-        typedRestMethods.delete('loadMarkets');
-        // super calls stay typed: an ancestor's varargs front forwards to `this.X`, which would re-enter the caller
-        const pattern = /\((this)\.(\w+)\(/g;
-        let result = '';
-        let lastIdx = 0;
-        let match;
-        while ((match = pattern.exec(content)) !== null) {
-            const receiver = match[1];
-            const methodName = match[2];
-            if (!typedRestMethods.has(methodName)) {
-                continue;
-            }
-            const argsStart = match.index + match[0].length;
-            let depth = 1;
-            let j = argsStart;
-            while (j < content.length && depth > 0) {
-                if (content[j] === '(') depth++;
-                else if (content[j] === ')') depth--;
-                j++;
-            }
-            // j now points just past the closing ')' of the method call.
-            // Expect outer ')' + '.join()' to confirm this is a CompletableFuture-style use.
-            if (j < content.length && content[j] === ')' && content.substring(j + 1, j + 8) === '.join()') {
-                const argsRaw = content.substring(argsStart, j - 1);
-                // Zero-arg calls are already unambiguous (typed overloads require
-                // 1+ args); only cast when there are real args.
-                //
-                // SS-05: an argument at a parameter position the transpiler retyped to
-                // `String` (JAVA_STRING_PARAM_POSITIONS) must stay uncast — an `(Object)`
-                // cast would no longer bind the String-parameter method at all, and the
-                // method name is only admitted to that table when dropping the cast
-                // still binds the untyped varargs implementation (no typed truncation
-                // overload can steal it).
-                // `new Object[0]` (routeWhitelistedInternalCallsToVarargs) already binds the
-                // varargs core; casting it to (Object) would pass the array as one element.
-                const retyped = javaStringParamPositions(methodName);
-                const bare = (a: string, k: number) => retyped.includes(k) || a === 'new Object[0]';
-                const argsCast = argsRaw.trim().length === 0
-                    ? argsRaw
-                    : this.splitTopLevelArgs(argsRaw).map((a, k) => (bare(a.trim(), k) ? a.trim() : `(Object)(${a.trim()})`)).join(', ');
-                result += content.substring(lastIdx, match.index);
-                result += `(${receiver}.${methodName}(${argsCast})).join()`;
-                lastIdx = j + 8;
-                pattern.lastIndex = lastIdx;
-            }
-        }
-        result += content.substring(lastIdx);
-        return result;
     }
 
     /**
@@ -3879,21 +3777,6 @@ class NewTranspiler {
             (match: string, prefix: string, offset: number) =>
                 this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
                     ? match : `${prefix}(String)Helpers.add(`);
-
-        // ── Typed-wrapper overload collision: fetchBalance / fetchPositions ──
-        // The typed-wrapper exchange classes (e.g. exchanges/Hashkey.java) define
-        //     Balances fetchBalance(Map<String, Object> params)
-        //     List<Position> fetchPositions(List<String> symbols, Map<String, Object> params)
-        // which Java's overload resolution prefers over the inherited async
-        //     CompletableFuture<Object> fetchBalance(Object... optionalArgs)
-        // when the WS code calls `this.fetchBalance(new HashMap<>(){{...}})`. The
-        // typed return is not a CompletableFuture, so the trailing `.join()`
-        // fails to compile. Cast the HashMap to Object so the varargs overload
-        // wins and the call returns a CompletableFuture<Object>.
-        content = content.replace(/this\.fetchBalance\(new java\.util\.HashMap/gm,
-            'this.fetchBalance((Object) new java.util.HashMap');
-        content = content.replace(/this\.fetchPositions\((null|[a-zA-Z_]\w*),\s*new java\.util\.HashMap/gm,
-            'this.fetchPositions($1, (Object) new java.util.HashMap');
 
         // ── Pattern 5: ArrayCache .hashmap access ──
         // Only match local variables, not this.xxx
@@ -4788,8 +4671,6 @@ class NewTranspiler {
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
-        javaSource = routeWhitelistedInternalCallsToVarargs(javaSource)
-        javaSource = this.redirectToAsyncOnJoin(javaSource, prediction)
         javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
 
         if (javaFolder) {
@@ -5069,7 +4950,7 @@ class NewTranspiler {
     }
 
     /**
-     * Test-side counterpart of redirectToAsyncOnJoin. `(exchange.<m>(args)).join()` in
+     * `(exchange.<m>(args)).join()` in
      * transpiled tests binds a typed TypedSurface default whenever the args are
      * statically typed (String symbol, literals, zero-arg whitelisted names), which
      * returns the typed value and has no `.join()`. Casting cannot fix it: an
