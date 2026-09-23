@@ -2162,7 +2162,7 @@ function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
 // reading as absent), a key position, arithmetic, a property/string context, copy
 // propagation into another local, a return value, and any write that is not a
 // proven scalar-pointer call (literals, GetValue, Parse8601, Ternary, ...).
-const NIL_DECLARED_SCALAR_POINTER_TYPES = [ '*int64', '*float64', '*bool' ];
+const NIL_DECLARED_SCALAR_POINTER_TYPES = [ '*int64', '*float64', '*bool', '*string' ];
 
 const NIL_DECLARED_SAFE_ARG_CALLEES = [ 'this.Iso8601', 'this.NumberToString', 'this.ParseOrderBook', 'this.CreateCcxtTradeId' ];
 
