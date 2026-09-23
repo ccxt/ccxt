@@ -2004,7 +2004,7 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
 		market = this.Market(first)
@@ -2295,7 +2295,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = nil
 	var costString any = nil
 	var typeVar any = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString any = nil
 	var feeRateString any = nil
 	var feeCurrencyCode any = nil
@@ -2859,7 +2859,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(order, "side")
 	var typeVar *string = this.ParseOrderType(this.SafeString(order, "ordType"))
 	var timestamp *int64 = this.SafeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost any = this.FromEv(this.SafeString(order, "cumFeeEv"), market)
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -3044,7 +3044,7 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) any {
 	var stopLoss *string = this.SafeString(order, "stopLossRp")
 	var feeValue any = this.OmitZero(this.SafeString(order, "execFeeRv"))
 	var ptFeeRv any = this.OmitZero(this.SafeString(order, "ptFeeRv"))
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeValue != nil {
 		fee = map[string]any{
 			"cost":     feeValue,
@@ -4063,7 +4063,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4321,9 +4321,9 @@ func (this *Phemex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetExchangeWalletsDepositList(params)).Raw))
@@ -4383,9 +4383,9 @@ func (this *Phemex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetExchangeWalletsWithdrawList(params)).Raw))
@@ -4518,7 +4518,7 @@ func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	if IsEqual(feeCost, nil) {
 		feeCost = DerefScalar(this.SafeNumber(transaction, "feeRv"))
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if !IsEqual(feeCost, nil) {
 		typeVar = SafeStringPtr("withdrawal")
 		fee = map[string]any{
@@ -4589,7 +4589,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
 	var settle any = nil
-	var market any = nil
+	var market map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
@@ -6610,7 +6610,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
 	var settle any = nil
-	var market any = nil
+	var market map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)

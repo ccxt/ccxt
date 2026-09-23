@@ -1617,7 +1617,7 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if market != nil {
 		symbol = ccxt.GetValue(market, "symbol")
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if ccxt.InOp(trade, "fees") {
 		var fees any = this.SafeList(trade, "fees", []any{})
 		var firstFee map[string]any = ccxt.SafeMapTyped(fees, 0)

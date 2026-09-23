@@ -1057,7 +1057,7 @@ func (this *Lbank) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		var symbolsLength int = GetArrayLength(symbols)
@@ -1321,7 +1321,7 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var order *string = this.SafeString(trade, "orderUuid")
 	var symbol *string = this.SafeSymbol(nil, market)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "tradeFee")
 	if feeCost != nil {
 		var feeCurr *string = func() *string {
@@ -3119,7 +3119,7 @@ func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString2(transaction, "coin", "coid")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"), typeVar)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -3183,9 +3183,9 @@ func (this *Lbank) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3256,9 +3256,9 @@ func (this *Lbank) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {

@@ -1111,7 +1111,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1139,7 +1139,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var marketOrders any = GetValue(rawOrders, marketId)
-		market = this.SafeMarket(marketId)
+		market = MapTyped(this.SafeMarket(marketId))
 		var parsedOrders any = this.ParseOrders(marketOrders, market, since, limit)
 		exchangeOrders = this.ArrayConcat(exchangeOrders, parsedOrders)
 	}
@@ -1548,7 +1548,7 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	var withdraw map[string]any = SafeMapTyped(data, "withdraw")
 	var deposit map[string]any = SafeMapTyped(data, "deposit")
 	var transactions []any = []any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code == nil {
 		var keys []string = ObjectKeys(withdraw)
 		for i := 0; i < len(keys); i++ {
@@ -1561,7 +1561,7 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 			transactions = this.ArrayConcat(transactions, deposit[key])
 		}
 	} else {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		var withdraws []any = SafeListTypedDefault(withdraw, GetValue(currency, "id"), []any{})
 		var deposits []any = SafeListTypedDefault(deposit, GetValue(currency, "id"), []any{})
 		transactions = this.ArrayConcat(withdraws, deposits)
@@ -1690,7 +1690,7 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var timestamp *int64 = this.SafeTimestamp2(transaction, "success_time", "submit_time")
 	var depositId *string = this.SafeString(transaction, "deposit_id")
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"currency": this.SafeCurrencyCode(nil, currency),

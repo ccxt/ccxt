@@ -1141,7 +1141,7 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "id")
 	var orderId *string = this.SafeString(trade, "order")
 	var feeCost *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -1371,7 +1371,7 @@ func (this *Latoken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
@@ -1667,7 +1667,7 @@ func (this *Latoken) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	if limit != nil {
@@ -2063,9 +2063,9 @@ func (this *Latoken) fetchTransactionsBody(ch chan any, optionalArgs ...any) any
 	//         "pageSize":10
 	//     }
 	//
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var content []any = SafeListTypedDefault(response, "content", []any{})
 

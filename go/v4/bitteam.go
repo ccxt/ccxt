@@ -1015,7 +1015,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"type": typeVar,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")
@@ -1143,7 +1143,7 @@ func (this *Bitteam) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1456,7 +1456,7 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1588,7 +1588,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed")
-	var fee any = nil
+	var fee map[string]any = nil
 	if !IsEqual(feeRaw, nil) {
 		var feeCost *string = this.SafeString(feeRaw, "amount")
 		var feeCurrencyId *string = this.SafeString(feeRaw, "symbol")
@@ -2169,7 +2169,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pairId"] = GetValue(market, "numericId")
@@ -2389,7 +2389,7 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	// the exchange returns the side of the taker
 	var side *string = this.SafeString2(trade, "side", "type")
-	var feeInfo any = nil
+	var feeInfo map[string]any = nil
 	var order *string = nil
 	if takerOrMaker != nil && *takerOrMaker == "maker" {
 		if side != nil && *side == "sell" {
@@ -2398,10 +2398,10 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 			side = SafeStringPtr("sell")
 		}
 		order = this.SafeString(trade, "makerOrderId")
-		feeInfo = this.SafeDict(trade, "feeMaker", map[string]any{})
+		feeInfo = MapTyped(this.SafeDict(trade, "feeMaker", map[string]any{}))
 	} else if takerOrMaker != nil && *takerOrMaker == "taker" {
 		order = this.SafeString(trade, "takerOrderId")
-		feeInfo = this.SafeDict(trade, "feeTaker", map[string]any{})
+		feeInfo = MapTyped(this.SafeDict(trade, "feeTaker", map[string]any{}))
 	}
 	var feeCurrencyId *string = this.SafeString(feeInfo, "symbol")
 	var feeCost *string = this.SafeString(feeInfo, "amount")
@@ -2555,10 +2555,10 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "numericId")
 	}
 	if limit != nil {

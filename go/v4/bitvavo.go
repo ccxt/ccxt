@@ -1096,7 +1096,7 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "feeCurrency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
@@ -1635,9 +1635,9 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "symbol", GetValue(currency, "id"))
 	}
 	var subaccountId *string = this.SafeString(params, "subaccountId")
@@ -1706,9 +1706,9 @@ func (this *Bitvavo) fetchTransferBody(ch chan any, id any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{
 		"transferId": id,
@@ -2195,7 +2195,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -2508,7 +2508,7 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -2640,7 +2640,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 		var amountQuoteRemaining *string = this.SafeString(order, "amountQuoteRemaining")
 		cost = Precise.StringSub(amountQuote, amountQuoteRemaining)
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(order, "feePaid")
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(order, "feeCurrency")
@@ -2810,9 +2810,9 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	if since != nil {
 		AddElementToObject(request, "fromDate", since)
@@ -2881,7 +2881,7 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "executedAt"))
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(item, "feesAmount")
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(item, "feesCurrency")
@@ -2984,9 +2984,9 @@ func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["symbol"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3030,9 +3030,9 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = this.FetchWithdrawalsRequest(code, since, limit, params)
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	response := (<-this.PrivateGetWithdrawalHistory(request)).Raw
@@ -3067,9 +3067,9 @@ func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["symbol"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3113,9 +3113,9 @@ func (this *Bitvavo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = this.FetchDepositsRequest(code, since, limit, params)
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	response := (<-this.PrivateGetDepositHistory(request)).Raw
@@ -3196,7 +3196,7 @@ func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var address *string = this.SafeString(transaction, "address")
 	var txid *string = this.SafeString(transaction, "txId")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost != nil {
 		fee = map[string]any{

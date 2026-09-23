@@ -811,7 +811,7 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
 	if amount == nil {
 		amount = this.SafeString(trade, "baseAmount")
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *string = this.SafeString(trade, "fee")
 	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(trade, "feeSymbol"))
 	if feeAmount != nil {
@@ -1297,7 +1297,7 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 	if timeInForce != nil && *timeInForce == "POST_ONLY" {
 		postOnly = true
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *string = this.SafeString(order, "fee")
 	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(order, "feeSymbol"))
 	if Precise.StringGt(feeAmount, "0") {
@@ -1763,7 +1763,7 @@ func (this *Bitopro) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")

@@ -2370,7 +2370,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 		return nil
 	}()
 	var feeRateBps *string = this.SafeString(trade, "fee_rate_bps")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeRateBps != nil {
 		fee = map[string]any{
 			"currency": "USDC",

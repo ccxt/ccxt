@@ -2250,7 +2250,7 @@ func (this *Btse) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(trade, "positionId", "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(trade, "feeAmount")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -2838,7 +2838,7 @@ func (this *Btse) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) a
 	} else {
 		request["orderId"] = id
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3777,9 +3777,9 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var walletType *string = this.SafeString(params, "walletType", "SPOT")
 	request["walletType"] = walletType
 	params = MapTyped(this.Omit(params, "walletType"))
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["asset"] = GetValue(currency, "id")
 	} else if walletType != nil && *walletType == "SPOT" {
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code argument for the spot wallet history"))

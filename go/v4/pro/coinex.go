@@ -487,7 +487,7 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -781,7 +781,7 @@ func (this *Coinex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var marketIds any = this.MarketIds(symbols)
-	var market any = nil
+	var market map[string]any = nil
 	var messageHashes []any = []any{}
 	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
@@ -886,7 +886,7 @@ func (this *Coinex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	}
 	var subscribedSymbols []any = []any{}
 	var messageHashes []any = []any{}
-	var market any = nil
+	var market map[string]any = nil
 	var callerMethodName any = nil
 	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
@@ -957,7 +957,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	}
 	var watchOrderBookSubscriptions map[string]any = map[string]any{}
 	var messageHashes []any = []any{}
-	var market any = nil
+	var market map[string]any = nil
 	var typeVar any = nil
 	var callerMethodName any = nil
 	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
@@ -1442,7 +1442,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 		return "swap"
 	}()
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost any = this.OmitZero(this.SafeString2(order, "fee", "quote_ccy_fee"))
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(order, "fee_ccy", ccxt.GetValue(market, "quote"))
@@ -1517,7 +1517,7 @@ func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketIds any = this.MarketIds(symbols)
 	var messageHashes []any = []any{}
-	var market any = nil
+	var market map[string]any = nil
 	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {

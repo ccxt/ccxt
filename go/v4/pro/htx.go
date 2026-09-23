@@ -1072,7 +1072,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar any = nil
 	var marketId any = "*" // wildcard
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = nil
 	var channel any = nil
 	var trades any = nil
@@ -1251,7 +1251,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar any = nil
 	var subType any = nil
-	var market any = nil
+	var market map[string]any = nil
 	var suffix any = "*" // wildcard
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1725,7 +1725,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString2(order, "execAmt", "trade_volume")
 	var typeSide *string = this.SafeString(order, "type")
 	var feeCost *string = this.SafeString(order, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString2(order, "fee_asset", "fee_currency")
 		fee = map[string]any{
@@ -3270,7 +3270,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) any {
 		orderTypeParts = ccxt.Split(orderType, "-")
 		typeVar = this.SafeString(orderTypeParts, 1, orderType)
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCurrency *string = this.SafeCurrencyCode(this.SafeStringN(trade, []any{"feeCurrency", "fee_currency", "fee_asset"}))
 	if feeCurrency != nil {
 		fee = map[string]any{

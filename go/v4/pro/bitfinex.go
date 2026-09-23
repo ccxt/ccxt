@@ -734,7 +734,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var feeValue *string = this.SafeString(trade, 9)
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeValue != nil {
 		var currencyId *string = this.SafeString(trade, 10)
 		var code *string = this.SafeCurrencyCode(currencyId)

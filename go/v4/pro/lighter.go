@@ -960,7 +960,7 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			return "sell"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if takerOrMaker != nil {
 		var feeRateRaw any = func() any {
 			if ccxt.IsEqual(takerOrMaker, "maker") {

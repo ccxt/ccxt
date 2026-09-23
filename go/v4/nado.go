@@ -834,7 +834,7 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	this.CheckRequiredCredentials()
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1171,7 +1171,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var productIds []any = []any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		productIds = append(productIds, this.ParseToInt(GetValue(market, "id")))
@@ -1378,7 +1378,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1558,7 +1558,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1780,9 +1780,9 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount", "default")
@@ -3028,7 +3028,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		feeCost = this.ParseNumber(feeString)
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -3515,7 +3515,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining any = nil
 	var cost any = nil
 	var average *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var lastTradeTimestamp *int64 = nil
 	var lastUpdateTimestamp *int64 = nil
 	var status any = nil

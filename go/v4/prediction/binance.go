@@ -1925,7 +1925,7 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var cost *string = this.SafeString(trade, "filledUsdtAmount")
 	var price *string = this.SafeString(trade, "price")
 	var orderType *string = this.SafeStringLower(trade, "orderType")
-	var fee any = nil
+	var fee map[string]any = nil
 	if (orderType != nil && *orderType == "market") && (cost != nil) && (price != nil) && (filled != nil) {
 		// buys pay cost above price*filled, sells receive proceeds net of the fee —
 		// either way the fee is the absolute difference

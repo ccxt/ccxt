@@ -1274,7 +1274,7 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes99819)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1375,7 +1375,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		ch <- BoxAbsent(retRes106819)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2121,9 +2121,9 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes163919)
 		return nil
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
@@ -2184,7 +2184,7 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) any {
 			return "in"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(item, "fee")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -2256,9 +2256,9 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 		ch <- BoxAbsent(retRes173219)
 		return nil
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
@@ -2511,9 +2511,9 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes189819)
 		return nil
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{
 		"type": "TRANSFER",
@@ -2747,7 +2747,7 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) any
 		}
 		return this.ParseNumber(Precise.StringAbs(amountString))
 	}()
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(transaction, "fee")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -4084,7 +4084,7 @@ func (this *Extended) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4147,7 +4147,7 @@ func (this *Extended) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -4229,7 +4229,7 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes321719)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)

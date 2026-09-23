@@ -623,7 +623,7 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(trade, 5)
 	var marketId *string = this.SafeString(trade, 2)
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, 6)
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, 10)
@@ -820,7 +820,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 		return "buy"
 	}()
 	var dealFee *string = this.SafeString(order, "deal_fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if dealFee != nil {
 		fee = map[string]any{
 			"cost":     this.ParseNumber(dealFee),

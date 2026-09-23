@@ -499,7 +499,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// Only BTC/JPY is meaningful
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -744,7 +744,7 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = nil
 	var costString *string = nil
 	var side *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var orderId *string = nil
 	if InOp(trade, "liquidity") {
 		if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "T" {
@@ -1103,10 +1103,10 @@ func (this *Coincheck) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -1176,9 +1176,9 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
@@ -1262,7 +1262,7 @@ func (this *Coincheck) ParseTransaction(transaction any, optionalArgs ...any) an
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var updated *int64 = this.Parse8601(this.SafeString(transaction, "confirmed_at"))
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost != nil {
 		fee = map[string]any{

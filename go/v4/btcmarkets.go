@@ -391,9 +391,9 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method any,
 	if since != nil {
 		request["after"] = since
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var response any = nil
 	if IsEqual(method, "privateGetTransfers") {
@@ -1123,7 +1123,7 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var orderId *string = this.SafeString(trade, "orderId")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		fee = map[string]any{
@@ -1604,7 +1604,7 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"status": "all",
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["marketId"] = GetValue(market, "id")
@@ -1725,7 +1725,7 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["marketId"] = GetValue(market, "id")

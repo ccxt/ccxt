@@ -1281,7 +1281,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "executed_volume")
 	var cost *string = this.SafeString(order, "executed_funds")
 	var feeCost *string = this.SafeString(order, "paid_fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		var marketForFee map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, market))
 		var feeCurrency *string = this.SafeString(marketForFee, "quote")

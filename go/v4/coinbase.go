@@ -1542,18 +1542,18 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) any
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var transactionType *string = this.SafeString(transaction, "type")
-	var amountAndCurrencyObject any = nil
-	var feeObject any = nil
+	var amountAndCurrencyObject map[string]any = nil
+	var feeObject map[string]any = nil
 	var network map[string]any = SafeMapTyped(transaction, "network")
 	if transactionType != nil && *transactionType == "send" {
-		amountAndCurrencyObject = this.SafeDict(network, "transaction_amount")
-		feeObject = this.SafeDict(network, "transaction_fee", map[string]any{})
+		amountAndCurrencyObject = MapTyped(this.SafeDict(network, "transaction_amount"))
+		feeObject = MapTyped(this.SafeDict(network, "transaction_fee", map[string]any{}))
 	} else {
-		amountAndCurrencyObject = this.SafeDict(transaction, "subtotal")
-		feeObject = this.SafeDict(transaction, "fee", map[string]any{})
+		amountAndCurrencyObject = MapTyped(this.SafeDict(transaction, "subtotal"))
+		feeObject = MapTyped(this.SafeDict(transaction, "fee", map[string]any{}))
 	}
 	if IsEqual(amountAndCurrencyObject, nil) {
-		amountAndCurrencyObject = this.SafeDict(transaction, "amount")
+		amountAndCurrencyObject = MapTyped(this.SafeDict(transaction, "amount"))
 	}
 	var amountString *string = this.SafeString(amountAndCurrencyObject, "amount")
 	var amountStringAbs *string = Precise.StringAbs(amountString)
@@ -3329,9 +3329,9 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes262819)
 		return nil
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request any = nil
 	requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params))
@@ -3650,7 +3650,7 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//     }
 	//     let txid = undefined;
 	//
-	var fee any = nil
+	var fee map[string]any = nil
 	var networkInfo map[string]any = SafeMapTyped(item, "network")
 	// txid = network['hash']; // txid does not belong to the unified ledger structure
 	var feeInfo any = this.SafeDict(networkInfo, "transaction_fee")
@@ -4337,7 +4337,7 @@ func (this *Coinbase) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4469,7 +4469,7 @@ func (this *Coinbase) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4566,7 +4566,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes367619)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4660,7 +4660,7 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan any, status any, optionalA
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -5126,7 +5126,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes407519)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -6217,7 +6217,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))
 	}

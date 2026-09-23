@@ -704,7 +704,7 @@ func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeValue *string = this.SafeString(trade, "fee")
 	if feeValue != nil {
 		fee = map[string]any{
