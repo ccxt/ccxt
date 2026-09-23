@@ -1549,10 +1549,9 @@ export default class whitebit extends Exchange {
         } else {
             onlyContractSymbols = false;
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', method);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ methodOption, paramsMethod ] = this.handleOptionAndParams (paramsMarketType, 'fetchTickers', 'method');
+        let method: Str = methodOption;
         if (method === undefined) {
             // if the user did not specify a method, choose it based on market type and symbols
             if (onlyContractSymbols || (marketType === 'swap')) {
@@ -1574,7 +1573,7 @@ export default class whitebit extends Exchange {
             //          "change":"2.12"
             //      },
             //
-            response = await this.v4PublicGetTicker (params);
+            response = await this.v4PublicGetTicker (paramsMethod);
         } else if (method === 'v4PublicGetFutures') {
             //
             //     {
@@ -1615,9 +1614,9 @@ export default class whitebit extends Exchange {
             //         ]
             //     }
             //
-            response = await this.v4PublicGetFutures (params);
+            response = await this.v4PublicGetFutures (paramsMethod);
         } else {
-            response = await this.v2PublicGetTicker (params);
+            response = await this.v2PublicGetTicker (paramsMethod);
         }
         const resultList = this.safeList (response, 'result');
         if (resultList !== undefined) {
@@ -1895,17 +1894,15 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        const maxLimit = 1440;
+        const sinceLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        const limitResolved = (since !== undefined) ? sinceLimit : limit;
         if (since !== undefined) {
-            const maxLimit = 1440;
-            if (limit === undefined) {
-                limit = maxLimit;
-            }
-            limit = Math.min (limit, maxLimit);
             const start = this.parseToInt (since / 1000);
             request['start'] = start;
         }
-        if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 1440);
+        if (limitResolved !== undefined) {
+            request['limit'] = Math.min (limitResolved, 1440);
         }
         const response = await this.v1PublicGetKline (this.extend (request, params));
         //
@@ -1920,7 +1917,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
+        return this.parseOHLCVs (result, market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -2051,8 +2048,7 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'side': side,
         };
-        let cost: Str = undefined;
-        [ cost, params ] = this.handleParamString (params, 'cost');
+        const [ cost, paramsCost ] = this.handleParamString (params, 'cost');
         if (cost !== undefined) {
             if ((side !== 'buy') || (type !== 'market')) {
                 throw new InvalidOrder (this.id + ' createOrder() cost is only supported for market buy orders');
@@ -2061,7 +2057,7 @@ export default class whitebit extends Exchange {
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (paramsCost, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -2069,18 +2065,18 @@ export default class whitebit extends Exchange {
             }
         } else {
             request['clientOrderId'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId' ]);
         }
+        const paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (paramsCost, [ 'clientOrderId' ]) : paramsCost;
         const marketType = this.safeString (market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
-        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
+        const triggerPrice = this.safeNumberN (paramsOmitted, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
         const isStopOrder = (triggerPrice !== undefined);
-        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const timeInForce = this.safeStringUpper (paramsOmitted, 'timeInForce');
         if ((timeInForce !== undefined) && (timeInForce !== 'GTC') && (timeInForce !== 'IOC') && (timeInForce !== 'PO')) {
             throw new NotSupported (this.id + ' createOrder() does not support timeInForce ' + timeInForce + ', only GTC, IOC and PO are allowed');
         }
-        const postOnly = this.isPostOnly (isMarketOrder, false, params);
+        const postOnly = this.isPostOnly (isMarketOrder, false, paramsOmitted);
         const ioc = (timeInForce === 'IOC');
         if (isStopOrder && (postOnly || ioc)) {
             throw new NotSupported (this.id + ' createOrder() does not support postOnly or timeInForce IOC for stop orders');
@@ -2088,7 +2084,7 @@ export default class whitebit extends Exchange {
         if (ioc && !isLimitOrder) {
             throw new NotSupported (this.id + ' createOrder() timeInForce IOC is only supported for limit orders');
         }
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', paramsOmitted);
         if (postOnly) {
             request['postOnly'] = true;
         }
@@ -2098,7 +2094,7 @@ export default class whitebit extends Exchange {
         if (marginMode !== undefined && marginMode !== 'cross') {
             throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
         }
-        params = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice', 'timeInForce' ]);
+        const orderParams: Dict = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice', 'timeInForce' ]);
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
         let response: Dict;
         if (isStopOrder) {
@@ -2106,13 +2102,13 @@ export default class whitebit extends Exchange {
             if (isLimitOrder) {
                 // stop limit order
                 request['price'] = this.priceToPrecision (symbol, price);
-                response = await this.v4PrivatePostOrderStopLimit (this.extend (request, params));
+                response = await this.v4PrivatePostOrderStopLimit (this.extend (request, orderParams));
             } else {
                 // stop market order
                 if (useCollateralEndpoint) {
-                    response = await this.v4PrivatePostOrderCollateralTriggerMarket (this.extend (request, params));
+                    response = await this.v4PrivatePostOrderCollateralTriggerMarket (this.extend (request, orderParams));
                 } else {
-                    response = await this.v4PrivatePostOrderStopMarket (this.extend (request, params));
+                    response = await this.v4PrivatePostOrderStopMarket (this.extend (request, orderParams));
                 }
             }
         } else {
@@ -2120,19 +2116,19 @@ export default class whitebit extends Exchange {
                 // limit order
                 request['price'] = this.priceToPrecision (symbol, price);
                 if (useCollateralEndpoint) {
-                    response = await this.v4PrivatePostOrderCollateralLimit (this.extend (request, params));
+                    response = await this.v4PrivatePostOrderCollateralLimit (this.extend (request, orderParams));
                 } else {
-                    response = await this.v4PrivatePostOrderNew (this.extend (request, params));
+                    response = await this.v4PrivatePostOrderNew (this.extend (request, orderParams));
                 }
             } else {
                 // market order
                 if (useCollateralEndpoint) {
-                    response = await this.v4PrivatePostOrderCollateralMarket (this.extend (request, params));
+                    response = await this.v4PrivatePostOrderCollateralMarket (this.extend (request, orderParams));
                 } else {
                     if (cost !== undefined) {
-                        response = await this.v4PrivatePostOrderMarket (this.extend (request, params));
+                        response = await this.v4PrivatePostOrderMarket (this.extend (request, orderParams));
                     } else {
-                        response = await this.v4PrivatePostOrderStockMarket (this.extend (request, params));
+                        response = await this.v4PrivatePostOrderStockMarket (this.extend (request, orderParams));
                     }
                 }
             }
@@ -2272,24 +2268,24 @@ export default class whitebit extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const requestType: List = [];
-        if (type === 'spot') {
-            let isMargin: Bool = undefined;
-            [ isMargin, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'isMargin', false);
+        let requestParams: Dict = paramsMarketType;
+        if (marketType === 'spot') {
+            const [ isMargin, paramsIsMargin ] = this.handleOptionAndParams (paramsMarketType, 'cancelAllOrders', 'isMargin', false);
+            requestParams = paramsIsMargin;
             if (isMargin) {
                 requestType.push ('margin');
             } else {
                 requestType.push ('spot');
             }
-        } else if (type === 'swap') {
+        } else if (marketType === 'swap') {
             requestType.push ('futures');
         } else {
-            throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + type + ' type');
+            throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + marketType + ' type');
         }
         request['type'] = requestType;
-        const response = await this.v4PrivatePostOrderCancelAll (this.extend (request, params));
+        const response = await this.v4PrivatePostOrderCancelAll (this.extend (request, requestParams));
         //
         // []
         //
@@ -2411,20 +2407,19 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response: Dict;
         if (marketType === 'swap') {
-            response = await this.v4PrivatePostCollateralAccountBalance (params);
+            response = await this.v4PrivatePostCollateralAccountBalance (paramsMarketType);
         } else {
             const options = this.safeDict (this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString (options, 'account');
-            const account = this.safeString2 (params, 'account', 'type', defaultAccount);
-            params = this.omit (params, [ 'account', 'type' ]);
+            const account = this.safeString2 (paramsMarketType, 'account', 'type', defaultAccount);
+            const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'account', 'type' ]);
             if (account === 'main' || account === 'funding') {
-                response = await this.v4PrivatePostMainAccountBalance (params);
+                response = await this.v4PrivatePostMainAccountBalance (paramsOmitted);
             } else {
-                response = await this.v4PrivatePostTradeAccountBalance (params);
+                response = await this.v4PrivatePostTradeAccountBalance (paramsOmitted);
             }
         }
         //
@@ -2519,9 +2514,9 @@ export default class whitebit extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
             request['market'] = market['id'];
         }
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100); // default 50 max 100
         }
@@ -2555,7 +2550,7 @@ export default class whitebit extends Exchange {
             }
         }
         results = this.sortBy (results, 'timestamp');
-        results = this.filterBySymbolSinceLimit (results, symbol, since, limit);
+        results = this.filterBySymbolSinceLimit (results, symbolResolved, since, limit);
         return results as Order[];
     }
 
@@ -2764,12 +2759,8 @@ export default class whitebit extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.parseToInt (since / 1000);
         }
-        if (limit === undefined || limit > 100) {
-            limit = 100;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        const limitResolved = (limit === undefined || limit > 100) ? 100 : limit;
+        request['limit'] = limitResolved;
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         request['transactionMethod'] = '2';
         const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
@@ -2791,7 +2782,7 @@ export default class whitebit extends Exchange {
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-        return this.parseTransactions (this.safeList (response, 'records', []), currency, since, limit);
+        return this.parseTransactions (this.safeList (response, 'records', []), currency, since, limitResolved);
     }
 
     /**
@@ -2819,12 +2810,8 @@ export default class whitebit extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.parseToInt (since / 1000);
         }
-        if (limit === undefined || limit > 100) {
-            limit = 100;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        const limitResolved = (limit === undefined || limit > 100) ? 100 : limit;
+        request['limit'] = limitResolved;
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
         //
@@ -2855,7 +2842,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeList (response, 'records', []);
-        return this.parseTransactions (records, currency, since, limit);
+        return this.parseTransactions (records, currency, since, limitResolved);
     }
 
     /**
@@ -4218,7 +4205,9 @@ export default class whitebit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit) as FundingRateHistory[];
         }
@@ -4272,10 +4261,8 @@ export default class whitebit extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeValue (api, 0);
         const accessibility = this.safeValue (api, 1);
-        if (headers === undefined) {
-            headers = {};
-        }
-        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
+        const publicHeaders: Dict = (headers === undefined) ? {} : headers;
+        publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
         let url = (this.urls['api'] as Dict)[version][accessibility] + pathWithParams;
         if (accessibility === 'public') {
@@ -4283,23 +4270,28 @@ export default class whitebit extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
+        let privateBody: Str = undefined;
+        let privateHeaders: Dict = {};
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.encode (this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
             const [ nonceWindow, requestParams ] = this.handleOptionAndParams (params, 'sign', 'nonceWindow', false);
-            body = this.json (this.extend ({ 'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow }, requestParams));
-            const payload = this.stringToBase64 (body);
+            privateBody = this.json (this.extend ({ 'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow }, requestParams));
+            const payload = this.stringToBase64 (privateBody);
             const signature = this.hmac (this.encode (payload), secret, sha512);
-            headers = {
+            privateHeaders = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const isPrivate = (accessibility === 'private');
+        const requestBody: Str = isPrivate ? privateBody : body;
+        const requestHeaders: Dict = isPrivate ? privateHeaders : publicHeaders;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

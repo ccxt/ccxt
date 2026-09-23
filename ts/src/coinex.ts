@@ -1277,12 +1277,10 @@ export default class coinex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 20; // default
-        }
+        const limitValue: Int = (limit === undefined) ? 20 : limit;
         const request: Dict = {
             'market': market['id'],
-            'limit': limit,
+            'limit': limitValue,
             'interval': '0',
         };
         let response: Dict;
@@ -2251,7 +2249,10 @@ export default class coinex extends Exchange {
             }
             request['type'] = requestType;
         }
+        const omitKeys = [ 'reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ];
+        let requestParams = undefined;
         if (swap === true) {
+            requestParams = this.omit (params, omitKeys);
             request['market_type'] = 'FUTURES';
             if ((stopLossPrice !== undefined && stopLossPrice !== '') || (takeProfitPrice !== undefined && takeProfitPrice !== '')) {
                 if (stopLossPrice !== undefined && stopLossPrice !== '') {
@@ -2269,18 +2270,19 @@ export default class coinex extends Exchange {
                 }
             }
         } else {
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
             } else {
                 request['market_type'] = 'SPOT';
             }
-            if ((type === 'market') && (side === 'buy')) {
-                let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
+            const isMarketBuy = (type === 'market') && (side === 'buy');
+            const requiresPriceAndParams = this.handleOptionAndParams (paramsMarginMode, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (requiresPriceAndParams[1], 'cost');
+            const paramsSpot: Dict = isMarketBuy ? this.omit (requiresPriceAndParams[1], 'cost') : paramsMarginMode;
+            requestParams = this.omit (paramsSpot, omitKeys);
+            if (isMarketBuy) {
+                const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (cost === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -2301,8 +2303,7 @@ export default class coinex extends Exchange {
                 request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             }
         }
-        params = this.omit (params, [ 'reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        return this.extend (request, params);
+        return this.extend (request, requestParams);
     }
 
     /**
@@ -3489,14 +3490,13 @@ export default class coinex extends Exchange {
             // {"code":0,"data":{},"message":"OK"}
             //
         } else {
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
             } else {
                 request['market_type'] = 'SPOT';
             }
-            response = await this.v2PrivatePostSpotCancelAllOrder (this.extend (request, params));
+            response = await this.v2PrivatePostSpotCancelAllOrder (this.extend (request, paramsMarginMode));
             //
             // {"code":0,"data":{},"message":"OK"}
             //
@@ -3631,9 +3631,8 @@ export default class coinex extends Exchange {
             request['limit'] = limit;
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, paramsOmitted);
         let response = undefined;
         const isClosed = (status === 'finished') || (status === 'closed');
         const isOpen = (status === 'pending') || (status === 'open');
@@ -3641,7 +3640,7 @@ export default class coinex extends Exchange {
             request['market_type'] = 'FUTURES';
             if (isClosed) {
                 if (trigger === true) {
-                    response = await this.v2PrivateGetFuturesFinishedStopOrder (this.extend (request, params));
+                    response = await this.v2PrivateGetFuturesFinishedStopOrder (this.extend (request, paramsMarketType));
                     //
                     //     {
                     //         "code": 0,
@@ -3669,7 +3668,7 @@ export default class coinex extends Exchange {
                     //     }
                     //
                 } else {
-                    response = await this.v2PrivateGetFuturesFinishedOrder (this.extend (request, params));
+                    response = await this.v2PrivateGetFuturesFinishedOrder (this.extend (request, paramsMarketType));
                     //
                     //     {
                     //         "code": 0,
@@ -3703,7 +3702,7 @@ export default class coinex extends Exchange {
                 }
             } else if (isOpen) {
                 if (trigger === true) {
-                    response = await this.v2PrivateGetFuturesPendingStopOrder (this.extend (request, params));
+                    response = await this.v2PrivateGetFuturesPendingStopOrder (this.extend (request, paramsMarketType));
                     //
                     //     {
                     //         "code": 0,
@@ -3732,7 +3731,7 @@ export default class coinex extends Exchange {
                     //     }
                     //
                 } else {
-                    response = await this.v2PrivateGetFuturesPendingOrder (this.extend (request, params));
+                    response = await this.v2PrivateGetFuturesPendingOrder (this.extend (request, paramsMarketType));
                     //
                     //     {
                     //         "code": 0,
@@ -3770,8 +3769,7 @@ export default class coinex extends Exchange {
                 }
             }
         } else {
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', paramsMarketType);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
             } else {
@@ -3779,7 +3777,7 @@ export default class coinex extends Exchange {
             }
             if (isClosed) {
                 if (trigger === true) {
-                    response = await this.v2PrivateGetSpotFinishedStopOrder (this.extend (request, params));
+                    response = await this.v2PrivateGetSpotFinishedStopOrder (this.extend (request, paramsMarginMode));
                     //
                     //     {
                     //         "code": 0,
@@ -3808,7 +3806,7 @@ export default class coinex extends Exchange {
                     //     }
                     //
                 } else {
-                    response = await this.v2PrivateGetSpotFinishedOrder (this.extend (request, params));
+                    response = await this.v2PrivateGetSpotFinishedOrder (this.extend (request, paramsMarginMode));
                     //
                     //     {
                     //         "code": 0,
@@ -3844,7 +3842,7 @@ export default class coinex extends Exchange {
                 }
             } else if (status === 'pending') {
                 if (trigger === true) {
-                    response = await this.v2PrivateGetSpotPendingStopOrder (this.extend (request, params));
+                    response = await this.v2PrivateGetSpotPendingStopOrder (this.extend (request, paramsMarginMode));
                     //
                     //     {
                     //         "code": 0,
@@ -3874,7 +3872,7 @@ export default class coinex extends Exchange {
                     //     }
                     //
                 } else {
-                    response = await this.v2PrivateGetSpotPendingOrder (this.extend (request, params));
+                    response = await this.v2PrivateGetSpotPendingOrder (this.extend (request, paramsMarginMode));
                     //
                     //     {
                     //         "code": 0,
@@ -4087,7 +4085,7 @@ export default class coinex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -4096,11 +4094,11 @@ export default class coinex extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, params);
         let response = undefined;
         if (market['swap'] === true) {
-            request['market_type'] = 'FUTURES';
-            response = await this.v2PrivateGetFuturesUserDeals (this.extend (request, params));
+            requestUntil['market_type'] = 'FUTURES';
+            response = await this.v2PrivateGetFuturesUserDeals (this.extend (requestUntil, paramsUntil));
             //
             //     {
             //         "code": 0,
@@ -4122,14 +4120,13 @@ export default class coinex extends Exchange {
             //     }
             //
         } else {
-            let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchMyTrades', paramsUntil);
             if (marginMode !== undefined) {
-                request['market_type'] = 'MARGIN';
+                requestUntil['market_type'] = 'MARGIN';
             } else {
-                request['market_type'] = 'SPOT';
+                requestUntil['market_type'] = 'SPOT';
             }
-            response = await this.v2PrivateGetSpotUserDeals (this.extend (request, params));
+            response = await this.v2PrivateGetSpotUserDeals (this.extend (requestUntil, paramsMarginMode));
             //
             //     {
             //         "code": 0,
@@ -4536,16 +4533,16 @@ export default class coinex extends Exchange {
         const tiers: List = [];
         const brackets = this.safeList (info, 'level', []);
         let minNotional: Num = 0;
+        const marketId = this.safeString (info, 'market');
+        const marketResolved = this.safeMarket (marketId, market, undefined, 'swap');
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
-            const marketId = this.safeString (info, 'market');
-            market = this.safeMarket (marketId, market, undefined, 'swap');
             const maxNotional = this.safeNumber (tier, 'amount');
-            const curr = (market['linear'] === true) ? market['base'] : market['quote'];
+            const curr = (marketResolved['linear'] === true) ? marketResolved['base'] : marketResolved['quote'];
             const notional = minNotional;
             tiers.push ({
                 'tier': this.sum (i, 1),
-                'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+                'symbol': this.safeSymbol (marketId, marketResolved, undefined, 'swap'),
                 'currency': curr,
                 'minNotional': notional,
                 'maxNotional': maxNotional,
@@ -5051,7 +5048,9 @@ export default class coinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 1000) as FundingRateHistory[];
         }
@@ -5239,18 +5238,18 @@ export default class coinex extends Exchange {
             'from_account_type': fromId,
             'to_account_type': toId,
         };
+        const paramsOmitted: Dict = ((fromAccount === 'margin') || (toAccount === 'margin')) ? this.omit (params, 'symbol') : params;
         if ((fromAccount === 'margin') || (toAccount === 'margin')) {
             const symbol = this.safeString (params, 'symbol');
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' transfer() the symbol parameter must be defined for a margin account');
             }
-            params = this.omit (params, 'symbol');
             request['market'] = this.marketId (symbol);
         }
         if ((fromAccount !== 'spot') && (toAccount !== 'spot')) {
             throw new BadRequest (this.id + ' transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot');
         }
-        const response = await this.v2PrivatePostAssetsTransfer (this.extend (request, params));
+        const response = await this.v2PrivatePostAssetsTransfer (this.extend (request, paramsOmitted));
         //
         //     {
         //         "code": 0,
@@ -6168,14 +6167,14 @@ export default class coinex extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
+        const [ marginModeValue, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
+        let marginMode: Str = marginModeValue;
         if (marginMode === undefined) {
             if ((defaultType === 'margin') || (isMargin === true)) {
                 marginMode = 'isolated';
             }
         }
-        return [ marginMode, params ];
+        return [ marginMode, paramsMarginMode ];
     }
 
     override nonce (): number {
@@ -6215,6 +6214,8 @@ export default class coinex extends Exchange {
                 }
             }
         }
+        let signedHeaders: NullableDict = undefined;
+        let signedBody: Str = undefined;
         if (requestUrl === 'perpetualPrivate') {
             this.checkRequiredCredentials ();
             query = this.extend ({
@@ -6224,15 +6225,15 @@ export default class coinex extends Exchange {
             query = this.keysort (query);
             const urlencoded = this.rawencode (query);
             const signature = this.hash (this.encode (urlencoded + '&secret_key=' + this.secret), sha256);
-            headers = {
+            signedHeaders = {
                 'Authorization': signature.toLowerCase (),
                 'AccessId': this.apiKey,
             };
             if ((method === 'GET') || (method === 'PUT')) {
                 url += '?' + urlencoded;
             } else {
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                body = urlencoded;
+                signedHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+                signedBody = urlencoded;
             }
         } else if (requestUrl === 'public' || requestUrl === 'perpetualPublic') {
             if (Object.keys (query).length > 0) {
@@ -6248,14 +6249,14 @@ export default class coinex extends Exchange {
                 query = this.keysort (query);
                 const urlencoded = this.rawencode (query);
                 const signature = this.hash (this.encode (urlencoded + '&secret_key=' + this.secret), md5);
-                headers = {
+                signedHeaders = {
                     'Authorization': signature.toUpperCase (),
                     'Content-Type': 'application/json',
                 };
                 if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
                     url += '?' + urlencoded;
                 } else {
-                    body = this.json (query);
+                    signedBody = this.json (query);
                 }
             } else if (version === 'v2') {
                 this.checkRequiredCredentials ();
@@ -6263,14 +6264,14 @@ export default class coinex extends Exchange {
                 const urlencoded = this.rawencode (query);
                 let preparedString = method + '/' + version + '/' + pathValue;
                 if (method === 'POST') {
-                    body = this.json (query);
-                    preparedString += body;
+                    signedBody = this.json (query);
+                    preparedString += signedBody;
                 } else if (urlencoded !== '') {
                     preparedString += '?' + urlencoded;
                 }
                 preparedString += nonce + this.secret;
                 const signature = this.hash (this.encode (preparedString), sha256);
-                headers = {
+                signedHeaders = {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-COINEX-KEY': this.apiKey,
@@ -6284,7 +6285,9 @@ export default class coinex extends Exchange {
                 }
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (signedHeaders !== undefined) ? signedHeaders : headers;
+        const bodyResolved: Str = (signedBody !== undefined) ? signedBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

@@ -726,14 +726,12 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
-        }
+        const limitResolved: Int = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetOpenOrders (this.extend (request, params));
         const data = this.safeList (response, 'Data', []);
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (data, market, since, limitResolved);
     }
 
     /**
@@ -757,14 +755,12 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
-        }
+        const limitResolved: Int = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetClosedOrders (this.extend (request, params));
         const data = this.safeList (response, 'Data', []);
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (data, market, since, limitResolved);
     }
 
     /**
@@ -782,12 +778,10 @@ export default class independentreserve extends Exchange {
             await this.loadMarkets ();
         }
         const pageIndex = this.safeInteger (params, 'pageIndex', 1);
-        if (limit === undefined) {
-            limit = 50;
-        }
+        const limitResolved: Int = (limit === undefined) ? 50 : limit;
         const request: Dict = {
             'pageIndex': pageIndex,
-            'pageSize': limit,
+            'pageSize': limitResolved,
         };
         const response = await this.privatePostGetTrades (this.extend (request, params));
         let market: Market = undefined;
@@ -795,7 +789,7 @@ export default class independentreserve extends Exchange {
             market = this.market (symbol);
         }
         const data = this.safeList (response, 'Data', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limitResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1177,8 +1171,9 @@ export default class independentreserve extends Exchange {
                 const key = keys[i];
                 query[key] = params[key];
             }
-            body = this.json (query);
-            headers = { 'Content-Type': 'application/json' };
+            const signedBody: Str = this.json (query);
+            const signedHeaders: Dict = { 'Content-Type': 'application/json' };
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -1223,7 +1223,9 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Trade[];
         }
@@ -2248,7 +2250,9 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 50) as Order[];
         }
@@ -2432,7 +2436,9 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Trade[];
         }
@@ -2686,7 +2692,9 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Transaction[];
         }
@@ -2749,7 +2757,9 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Transaction[];
         }
@@ -2812,7 +2822,9 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as TransferEntry[];
         }
@@ -3312,7 +3324,9 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as FundingHistory[];
         }
@@ -3409,11 +3423,11 @@ export default class paradex extends Exchange {
             request['start_at'] = since;
         }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['end_at'] = until;
         }
-        const response = await this.publicGetFundingData (this.extend (request, params));
+        const response = await this.publicGetFundingData (this.extend (request, paramsOmitted));
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3454,42 +3468,43 @@ export default class paradex extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let version = this.version;
+        const pathValue: any = (path.indexOf ('v2/') === 0) ? path.replace ('v2/', '') : path;
         if (path.indexOf ('v2/') === 0) {
             version = 'v2';
-            path = path.replace ('v2/', '');
         }
-        let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (path, params);
-        const query: Dict = this.omit (params, this.extractParams (path));
+        let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (pathValue, params);
+        const query: Dict = this.omit (params, this.extractParams (pathValue));
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
-            headers = {
+            const privateHeaders: Dict = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString (this.options, 'broker', 'CCXT'),
             };
+            let privateBody: Str = undefined;
             // TODO: optimize
-            if (path === 'auth') {
-                headers['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                headers['PARADEX-TIMESTAMP'] = query['timestamp'].toString ();
-                headers['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'].toString ();
-            } else if (path === 'onboarding') {
-                headers['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
-                headers['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                headers['PARADEX-TIMESTAMP'] = this.nonce ().toString ();
-                headers['Content-Type'] = 'application/json';
-                body = this.json ({
+            if (pathValue === 'auth') {
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
+                privateHeaders['PARADEX-TIMESTAMP'] = query['timestamp'].toString ();
+                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'].toString ();
+            } else if (pathValue === 'onboarding') {
+                privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
+                privateHeaders['PARADEX-TIMESTAMP'] = this.nonce ().toString ();
+                privateHeaders['Content-Type'] = 'application/json';
+                privateBody = this.json ({
                     'public_key': query['public_key'],
                 });
             } else {
                 const token = this.options['authToken'];
-                headers['Authorization'] = 'Bearer ' + token;
-                if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (path === 'orders/batch'))) {
-                    headers['Content-Type'] = 'application/json';
-                    body = this.json (query);
+                privateHeaders['Authorization'] = 'Bearer ' + token;
+                if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (pathValue === 'orders/batch'))) {
+                    privateHeaders['Content-Type'] = 'application/json';
+                    privateBody = this.json (query);
                 } else {
                     url = url + '?' + this.urlencode (query);
                 }
@@ -3506,6 +3521,8 @@ export default class paradex extends Exchange {
             //         url += '?' + this.urlencode (query);
             //     }
             // }
+            const bodyResolved: Str = (privateBody !== undefined) ? privateBody : body;
+            return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

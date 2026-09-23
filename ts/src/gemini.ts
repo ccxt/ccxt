@@ -1644,7 +1644,6 @@ export default class gemini extends Exchange {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
-        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
             clientOrderId = this.milliseconds ().toString ();
         }
@@ -1661,9 +1660,11 @@ export default class gemini extends Exchange {
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         };
         const typeValue: OrderType = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price', 'stopPrice' ]);
-        params = this.omit (params, [ 'triggerPrice', 'stop_price', 'stopPrice', 'type' ]);
+        // timeInForce and postOnly are consumed only by non-trigger orders
+        const omitKeys: string[] = [ 'clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice' ];
+        const optionKeys: string[] = (triggerPrice === undefined) ? [ 'timeInForce', 'postOnly' ] : [];
+        const paramsOmitted: Dict = this.omit (params, this.arrayConcat (omitKeys, optionKeys));
         if (typeValue === 'stopLimit') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
         }
@@ -1673,7 +1674,6 @@ export default class gemini extends Exchange {
         } else {
             // No options can be applied to stop-limit orders at this time.
             const timeInForce = this.safeString (params, 'timeInForce');
-            params = this.omit (params, 'timeInForce');
             if (timeInForce !== undefined) {
                 if ((timeInForce === 'IOC') || (timeInForce === 'immediate-or-cancel')) {
                     request['options'] = [ 'immediate-or-cancel' ];
@@ -1684,7 +1684,6 @@ export default class gemini extends Exchange {
                 }
             }
             const postOnly = this.safeBool (params, 'postOnly', false);
-            params = this.omit (params, 'postOnly');
             if (postOnly === true) {
                 request['options'] = [ 'maker-or-cancel' ];
             }
@@ -1694,7 +1693,7 @@ export default class gemini extends Exchange {
                 request['options'] = [ options ];
             }
         }
-        const response = await this.privatePostV1OrderNew (this.extend (request, params));
+        const response = await this.privatePostV1OrderNew (this.extend (request, paramsOmitted));
         //
         //      {
         //          "order_id":"106027397702",
@@ -2026,6 +2025,7 @@ export default class gemini extends Exchange {
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        let headersSigned: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const apiKey = this.apiKey;
@@ -2041,7 +2041,7 @@ export default class gemini extends Exchange {
             let payload = this.json (request);
             payload = this.stringToBase64 (payload);
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
-            headers = {
+            headersSigned = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
                 'X-GEMINI-PAYLOAD': payload,
@@ -2053,10 +2053,9 @@ export default class gemini extends Exchange {
             }
         }
         url = this.urls['api'][api] + url;
-        if ((method === 'POST') || (method === 'DELETE')) {
-            body = this.json (query);
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = (api === 'private') ? headersSigned : headers;
+        const bodyResolved = ((method === 'POST') || (method === 'DELETE')) ? this.json (query) : body;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

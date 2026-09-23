@@ -1821,15 +1821,16 @@ export default class hibachi extends Exchange {
                 url += '?' + query;
             }
         }
-        if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+        const hasJsonBody = (method === 'POST' || method === 'PUT' || method === 'DELETE');
+        if (hasJsonBody) {
             headersValue['Content-Type'] = 'application/json';
-            body = this.json (params);
         }
+        const bodyResult = (hasJsonBody) ? this.json (params) : body;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             headersValue['Authorization'] = this.apiKey;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headersValue };
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -2234,10 +2235,11 @@ export default class hibachi extends Exchange {
         const request: Dict = {
             'accountId': this.getAccountId (),
         };
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['contractId'] = market['numericId'];
-            symbol = market['symbol'];
+            symbolResolved = market['symbol'];
         }
         if (since !== undefined) {
             request['startTime'] = this.parseToInt (since / 1000);
@@ -2268,7 +2270,7 @@ export default class hibachi extends Exchange {
         const data = this.safeList (response, 'settlements', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
     }
 
     /**

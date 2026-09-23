@@ -591,10 +591,8 @@ export default class mexc extends mexcRest {
             ohlcv = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         ohlcv = this.requireValue (ohlcv, 'watchOHLCV() ohlcv is required');
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -778,10 +776,9 @@ export default class mexc extends mexcRest {
         const messageHash = 'orderbook:' + symbolValue;
         let orderbook: any = undefined;
         if (market['spot'] === true) {
-            let frequency: Str = undefined;
-            [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
+            const [ frequency, paramsFrequency ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
-            orderbook = await this.watchSpotPublic (channel, messageHash, params);
+            orderbook = await this.watchSpotPublic (channel, messageHash, paramsFrequency);
         } else {
             const channel = 'sub.depth';
             const requestParams: Dict = {
@@ -1000,10 +997,8 @@ export default class mexc extends mexcRest {
             trades = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         trades = this.requireValue (trades, 'watchTrades() trades is required');
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -1101,11 +1096,10 @@ export default class mexc extends mexcRest {
             await this.loadMarkets ();
         }
         let messageHash = 'myTrades';
-        let market: Market = undefined;
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            messageHash = messageHash + ':' + symbolResolved;
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let trades: any = undefined;
@@ -1116,10 +1110,8 @@ export default class mexc extends mexcRest {
             trades = await this.watchSwapPrivate (messageHash, paramsMarketType);
         }
         trades = this.requireValue (trades, 'watchMyTrades() trades is required');
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrade (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
@@ -1284,11 +1276,10 @@ export default class mexc extends mexcRest {
             await this.loadMarkets ();
         }
         let messageHash = 'orders';
-        let market: Market = undefined;
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            messageHash = messageHash + ':' + symbolResolved;
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let orders: any = undefined;
@@ -1299,10 +1290,8 @@ export default class mexc extends mexcRest {
             orders = await this.watchSwapPrivate (messageHash, paramsMarketType);
         }
         orders = this.requireValue (orders, 'watchOrders() orders is required');
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -1907,11 +1896,10 @@ export default class mexc extends mexcRest {
         let url: Str = undefined;
         if (market['spot'] === true) {
             url = this.urls['api']['ws']['spot'];
-            let frequency: Str = undefined;
-            [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
+            const [ frequency, paramsFrequency ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
-            params['unsubscribed'] = true;
-            this.spawn (this.watchSpotPublic, channel, messageHash, params);
+            paramsFrequency['unsubscribed'] = true;
+            this.spawn (this.watchSpotPublic, channel, messageHash, paramsFrequency);
         } else {
             url = this.urls['api']['ws']['swap'];
             const channel = 'unsub.depth';
@@ -2150,8 +2138,8 @@ export default class mexc extends mexcRest {
             }
         }
         if (this.isBinaryMessage (message)) {
-            message = this.decodeProtoMsg (message);
-            this.handleProtobufMessage (client, message);
+            const decodedMessage = this.decodeProtoMsg (message);
+            this.handleProtobufMessage (client, decodedMessage);
             return;
         }
         if ('msg' in message) {

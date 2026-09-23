@@ -384,12 +384,10 @@ export default class deepcoin extends Exchange {
 
     override handleMarketTypeAndParams (methodName: string, market: Market = undefined, params: Dict = {}, defaultValue: any = undefined): any {
         const instType = this.safeString (params, 'instType');
-        params = this.omit (params, 'instType');
-        const type = this.safeString (params, 'type');
-        if ((type === undefined) && (instType !== undefined)) {
-            params = this.extend (params, { 'type': instType });
-        }
-        return super.handleMarketTypeAndParams (methodName, market, params, defaultValue);
+        const paramsOmitted = this.omit (params, 'instType');
+        const type = this.safeString (paramsOmitted, 'type');
+        const paramsExtended = ((type === undefined) && (instType !== undefined)) ? this.extend (paramsOmitted, { 'type': instType }) : paramsOmitted;
+        return super.handleMarketTypeAndParams (methodName, market, paramsExtended, defaultValue);
     }
 
     convertToInstrumentType (type: Str): Str {
@@ -618,12 +616,10 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 400;
-        }
+        const limitResolved: Int = (limit === undefined) ? 400 : limit;
         const request: Dict = {
             'instId': market['id'],
-            'sz': limit,
+            'sz': limitResolved,
         };
         const response = await this.publicGetDeepcoinMarketBooks (this.extend (request, params));
         //
@@ -668,15 +664,13 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         const maxLimit = 300;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            params = this.extend (params, { 'calculateUntil': true });
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+            const paramsExtended = this.extend (paramsPaginate, { 'calculateUntil': true });
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
-        const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
+        const price = this.safeString (paramsPaginate, 'price');
         const bar = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'instId': market['id'],
@@ -685,14 +679,14 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
             request['after'] = until;
-            params = this.omit (params, 'until');
         }
-        const calculateUntil = this.safeBool (params, 'calculateUntil', false);
+        const calculateUntil = this.safeBool (paramsPaginate, 'calculateUntil', false);
+        const keysToOmit = (calculateUntil === true) ? [ 'price', 'until', 'calculateUntil' ] : [ 'price', 'until' ];
+        const paramsOmitted = this.omit (paramsPaginate, keysToOmit);
         if (calculateUntil === true) {
-            params = this.omit (params, 'calculateUntil');
             if (since !== undefined) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
@@ -708,11 +702,11 @@ export default class deepcoin extends Exchange {
         }
         let response = undefined;
         if (price === 'mark') {
-            response = await this.publicGetDeepcoinMarketMarkPriceCandles (this.extend (request, params));
+            response = await this.publicGetDeepcoinMarketMarkPriceCandles (this.extend (request, paramsOmitted));
         } else if (price === 'index') {
-            response = await this.publicGetDeepcoinMarketIndexCandles (this.extend (request, params));
+            response = await this.publicGetDeepcoinMarketIndexCandles (this.extend (request, paramsOmitted));
         } else {
-            response = await this.publicGetDeepcoinMarketCandles (this.extend (request, params));
+            response = await this.publicGetDeepcoinMarketCandles (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -1016,10 +1010,9 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, paramsPaginate, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -1033,12 +1026,12 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit (params, 'until');
         }
-        const response = await this.privateGetDeepcoinAssetDepositList (this.extend (request, params));
+        const paramsOmitted = this.omit (paramsPaginate, 'until');
+        const response = await this.privateGetDeepcoinAssetDepositList (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
         const items = this.safeList (data, 'data', []) as List;
         const transactionParams: Dict = {
@@ -1064,10 +1057,9 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, paramsPaginate, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -1081,12 +1073,12 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit (params, 'until');
         }
-        const response = await this.privateGetDeepcoinAssetWithdrawList (this.extend (request, params));
+        const paramsOmitted = this.omit (paramsPaginate, 'until');
+        const response = await this.privateGetDeepcoinAssetWithdrawList (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
         const items = this.safeList (data, 'data', []) as List;
         const transactionParams: Dict = {
@@ -1229,10 +1221,8 @@ export default class deepcoin extends Exchange {
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         const defaultNetwork = this.safeString (defaultNetworks, code);
         network = (network !== undefined && network !== '') ? network : defaultNetwork;
-        if (network !== undefined) {
-            params = this.omit (params, 'network');
-        }
-        const addressess = await this.fetchDepositAddresses ([ code ], params);
+        const paramsOmitted = (network !== undefined) ? this.omit (params, 'network') : params;
+        const addressess = await this.fetchDepositAddresses ([ code ], paramsOmitted);
         const length = addressess.length;
         let address = this.safeDict (addressess, 0, {});
         if ((network !== undefined) && (length > 1)) {
@@ -1295,8 +1285,7 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params, marketType);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params, 'spot');
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
@@ -1311,12 +1300,12 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsMarketType, 'until');
         if (until !== undefined) {
             request['before'] = until;
-            params = this.omit (params, 'until');
         }
-        const response = await this.privateGetDeepcoinAccountBills (this.extend (request, params));
+        const paramsOmitted = this.omit (paramsMarketType, 'until');
+        const response = await this.privateGetDeepcoinAccountBills (this.extend (request, paramsOmitted));
         //
         //     {
         //         "code": "0",
@@ -1410,9 +1399,8 @@ export default class deepcoin extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
-        let userId: Str = undefined;
-        [ userId, params ] = this.handleOptionAndParams (params, 'transfer', 'userId');
-        userId = (userId !== undefined && userId !== '') ? userId : this.safeString (params, 'uid');
+        const [ userIdOption, paramsUserId ] = this.handleOptionAndParams (params, 'transfer', 'userId');
+        const userId = (userIdOption !== undefined && userIdOption !== '') ? userIdOption : this.safeString (paramsUserId, 'uid');
         if (userId === undefined) {
             throw new ArgumentsRequired (this.id + ' transfer() requires a userId parameter');
         }
@@ -1430,7 +1418,7 @@ export default class deepcoin extends Exchange {
             'to_id': toId,
             'uid': userId,
         };
-        const response = await this.privatePostDeepcoinAssetTransfer (this.extend (request, params));
+        const response = await this.privatePostDeepcoinAssetTransfer (this.extend (request, paramsUserId));
         //
         //     {
         //         "code": "0",
@@ -1599,8 +1587,7 @@ export default class deepcoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
-        let orderType: Str = type;
-        [ orderType, params ] = this.handleTypePostOnlyAndTimeInForce (type, params);
+        const [ orderType, paramsOrderType ] = this.handleTypePostOnlyAndTimeInForce (type, params);
         const request: Dict = {
             'instId': market['id'],
             // 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
@@ -1618,21 +1605,22 @@ export default class deepcoin extends Exchange {
             // 'mrgPosition': 'merge', // swap only 'merge' or 'split'
             // 'closePosId': 'id', // swap only position ID to close, required in split mode
         };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const keysToOmit: string[] = [];
+        const clientOrderId = this.safeString (paramsOrderType, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdId'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
+            keysToOmit.push ('clientOrderId');
         }
-        const stopLoss = this.safeDict (params, 'stopLoss', {});
+        const stopLoss = this.safeDict (paramsOrderType, 'stopLoss', {});
         const stopLossPrice = this.safeString (stopLoss, 'triggerPrice');
         if (stopLossPrice !== undefined) {
-            params = this.omit (params, [ 'stopLoss' ]);
+            keysToOmit.push ('stopLoss');
             request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
         }
-        const takeProfit = this.safeDict (params, 'takeProfit', {});
+        const takeProfit = this.safeDict (paramsOrderType, 'takeProfit', {});
         const takeProfitPrice = this.safeString (takeProfit, 'triggerPrice');
         if (takeProfitPrice !== undefined) {
-            params = this.omit (params, [ 'takeProfit' ]);
+            keysToOmit.push ('takeProfit');
             request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
         }
         const isMarketOrder = (type === 'market');
@@ -1644,13 +1632,14 @@ export default class deepcoin extends Exchange {
         } else if (!isMarketOrder) {
             throw new BadRequest (this.id + ' createOrder() requires a price argument for limit orders');
         }
+        let paramsRequest = undefined;
         if (market['spot'] === true) {
-            const cost = this.safeString (params, 'cost');
+            const cost = this.safeString (paramsOrderType, 'cost');
             if (cost !== undefined) {
                 if (!isMarketOrder) {
                     throw new BadRequest (this.id + ' createOrder() accepts a cost parameter for spot market orders only');
                 }
-                params = this.omit (params, 'cost');
+                keysToOmit.push ('cost');
                 request['sz'] = this.costToPrecision (symbol, cost);
                 request['tgtCcy'] = 'quote_ccy';
             } else {
@@ -1659,16 +1648,17 @@ export default class deepcoin extends Exchange {
             }
             request['side'] = side;
             request['tdMode'] = 'cash';
+            paramsRequest = this.omit (paramsOrderType, keysToOmit);
         } else {
             request['sz'] = this.amountToPrecision (symbol, amount);
-            let marginMode = 'cross';
-            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, marginMode);
+            const paramsOmitted = this.omit (paramsOrderType, keysToOmit);
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', paramsOmitted, 'cross');
             request['tdMode'] = marginMode;
-            let mrgPosition = 'merge';
-            [ mrgPosition, params ] = this.handleOptionAndParams (params, 'createOrder', 'mrgPosition', mrgPosition);
+            const [ mrgPosition, paramsMrgPosition ] = this.handleOptionAndParams (paramsMarginMode, 'createOrder', 'mrgPosition', 'merge');
+            paramsRequest = paramsMrgPosition;
             request['mrgPosition'] = mrgPosition;
             let posSide: Str = undefined;
-            const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+            const reduceOnly = this.safeBool (paramsMrgPosition, 'reduceOnly', false);
             if (reduceOnly === true) {
                 if (side === 'buy') {
                     posSide = 'short';
@@ -1684,7 +1674,7 @@ export default class deepcoin extends Exchange {
             }
             request['posSide'] = posSide;
         }
-        return this.extend (request, params);
+        return this.extend (request, paramsRequest);
     }
 
     createTriggerOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
@@ -1773,15 +1763,11 @@ export default class deepcoin extends Exchange {
 
     handleTypePostOnlyAndTimeInForce (type: Str, params: Dict): [Str, Dict] {
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
-        if (postOnly) {
-            type = 'post_only';
-        }
+        const typePostOnly: Str = (postOnly) ? 'post_only' : type;
         const timeInForce = this.handleTimeInForce (paramsPostOnly);
         const paramsOmitted: Dict = this.omit (paramsPostOnly, 'timeInForce');
-        if ((timeInForce !== undefined) && (timeInForce === 'IOC')) {
-            type = 'ioc';
-        }
-        return [ type, paramsOmitted ];
+        const typeValue: Str = ((timeInForce !== undefined) && (timeInForce === 'IOC')) ? 'ioc' : typePostOnly;
+        return [ typeValue, paramsOmitted ];
     }
 
     /**
@@ -1955,21 +1941,20 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
-        const trigger = this.safeBool (params, 'trigger', false);
-        let methodName = 'fetchCanceledAndClosedOrders';
-        [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
+        const trigger = this.safeBool (paramsPaginate, 'trigger', false);
+        const [ methodName, paramsMethodName ] = this.handleParamString (paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, paramsMethodName, 'spot');
         request['instType'] = this.convertToInstrumentType (marketType);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
@@ -1982,7 +1967,7 @@ export default class deepcoin extends Exchange {
             if (market === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders');
             }
-            params = this.omit (params, 'trigger');
+            const paramsOmitted = this.omit (paramsMarketType, 'trigger');
             //
             //     {
             //         "code": "0",
@@ -2010,7 +1995,7 @@ export default class deepcoin extends Exchange {
             //         ]
             //     }
             //
-            response = await this.privateGetDeepcoinTradeTriggerOrdersHistory (this.extend (request, params));
+            response = await this.privateGetDeepcoinTradeTriggerOrdersHistory (this.extend (request, paramsOmitted));
         } else {
             //
             //     {
@@ -2058,7 +2043,7 @@ export default class deepcoin extends Exchange {
             //         ]
             //     }
             //
-            response = await this.privateGetDeepcoinTradeOrdersHistory (this.extend (request, params));
+            response = await this.privateGetDeepcoinTradeOrdersHistory (this.extend (request, paramsMarketType));
         }
         // todo handle with since, until and pagination
         const data = this.safeList (response, 'data', []) as List;
@@ -2134,9 +2119,9 @@ export default class deepcoin extends Exchange {
             request['limit'] = limit;
         }
         const trigger = this.safeBool (params, 'trigger', false);
+        const paramsOmitted = this.omit (params, 'trigger');
         let response = undefined;
         if (trigger === true) {
-            params = this.omit (params, 'trigger');
             request['instType'] = this.convertToInstrumentType (market['type']);
             //
             //     {
@@ -2169,7 +2154,7 @@ export default class deepcoin extends Exchange {
             //         ]
             //     }
             //
-            response = await this.privateGetDeepcoinTradeTriggerOrdersPending (this.extend (request, params));
+            response = await this.privateGetDeepcoinTradeTriggerOrdersPending (this.extend (request, paramsOmitted));
         } else {
             request['index'] = index;
             //
@@ -2250,8 +2235,8 @@ export default class deepcoin extends Exchange {
         let response = undefined;
         const trigger = this.safeBool (params, 'trigger', false);
         if (trigger === true) {
-            params = this.omit (params, 'trigger');
-            response = await this.privatePostDeepcoinTradeCancelTriggerOrder (this.extend (request, params));
+            const paramsOmitted = this.omit (params, 'trigger');
+            response = await this.privatePostDeepcoinTradeCancelTriggerOrder (this.extend (request, paramsOmitted));
         } else {
             response = await this.privatePostDeepcoinTradeCancelOrder (this.extend (request, params));
         }
@@ -2283,15 +2268,9 @@ export default class deepcoin extends Exchange {
         }
         const productGroup = this.getProductGroupFromMarket (market);
         const marginMode = this.safeString (params, 'marginMode');
-        let encodedMarginMode = 1;
-        if (marginMode !== undefined) {
-            params = this.omit (params, 'marginMode');
-            if (marginMode === 'isolated') {
-                encodedMarginMode = 0;
-            }
-        }
-        let merged = true;
-        [ merged, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'merged', merged);
+        const encodedMarginMode = (marginMode === 'isolated') ? 0 : 1;
+        const paramsOmitted = (marginMode !== undefined) ? this.omit (params, 'marginMode') : params;
+        const [ merged, paramsMerged ] = this.handleOptionAndParams (paramsOmitted, 'cancelAllOrders', 'merged', true);
         const isMergedMode = merged ? 1 : 0;
         const request: Dict = {
             'InstrumentID': market['id'],
@@ -2299,7 +2278,7 @@ export default class deepcoin extends Exchange {
             'IsCrossMargin': encodedMarginMode,
             'IsMergeMode': isMergedMode,
         };
-        const response = await this.privatePostDeepcoinTradeSwapCancelAll (this.extend (request, params));
+        const response = await this.privatePostDeepcoinTradeSwapCancelAll (this.extend (request, paramsMerged));
         const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market);
     }
@@ -2329,12 +2308,13 @@ export default class deepcoin extends Exchange {
             'OrderSysID': id,
         };
         let market: Market = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             if (market['spot'] === true) {
                 throw new NotSupported (this.id + ' editOrder() is not supported for spot markets');
             }
-            symbol = market['symbol'];
+            symbolResolved = market['symbol'];
         }
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
@@ -2345,24 +2325,24 @@ export default class deepcoin extends Exchange {
                 throw new BadRequest (this.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
             }
             if (stopLossPrice !== undefined) {
-                request['slTriggerPx'] = (symbol !== '') ? this.priceToPrecision (symbol, stopLossPrice) : this.numberToString (stopLossPrice);
+                request['slTriggerPx'] = (symbolResolved !== '') ? this.priceToPrecision (symbolResolved, stopLossPrice) : this.numberToString (stopLossPrice);
             }
             if (takeProfitPrice !== undefined) {
-                request['tpTriggerPx'] = (symbol !== '') ? this.priceToPrecision (symbol, takeProfitPrice) : this.numberToString (takeProfitPrice);
+                request['tpTriggerPx'] = (symbolResolved !== '') ? this.priceToPrecision (symbolResolved, takeProfitPrice) : this.numberToString (takeProfitPrice);
             }
-            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
-            response = await this.privatePostDeepcoinTradeReplaceOrderSltp (this.extend (request, params));
+            const paramsOmitted = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+            response = await this.privatePostDeepcoinTradeReplaceOrderSltp (this.extend (request, paramsOmitted));
         } else {
             if (price !== undefined) {
-                if (symbol !== undefined) {
-                    request['price'] = this.priceToPrecision (symbol, price);
+                if (symbolResolved !== undefined) {
+                    request['price'] = this.priceToPrecision (symbolResolved, price);
                 } else {
                     request['price'] = this.numberToString (price);
                 }
             }
             if (amount !== undefined) {
-                if (symbol !== undefined) {
-                    request['volume'] = this.amountToPrecision (symbol, amount);
+                if (symbolResolved !== undefined) {
+                    request['volume'] = this.amountToPrecision (symbolResolved, amount);
                 } else {
                     request['volume'] = this.numberToString (amount);
                 }
@@ -2964,16 +2944,16 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params, marketType);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsPaginate, 'spot');
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
@@ -2986,12 +2966,12 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsMarketType, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['end'] = until;
         }
-        const response = await this.privateGetDeepcoinTradeFills (this.extend (request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit (paramsMarketType, 'until') : paramsMarketType;
+        const response = await this.privateGetDeepcoinTradeFills (this.extend (request, paramsOmitted));
         //
         //     {
         //         "code": "0",
@@ -3076,10 +3056,10 @@ export default class deepcoin extends Exchange {
             response = await this.privatePostDeepcoinTradeBatchClosePosition (this.extend (request, params));
         } else {
             if (positionId !== undefined) {
-                params = this.omit (params, 'positionId');
                 request['positionIds'] = [ positionId ];
             }
-            response = await this.privatePostDeepcoinTradeClosePositionByIds (this.extend (request, params));
+            const paramsOmitted = (positionId !== undefined) ? this.omit (params, 'positionId') : params;
+            response = await this.privatePostDeepcoinTradeClosePositionByIds (this.extend (request, paramsOmitted));
         }
         const data = this.safeList (response, 'data', []) as List;
         return this.parseOrder (data, market);
@@ -3099,19 +3079,20 @@ export default class deepcoin extends Exchange {
             const timestamp = this.milliseconds ();
             const dateTime = this.iso8601 (timestamp);
             let payload = dateTime + method + '/' + requestPath;
-            headers = {
+            const privateHeaders: Dict = {
                 'DC-ACCESS-KEY': this.apiKey,
                 'DC-ACCESS-TIMESTAMP': dateTime,
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
+            const requestBody = (method !== 'GET') ? this.json (params) : body;
             if (method !== 'GET') {
-                body = this.json (params);
-                headers['Content-Type'] = 'application/json';
-                payload += body;
+                privateHeaders['Content-Type'] = 'application/json';
+                payload += requestBody;
             }
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-            headers['DC-ACCESS-SIGN'] = signature;
+            privateHeaders['DC-ACCESS-SIGN'] = signature;
+            return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

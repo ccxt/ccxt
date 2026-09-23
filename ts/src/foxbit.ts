@@ -1825,11 +1825,9 @@ export default class foxbit extends Exchange {
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
         let symbol = this.safeString (order, 'market_symbol');
-        if (market === undefined && symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        const marketResolved: Market = ((market === undefined) && (symbol !== undefined)) ? this.market (symbol) : market;
+        if (marketResolved !== undefined) {
+            symbol = marketResolved['symbol'];
         }
         const timestamp = this.parseDate (this.safeString (order, 'created_at'));
         const price = this.safeString (order, 'price');
@@ -1847,9 +1845,9 @@ export default class foxbit extends Exchange {
             cost = Precise.stringMul (priceToCalculate, amount);
         }
         const side = this.safeStringLower (order, 'side');
-        let feeCurrency = this.safeStringUpper (market, 'quoteId');
+        let feeCurrency = this.safeStringUpper (marketResolved, 'quoteId');
         if (side === 'buy') {
-            feeCurrency = this.safeStringUpper (market, 'baseId');
+            feeCurrency = this.safeStringUpper (marketResolved, 'baseId');
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -1859,7 +1857,7 @@ export default class foxbit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'state')),
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'type': this.safeString (order, 'type'),
             'timeInForce': this.safeString (order, 'time_in_force'),
             'postOnly': this.safeBool (order, 'post_only'),
@@ -2072,12 +2070,10 @@ export default class foxbit extends Exchange {
                 }
             }
         }
-        if (method === 'POST' || method === 'PUT') {
-            body = this.json (paramsOmitted);
-        }
+        const requestBody = (method === 'POST' || method === 'PUT') ? this.json (paramsOmitted) : body;
         let bodyToSignature = '';
-        if (body !== undefined) {
-            bodyToSignature = body;
+        if (requestBody !== undefined) {
+            bodyToSignature = requestBody;
         }
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',
@@ -2092,7 +2088,7 @@ export default class foxbit extends Exchange {
             headersValue['X-FB-ACCESS-TIMESTAMP'] = this.numberToString (timestamp);
             headersValue['X-FB-ACCESS-SIGNATURE'] = signature;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headersValue };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

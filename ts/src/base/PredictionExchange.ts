@@ -554,10 +554,8 @@ export default class PredictionExchange extends BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if (outcome === undefined) {
-            outcome = '';
-        }
-        const upper = outcome.toUpperCase ();
+        const outcomeValue: string = (outcome === undefined) ? '' : outcome;
+        const upper = outcomeValue.toUpperCase ();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray (upper);
         let label = '';

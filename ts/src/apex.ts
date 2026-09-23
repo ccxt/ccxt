@@ -838,11 +838,9 @@ export default class apex extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': this.safeString (market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 200; // default is 200 when requested with `since`
-        }
-        limit = Math.min (limit, 200); // fix maxcap
-        request['limit'] = limit; // max 200, default 200
+        // default is 200 when requested with `since`, max 200
+        const limitResolved = (limit === undefined) ? 200 : Math.min (limit, 200);
+        request['limit'] = limitResolved;
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params, 0.001);
         if (since !== undefined) {
             requestUntil['start'] = Math.floor (since / 1000);
@@ -850,7 +848,7 @@ export default class apex extends Exchange {
         const response = await this.publicGetV3Klines (this.extend (requestUntil, paramsUntil));
         const data = this.safeDict (response, 'data', {});
         const OHLCVs = this.safeList (data, this.safeString (market, 'id2'), []);
-        return this.parseOHLCVs (OHLCVs, market, timeframe, since, limit);
+        return this.parseOHLCVs (OHLCVs, market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -895,10 +893,7 @@ export default class apex extends Exchange {
         const request: Dict = {
             'symbol': this.safeString (market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 100; // default is 200 when requested with `since`
-        }
-        request['limit'] = limit; // max 100, default 100
+        request['limit'] = (limit === undefined) ? 100 : limit; // max 100, default 100
         const response = await this.publicGetV3Depth (this.extend (request, params));
         //
         // {
@@ -954,10 +949,8 @@ export default class apex extends Exchange {
         const request: Dict = {
             'symbol': this.safeString (market, 'id2'),
         };
-        if (limit === undefined) {
-            limit = 500; // default is 50
-        }
-        request['limit'] = limit;
+        const limitResolved = (limit === undefined) ? 500 : limit; // default is 50
+        request['limit'] = limitResolved;
         const response = await this.publicGetV3Trades (this.extend (request, params));
         //
         // [
@@ -980,7 +973,7 @@ export default class apex extends Exchange {
         //  ]
         //
         const trades = this.safeList (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limitResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1287,13 +1280,14 @@ export default class apex extends Exchange {
     }
 
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        let marketResolved: Market = undefined;
         if (market === undefined && marketId !== undefined) {
             const marketsMap = this.markets;
             const marketsById = this.markets_by_id;
             if ((marketsMap !== undefined) && (marketId in marketsMap)) {
-                market = marketsMap[marketId];
+                marketResolved = marketsMap[marketId];
             } else if ((marketsById !== undefined) && (marketId in marketsById)) {
-                market = marketsById[marketId];
+                marketResolved = marketsById[marketId];
             } else {
                 const newMarketId = this.addHyphenBeforeUsdt (marketId);
                 if ((marketsById !== undefined) && (newMarketId in marketsById)) {
@@ -1301,13 +1295,14 @@ export default class apex extends Exchange {
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
                         if (marketsById[newMarketId][0]['id2'] === marketId) {
-                            market = marketsById[newMarketId][0];
+                            marketResolved = marketsById[newMarketId][0];
                         }
                     }
                 }
             }
         }
-        return super.safeMarket (marketId, market, delimiter, marketType);
+        const marketValue = (marketResolved === undefined) ? market : marketResolved;
+        return super.safeMarket (marketId, marketValue, delimiter, marketType);
     }
 
     generateRandomClientIdOmni (_accountId: Str) {
@@ -1657,8 +1652,7 @@ export default class apex extends Exchange {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-            response = await this.privatePostV3DeleteClientOrderId (this.extend (request, params));
+            response = await this.privatePostV3DeleteClientOrderId (this.extend (request, this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ])));
         } else {
             request['id'] = id;
             response = await this.privatePostV3DeleteOrder (this.extend (request, params));
@@ -1688,8 +1682,7 @@ export default class apex extends Exchange {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-            response = await this.privateGetV3OrderByClientOrderId (this.extend (request, params));
+            response = await this.privateGetV3OrderByClientOrderId (this.extend (request, this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ])));
         } else {
             request['id'] = id;
             response = await this.privateGetV3Order (this.extend (request, params));
@@ -1754,9 +1747,9 @@ export default class apex extends Exchange {
         const endTimeExclusive = this.safeIntegerN (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
-            params = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         }
-        const response = await this.privateGetV3HistoryOrders (this.extend (request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]) : params;
+        const response = await this.privateGetV3HistoryOrders (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
@@ -1826,9 +1819,9 @@ export default class apex extends Exchange {
         const endTimeExclusive = this.safeIntegerN (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
-            params = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         }
-        const response = await this.privateGetV3Fills (this.extend (request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]) : params;
+        const response = await this.privateGetV3Fills (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
         return this.parseTrades (orders, market, since, limit);
@@ -1866,10 +1859,10 @@ export default class apex extends Exchange {
         }
         const endTimeExclusive = this.safeIntegerN (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
         if (endTimeExclusive !== undefined) {
-            params = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
             request['endTimeExclusive'] = endTimeExclusive;
         }
-        const response = await this.privateGetV3Funding (this.extend (request, params));
+        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]) : params;
+        const response = await this.privateGetV3Funding (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
         const fundingValues = this.safeList (data, 'fundingValues', []);
         return this.parseIncomes (fundingValues, market, since, limit);

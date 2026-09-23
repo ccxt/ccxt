@@ -111,12 +111,10 @@ export default class blofin extends blofinRest {
             await this.loadMarkets ();
         }
         const trades = await this.watchMultipleWrapper (true, 'trades', 'watchTradesForSymbols', symbols, params);
-        if (this.newUpdates) {
-            const firstMarket = this.safeDict (trades, 0);
-            const firstSymbol = this.safeString (firstMarket, 'symbol');
-            limit = trades.getLimit (firstSymbol, limit);
-        }
-        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const firstMarket = this.safeDict (trades, 0);
+        const firstSymbol = this.safeString (firstMarket, 'symbol');
+        const limitResolved = (this.newUpdates) ? trades.getLimit (firstSymbol, limit) : limit;
+        const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
         return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
@@ -419,10 +417,8 @@ export default class blofin extends blofinRest {
             await this.loadMarkets ();
         }
         const [ symbol, timeframe, candles ] = await this.watchMultipleWrapper (true, 'candle', 'watchOHLCVForSymbols', symbolsAndTimeframes, params);
-        if (this.newUpdates) {
-            limit = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? candles.getLimit (symbol, limit) : limit;
+        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -554,12 +550,10 @@ export default class blofin extends blofinRest {
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         const channel = (trigger === true) ? 'orders-algo' : 'orders';
         const orders = await this.watchMultipleWrapper (false, channel, 'watchOrdersForSymbols', symbols, paramsOmitted);
-        if (this.newUpdates) {
-            const first = this.safeDict (orders, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = orders.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        const first = this.safeDict (orders, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved = (this.newUpdates) ? orders.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
     handleOrders (client: Client, message: Dict) {

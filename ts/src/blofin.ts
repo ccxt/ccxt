@@ -6,7 +6,7 @@ import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse, PermissionDenied, InvalidNonce, InvalidAddress, OrderNotFound, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, Bool, List, NullableDict, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, NullableDict, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1000,7 +1000,9 @@ export default class blofin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', undefined, 100) as Trade[];
         }
@@ -1064,26 +1066,25 @@ export default class blofin extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let query = undefined;
+        [ paginate, query ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 100) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, query, 100) as OHLCV[];
         }
-        if (limit === undefined) {
-            limit = 100; // default 100, max 100
-        }
+        const limitResolved: Int = (limit === undefined) ? 100 : limit; // default 100, max 100
         const request: Dict = {
             'instId': market['id'],
             'bar': this.safeString (this.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitResolved,
         };
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (query, 'until');
         if (until !== undefined) {
             request['after'] = until;
-            params = this.omit (params, 'until');
+            query = this.omit (query, 'until');
         }
-        const response = await this.publicGetMarketCandles (this.extend (request, params));
+        const response = await this.publicGetMarketCandles (this.extend (request, query));
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market, timeframe, since, limitResolved);
     }
 
     /**
@@ -1107,9 +1108,10 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let query = undefined;
+        [ paginate, query ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', query, 100) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -1121,12 +1123,12 @@ export default class blofin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (query, 'until');
         if (until !== undefined) {
             request['after'] = until;
-            params = this.omit (params, 'until');
+            query = this.omit (query, 'until');
         }
-        const response = await this.publicGetMarketFundingRateHistory (this.extend (request, params));
+        const response = await this.publicGetMarketFundingRateHistory (this.extend (request, query));
         const rates: List = [];
         const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
@@ -1372,17 +1374,18 @@ export default class blofin extends Exchange {
             'brokerId': this.safeString (this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         };
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
+        let query = undefined;
+        [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
         request['marginMode'] = marginMode;
-        const triggerPriceAny = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        const triggerPriceSlTp = this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice');
-        const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
-        const isHedged = this.safeBool (params, 'hedged', false);
+        const triggerPriceAny = this.safeStringN (query, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const triggerPriceSlTp = this.safeString2 (query, 'stopLossPrice', 'takeProfitPrice');
+        const timeInForce = this.safeString (query, 'timeInForce', 'GTC');
+        const isHedged = this.safeBool (query, 'hedged', false);
         if (isHedged === true) {
             request['positionSide'] = (side === 'buy') ? 'long' : 'short';
         }
         const isMarketOrder = type === 'market';
-        params = this.omit (params, [ 'timeInForce' ]);
+        query = this.omit (query, [ 'timeInForce' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const marketIOC = (isMarketOrder && ioc);
         if (isMarketOrder || marketIOC) {
@@ -1392,13 +1395,13 @@ export default class blofin extends Exchange {
             request[key] = this.priceToPrecision (symbol, price);
         }
         let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
+        [ postOnly, query ] = this.handlePostOnly (isMarketOrder, type === 'post_only', query);
         if (postOnly) {
             request['type'] = 'post_only';
         }
-        const stopLoss = this.safeDict (params, 'stopLoss');
-        const takeProfit = this.safeDict (params, 'takeProfit');
-        params = this.omit (params, [ 'stopLoss', 'takeProfit', 'hedged' ]);
+        const stopLoss = this.safeDict (query, 'stopLoss');
+        const takeProfit = this.safeDict (query, 'takeProfit');
+        query = this.omit (query, [ 'stopLoss', 'takeProfit', 'hedged' ]);
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         if (hasStopLoss || hasTakeProfit) {
@@ -1423,9 +1426,9 @@ export default class blofin extends Exchange {
             if (triggerPriceSlTp !== undefined) {
                 request['reduceOnly'] = true;
             }
-            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
+            query = this.omit (query, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
         }
-        return this.extend (request, params);
+        return this.extend (request, query);
     }
 
     parseOrderStatus (status: Str) {
@@ -1482,7 +1485,7 @@ export default class blofin extends Exchange {
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
         const side = this.safeString (order, 'side');
         let type = this.safeString (order, 'orderType');
-        let postOnly: Bool = undefined;
+        let postOnly = false;
         let timeInForce: Str = undefined;
         if (type === 'post_only') {
             postOnly = true;
@@ -1663,7 +1666,6 @@ export default class blofin extends Exchange {
                     throw new ArgumentsRequired (this.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market');
                 }
                 request['slOrderPrice'] = this.priceToPrecision (symbol, slLimitPrice);
-                params = this.omit (params, 'stopLossLimitPrice');
             }
         }
         if (takeProfitPrice !== undefined) {
@@ -1676,12 +1678,18 @@ export default class blofin extends Exchange {
                     throw new ArgumentsRequired (this.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market');
                 }
                 request['tpOrderPrice'] = this.priceToPrecision (symbol, tpLimitPrice);
-                params = this.omit (params, 'takeProfitLimitPrice');
             }
         }
         request['marginMode'] = marginMode;
-        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ]);
-        return this.extend (request, params);
+        // the limit prices are consumed only when the order type is not market
+        const consumedKeys = [ 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ];
+        if ((stopLossPrice !== undefined) && (type !== 'market')) {
+            consumedKeys.push ('stopLossLimitPrice');
+        }
+        if ((takeProfitPrice !== undefined) && (type !== 'market')) {
+            consumedKeys.push ('takeProfitLimitPrice');
+        }
+        return this.extend (request, this.omit (params, consumedKeys));
     }
 
     /**
@@ -1788,7 +1796,9 @@ export default class blofin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
@@ -1838,7 +1848,9 @@ export default class blofin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
@@ -1904,7 +1916,9 @@ export default class blofin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, paramsPaginate);
         }
@@ -1944,7 +1958,9 @@ export default class blofin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, paramsPaginate);
         }
@@ -2039,7 +2055,9 @@ export default class blofin extends Exchange {
         //   with 152002 "Invalid parameter" - see options["networks"]
         // - 152002 responses omit the offending field name even though the
         //   error table documents the message as "Parameter {} error"
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        let tagValue: Str = undefined;
+        let query = undefined;
+        [ tagValue, query ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -2047,26 +2065,26 @@ export default class blofin extends Exchange {
             'address': address,
             'amount': this.numberToString (amount),
         };
-        const dest = this.safeString (params, 'dest', 'onchain');
+        const dest = this.safeString (query, 'dest', 'onchain');
         request['dest'] = dest;
-        params = this.omit (params, 'dest');
+        query = this.omit (query, 'dest');
         if (dest === 'onchain') {
             this.checkAddress (address);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
             // 1 = wallet address, callers can override for other kinds
-            request['addrType'] = this.safeString (params, 'addrType', '1');
-            params = this.omit (params, 'addrType');
+            request['addrType'] = this.safeString (query, 'addrType', '1');
+            query = this.omit (query, 'addrType');
         }
-        if (tag !== undefined) {
-            request['tag'] = tag;
+        if (tagValue !== undefined) {
+            request['tag'] = tagValue;
         }
         // consume the unified network key unconditionally so it never leaks
         // onto the wire; an explicit raw params['chain'] takes precedence
         let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const chain = this.safeString (params, 'chain');
+        [ networkCode, query ] = this.handleNetworkCodeAndParams (query);
+        const chain = this.safeString (query, 'chain');
         if (chain === undefined) {
             if (networkCode !== undefined) {
                 request['chain'] = this.networkCodeToChainId (networkCode);
@@ -2075,7 +2093,7 @@ export default class blofin extends Exchange {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals');
             }
         }
-        const response = await this.privatePostAssetWithdrawalApply (this.extend (request, params));
+        const response = await this.privatePostAssetWithdrawalApply (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -2112,7 +2130,9 @@ export default class blofin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, paramsPaginate) as LedgerEntry[];
         }
@@ -2337,7 +2357,7 @@ export default class blofin extends Exchange {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
-            ids = this.parseIds (ids);
+            const orderIds = this.parseIds (ids);
             if (tpslIds !== undefined) {
                 for (let i = 0; i < tpslIds.length; i++) {
                     request.push ({
@@ -2346,15 +2366,15 @@ export default class blofin extends Exchange {
                     });
                 }
             }
-            for (let i = 0; i < ids.length; i++) {
+            for (let i = 0; i < orderIds.length; i++) {
                 if (trigger === true) {
                     request.push ({
-                        'tpslId': ids[i],
+                        'tpslId': orderIds[i],
                         'instId': market['id'],
                     });
                 } else {
                     request.push ({
-                        'orderId': ids[i],
+                        'orderId': orderIds[i],
                         'instId': market['id'],
                     });
                 }
@@ -2696,9 +2716,10 @@ export default class blofin extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchLeverages() requires a symbols argument');
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverages', params);
+        let query = undefined;
+        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLeverages', params);
         if (marginMode === undefined) {
-            marginMode = this.safeString (params, 'marginMode', 'cross'); // cross as default marginMode
+            marginMode = this.safeString (query, 'marginMode', 'cross'); // cross as default marginMode
         }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
@@ -2719,7 +2740,7 @@ export default class blofin extends Exchange {
             'instId': instIds,
             'marginMode': marginMode,
         };
-        const response = await this.privateGetAccountBatchLeverageInfo (this.extend (request, params));
+        const response = await this.privateGetAccountBatchLeverageInfo (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -2752,9 +2773,10 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+        let query = undefined;
+        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         if (marginMode === undefined) {
-            marginMode = this.safeString (params, 'marginMode', 'cross'); // cross as default marginMode
+            marginMode = this.safeString (query, 'marginMode', 'cross'); // cross as default marginMode
         }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
@@ -2764,7 +2786,7 @@ export default class blofin extends Exchange {
             'instId': market['id'],
             'marginMode': marginMode,
         };
-        const response = await this.privateGetAccountLeverageInfo (this.extend (request, params));
+        const response = await this.privateGetAccountLeverageInfo (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -2883,7 +2905,9 @@ export default class blofin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
@@ -3174,13 +3198,14 @@ export default class blofin extends Exchange {
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            headers = {
+            const signedHeaders: Dict = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-PASSPHRASE': this.password,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-NONCE': timestamp,
             };
             let sign_body = '';
+            let signedBody: Str = undefined;
             if (method === 'GET') {
                 if (!this.isEmpty (query)) {
                     const urlencodedQuery = '?' + this.urlencode (query);
@@ -3189,14 +3214,16 @@ export default class blofin extends Exchange {
                 }
             } else {
                 if (!this.isEmpty (query)) {
-                    body = this.json (query);
-                    sign_body = body;
+                    signedBody = this.json (query);
+                    sign_body = signedBody;
                 }
-                headers['Content-Type'] = 'application/json';
+                signedHeaders['Content-Type'] = 'application/json';
             }
             const auth = request + method + timestamp + timestamp + sign_body;
             const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
-            headers['ACCESS-SIGN'] = signature;
+            signedHeaders['ACCESS-SIGN'] = signature;
+            const bodyResolved: Str = (signedBody === undefined) ? body : signedBody;
+            return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

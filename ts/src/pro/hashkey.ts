@@ -95,10 +95,8 @@ export default class hashkey extends hashkeyRest {
         const topic = 'kline_' + interval;
         const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
         const ohlcv = await this.wathPublic (market, topic, messageHash, params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -254,10 +252,8 @@ export default class hashkey extends hashkeyRest {
         const topic = 'trade';
         const messageHash = 'trades:' + symbolValue;
         const trades = await this.wathPublic (market, topic, messageHash, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -391,15 +387,13 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         let messageHash = 'orders';
+        const symbolResolved = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash = messageHash + ':' + symbol;
+            messageHash = messageHash + ':' + symbolResolved;
         }
         const orders = await this.watchPrivate (messageHash);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -515,15 +509,13 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         let messageHash = 'myTrades';
+        const symbolResolved = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
         const trades = await this.watchPrivate (messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleMyTrade (client: Client, message: Dict, subscription: Dict = {}) {
@@ -896,26 +888,24 @@ export default class hashkey extends hashkeyRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (Array.isArray (message)) {
-            message = this.safeDict (message, 0, {});
-        }
-        const topic = this.safeString2 (message, 'topic', 'e');
+        const messageInner = (Array.isArray (message)) ? this.safeDict (message, 0, {}) : message;
+        const topic = this.safeString2 (messageInner, 'topic', 'e');
         if (topic === 'kline') {
-            this.handleOHLCV (client, message);
+            this.handleOHLCV (client, messageInner);
         } else if (topic === 'realtimes') {
-            this.handleTicker (client, message);
+            this.handleTicker (client, messageInner);
         } else if (topic === 'trade') {
-            this.handleTrades (client, message);
+            this.handleTrades (client, messageInner);
         } else if (topic === 'depth') {
-            this.handleOrderBook (client, message);
+            this.handleOrderBook (client, messageInner);
         } else if ((topic === 'contractExecutionReport') || (topic === 'executionReport')) {
-            this.handleOrder (client, message);
+            this.handleOrder (client, messageInner);
         } else if (topic === 'ticketInfo') {
-            this.handleMyTrade (client, message);
+            this.handleMyTrade (client, messageInner);
         } else if (topic === 'outboundContractPositionInfo') {
-            this.handlePosition (client, message);
+            this.handlePosition (client, messageInner);
         } else if ((topic === 'outboundAccountInfo') || (topic === 'outboundContractAccountInfo')) {
-            this.handleBalance (client, message);
+            this.handleBalance (client, messageInner);
         }
     }
 }

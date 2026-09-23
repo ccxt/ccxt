@@ -1127,11 +1127,11 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
+        const symbolsNormalized = this.marketSymbols (symbols);
+        if (symbolsNormalized !== undefined) {
             const marketIds: List = [];
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 if (market['active'] === true) {
                     marketIds.push (market['id']);
@@ -1150,7 +1150,7 @@ export default class kraken extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1216,7 +1216,9 @@ export default class kraken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 720) as OHLCV[];
         }
@@ -1351,12 +1353,12 @@ export default class kraken extends Exchange {
             request['start'] = this.parseToInt (since / 1000);
         }
         const until = this.safeString2 (params, 'until', 'till');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, [ 'until', 'till' ]) : params;
         if (until !== undefined) {
-            params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
             request['end'] = this.parseToInt (Precise.stringAdd (untilDivided, '1'));
         }
-        const response = await this.privatePostLedgers (this.extend (request, params));
+        const response = await this.privatePostLedgers (this.extend (request, paramsOmitted));
         // {  error: [],
         //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
         //                                                   "time":  1520103488.314,
@@ -1488,6 +1490,8 @@ export default class kraken extends Exchange {
         let orderId: Str = undefined;
         let fee: FeeString = undefined;
         let symbol: Str = undefined;
+        const isOrderTrade = (!Array.isArray (trade)) && (typeof trade !== 'string') && ('ordertxid' in trade);
+        const marketResolved = (isOrderTrade) ? this.resolveMarketByAltnameOrId (this.safeString (trade, 'pair'), market) : market;
         if (Array.isArray (trade)) {
             timestamp = this.safeTimestamp (trade, 2);
             side = (trade[3] === 's') ? 'sell' : 'buy';
@@ -1501,14 +1505,6 @@ export default class kraken extends Exchange {
         } else if (typeof trade === 'string') {
             id = trade;
         } else if ('ordertxid' in trade) {
-            const marketId = this.safeString (trade, 'pair');
-            const foundMarket = this.findMarketByAltnameOrId (marketId);
-            if (foundMarket !== undefined) {
-                market = foundMarket;
-            } else if (marketId !== undefined) {
-                // delisted market ids go here
-                market = this.getDelistedMarketById (marketId);
-            }
             orderId = this.safeString (trade, 'ordertxid');
             id = this.safeString2 (trade, 'id', 'postxid');
             timestamp = this.safeTimestamp (trade, 'time');
@@ -1518,8 +1514,8 @@ export default class kraken extends Exchange {
             amount = this.safeString (trade, 'vol');
             if ('fee' in trade) {
                 let currency: Str = undefined;
-                if (market !== undefined) {
-                    currency = market['quote'];
+                if (marketResolved !== undefined) {
+                    currency = marketResolved['quote'];
                 }
                 fee = {
                     'cost': this.safeString (trade, 'fee'),
@@ -1535,8 +1531,8 @@ export default class kraken extends Exchange {
             price = this.safeString (trade, 'price');
             amount = this.safeString (trade, 'qty');
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        if (marketResolved !== undefined) {
+            symbol = marketResolved['symbol'];
         }
         const cost = this.safeString (trade, 'cost');
         const maker = this.safeBool (trade, 'maker');
@@ -1563,7 +1559,7 @@ export default class kraken extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1852,6 +1848,18 @@ export default class kraken extends Exchange {
         }
     }
 
+    resolveMarketByAltnameOrId (marketId: Str, market: Market = undefined): Market {
+        const foundMarket = this.findMarketByAltnameOrId (marketId);
+        if (foundMarket !== undefined) {
+            return foundMarket;
+        }
+        if (marketId !== undefined) {
+            // delisted market ids go here
+            return this.getDelistedMarketById (marketId);
+        }
+        return market;
+    }
+
     getDelistedMarketById (id: any) {
         if (id === undefined) {
             return id;
@@ -2058,14 +2066,8 @@ export default class kraken extends Exchange {
         side = this.safeString (description, 'type', side);
         rawType = this.safeString (description, 'ordertype', rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString (description, 'pair', marketId);
-        const foundMarket = this.findMarketByAltnameOrId (marketId);
+        const marketResolved = this.resolveMarketByAltnameOrId (marketId, market);
         let symbol: Str = undefined;
-        if (foundMarket !== undefined) {
-            market = foundMarket;
-        } else if (marketId !== undefined) {
-            // delisted market ids go here
-            market = this.getDelistedMarketById (marketId);
-        }
         const timestamp = this.safeTimestamp (orderOmitted, 'opentm');
         amount = this.safeString (orderOmitted, 'vol', amount);
         const filled = this.safeString (orderOmitted, 'vol_exec');
@@ -2084,8 +2086,8 @@ export default class kraken extends Exchange {
         const flags = this.safeString (orderOmitted, 'oflags', '');
         let isPostOnly: Bool = flags.indexOf ('post') > -1;
         const average = this.safeNumber (orderOmitted, 'price');
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        if (marketResolved !== undefined) {
+            symbol = marketResolved['symbol'];
             if ('fee' in orderOmitted) {
                 const feeCost = this.safeString (orderOmitted, 'fee');
                 fee = {
@@ -2093,9 +2095,9 @@ export default class kraken extends Exchange {
                     'rate': undefined,
                 };
                 if (flags.indexOf ('fciq') >= 0) {
-                    fee['currency'] = market['quote'];
+                    fee['currency'] = marketResolved['quote'];
                 } else if (flags.indexOf ('fcib') >= 0) {
-                    fee['currency'] = market['base'];
+                    fee['currency'] = marketResolved['base'];
                 }
             }
         }
@@ -2173,7 +2175,7 @@ export default class kraken extends Exchange {
             'reduceOnly': this.safeBool2 (orderOmitted, 'reduceOnly', 'reduce_only'),
             'fee': fee,
             'trades': trades,
-        }, market);
+        }, marketResolved);
     }
 
     orderRequest (method: string, symbol: Str, type: Str, request: Dict, amount: Num, price: Num = undefined, params: Dict = {}): [Dict, Dict] {
@@ -2332,14 +2334,14 @@ export default class kraken extends Exchange {
             'txid': id,
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cl_ord_id');
+        let paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (params, [ 'clientOrderId', 'cl_ord_id' ]) : params;
         if (clientOrderId !== undefined) {
             request['cl_ord_id'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'cl_ord_id' ]);
             request = this.omit (request, 'txid');
         }
         const isMarket = (type === 'market');
         let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
+        [ postOnly, paramsOmitted ] = this.handlePostOnly (isMarket, false, paramsOmitted);
         if (postOnly === true) {
             request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
@@ -2349,10 +2351,10 @@ export default class kraken extends Exchange {
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        let allTriggerPrices = this.safeStringN (params, [ 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
+        let allTriggerPrices = this.safeStringN (paramsOmitted, [ 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
         if (allTriggerPrices !== undefined) {
-            const offset = this.safeString (params, 'offset');
-            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ]);
+            const offset = this.safeString (paramsOmitted, 'offset');
+            paramsOmitted = this.omit (paramsOmitted, [ 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ]);
             if (offset !== undefined) {
                 allTriggerPrices = offset + allTriggerPrices;
                 request['trigger_price'] = allTriggerPrices;
@@ -2360,7 +2362,7 @@ export default class kraken extends Exchange {
                 request['trigger_price'] = this.priceToPrecision (symbol, allTriggerPrices);
             }
         }
-        const response = await this.privatePostAmendOrder (this.extend (request, params));
+        const response = await this.privatePostAmendOrder (this.extend (request, paramsOmitted));
         //
         //     {
         //         "error": [],
@@ -2473,9 +2475,7 @@ export default class kraken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-        }
+        const symbolResolved = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         const options = this.safeDict (this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger (options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;
@@ -2521,7 +2521,7 @@ export default class kraken extends Exchange {
                 rawTrades[ids[i]]['id'] = ids[i];
             }
             const trades = this.parseTrades (rawTrades, undefined, since, limit);
-            const tradesFilteredBySymbol = this.filterBySymbol (trades, symbol);
+            const tradesFilteredBySymbol = this.filterBySymbol (trades, symbolResolved);
             result = this.arrayConcat (result, tradesFilteredBySymbol);
         }
         return result as Trade[];
@@ -2585,12 +2585,12 @@ export default class kraken extends Exchange {
             request['start'] = this.parseToInt (since / 1000);
         }
         const until = this.safeString2 (params, 'until', 'till');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, [ 'until', 'till' ]) : params;
         if (until !== undefined) {
-            params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
             request['end'] = this.parseToInt (Precise.stringAdd (untilDivided, '1'));
         }
-        const response = await this.privatePostTradesHistory (this.extend (request, params));
+        const response = await this.privatePostTradesHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         "error": [],
@@ -2651,18 +2651,18 @@ export default class kraken extends Exchange {
         }
         let response: NullableDict = undefined;
         const requestId = this.safeValue (params, 'userref', id); // string or integer
-        params = this.omit (params, 'userref');
+        const paramsUserref: Dict = this.omit (params, 'userref');
         let request: Dict = {
             'txid': requestId, // order id or userref
         };
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cl_ord_id');
+        const clientOrderId = this.safeString2 (paramsUserref, 'clientOrderId', 'cl_ord_id');
+        const paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (paramsUserref, [ 'clientOrderId', 'cl_ord_id' ]) : paramsUserref;
         if (clientOrderId !== undefined) {
             request['cl_ord_id'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'cl_ord_id' ]);
             request = this.omit (request, 'txid');
         }
         try {
-            response = await this.privatePostCancelOrder (this.extend (request, params));
+            response = await this.privatePostCancelOrder (this.extend (request, paramsOmitted));
             //
             //    {
             //        error: [],
@@ -2803,16 +2803,16 @@ export default class kraken extends Exchange {
             request['start'] = this.parseToInt (since / 1000);
         }
         const userref = this.safeInteger (params, 'userref');
+        let paramsOmitted: Dict = (userref !== undefined) ? this.omit (params, 'userref') : params;
         if (userref !== undefined) {
             request['userref'] = userref;
-            params = this.omit (params, 'userref');
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (paramsOmitted, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['cl_ord_id'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
+            paramsOmitted = this.omit (paramsOmitted, 'clientOrderId');
         }
-        const response = await this.privatePostOpenOrders (this.extend (request, params));
+        const response = await this.privatePostOpenOrders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "error": [],
@@ -2889,17 +2889,17 @@ export default class kraken extends Exchange {
             request['start'] = this.parseToInt (since / 1000);
         }
         const userref = this.safeInteger (params, 'userref');
+        let paramsOmitted: Dict = (userref !== undefined) ? this.omit (params, 'userref') : params;
         if (userref !== undefined) {
             request['userref'] = userref;
-            params = this.omit (params, 'userref');
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (paramsOmitted, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['cl_ord_id'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
+            paramsOmitted = this.omit (paramsOmitted, 'clientOrderId');
         }
-        [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this.privatePostClosedOrders (this.extend (request, params));
+        [ request, paramsOmitted ] = this.handleUntilOption ('end', request, paramsOmitted);
+        const response = await this.privatePostClosedOrders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "error":[],
@@ -3122,12 +3122,12 @@ export default class kraken extends Exchange {
             request['start'] = Precise.stringDiv (sinceString, '1000');
         }
         const until = this.safeString2 (params, 'until', 'till');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, [ 'until', 'till' ]) : params;
         if (until !== undefined) {
-            params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
             request['end'] = Precise.stringAdd (untilDivided, '1');
         }
-        const response = await this.privatePostDepositStatus (this.extend (request, params));
+        const response = await this.privatePostDepositStatus (this.extend (request, paramsOmitted));
         //
         //     {  error: [],
         //       "result": [ { "method": "Ether (Hex)",
@@ -3187,11 +3187,10 @@ export default class kraken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            params['cursor'] = true;
-            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'next_cursor', 'cursor') as Transaction[];
+            paramsPaginate['cursor'] = true;
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, paramsPaginate, 'next_cursor', 'cursor') as Transaction[];
         }
         const request: Dict = {};
         if (code !== undefined) {
@@ -3202,13 +3201,13 @@ export default class kraken extends Exchange {
             const sinceString = this.numberToString (since);
             request['start'] = Precise.stringDiv (sinceString, '1000');
         }
-        const until = this.safeString2 (params, 'until', 'till');
+        const until = this.safeString2 (paramsPaginate, 'until', 'till');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (paramsPaginate, [ 'until', 'till' ]) : paramsPaginate;
         if (until !== undefined) {
-            params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
             request['end'] = Precise.stringAdd (untilDivided, '1');
         }
-        const response = await this.privatePostWithdrawStatus (this.extend (request, params));
+        const response = await this.privatePostWithdrawStatus (this.extend (request, paramsOmitted));
         //
         // with no pagination
         //     {  error: [],
@@ -3347,16 +3346,14 @@ export default class kraken extends Exchange {
         const networks = this.safeDict (this.options, 'networks', {});
         network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
         const paramsOmitted: Dict = this.omit (params, 'network');
-        if ((code === 'USDT') && (network === 'TRC20')) {
-            code = code + '-' + network;
-        }
+        const codeResolved = ((code === 'USDT') && (network === 'TRC20')) ? (code + '-' + network) : code;
         const defaultDepositMethods = this.safeDict (this.options, 'depositMethods', {});
-        const defaultDepositMethod = this.safeString (defaultDepositMethods, code);
+        const defaultDepositMethod = this.safeString (defaultDepositMethods, codeResolved);
         let depositMethod = this.safeString (paramsOmitted, 'method', defaultDepositMethod);
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
         if (depositMethod === undefined) {
-            const depositMethods = await this.fetchDepositMethods (code);
+            const depositMethods = await this.fetchDepositMethods (codeResolved);
             if (network !== undefined) {
                 // find best matching deposit method, or fallback to the first one
                 for (let i = 0; i < depositMethods.length; i++) {
@@ -3392,7 +3389,7 @@ export default class kraken extends Exchange {
         const result = this.safeList (response, 'result', []);
         const firstResult = this.safeDict (result, 0, {});
         if (firstResult === undefined) {
-            throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses for ' + code);
+            throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses for ' + codeResolved);
         }
         return this.parseDepositAddress (firstResult, currency);
     }
@@ -3692,27 +3689,26 @@ export default class kraken extends Exchange {
             const isBatchOrder = (path === 'AddOrderBatch');
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
-                body = this.json (this.extend ({ 'nonce': nonce }, params));
-            } else {
-                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-                body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
-            }
-            const auth = this.encode (nonce + body);
+            const isJsonBody = isCancelOrderBatch || isTriggerPercent || isBatchOrder;
+            // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
+            const bodySigned = (isJsonBody) ? this.json (this.extend ({ 'nonce': nonce }, params)) : this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
+            const auth = this.encode (nonce + bodySigned);
             const hash = this.hash (auth, sha256, 'binary');
             const binary = this.encode (url);
             const binhash = this.binaryConcat (binary, hash);
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (binhash, secret, sha512, 'base64');
-            headers = {
+            const headersSigned: NullableDict = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
             };
-            if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
-                headers['Content-Type'] = 'application/json';
+            if (isJsonBody) {
+                headersSigned['Content-Type'] = 'application/json';
             } else {
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
+            const urlSigned = this.urls['api'][api] + url;
+            return { 'url': urlSigned, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         } else {
             url = '/' + path;
         }

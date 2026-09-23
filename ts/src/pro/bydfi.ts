@@ -103,9 +103,9 @@ export default class bydfi extends bydfiRest {
         };
         const unsubscribe = this.safeBool (params, 'unsubscribe', false);
         let method = 'SUBSCRIBE';
+        const paramsOmitted: Dict = (unsubscribe === true) ? this.omit (params, 'unsubscribe') : params;
         if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
-            params = this.omit (params, 'unsubscribe');
             subscriptionParams['unsubscribe'] = true;
             subscriptionParams['messageHashes'] = messageHashes;
         }
@@ -114,7 +114,7 @@ export default class bydfi extends bydfiRest {
             'method': method,
             'params': channels,
         };
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, this.extend (subscriptionParams, subscription));
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, paramsOmitted), messageHashes, this.extend (subscriptionParams, subscription));
     }
 
     async watchPrivate (messageHashes: string[], params: Dict = {}) {
@@ -124,6 +124,7 @@ export default class bydfi extends bydfiRest {
         const client = this.client (url);
         const privateSubscription = this.safeValue (client.subscriptions, subHash);
         const subscription: Dict = {};
+        let paramsLogin = undefined;
         if (privateSubscription === undefined) {
             const id = this.requestId ();
             const timestamp = this.milliseconds ().toString ();
@@ -138,10 +139,11 @@ export default class bydfi extends bydfiRest {
                     'sign': signature,
                 },
             };
-            params = this.deepExtend (request, params);
+            paramsLogin = this.deepExtend (request, params);
             subscription['id'] = id;
         }
-        return await this.watchMultiple (url, messageHashes, params, [ 'private' ], subscription);
+        const paramsResolved = (paramsLogin !== undefined) ? paramsLogin : params;
+        return await this.watchMultiple (url, messageHashes, paramsResolved, [ 'private' ], subscription);
     }
 
     /**
@@ -359,10 +361,8 @@ export default class bydfi extends bydfiRest {
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + interval);
         }
         const [ symbol, timeframe, candles ] = await this.watchPublic (messageHashes, channels, params);
-        if (this.newUpdates) {
-            limit = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? candles.getLimit (symbol, limit) : limit;
+        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -606,12 +606,10 @@ export default class bydfi extends bydfiRest {
             }
         }
         const orders = await this.watchPrivate (messageHashes, params);
-        if (this.newUpdates) {
-            const first = this.safeDict (orders, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = orders.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        const first = this.safeDict (orders, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved = (this.newUpdates) ? orders.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
     handleOrder (client: Client, message: Dict) {

@@ -424,13 +424,13 @@ export default class hyperliquid extends hyperliquidRest {
                 defaultDex = dexName;
             }
         }
+        const paramsOmitted: Dict = (defaultDex !== undefined) ? this.omit (params, 'dex') : params;
         if (defaultDex !== undefined) {
-            params = this.omit (params, 'dex');
             messageHash = 'tickers:' + defaultDex;
             request['subscription']['type'] = 'allMids';
             request['subscription']['dex'] = defaultDex;
         }
-        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const tickers = await this.watch (url, messageHash, this.extend (request, paramsOmitted), messageHash);
         if (this.newUpdates) {
             return this.filterByArrayTickers (tickers, 'symbol', symbolsNormalized);
         }
@@ -484,9 +484,9 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         let messageHash = 'myTrades';
-        if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
@@ -502,10 +502,8 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase ();
         const trades = await this.watch (url, messageHash, message, subscribeHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -708,10 +706,8 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -879,10 +875,8 @@ export default class hyperliquid extends hyperliquidRest {
         const messageHash = 'candles:' + timeframe + ':' + symbolValue;
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -1226,16 +1220,17 @@ export default class hyperliquid extends hyperliquidRest {
         const paramsValue: Dict = this.safeDict (userAddressResult, 1, params);
         const topic = 'clearinghouseState';
         let messageHash = topic + '::positions';
-        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
-            symbols = this.marketSymbols (symbols);
-            messageHash += '::' + symbols.join (',');
+        const hasSymbols = (symbols !== undefined) && !this.isEmpty (symbols);
+        const symbolsNormalized = hasSymbols ? this.marketSymbols (symbols) : symbols;
+        if (hasSymbols && (symbolsNormalized !== undefined)) {
+            messageHash += '::' + symbolsNormalized.join (',');
         }
         const url = this.urls['api']['ws']['public'];
         const subscription: Dict = {
             'type': topic,
             'user': userAddress,
         };
-        const dexName = this.getDexFromSymbols ('watchPositions', symbols);
+        const dexName = this.getDexFromSymbols ('watchPositions', symbolsNormalized);
         if (dexName !== undefined) {
             subscription['dex'] = dexName;
         }
@@ -1245,13 +1240,13 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const message = this.extend (request, paramsValue);
         const client = this.client (url);
-        this.setPositionsCache (client, symbols);
+        this.setPositionsCache (client, symbolsNormalized);
         const cache = this.positions;
         const newPositions = await this.watch (url, messageHash, message, topic);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (cache, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {
@@ -1351,9 +1346,9 @@ export default class hyperliquid extends hyperliquidRest {
         let messageHash = 'order';
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            messageHash = messageHash + ':' + market['symbol'];
         }
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'method': 'subscribe',
@@ -1374,10 +1369,8 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase ();
         const orders = await this.watch (url, messageHash, message, subscribeHash);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**

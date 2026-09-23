@@ -1131,9 +1131,10 @@ export default class coinbaseexchange extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, 100) as Trade[];
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1148,12 +1149,12 @@ export default class coinbaseexchange extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const until = this.safeValue2 (params, 'until', 'end_date');
+        const until = this.safeValue2 (paramsPaginate, 'until', 'end_date');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
             request['end_date'] = this.iso8601 (until);
         }
-        const response = await this.privateGetFills (this.extend (request, params));
+        const paramsUntil: Dict = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
+        const response = await this.privateGetFills (this.extend (request, paramsUntil));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1286,20 +1287,17 @@ export default class coinbaseexchange extends Exchange {
         }
         const until = this.safeValue2 (paramsPaginate, 'until', 'end');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
+        // https://docs.pro.coinbase.com/#get-historic-rates max = 300
+        const cappedLimit: number = (limit === undefined) ? 300 : Math.min (300, limit);
+        const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
-            if (limit === undefined) {
-                // https://docs.pro.coinbase.com/#get-historic-rates
-                limit = 300; // max = 300
-            } else {
-                limit = Math.min (300, limit);
-            }
             if (until === undefined) {
                 const parsedTimeframeMilliseconds = (parsedTimeframe as number) * 1000;
                 if (this.isRoundNumber (since % parsedTimeframeMilliseconds)) {
-                    request['end'] = this.iso8601 (this.sum ((limit - 1) * parsedTimeframeMilliseconds, since));
+                    request['end'] = this.iso8601 (this.sum ((cappedLimit - 1) * parsedTimeframeMilliseconds, since));
                 } else {
-                    request['end'] = this.iso8601 (this.sum (limit * parsedTimeframeMilliseconds, since));
+                    request['end'] = this.iso8601 (this.sum (cappedLimit * parsedTimeframeMilliseconds, since));
                 }
             } else {
                 request['end'] = this.iso8601 (until);
@@ -1313,7 +1311,7 @@ export default class coinbaseexchange extends Exchange {
         //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
         //     ]
         //
-        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limitResolved);
     }
 
     /**
@@ -1443,8 +1441,8 @@ export default class coinbaseexchange extends Exchange {
             response = await this.privateGetOrdersId (this.extend (request, params));
         } else {
             request['client_oid'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
-            response = await this.privateGetOrdersClientClientOid (this.extend (request, params));
+            const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+            response = await this.privateGetOrdersClientClientOid (this.extend (request, paramsOmitted));
         }
         return this.parseOrder (response);
     }
@@ -1512,9 +1510,10 @@ export default class coinbaseexchange extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, 100) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, paramsPaginate, 100) as Order[];
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -1528,12 +1527,12 @@ export default class coinbaseexchange extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const until = this.safeValue2 (params, 'until', 'end_date');
+        const until = this.safeValue2 (paramsPaginate, 'until', 'end_date');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
             request['end_date'] = this.iso8601 (until);
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const paramsUntil: Dict = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
+        const response = await this.privateGetOrders (this.extend (request, paramsUntil));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1610,18 +1609,19 @@ export default class coinbaseexchange extends Exchange {
         if (postOnly === true) {
             request['post_only'] = true;
         }
-        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ]);
+        const costParam = this.safeNumber2 (paramsOmitted, 'cost', 'funds');
+        const omitCost = (type === 'market') && (costParam !== undefined);
+        const paramsCost: Dict = omitCost ? this.omit (paramsOmitted, [ 'cost', 'funds' ]) : paramsOmitted;
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['size'] = this.amountToPrecision (symbol, amount);
         } else if (type === 'market') {
-            let cost = this.safeNumber2 (params, 'cost', 'funds');
+            let cost = costParam;
             if (cost === undefined) {
                 if (price !== undefined) {
                     cost = amount * price;
                 }
-            } else {
-                params = this.omit (params, [ 'cost', 'funds' ]);
             }
             if (cost !== undefined) {
                 request['funds'] = this.costToPrecision (symbol, cost);
@@ -1629,7 +1629,7 @@ export default class coinbaseexchange extends Exchange {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, paramsCost));
         //
         //     {
         //         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
@@ -1674,8 +1674,8 @@ export default class coinbaseexchange extends Exchange {
             request['id'] = id;
         } else {
             request['client_oid'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
         }
+        const paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (params, [ 'clientOrderId', 'client_oid' ]) : params;
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1683,9 +1683,9 @@ export default class coinbaseexchange extends Exchange {
         }
         let response = undefined;
         if (clientOrderId === undefined) {
-            response = await this.privateDeleteOrdersId (this.extend (request, params));
+            response = await this.privateDeleteOrdersId (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privateDeleteOrdersClientClientOid (this.extend (request, params));
+            response = await this.privateDeleteOrdersClientClientOid (this.extend (request, paramsOmitted));
         }
         return this.safeOrder ({ 'info': response });
     }
@@ -1887,10 +1887,10 @@ export default class coinbaseexchange extends Exchange {
         }
         const until = this.safeValue2 (params, 'until', 'end_date');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
             request['end_date'] = this.iso8601 (until);
         }
-        const response = await this.privateGetAccountsIdLedger (this.extend (request, params));
+        const paramsUntil: Dict = (until !== undefined) ? this.omit (params, [ 'until' ]) : params;
+        const response = await this.privateGetAccountsIdLedger (this.extend (request, paramsUntil));
         const entries = this.toArray (response);
         for (let i = 0; i < entries.length; i++) {
             entries[i]['currency'] = code;
@@ -2181,6 +2181,8 @@ export default class coinbaseexchange extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
@@ -2195,8 +2197,8 @@ export default class coinbaseexchange extends Exchange {
             let payload = '';
             if (method !== 'GET') {
                 if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    payload = body;
+                    requestBody = this.json (query);
+                    payload = requestBody;
                 }
             }
             const what = nonce + method + request + payload;
@@ -2207,7 +2209,7 @@ export default class coinbaseexchange extends Exchange {
                 throw new AuthenticationError (this.id + ' sign() invalid base64 secret');
             }
             const signature = this.hmac (this.encode (what), secret, sha256, 'base64');
-            headers = {
+            requestHeaders = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': nonce,
@@ -2215,7 +2217,7 @@ export default class coinbaseexchange extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

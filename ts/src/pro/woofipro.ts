@@ -407,10 +407,8 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watchPublic (topic, message);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (market['symbol'], limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -484,10 +482,8 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watchPublic (topic, message);
-        if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (market['symbol'], limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -694,10 +690,10 @@ export default class woofipro extends woofiproRest {
         const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -705,10 +701,8 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -732,10 +726,10 @@ export default class woofipro extends woofiproRest {
         const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
         const paramsOmitted: Dict = this.omit (params, 'stop');
         let messageHash = 'myTrades';
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -743,10 +737,8 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {

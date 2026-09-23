@@ -2497,6 +2497,8 @@ export default class dydx extends Exchange {
     }
 
     override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const pathWithParams = this.implodeParams (path, params);
         let url = this.urls['api'][section];
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
@@ -2507,12 +2509,14 @@ export default class dydx extends Exchange {
                 url += '?' + this.urlencode (paramsSorted);
             }
         } else {
-            body = this.json (paramsSorted);
-            headers = {
+            requestBody = this.json (paramsSorted);
+            requestHeaders = {
                 'Content-type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

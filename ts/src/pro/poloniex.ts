@@ -160,15 +160,16 @@ export default class poloniex extends poloniexRest {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' subscribe() symbols is required');
             }
-            messageHash = messageHash + '::' + symbols.join (',');
             const ids = this.marketIds (symbols);
             marketIds = (ids === undefined) ? [] : ids;
         }
+        const symbolsSuffix = (symbols === undefined) ? '' : symbols.join (',');
+        const symbolsHash: string = (this.isEmpty (symbols)) ? messageHash : messageHash + '::' + symbolsSuffix;
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
         }
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, symbolsHash, request, symbolsHash);
     }
 
     /**
@@ -232,12 +233,12 @@ export default class poloniex extends poloniexRest {
             'side': side.toUpperCase (),
             'type': type.toUpperCase (),
         };
-        if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
+        const isMarketBuy = (uppercaseType === 'MARKET') && (uppercaseSide === 'BUY');
+        const paramsOmitted: Dict = (isMarketBuy) ? this.omit (params, [ 'createMarketBuyOrderRequiresPrice', 'cost' ]) : params;
+        if (isMarketBuy) {
             let quoteAmount: Str = undefined;
-            let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber (params, 'cost');
-            params = this.omit (params, 'cost');
+            const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (paramsRequiresPrice, 'cost');
             if (cost !== undefined) {
                 quoteAmount = this.costToPrecision (symbol, cost);
             } else if (createMarketBuyOrderRequiresPrice) {
@@ -259,7 +260,7 @@ export default class poloniex extends poloniexRest {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        const orders = await this.tradeRequest ('createOrder', this.extend (request, params));
+        const orders = await this.tradeRequest ('createOrder', this.extend (request, paramsOmitted));
         const order = this.safeDict (orders, 0) as Order;
         return order;
     }
@@ -370,10 +371,8 @@ export default class poloniex extends poloniexRest {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
         const ohlcv = await this.subscribe (channel, channel, false, [ symbol ], params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -465,12 +464,10 @@ export default class poloniex extends poloniexRest {
             }
         }
         const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -511,15 +508,11 @@ export default class poloniex extends poloniexRest {
         }
         const name = 'orders';
         await this.authenticate ();
-        if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-        }
-        const symbols = (symbol === undefined) ? undefined : [ symbol ];
+        const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
+        const symbols = (symbolResolved === undefined) ? undefined : [ symbolResolved ];
         const orders = await this.subscribe (name, name, true, symbols, params);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -540,15 +533,11 @@ export default class poloniex extends poloniexRest {
         const name = 'orders';
         const messageHash = 'myTrades';
         await this.authenticate ();
-        if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-        }
-        const symbols = (symbol === undefined) ? undefined : [ symbol ];
+        const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
+        const symbols = (symbolResolved === undefined) ? undefined : [ symbolResolved ];
         const trades = await this.subscribe (name, messageHash, true, symbols, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**

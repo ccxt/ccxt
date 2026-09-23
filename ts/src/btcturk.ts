@@ -723,16 +723,15 @@ export default class btcturk extends Exchange {
         request['to'] = this.parseToInt ((until / 1000));
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
-        } else if (limit === undefined) { // since will also be undefined
-            limit = 100; // default value
         }
-        if (limit !== undefined) {
-            limit = Math.min (limit, 11000); // max 11000 candles diapason can be covered
+        const limitDefaulted = ((since === undefined) && (limit === undefined)) ? 100 : limit; // default value
+        const limitResolved = (limitDefaulted !== undefined) ? Math.min (limitDefaulted, 11000) : undefined; // max 11000 candles diapason can be covered
+        if (limitResolved !== undefined) {
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest (this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe (timeframe);
-            const limitSeconds = seconds * (limit - 1);
+            const limitSeconds = seconds * (limitResolved - 1);
             if (since !== undefined) {
                 const to = this.parseToInt (since / 1000) + limitSeconds;
                 request['to'] = Math.min (request['to'], to);
@@ -776,7 +775,7 @@ export default class btcturk extends Exchange {
         //        ]
         //    }
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limitResolved);
     }
 
     override parseOHLCVs (ohlcvs: any, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
@@ -1080,26 +1079,28 @@ export default class btcturk extends Exchange {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
         let url = this.urls['api'][api] + '/' + path;
-        if ((method === 'GET') || (method === 'DELETE')) {
+        const isQueryMethod = (method === 'GET') || (method === 'DELETE');
+        if (isQueryMethod) {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
-        } else {
-            body = this.json (params);
         }
+        const requestBody = isQueryMethod ? body : this.json (params);
+        let privateHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret);
             const auth = this.apiKey + nonce;
-            headers = {
+            privateHeaders = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
                 'X-Signature': this.hmac (this.encode (auth), secret, sha256, 'base64'),
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

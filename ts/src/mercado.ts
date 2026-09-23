@@ -921,20 +921,19 @@ export default class mercado extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'], // exceptional endpoint, that needs custom symbol syntax
         };
-        if (limit === undefined) {
-            limit = 100; // set some default limit, as it's required if user doesn't provide it
-        }
+        // set some default limit, as it's required if user doesn't provide it
+        const limitResolved = (limit === undefined) ? 100 : limit;
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
-            request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe));
+            request['to'] = this.sum (request['from'], limitResolved * this.parseTimeframe (timeframe));
         } else {
             request['to'] = this.seconds ();
-            request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
+            request['from'] = request['to'] - (limitResolved * this.parseTimeframe (timeframe));
         }
         const response = await this.v4PublicNetGetCandles (this.extend (request, params));
         // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
         // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
-        return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
+        return this.parseTradingViewOHLCV (response, market, timeframe, since, limitResolved);
     }
 
     /**
@@ -1036,7 +1035,10 @@ export default class mercado extends Exchange {
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/';
         const query: Dict = this.omit (params, this.extractParams (path));
-        if ((api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet')) {
+        const isPublic = (api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet');
+        let privateBody: Str = undefined;
+        let privateHeaders: NullableDict = undefined;
+        if (isPublic) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
@@ -1045,18 +1047,20 @@ export default class mercado extends Exchange {
             this.checkRequiredCredentials ();
             url += this.version + '/';
             const nonce = this.nonce ();
-            body = this.urlencode (this.extend ({
+            privateBody = this.urlencode (this.extend ({
                 'tapi_method': path,
                 'tapi_nonce': nonce,
             }, params));
-            const auth = '/tapi/' + this.version + '/' + '?' + body;
-            headers = {
+            const auth = '/tapi/' + this.version + '/' + '?' + privateBody;
+            privateHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': this.apiKey,
                 'TAPI-MAC': this.hmac (this.encode (auth), this.encode (this.secret), sha512),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestBody: Str = isPublic ? body : privateBody;
+        const requestHeaders: NullableDict = isPublic ? headers : privateHeaders;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

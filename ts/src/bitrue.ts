@@ -1244,10 +1244,7 @@ export default class bitrue extends Exchange {
                 'contractName': market['id'],
             };
             if (limit !== undefined) {
-                if (limit > 100) {
-                    limit = 100;
-                }
-                request['limit'] = limit; // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
+                request['limit'] = Math.min (limit, 100); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
             if (market['linear'] === true) {
                 response = await this.fapiV1PublicGetDepth (this.extend (request, params));
@@ -1259,10 +1256,7 @@ export default class bitrue extends Exchange {
                 'symbol': market['id'],
             };
             if (limit !== undefined) {
-                if (limit > 1000) {
-                    limit = 1000;
-                }
-                request['limit'] = limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+                request['limit'] = Math.min (limit, 1000); // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             }
             response = await this.spotV1PublicGetDepth (this.extend (request, params));
         } else {
@@ -1496,10 +1490,10 @@ export default class bitrue extends Exchange {
             }
             const until = this.safeInteger (params, 'until');
             if (until !== undefined) {
-                params = this.omit (params, 'until');
                 request['fromIdx'] = until;
             }
-            response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
+            const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+            response = await this.spotV1PublicGetMarketKline (this.extend (request, paramsOmitted));
             data = this.safeList (response, 'data', []);
         } else {
             throw new NotSupported (this.id + ' fetchOHLCV only support spot & swap markets');
@@ -1662,7 +1656,6 @@ export default class bitrue extends Exchange {
         let response: Dict | List = [];
         let data: Dict[] = [];
         const request: Dict = {};
-        let type: Str = undefined;
         if (symbolsNormalized !== undefined) {
             const first = this.safeString (symbolsNormalized, 0);
             const market = this.market (first);
@@ -1675,11 +1668,11 @@ export default class bitrue extends Exchange {
                 throw new NotSupported (this.id + ' fetchTickers only support spot & swap markets');
             }
         } else {
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-            if (type !== 'spot') {
+            const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+            if (marketType !== 'spot') {
                 throw new NotSupported (this.id + ' fetchTickers only support spot when symbols are not proved');
             }
-            response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
+            response = await this.spotV1PublicGetTicker24hr (this.extend (request, paramsMarketType));
             data = this.toArray (response);
         }
         //
@@ -2092,11 +2085,11 @@ export default class bitrue extends Exchange {
                 request['type'] = 'IOC';
             }
             request['contractName'] = market['id'];
-            let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            if (isMarket && (side === 'buy') && createMarketBuyOrderRequiresPrice) {
-                const cost = this.safeString (params, 'cost');
-                params = this.omit (params, 'cost');
+            const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const isMarketBuyWithPrice = isMarket && (side === 'buy') && createMarketBuyOrderRequiresPrice;
+            const paramsNoCost: Dict = (isMarketBuyWithPrice) ? this.omit (paramsRequiresPrice, 'cost') : paramsRequiresPrice;
+            if (isMarketBuyWithPrice) {
+                const cost = this.safeString (paramsRequiresPrice, 'cost');
                 if (price === undefined && cost === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
                 } else {
@@ -2112,15 +2105,15 @@ export default class bitrue extends Exchange {
                 request['volume'] = this.parseToNumeric (amount);
             }
             request['positionType'] = 1;
-            const reduceOnly: Bool = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+            const reduceOnly: Bool = this.safeBool2 (paramsNoCost, 'reduceOnly', 'reduce_only');
             request['open'] = (reduceOnly === true) ? 'CLOSE' : 'OPEN';
-            const leverage = this.safeString (params, 'leverage', '1');
+            const leverage = this.safeString (paramsNoCost, 'leverage', '1');
             request['leverage'] = this.parseToNumeric (leverage);
-            params = this.omit (params, [ 'leverage', 'reduceOnly', 'reduce_only', 'timeInForce' ]);
+            const paramsSwap: Dict = this.omit (paramsNoCost, [ 'leverage', 'reduceOnly', 'reduce_only', 'timeInForce' ]);
             if (market['linear'] === true) {
-                response = await this.fapiV2PrivatePostOrder (this.extend (request, params));
+                response = await this.fapiV2PrivatePostOrder (this.extend (request, paramsSwap));
             } else if (market['inverse'] === true) {
-                response = await this.dapiV2PrivatePostOrder (this.extend (request, params));
+                response = await this.dapiV2PrivatePostOrder (this.extend (request, paramsSwap));
             }
             data = this.safeDict (response, 'data', {});
         } else if (market['spot'] === true) {
@@ -2132,15 +2125,15 @@ export default class bitrue extends Exchange {
             }
             const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
             if (clientOrderId !== undefined) {
-                params = this.omit (params, [ 'newClientOrderId', 'clientOrderId' ]);
                 request['newClientOrderId'] = clientOrderId;
             }
-            const triggerPrice: Num = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+            const paramsNoClientOrderId: Dict = (clientOrderId !== undefined) ? this.omit (params, [ 'newClientOrderId', 'clientOrderId' ]) : params;
+            const triggerPrice: Num = this.safeNumber2 (paramsNoClientOrderId, 'triggerPrice', 'stopPrice');
             if (triggerPrice !== undefined) {
-                params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
                 request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             }
-            response = await this.spotV1PrivatePostOrder (this.extend (request, params));
+            const paramsSpot: Dict = (triggerPrice !== undefined) ? this.omit (paramsNoClientOrderId, [ 'triggerPrice', 'stopPrice' ]) : paramsNoClientOrderId;
+            response = await this.spotV1PrivatePostOrder (this.extend (request, paramsSpot));
             data = response as Dict;
         } else {
             throw new NotSupported (this.id + ' createOrder only support spot & swap markets');
@@ -2553,11 +2546,9 @@ export default class bitrue extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        if (limit !== undefined) {
-            if (limit > 1000) {
-                limit = 1000;
-            }
-            request['limit'] = limit;
+        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (limit, 1000);
+        if (limitResolved !== undefined) {
+            request['limit'] = limitResolved;
         }
         if (market['swap'] === true) {
             request['contractName'] = market['id'];
@@ -2619,7 +2610,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limitResolved);
     }
 
     /**
@@ -3087,18 +3078,16 @@ export default class bitrue extends Exchange {
         if (since !== undefined) {
             request['beginTime'] = since;
         }
-        if (limit !== undefined) {
-            if (limit > 200) {
-                limit = 200;
-            }
-            request['limit'] = limit;
+        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (limit, 200);
+        if (limitResolved !== undefined) {
+            request['limit'] = limitResolved;
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['endTime'] = until;
         }
-        const response = await this.fapiV2PrivateGetFuturesTransferHistory (this.extend (request, params));
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
+        const response = await this.fapiV2PrivateGetFuturesTransferHistory (this.extend (request, paramsOmitted));
         //
         //     {
         //         'code': '0',
@@ -3113,7 +3102,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseTransfers (data, currency, since, limit);
+        return this.parseTransfers (data, currency, since, limitResolved);
     }
 
     /**
@@ -3256,6 +3245,8 @@ export default class bitrue extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         const type = this.safeString (api, 0);
         const version = this.safeString (api, 1);
         const access = this.safeString (api, 2);
@@ -3277,14 +3268,14 @@ export default class bitrue extends Exchange {
                 }, paramsOmitted));
                 const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
                 query += '&' + 'signature=' + signature;
-                headers = {
+                requestHeaders = {
                     'X-MBX-APIKEY': this.apiKey,
                 };
                 if ((method === 'GET') || (method === 'DELETE')) {
                     url += '?' + query;
                 } else {
-                    body = query;
-                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                    requestBody = query;
+                    requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
                 }
             } else {
                 const timestamp = this.nonce ().toString ();
@@ -3303,7 +3294,7 @@ export default class bitrue extends Exchange {
                         signMessage += '?' + this.urlencode (paramsOmitted);
                     }
                     const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
-                    headers = {
+                    requestHeaders = {
                         'X-CH-APIKEY': this.apiKey,
                         'X-CH-SIGN': signature,
                         'X-CH-TS': timestamp,
@@ -3313,10 +3304,10 @@ export default class bitrue extends Exchange {
                     const query = this.extend ({
                         'recvWindow': recvWindow,
                     }, paramsOmitted);
-                    body = this.json (query);
-                    signMessage += body;
+                    requestBody = this.json (query);
+                    signMessage += requestBody;
                     const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
-                    headers = {
+                    requestHeaders = {
                         'Content-Type': 'application/json',
                         'X-CH-APIKEY': this.apiKey,
                         'X-CH-SIGN': signature,
@@ -3329,7 +3320,9 @@ export default class bitrue extends Exchange {
                 url += '?' + this.urlencode (paramsOmitted);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -3356,9 +3349,9 @@ export default class bitrue extends Exchange {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
+        let parsedMessage: NullableDict = undefined;
         if (success !== true) {
             const messageInner = this.safeString (response, 'msg');
-            let parsedMessage: NullableDict = undefined;
             if (messageInner !== undefined) {
                 try {
                     parsedMessage = JSON.parse (messageInner);
@@ -3366,18 +3359,16 @@ export default class bitrue extends Exchange {
                     // do nothing
                     parsedMessage = undefined;
                 }
-                if (parsedMessage !== undefined) {
-                    response = parsedMessage;
-                }
             }
         }
-        const message = this.safeString (response, 'msg');
+        const errorResponse = (parsedMessage !== undefined) ? parsedMessage : response;
+        const message = this.safeString (errorResponse, 'msg');
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
         }
         // checks against error codes
-        const error = this.safeString (response, 'code');
+        const error = this.safeString (errorResponse, 'code');
         if (error !== undefined) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742

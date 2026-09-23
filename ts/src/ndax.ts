@@ -682,6 +682,7 @@ export default class ndax extends Exchange {
 
     override parseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
         let nonce: Int = undefined;
+        let latestTimestamp: Int = timestamp;
         const result: Dict = {
             'symbol': symbol,
             'bids': [],
@@ -692,12 +693,12 @@ export default class ndax extends Exchange {
         };
         for (let i = 0; i < orderbook.length; i++) {
             const level = orderbook[i];
-            if (timestamp === undefined) {
-                timestamp = this.safeInteger (level, 2);
+            if (latestTimestamp === undefined) {
+                latestTimestamp = this.safeInteger (level, 2);
             } else {
                 const newTimestamp = this.safeInteger (level, 2);
                 if (newTimestamp !== undefined) {
-                    timestamp = Math.max (timestamp, newTimestamp);
+                    latestTimestamp = Math.max (latestTimestamp, newTimestamp);
                 }
             }
             if (nonce === undefined) {
@@ -715,8 +716,8 @@ export default class ndax extends Exchange {
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
+        result['timestamp'] = latestTimestamp;
+        result['datetime'] = this.iso8601 (latestTimestamp);
         result['nonce'] = nonce;
         return result as OrderBook;
     }
@@ -2714,20 +2715,22 @@ export default class ndax extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
+        let headersSigned: NullableDict = undefined;
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (path === 'Authenticate') {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64 (auth);
-                headers = {
+                headersSigned = {
                     'Authorization': 'Basic ' + auth64,
                     // 'Content-Type': 'application/json',
                 };
             } else if (path === 'Authenticate2FA') {
                 const pending2faToken = this.safeString (this.options, 'pending2faToken');
                 if (pending2faToken !== undefined) {
-                    headers = {
+                    headersSigned = {
                         'Pending2FaToken': pending2faToken,
                         // 'Content-Type': 'application/json',
                     };
@@ -2744,27 +2747,29 @@ export default class ndax extends Exchange {
                 const nonce = this.nonce ().toString ();
                 const auth = nonce + this.uid + this.apiKey;
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-                headers = {
+                headersSigned = {
                     'Nonce': nonce,
                     'APIKey': this.apiKey,
                     'Signature': signature,
                     'UserId': this.uid,
                 };
             } else {
-                headers = {
+                headersSigned = {
                     'APToken': sessionToken,
                 };
             }
             if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json (query);
+                headersSigned['Content-Type'] = 'application/json';
+                bodySigned = this.json (query);
             } else {
                 if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

@@ -1275,25 +1275,28 @@ export default class blockchaincom extends Exchange {
         const requestPath = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
+        const isPrivate = (api === 'private');
+        const privateHeaders: Dict = {
+            'X-API-Token': this.secret,
+        };
+        const requestHeaders = isPrivate ? privateHeaders : headers;
+        const isPrivatePost = isPrivate && (method !== 'GET');
+        const requestBody: Str = isPrivatePost ? this.json (query) : body;
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (isPrivate) {
             this.checkRequiredCredentials ();
-            headers = {
-                'X-API-Token': this.secret,
-            };
             if ((method === 'GET')) {
                 if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else {
-                body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                privateHeaders['Content-Type'] = 'application/json';
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

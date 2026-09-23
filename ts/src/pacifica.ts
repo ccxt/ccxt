@@ -1632,7 +1632,6 @@ export default class pacifica extends Exchange {
             operationType = 'create_stop_order';
             sigPayload['reduce_only'] = reduceOnly;
             const stopClientOrderId = this.safeString (params, 'clientOrderId');
-            params = this.omit (params, [ 'clientOrderId' ]);
             const stopPayload: Dict = {
                 'amount': this.amountToPrecision (symbol, amount),
                 'stop_price': this.priceToPrecision (symbol, triggerPrice),
@@ -1677,11 +1676,12 @@ export default class pacifica extends Exchange {
         if (amount !== undefined && (operationType !== 'create_stop_order' && operationType !== 'set_position_tpsl')) {
             sigPayload['amount'] = this.amountToPrecision (symbol, amount);
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const paramsClientOrderId: Dict = (operationType === 'create_stop_order') ? this.omit (params, [ 'clientOrderId' ]) : params;
+        const clientOrderId = this.safeString (paramsClientOrderId, 'clientOrderId');
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
         }
-        const request = this.postActionRequest (operationType, sigPayload, params);
+        const request = this.postActionRequest (operationType, sigPayload, paramsClientOrderId);
         return [ request, operationType ];
     }
 
@@ -3036,10 +3036,10 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString (interest, 'symbol');
+        const marketResolved = (marketId !== undefined) ? this.safeMarket (marketId, market) : market;
         let symbol: Str = undefined;
         if (marketId !== undefined) {
-            market = this.safeMarket (marketId, market);
-            symbol = market['symbol'];
+            symbol = this.safeString (marketResolved, 'symbol');
         }
         let interestValue: Str = undefined;
         const markPrice = this.safeString (interest, 'mark');
@@ -3055,7 +3055,7 @@ export default class pacifica extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -3502,6 +3502,7 @@ export default class pacifica extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestBody: Str = body;
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const host = this.implodeHostname (this.urls[urlKey][api]);
@@ -3516,12 +3517,12 @@ export default class pacifica extends Exchange {
             headersValue['Accept'] = '*/*';
         }
         if (method === 'POST') {
-            body = this.json (paramsOmitted);
+            requestBody = this.json (paramsOmitted);
         }
         if (this.handleOption ('sign', 'apiKey') !== undefined) {
             headersValue['PF-API-KEY'] = this.options['apiKey'];
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headersValue };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
     override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: any = {}) {

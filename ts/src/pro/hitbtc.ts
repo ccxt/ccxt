@@ -612,10 +612,8 @@ export default class hitbtc extends hitbtcRest {
         }
         const name = 'trades';
         const trades = await this.subscribePublic (name, 'trades', [ symbol ], this.deepExtend (request, params));
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
     }
 
     handleTrades (client: Client, message: Dict): Dict {
@@ -745,10 +743,8 @@ export default class hitbtc extends hitbtcRest {
             request['params']['limit'] = limit;
         }
         const ohlcv = await this.subscribePublic (name, 'candles', [ symbol ], this.deepExtend (request, params));
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0);
     }
 
     handleOHLCV (client: Client, message: Dict): Dict {
@@ -866,10 +862,8 @@ export default class hitbtc extends hitbtcRest {
             'future': 'futures_subscribe',
         });
         const orders = await this.subscribePrivate (name, symbol, paramsMarketType);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp');
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp');
     }
 
     handleOrder (client: Client, message: Dict): Dict {
@@ -1141,13 +1135,10 @@ export default class hitbtc extends hitbtcRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {};
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        [ request, params ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, params);
-        request = this.extend (request, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', paramsMarketType);
+        const [ orderRequest, paramsValue ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, paramsMarginMode);
+        const request = this.extend (orderRequest, paramsValue);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_new_order', request);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {

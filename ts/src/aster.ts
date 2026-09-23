@@ -1949,9 +1949,7 @@ export default class aster extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
-        }
+        const symbolsNormalized: Strings = (symbols !== undefined) ? this.marketSymbols (symbols) : symbols;
         const response = await this.fapiPublicGetV3FundingInfo (params);
         //
         //     [
@@ -1965,7 +1963,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseFundingRates (response, symbols);
+        return this.parseFundingRates (response, symbolsNormalized);
     }
 
     /**
@@ -2107,18 +2105,16 @@ export default class aster extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginMode = marginMode.toUpperCase ();
-        if (marginMode === 'CROSS') {
-            marginMode = 'CROSSED';
-        }
-        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSSED')) {
+        const marginModeUpper = marginMode.toUpperCase ();
+        const marginModeValue: string = (marginModeUpper === 'CROSS') ? 'CROSSED' : marginModeUpper;
+        if ((marginModeValue !== 'ISOLATED') && (marginModeValue !== 'CROSSED')) {
             throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
         }
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': marginModeValue,
         };
         const response = await this.fapiPrivatePostV3MarginType (this.extend (request, params));
         //
@@ -2895,12 +2891,13 @@ export default class aster extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
-            let tif: Str = undefined;
-            [ tif, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
-            request['timeInForce'] = tif;
+        const tifAndParams = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+        const tifIsMissing = timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined);
+        if (tifIsMissing) {
+            request['timeInForce'] = tifAndParams[0];
         }
-        const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const paramsTif: Dict = tifIsMissing ? tifAndParams[1] : params;
+        const requestParams = this.omit (paramsTif, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if ((this.safeBool (this.options, 'builderFee') === true) && (market['swap'] === true)) {
             request['builder'] = this.safeString (this.options, 'builder');
             request['feeRate'] = this.safeString (this.options, 'builderRate');
@@ -3526,11 +3523,11 @@ export default class aster extends Exchange {
             request['limit'] = Math.min (limit, 1000); // max 1000
         }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['endTime'] = until;
         }
-        const response = await this.fapiPrivateGetV3Income (this.extend (request, params));
+        const response = await this.fapiPrivateGetV3Income (this.extend (request, paramsOmitted));
         //
         //     [
         //         {
@@ -3780,8 +3777,8 @@ export default class aster extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
-        let defaultMethod: Str = undefined;
-        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method');
+        const [ methodOption, paramsMethod ] = this.handleOptionAndParams (params, 'fetchPositions', 'method');
+        let defaultMethod: Str = methodOption;
         if (defaultMethod === undefined) {
             const options = this.safeDict (this.options, 'fetchPositions');
             if (options === undefined) {
@@ -3791,9 +3788,9 @@ export default class aster extends Exchange {
             }
         }
         if (defaultMethod === 'positionRisk') {
-            return await this.fetchPositionsRisk (symbols, params);
+            return await this.fetchPositionsRisk (symbols, paramsMethod);
         } else if (defaultMethod === 'account') {
-            return await this.fetchAccountPositions (symbols, params);
+            return await this.fetchAccountPositions (symbols, paramsMethod);
         } else {
             throw new NotSupported (this.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"');
         }
@@ -4363,9 +4360,10 @@ export default class aster extends Exchange {
             if (method === 'GET') {
                 url += '?' + queryString;
             } else {
-                headers = {};
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                body = queryString;
+                const formHeaders: Dict = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+                return { 'url': url, 'method': method, 'body': queryString, 'headers': formHeaders };
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -91,10 +91,8 @@ export default class whitebit extends whitebitRest {
         const reqParams = [ marketId, interval ];
         const method = 'candles_subscribe';
         const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict): Dict {
@@ -156,9 +154,7 @@ export default class whitebit extends whitebitRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 10; // max 100
-        }
+        const limitValue: Int = (limit === undefined) ? 10 : limit;
         const messageHash = 'orderbook' + ':' + market['symbol'];
         const method = 'depth_subscribe';
         const options = this.safeDict (this.options, 'watchOrderBook', {});
@@ -167,7 +163,7 @@ export default class whitebit extends whitebitRest {
         const paramsOmitted: Dict = this.omit (params, 'priceInterval');
         const reqParams = [
             market['id'],
-            limit,
+            limitValue,
             priceInterval,
             true, // true for allowing multiple subscriptions
         ];
@@ -377,10 +373,8 @@ export default class whitebit extends whitebitRest {
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -451,10 +445,8 @@ export default class whitebit extends whitebitRest {
         const messageHash = 'myTrades:' + symbolValue;
         const method = 'deals_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, true, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, message: Dict , subscription: Dict | undefined = undefined) {
@@ -578,10 +570,8 @@ export default class whitebit extends whitebitRest {
         const messageHash = 'orders:' + symbolValue;
         const method = 'ordersPending_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict , subscription: Dict | undefined = undefined) {

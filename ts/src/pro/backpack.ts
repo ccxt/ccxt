@@ -504,10 +504,8 @@ export default class backpack extends backpackRest {
             messageHashes.push ('candles:' + market['symbol'] + ':' + interval);
         }
         const [ symbol, timeframe, candles ] = await this.watchPublic (topics, messageHashes, params);
-        if (this.newUpdates) {
-            limit = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        const limitResolved: Int = this.newUpdates ? candles.getLimit (symbol, limit) : limit;
+        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -668,12 +666,10 @@ export default class backpack extends backpackRest {
             messageHashes.push ('trades:' + symbol);
         }
         const trades = await this.watchPublic (topics, messageHashes, params);
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved: Int = this.newUpdates ? trades.getLimit (tradeSymbol, limit) : limit;
+        const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
         return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
     }
 
@@ -993,22 +989,17 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
-            messageHash = 'orders:' + symbol;
+            messageHash = 'orders:' + symbolResolved;
         }
         const orders = await this.watchPrivate ([ topic ], [ messageHash ], params);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = this.newUpdates ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1024,16 +1015,13 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'unsubscribe:orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
-            messageHash = 'unsubscribe:orders:' + symbol;
+            messageHash = 'unsubscribe:orders:' + symbolResolved;
         }
         return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
     }

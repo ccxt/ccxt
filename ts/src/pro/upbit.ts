@@ -41,14 +41,10 @@ export default class upbit extends upbitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        const marketIds = this.marketIds (symbols);
+        const symbolsRequested: Strings = (symbols === undefined) ? this.symbols : symbols;
+        const symbolsMarket: Strings = this.marketSymbols (symbolsRequested);
+        const symbolsNormalized: string[] = (symbolsMarket === undefined) ? [] : symbolsMarket;
+        const marketIds = this.marketIds (symbolsNormalized);
         const url = this.implodeParams (this.urls['api']['ws'], {
             'hostname': this.hostname,
         });
@@ -59,9 +55,9 @@ export default class upbit extends upbitRest {
         }
         const subscriptions = client.subscriptions[subscriptionsKey];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
+        for (let i = 0; i < symbolsNormalized.length; i++) {
             const marketId = marketIds[i];
-            const symbol = symbols[i];
+            const symbol = symbolsNormalized[i];
             const messageHash = channel + ':' + symbol;
             messageHashes.push (messageHash);
             if (!(messageHash in subscriptions)) {
@@ -144,12 +140,10 @@ export default class upbit extends upbitRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.watchPublicMultiple (symbols, 'trade');
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -370,15 +364,16 @@ export default class upbit extends upbitRest {
         const request: Dict = {
             'type': channel,
         };
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            const symbols = [ symbol ];
+            symbolResolved = market['symbol'];
+            const symbols = [ symbolResolved ];
             const marketIds = this.marketIds (symbols);
             request['codes'] = marketIds;
-            messageHash = messageHash + ':' + symbol;
         }
+        const messageHashResolved = (symbolResolved !== undefined) ? (messageHash + ':' + symbolResolved) : messageHash;
         let url = this.implodeParams (this.urls['api']['ws'], {
             'hostname': this.hostname,
         });
@@ -390,8 +385,8 @@ export default class upbit extends upbitRest {
             client.subscriptions[subscriptionsKey] = this.createSafeDictionary (true);
         }
         let channelKey = channel;
-        if (symbol !== undefined) {
-            channelKey = channel + ':' + symbol;
+        if (symbolResolved !== undefined) {
+            channelKey = channel + ':' + symbolResolved;
         }
         const subscriptions = client.subscriptions[subscriptionsKey];
         const isNewChannel = !(channelKey in subscriptions);
@@ -413,7 +408,7 @@ export default class upbit extends upbitRest {
         for (let i = 0; i < requests.length; i++) {
             message.push (requests[i]);
         }
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHashResolved, message, messageHashResolved);
     }
 
     /**
@@ -434,10 +429,8 @@ export default class upbit extends upbitRest {
         const channel = 'myOrder';
         const messageHash = 'myOrder';
         const orders = await this.watchPrivate (symbol, channel, messageHash);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 
     /**
@@ -458,10 +451,8 @@ export default class upbit extends upbitRest {
         const channel = 'myOrder';
         const messageHash = 'myTrades';
         const trades = await this.watchPrivate (symbol, channel, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
     }
 
     parseWsOrderStatus (status: Str) {

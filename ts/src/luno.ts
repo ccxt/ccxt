@@ -1399,18 +1399,14 @@ export default class luno extends Exchange {
 
     async fetchLedgerByEntries (code: Str = undefined, entry: any = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         // by default without entry number or limit number, return most recent entry
-        if (entry === undefined) {
-            entry = -1;
-        }
-        if (limit === undefined) {
-            limit = 1;
-        }
+        const entryValue = (entry === undefined) ? -1 : entry;
+        const limitValue = (limit === undefined) ? 1 : limit;
         const since = undefined;
         const request: Dict = {
-            'min_row': entry,
-            'max_row': this.sum (entry, limit),
+            'min_row': entryValue,
+            'max_row': this.sum (entryValue, limitValue),
         };
-        return await this.fetchLedger (code, since, limit, this.extend (request, params));
+        return await this.fetchLedger (code, since, limitValue, this.extend (request, params));
     }
 
     /**
@@ -1712,17 +1708,19 @@ export default class luno extends Exchange {
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        let requestHeaders: NullableDict = undefined;
         if (Object.keys (query).length > 0) {
             url += '?' + this.urlencode (query);
         }
         if ((api === 'private') || (api === 'exchangePrivate')) {
             this.checkRequiredCredentials ();
             const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

@@ -1367,18 +1367,18 @@ export default class bigone extends Exchange {
         const until = this.safeInteger (params, 'until');
         const untilIsDefined = (until !== undefined);
         const sinceIsDefined = (since !== undefined);
-        if (limit === undefined) {
-            limit = (sinceIsDefined && untilIsDefined) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
-        }
+        // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
+        const defaultLimit = (sinceIsDefined && untilIsDefined) ? 500 : 100;
+        const limitResolved: Int = (limit === undefined) ? defaultLimit : limit;
         const request: Dict = {
             'asset_pair_name': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (sinceIsDefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
-            const endByLimit = this.sum (since, limit * duration * 1000);
+            const endByLimit = this.sum (since, limitResolved * duration * 1000);
             if (untilIsDefined) {
                 request['time'] = this.iso8601 (Math.min (endByLimit, until + 1));
             } else {
@@ -1413,7 +1413,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market, timeframe, since, limitResolved);
     }
 
     override parseBalance (response: any): Balances {
@@ -1610,8 +1610,9 @@ export default class bigone extends Exchange {
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
-        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        let query = undefined;
+        [ postOnly, query ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
+        const triggerPrice = this.safeStringN (query, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
             'side': requestSide, // order side one of "ASK"/"BID", required
@@ -1624,7 +1625,7 @@ export default class bigone extends Exchange {
         if (isLimit || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
             if (isLimit) {
-                const timeInForce = this.safeString (params, 'timeInForce');
+                const timeInForce = this.safeString (query, 'timeInForce');
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
@@ -1636,9 +1637,9 @@ export default class bigone extends Exchange {
         } else {
             if (isBuy) {
                 let createMarketBuyOrderRequiresPrice: Bool = undefined;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
+                [ createMarketBuyOrderRequiresPrice, query ] = this.handleOptionAndParams (query, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber (query, 'cost');
+                query = this.omit (query, 'cost');
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (cost === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -1666,12 +1667,12 @@ export default class bigone extends Exchange {
             }
         }
         request['type'] = uppercaseType;
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (query, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ]);
-        const response = await this.privatePostOrders (this.extend (request, params));
+        query = this.omit (query, [ 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ]);
+        const response = await this.privatePostOrders (this.extend (request, query));
         //
         //    {
         //        "id": 10,
@@ -1965,6 +1966,7 @@ export default class bigone extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -1990,11 +1992,12 @@ export default class bigone extends Exchange {
                 }
             } else if (method === 'POST') {
                 headersValue['Content-Type'] = 'application/json';
-                body = this.json (query);
+                bodySigned = this.json (query);
             }
         }
         headersValue['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headersValue };
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
 
     /**

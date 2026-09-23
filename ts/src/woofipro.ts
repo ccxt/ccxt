@@ -1353,14 +1353,17 @@ export default class woofipro extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'page', 25) as FundingRateHistory[];
         }
         const request: Dict = {};
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = market['symbol'];
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
@@ -1403,7 +1406,7 @@ export default class woofipro extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit) as FundingRateHistory[];
     }
 
     override parseIncome (income: any, market: Market = undefined): object {
@@ -1455,7 +1458,9 @@ export default class woofipro extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500) as FundingHistory[];
         }
@@ -1583,8 +1588,7 @@ export default class woofipro extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            limit = Math.min (limit, 1000);
-            request['max_level'] = limit;
+            request['max_level'] = Math.min (limit, 1000);
         }
         const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
         //
@@ -2101,20 +2105,20 @@ export default class woofipro extends Exchange {
         if (amount !== undefined) {
             request[orderQtyKey] = this.amountToPrecision (symbol, amount);
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         let response: NullableDict = undefined;
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a side argument');
         }
         if (isConditional) {
-            response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
+            response = await this.v1PrivatePutAlgoOrder (this.extend (request, paramsOmitted));
         } else {
             request['symbol'] = market['id'];
             request['side'] = side.toUpperCase ();
             const orderType = type.toUpperCase ();
-            const timeInForce = this.safeStringLower (params, 'timeInForce');
+            const timeInForce = this.safeStringLower (paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly (isMarket, undefined, params);
+            const postOnly = this.isPostOnly (isMarket, undefined, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             } else if (timeInForce === 'fok') {
@@ -2124,14 +2128,14 @@ export default class woofipro extends Exchange {
             } else {
                 request['order_type'] = orderType;
             }
-            const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ]);
+            const clientOrderId = this.safeStringN (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+            const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ]);
             if (clientOrderId !== undefined) {
                 request['client_order_id'] = clientOrderId;
             }
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
-            response = await this.v1PrivatePutOrder (this.extend (request, params));
+            response = await this.v1PrivatePutOrder (this.extend (request, paramsOmitted2));
         }
         //
         // {
@@ -2164,7 +2168,7 @@ export default class woofipro extends Exchange {
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         if ((trigger !== true) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2178,27 +2182,27 @@ export default class woofipro extends Exchange {
         const request: Dict = {
             'symbol': this.safeString (market, 'id'),
         };
-        const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
+        const clientOrderIdUnified = this.safeString2 (paramsOmitted, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString (paramsOmitted, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response: NullableDict = undefined;
         if (trigger === true) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
-                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-                response = await this.v1PrivateDeleteAlgoClientOrder (this.extend (request, params));
+                const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+                response = await this.v1PrivateDeleteAlgoClientOrder (this.extend (request, paramsOmitted2));
             } else {
                 request['order_id'] = id;
-                response = await this.v1PrivateDeleteAlgoOrder (this.extend (request, params));
+                response = await this.v1PrivateDeleteAlgoOrder (this.extend (request, paramsOmitted));
             }
         } else {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
-                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-                response = await this.v1PrivateDeleteClientOrder (this.extend (request, params));
+                const paramsOmitted3: Dict = this.omit (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+                response = await this.v1PrivateDeleteClientOrder (this.extend (request, paramsOmitted3));
             } else {
                 request['order_id'] = id;
-                response = await this.v1PrivateDeleteOrder (this.extend (request, params));
+                response = await this.v1PrivateDeleteOrder (this.extend (request, paramsOmitted));
             }
         }
         //
@@ -2421,7 +2425,9 @@ export default class woofipro extends Exchange {
         }
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const maxLimit = (isTrigger === true) ? 100 : 500;
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit) as Order[];
         }
@@ -2606,7 +2612,9 @@ export default class woofipro extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500) as Trade[];
         }
@@ -2976,13 +2984,13 @@ export default class woofipro extends Exchange {
             await this.loadMarkets ();
         }
         this.checkAddress (address);
-        if (code !== undefined) {
-            code = code.toUpperCase ();
-            if (code !== 'USDC') {
+        const codeUpper = (code !== undefined) ? code.toUpperCase () : code;
+        if (codeUpper !== undefined) {
+            if (codeUpper !== 'USDC') {
                 throw new NotSupported (this.id + ' withdraw() only support USDC');
             }
         }
-        const currency = this.currency (code);
+        const currency = this.currency (codeUpper);
         const verifyingContractAddress = this.safeString (this.options, 'verifyingContractAddress');
         const chainId = this.safeString (params, 'chainId');
         const currencyNetworks = this.safeDict (currency, 'networks', {});
@@ -3014,7 +3022,7 @@ export default class woofipro extends Exchange {
             'brokerId': this.safeString (this.options, 'keyBrokerId', 'woofi_pro'),
             'chainId': this.parseToInt (chainId),
             'receiver': address,
-            'token': code,
+            'token': codeUpper,
             'amount': amount.toString (),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
@@ -3498,12 +3506,13 @@ export default class woofipro extends Exchange {
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
         let url = this.urls['api'][access] + '/' + version + '/';
-        params = this.omit (params, this.extractParams (path));
-        params = this.keysort (params);
+        let requestParams: Dict = this.keysort (this.omit (params, this.extractParams (path)));
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (requestParams).length > 0) {
+                url += '?' + this.urlencode (requestParams);
             }
         } else {
             this.checkRequiredCredentials ();
@@ -3512,15 +3521,15 @@ export default class woofipro extends Exchange {
                 if (isSandboxMode !== true) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
-                        const ordersList = this.safeList (params, 'orders', []);
+                        const ordersList = this.safeList (requestParams, 'orders', []);
                         for (let i = 0; i < ordersList.length; i++) {
-                            params['orders'][i]['order_tag'] = brokerId;
+                            requestParams['orders'][i]['order_tag'] = brokerId;
                         }
                     } else {
-                        params['order_tag'] = brokerId;
+                        requestParams['order_tag'] = brokerId;
                     }
                 }
-                params = this.keysort (params);
+                requestParams = this.keysort (requestParams);
             }
             let auth = '';
             const ts = this.nonce ().toString ();
@@ -3529,24 +3538,24 @@ export default class woofipro extends Exchange {
             if (apiKey.indexOf ('ed25519:') < 0) {
                 apiKey = 'ed25519:' + apiKey;
             }
-            headers = {
+            requestHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
             auth = ts + method + '/' + version + '/' + pathWithParams;
             if (method === 'POST' || method === 'PUT') {
-                body = this.json (params);
-                auth += body;
-                headers['content-type'] = 'application/json';
+                requestBody = this.json (requestParams);
+                auth += requestBody;
+                requestHeaders['content-type'] = 'application/json';
             } else {
-                if (Object.keys (params).length > 0) {
-                    url += '?' + this.urlencode (params);
-                    auth += '?' + this.rawencode (params);
+                if (Object.keys (requestParams).length > 0) {
+                    url += '?' + this.urlencode (requestParams);
+                    auth += '?' + this.rawencode (requestParams);
                 }
-                headers['content-type'] = 'application/x-www-form-urlencoded';
+                requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
                 if (method === 'DELETE') {
-                    body = '';
+                    requestBody = '';
                 }
             }
             let secret = this.secret;
@@ -3555,9 +3564,11 @@ export default class woofipro extends Exchange {
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
-            headers['orderly-signature'] = this.urlencodeBase64 (this.base64ToBinary (signature));
+            requestHeaders['orderly-signature'] = this.urlencodeBase64 (this.base64ToBinary (signature));
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

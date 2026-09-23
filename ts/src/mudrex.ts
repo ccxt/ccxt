@@ -287,7 +287,6 @@ export default class mudrex extends Exchange {
         }
         const market = this.market (symbol);
         const priceType = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
         const assetPair = market['baseId'] + '/' + market['quoteId'];
         const request: Dict = {
@@ -312,8 +311,8 @@ export default class mudrex extends Exchange {
         }
         let endTime = startTime + duration * requestLimit;
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             endTime = this.parseToInt (until / 1000);
         } else if (endTime > now) {
             endTime = now;
@@ -322,9 +321,9 @@ export default class mudrex extends Exchange {
         request['end_time'] = endTime;
         let response = undefined;
         if (priceType === 'mark') {
-            response = await this.marketGetPriceMarkKline (this.extend (request, params));
+            response = await this.marketGetPriceMarkKline (this.extend (request, paramsOmitted));
         } else {
-            response = await this.marketGetPriceKline (this.extend (request, params));
+            response = await this.marketGetPriceKline (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -721,7 +720,7 @@ export default class mudrex extends Exchange {
             if (positionId === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order');
             }
-            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id' ]);
+            const paramsOmitted: Dict = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id' ]);
             const riskRequest: Dict = {
                 'position_id': positionId,
             };
@@ -733,7 +732,7 @@ export default class mudrex extends Exchange {
                 riskRequest['is_stoploss'] = true;
                 riskRequest['stoploss_price'] = this.priceToPrecision (symbol, stopLossPrice);
             }
-            const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder (this.extend (riskRequest, params));
+            const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder (this.extend (riskRequest, paramsOmitted));
             const riskData = this.safeDict (riskResponse, 'data', riskResponse);
             return this.parseOrder (riskData, market);
         }
@@ -762,8 +761,8 @@ export default class mudrex extends Exchange {
             request['is_stoploss'] = true;
             request['stoploss_price'] = this.priceToPrecision (symbol, this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice', 'price' ]));
         }
-        params = this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ]);
-        const response = await this.privatePostFuturesAssetIdOrder (this.extend (request, params));
+        const orderParams: Dict = this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ]);
+        const response = await this.privatePostFuturesAssetIdOrder (this.extend (request, orderParams));
         const data = this.safeDict (response, 'data', response);
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
         const merged = this.extend (data, { 'order_type': request['order_type'], 'trigger_type': request['trigger_type'] });
@@ -1208,12 +1207,12 @@ export default class mudrex extends Exchange {
             if (orderType === 'LIMIT' && lp !== undefined) {
                 request['limit_price'] = lp;
             }
-            params = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
-            const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, params));
+            const partialParams: Dict = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
+            const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, partialParams));
             return partialResponse as Order;
         }
-        params = this.omit (params, [ 'position_id' ]);
-        const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, params));
+        const closeParams: Dict = this.omit (params, [ 'position_id' ]);
+        const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, closeParams));
         return response as Order;
     }
 
