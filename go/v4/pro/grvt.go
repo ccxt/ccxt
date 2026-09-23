@@ -727,8 +727,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		"selectors": rawHashes,
 	}
 
-	orderbook := (<-this.SubscribeMultipleAsync(messageHashes, this.Extend(request, params), rawHashes))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeMultipleAsync(messageHashes, this.Extend(request, params), rawHashes))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

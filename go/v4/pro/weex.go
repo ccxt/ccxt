@@ -1122,8 +1122,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		"limit": limit,
 	}
 
-	orderbook := (<-this.SubscribePublicAsync(messageHashes, channels, isContract, params, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHashes, channels, isContract, params, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

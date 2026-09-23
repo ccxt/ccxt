@@ -1976,8 +1976,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 
-	promises := (<-promiseAll(spotUnresolvedPromises))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(spotUnresolvedPromises))))
 	var unresolvedContractPromises []any = []any{}
 
 	{
@@ -2441,8 +2440,7 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan any, optionalArgs ...
 	if (timestamp == nil) || (IsGreaterThan((Subtract(now, timestamp)), expires)) {
 		var promises []any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params)}
 
-		promisesResult := (<-promiseAll(promises))
-		PanicOnError(promisesResult)
+		var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		var fiatResponse map[string]any = SafeMapTyped(promisesResult, 0)
 		//
 		//    [
@@ -2504,8 +2502,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var promises []any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params), this.V2PublicGetExchangeRates(params)}
 
-	promisesResult := (<-promiseAll(promises))
-	PanicOnError(promisesResult)
+	var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var fiatResponse map[string]any = SafeMapTyped(promisesResult, 0)
 	//
 	//    [

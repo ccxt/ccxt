@@ -220,8 +220,7 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	orderbook := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

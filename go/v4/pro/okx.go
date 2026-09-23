@@ -1755,8 +1755,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan any, symbols any, optional
 	}
 	var url any = this.GetUrl(depth, "public")
 
-	orderbook := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

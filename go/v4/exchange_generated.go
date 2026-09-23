@@ -8043,8 +8043,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 		currentSince = Subtract(this.Sum(currentSince, step), 1)
 	}
 
-	results := (<-promiseAll(tasks))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(tasks))))
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
 		result = this.ArrayConcat(result, GetValue(results, i))

@@ -229,8 +229,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		topics = append(topics, currentTopic)
 	}
 
-	orderbook := (<-this.WatchPublicMultipleAsync(messageHashes, topics, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicMultipleAsync(messageHashes, topics, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

@@ -1452,8 +1452,7 @@ func (this *Xt) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var promisesUnresolved []any = []any{this.FetchSpotMarketsAsync(params), this.FetchSwapAndFutureMarketsAsync(params)}
 
-	promises := (<-promiseAll(promisesUnresolved))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	var spotMarkets any = GetValue(promises, 0)
 	var swapAndFutureMarkets any = GetValue(promises, 1)
 
@@ -1541,8 +1540,7 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan any, optionalArgs ...any) 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	markets := (<-promiseAll([]any{EndpointRaw(this.PublicLinearGetFutureMarketV1PublicSymbolList(params)), EndpointRaw(this.PublicInverseGetFutureMarketV1PublicSymbolList(params))}))
-	PanicOnError(markets)
+	var markets []any = ListTyped(PanicOnError((<-promiseAll([]any{EndpointRaw(this.PublicLinearGetFutureMarketV1PublicSymbolList(params)), EndpointRaw(this.PublicInverseGetFutureMarketV1PublicSymbolList(params))}))))
 	//
 	//     {
 	//         "returnCode": 0,

@@ -680,8 +680,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			promises = append(promises, EndpointRaw(this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params))))
 		}
 
-		results := (<-promiseAll(promises))
-		PanicOnError(results)
+		var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		for i := 0; i < len(quotes); i++ {
 			var quote string = quotes[i]
 			var quoteId any = quote

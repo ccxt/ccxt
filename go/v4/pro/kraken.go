@@ -1020,10 +1020,9 @@ func (this *Kraken) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		}
 	}
 
-	orderbook := (<-this.WatchMultiHelperAsync("orderbook", "book", symbols, map[string]any{
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiHelperAsync("orderbook", "book", symbols, map[string]any{
 		"limit": limit,
-	}, this.Extend(requiredParams, params)))
-	ccxt.PanicOnError(orderbook)
+	}, this.Extend(requiredParams, params)))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

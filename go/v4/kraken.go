@@ -700,8 +700,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.LoadTimeDifferenceAsync())
 	}
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var assetsResponse map[string]any = MapTyped(GetValue(responses, 0))
 	//
 	//     {

@@ -870,8 +870,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	suffix = ccxt.GetValue(suffixparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(suffixparamsVariable, 1))
 
-	orderbook := (<-this.WatchPublicAsync(market, messageHash, "25", params, suffix))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(market, messageHash, "25", params, suffix))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

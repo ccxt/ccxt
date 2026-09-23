@@ -2257,8 +2257,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.LoadMigrationStatusAsync())
 	}
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var symbolsData any = func() any {
 		if fetchSpotMarkets {
 			return this.SafeList(GetValue(responses, 0), "data", []any{})
@@ -2671,8 +2670,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var data map[string]any = SafeMapTyped(GetValue(responses, 0), "data")
 	var contractData map[string]any = SafeMapTyped(GetValue(responses, 1), "data")
 	var spotData []any = SafeListTypedDefault(data, "list", []any{})

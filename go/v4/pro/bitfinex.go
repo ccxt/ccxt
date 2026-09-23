@@ -879,8 +879,7 @@ func (this *Bitfinex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		request["len"] = limit // string, number of price points, '25', '100', default = '25'
 	}
 
-	orderbook := (<-this.SubscribeAsync("book", symbol, this.DeepExtend(request, params)))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeAsync("book", symbol, this.DeepExtend(request, params)))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

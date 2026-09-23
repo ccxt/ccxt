@@ -281,8 +281,7 @@ func (this *Nado) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		ccxt.AddElementToObject(this.Orderbooks, market["symbol"], this.OrderBook(snapshot, limit))
 	}
 
-	orderbook := (<-this.WatchPublicAsync("book_depth", market, messageHash, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync("book_depth", market, messageHash, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -361,8 +360,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		}
 	}
 
-	orderbook := (<-this.WatchPublicMultipleAsync("book_depth", markets, messageHashes, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicMultipleAsync("book_depth", markets, messageHashes, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

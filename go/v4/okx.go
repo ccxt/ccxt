@@ -2975,8 +2975,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 			promises = append(promises, EndpointRaw(this.PublicGetPublicInstruments(this.Extend(request, params))))
 		}
 
-		promisesResult := (<-promiseAll(promises))
-		PanicOnError(promisesResult)
+		var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		var markets []any = []any{}
 		for i := 0; i < GetArrayLength(promisesResult); i++ {
 			var res map[string]any = SafeMapTyped(promisesResult, i)

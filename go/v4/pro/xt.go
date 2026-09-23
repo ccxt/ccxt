@@ -794,8 +794,7 @@ func (this *Xt) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any)
 		name = ccxt.Add(ccxt.Add(ccxt.Add("depth@", market["id"]), ","), levels)
 	}
 
-	orderbook := (<-this.SubscribeAsync(name, "public", "watchOrderBook", market, nil, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeAsync(name, "public", "watchOrderBook", market, nil, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

@@ -717,8 +717,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(nameparamsVariable, 1))
 
-	orderbook := (<-this.SubscribeAsync(name, name, false, []any{symbol}, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeAsync(name, name, false, []any{symbol}, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

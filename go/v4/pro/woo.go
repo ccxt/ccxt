@@ -218,8 +218,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		subscription["method"] = this.HandleOrderBookSubscription
 	}
 
-	orderbook := (<-this.Watch(url, topic, this.Extend(request, params), topic, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, topic, this.Extend(request, params), topic, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

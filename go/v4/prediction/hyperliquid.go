@@ -1230,8 +1230,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 		"type": "allMids",
 	})}
 
-	results := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(results)
+	var results []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var response any = ccxt.GetValue(results, 0)
 	var midsResponse any = ccxt.GetValue(results, 1)
 	var balances any = this.SafeList(response, "balances", []any{})

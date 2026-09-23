@@ -144,8 +144,7 @@ func (this *Woofipro) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

@@ -399,8 +399,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			promises = append(promises, ccxt.EndpointRaw(this.LimitlessPublicGetMarketsActive(this.Extend(request, rest))))
 		}
 
-		responses := (<-ccxt.PromiseAll(promises))
-		ccxt.PanicOnError(responses)
+		var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 		var length int = ccxt.GetArrayLength(responses)
 		for j := 0; j < length; j++ {
 			var response map[string]any = ccxt.SafeMapTyped(responses, j)
@@ -1132,8 +1131,7 @@ func (this *Limitless) fetchTickerBody(ch chan any, outcome any, optionalArgs ..
 		"slug": slug,
 	}))}
 
-	responses := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(responses)
+	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var response any = ccxt.GetValue(responses, 0)
 	//
 	//     {
@@ -1483,8 +1481,7 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		})))
 	}
 
-	responses := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(responses)
+	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	for i := 0; i < len(slugs); i++ {
 		var slug any = func() any {
 			if i >= 0 && i < len(slugs) {

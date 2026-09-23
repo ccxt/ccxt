@@ -1124,8 +1124,7 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 		topics = append(topics, topic)
 	}
 
-	orderbook := (<-this.WatchPublicAsync(topics, messageHashes, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(topics, messageHashes, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit() // todo check if limit is needed
 	return nil

@@ -1581,8 +1581,7 @@ func (this *Bitmex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		"args": topics,
 	}
 
-	orderbook := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), topics))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), topics))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

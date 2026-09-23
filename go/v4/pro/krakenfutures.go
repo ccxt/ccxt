@@ -136,10 +136,9 @@ func (this *Krakenfutures) watchOrderBookForSymbolsBody(ch chan any, symbols any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	orderbook := (<-this.WatchMultiHelperAsync("orderbook", "book", symbols, map[string]any{
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiHelperAsync("orderbook", "book", symbols, map[string]any{
 		"limit": limit,
-	}, params))
-	ccxt.PanicOnError(orderbook)
+	}, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

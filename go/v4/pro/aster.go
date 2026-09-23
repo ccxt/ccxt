@@ -1277,8 +1277,7 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		messageHashes = append(messageHashes, ccxt.Add("orderbook:", market["symbol"]))
 	}
 
-	orderbook := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

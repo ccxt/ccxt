@@ -1227,8 +1227,7 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var promises []any = []any{EndpointRaw(this.SapiPublicGetV3ExchangeInfo(params)), EndpointRaw(this.FapiPublicGetV3ExchangeInfo(params))}
 	promises = append(promises, this.SignInAsync())
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var sapiResult map[string]any = SafeMapTyped(results, 0)
 	var sapiRows []any = SafeListTypedDefault(sapiResult, "symbols", []any{})
 	var fapiResult map[string]any = SafeMapTyped(results, 1)

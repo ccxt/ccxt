@@ -2321,8 +2321,7 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) any {
 		}
 		var rawPromises []any = []any{EndpointRaw(this.PrivateGetV5UserQueryApi(params)), EndpointRaw(this.PrivateGetV5AccountInfo(params))}
 
-		promises := (<-promiseAll(rawPromises))
-		PanicOnError(promises)
+		var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 		var response map[string]any = MapTyped(GetValue(promises, 0))
 		var accountInfo map[string]any = MapTyped(GetValue(promises, 1))
 		//
@@ -2894,8 +2893,7 @@ func (this *Bybit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	promises := (<-promiseAll(promisesUnresolved))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(promises); i++ {
 		var parsedMarket any = GetValue(promises, i)
@@ -3075,8 +3073,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 			"status": "PreLaunch",
 		})))}
 
-		promises := (<-promiseAll(linearPromises))
-		PanicOnError(promises)
+		var promises []any = ListTyped(PanicOnError((<-promiseAll(linearPromises))))
 		response = this.SafeDict(promises, 0, map[string]any{})
 		preLaunchMarkets = this.SafeDict(promises, 1, map[string]any{})
 	}

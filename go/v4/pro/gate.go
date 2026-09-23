@@ -695,8 +695,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"limit":  limit,
 	}
 
-	orderbook := (<-this.SubscribePublicAsync(url, messageHash, payload, channel, query, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribePublicAsync(url, messageHash, payload, channel, query, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

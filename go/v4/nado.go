@@ -2091,8 +2091,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var pairsRequest any = EndpointRaw(this.GatewayV2PublicGetPairs(params))
 	var assetsRequest any = EndpointRaw(this.GatewayV2PublicGetAssets(params))
 
-	responses := (<-promiseAll([]any{symbolsRequest, pairsRequest, assetsRequest}))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll([]any{symbolsRequest, pairsRequest, assetsRequest}))))
 	var symbols []any = SafeListTyped(responses, 0)
 	var pairs []any = SafeListTyped(responses, 1)
 	var assets []any = SafeListTyped(responses, 2)

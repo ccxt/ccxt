@@ -2197,8 +2197,7 @@ func (this *Gate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	results := (<-promiseAll(rawPromises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 
 	ch <- this.ArraysConcat(results)
 	return nil

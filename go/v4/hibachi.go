@@ -754,8 +754,7 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var rawPromises []any = []any{EndpointRaw(this.PublicGetMarketDataPrices(this.Extend(request, params))), EndpointRaw(this.PublicGetMarketDataStats(this.Extend(request, params)))}
 
-	promises := (<-promiseAll(rawPromises))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var pricesResponse any = GetValue(promises, 0)
 	// {
 	//     "askPrice": "3514.650296",
@@ -2434,8 +2433,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rawPromises []any = []any{EndpointRaw(this.PrivateGetCapitalHistory(this.Extend(request, params))), EndpointRaw(this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params)))}
 
-	promises := (<-promiseAll(rawPromises))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var responseCapitalHistory map[string]any = MapTyped(GetValue(promises, 0))
 	//
 	// {

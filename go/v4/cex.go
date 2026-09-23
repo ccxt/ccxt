@@ -418,8 +418,7 @@ func (this *Cex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//            ...
 	//
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var dataCurrencies []any = SafeListTyped(GetValue(responses, 0), "data")
 	var dataNetworks any = this.SafeDict(GetValue(responses, 1), "data", map[string]any{})
 	var currenciesIndexed map[string]any = this.IndexBy(dataCurrencies, "currency")

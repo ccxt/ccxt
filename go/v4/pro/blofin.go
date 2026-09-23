@@ -267,8 +267,7 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")))
 	}
 
-	orderbook := (<-this.WatchMultipleWrapperAsync(true, channelName, callerMethodName, symbols, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultipleWrapperAsync(true, channelName, callerMethodName, symbols, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

@@ -813,8 +813,7 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.FetchMarketsFromWebAsync(params)) // get usd markets
 		promises = append(promises, this.FetchUSDTMarketsAsync(params))    // get usdt markets
 
-		promisesResult := (<-promiseAll(promises))
-		PanicOnError(promisesResult)
+		var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 
 		ch <- this.ArrayConcat(GetValue(promisesResult, 0), GetValue(promisesResult, 1))
 		return nil
@@ -1034,8 +1033,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 			promises = append(promises, EndpointRaw(this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params))))
 		}
 
-		responses := (<-promiseAll(promises))
-		PanicOnError(responses)
+		var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		for i := 0; i < GetArrayLength(responses); i++ {
 			result = append(result, this.ParseMarket(GetValue(responses, i)))
 		}

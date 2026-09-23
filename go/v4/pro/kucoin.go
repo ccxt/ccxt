@@ -1910,8 +1910,7 @@ func (this *Kucoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			"depth": depth,
 		})
 
-		orderbook := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription))
-		ccxt.PanicOnError(orderbook)
+		var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription))).(ccxt.OrderBookInterface)
 
 		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 		return nil
@@ -2078,8 +2077,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		}
 	}
 
-	orderbook := (<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

@@ -1017,8 +1017,7 @@ func (this *Poloniex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promises []any = []any{this.FetchSpotMarketsAsync(params), this.FetchSwapMarketsAsync(params)}
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 
 	ch <- this.ArrayConcat(GetValue(results, 0), GetValue(results, 1))
 	return nil

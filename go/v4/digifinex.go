@@ -805,8 +805,7 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	}
 	promisesRaw = append(promisesRaw, EndpointRaw(this.PublicSwapGetPublicInstruments(params)))
 
-	promises := (<-promiseAll(promisesRaw))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesRaw))))
 	var spotMarkets map[string]any = MapTyped(GetValue(promises, 0))
 	var swapMarkets map[string]any = MapTyped(GetValue(promises, 1))
 	//

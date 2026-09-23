@@ -3791,8 +3791,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 		}
 	}
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var markets []any = []any{}
 	this.Options.Store("crossMarginPairsData", []any{})
 	this.Options.Store("isolatedMarginPairsData", []any{})
@@ -4081,8 +4080,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 		promises = append(promises, EndpointRaw(this.PublicUtaGetV3MarketInstruments(req)))
 	}
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var markets []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
 		var res map[string]any = SafeMapTyped(results, i)

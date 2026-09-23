@@ -675,8 +675,7 @@ func (this *Lbank) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var marketsPromises []any = []any{this.FetchSpotMarketsAsync(params), this.FetchSwapMarketsAsync(params)}
 
-	resolvedMarkets := (<-promiseAll(marketsPromises))
-	PanicOnError(resolvedMarkets)
+	var resolvedMarkets []any = ListTyped(PanicOnError((<-promiseAll(marketsPromises))))
 
 	ch <- this.ArrayConcat(GetValue(resolvedMarkets, 0), GetValue(resolvedMarkets, 1))
 	return nil

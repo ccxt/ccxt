@@ -90,8 +90,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

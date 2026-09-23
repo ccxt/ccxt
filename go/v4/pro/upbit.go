@@ -257,8 +257,7 @@ func (this *Upbit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	orderbook := (<-this.WatchPublicMultipleAsync([]any{symbol}, "orderbook"))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicMultipleAsync([]any{symbol}, "orderbook"))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

@@ -112,8 +112,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		endPart = ccxt.Add(ccxt.Add(market["id"], ":"), this.NumberToString(limit))
 	}
 
-	orderbook := (<-this.WatchPublicAsync("order-books", messageHash, endPart))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync("order-books", messageHash, endPart))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

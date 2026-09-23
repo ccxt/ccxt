@@ -313,8 +313,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		messageHashes = append(messageHashes, messageHash)
 	}
 
-	orderbook := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchTopicsAsync(url, messageHashes, topics, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1035,8 +1034,7 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan any, client any, messageHash
 	// as only one ws channel gives positions for all types, for snapshot must load all positions
 	var fetchFunctions []any = []any{this.FetchPositionsAsync()}
 
-	promises := (<-ccxt.PromiseAll(fetchFunctions))
-	ccxt.PanicOnError(promises)
+	var promises []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(fetchFunctions))))
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache any = this.Positions
 	for i := 0; i < ccxt.GetArrayLength(promises); i++ {

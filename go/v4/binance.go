@@ -4711,8 +4711,7 @@ func (this *Binance) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.SapiGetMarginAllPairs(params))
 	}
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var responseCurrencies any = GetValue(results, 0)
 	var marginablesById any = nil
 	if fetchMargins != nil && *fetchMargins == true {
@@ -5016,8 +5015,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	results := (<-promiseAll(promisesRaw))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promisesRaw))))
 	var markets []any = []any{}
 	this.Options.Store("crossMarginPairsData", []any{})
 	this.Options.Store("isolatedMarginPairsData", []any{})

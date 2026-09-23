@@ -742,8 +742,7 @@ func (this *Bingx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		}
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscriptionArgs))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscriptionArgs))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

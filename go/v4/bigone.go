@@ -694,8 +694,7 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promises []any = []any{EndpointRaw(this.PublicGetAssetPairs(params)), EndpointRaw(this.ContractPublicGetSymbols(params))}
 
-	promisesResult := (<-promiseAll(promises))
-	PanicOnError(promisesResult)
+	var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var response any = GetValue(promisesResult, 0)
 	var contractResponse any = GetValue(promisesResult, 1)
 	//

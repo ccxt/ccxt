@@ -870,8 +870,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	results := (<-promiseAll([]any{EndpointRaw(this.PrivateTradingPostFullV1GetAuthorizedBuilders()), this.LoadAccountInfosAsync()}))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll([]any{EndpointRaw(this.PrivateTradingPostFullV1GetAuthorizedBuilders()), this.LoadAccountInfosAsync()}))))
 	//
 	// {
 	//     "results": [{
@@ -998,8 +997,7 @@ func (this *Grvt) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.SignInAsync())
 	}
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var response map[string]any = MapTyped(GetValue(results, 0))
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
@@ -2551,8 +2549,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 	//     }
 	//
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var result1 map[string]any = SafeMapTyped(GetValue(responses, 0), "result")
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
 	this.Options.Store("userMainAccountId", mainAccountId)

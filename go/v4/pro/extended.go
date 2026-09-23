@@ -92,11 +92,10 @@ func (this *Extended) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		url = ccxt.Add(url, "?"+query)
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
-	}))
-	ccxt.PanicOnError(orderbook)
+	}))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

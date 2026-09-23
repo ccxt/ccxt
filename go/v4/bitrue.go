@@ -989,8 +989,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	promises := (<-promiseAll(promisesRaw))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesRaw))))
 	var spotMarkets any = this.SafeList(this.SafeDict(promises, 0), "symbols", []any{})
 	var futureMarkets any = this.SafeValue(promises, 1)
 	var deliveryMarkets any = this.SafeValue(promises, 2)

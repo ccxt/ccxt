@@ -213,8 +213,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	params = ccxt.MapTyped(this.Omit(params, "priceInterval"))
 	var reqParams []any = []any{market["id"], limit, priceInterval, true}
 
-	orderbook := (<-this.WatchPublicAsync(messageHash, method, reqParams, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, method, reqParams, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

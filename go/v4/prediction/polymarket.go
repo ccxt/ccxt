@@ -736,8 +736,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 			restPromises = append(restPromises, ccxt.EndpointRaw(this.GammaPublicGetPublicSearch(pageRequest)))
 		}
 
-		restResponses := (<-ccxt.PromiseAll(restPromises))
-		ccxt.PanicOnError(restResponses)
+		var restResponses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(restPromises))))
 		var allEvents []any = []any{}
 		for fi := 0; fi < len(firstEvents); fi++ {
 			allEvents = append(allEvents, func() any {
@@ -1560,8 +1559,7 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		var promises []any = []any{ccxt.EndpointRaw(this.ClobPublicPostBooks(bookParams)), ccxt.EndpointRaw(this.ClobPublicPostMidpoints(bookParams)), ccxt.EndpointRaw(this.ClobPublicPostLastTradesPrices(bookParams))}
 
-		responses := (<-ccxt.PromiseAll(promises))
-		ccxt.PanicOnError(responses)
+		var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 		var booksResponse any = ccxt.GetValue(responses, 0)
 		var midpoints any = ccxt.GetValue(responses, 1)
 		var lastTradesResponse any = ccxt.GetValue(responses, 2)

@@ -410,8 +410,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"method":      this.HandleOrderBookSubscription,
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -508,8 +507,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan any, client any, messag
 				"method":      this.HandleOrderBookSnapshot,
 			}
 
-			orderbook := (<-this.Watch(url, requestId, request, requestId, snapshotSubscription))
-			ccxt.PanicOnError(orderbook)
+			var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, requestId, request, requestId, snapshotSubscription))).(ccxt.OrderBookInterface)
 
 			ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 			chSent = true

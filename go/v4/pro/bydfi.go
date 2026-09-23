@@ -697,8 +697,7 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		messageHashes = append(messageHashes, ccxt.Add("orderbook::", symbol))
 	}
 
-	orderbook := (<-this.WatchPublicAsync(messageHashes, channels, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(messageHashes, channels, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

@@ -1342,8 +1342,7 @@ func (this *Coinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promisesUnresolved []any = []any{this.FetchSpotMarketsAsync(params), this.FetchContractMarketsAsync(params)}
 
-	promises := (<-promiseAll(promisesUnresolved))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	var spotMarkets any = GetValue(promises, 0)
 	var swapMarkets any = GetValue(promises, 1)
 

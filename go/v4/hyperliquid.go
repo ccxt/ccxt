@@ -605,8 +605,7 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 
-	promises := (<-promiseAll(rawPromises))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(promises); i++ {
 		result = this.ArrayConcat(result, GetValue(promises, i))
@@ -705,8 +704,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 		rawPromises = append(rawPromises, this.PublicPostInfo(this.Extend(request, params)))
 	}
 
-	promises := (<-promiseAll(rawPromises))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	this.Options.Store("hip3TokensByName", map[string]any{})
 	var markets []any = []any{}
 	for i := 0; i < GetArrayLength(promises); i++ {

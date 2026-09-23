@@ -470,8 +470,7 @@ func (this *Gemini) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var subscribeHash any = ccxt.Add("l2:", market["symbol"])
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v2/marketdata")
 
-	orderbook := (<-this.Watch(url, messageHash, request, subscribeHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscribeHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -541,8 +540,7 @@ func (this *Gemini) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	orderbook := (<-this.HelperForWatchMultipleConstructAsync("orderbook", symbols, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.HelperForWatchMultipleConstructAsync("orderbook", symbols, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

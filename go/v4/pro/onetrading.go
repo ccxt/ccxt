@@ -429,8 +429,7 @@ func (this *Onetrading) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 		}},
 	}
 
-	orderbook := (<-this.WatchManyAsync(messageHash, request, subscriptionHash, []any{symbol}, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchManyAsync(messageHash, request, subscriptionHash, []any{symbol}, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

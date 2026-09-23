@@ -3804,8 +3804,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}, params))))
 	}
 
-	responses := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(responses)
+	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	for i := 0; i < len(marketKeys); i++ {
 		var key any = func() any {
 			if i >= 0 && i < len(marketKeys) {
@@ -4033,8 +4032,7 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		if requestedTagsLength == 0 {
 			// unscoped mode: fetch bounded open lists from both sources and merge
 
-			listResponses := (<-ccxt.PromiseAll([]any{this.FetchRawMarketsListAsync(rest), this.FetchRawQuestionsListAsync(rest)}))
-			ccxt.PanicOnError(listResponses)
+			var listResponses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll([]any{this.FetchRawMarketsListAsync(rest), this.FetchRawQuestionsListAsync(rest)}))))
 			rawMarkets = this.SafeList(listResponses, 0, []any{})
 			rawQuestions = this.SafeList(listResponses, 1, []any{})
 		} else {

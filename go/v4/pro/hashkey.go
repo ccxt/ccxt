@@ -412,8 +412,7 @@ func (this *Hashkey) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var topic string = "depth"
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 
-	orderbook := (<-this.WathPublicAsync(market, topic, messageHash, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WathPublicAsync(market, topic, messageHash, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

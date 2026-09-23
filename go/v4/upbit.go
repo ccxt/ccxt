@@ -1088,8 +1088,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}, params))))
 		}
 
-		responses := (<-promiseAll(promises))
-		PanicOnError(responses)
+		var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		tickers = this.ArraysConcat(responses)
 	}
 

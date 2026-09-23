@@ -1673,8 +1673,7 @@ func (this *Bingx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		requests = append(requests, this.FetchSpotMarketsAsync(params)) // sandbox is swap only
 	}
 
-	promises := (<-promiseAll(requests))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(requests))))
 	var linearSwapMarkets []any = SafeListTypedDefault(promises, 0, []any{})
 	var inverseSwapMarkets []any = SafeListTypedDefault(promises, 1, []any{})
 	var spotMarkets []any = SafeListTypedDefault(promises, 2, []any{})

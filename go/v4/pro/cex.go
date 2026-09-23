@@ -1148,8 +1148,7 @@ func (this *Cex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

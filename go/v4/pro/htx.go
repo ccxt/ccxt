@@ -608,8 +608,7 @@ func (this *Htx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		method = nil
 	}
 
-	orderbook := (<-this.SubscribePublicAsync(url, symbol, messageHash, method, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribePublicAsync(url, symbol, messageHash, method, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -819,8 +818,7 @@ func (this *Htx) watchOrderBookSnapshotBody(ch chan any, client any, message any
 			}()
 			// try block:
 
-			orderbook := (<-this.Watch(url, requestId, request, requestId, snapshotSubscription))
-			ccxt.PanicOnError(orderbook)
+			var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, requestId, request, requestId, snapshotSubscription))).(ccxt.OrderBookInterface)
 
 			ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 			chSent = true
