@@ -213,6 +213,8 @@ export default class revolutx extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const implodedPath = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
@@ -233,22 +235,20 @@ export default class revolutx extends Exchange {
                     url += '?' + queryString;
                 }
             } else {
-                body = this.json (query);
+                requestBody = this.json (query);
             }
             const requestPath = '/api/' + implodedPath;
-            let bodyString = '';
-            if (body !== undefined) {
-                bodyString = body;
-            }
+            const bodyValue = (requestBody !== undefined) ? requestBody : body;
+            const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase () + requestPath + queryString + bodyString;
             const signature = eddsa (this.encode (message), this.privateKey, ed25519);
-            headers = {
+            requestHeaders = {
                 'X-Revx-API-Key': this.apiKey,
                 'X-Revx-Timestamp': timestamp,
                 'X-Revx-Signature': signature,
             };
             if (method === 'POST' || method === 'PUT') {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
             }
         } else {
             if (method === 'GET') {
@@ -257,11 +257,13 @@ export default class revolutx extends Exchange {
                     url += '?' + queryString;
                 }
             } else {
-                body = this.json (query);
-                headers = { 'Content-Type': 'application/json' };
+                requestBody = this.json (query);
+                requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     /**
