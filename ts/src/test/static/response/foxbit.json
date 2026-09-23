@@ -11,7 +11,7 @@
                     "data": [
                         {
                             "name": "Tether",
-                            "precision": "8",
+                            "precision": 8,
                             "category": {
                                 "code": "stablecoin",
                                 "name": "Stablecoin"
@@ -36,7 +36,7 @@
                                         "status": "ENABLED"
                                     },
                                     "withdraw_info": {
-                                        "fee": "0.0026700927551012",
+                                        "fee": "0.003036993233418",
                                         "status": "DISABLED"
                                     },
                                     "has_destination_tag": false
@@ -72,7 +72,7 @@
                                         "status": "ENABLED"
                                     },
                                     "withdraw_info": {
-                                        "fee": "0.357089724774331",
+                                        "fee": "0.2901878099254227",
                                         "status": "DISABLED"
                                     },
                                     "has_destination_tag": true
@@ -82,7 +82,7 @@
                             "type": "CRYPTO",
                             "deposit_info": {
                                 "min_to_confirm": "15",
-                                "min_amount": "5",
+                                "min_amount": "0.38292169",
                                 "enabled": true
                             },
                             "withdraw_info": {
@@ -98,7 +98,7 @@
                     "USDT": {
                         "info": {
                             "name": "Tether",
-                            "precision": "8",
+                            "precision": 8,
                             "category": {
                                 "code": "stablecoin",
                                 "name": "Stablecoin"
@@ -123,7 +123,7 @@
                                         "status": "ENABLED"
                                     },
                                     "withdraw_info": {
-                                        "fee": "0.0026700927551012",
+                                        "fee": "0.003036993233418",
                                         "status": "DISABLED"
                                     },
                                     "has_destination_tag": false
@@ -159,7 +159,7 @@
                                         "status": "ENABLED"
                                     },
                                     "withdraw_info": {
-                                        "fee": "0.357089724774331",
+                                        "fee": "0.2901878099254227",
                                         "status": "DISABLED"
                                     },
                                     "has_destination_tag": true
@@ -169,7 +169,7 @@
                             "type": "CRYPTO",
                             "deposit_info": {
                                 "min_to_confirm": "15",
-                                "min_amount": "5",
+                                "min_amount": "0.38292169",
                                 "enabled": true
                             },
                             "withdraw_info": {
@@ -182,19 +182,19 @@
                         "id": "usdt",
                         "numericId": null,
                         "code": "USDT",
-                        "precision": 8,
+                        "precision": 1e-8,
                         "type": "crypto",
                         "name": "Tether",
                         "active": true,
                         "deposit": true,
                         "withdraw": true,
-                        "fee": 0.0026700927551012,
+                        "fee": 0.003036993233418,
                         "fees": {},
                         "networks": {
                             "ERC20": {
                                 "info": {
                                     "name": "Tether",
-                                    "precision": "8",
+                                    "precision": 8,
                                     "category": {
                                         "code": "stablecoin",
                                         "name": "Stablecoin"
@@ -219,7 +219,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.0026700927551012",
+                                                "fee": "0.003036993233418",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": false
@@ -255,7 +255,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.357089724774331",
+                                                "fee": "0.2901878099254227",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": true
@@ -265,7 +265,7 @@
                                     "type": "CRYPTO",
                                     "deposit_info": {
                                         "min_to_confirm": "15",
-                                        "min_amount": "5",
+                                        "min_amount": "0.38292169",
                                         "enabled": true
                                     },
                                     "withdraw_info": {
@@ -281,7 +281,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "active": true,
-                                "precision": 8,
+                                "precision": null,
                                 "fee": 1,
                                 "limits": {
                                     "amount": {
@@ -289,7 +289,7 @@
                                         "max": null
                                     },
                                     "deposit": {
-                                        "min": 5,
+                                        "min": 0.38292169,
                                         "max": null
                                     },
                                     "withdraw": {
@@ -301,7 +301,7 @@
                             "BEP20": {
                                 "info": {
                                     "name": "Tether",
-                                    "precision": "8",
+                                    "precision": 8,
                                     "category": {
                                         "code": "stablecoin",
                                         "name": "Stablecoin"
@@ -326,7 +326,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.0026700927551012",
+                                                "fee": "0.003036993233418",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": false
@@ -362,7 +362,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.357089724774331",
+                                                "fee": "0.2901878099254227",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": true
@@ -372,7 +372,7 @@
                                     "type": "CRYPTO",
                                     "deposit_info": {
                                         "min_to_confirm": "15",
-                                        "min_amount": "5",
+                                        "min_amount": "0.38292169",
                                         "enabled": true
                                     },
                                     "withdraw_info": {
@@ -388,15 +388,15 @@
                                 "deposit": true,
                                 "withdraw": false,
                                 "active": true,
-                                "precision": 8,
-                                "fee": 0.0026700927551012,
+                                "precision": null,
+                                "fee": 0.003036993233418,
                                 "limits": {
                                     "amount": {
                                         "min": null,
                                         "max": null
                                     },
                                     "deposit": {
-                                        "min": 5,
+                                        "min": 0.38292169,
                                         "max": null
                                     },
                                     "withdraw": {
@@ -408,7 +408,7 @@
                             "TRC20": {
                                 "info": {
                                     "name": "Tether",
-                                    "precision": "8",
+                                    "precision": 8,
                                     "category": {
                                         "code": "stablecoin",
                                         "name": "Stablecoin"
@@ -433,7 +433,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.0026700927551012",
+                                                "fee": "0.003036993233418",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": false
@@ -469,7 +469,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.357089724774331",
+                                                "fee": "0.2901878099254227",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": true
@@ -479,7 +479,7 @@
                                     "type": "CRYPTO",
                                     "deposit_info": {
                                         "min_to_confirm": "15",
-                                        "min_amount": "5",
+                                        "min_amount": "0.38292169",
                                         "enabled": true
                                     },
                                     "withdraw_info": {
@@ -495,7 +495,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "active": true,
-                                "precision": 8,
+                                "precision": null,
                                 "fee": 1.5,
                                 "limits": {
                                     "amount": {
@@ -503,7 +503,7 @@
                                         "max": null
                                     },
                                     "deposit": {
-                                        "min": 5,
+                                        "min": 0.38292169,
                                         "max": null
                                     },
                                     "withdraw": {
@@ -515,7 +515,7 @@
                             "MATIC": {
                                 "info": {
                                     "name": "Tether",
-                                    "precision": "8",
+                                    "precision": 8,
                                     "category": {
                                         "code": "stablecoin",
                                         "name": "Stablecoin"
@@ -540,7 +540,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.0026700927551012",
+                                                "fee": "0.003036993233418",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": false
@@ -576,7 +576,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.357089724774331",
+                                                "fee": "0.2901878099254227",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": true
@@ -586,7 +586,7 @@
                                     "type": "CRYPTO",
                                     "deposit_info": {
                                         "min_to_confirm": "15",
-                                        "min_amount": "5",
+                                        "min_amount": "0.38292169",
                                         "enabled": true
                                     },
                                     "withdraw_info": {
@@ -602,7 +602,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "active": true,
-                                "precision": 8,
+                                "precision": null,
                                 "fee": 0.1,
                                 "limits": {
                                     "amount": {
@@ -610,7 +610,7 @@
                                         "max": null
                                     },
                                     "deposit": {
-                                        "min": 5,
+                                        "min": 0.38292169,
                                         "max": null
                                     },
                                     "withdraw": {
@@ -622,7 +622,7 @@
                             "ton": {
                                 "info": {
                                     "name": "Tether",
-                                    "precision": "8",
+                                    "precision": 8,
                                     "category": {
                                         "code": "stablecoin",
                                         "name": "Stablecoin"
@@ -647,7 +647,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.0026700927551012",
+                                                "fee": "0.003036993233418",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": false
@@ -683,7 +683,7 @@
                                                 "status": "ENABLED"
                                             },
                                             "withdraw_info": {
-                                                "fee": "0.357089724774331",
+                                                "fee": "0.2901878099254227",
                                                 "status": "DISABLED"
                                             },
                                             "has_destination_tag": true
@@ -693,7 +693,7 @@
                                     "type": "CRYPTO",
                                     "deposit_info": {
                                         "min_to_confirm": "15",
-                                        "min_amount": "5",
+                                        "min_amount": "0.38292169",
                                         "enabled": true
                                     },
                                     "withdraw_info": {
@@ -709,15 +709,15 @@
                                 "deposit": true,
                                 "withdraw": false,
                                 "active": true,
-                                "precision": 8,
-                                "fee": 0.357089724774331,
+                                "precision": null,
+                                "fee": 0.2901878099254227,
                                 "limits": {
                                     "amount": {
                                         "min": null,
                                         "max": null
                                     },
                                     "deposit": {
-                                        "min": 5,
+                                        "min": 0.38292169,
                                         "max": null
                                     },
                                     "withdraw": {
@@ -733,7 +733,7 @@
                                 "max": null
                             },
                             "deposit": {
-                                "min": 5,
+                                "min": 0.38292169,
                                 "max": null
                             },
                             "withdraw": {
@@ -746,8 +746,9 @@
             }
         ],
         "fetchTicker": [
+           
             {
-                "description": "Fill this with a description of the method call",
+                "description": "default",
                 "method": "fetchTicker",
                 "input": [
                     "BTC/BRL"
@@ -757,27 +758,28 @@
                         {
                             "market_symbol": "btcbrl",
                             "last_trade": {
-                                "price": "1.77510000",
-                                "volume": "55.77150583",
-                                "date": "2024-08-02T00:12:21.000Z"
+                                "price": "439220.00000000",
+                                "volume": "0.00003441",
+                                "date": "2026-09-23T11:50:54.000Z"
                             },
                             "rolling_24h": {
-                                "price_change": "-0.01120000",
-                                "price_change_percent": "-0.62699435",
-                                "volume": "68017.36498606",
-                                "trades_count": "550",
-                                "open": "1.78630000",
-                                "high": "1.80630000",
-                                "low": "1.67830000"
+                                "price_change": "-1896.00000000",
+                                "price_change_percent": "-0.42981891",
+                                "volume": "17.63757429",
+                                "trades_count": 10835,
+                                "open": "441116.00000000",
+                                "high": "446832.00000000",
+                                "low": "438002.00000000",
+                                "quote_volume": "7792622.22901232"
                             },
                             "best": {
                                 "ask": {
-                                    "price": "1.78930000",
-                                    "volume": "3737.61618465"
+                                    "price": "439218.00000000",
+                                    "volume": "0.00028997"
                                 },
                                 "bid": {
-                                    "price": "1.78160000",
-                                    "volume": "5116.51950000"
+                                    "price": "439131.00000000",
+                                    "volume": "0.00220437"
                                 }
                             }
                         }
@@ -785,48 +787,49 @@
                 },
                 "parsedResponse": {
                     "symbol": "BTC/BRL",
-                    "timestamp": 1722557541000,
-                    "datetime": "2024-08-02T00:12:21.000Z",
-                    "high": 1.8063,
-                    "low": 1.6783,
-                    "bid": 1.7816,
-                    "bidVolume": 5116.5195,
-                    "ask": 1.7893,
-                    "askVolume": 3737.61618465,
-                    "vwap": null,
-                    "open": 1.7863,
-                    "close": 1.7751,
-                    "last": 1.7751,
+                    "timestamp": 1790164254000,
+                    "datetime": "2026-09-23T11:50:54.000Z",
+                    "high": 446832,
+                    "low": 438002,
+                    "bid": 439131,
+                    "bidVolume": 0.00220437,
+                    "ask": 439218,
+                    "askVolume": 0.00028997,
+                    "vwap": 441819.3851878211,
+                    "open": 441116,
+                    "close": 439220,
+                    "last": 439220,
                     "previousClose": null,
-                    "change": -0.0112,
-                    "percentage": -0.62699435,
-                    "average": 1.7807,
-                    "baseVolume": 68017.36498606,
-                    "quoteVolume": null,
+                    "change": -1896,
+                    "percentage": -0.42981891,
+                    "average": 440168,
+                    "baseVolume": 17.63757429,
+                    "quoteVolume": 7792622.22901232,
                     "info": {
                         "market_symbol": "btcbrl",
                         "last_trade": {
-                            "price": "1.77510000",
-                            "volume": "55.77150583",
-                            "date": "2024-08-02T00:12:21.000Z"
+                            "price": "439220.00000000",
+                            "volume": "0.00003441",
+                            "date": "2026-09-23T11:50:54.000Z"
                         },
                         "rolling_24h": {
-                            "price_change": "-0.01120000",
-                            "price_change_percent": "-0.62699435",
-                            "volume": "68017.36498606",
-                            "trades_count": "550",
-                            "open": "1.78630000",
-                            "high": "1.80630000",
-                            "low": "1.67830000"
+                            "price_change": "-1896.00000000",
+                            "price_change_percent": "-0.42981891",
+                            "volume": "17.63757429",
+                            "trades_count": 10835,
+                            "open": "441116.00000000",
+                            "high": "446832.00000000",
+                            "low": "438002.00000000",
+                            "quote_volume": "7792622.22901232"
                         },
                         "best": {
                             "ask": {
-                                "price": "1.78930000",
-                                "volume": "3737.61618465"
+                                "price": "439218.00000000",
+                                "volume": "0.00028997"
                             },
                             "bid": {
-                                "price": "1.78160000",
-                                "volume": "5116.51950000"
+                                "price": "439131.00000000",
+                                "volume": "0.00220437"
                             }
                         }
                     },
