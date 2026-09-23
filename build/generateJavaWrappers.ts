@@ -409,9 +409,17 @@ function genMethod(m: MethodInfo, coreType: string, castToObject = false): strin
             const presentDecl = presentParams.map(p => `${p.javaType} ${p.name}`).join(', ');
             const presentArgs = presentParams.map(p => p.name);
             const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr);
-            // (Object) casts bind the untyped front, never the same-arity typed core
-            const allArgs = [...presentArgs, ...trailingDefaults].map(a => `(Object) (${a})`).join(', ');
-            lines.push(`    default ${m.javaReturnType} ${methodName}(${presentDecl}) { return Helpers.joinUnwrapped(this.${methodName}(${allArgs})); }`);
+            // (Object) casts bind the untyped front, never the same-arity typed core; String-retyped
+            // leading positions keep their type because the front declares them String
+            const retyped = JAVA_STRING_PARAM_POSITIONS[methodName] ?? [];
+            const allArgs = [...presentArgs, ...trailingDefaults].map((a, i) => retyped.includes(i) ? a : `(Object) (${a})`).join(', ');
+            const call = `Helpers.joinUnwrapped(this.${methodName}(${allArgs}))`;
+            if (typedCore) {
+                lines.push(`    default ${m.javaReturnType} ${methodName}(${presentDecl}) { return ${call}; }`);
+            } else {
+                lines.push(`    @SuppressWarnings("unchecked")`);
+                lines.push(`    default ${m.javaReturnType} ${methodName}(${presentDecl}) { Object res = ${call}; return ${genReturnExpr(m)}; }`);
+            }
         }
     }
 
@@ -468,7 +476,7 @@ function genMethod(m: MethodInfo, coreType: string, castToObject = false): strin
                 ? `${p.name} == null ? null : java.util.Arrays.asList(${p.name})`
                 : p.name
         ).join(', ');
-        lines.push(`    default ${m.javaReturnType} ${methodName}(${stringArrDecl}) { return ${methodName}(${delegateArgs}); }`);
+        lines.push(`    default ${m.javaReturnType} ${methodName}(${stringArrDecl}) { return Helpers.joinUnwrapped(${methodName}Async(${delegateArgs})); }`);
         lines.push(`    default CompletableFuture<${m.javaReturnType}> ${methodName}Async(${stringArrDecl}) { return ${methodName}Async(${delegateArgs}); }`);
     }
 

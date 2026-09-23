@@ -847,6 +847,20 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
                 + ", got " + value.getClass().getName());
     }
 
+    /** a write into a typed `Long` parameter: null stays null, any Number widens to Long */
+    public static Long toLongOrNull(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        throw new ClassCastException("ccxt: expected a number, got " + value.getClass().getName());
+    }
+
     /** the `String` slot reader: omitted -> def, explicit null -> null, non-String -> its string form */
     public static String getArgString(Object[] v, int index, String def) {
         if (v == null || v.length <= index) {
