@@ -967,9 +967,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String symbol = symbol3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
-            Object userAddress = null;
+            String userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("watchMyTrades", (Map<String, Object>) (parameters));
-            userAddress = ((List<Object>) userAddressparametersVariable).get(0);
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -984,7 +984,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
             Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
-            final Object finalUserAddress = userAddress;
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1044,15 +1044,15 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new NotSupported((this.id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
             }
-            Object userAddress = null;
+            String userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchMyTrades", (Map<String, Object>) (parameters));
-            userAddress = ((List<Object>) userAddressparametersVariable).get(0);
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             String messageHash = "unsubscribe:myTrades";
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
             Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
-            final Object finalUserAddress = userAddress;
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1640,9 +1640,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            Object userAddress = null;
+            String userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("watchOrders", (Map<String, Object>) (parameters));
-            userAddress = ((List<Object>) userAddressparametersVariable).get(0);
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Map<String, Object> market = null;
             String messageHash = "order";
@@ -1655,7 +1655,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
             Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
-            final Object finalUserAddress = userAddress;
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1719,11 +1719,11 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object isTestnet = this.isSandboxModeEnabled;
             String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
             Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
-            Object userAddress = null;
+            String userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchOrders", (Map<String, Object>) (parameters));
-            userAddress = ((List<Object>) userAddressparametersVariable).get(0);
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
-            final Object finalUserAddress = userAddress;
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{

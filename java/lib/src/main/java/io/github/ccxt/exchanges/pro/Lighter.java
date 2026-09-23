@@ -1210,9 +1210,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object accountIndex = null;
+            Long accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index")).join();
-            accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
+            accountIndex = (Long) ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = this.getMessageHash("myTrades");
             if (!java.util.Objects.equals(symbol, null))
@@ -1221,7 +1221,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = this.getMessageHash("myTrades", symbol);
             }
-            final Object finalAccountIndex = accountIndex;
+            final Long finalAccountIndex = accountIndex;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", ("account_all_trades/" + Lighter.this.numberToString(finalAccountIndex)) );
             }};
@@ -1271,13 +1271,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 throw new NotSupported((this.id + " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only")) ;
             }
-            Object accountIndex = null;
+            Long accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "unWatchMyTrades", "accountIndex", "account_index")).join();
-            accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
+            accountIndex = (Long) ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((List<Object>) accountIndexparametersVariable).get(1);
             Object subMessageHash = this.getMessageHash("myTrades");
             String messageHash = ("unsubscribe:" + subMessageHash);
-            final Object finalAccountIndex = accountIndex;
+            final Long finalAccountIndex = accountIndex;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", ("account_all_trades/" + Lighter.this.numberToString(finalAccountIndex)) );
             }};
@@ -1495,9 +1495,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             List<Object> typeparametersVariable = (List<Object>) this.handleParamString(parameters, "type", defaultType);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object accountIndex = null;
+            Long accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchBalance", "accountIndex", "account_index")).join();
-            accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
+            accountIndex = (Long) ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = this.getMessageHash("balances", null, type);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1649,9 +1649,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object accountIndex = null;
+            Long accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index")).join();
-            accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
+            accountIndex = (Long) ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1709,9 +1709,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object accountIndex = null;
+            Long accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "unWatchOrders", "accountIndex", "account_index")).join();
-            accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
+            accountIndex = (Long) ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((List<Object>) accountIndexparametersVariable).get(1);
             Object subMessageHash = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
