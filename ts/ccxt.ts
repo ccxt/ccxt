@@ -144,6 +144,7 @@ import revolutx from  './src/revolutx.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
+import wallex from  './src/wallex.js'
 import weex from  './src/weex.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
@@ -341,6 +342,7 @@ const exchanges = {
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
     'upbit':                  upbit,
+    'wallex':                 wallex,
     'weex':                   weex,
     'whitebit':               whitebit,
     'woo':                    woo,
@@ -711,6 +713,7 @@ export {
     tokocrypto,
     toobit,
     upbit,
+    wallex,
     weex,
     whitebit,
     woo,
