@@ -796,7 +796,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         //     "side": "buy",
         //     "order_type": "limit"
         // }
-        Object parsed = super.parseTrade(trade);
+        Object parsed = super.parseTrade((Object) (trade), (Map<String, Object>) null);
         String feeRate = null;
         Boolean isMaker = false;
         if (trade.containsKey("maker_fee_rate"))

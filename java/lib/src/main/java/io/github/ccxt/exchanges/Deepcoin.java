@@ -2933,7 +2933,7 @@ public class Deepcoin extends DeepcoinApi
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "state", "canceled" );
             }});
-            return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2978,7 +2978,7 @@ public class Deepcoin extends DeepcoinApi
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "state", "filled" );
             }});
-            return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4053,6 +4053,10 @@ public class Deepcoin extends DeepcoinApi
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.fetchFundingRate(symbol, (Object) (parameters));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)

@@ -286,6 +286,10 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
     {
         return this.watchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.watchTicker(symbol, (Object) (parameters));
+    }
 
     public void handleTicker(Client client, Map<String, Object> message)
     {
@@ -376,6 +380,10 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
         return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return this.watchTrades(symbol, since, limit, (Object) (parameters));
     }
 
     public void handleTrades(Client client, Map<String, Object> message)

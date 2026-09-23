@@ -842,6 +842,10 @@ public class Coinmate extends CoinmateApi
     {
         return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Tickers> fetchTickers(Object symbols, Map<String, Object> parameters)
+    {
+        return this.fetchTickers(symbols, (Object) (parameters));
+    }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
     {
@@ -1168,6 +1172,10 @@ public class Coinmate extends CoinmateApi
     public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
         return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, String tag, Map<String, Object> parameters)
+    {
+        return this.withdraw(code, amount, address, tag, (Object) (parameters));
     }
 
     /**

@@ -355,6 +355,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
+    }
 
     public void handleTicker(Client client, Map<String, Object> message)
     {
@@ -527,6 +531,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -643,6 +651,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
         return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTickers(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -739,6 +751,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
         return this.unWatchMarkPrice(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchMarkPrice(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -770,6 +786,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     public CompletableFuture<Object> unWatchMarkPrices(Object... optionalArgs)
     {
         return this.unWatchMarkPrices(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchMarkPrices(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchMarkPrices(symbols, (Object) (parameters));
     }
 
     public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -983,6 +1003,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
     }
 
     public Object parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -1274,6 +1298,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
     {
         return this.unWatchMyTrades(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchMyTrades(symbol, (Object) (parameters));
     }
 
     public Object parseWsLiquidation(Map<String, Object> liquidation, Map<String, Object> market)
@@ -1714,6 +1742,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
     {
         return this.unWatchOrders(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrders(symbol, (Object) (parameters));
     }
 
     public Object requestId(Object url)

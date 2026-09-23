@@ -404,6 +404,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -449,6 +453,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
     }
 
     public CompletableFuture<Object> unWatchPublic(Object messageHash, Map<String, Object> message, Map<String, Object> subscription2)

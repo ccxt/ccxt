@@ -14604,6 +14604,10 @@ public class Binance extends BinanceApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.fetchFundingRate(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -18178,7 +18182,7 @@ final Object finalMarket = market;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", symbol );
             }};
-            Object borrowRates = (this.fetchIsolatedBorrowRates((Object)(this.extend(request, parameters)))).join();
+            Object borrowRates = (this.fetchIsolatedBorrowRates(this.extend(request, parameters))).join();
             return this.safeDict(borrowRates, symbol);
         }).thenApply(IsolatedBorrowRate::new);
 

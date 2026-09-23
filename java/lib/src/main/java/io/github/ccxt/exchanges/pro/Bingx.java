@@ -297,6 +297,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
+    }
 
     public void handleTicker(Client client, Map<String, Object> message)
     {
@@ -619,6 +623,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
+    }
 
     public void handleTrades(Client client, Map<String, Object> message)
     {
@@ -871,6 +879,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
 
     public void handleDelta(Object bookside, Object delta)

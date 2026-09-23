@@ -1701,6 +1701,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     {
         return this.unWatchTradesForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTradesForSymbols(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -1762,6 +1766,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -2068,6 +2076,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -2271,6 +2283,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
         return this.unWatchOrderBookForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBookForSymbols(symbols, (Object) (parameters));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -3229,6 +3245,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
         return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return this.watchMyTrades(symbol, since, limit, (Object) (parameters));
     }
 
     public String getMyTradesMessageHashSuffix(Object topic)
@@ -4282,6 +4302,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     {
         return this.unWatchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchFundingRate(symbol, (Object) (parameters));
+    }
 
     public void handleUtaFundingRate(Client client, Map<String, Object> message)
     {
@@ -4439,6 +4463,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public CompletableFuture<Object> unWatchMarkPrice(String symbol, Object... optionalArgs)
     {
         return this.unWatchMarkPrice(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchMarkPrice(symbol, (Object) (parameters));
     }
 
     public void handleSubject(Client client, Map<String, Object> message)

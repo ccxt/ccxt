@@ -1201,6 +1201,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
     {
         return this.unWatchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchFundingRate(symbol, (Object) (parameters));
+    }
 
     public Object handleFundingRate(Client client, Map<String, Object> message)
     {

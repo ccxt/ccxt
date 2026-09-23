@@ -2874,9 +2874,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(new HashMap<String, Object>() {{
                 put( "type", "deposit" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2914,9 +2914,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(new HashMap<String, Object>() {{
                 put( "type", "withdraw" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

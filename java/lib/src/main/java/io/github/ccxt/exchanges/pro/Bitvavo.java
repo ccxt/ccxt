@@ -531,6 +531,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -585,6 +589,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Object... optionalArgs)
     {
         return this.unWatchTradesForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTradesForSymbols(symbols, (Object) (parameters));
     }
 
     /**
@@ -831,6 +839,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     {
         return this.unWatchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Map<String, Object> parameters)
+    {
+        return this.unWatchOHLCV(symbol, timeframe, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -901,6 +913,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
     {
         return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    {
+        return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, (Object) (parameters));
     }
 
     /**
@@ -1063,6 +1079,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -1117,6 +1137,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
         return this.unWatchOrderBookForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBookForSymbols(symbols, (Object) (parameters));
     }
 
     public void handleDelta(Object bookside, Object delta)
@@ -2320,6 +2344,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     public CompletableFuture<Object> fetchMarketsWs(Object... optionalArgs)
     {
         return this.fetchMarketsWs(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> fetchMarketsWs(Map<String, Object> parameters)
+    {
+        return this.fetchMarketsWs((Object) (parameters));
     }
 
     /**

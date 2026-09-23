@@ -163,6 +163,10 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
+    }
 
     /**
      * @ignore
@@ -420,6 +424,10 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
+    }
 
     public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
@@ -562,6 +570,10 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         return this.watchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<FundingRate> watchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.watchFundingRate(symbol, (Object) (parameters));
+    }
 
     public void handleFundingRate(Client client, Map<String, Object> message)
     {
@@ -699,6 +711,10 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         return this.unWatchOrders(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrders(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -806,6 +822,10 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
     {
         return this.unWatchMyTrades(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchMyTrades(symbol, (Object) (parameters));
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)

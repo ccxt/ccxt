@@ -479,6 +479,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
+    }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
     {
@@ -628,6 +632,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -745,6 +753,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
         return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTickers(symbols, (Object) (parameters));
     }
 
     /**
@@ -880,6 +892,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
     {
         return this.unWatchMyTrades(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchMyTrades(symbol, (Object) (parameters));
     }
 
     public Object handleWsTickers(Client client, Map<String, Object> message)
@@ -1143,6 +1159,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
+    }
 
     public void handleTrades(Client client, Map<String, Object> message)
     {
@@ -1376,6 +1396,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
         return this.unWatchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Map<String, Object> parameters)
+    {
+        return this.unWatchOHLCV(symbol, timeframe, (Object) (parameters));
     }
 
     public void handleOHLCV(Client client, Map<String, Object> message)
@@ -1928,6 +1952,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     {
         return this.unWatchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchPositions(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchPositions(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -2070,6 +2098,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
     {
         return this.unWatchOrders(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrders(symbol, (Object) (parameters));
     }
 
     public void handleOrder(Client client, Map<String, Object> message)

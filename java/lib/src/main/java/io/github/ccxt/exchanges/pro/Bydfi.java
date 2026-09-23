@@ -264,6 +264,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -403,6 +407,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     {
         return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTickers(symbols, (Object) (parameters));
+    }
 
     public Object getMessageHashesForTickersUnsubscription()
     {
@@ -515,6 +523,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
         return this.unWatchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Map<String, Object> parameters)
+    {
+        return this.unWatchOHLCV(symbol, timeframe, (Object) (parameters));
     }
 
     /**
@@ -637,6 +649,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     {
         return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    {
+        return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, (Object) (parameters));
+    }
 
     public void handleOHLCV(Client client, Map<String, Object> message)
     {
@@ -741,6 +757,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
 
     /**
@@ -876,6 +896,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
         return this.unWatchOrderBookForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBookForSymbols(symbols, (Object) (parameters));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)

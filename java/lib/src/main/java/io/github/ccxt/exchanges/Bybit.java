@@ -7825,7 +7825,7 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderStatus", "Filled" );
             }};
-            return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -7882,7 +7882,7 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderStatus", "Cancelled" );
             }};
-            return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

@@ -1750,7 +1750,7 @@ public class Bullish extends BullishApi
                         return (this.fetchOHLCV((Object)(((String)symbol)), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                     } else if (java.util.Objects.equals(method, "fetchFundingRateHistory"))
                     {
-                        return (this.fetchFundingRateHistory((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+                        return (this.fetchFundingRateHistory(symbol, since, limit, parameters)).join();
                     } else
                     {
                         return (this.fetchTrades(((String)symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();

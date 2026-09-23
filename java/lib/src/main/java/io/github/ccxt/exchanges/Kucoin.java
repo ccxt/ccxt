@@ -4658,9 +4658,9 @@ public class Kucoin extends KucoinApi
                 return (this.fetchContractDepositAddress(code, (Object)(parameters))).join();
             } else if (Helpers.isTrue(uta) || (java.util.Objects.equals(accountType, "uta")) || (java.util.Objects.equals(accountType, "unified")))
             {
-                return (super.fetchDepositAddress(code, (Object)(this.extend(parameters, new HashMap<String, Object>() {{
+                return (super.fetchDepositAddress(code, (Object)(Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
                     put( "uta", true );
-                }})))).join();
+                }}))))).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -7084,10 +7084,10 @@ public class Kucoin extends KucoinApi
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
-                return (this.cancelAllSpotOrders((Object)(symbol), (Object)(parameters))).join();
+                return (this.cancelAllSpotOrders(symbol, parameters)).join();
             } else
             {
-                return (this.cancelAllContractOrders((Object)(symbol), (Object)(parameters))).join();
+                return (this.cancelAllContractOrders(symbol, parameters)).join();
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -13813,6 +13813,10 @@ public class Kucoin extends KucoinApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.fetchFundingRate(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -15072,6 +15076,10 @@ public class Kucoin extends KucoinApi
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
         return this.addMargin(symbol, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
+    {
+        return this.addMargin(symbol, amount, (Object) (parameters));
     }
 
     /**

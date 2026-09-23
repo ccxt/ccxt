@@ -3786,6 +3786,10 @@ public class Bitstamp extends BitstampApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.fetchFundingRate(symbol, (Object) (parameters));
+    }
 
     public Object parseFundingRate(Object fundingRate, Map<String, Object> market)
     {

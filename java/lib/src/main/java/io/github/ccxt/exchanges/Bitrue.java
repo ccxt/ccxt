@@ -4163,6 +4163,10 @@ public class Bitrue extends BitrueApi
     {
         return this.setMargin(symbol, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> parameters)
+    {
+        return this.setMargin(symbol, amount, (Object) (parameters));
+    }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

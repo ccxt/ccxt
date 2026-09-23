@@ -447,6 +447,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -557,6 +561,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
     }
 
     public void handleMyTrade(Client client, Object message, Map<String, Object> subscription)

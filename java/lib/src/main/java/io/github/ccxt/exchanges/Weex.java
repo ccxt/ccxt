@@ -4048,7 +4048,7 @@ public class Weex extends WeexApi
                 orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             } else
             {
-                orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+                orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
             }
             return this.filterBy(orders, "status", "closed");
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -4119,7 +4119,7 @@ public class Weex extends WeexApi
                 orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             } else
             {
-                orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+                orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
             }
             return this.filterBy(orders, "status", "canceled");
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

@@ -4809,6 +4809,10 @@ public class Hashkey extends HashkeyApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.fetchFundingRate(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -5669,7 +5673,7 @@ final Object finalI = i;
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                response = (this.fetchTradingFees((Object)(parameters))).join();
+                response = (this.fetchTradingFees(parameters)).join();
                 return this.safeDict(response, symbol);
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {

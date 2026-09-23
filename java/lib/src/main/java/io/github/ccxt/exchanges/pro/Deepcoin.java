@@ -392,6 +392,10 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
+    }
 
     public void handleTicker(Client client, Map<String, Object> message)
     {
@@ -828,6 +832,10 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     {
         return this.unWatchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Map<String, Object> parameters)
+    {
+        return this.unWatchOHLCV(symbol, timeframe, (Object) (parameters));
+    }
 
     public void handleOHLCV(Client client, Map<String, Object> message)
     {
@@ -995,6 +1003,10 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
 
     public Object orderBookSuffix(Map<String, Object> market, Object methodName, Map<String, Object> parameters)

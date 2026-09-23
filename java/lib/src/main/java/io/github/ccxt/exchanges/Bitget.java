@@ -10555,7 +10555,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            Object orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
             return this.filterBy(orders, "status", "closed");
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -10620,7 +10620,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            Object orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
             return this.filterBy(orders, "status", "canceled");
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -16133,6 +16133,10 @@ final Object finalMinNotional = minNotional;
     public CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Object... optionalArgs)
     {
         return this.fetchFundingInterval(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Map<String, Object> parameters)
+    {
+        return this.fetchFundingInterval(symbol, (Object) (parameters));
     }
 
     /**

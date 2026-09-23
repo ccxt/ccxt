@@ -175,6 +175,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -639,6 +643,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     {
         return this.unWatchTradesForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTradesForSymbols(symbols, (Object) (parameters));
+    }
 
     public void handleTrades(Client client, Map<String, Object> message)
     {
@@ -827,6 +835,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -933,6 +945,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
         return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTickers(symbols, (Object) (parameters));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -1228,6 +1244,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
         return this.unWatchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Map<String, Object> parameters)
+    {
+        return this.unWatchOHLCV(symbol, timeframe, (Object) (parameters));
     }
 
     public void handleOHLCV(Client client, Map<String, Object> message)

@@ -692,6 +692,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     {
         return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTickers(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -725,6 +729,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -1125,6 +1133,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     {
         return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    {
+        return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -1431,6 +1443,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     {
         return this.unWatchOrderBookForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBookForSymbols(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -1464,6 +1480,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -1714,6 +1734,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     {
         return this.unWatchTradesForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTradesForSymbols(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -1745,6 +1769,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
     }
 
     public void handleTrades(Client client, Map<String, Object> message)
@@ -2031,6 +2059,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
     {
         return this.unWatchMyTrades(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchMyTrades(symbol, (Object) (parameters));
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)
@@ -2454,6 +2486,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     {
         return this.unWatchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchPositions(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchPositions(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -2738,6 +2774,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
     {
         return this.unWatchOrders(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrders(symbol, (Object) (parameters));
     }
 
     public void handleOrderWs(Client client, Map<String, Object> message)

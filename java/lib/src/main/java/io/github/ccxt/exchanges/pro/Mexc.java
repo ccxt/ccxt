@@ -1410,6 +1410,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     {
         return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return this.watchMyTrades(symbol, since, limit, (Object) (parameters));
+    }
 
     public void handleMyTrade(Client client, Map<String, Object> message, Object subscription)
     {
@@ -1645,6 +1649,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
         return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return this.watchOrders(symbol, since, limit, (Object) (parameters));
     }
 
     public void handleOrder(Client client, Map<String, Object> message)
@@ -2119,6 +2127,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     {
         return this.unWatchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchFundingRate(symbol, (Object) (parameters));
+    }
 
     public void handleFundingRate(Client client, Map<String, Object> message)
     {
@@ -2264,6 +2276,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     {
         return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTickers(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -2333,6 +2349,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     public CompletableFuture<Object> unWatchBidsAsks(Object... optionalArgs)
     {
         return this.unWatchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchBidsAsks(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchBidsAsks(symbols, (Object) (parameters));
     }
 
     /**

@@ -278,6 +278,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
+    }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
     {
@@ -545,6 +549,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
     }
 
     public Object parseWsTicker(Object ticker, Map<String, Object> market)
@@ -844,6 +852,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     public CompletableFuture<Object> unWatchBidsAsks(Object... optionalArgs)
     {
         return this.unWatchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchBidsAsks(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchBidsAsks(symbols, (Object) (parameters));
     }
 
     public void handleBidAsk(Client client, Map<String, Object> message)
@@ -1154,6 +1166,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -2107,6 +2123,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     public CompletableFuture<FundingRate> watchFundingRate(String symbol, Object... optionalArgs)
     {
         return this.watchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<FundingRate> watchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.watchFundingRate(symbol, (Object) (parameters));
     }
 
     public void handleFundingRate(Client client, Map<String, Object> message)

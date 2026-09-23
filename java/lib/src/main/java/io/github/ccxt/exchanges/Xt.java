@@ -6634,6 +6634,10 @@ final Object finalMarket = market;
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.fetchFundingRate(symbol, (Object) (parameters));
+    }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
     {
@@ -8036,5 +8040,11 @@ final Object finalMarket = market;
     public Object sign(Object path, Object... optionalArgs)
     {
         return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList()), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null);
+    }
+    //     }
+    //
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    {
+        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 }

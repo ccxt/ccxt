@@ -4859,7 +4859,7 @@ public class Htx extends HtxApi
             throw new ExchangeError((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
         }
         Object networkTitle = this.safeValue(((Map<String, Object>)this.options).get("networkNamesByChainIds"), networkId, networkId);
-        return super.networkIdToCode(networkTitle, currencyCode);
+        return super.networkIdToCode(Helpers.toStringArg(networkTitle), currencyCode);
     }
     public Object networkIdToCode(Object... optionalArgs)
     {
@@ -4874,7 +4874,7 @@ public class Htx extends HtxApi
         }
         if (java.util.Objects.equals(currencyCode, null))
         {
-            return super.networkCodeToId((String) (networkCode));
+            return super.networkCodeToId(networkCode, (String) null);
         }
         List<Object> keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkChainIdsByNames"));
         Object keysLength = ((List<?>)keys).size();
@@ -4888,7 +4888,7 @@ public class Htx extends HtxApi
             return (uniqueNetworkIds == null || networkCode == null ? null : uniqueNetworkIds.get(networkCode));
         } else
         {
-            Object networkTitle = super.networkCodeToId((String) (networkCode), currencyCode);
+            Object networkTitle = super.networkCodeToId(networkCode, currencyCode);
             return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
         }
     }
@@ -10006,6 +10006,10 @@ public class Htx extends HtxApi
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters) //                 "currency": "1inch",
+    {
+        return this.fetchFundingRate(symbol, (Object) (parameters));
     }
 
     /**

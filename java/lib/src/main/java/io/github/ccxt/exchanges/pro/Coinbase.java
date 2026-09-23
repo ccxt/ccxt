@@ -595,6 +595,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     {
         return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTickers(symbols, (Object) (parameters));
+    }
 
     public void handleTickers(Client client, Map<String, Object> message)
     {
@@ -856,6 +860,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -941,6 +949,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     {
         return this.unWatchTradesForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTradesForSymbols(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -1024,6 +1036,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     {
         return this.unWatchOrders(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrders(symbol, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -1103,6 +1119,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
 
     /**

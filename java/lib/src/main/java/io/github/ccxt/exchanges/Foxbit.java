@@ -2094,8 +2094,8 @@ public class Foxbit extends FoxbitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object withdrawals = (this.fetchWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-            Object deposits = (this.fetchDeposits((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            Object withdrawals = (this.fetchWithdrawals(code, since, limit, parameters)).join();
+            Object deposits = (this.fetchDeposits(code, since, limit, parameters)).join();
             List<Object> allTransactions = (List<Object>) this.arrayConcat(withdrawals, deposits);
             List<Object> result = this.sortBy(allTransactions, "timestamp");
             return result;
@@ -2772,6 +2772,10 @@ public class Foxbit extends FoxbitApi
     public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         return this.parseTransaction(transaction, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null);
+    }
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    {
+        return this.parseTransaction(transaction, (Object) (currency), (Object) null, (Object) null);
     }
 
     public String parseLedgerEntryType(String type)

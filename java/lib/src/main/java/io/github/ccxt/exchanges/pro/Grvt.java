@@ -1249,6 +1249,10 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
     {
         return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return this.watchOrders(symbol, since, limit, (Object) (parameters));
+    }
 
     public void handleOrder(Client client, Map<String, Object> message)
     {

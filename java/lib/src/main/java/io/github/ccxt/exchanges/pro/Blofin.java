@@ -1071,6 +1071,10 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     {
         return this.watchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<FundingRate> watchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.watchFundingRate(symbol, (Object) (parameters));
+    }
 
     public void handleFundingRate(Client client, Map<String, Object> message)
     {

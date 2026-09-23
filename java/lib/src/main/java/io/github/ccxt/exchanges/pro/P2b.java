@@ -448,6 +448,10 @@ public class P2b extends io.github.ccxt.exchanges.P2b
     {
         return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
+    {
+        return this.watchOrderBook(symbol, limit, (Object) (parameters));
+    }
 
     public Map<String, Object> handleOHLCV(Client client, Map<String, Object> message)
     {

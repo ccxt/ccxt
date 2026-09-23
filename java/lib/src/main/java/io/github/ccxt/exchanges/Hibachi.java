@@ -2963,7 +2963,7 @@ public class Hibachi extends HibachiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object transactions = (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(null), (Object)(parameters))).join();
+            Object transactions = (this.fetchDepositsWithdrawals(code, since, null, parameters)).join();
             List<Object> deposits = this.filterBy(transactions, "type", "deposit");
             return this.filterBySinceLimit(deposits, since, limit, "timestamp");
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -3001,7 +3001,7 @@ public class Hibachi extends HibachiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object transactions = (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(null), (Object)(parameters))).join();
+            Object transactions = (this.fetchDepositsWithdrawals(code, since, null, parameters)).join();
             List<Object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
             return this.filterBySinceLimit(withdrawals, since, limit, "timestamp");
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));

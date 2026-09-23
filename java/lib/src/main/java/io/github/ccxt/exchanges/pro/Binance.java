@@ -1168,6 +1168,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchOrderBookForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBookForSymbols(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -1209,6 +1213,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
 
     /**
@@ -1877,6 +1885,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchTradesForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTradesForSymbols(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -1916,6 +1928,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
         return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTrades(symbol, (Object) (parameters));
     }
 
     /**
@@ -2508,6 +2524,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
     {
         return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    {
+        return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, (Object) (parameters));
     }
 
     /**
@@ -3105,6 +3125,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchTickers(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -3145,6 +3169,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchMarkPrices(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Object> unWatchMarkPrices(Object symbols, Map<String, Object> parameters) //                "buyer": "0.00000000",
+    {
+        return this.unWatchMarkPrices(symbols, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -3176,6 +3204,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public CompletableFuture<Object> unWatchMarkPrice(String symbol, Object... optionalArgs)
     {
         return this.unWatchMarkPrice(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchMarkPrice(symbol, (Object) (parameters));
     }
 
     /**
@@ -3210,6 +3242,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public CompletableFuture<Object> unWatchBidsAsks(Object... optionalArgs)
     {
         return this.unWatchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchBidsAsks(Object symbols, Map<String, Object> parameters)
+    {
+        return this.unWatchBidsAsks(symbols, (Object) (parameters));
     }
 
     /**
@@ -3252,6 +3288,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
         return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+        return this.unWatchTicker(symbol, (Object) (parameters));
     }
 
     /**

@@ -3845,6 +3845,10 @@ public class Krakenfutures extends KrakenfuturesApi
     {
         return this.fetchBalance(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
+    {
+        return this.fetchBalance((Object) (parameters));
+    }
 
     public Object parseBalance(Object response)
     {
@@ -4368,6 +4372,10 @@ public class Krakenfutures extends KrakenfuturesApi
     {
         return this.fetchPositionsHistory(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<List<Position>> fetchPositionsHistory(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return this.fetchPositionsHistory(symbols, since, limit, (Object) (parameters));
+    }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
@@ -4846,6 +4854,10 @@ final Object finalI = i;
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
         return this.transfer(code, amount, fromAccount, toAccount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, (Object) (parameters));
     }
 
     /**

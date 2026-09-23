@@ -3769,7 +3769,7 @@ public class Coinbase extends CoinbaseApi
             {
                 (this.loadMarkets()).join();
             }
-            (this.loadAccounts((Object)(false), (Object)(parameters))).join();
+            (this.loadAccounts(false, parameters)).join();
             for (var i = 0; i < ((List<?>)this.accounts).size(); i++)
             {
                 Object account = (this.accounts == null || i < 0 || i >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(i));

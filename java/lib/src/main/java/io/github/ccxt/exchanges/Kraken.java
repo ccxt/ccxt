@@ -1135,7 +1135,7 @@ public class Kraken extends KrakenApi
             String secondPart = this.safeString(parts, 1);
             return ((super.safeCurrencyCode(firstPart, currency) + ".") + secondPart);
         }
-        return super.safeCurrencyCode((String) (currencyId), currency);
+        return super.safeCurrencyCode(currencyId, currency);
     }
     public String safeCurrencyCode(String currencyId, Object... optionalArgs)
     {

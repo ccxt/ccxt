@@ -1672,7 +1672,7 @@ public class Derive extends DeriveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetchFundingRateHistory((Object)(symbol), (Object)(null), (Object)(1), (Object)(parameters))).join();
+            Object response = (this.fetchFundingRateHistory(symbol, null, 1, parameters)).join();
             //
             // [
             //     {
@@ -1704,6 +1704,10 @@ public class Derive extends DeriveApi
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.fetchFundingRate(symbol, (Object) (parameters));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -2020,6 +2024,10 @@ public class Derive extends DeriveApi
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    {
+        return this.createOrder(symbol, type, side, amount, price, (Object) (parameters));
+    }
 
     /**
      * @method
@@ -2208,6 +2216,10 @@ public class Derive extends DeriveApi
     public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    {
+        return this.editOrder(id, symbol, type, side, amount, price, (Object) (parameters));
     }
 
     /**
@@ -3529,6 +3541,10 @@ public class Derive extends DeriveApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
         return this.fetchBalance(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
+    {
+        return this.fetchBalance((Object) (parameters));
     }
 
     public Object parseBalance(Object response)
