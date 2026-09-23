@@ -928,6 +928,131 @@ function isProvablyStringOperand (node) {
             || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
 }
 
+// `x + y` prints the native `(x + y)` when the printer proved one operand is a String (a
+// String on every path, JLS 15.18.1, null included), else the helper `Helpers.add (x, y)`,
+// whose box is a String exactly when its printed LEFT's static type is one.
+const MAX_STRING_PROOF_DEPTH = 64;
+
+// the printer's verdict for the native concat `left + right`; an absent proof or a throwing
+// printer proves nothing and keeps the conservative literal rule.
+function printedConcatIsNative (printer, left, right) {
+    if (typeof printer?.javaStringConcatIsProvable !== 'function'
+        || typeof printer?.javaScalarFamily !== 'function') {
+        return false;
+    }
+    try {
+        return printer.javaStringConcatIsProvable (left, right, printer.javaScalarFamily (left), printer.javaScalarFamily (right)) === true;
+    } catch (e) {
+        return false;
+    }
+}
+
+// the printer's resolver proof (javaProvableString): a local whose FINAL emitted declaration
+// is `String <name> = `, a hand-written `public String` runtime method, or a nested native
+// concat; an absent resolver or a throw proves nothing.
+function printerProvesString (printer, node) {
+    if (typeof printer?.javaProvableString !== 'function') {
+        return false;
+    }
+    try {
+        return printer.javaProvableString (node) === true;
+    } catch (e) {
+        return false;
+    }
+}
+
+// java.lang.String receiver methods printed as `((String)x).name ()` — the String-returning
+// subset of STRING_RECEIVER_METHODS
+const STRING_RETURNING_RECEIVER_METHODS = new Set ([ 'toLowerCase', 'toUpperCase', 'trim' ]);
+
+// the printed-Java String proofs of a CALL node
+function printedJavaCallIsString (printer, node) {
+    const callee = node.expression;
+    if (!ts.isPropertyAccessExpression (callee)) {
+        return false;
+    }
+    const name = String (callee.name.escapedText);
+    // `.toString ()` prints `String.valueOf (x)` or `Helpers.toString (x)`, both declared
+    // String on every path; no other bare name is admitted here
+    if (name === 'toString') {
+        return true;
+    }
+    if (STRING_RETURNING_RECEIVER_METHODS.has (name)) {
+        return printedJavaIsString (printer, callee.expression);
+    }
+    if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
+        // `this.<name> (...)`: the same tables the dataflow call case trusts
+        return dataflowThisCallType (printer, node) === JAVA_DATAFLOW_STRING;
+    }
+    // `Precise.<name> (...)`: the string statics the dataflow call case already trusts
+    return ts.isIdentifier (callee.expression)
+        && callee.expression.escapedText === 'Precise'
+        && PRECISE_STRING_STATICS.has (name);
+}
+
+// `this.<member>` whose hand-written Java field is declared String (THIS_MEMBER_TYPES);
+// `this.` cannot be shadowed by a local
+function printedJavaFieldIsString (node) {
+    return ts.isPropertyAccessExpression (node)
+        && node.expression.kind === ts.SyntaxKind.ThisKeyword
+        && THIS_MEMBER_TYPES[String (node.name.escapedText)] === 'String';
+}
+
+// true when the PRINTED Java for `node` is statically a String; deliberately stricter than
+// isProvablyStringOperand (literals only) and isProvablyStringExpression (whose null arms
+// print a value-dependent helper call).
+function printedJavaIsString (printer, node, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > MAX_STRING_PROOF_DEPTH) {
+        return false;
+    }
+    switch (value.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+            return true;
+        case ts.SyntaxKind.BinaryExpression:
+            if (value.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+                return false;
+            }
+            if (printedConcatIsNative (printer, value.left, value.right)) {
+                return true; // the printed `(left + right)`
+            }
+            // `Helpers.add (left, right)`: javac reads the PRINTED LEFT's static type
+            return printedJavaIsString (printer, value.left, depth + 1);
+        case ts.SyntaxKind.ConditionalExpression:
+            return printedJavaIsString (printer, value.whenTrue, depth + 1)
+                && printedJavaIsString (printer, value.whenFalse, depth + 1);
+        case ts.SyntaxKind.AsExpression:
+        case ts.SyntaxKind.TypeAssertionExpression:
+            return value.type?.kind === ts.SyntaxKind.StringKeyword; // prints ((String)x)
+        case ts.SyntaxKind.Identifier:
+            return printerProvesString (printer, value);
+        case ts.SyntaxKind.CallExpression:
+            return printerProvesString (printer, value) || printedJavaCallIsString (printer, value);
+        case ts.SyntaxKind.PropertyAccessExpression:
+            return printedJavaFieldIsString (value);
+    }
+    return false;
+}
+
+// a provably NON-NULL String, what a widened `+=` / later-`+` acceptance needs: the helper
+// overloads only agree when the right operand is a String at runtime too, and a String-declared
+// local may still hold null (a safeString miss, a null write).
+function printedJavaIsNonNullString (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    if (value.kind === ts.SyntaxKind.StringLiteral || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+        return true;
+    }
+    // a `+` the String proof accepted: the native concat and both String overloads are
+    // non-null on every path, a null left included
+    return value.kind === ts.SyntaxKind.BinaryExpression
+        && value.operatorToken.kind === ts.SyntaxKind.PlusToken
+        && printedJavaIsString (printer, value);
+}
+
 // walk up through `+` parents: at every level where our chain is the LEFT operand the
 // printed add switches overload family after narrowing, so its right operand must be a
 // provably-string literal. Uses in the RIGHT operand keep add(Object, Object).
@@ -4564,9 +4689,10 @@ function dataflowValueType (printer, node, context) {
                 dataflowValueType (printer, node.whenTrue, context),
                 dataflowValueType (printer, node.whenFalse, context));
         case ts.SyntaxKind.BinaryExpression:
-            // `a + b` prints `Helpers.add(a, b)`; a provably-String LEFT resolves the call
-            // to add(String, ...), declared String and never null
-            if (node.operatorToken.kind === ts.SyntaxKind.PlusToken && isProvablyStringOperand (unwrapParens (node.left))) {
+            // `a + b` prints `Helpers.add(a, b)`, or the native `(a + b)` when the printer
+            // proved one operand is a String; either print is a String exactly when the
+            // printed LEFT is one (printedJavaIsString)
+            if (node.operatorToken.kind === ts.SyntaxKind.PlusToken && printedJavaIsString (printer, node.left)) {
                 return JAVA_DATAFLOW_STRING;
             }
             return undefined;
@@ -4964,13 +5090,21 @@ function dataflowIsSafeToRetype (printer, declaration, varName, javaType, contex
                         return false;
                     }
                 } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                    return false; // `x += r` re-resolves against the declared type
+                    // `x += r` prints `x = Helpers.add (x, r)`, or the native `x = (x + r)`
+                    // when the printer proved the concat: with x a String both keep the box
+                    // type, but only for a provably NON-NULL String right operand
+                    if (!(isString && op === ts.SyntaxKind.PlusEqualsToken
+                        && printedJavaIsNonNullString (printer, parent.right))) {
+                        return false;
+                    }
                 }
             }
             if (isString && isLeftPlusOperand (unwrapParensUp (n))) {
                 const plus = unwrapParensUp (n).parent;
-                if (!isProvablyStringOperand (unwrapParens (plus.right))) {
-                    return false; // add(String, ...) diverges from add(Object, Object) on null
+                // add(String, ...) diverges from add(Object, Object) on null and on every
+                // non-String right operand, so only a provably NON-NULL String admits the write
+                if (!printedJavaIsNonNullString (printer, plus.right)) {
+                    return false;
                 }
             }
         }
