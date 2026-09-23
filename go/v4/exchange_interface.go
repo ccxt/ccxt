@@ -126,7 +126,7 @@ type IBaseExchange interface {
 	SetProxyUrl(proxyUrl any)
 	SetSocksProxy(proxyUrl any)
 	SignInAsync(optionalArgs ...any) <-chan any
-	Market(symbol any) any
+	Market(symbol any) map[string]any
 	Currency(code any) any
 	GetMarket(symbol string) MarketInterface
 	GetMarketsList() []MarketInterface
@@ -200,7 +200,7 @@ type ICoreExchange interface {
 	Describe() any
 	SetSandboxMode(enable any)
 	FeatureValue(symbol any, optionalArgs ...any) any
-	Market(symbol any) any
+	Market(symbol any) map[string]any
 	Nonce() any
 	IncrementingNonce() any
 	Unique(obj any) []any
@@ -440,7 +440,7 @@ type IDerivedExchange interface {
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan any
 	FetchAccountsAsync(optionalArgs ...any) <-chan any
 	SetSandboxMode(enabled any)
-	Market(symbol any) any
+	Market(symbol any) map[string]any
 	ParseConversion(conversion any, optionalArgs ...any) any
 	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
 	HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any

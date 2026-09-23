@@ -138,6 +138,7 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.DeepExtend2': 'map[string]any',
     'this.Account': 'map[string]any',
     'this.ParseOrderBook': 'map[string]any',
+    'this.Market': 'map[string]any',
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     'this.Capitalize': 'string',
