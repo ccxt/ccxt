@@ -1,0 +1,30 @@
+{
+    "exchange": "nobitex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://apiv2.nobitex.ir/v3/orderbook/BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://apiv2.nobitex.ir/market/stats?srcCurrency=btc&dstCurrency=usdt",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}

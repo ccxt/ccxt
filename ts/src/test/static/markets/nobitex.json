@@ -1,0 +1,116 @@
+{
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "btc",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 0.5
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "BTCUSDT",
+            "baseId": "btc",
+            "quoteId": "usdt",
+            "amountPrecision": "0.000001",
+            "pricePrecision": "0.01",
+            "minOrder": "0.5"
+        }
+    },
+    "BTC/IRR": {
+        "id": "BTCIRT",
+        "symbol": "BTC/IRR",
+        "base": "BTC",
+        "quote": "IRR",
+        "baseId": "btc",
+        "quoteId": "rls",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 10
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 500000
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "BTCIRT",
+            "baseId": "btc",
+            "quoteId": "rls",
+            "amountPrecision": "0.000001",
+            "pricePrecision": "10",
+            "minOrder": "500000"
+        }
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 0.5
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "ETHUSDT",
+            "baseId": "eth",
+            "quoteId": "usdt",
+            "amountPrecision": "0.00001",
+            "pricePrecision": "0.01",
+            "minOrder": "0.5"
+        }
+    }
+}
