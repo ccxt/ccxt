@@ -3137,9 +3137,9 @@ function ccxtGoWriteSiteShippedVeto (goTranspiler, n, parent, goType) {
     && (parent.parent?.kind === ts.SyntaxKind.BinaryExpression)
     && (parent.parent.left === parent)
     && (parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
-        // `[x, params] = f()` with a `Dict` tuple element prints a MapTyped element read
-        return !((goType === 'map[string]any') && (typeof goTranspiler.goTupleElementIsDict === 'function')
-            && goTranspiler.goTupleElementIsDict (parent.parent.right, parent.elements.indexOf (n)));
+        // `[x, params] = f()` prints a MapTyped element read only for a GetArg-bound Dict parameter
+        return !((goType === 'map[string]any') && (typeof goTranspiler.goGetArgBindsDictElement === 'function')
+            && goTranspiler.goGetArgBindsDictElement (n, parent.parent.right, parent.elements.indexOf (n)));
     }
     if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)) {
         const op = parent.operatorToken.kind;
