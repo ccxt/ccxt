@@ -640,6 +640,47 @@
                 }
             }
         ],
+        "fetchDepositAddresses": [
+            {
+                "description": "USDT on TRC20",
+                "method": "fetchDepositAddresses",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1790173861485,
+                    "data": {
+                        "coin": "USDT",
+                        "address": "T111111111111111111111111111111111",
+                        "chain": "TRC20",
+                        "tag": null,
+                        "url": "https://tronscan.org/#/transaction/"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coin": "USDT",
+                            "address": "T111111111111111111111111111111111",
+                            "chain": "TRC20",
+                            "tag": null,
+                            "url": "https://tronscan.org/#/transaction/"
+                        },
+                        "currency": "USDT",
+                        "network": "TRC20",
+                        "address": "T111111111111111111111111111111111",
+                        "tag": null
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",

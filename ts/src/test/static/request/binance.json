@@ -4121,6 +4121,21 @@
                 ]
             }
         ],
+        "fetchDepositAddresses": [
+            {
+                "description": "USDT on ERC20",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.binance.com/sapi/v1/capital/deposit/address/list?timestamp=1721628239072&recvWindow=10000&signature=sig&coin=USDT&network=ETH",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "ERC20"
+                    }
+                ]
+            }
+        ],
         "fetchTransactionFees": [
             {
                 "description": "fetchTransactionFees",
