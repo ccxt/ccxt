@@ -7,6 +7,36 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchWithdrawal": [
+            {
+                "description": "uta fetchWithdrawal by id",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal-records?endTime=1790001618970&orderId=1477203433330230002&startTime=1787409618970",
+                "input": [
+                    "1477203433330230002",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "uta fetchDeposit by id",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v3/account/deposit-records?endTime=1790001616831&orderId=1477183242218870001&startTime=1787409616831",
+                "input": [
+                    "1477183242218870001",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingIntervals": [
             {
                 "description": "fetchFundingIntervals with params",
