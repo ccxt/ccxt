@@ -1044,7 +1044,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object volumes = new HashMap<String, Object>() {{}};
+            Map<String, Object> volumes = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 Map<String, Object> volumesResponse = (this.privateGetFeeschedulesVolumes()).join();
@@ -1057,7 +1057,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 //        }
                 //    }
                 //
-                volumes = this.safeDict(volumesResponse, "volumesByFeeSchedule", new HashMap<String, Object>() {{}});
+                volumes = (Map<String, Object>) this.safeDict(volumesResponse, "volumesByFeeSchedule", new HashMap<String, Object>() {{}});
             }
             List<Object> feeSchedules = (List<Object>) this.safeList(response, "feeSchedules", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> schedulesByUid = new HashMap<String, Object>() {{}};
@@ -1639,7 +1639,7 @@ public class Krakenfutures extends KrakenfuturesApi
         return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -1730,9 +1730,9 @@ public class Krakenfutures extends KrakenfuturesApi
             ((Map<String, Object>)request).put("limitPrice", this.priceToPrecision(symbol, price));
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice"))));
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1767,7 +1767,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostSendorder(orderRequest)).join();
             //
             //    {
@@ -1901,7 +1901,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     Helpers.addElementToObject(extendedParams, "order_tag", String.valueOf(this.sum(i, 1))); // sequential counter
                 }
                 Helpers.addElementToObject(extendedParams, "order", "send");
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5083,11 +5083,11 @@ final Object finalI = i;
         String endpoint = Helpers.add((version + "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         String query = endpoint;
-        Object postData = "";
+        String postData = "";
         if (java.util.Objects.equals(path, "batchorder"))
         {
             postData = ("json=" + this.json(parameters));
-            body = (String) (postData);
+            body = postData;
         } else if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
         {
             if (((Map<?, ?>)parameters).containsKey("orderIds"))

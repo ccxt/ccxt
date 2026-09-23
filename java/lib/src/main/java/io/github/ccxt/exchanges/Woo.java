@@ -1702,11 +1702,11 @@ public class Woo extends WooApi
             Object networkId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
             Map<String, Object> tokenEntry = (Map<String, Object>) this.safeDict(tokensByNetworkId, networkId, new HashMap<String, Object>() {{}});
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(chainsByNetworkId, networkId, new HashMap<String, Object>() {{}});
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             String specialNetworkId = this.safeString(tokenEntry, "token");
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)resultingNetworks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "currencyNetworkId", specialNetworkId );
@@ -2963,7 +2963,7 @@ public class Woo extends WooApi
             timestamp = this.safeInteger(order, "timestamp");
         }
         String orderId = this.safeString2(order, "orderId", "algoOrderId");
-        Object clientOrderId = this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId")); // Somehow, this always returns 0 for limit order
+        String clientOrderId = this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId")); // Somehow, this always returns 0 for limit order
         String marketId = this.safeString(order, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -2974,7 +2974,7 @@ public class Woo extends WooApi
         String status = this.safeString2(order, "status", "algoStatus");
         String side = this.safeStringLower(order, "side");
         String filled = this.safeString2(order, "executed", "totalExecutedQuantity");
-        Object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
+        String average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
         Double fee = this.safeNumber(order, "totalFee");
         String feeCurrency = this.safeString(order, "feeAsset");
@@ -4096,7 +4096,7 @@ public class Woo extends WooApi
         Double amount = this.safeNumber(item, "amount");
         String side = this.safeString(item, "tokenSide");
         String direction = (((java.util.Objects.equals(side, "DEPOSIT")))) ? "in" : "out";
-        Object timestamp = this.safeTimestamp(item, "createdTime");
+        Long timestamp = this.safeTimestamp(item, "createdTime");
         Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (item), new ArrayList<Object>(Arrays.asList("feeToken")), new ArrayList<Object>(Arrays.asList("feeAmount")));
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -4305,7 +4305,7 @@ public class Woo extends WooApi
         Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (transaction), new ArrayList<Object>(Arrays.asList("fee_token", "feeToken")), new ArrayList<Object>(Arrays.asList("fee_amount", "feeAmount")));
         String addressTo = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("target_address", "targetAddress", "addressTo")));
         String addressFrom = this.safeString2(transaction, "source_address", "sourceAddress");
-        Object timestamp = this.safeTimestampN(transaction, new ArrayList<Object>(Arrays.asList("created_time", "createdTime")), this.safeInteger(transaction, "timestamp"));
+        Long timestamp = this.safeTimestampN(transaction, new ArrayList<Object>(Arrays.asList("created_time", "createdTime")), this.safeInteger(transaction, "timestamp"));
         final String finalMovementDirection = movementDirection;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -4558,7 +4558,7 @@ public class Woo extends WooApi
         //        }
         //
         String code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
-        Object timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
+        Long timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
         Boolean success = (Boolean) this.safeBool(transfer, "success");
         String status = null;
         if (!java.util.Objects.equals(success, null))
@@ -4755,9 +4755,9 @@ public class Woo extends WooApi
         return this.parseMarginLoan(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)

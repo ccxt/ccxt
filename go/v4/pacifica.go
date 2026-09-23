@@ -1317,7 +1317,7 @@ func (this *Pacifica) ParseAccountSettings(settings any) map[string]any {
 	for i := 0; i < GetArrayLength(settings); i++ {
 		var marketId any = GetValue(GetValue(settings, i), "symbol")
 		var market map[string]any = MapTyped(this.SafeMarket(marketId))
-		var symbol any = market["symbol"]
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(settingsBySymbol, symbol, GetValue(settings, i))
 	}
 	return settingsBySymbol
@@ -1562,7 +1562,7 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "mark")
 	var oraclePx *float64 = this.SafeNumber(info, "oracle")
@@ -1639,9 +1639,8 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes125019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
-		PanicOnError(retRes125019)
-		ch <- retRes125019
+		var retRes125019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))))
+		ch <- BoxAbsent(retRes125019)
 		return nil
 	}
 	var tf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1657,10 +1656,10 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var until any = DerefScalar(this.SafeInteger(request, "end_time"))
 	if IsEqual(until, nil) {
 		if limit != nil {
-			until = Subtract(Add(since, (Multiply(limit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
+			until = Subtract(Add(since, (Multiply(limit, (this.ParseTimeframe(tf)*1000)))), 1)
 		}
 		if IsEqual(until, nil) {
-			until = Subtract(Add(since, (Multiply(defaultMaxLimit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
+			until = Subtract(Add(since, (Multiply(defaultMaxLimit, (this.ParseTimeframe(tf)*1000)))), 1)
 		}
 		if IsGreaterThan(until, nowMillis) {
 			until = nowMillis
@@ -1809,7 +1808,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1911,7 +1910,7 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var id *string = this.SafeString(trade, "history_id")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil && *side == "open_long" {
@@ -2226,8 +2225,8 @@ func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		var orderParams any = this.SafeDict(order, "params", map[string]any{})
 		AddElementToObject(orderParams, "timestamp", timestamp)
 		var amount *string = this.SafeString(order, "amount")
-		var amountNumber any = this.ParseNumber(amount)
-		var priceNumber any = this.ParseNumber(price)
+		var amountNumber *float64 = Float64PtrTyped(this.ParseNumber(amount))
+		var priceNumber *float64 = Float64PtrTyped(this.ParseNumber(price))
 		if typeVar == nil || *typeVar != "limit" {
 			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + *typeVar))
 		}
@@ -2408,7 +2407,7 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 	_ = params
 	var actions []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		var id any = GetValue(ids, i)
+		var id *string = SafeStringPtr(GetValue(ids, i))
 		var request any = this.CancelOrderRequest(id, symbol, params)
 		var action map[string]any = map[string]any{
 			"type": "Cancel",
@@ -2847,7 +2846,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var ticker any = this.ParseTicker(info)
+		var ticker map[string]any = MapTyped(this.ParseTicker(info))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
@@ -2876,7 +2875,7 @@ func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -3050,7 +3049,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3137,7 +3136,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOrders", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3226,7 +3225,7 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3432,7 +3431,7 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString2(order, "symbol", "s")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeInteger2(order, "created_at", "ct")
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
 	var side *string = this.SafeString(order, "side", "d")
@@ -3594,7 +3593,7 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var margin *string = this.SafeString(position, "margin")
 	var marginMode string = func() string {
 		if (margin != nil) && (margin == nil || *margin != "0") {
@@ -4156,7 +4155,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4224,7 +4223,7 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(income, "created_at")
 	var marketId *string = this.SafeString(income, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var amount *string = this.SafeString(income, "amount")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var rate *float64 = this.SafeNumber(income, "rate")
@@ -4449,9 +4448,7 @@ func (this *Pacifica) bindAgentWalletBody(ch chan any, agentAddress any, optiona
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes342815 := (<-this.PrivatePostAgentBind(this.Extend(request, params))).Raw
-	PanicOnError(retRes342815)
-	ch <- retRes342815
+	ch <- PanicOnError((<-this.PrivatePostAgentBind(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) CreateApiKeyAsync(optionalArgs ...any) <-chan any {
@@ -4468,9 +4465,7 @@ func (this *Pacifica) createApiKeyBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes343515 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params))).Raw
-	PanicOnError(retRes343515)
-	ch <- retRes343515
+	ch <- PanicOnError((<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) RevokeApiKeyAsync(apiKey any, optionalArgs ...any) <-chan any {
@@ -4489,9 +4484,7 @@ func (this *Pacifica) revokeApiKeyBody(ch chan any, apiKey any, optionalArgs ...
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes344415 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params))).Raw
-	PanicOnError(retRes344415)
-	ch <- retRes344415
+	ch <- PanicOnError((<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) FetchApiKeysAsync(optionalArgs ...any) <-chan any {
@@ -4508,9 +4501,7 @@ func (this *Pacifica) fetchApiKeysBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes345115 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params))).Raw
-	PanicOnError(retRes345115)
-	ch <- retRes345115
+	ch <- PanicOnError((<-this.PrivatePostAccountApiKeys(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan any {
@@ -4530,9 +4521,7 @@ func (this *Pacifica) approveBuilderCodeBody(ch chan any, builderCode any, maxFe
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes346115 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params))).Raw
-	PanicOnError(retRes346115)
-	ch <- retRes346115
+	ch <- PanicOnError((<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) FetchBuilderApprovalsAsync(address any) <-chan any {
@@ -4547,9 +4536,7 @@ func (this *Pacifica) fetchBuilderApprovalsBody(ch chan any, address any) any {
 		"account": address,
 	}
 
-	retRes346815 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request))).Raw
-	PanicOnError(retRes346815)
-	ch <- retRes346815
+	ch <- PanicOnError((<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request))).Raw)
 	return nil
 }
 func (this *Pacifica) RevokeBuilderCodeAsync(builderCode any, optionalArgs ...any) <-chan any {
@@ -4568,9 +4555,7 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes347715 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params))).Raw
-	PanicOnError(retRes347715)
-	ch <- retRes347715
+	ch <- PanicOnError((<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) any {
@@ -4669,9 +4654,9 @@ func (this *Pacifica) CalculateRateLimiterCost(api any, method any, path any, pa
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var cost *string = this.SafeString(config, "cost", "1")
-	var costNumber any = this.ParseNumber(cost)
+	var costNumber *float64 = Float64PtrTyped(this.ParseNumber(cost))
 	// 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
-	if IsGreaterThan(costNumber, 1) {
+	if costNumber != nil && *costNumber > 1 {
 		if !IsEqual(this.HandleOption(method, "apiKey"), nil) {
 			var costWithKey any = this.HandleOption(method, "maxCostHugeWithApiKey", 3)
 			return costWithKey

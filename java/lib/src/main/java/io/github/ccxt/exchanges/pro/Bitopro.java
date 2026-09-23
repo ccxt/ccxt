@@ -363,13 +363,13 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
-        Object parsed = this.parseWsTrade((Map<String, Object>) (data));
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data));
         Helpers.callDynamically(trades, "append", new Object[]{parsed});
         client.resolve(trades, messageHash);
         client.resolve(trades, Helpers.add((messageHash + ":"), symbol));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -391,7 +391,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //
         String id = this.safeString(trade, "matchID");
         String orderId = this.safeString(trade, "orderID");
-        Object timestamp = this.safeTimestamp(trade, "transactionTimestamp");
+        Long timestamp = this.safeTimestamp(trade, "transactionTimestamp");
         String baseId = this.safeString(trade, "base");
         String quoteId = this.safeString(trade, "quote");
         String base = this.safeCurrencyCode((String) (baseId));
@@ -439,7 +439,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         final String finalTakerOrMaker = takerOrMaker;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "order", orderId );
@@ -453,9 +453,9 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

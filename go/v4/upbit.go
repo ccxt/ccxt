@@ -611,7 +611,7 @@ func (this *Upbit) fetchMarketByIdBody(ch chan any, id any, optionalArgs ...any)
 	var state *string = this.SafeString(marketInfo, "state")
 	var bidFee *string = this.SafeString(response, "bid_fee")
 	var askFee *string = this.SafeString(response, "ask_fee")
-	var fee any = this.ParseNumber(Precise.StringMax(bidFee, askFee))
+	var fee *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMax(bidFee, askFee)))
 
 	ch <- this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -1053,7 +1053,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var marketSymbols any = this.Symbols
 		for i := 0; i < GetArrayLength(marketSymbols); i++ {
 			var market map[string]any = MapTyped(this.Market(GetValue(marketSymbols, i)))
-			var quoteId any = market["quoteId"]
+			var quoteId *string = SafeStringPtr(market["quoteId"])
 			if !this.InArray(quoteId, quoteIds) {
 				quoteIds = append(quoteIds, quoteId)
 			}
@@ -1088,8 +1088,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}, params))))
 		}
 
-		responses := (<-promiseAll(promises))
-		PanicOnError(responses)
+		var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		tickers = this.ArraysConcat(responses)
 	}
 
@@ -1131,7 +1130,7 @@ func (this *Upbit) IdsQueryStrings(ids any, maxQueryLength any) any {
 	var idsString any = ""
 	var queries []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		var id any = GetValue(ids, i)
+		var id *string = SafeStringPtr(GetValue(ids, i))
 		if !IsEqual(idsString, "") {
 			idsString = Add(idsString, ",")
 		}
@@ -1222,7 +1221,7 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(trade, "trade_volume", "volume")
 	var marketId *string = this.SafeString2(trade, "market", "code")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, Add(askOrBid, "_fee"))
 	if feeCost != nil {
 		fee = map[string]any{
@@ -1494,7 +1493,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var timeframePeriod any = this.ParseTimeframe(timeframe)
+	var timeframePeriod int64 = this.ParseTimeframe(timeframe)
 	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	if limit == nil {
 		limit = Int64PtrTyped(200)
@@ -1510,7 +1509,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["to"] = this.Iso8601(this.Sum(since, Multiply(Multiply(timeframePeriod, limit), 1000)))
 	}
 	if timeframeValue != nil && *timeframeValue == "minutes" {
-		var numMinutes float64 = MathRound(Divide(timeframePeriod, 60))
+		var numMinutes float64 = MathRound(timeframePeriod / 60)
 		request["unit"] = numMinutes
 
 		response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))).Raw
@@ -1969,9 +1968,9 @@ func (this *Upbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -2032,9 +2031,9 @@ func (this *Upbit) fetchDepositBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"uuid": id,
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 
@@ -2093,9 +2092,9 @@ func (this *Upbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -2157,9 +2156,9 @@ func (this *Upbit) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"uuid": id,
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 
@@ -2373,7 +2372,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 		price = nil
 	}
 	var average *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(order, "paid_fee")
 	var marketId *string = this.SafeString(order, "market")
 	market = MapTyped(this.SafeMarket(marketId, market))
@@ -2470,7 +2469,7 @@ func (this *Upbit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -2544,7 +2543,7 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{
 		"state": "done",
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))
@@ -2625,7 +2624,7 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any
 	var request any = map[string]any{
 		"state": "cancel",
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))

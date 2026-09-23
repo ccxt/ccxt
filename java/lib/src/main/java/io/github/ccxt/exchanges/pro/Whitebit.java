@@ -292,7 +292,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, 1);
-        Object timestamp = this.safeTimestamp(data, "timestamp");
+        Long timestamp = this.safeTimestamp(data, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
@@ -393,7 +393,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             String method = "market_subscribe";
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object id = this.nonce();
+            Long id = this.nonce();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -662,7 +662,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
-        Object parsed = this.parseWsTrade((Map<String, Object>) (trade));
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
         String messageHash = ("myTrades:" + symbol);
@@ -673,7 +673,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         this.handleMyTrades(client, message, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //   [
@@ -691,7 +691,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //    ]
         //
         String orderId = this.safeString(trade, 3);
-        Object timestamp = this.safeTimestamp(trade, 1);
+        Long timestamp = this.safeTimestamp(trade, 1);
         String id = this.safeString(trade, 0);
         String price = this.safeString(trade, 4);
         String amount = this.safeString(trade, 5);
@@ -731,7 +731,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -745,9 +745,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -886,7 +886,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String marketId = this.safeString(order, "market");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String id = this.safeString(order, "id");
-        Object clientOrderId = this.omitZero(this.safeString(order, "client_order_id"));
+        String clientOrderId = this.omitZero(this.safeString(order, "client_order_id"));
         String price = this.safeString(order, "price");
         String filled = this.safeString(order, "deal_stock");
         String cost = this.safeString(order, "deal_money");
@@ -904,8 +904,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             remaining = this.safeString(order, "left");
             amount = this.safeString(order, "amount");
         }
-        Object timestamp = this.safeTimestamp(order, "ctime");
-        Object lastTradeTimestamp = this.safeTimestamp(order, "mtime");
+        Long timestamp = this.safeTimestamp(order, "ctime");
+        Long lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long rawSide = this.safeInteger(order, "side");
         String side = ((((rawSide != null && rawSide == 1)))) ? "sell" : "buy";
@@ -1195,7 +1195,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return BaseExchange.supplyAsync(() -> {
 
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object id = this.nonce();
+            Long id = this.nonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
@@ -1221,7 +1221,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets()).join();
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object id = this.nonce();
+            Long id = this.nonce();
             Client client = (Client)this.safeValue(this.clients, url);
             Map<String, Object> request = null;
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
@@ -1306,7 +1306,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             this.checkRequiredCredentials();
             (this.authenticate()).join();
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object id = this.nonce();
+            Long id = this.nonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
@@ -1375,7 +1375,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 {
                     throw new AuthenticationError((this.id + " authenticate() received an empty websocket_token")) ;
                 }
-                Object id = this.nonce();
+                Long id = this.nonce();
                 final String finalToken = token;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "id", id );

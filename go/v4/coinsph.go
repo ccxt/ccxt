@@ -787,7 +787,7 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var network *string = this.SafeString(networkItem, "network")
-		var networkCode any = this.NetworkIdToCode(network, code)
+		var networkCode *string = this.NetworkIdToCode(network, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      networkItem,
@@ -1119,7 +1119,7 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var ids []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market map[string]any = MapTyped(this.Market(GetValue(symbols, i)))
-			var id any = market["id"]
+			var id *string = SafeStringPtr(market["id"])
 			ids = append(ids, id)
 		}
 		request["symbols"] = ids
@@ -1382,7 +1382,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		if until != nil {
 			request["endTime"] = until
 		} else {
-			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+			var duration int64 = this.ParseTimeframe(timeframe) * 1000
 			var endTimeByLimit any = this.Sum(since, Multiply(duration, (Subtract(limit, 1))))
 			var now int64 = this.Milliseconds()
 			request["endTime"] = mathMin(endTimeByLimit, now)
@@ -1390,7 +1390,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	} else if until != nil {
 		request["endTime"] = until
 		// since work properly only when it is "younger" than last "limit" candle
-		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		request["startTime"] = Subtract(until, (Multiply(duration, (Subtract(limit, 1)))))
 	}
 	request["limit"] = limit
@@ -1621,7 +1621,7 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var id *string = this.SafeString2(trade, "id", "tradeId")
 	var orderId *string = this.SafeString(trade, "orderId")
 	var timestamp *int64 = this.SafeInteger(trade, "time")
@@ -1964,7 +1964,7 @@ func (this *Coinsph) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2101,7 +2101,7 @@ func (this *Coinsph) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2385,7 +2385,7 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 			}
 			return nil
 		}())
-		var symbol any = GetValue(fee, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(fee, "symbol"))
 		if symbol != nil {
 			AddElementToObject(result, symbol, fee)
 		}
@@ -2406,7 +2406,7 @@ func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	return map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
@@ -2511,10 +2511,10 @@ func (this *Coinsph) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -2591,10 +2591,10 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -2708,7 +2708,7 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var feeCost *float64 = this.SafeNumber(transaction, "transactionFee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,

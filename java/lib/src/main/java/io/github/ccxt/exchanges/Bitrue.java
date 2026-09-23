@@ -764,9 +764,9 @@ public class Bitrue extends BitrueApi
         }});
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     /**
@@ -937,10 +937,10 @@ public class Bitrue extends BitrueApi
         {
             Object entry = (networkDetails == null || j < 0 || j >= networkDetails.size() ? null : networkDetails.get(j));
             String networkId = this.safeString(entry, "chain");
-            Object network = this.networkIdToCode(networkId, code);
+            String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                final Object finalNetwork = network;
+                final String finalNetwork = network;
                 ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", entry );
     put( "id", networkId );
@@ -1830,10 +1830,10 @@ public class Bitrue extends BitrueApi
         //         "open": "35349.4"
         //     }
         //
-        Object timestamp = this.safeTimestamp(ohlcv, "i");
+        Long timestamp = this.safeTimestamp(ohlcv, "i");
         if (java.util.Objects.equals(timestamp, null))
         {
-            timestamp = this.safeInteger(ohlcv, "idx");
+            timestamp = (Long) this.safeInteger(ohlcv, "idx");
         }
         return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber2(ohlcv, "o", "open"), this.safeNumber2(ohlcv, "h", "high"), this.safeNumber2(ohlcv, "l", "low"), this.safeNumber2(ohlcv, "c", "close"), this.safeNumber2(ohlcv, "v", "vol")));
     }
@@ -3733,7 +3733,7 @@ public class Bitrue extends BitrueApi
                 Object chainDetail = (chainDetails == null || i < 0 || i >= chainDetails.size() ? null : chainDetails.get(i));
                 String networkId = this.safeString(chainDetail, "chain");
                 String currencyCode = this.safeString(currency, "code");
-                Object networkCode = this.networkIdToCode(networkId, currencyCode);
+                String networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
                     Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{

@@ -278,7 +278,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promise1 any = EndpointRaw(this.PublicGetTickers())
 	var promise2 any = this.FetchWebEndpointAsync("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true)
-	response1response2Variable := (<-promiseAll([]any{promise1, promise2}))
+	var response1response2Variable []any = ListTyped(PanicOnError((<-promiseAll([]any{promise1, promise2}))))
 	response1 := GetValue(response1response2Variable, 0)
 	response2 := GetValue(response1response2Variable, 1)
 	//
@@ -424,11 +424,11 @@ func (this *Btcbox) ParseBalance(response any) any {
 	for i := 0; i < len(codes); i++ {
 		var code string = GetValue(codes, i).(string)
 		var currency map[string]any = MapTyped(this.Currency(code))
-		var currencyId any = currency["id"]
-		var free any = Add(currencyId, "_balance")
+		var currencyId *string = SafeStringPtr(currency["id"])
+		var free string = *currencyId + "_balance"
 		if InOp(response, free) {
 			var account map[string]any = this.Account()
-			var used any = Add(currencyId, "_lock")
+			var used string = *currencyId + "_lock"
 			account["free"] = this.SafeString(response, free)
 			account["used"] = this.SafeString(response, used)
 			result[code] = account

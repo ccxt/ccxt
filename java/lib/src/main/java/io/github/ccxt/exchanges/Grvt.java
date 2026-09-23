@@ -2291,7 +2291,7 @@ public class Grvt extends GrvtApi
         //        }
         //    }
         //
-        Object direction = null;
+        String direction = null;
         String txId = null;
         Object networkCode = null;
         String addressFrom = this.safeString(transaction, "from_account_id");
@@ -2300,7 +2300,7 @@ public class Grvt extends GrvtApi
         String code = this.safeCurrencyCode(currencyId, currency);
         if (transaction.containsKey("transfer_metadata"))
         {
-            Object metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
+            String metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
             if (!java.util.Objects.equals(metaData, null))
             {
                 Object parsedMeta = this.parseJson(metaData);
@@ -2318,7 +2318,7 @@ public class Grvt extends GrvtApi
         }
         Object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
         final String finalTxId = txId;
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalNetworkCode = networkCode;
         final String finalAddressFrom = addressFrom;
         final String finalAddressTo = addressTo;
@@ -2831,7 +2831,7 @@ public class Grvt extends GrvtApi
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                clientOrderId = Helpers.add((String.valueOf(this.nonce()) + "000"), String.valueOf(this.requestId()));
+                clientOrderId = ((String.valueOf(this.nonce()) + "000") + String.valueOf(this.requestId()));
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
@@ -4482,11 +4482,11 @@ public class Grvt extends GrvtApi
         return this.handleUntilOptionString(key, request, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : 1);
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

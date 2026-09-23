@@ -1260,7 +1260,7 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "PRICE_FILTER", new HashMap<String, Object>() {{}});
         Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filters, "LOT_SIZE", new HashMap<String, Object>() {{}});
         Map<String, Object> costFilter = (Map<String, Object>) this.safeDict(filters, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
-        Object minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
+        String minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
         String contractSizeString = this.safeString(market, "contractMultiplier");
         String amountPrecisionString = this.safeString(amountFilter, "stepSize");
         String amountMinLimitString = this.safeString(amountFilter, "minQty");
@@ -3369,7 +3369,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported((this.id + " createOrder() supports cost parameter for spot market buy orders only")) ;
             }
-            Object request = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             Boolean test = (Boolean) this.safeBool(parameters, "test");
             if (java.util.Objects.equals(test, true))
@@ -3411,7 +3411,7 @@ public class Hashkey extends HashkeyApi
         return this.createSpotOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -3424,21 +3424,21 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
         {
-            return this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            return (Map<String, Object>) (this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters));
         } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
         {
-            return this.createSwapOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            return (Map<String, Object>) (this.createSwapOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters));
         } else
         {
             throw new NotSupported(((((this.id + " ") + "createOrderRequest() is not supported for ") + ((Map<String, Object>)market).get("type")) + " type of markets")) ;
         }
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createSpotOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createSpotOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -3507,14 +3507,14 @@ public class Hashkey extends HashkeyApi
         {
             ((Map<String, Object>)parameters).put("newClientOrderId", clientOrderId);
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createSpotOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createSpotOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createSpotOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createSwapOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createSwapOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -3588,9 +3588,9 @@ public class Hashkey extends HashkeyApi
             ((Map<String, Object>)request).put("type", "STOP");
             parameters = (Map<String, Object>) (this.omit(parameters, "triggerPrice"));
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createSwapOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createSwapOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createSwapOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -3623,7 +3623,7 @@ public class Hashkey extends HashkeyApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createSwapOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createSwapOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostApiV1FuturesOrder(this.extend(request, parameters))).join();
             //
             //     {
@@ -3702,7 +3702,7 @@ public class Hashkey extends HashkeyApi
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 String clientOrderId = this.safeString(orderRequest, "clientOrderId");
                 if (java.util.Objects.equals(clientOrderId, null))
                 {
@@ -4642,7 +4642,7 @@ public class Hashkey extends HashkeyApi
         type = ((List<Object>) typetimeInForcepostOnlyVariable).get(0);
         timeInForce = ((List<Object>) typetimeInForcepostOnlyVariable).get(1);
         postOnly = ((List<Object>) typetimeInForcepostOnlyVariable).get(2);
-        Object average = this.omitZero(this.safeString(order, "avgPrice"));
+        String average = this.omitZero(this.safeString(order, "avgPrice"));
         if (java.util.Objects.equals(price, null))
         {
             price = average;

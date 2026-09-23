@@ -136,7 +136,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //
         String symbol = this.symbol(this.safeString(message, 0));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, 1, new HashMap<String, Object>() {{}});
-        Object timestamp = this.safeTimestamp(data, "last_update_at");
+        Long timestamp = this.safeTimestamp(data, "last_update_at");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
@@ -236,14 +236,14 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
             Object data = this.safeValue(message, i);
-            Object trade = this.parseWsTrade((Map<String, Object>) (data));
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         String messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     [
@@ -258,11 +258,11 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         String symbol = this.symbol(this.safeString(trade, 2));
-        Object timestamp = this.safeTimestamp(trade, 0);
+        Long timestamp = this.safeTimestamp(trade, 0);
         String side = this.safeString(trade, 5);
         String priceString = this.safeString(trade, 3);
         String amountString = this.safeString(trade, 4);
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coincheck.this.safeString(trade, 1) );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -276,9 +276,9 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

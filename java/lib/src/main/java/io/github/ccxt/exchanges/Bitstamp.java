@@ -1593,7 +1593,7 @@ public class Bitstamp extends BitstampApi
         //
         String marketId = this.safeString(ticker, "pair");
         String symbol = this.safeSymbol(marketId, market);
-        Object timestamp = this.safeTimestamp(ticker, "timestamp");
+        Long timestamp = this.safeTimestamp(ticker, "timestamp");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = Precise.stringMul(baseVolume, vwap);
@@ -2531,7 +2531,7 @@ public class Bitstamp extends BitstampApi
         {
             Object networkEntry = Helpers.GetValue(fee, j);
             String networkId = this.safeString(networkEntry, "network");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             Double withdrawFee = this.safeNumber(networkEntry, "fee");
             Helpers.addElementToObject(result, "withdraw", new HashMap<String, Object>() {{
     put( "fee", withdrawFee );
@@ -4156,9 +4156,9 @@ public class Bitstamp extends BitstampApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

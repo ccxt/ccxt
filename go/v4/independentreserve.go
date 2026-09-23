@@ -436,7 +436,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 	var quoteCurrenciesPromise any = EndpointRaw(this.PublicGetGetValidSecondaryCurrencyCodes(params))
 	//     ['Aud', 'Usd', 'Nzd', 'Sgd']
 	var limitsPromise any = EndpointRaw(this.PublicGetGetOrderMinimumVolumes(params))
-	baseCurrenciesquoteCurrencieslimitsVariable := (<-promiseAll([]any{baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise}))
+	var baseCurrenciesquoteCurrencieslimitsVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise}))))
 	baseCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 0)
 	quoteCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 1)
 	limits := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 2)
@@ -633,7 +633,7 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 		defaultMarketId = *baseId + "/" + *quoteId
 	}
 	market = MapTyped(this.SafeMarket(defaultMarketId, market, "/"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var last *string = this.SafeString(ticker, "LastPrice")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -894,7 +894,7 @@ func (this *Independentreserve) fetchOrderBody(ch chan any, id any, optionalArgs
 		"orderGuid": id,
 	}, params))).Raw
 	PanicOnError(response)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -934,7 +934,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["primaryCurrencyCode"] = GetValue(market, "baseId")
@@ -984,7 +984,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["primaryCurrencyCode"] = GetValue(market, "baseId")
@@ -1043,7 +1043,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTrades(this.Extend(request, params))).Raw))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1060,9 +1060,9 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "OrderGuid")
 	var priceString *string = this.SafeString2(trade, "Price", "SecondaryCurrencyTradePrice")
 	var amountString *string = this.SafeString2(trade, "VolumeTraded", "PrimaryCurrencyAmount")
-	var price any = this.ParseNumber(priceString)
-	var amount any = this.ParseNumber(amountString)
-	var cost any = this.ParseNumber(Precise.StringMul(priceString, amountString))
+	var price *float64 = Float64PtrTyped(this.ParseNumber(priceString))
+	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
+	var cost *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(priceString, amountString)))
 	var baseId *string = this.SafeString(trade, "PrimaryCurrencyCode")
 	var quoteId *string = this.SafeString(trade, "SecondaryCurrencyCode")
 	var marketId any = nil
@@ -1201,7 +1201,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var fee map[string]any = SafeMapTyped(fees, market["base"])
 		AddElementToObject(result, symbol, map[string]any{

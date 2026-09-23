@@ -538,6 +538,14 @@ func SafeStringPtr(v any) *string {
 	return nil
 }
 
+// SafeBoolPtr is SafeStringPtr's bool twin: a bool becomes a *bool, anything else a nil pointer.
+func SafeBoolPtr(v any) *bool {
+	if b, ok := derefScalar(v).(bool); ok {
+		return &b
+	}
+	return nil
+}
+
 // private wrappers
 
 func (this *BaseExchange) SafeString(obj any, key any, defaultValue ...any) *string {

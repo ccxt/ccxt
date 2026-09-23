@@ -698,7 +698,7 @@ public class Coinmate extends CoinmateApi
             }};
             Map<String, Object> response = (this.publicGetOrderBook(this.extend(request, parameters))).join();
             Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object timestamp = this.safeTimestamp(orderbook, "timestamp");
+            Long timestamp = this.safeTimestamp(orderbook, "timestamp");
             return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount");
         }).thenApply(OrderBook::new);
 
@@ -862,7 +862,7 @@ public class Coinmate extends CoinmateApi
         //         "timestamp": "1708074485"
         //     }
         //
-        Object timestamp = this.safeTimestamp(ticker, "timestamp");
+        Long timestamp = this.safeTimestamp(ticker, "timestamp");
         Double last = this.safeNumber(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Coinmate.this.safeString(market, "symbol") );
@@ -1845,9 +1845,9 @@ public class Coinmate extends CoinmateApi
         return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

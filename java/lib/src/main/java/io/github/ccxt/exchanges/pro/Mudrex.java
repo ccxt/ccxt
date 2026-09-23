@@ -61,11 +61,11 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         }};
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object reqid = this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
         Helpers.addElementToObject(this.options, "correlationId", reqid);
-        return reqid;
+        return Helpers.toLongOrNull(reqid);
     }
 
     /**
@@ -270,7 +270,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("@"))));
         String interval = (String) Helpers.GetValue(parts, 1);
-        Object tf = this.findTimeframe(interval);
+        String tf = this.findTimeframe(interval);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String s = this.safeString(data, "s");
         if (java.util.Objects.equals(s, null))

@@ -1551,11 +1551,11 @@ public class Ndax extends NdaxApi
         Long timestamp = null;
         String id = null;
         String marketId = null;
-        Object side = null;
+        String side = null;
         String orderId = null;
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
-        Object type = null;
+        String type = null;
         if ((trade instanceof List))
         {
             priceString = this.safeString(trade, 3);
@@ -1600,9 +1600,9 @@ public class Ndax extends NdaxApi
         final String finalId = id;
         final Long finalTimestamp = timestamp;
         final String finalOrderId = orderId;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalType = type;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final String finalPriceString = priceString;
         final String finalAmountString = amountString;
         final String finalCostString = costString;
@@ -3636,9 +3636,9 @@ public class Ndax extends NdaxApi
         return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

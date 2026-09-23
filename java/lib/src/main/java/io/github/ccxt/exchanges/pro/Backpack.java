@@ -1148,14 +1148,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Object trade = this.parseWsTrade((Map<String, Object>) (data), market);
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
         Helpers.callDynamically(cache, "append", new Object[]{trade});
         String messageHash = ("trades:" + symbol);
         client.resolve(cache, messageHash);
         client.resolve(cache, "trades");
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1204,7 +1204,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         final String finalOrderId = orderId;
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "timestamp", timestamp );
@@ -1221,9 +1221,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 put( "currency", null );
                 put( "cost", null );
             }} );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

@@ -1057,7 +1057,7 @@ public class Bydfi extends BydfiApi
             }};
         }
         String orderId = this.safeString(trade, "orderId");
-        Object side = null; // fetchMyTrades always returns side BUY
+        String side = null; // fetchMyTrades always returns side BUY
         if (java.util.Objects.equals(orderId, null))
         {
             // from fetchTrades
@@ -1065,7 +1065,7 @@ public class Bydfi extends BydfiApi
         }
         final Map<String, Object> finalMarket_2 = market;
         final String finalOrderId = orderId;
-        final Object finalSide = side;
+        final String finalSide = side;
         final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1705,7 +1705,7 @@ public class Bydfi extends BydfiApi
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -1831,9 +1831,9 @@ public class Bydfi extends BydfiApi
             parameters = (Map<String, Object>) ((List<Object>) workingTypeparametersVariable).get(1);
             ((Map<String, Object>)request).put("workingType", this.encodeWorkingType((String) (workingType)));
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1884,7 +1884,7 @@ public class Bydfi extends BydfiApi
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Object wallet = "W001";

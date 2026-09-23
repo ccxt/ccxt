@@ -420,7 +420,7 @@ export default class grvt extends Exchange {
         chain_id: string;
     };
     handleUntilOptionString(key: string, request: Dict, params?: NullableDict, multiplier?: number): any[];
-    requestId(): any;
+    requestId(): number;
     sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

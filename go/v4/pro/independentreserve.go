@@ -116,7 +116,7 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var trade any = this.ParseWsTrade(data)
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	stored.(ccxt.Appender).Append(trade)
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
@@ -192,8 +192,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 		"receivedSnapshot": false,
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, nil, messageHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

@@ -933,7 +933,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return this.parseWsTrades(trades, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -945,7 +945,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Long timestamp = this.safeInteger(trade, "t");
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Hitbtc.this.safeString(trade, "i") );
             put( "order", null );
@@ -959,9 +959,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "amount", Hitbtc.this.safeString(trade, "q") );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1061,7 +1061,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String channel = this.safeString(message, "ch", "");
         List<Object> splitChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("/"))));
         String period = this.safeString(splitChannel, 1);
-        Object timeframe = this.findTimeframe(period);
+        String timeframe = this.findTimeframe(period);
         if (java.util.Objects.equals(timeframe, null))
         {
             return message;

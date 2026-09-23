@@ -689,10 +689,10 @@ public class Apex extends ApexApi
                 if (java.util.Objects.equals(tokenName, currencyId))
                 {
                     String networkId = this.safeString(chain, "chainId");
-                    Object networkCode = this.networkIdToCode(networkId, code);
+                    String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        final Object finalNetworkCode = networkCode;
+                        final String finalNetworkCode = networkCode;
                         ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -1590,7 +1590,7 @@ public class Apex extends ApexApi
         String status = this.safeString(order, "status");
         String side = this.safeStringLower(order, "side");
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-        Object remaining = this.omitZero(this.safeString(order, "remainingSize"));
+        String remaining = this.omitZero(this.safeString(order, "remainingSize"));
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         final Map<String, Object> finalMarket = market;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{

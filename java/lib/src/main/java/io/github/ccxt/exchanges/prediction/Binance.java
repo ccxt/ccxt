@@ -190,9 +190,9 @@ public class Binance extends BinanceApi
         }});
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     /**
@@ -1070,7 +1070,7 @@ final Object finalMarketSymbol = marketSymbol;
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
         Object marketAny = ((Object)market);
-        Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
@@ -1216,7 +1216,7 @@ final Object finalMarketSymbol = marketSymbol;
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "vendor", Binance.this.safeString(info, "vendor", Binance.this.safeString(Binance.this.options, "defaultVendor")) );
@@ -1484,7 +1484,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 (this.loadOutcome((String) (outcome))).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(outcomeObj, "market"));
+                Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)outcomeObj).get("market"));
                 ((Map<String, Object>)request).put("marketId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1707,7 +1707,7 @@ final Object finalMarketSymbol = marketSymbol;
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Object requestedOutcomeObj = this.safeOutcome((String) (requested));
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested));
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     ((Map<String, Object>)requestedOutcomeSymbols).put((String)requestedOutcome, true);
                 }
@@ -1822,7 +1822,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 (this.loadOutcome((String) (outcome))).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(outcomeObj, "market"));
+                Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)outcomeObj).get("market"));
                 ((Map<String, Object>)request).put("marketTopicId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "marketTopicId"));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
@@ -2362,7 +2362,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
             Object marketSymbol = this.safeString(outcomeObj, "market");
@@ -2427,7 +2427,7 @@ final Object finalMarketSymbol = marketSymbol;
             final String finalSideUpper = sideUpper;
             final String finalAmountStr = amountStr;
             Map<String, Object> quoteRequest = this.extend(commonRequest, new HashMap<String, Object>() {{
-                put( "tokenId", Helpers.GetValue(outcomeObj, "id") );
+                put( "tokenId", ((Map<String, Object>)outcomeObj).get("id") );
                 put( "side", finalSideUpper );
                 put( "amountIn", Precise.stringMul(Binance.this.amountToPrecision(marketSymbol, finalAmountStr), "1000000000000000000") );
             }});

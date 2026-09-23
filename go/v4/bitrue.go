@@ -904,7 +904,7 @@ func (this *Bitrue) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(entry, "chain")
-		var network any = this.NetworkIdToCode(networkId, code)
+		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
 			AddElementToObject(networks, network, map[string]any{
 				"info":      entry,
@@ -977,20 +977,19 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		types = this.SafeList(this.Options, "fetchMarkets", defaultTypes)
 	}
 	for i := 0; i < GetArrayLength(types); i++ {
-		var marketType any = GetValue(types, i)
-		if IsEqual(marketType, "spot") {
+		var marketType *string = SafeStringPtr(GetValue(types, i))
+		if marketType != nil && *marketType == "spot" {
 			promisesRaw = append(promisesRaw, this.SpotV1PublicGetExchangeInfo(params))
-		} else if IsEqual(marketType, "linear") {
+		} else if marketType != nil && *marketType == "linear" {
 			promisesRaw = append(promisesRaw, this.FapiV1PublicGetContracts(params))
-		} else if IsEqual(marketType, "inverse") {
+		} else if marketType != nil && *marketType == "inverse" {
 			promisesRaw = append(promisesRaw, this.DapiV1PublicGetContracts(params))
 		} else {
-			panic(ExchangeError(Add(Add(this.Id+" fetchMarkets() this.options fetchMarkets \"", marketType), "\" is not a supported market type")))
+			panic(ExchangeError(this.Id + " fetchMarkets() this.options fetchMarkets \"" + *marketType + "\" is not a supported market type"))
 		}
 	}
 
-	promises := (<-promiseAll(promisesRaw))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesRaw))))
 	var spotMarkets any = this.SafeList(this.SafeDict(promises, 0), "symbols", []any{})
 	var futureMarkets any = this.SafeValue(promises, 1)
 	var deliveryMarkets any = this.SafeValue(promises, 2)
@@ -1995,7 +1994,7 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
 			return "sell"
 		}() // this is a true side
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if InOp(trade, "commission") {
 		fee = map[string]any{
 			"cost":     this.SafeString2(trade, "commission", "fee"),
@@ -2198,7 +2197,7 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) any {
 	if typeVar != nil && *typeVar == "limit_maker" {
 		typeVar = SafeStringPtr("limit")
 	}
-	var triggerPrice any = this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice")))
+	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice"))))
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -3285,7 +3284,7 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
@@ -3421,7 +3420,7 @@ func (this *Bitrue) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			}())
 			var networkId *string = this.SafeString(chainDetail, "chain")
 			var currencyCode *string = this.SafeString(currency, "code")
-			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
+			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
 			if networkCode != nil {
 				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"deposit": map[string]any{
@@ -3554,9 +3553,9 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"transferType": typeVar,
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coinSymbol"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3830,7 +3829,7 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 				signPath = "/dapi"
 			}
 			signPath = Add(Add(Add(Add(signPath, "/"), version), "/"), path)
-			var signMessage any = Add(Add(timestamp, method), signPath)
+			var signMessage any = Add(timestamp+method, signPath)
 			if method == "GET" {
 				var keys []string = ObjectKeys(params)
 				var keysLength int = len(keys)

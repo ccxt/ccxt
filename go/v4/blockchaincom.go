@@ -387,7 +387,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var minOrderSizeScaleString *string = this.SafeString(market, "min_order_size_scale")
 		var minOrderSizeScalePrecisionString any = this.ParsePrecision(minOrderSizeScaleString)
 		var minOrderSizePreciseString *string = Precise.StringMul(minOrderSizeString, minOrderSizeScalePrecisionString)
-		var minOrderSize any = this.ParseNumber(minOrderSizePreciseString)
+		var minOrderSize *float64 = Float64PtrTyped(this.ParseNumber(minOrderSizePreciseString))
 		// maximum order size
 		var maxOrderSize any = nil
 		var maxOrderSizeRaw *string = this.SafeString(market, "max_order_size")
@@ -931,7 +931,7 @@ func (this *Blockchaincom) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":   response,
 			"symbol": symbol,
@@ -1069,7 +1069,7 @@ func (this *Blockchaincom) fetchOrdersByStateBody(ch chan any, state any, option
 		"status": state,
 		"limit":  100,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -1106,11 +1106,11 @@ func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol any = GetValue(market, "symbol")
-	var fee any = nil
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
-		var feeCurrency any = GetValue(market, "quote")
+		var feeCurrency *string = SafeStringPtr(GetValue(market, "quote"))
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrency,
@@ -1168,7 +1168,7 @@ func (this *Blockchaincom) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		request["symbol"] = this.MarketId(symbol)
 		market = this.Market(symbol)
@@ -1288,7 +1288,7 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 		}
 		return nil
 	}()
-	var fee any = nil
+	var fee map[string]any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"currency": code,
@@ -1410,9 +1410,9 @@ func (this *Blockchaincom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 	if since != nil {
 		request["from"] = since
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	response := (<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw
@@ -1494,9 +1494,9 @@ func (this *Blockchaincom) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 	if since != nil {
 		request["from"] = since
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	response := (<-this.PrivateGetDeposits(this.Extend(request, params))).Raw

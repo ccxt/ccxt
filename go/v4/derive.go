@@ -894,7 +894,7 @@ func (this *Derive) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var spotMarketsPromise any = this.FetchSpotMarketsAsync(params)
 	var swapMarketsPromise any = this.FetchSwapMarketsAsync(params)
 	var optionMarketsPromise any = this.FetchOptionMarketsAsync(params)
-	spotMarketsswapMarketsoptionMarketsVariable := (<-promiseAll([]any{spotMarketsPromise, swapMarketsPromise, optionMarketsPromise}))
+	var spotMarketsswapMarketsoptionMarketsVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{spotMarketsPromise, swapMarketsPromise, optionMarketsPromise}))))
 	spotMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 0)
 	swapMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 1)
 	optionMarkets := GetValue(spotMarketsswapMarketsoptionMarketsVariable, 2)
@@ -1341,7 +1341,7 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
@@ -1423,7 +1423,7 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) any {
 		if isFetchTrades && (liquidityRole != nil && *liquidityRole == "maker") {
 			continue
 		}
-		var parsed any = this.ParseTrade(rawTrade, market)
+		var parsed map[string]any = MapTyped(this.ParseTrade(rawTrade, market))
 		var trade map[string]any = this.Extend(parsed, params)
 		result = append(result, trade)
 	}
@@ -1665,8 +1665,8 @@ func (this *Derive) HashMessage(message any) any {
 func (this *Derive) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-	var r any = signature["r"]
-	var s any = signature["s"]
+	var r *string = SafeStringPtr(signature["r"])
+	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
@@ -1883,8 +1883,8 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if IsEqual(rawOrder, nil) {
 		rawOrder = this.SafeDict(result, "order", map[string]any{})
 	}
-	var order any = this.ParseOrder(rawOrder, market)
-	AddElementToObject(order, "type", typeVar)
+	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
+	order["type"] = typeVar
 
 	ch <- order
 	return nil
@@ -2062,7 +2062,7 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var rawOrder map[string]any = MapTyped(this.SafeDict(result, "order", map[string]any{}))
-	var order any = this.ParseOrder(rawOrder, market)
+	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
 
 	ch <- order
 	return nil
@@ -2214,7 +2214,7 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2296,9 +2296,8 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes178019 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes178019)
-		ch <- retRes178019
+		var retRes178019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes178019)
 		return nil
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -2310,7 +2309,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
@@ -2699,7 +2698,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 		"order_id":      id,
 		"subaccount_id": subaccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
@@ -2794,9 +2793,8 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes216619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes216619)
-		ch <- retRes216619
+		var retRes216619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes216619)
 		return nil
 	}
 	var subaccountId any = nil
@@ -2806,7 +2804,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
@@ -3069,9 +3067,8 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes239419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes239419)
-		ch <- retRes239419
+		var retRes239419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes239419)
 		return nil
 	}
 	var subaccountId any = nil
@@ -3081,7 +3078,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")

@@ -486,9 +486,9 @@ public class Latoken extends LatokenApi
         }});
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     /**
@@ -1575,7 +1575,7 @@ public class Latoken extends LatokenApi
             }
         }
         String orderSide = this.safeString(order, "side");
-        Object side = null;
+        String side = null;
         if (!java.util.Objects.equals(orderSide, null))
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)orderSide).split(java.util.regex.Pattern.quote("_"))));
@@ -1603,7 +1603,7 @@ public class Latoken extends LatokenApi
         String timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
         final String finalStatus = status;
         final String finalSymbol = symbol;
-        final Object finalSide = side;
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2499,7 +2499,7 @@ public class Latoken extends LatokenApi
         //         "fee": 0
         //     }
         //
-        Object timestamp = this.safeTimestamp(transfer, "timestamp");
+        Long timestamp = this.safeTimestamp(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "currency");
         String status = this.safeString(transfer, "status");
         return new HashMap<String, Object>() {{

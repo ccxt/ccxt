@@ -925,8 +925,8 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var lotString *string = this.SafeString(market, "quantity_increment")
 		var stepString *string = this.SafeString(market, "tick_size")
-		var lot any = this.ParseNumber(lotString)
-		var step any = this.ParseNumber(stepString)
+		var lot *float64 = Float64PtrTyped(this.ParseNumber(lotString))
+		var step *float64 = Float64PtrTyped(this.ParseNumber(stepString))
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -1067,7 +1067,7 @@ func (this *Hitbtc) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString2(rawNetwork, "protocol", "network")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode any = DerefScalar(this.NetworkIdToCode(networkId, code))
 		networkCode = func() any {
 			if networkCode != nil {
 				return ToUpper(networkCode)
@@ -1407,8 +1407,8 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = GetValue(keys, i).(string)
-		var market any = this.SafeMarket(marketId)
-		var symbol any = GetValue(market, "symbol")
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		var entry map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		AddElementToObject(result, symbol, this.ParseTicker(entry, market))
 	}
@@ -1561,7 +1561,7 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1670,8 +1670,8 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(GetValue(trade, "timestamp"))
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
-	var fee any = nil
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var taker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker string
@@ -1733,9 +1733,9 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan any, types any, code any
 	var request map[string]any = map[string]any{
 		"types": types,
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if !IsEqual(code, nil) {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currencies"] = GetValue(currency, "id")
 	}
 	if !IsEqual(since, nil) {
@@ -1911,9 +1911,7 @@ func (this *Hitbtc) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes165815 := (<-this.FetchTransactionsHelperAsync("DEPOSIT,WITHDRAW", code, since, limit, params))
-	PanicOnError(retRes165815)
-	ch <- retRes165815
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("DEPOSIT,WITHDRAW", code, since, limit, params)))
 	return nil
 }
 
@@ -1945,9 +1943,7 @@ func (this *Hitbtc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes167315 := (<-this.FetchTransactionsHelperAsync("DEPOSIT", code, since, limit, params))
-	PanicOnError(retRes167315)
-	ch <- retRes167315
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("DEPOSIT", code, since, limit, params)))
 	return nil
 }
 
@@ -1979,9 +1975,7 @@ func (this *Hitbtc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes168815 := (<-this.FetchTransactionsHelperAsync("WITHDRAW", code, since, limit, params))
-	PanicOnError(retRes168815)
-	ch <- retRes168815
+	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("WITHDRAW", code, since, limit, params)))
 	return nil
 }
 
@@ -2204,7 +2198,7 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var fee any = this.ParseTradingFee(GetValue(response, i))
-		var symbol any = GetValue(fee, "symbol")
+		var symbol *string = SafeStringPtr(GetValue(fee, "symbol"))
 		if symbol != nil {
 			AddElementToObject(result, symbol, fee)
 		}
@@ -2257,9 +2251,8 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes187519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-		PanicOnError(retRes187519)
-		ch <- retRes187519
+		var retRes187519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
+		ch <- BoxAbsent(retRes187519)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -2392,7 +2385,7 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2471,7 +2464,7 @@ func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2570,7 +2563,7 @@ func (this *Hitbtc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2686,7 +2679,7 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2777,7 +2770,7 @@ func (this *Hitbtc) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2849,7 +2842,7 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2921,7 +2914,7 @@ func (this *Hitbtc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"client_order_id": id,
 	}
@@ -2981,7 +2974,7 @@ func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"client_order_id": id,
 		"quantity":        this.AmountToPrecision(symbol, amount),
@@ -3264,7 +3257,7 @@ func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var postOnly any = this.SafeValue(order, "post_only")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
 	var rawTrades any = this.SafeValue(order, "trades")
@@ -3323,7 +3316,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
@@ -3575,7 +3568,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
@@ -3619,7 +3612,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		}
 		var rawFundingRate any = this.SafeValue(response, marketId)
 		var marketInner map[string]any = MapTyped(this.Market(marketId))
-		var symbol any = marketInner["symbol"]
+		var symbol *string = SafeStringPtr(marketInner["symbol"])
 		var fundingRate any = this.ParseFundingRate(rawFundingRate, marketInner)
 		AddElementToObject(fundingRates, symbol, fundingRate)
 	}
@@ -3667,9 +3660,8 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes296519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
-		PanicOnError(retRes296519)
-		ch <- retRes296519
+		var retRes296519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))))
+		ch <- BoxAbsent(retRes296519)
 		return nil
 	}
 	var market map[string]any = nil
@@ -3996,7 +3988,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -4114,7 +4106,7 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	var markets []string = ObjectKeys(response)
 	for i := 0; i < len(markets); i++ {
 		var marketId string = GetValue(markets, i).(string)
-		var marketInner any = this.SafeMarket(marketId)
+		var marketInner map[string]any = MapTyped(this.SafeMarket(marketId))
 		var openInterest map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		results = append(results, this.ParseOpenInterest(openInterest, marketInner))
 	}
@@ -4341,7 +4333,7 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	//         "positions": null
 	//     }
 	//
-	var parsedAmount any = this.ParseNumber(amount)
+	var parsedAmount *float64 = Float64PtrTyped(this.ParseNumber(amount))
 
 	ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"amount": parsedAmount,
@@ -4602,9 +4594,7 @@ func (this *Hitbtc) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"margin_balance": this.AmountToPrecision(symbol, amount),
 	}
 
-	retRes371415 := (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params))).Raw
-	PanicOnError(retRes371415)
-	ch <- retRes371415
+	ch <- PanicOnError((<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -4702,7 +4692,7 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		}())
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode any = DerefScalar(this.NetworkIdToCode(networkId, code))
 		networkCode = func() any {
 			if networkCode != nil {
 				return ToUpper(networkCode)

@@ -1208,7 +1208,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 			}() // this is a true side
 		}
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if InOp(trade, "commission") {
 		fee = map[string]any{
 			"cost":     this.SafeString(trade, "commission"),
@@ -2727,11 +2727,11 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var until *int64 = this.SafeInteger(params, "until")
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -2810,9 +2810,9 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {

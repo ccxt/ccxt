@@ -135,7 +135,7 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 			}
 			return nil
 		}()
-		var trade any = this.ParseTrade(rawTrade, market)
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(rawTrade, market))
 		stored.(ccxt.Appender).Append(trade)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
@@ -220,8 +220,7 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	orderbook := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, subscriptionHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

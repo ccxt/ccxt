@@ -2670,7 +2670,7 @@ public class Kraken extends KrakenApi
             // delisted market ids go here
             market = (Map<String, Object>) (this.getDelistedMarketById(marketId));
         }
-        Object timestamp = this.safeTimestamp(order, "opentm");
+        Long timestamp = this.safeTimestamp(order, "opentm");
         amount = this.safeString(order, "vol", amount);
         String filled = this.safeString(order, "vol_exec");
         Map<String, Object> fee = null;
@@ -4034,7 +4034,7 @@ final String finalId = id;
         //
         String id = this.safeString(transaction, "refid");
         String txid = this.safeString(transaction, "txid");
-        Object timestamp = this.safeTimestamp(transaction, "time");
+        Long timestamp = this.safeTimestamp(transaction, "time");
         String currencyId = this.safeString(transaction, "asset");
         String code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(transaction, "info");
@@ -5026,9 +5026,9 @@ final String finalId = id;
         return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

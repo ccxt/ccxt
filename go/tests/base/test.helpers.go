@@ -360,6 +360,10 @@ func SafeStringPtr(v any) *string {
 	return ccxt.SafeStringPtr(v)
 }
 
+func SafeBoolPtr(v any) *bool {
+	return ccxt.SafeBoolPtr(v)
+}
+
 func ListTyped(v any) []any {
 	return ccxt.ListTyped(v)
 }
@@ -410,6 +414,10 @@ func GetArgInt64Ptr(args []any, index int, def *int64) *int64 {
 
 func Int64PtrTyped(v any) *int64 {
 	return ccxt.Int64PtrTyped(v)
+}
+
+func Float64PtrTyped(v any) *float64 {
+	return ccxt.Float64PtrTyped(v)
 }
 
 func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {

@@ -994,7 +994,7 @@ final Object finalOi = oi;
 
             (this.loadOutcome((String) (outcome))).join();
             Object outcomeObj = this.outcome((String) (outcome));
-            String ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
+            String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
@@ -1131,7 +1131,7 @@ final Object finalOi = oi;
 
             (this.loadOutcome((String) (outcome))).join();
             Object outcomeObj = this.outcome((String) (outcome));
-            String ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
+            String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
@@ -1248,7 +1248,7 @@ final Object finalOi = oi;
         //     }
         //
         Map<String, Object> marketAny = market;
-        Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         String outcomeLabel = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(((Map<String, Object>)market).get("info"), "outcomeLabel", "YES")) : "YES";
         Boolean isNo = java.util.Objects.equals(outcomeLabel.toUpperCase(), "NO");
         Long timestamp = this.parse8601(this.safeString(raw, "updated_time"));
@@ -1368,8 +1368,8 @@ final Object finalOi = oi;
             List<Object> tickers = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)targets).size(); i++)
             {
-                Object outcomeObj = this.outcome((String) ((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i))));
-                String ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
+                Map<String, Object> outcomeObj = this.outcome((String) ((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i))));
+                String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
                 if (java.util.Objects.equals(ticker, null))
                 {
                     continue;
@@ -1461,9 +1461,9 @@ final Object finalOi = oi;
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
-            String ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
-            Boolean isNo = java.util.Objects.equals(Helpers.GetValue(outcomeObj, "label"), "NO");
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
+            Boolean isNo = java.util.Objects.equals(((Map<String, Object>)outcomeObj).get("label"), "NO");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
@@ -1584,8 +1584,8 @@ final Object finalOi = oi;
             Object limit = limit3;
             (this.loadOutcome((String) (outcome))).join();
             Object outcomeObj = this.outcome((String) (outcome));
-            String ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
-            String seriesTicker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "seriesTicker", ticker);
+            String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
+            String seriesTicker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "seriesTicker", ticker);
             Long periodMin = this.safeInteger(this.timeframes, timeframe);
             if (java.util.Objects.equals(periodMin, null))
             {
@@ -1740,12 +1740,12 @@ final Object finalOi = oi;
         Double previous = this.safeNumber(price, "previous_dollars");
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
-        Object endTimestamp = this.safeTimestamp(ohlcv, "end_period_ts");
+        Long endTimestamp = this.safeTimestamp(ohlcv, "end_period_ts");
         Long durationSeconds = this.safeInteger(this.options, "ohlcvCandleDurationSeconds", 0);
         Object timestamp = endTimestamp;
         if (!java.util.Objects.equals(endTimestamp, null))
         {
-            timestamp = Helpers.subtract(endTimestamp, (durationSeconds * 1000L));
+            timestamp = (endTimestamp - (durationSeconds * 1000L));
         }
         return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber(price, "open_dollars", previous), this.safeNumber(price, "high_dollars", previous), this.safeNumber(price, "low_dollars", previous), this.safeNumber(price, "close_dollars", previous), this.safeNumber(ohlcv, "volume_fp", 0)));
     }
@@ -1780,8 +1780,8 @@ final Object finalOi = oi;
         return BaseExchange.supplyAsync(() -> {
             Long limit = limit3;
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
-            String ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
@@ -1848,7 +1848,7 @@ final Object finalOi = oi;
         Double amount = this.safeNumber(trade, "count", amountFp);
         String rawSide = this.safeStringLower(trade, "taker_side");
         Map<String, Object> marketAny = market;
-        Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String requestedOutcomeLabel = this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
         String outcomeSymbol = this.safeString(outcomeObj, "outcome");
@@ -2008,7 +2008,7 @@ final Object finalOi = oi;
         {
             outcomeKey = (ticker + "-NO");
         }
-        Object mkt = this.safeOutcome((String) (outcomeKey), market);
+        Map<String, Object> mkt = this.safeOutcome((String) (outcomeKey), market);
         Long ts = this.parse8601(this.safeString(fill, "created_time"));
         // action is the order side (buy/sell) of the held leg
         String action = this.safeStringLower(fill, "action");
@@ -2195,7 +2195,7 @@ final Object finalOi = oi;
             }
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
-                Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String marketTicker = this.safeString(outcomeInfo, "ticker");
                 if (!java.util.Objects.equals(marketTicker, null))
@@ -2321,7 +2321,7 @@ final Object finalOi = oi;
         Boolean tickerMissing = (java.util.Objects.equals(ticker, null));
         Boolean useHeldYesTicker = (Boolean.TRUE.equals(heldYes) || Boolean.TRUE.equals(tickerMissing));
         Object heldTicker = ((Boolean.TRUE.equals(useHeldYesTicker))) ? ticker : ((ticker + "-NO"));
-        Object mkt = this.safeOutcome((String) (heldTicker), market);
+        Map<String, Object> mkt = this.safeOutcome((String) (heldTicker), market);
         // which leg won; market_result is yes or no
         String marketResult = this.safeStringUpper(settlement, "market_result");
         Boolean won = (java.util.Objects.equals(marketResult, heldLabel));
@@ -2403,7 +2403,7 @@ final Object finalOi = oi;
     public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String ticker = this.safeString(position, "ticker");
-        Object outcomeObj = this.safeOutcome((String) (ticker), market);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (ticker), market);
         Double yesContracts = this.safeNumber(position, "position"); // positive = long YES
         String positionSide = null;
         Double contractsValue = null;
@@ -2681,7 +2681,7 @@ final Object finalOi = oi;
         {
             outcomeKey = (ticker + "-NO");
         }
-        Object mkt = this.safeOutcome((String) (outcomeKey), market);
+        Map<String, Object> mkt = this.safeOutcome((String) (outcomeKey), market);
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
@@ -2815,9 +2815,9 @@ final Object finalOi = oi;
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")) ;
             }
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
-            String ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
-            Boolean isNo = (java.util.Objects.equals(Helpers.GetValue(outcomeObj, "label"), "NO"));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            String ticker = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker");
+            Boolean isNo = (java.util.Objects.equals(((Map<String, Object>)outcomeObj).get("label"), "NO"));
             Boolean isBuy = (java.util.Objects.equals(side, "buy"));
             // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
             // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
@@ -3066,8 +3066,8 @@ final Object finalOi = oi;
             }};
             if (!java.util.Objects.equals(outcome, null))
             {
-                Object outcomeObj = this.outcome((String) (outcome));
-                ((Map<String, Object>)request).put("ticker", this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker"));
+                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+                ((Map<String, Object>)request).put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
             }
             Map<String, Object> restingResponse = (this.kalshiPrivateGetPortfolioOrders(request)).join();
             List<Object> restingOrders = (List<Object>) this.safeList(restingResponse, "orders", new ArrayList<Object>(Arrays.asList()));

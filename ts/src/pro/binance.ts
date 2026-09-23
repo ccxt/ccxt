@@ -216,7 +216,7 @@ export default class binance extends binanceRest {
         };
     }
 
-    requestId (url: string) {
+    requestId (url: string): number {
         const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);

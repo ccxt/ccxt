@@ -848,9 +848,9 @@ func (this *Coinspot) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var ids []string = ObjectKeys(prices)
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
-		var market any = this.SafeMarket(id)
-		if GetValue(market, "spot") == true {
-			var symbol any = GetValue(market, "symbol")
+		var market map[string]any = MapTyped(this.SafeMarket(id))
+		if market["spot"] == true {
+			var symbol *string = SafeStringPtr(market["symbol"])
 			var ticker any = prices[id]
 			AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 		}
@@ -941,7 +941,7 @@ func (this *Coinspot) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1019,7 +1019,7 @@ func (this *Coinspot) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = nil
 	var priceString *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var audTotal *string = this.SafeString(trade, "audtotal")
 	var costString *string = this.SafeString(trade, "total", audTotal)
 	var side *string = this.SafeString(trade, "side")

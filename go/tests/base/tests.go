@@ -295,12 +295,12 @@ func (this *testMainClass) ExpandSettings(exchange ccxt.ICoreExchange) {
 }
 func (this *testMainClass) AddPadding(message any, size any) any {
 	// has to be transpilable
-	var res any = ""
+	var res string = ""
 	var messageLength int = GetLength(message)                        // avoid php transpilation issue
 	var missingSpace any = Subtract(Subtract(size, messageLength), 0) // - 0 is added just to trick transpile to treat the .length as a string for php
 	if IsGreaterThan(missingSpace, 0) {
 		for i := 0; IsLessThan(i, missingSpace); i++ {
-			res = Add(res, " ")
+			res += " "
 		}
 	}
 	return Add(message, res)
@@ -387,12 +387,12 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	// check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
 	var methodNames []any = []any{methodName, Add(Add(methodName, "."), this.Ext)}
 	for i := 0; i < len(methodNames); i++ {
-		var mName any = func() any {
+		var mName *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(methodNames) {
 				return DerefScalar(methodNames[i])
 			}
 			return nil
-		}()
+		}())
 		if InOp(this.SkippedMethods, mName) {
 			// if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
 			if IsString(GetValue(this.SkippedMethods, mName)) {
@@ -680,8 +680,7 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 	// todo - not yet ready in other langs too
 	// promises.push (testThrottle ());
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	// now count which test-methods retuned `false` from "testSafe" and dump that info below
 	var failedMethods []any = []any{}
 	for i := 0; i < len(testNames); i++ {
@@ -800,12 +799,12 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	// if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
 	if IsEqual(symbol, nil) {
 		for i := 0; i < len(codes); i++ {
-			var currentCode any = func() any {
+			var currentCode *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(codes) {
 					return DerefScalar(codes[i])
 				}
 				return nil
-			}()
+			}())
 			var marketsArrayForCurrentCode []any = exchange.FilterBy(currentTypeMarkets, "base", currentCode)
 			var indexedMkts map[string]any = exchange.IndexBy(marketsArrayForCurrentCode, "symbol")
 			var symbolsArrayForCurrentCode []string = ObjectKeys(indexedMkts)
@@ -882,7 +881,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	// the statically chosen symbol, which keeps the volumes comparable (quote
 	// volumes denominated in different quote currencies are not) and keeps a
 	// per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
-	var defaultSymbol any = GetValue(defaultSymbols, 0)
+	var defaultSymbol *string = SafeStringPtr(GetValue(defaultSymbols, 0))
 	var defaultMarket any = exchange.SafeDict(exchange.GetMarkets(), defaultSymbol)
 	if IsEqual(defaultMarket, nil) {
 
@@ -1977,7 +1976,7 @@ func (this *testMainClass) UrlencodedToDict(url any) any {
 		if keysLength != 2 {
 			continue
 		}
-		var key any = GetValue(keyValue, 0)
+		var key *string = SafeStringPtr(GetValue(keyValue, 0))
 		var value any = GetValue(keyValue, 1)
 		if (value != nil) && ((StartsWith(value, "[")) || (StartsWith(value, "{"))) {
 			// some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
@@ -2711,8 +2710,7 @@ func (this *testMainClass) testWsStaticallyBody(ch chan any, exchange ccxt.ICore
 				// after the first resolution, so serialize only at the end
 				var promises []any = []any{CallExchangeMethodDynamically(exchange, method, input), this.InjectWsMessagesAsync(exchange, url, messages)}
 
-				results := (<-promiseAll(promises))
-				PanicOnError(results)
+				var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 				var unifiedResult any = JsonParse(JsonStringify(GetValue(results, 0)))
 				this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, GetValue(data, "parsedResponse"))
 				this.AssertWsSentMessages(exchange, url, data)

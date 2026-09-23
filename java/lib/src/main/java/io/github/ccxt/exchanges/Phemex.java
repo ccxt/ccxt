@@ -2435,9 +2435,9 @@ public class Phemex extends PhemexApi
         //
         Object priceString = null;
         Object amountString = null;
-        Object timestamp = null;
+        Long timestamp = null;
         String id = null;
-        Object side = null;
+        String side = null;
         Object costString = null;
         String type = null;
         Map<String, Object> fee = null;
@@ -2503,7 +2503,7 @@ public class Phemex extends PhemexApi
                     feeCurrencyCode = this.safeCurrencyCode(currencyId);
                 } else
                 {
-                    Object ptFeeRv = this.omitZero(this.safeString(trade, "ptFeeRv"));
+                    String ptFeeRv = this.omitZero(this.safeString(trade, "ptFeeRv"));
                     if (!java.util.Objects.equals(ptFeeRv, null))
                     {
                         feeCostString = ptFeeRv;
@@ -2558,10 +2558,10 @@ public class Phemex extends PhemexApi
             }};
         }
         final String finalId = id;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalOrderId = orderId;
         final String finalType = type;
-        final Object finalSide = side;
+        final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Object finalPriceString = priceString;
         final Object finalAmountString = amountString;
@@ -2634,7 +2634,7 @@ public class Phemex extends PhemexApi
             String lockedTradingBalance = this.fromEn(lockedTradingBalanceEv, scale);
             String lockedWithdraw = this.fromEn(lockedWithdrawEv, scale);
             String used = Precise.stringAdd(lockedTradingBalance, lockedWithdraw);
-            Object lastUpdateTimeNs = this.safeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001);
+            Long lastUpdateTimeNs = this.safeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001);
             timestamp = (((java.util.Objects.equals(timestamp, null)))) ? lastUpdateTimeNs : Helpers.mathMax(timestamp, lastUpdateTimeNs);
             ((Map<String, Object>)account).put("total", total);
             ((Map<String, Object>)account).put("used", used);
@@ -3230,7 +3230,7 @@ public class Phemex extends PhemexApi
             lastTradeTimestamp = null;
         }
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        Object triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
+        String triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
         Boolean postOnly = (java.util.Objects.equals(timeInForce, "PO"));
         Object reduceOnly = this.safeValue(order, "reduceOnly");
         String execInst = this.safeString(order, "execInst");
@@ -3240,12 +3240,12 @@ public class Phemex extends PhemexApi
         }
         String takeProfit = this.safeString(order, "takeProfitRp");
         String stopLoss = this.safeString(order, "stopLossRp");
-        Object feeValue = this.omitZero(this.safeString(order, "execFeeRv"));
-        Object ptFeeRv = this.omitZero(this.safeString(order, "ptFeeRv"));
+        String feeValue = this.omitZero(this.safeString(order, "execFeeRv"));
+        String ptFeeRv = this.omitZero(this.safeString(order, "ptFeeRv"));
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeValue, null))
         {
-            final Object finalFeeValue = feeValue;
+            final String finalFeeValue = feeValue;
             final Map<String, Object> finalMarket = market;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeValue );
@@ -3253,7 +3253,7 @@ public class Phemex extends PhemexApi
             }};
         } else if (!java.util.Objects.equals(ptFeeRv, null))
         {
-            final Object finalPtFeeRv = ptFeeRv;
+            final String finalPtFeeRv = ptFeeRv;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalPtFeeRv );
                 put( "currency", "PT" );
@@ -6061,7 +6061,7 @@ final Object finalI = i;
         Object query = this.omit(parameters, this.extractParams(path));
         Object requestPath = ("/" + this.implodeParams(path, parameters));
         Object url = requestPath;
-        Object queryString = "";
+        String queryString = "";
         if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")) || (java.util.Objects.equals(method, "PUT")) || (java.util.Objects.equals(url, "/positions/assign")))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -6097,7 +6097,7 @@ final Object finalI = i;
                 body = payload;
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
-            String auth = ((Helpers.add(requestPath, queryString) + expiryString) + payload);
+            String auth = (((requestPath + queryString) + expiryString) + payload);
             ((Map<String, Object>)headers).put("x-phemex-request-signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         }
         url = Helpers.add(this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)), url);

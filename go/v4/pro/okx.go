@@ -175,9 +175,7 @@ func (this *Okx) subscribeMultipleBody(ch chan any, access any, channel any, opt
 		"args": args,
 	}
 
-	retRes15715 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes15715)
-	ch <- retRes15715
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 func (this *Okx) SubscribeAsync(access any, messageHash any, channel any, symbol any, optionalArgs ...any) <-chan any {
@@ -208,9 +206,7 @@ func (this *Okx) subscribeBody(ch chan any, access any, messageHash any, channel
 		"args": []any{this.DeepExtend(firstArgument, params)},
 	}
 
-	retRes17915 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes17915)
-	ch <- retRes17915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 
@@ -241,9 +237,7 @@ func (this *Okx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes19515 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
-	ccxt.PanicOnError(retRes19515)
-	ch <- retRes19515
+	ch <- ccxt.PanicOnError((<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params)))
 	return nil
 }
 
@@ -290,7 +284,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(channel, ":"), symbol))
 		var marketId any = this.MarketId(symbol)
 		var topic map[string]any = map[string]any{
@@ -356,7 +350,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), symbol))
 		var marketId any = this.MarketId(symbol)
 		var topic map[string]any = map[string]any{
@@ -379,9 +373,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	}
 	var url any = this.GetUrl(channel, access)
 
-	retRes29115 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes29115)
-	ch <- retRes29115
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 
@@ -404,9 +396,7 @@ func (this *Okx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes30315 := (<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes30315)
-	ch <- retRes30315
+	ch <- ccxt.PanicOnError((<-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 func (this *Okx) HandleTrades(client any, message map[string]any) {
@@ -449,12 +439,12 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	for i := 0; i < len(data); i++ {
-		var trade any = this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}())
+		}()))
 		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
@@ -526,8 +516,8 @@ func (this *Okx) watchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
-		messageHashes = append(messageHashes, ccxt.Add(channel+":", symbol))
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+		messageHashes = append(messageHashes, channel+":"+*symbol)
 		var marketId any = this.MarketId(symbol)
 		var topic map[string]any = map[string]any{
 			"channel": channel,
@@ -586,7 +576,7 @@ func (this *Okx) HandleFundingRate(client any, message map[string]any) {
 			return nil
 		}()
 		var fundingRate any = this.ParseFundingRate(rawfr)
-		var symbol any = ccxt.GetValue(fundingRate, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 		}
@@ -649,9 +639,7 @@ func (this *Okx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes48315 := (<-this.UnWatchTickersAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes48315)
-	ch <- retRes48315
+	ch <- ccxt.PanicOnError((<-this.UnWatchTickersAsync([]any{symbol}, params)))
 	return nil
 }
 
@@ -811,8 +799,8 @@ func (this *Okx) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
-		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:ticker:", symbol))
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+		messageHashes = append(messageHashes, "unsubscribe:ticker:"+*symbol)
 		var marketId any = this.MarketId(symbol)
 		var topic map[string]any = map[string]any{
 			"channel": channel,
@@ -826,9 +814,7 @@ func (this *Okx) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var url any = this.GetUrl(channel, "public")
 
-	retRes58815 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes58815)
-	ch <- retRes58815
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 func (this *Okx) HandleTicker(client any, message map[string]any) {
@@ -860,7 +846,7 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var channel *string = this.SafeString(arg, "channel")
 	if channel != nil && *channel == "tickers" {
 		// of the five feeds routed here, only the plain one carries bidPx/askPx —
@@ -870,12 +856,12 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker any = this.ParseTicker(func() any {
+		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}())
+		}()))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		ccxt.AddElementToObject(newTickers, symbol, ticker)
 	}
@@ -988,11 +974,11 @@ func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var data any = this.SafeList(message, "data", []any{})
 	var ticker any = this.SafeDict(data, 0, map[string]any{})
 	var parsedTicker any = this.ParseWsBidAsk(ticker, market)
-	var symbol any = ccxt.GetValue(parsedTicker, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Bidsasks, symbol, parsedTicker)
 	}
@@ -1068,8 +1054,8 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
-			messageHashes = append(messageHashes, ccxt.Add(messageHash+"::", symbol))
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+			messageHashes = append(messageHashes, messageHash+"::"+*symbol)
 		}
 	} else {
 		messageHashes = append(messageHashes, messageHash)
@@ -1204,8 +1190,8 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
-			messageHashes = append(messageHashes, ccxt.Add(messageHash+"::", symbol))
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+			messageHashes = append(messageHashes, messageHash+"::"+*symbol)
 		}
 	} else {
 		messageHashes = append(messageHashes, messageHash)
@@ -1448,9 +1434,7 @@ func (this *Okx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes109515 := (<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params))
-	ccxt.PanicOnError(retRes109515)
-	ch <- retRes109515
+	ch <- ccxt.PanicOnError((<-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)))
 	return nil
 }
 
@@ -1491,18 +1475,18 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any,
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
-		var sym any = func() any {
+		var sym *string = ccxt.SafeStringPtr(func() any {
 			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
 				return ccxt.DerefScalar(symbolAndTimeframe[0])
 			}
 			return nil
-		}()
-		var tf any = func() any {
+		}())
+		var tf *string = ccxt.SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
 				return ccxt.DerefScalar(symbolAndTimeframe[1])
 			}
 			return nil
-		}()
+		}())
 		var marketId any = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval
@@ -1511,7 +1495,7 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any,
 			"instId":  marketId,
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("multi:", channel), ":"), sym))
+		messageHashes = append(messageHashes, "multi:"+channel+":"+*sym)
 	}
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
@@ -1562,18 +1546,18 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
-		var sym any = func() any {
+		var sym *string = ccxt.SafeStringPtr(func() any {
 			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
 				return ccxt.DerefScalar(symbolAndTimeframe[0])
 			}
 			return nil
-		}()
-		var tf any = func() any {
+		}())
+		var tf *string = ccxt.SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
 				return ccxt.DerefScalar(symbolAndTimeframe[1])
 			}
 			return nil
-		}()
+		}())
 		var marketId any = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval
@@ -1582,7 +1566,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 			"instId":  marketId,
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:multi:", channel), ":"), sym))
+		messageHashes = append(messageHashes, "unsubscribe:multi:"+channel+":"+*sym)
 	}
 	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",
@@ -1590,9 +1574,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	}
 	var url any = this.GetUrl("candle", "public")
 
-	retRes118415 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes118415)
-	ch <- retRes118415
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 func (this *Okx) HandleOHLCV(client any, message any) {
@@ -1619,11 +1601,11 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval string = ccxt.Replace(channel, "candle", "")
 	// use a reverse lookup in a static map instead
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	for i := 0; i < len(data); i++ {
 		var parsed any = this.ParseOHLCV(func() any {
 			if i >= 0 && i < len(data) {
@@ -1641,12 +1623,12 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		var messageHash any = ccxt.Add(*channel+":", ccxt.GetValue(market, "id"))
+		var messageHash any = ccxt.Add(*channel+":", market["id"])
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		// for multiOHLCV we need special object, as opposed to other "multi"
 		// methods, because ccxt.OHLCV response item does not contain symbol
 		// or timeframe, thus otherwise it would be unrecognizable
-		var messageHashForMulti any = ccxt.Add("multi:"+*channel+":", symbol)
+		var messageHashForMulti string = "multi:" + *channel + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, stored}, messageHashForMulti)
 	}
 }
@@ -1679,9 +1661,7 @@ func (this *Okx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes125415 := (<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params))
-	ccxt.PanicOnError(retRes125415)
-	ch <- retRes125415
+	ch <- ccxt.PanicOnError((<-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)))
 	return nil
 }
 
@@ -1740,7 +1720,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan any, symbols any, optional
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(depth, ":"), symbol))
 		var marketId any = this.MarketId(symbol)
 		var topic map[string]any = map[string]any{
@@ -1755,8 +1735,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan any, symbols any, optional
 	}
 	var url any = this.GetUrl(depth, "public")
 
-	orderbook := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1808,9 +1787,9 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		subMessageHashes = append(subMessageHashes, ccxt.Add(ccxt.Add(depth, ":"), symbol))
-		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:orderbook:", symbol))
+		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+*symbol)
 		var marketId any = this.MarketId(symbol)
 		var topic map[string]any = map[string]any{
 			"channel": depth,
@@ -1824,9 +1803,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	}
 	var url any = this.GetUrl(depth, "public")
 
-	retRes136215 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(retRes136215)
-	ch <- retRes136215
+	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
 
@@ -1852,9 +1829,7 @@ func (this *Okx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes137715 := (<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params))
-	ccxt.PanicOnError(retRes137715)
-	ch <- retRes137715
+	ch <- ccxt.PanicOnError((<-this.UnWatchOrderBookForSymbolsAsync([]any{symbol}, params)))
 	return nil
 }
 func (this *Okx) HandleDelta(bookside any, delta any) {
@@ -2017,8 +1992,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 	var action *string = this.SafeString(message, "action")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var depths map[string]any = map[string]any{
 		"bbo-tbt":        1,
 		"books":          400,
@@ -2134,9 +2109,7 @@ func (this *Okx) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, request, messageHash)
 	}
 
-	retRes163615 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes163615)
-	ch <- retRes163615
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 
@@ -2165,9 +2138,7 @@ func (this *Okx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 
-	retRes165215 := (<-this.SubscribeAsync("private", "account", "account", nil, params))
-	ccxt.PanicOnError(retRes165215)
-	ch <- retRes165215
+	ch <- ccxt.PanicOnError((<-this.SubscribeAsync("private", "account", "account", nil, params)))
 	return nil
 }
 func (this *Okx) HandleBalanceAndPosition(client any, message map[string]any) {
@@ -2539,7 +2510,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var channel *string = this.SafeString(arg, "channel", "")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	if ccxt.IsEqual(this.Positions, nil) {
@@ -2554,9 +2525,9 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position any = this.ParsePosition(rawPosition)
-		if ccxt.IsEqual(ccxt.GetValue(position, "contracts"), 0) && ccxt.IsEqual(ccxt.GetValue(rawPosition, "posSide"), "net") {
-			ccxt.AddElementToObject(position, "side", "long")
+		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
+		if ccxt.IsEqual(position["contracts"], 0) && ccxt.IsEqual(ccxt.GetValue(rawPosition, "posSide"), "net") {
+			position["side"] = "long"
 			var shortPosition any = this.Clone(position)
 			ccxt.AddElementToObject(shortPosition, "side", "short")
 			cache.(ccxt.Appender).Append(shortPosition)
@@ -2565,9 +2536,9 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHash any = channel
+	var messageHash *string = channel
 	if symbol != nil {
-		messageHash = ccxt.Add(*channel+"::", symbol)
+		messageHash = ccxt.SafeStringPtr(*channel+"::"+*symbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, messageHash)
 }
@@ -2746,7 +2717,7 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 				return nil
 			}()
 			stored.(ccxt.Appender).Append(order)
-			var symbol any = ccxt.GetValue(order, "symbol")
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(order, "symbol"))
 			var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 			marketIds = append(marketIds, market["id"])
 		}
@@ -2831,7 +2802,7 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 		}()
 		var tradeId *string = this.SafeString(rawOrder, "tradeId", "")
 		if ccxt.GetLength(tradeId) > 0 {
-			var order any = this.ParseOrder(rawOrder)
+			var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
 			filteredOrders = append(filteredOrders, order)
 		}
 	}
@@ -2854,7 +2825,7 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 		}()
 		var trade any = this.OrderToTrade(rawTrade)
 		myTrades.(ccxt.Appender).Append(trade)
-		var symbol any = ccxt.GetValue(trade, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		if symbol != nil {
 			ccxt.AddElementToObject(symbols, symbol, true)
 		}
@@ -2932,9 +2903,7 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 		"args": []any{args},
 	}
 
-	retRes226615 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes226615)
-	ch <- retRes226615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Okx) HandlePlaceOrders(client any, message map[string]any) {
@@ -3025,9 +2994,7 @@ func (this *Okx) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 		"args": []any{args},
 	}
 
-	retRes233915 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes233915)
-	ch <- retRes233915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 
@@ -3083,9 +3050,7 @@ func (this *Okx) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any
 		"args": []any{this.Extend(arg, params)},
 	}
 
-	retRes238015 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes238015)
-	ch <- retRes238015
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 
@@ -3144,9 +3109,7 @@ func (this *Okx) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) a
 		"args": args,
 	}
 
-	retRes242415 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-	ccxt.PanicOnError(retRes242415)
-	ch <- retRes242415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil
 }
 
@@ -3195,9 +3158,7 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 		}, params)},
 	}
 
-	retRes245815 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes245815)
-	ch <- retRes245815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {
@@ -3444,7 +3405,7 @@ func (this *Okx) HandleUnsubscriptionOrderBook(client any, symbol any, channel a
 }
 func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol any, channel any) {
 	var tf string = ccxt.Replace(channel, "candle", "")
-	var timeframe any = this.FindTimeframe(tf)
+	var timeframe *string = this.FindTimeframe(tf)
 	if timeframe == nil {
 		return
 	}

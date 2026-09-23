@@ -636,11 +636,11 @@ func (this *Coinone) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances any = this.Omit(response, []any{"errorCode", "result", "normalWallets"})
+	var balances map[string]any = MapTyped(this.Omit(response, []any{"errorCode", "result", "normalWallets"}))
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
-		var balance map[string]any = MapTyped(GetValue(balances, currencyId))
+		var balance map[string]any = MapTyped(balances[currencyId])
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(balance, "avail")
@@ -1003,7 +1003,7 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "qty")
 	var orderId *string = this.SafeString(trade, "orderId")
 	var feeCostString *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		feeCostString = Precise.StringAbs(feeCostString)
 		var feeRateString *string = this.SafeString(trade, "feeRate")
@@ -1323,7 +1323,7 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	status = this.ParseOrderStatus(status)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(order, "fee")
 	if feeCostString != nil {
 		var feeCurrencyCode any = func() any {

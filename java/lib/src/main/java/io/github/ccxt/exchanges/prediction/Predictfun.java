@@ -1480,7 +1480,7 @@ final Object finalMarketSymbol = marketSymbol;
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Predictfun.this.safeString(info, "marketId") );
@@ -1578,7 +1578,7 @@ final Object finalMarketSymbol = marketSymbol;
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Predictfun.this.safeString(info, "marketId") );
@@ -1864,7 +1864,7 @@ final Object finalMarketSymbol = marketSymbol;
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", Predictfun.this.safeString(info, "marketId") );
@@ -2342,7 +2342,7 @@ final Object finalMarketSymbol = marketSymbol;
             Map<String, Object> parameters = parameters3;
             (this.authenticate()).join();
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             if (java.util.Objects.equals(tokenId, null))
             {
@@ -2647,7 +2647,7 @@ final Object finalMarketSymbol = marketSymbol;
             List<Object> wantedOutcomes = this.toArray(outcomes);
             for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
             {
-                Object outcomeObj = this.outcome((String) ((wantedOutcomes == null || i < 0 || i >= wantedOutcomes.size() ? null : wantedOutcomes.get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((wantedOutcomes == null || i < 0 || i >= wantedOutcomes.size() ? null : wantedOutcomes.get(i))));
                 String wantedId = this.safeString(outcomeObj, "outcomeId", "");
                 ((Map<String, Object>)wanted).put((String)wantedId, true);
             }
@@ -2703,7 +2703,7 @@ final Object finalMarketSymbol = marketSymbol;
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             // scope the call to the outcome's market so the wallet's other positions are not paged through
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3582,7 +3582,7 @@ final Object finalMarketSymbol = marketSymbol;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
-                Object outcomeObj = this.outcome((String) (outcome));
+                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
                 String marketSymbol = this.safeString(outcomeObj, "market");
                 Map<String, Object> marketObj = (Map<String, Object>) this.safeDict(this.markets, marketSymbol, new HashMap<String, Object>() {{}});
                 Map<String, Object> marketRow = (Map<String, Object>) this.safeDict(marketObj, "info", new HashMap<String, Object>() {{}});
@@ -3710,7 +3710,7 @@ final Object finalMarketSymbol = marketSymbol;
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String marketId = this.safeString(info, "marketId");
             if (java.util.Objects.equals(marketId, null))
@@ -3722,7 +3722,7 @@ final Object finalMarketSymbol = marketSymbol;
             // complement - so a single subscription serves both outcomes and each waits on its own hash
             String topic = ("predictOrderbook/" + marketId);
             String messageHash = ("orderbook::" + outcomeHandle);
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "requestId", requestId );
@@ -3775,7 +3775,7 @@ final Object finalMarketSymbol = marketSymbol;
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String marketId = this.safeString(info, "marketId");
             if (java.util.Objects.equals(marketId, null))
@@ -3798,7 +3798,7 @@ final Object finalMarketSymbol = marketSymbol;
                     ((List<Object>)messageHashes).add(("unsubscribe::orderbook::" + handle));
                 }
             }
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "requestId", requestId );
@@ -3973,7 +3973,7 @@ final Object finalSubHash = subHash;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
-                Object outcomeObj = this.outcome((String) (outcome));
+                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
                 outcome = this.safeOutcomeSymbol((String) (null), outcomeObj);
                 messageHash = ("orders::" + outcome);
             } else
@@ -4032,7 +4032,7 @@ final Object finalSubHash = subHash;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
-                Object outcomeObj = this.outcome((String) (outcome));
+                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
                 outcome = this.safeOutcomeSymbol((String) (null), outcomeObj);
                 messageHash = ("myTrades::" + outcome);
             } else
@@ -4169,7 +4169,7 @@ final Object finalSubHash = subHash;
         return BaseExchange.supplyAsync(() -> {
 
             String topic = (this.walletEventsTopic()).join();
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "requestId", requestId );
@@ -4262,7 +4262,7 @@ final Object finalSubHash = subHash;
         return BaseExchange.supplyAsync(() -> {
 
             String topic = (this.walletEventsTopic()).join();
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "requestId", requestId );
@@ -4328,7 +4328,7 @@ final Object finalSubHash = subHash;
      * @description a monotonic id the venue echoes back so a subscription reply can be matched to its request
      * @returns {int} the next request id
      */
-    public Object requestId()
+    public Long requestId()
     {
         Object next;
         synchronized (this) {
@@ -4336,7 +4336,7 @@ final Object finalSubHash = subHash;
         next = this.sum(previous, 1);
         Helpers.addElementToObject(this.options, "requestId", next);
         }
-        return next;
+        return Helpers.toLongOrNull(next);
     }
 
     /**
@@ -4957,11 +4957,11 @@ final Object finalBids = bids;
         }
     }
 
-    public Object nonce()
+    public Long nonce()
     {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     /**

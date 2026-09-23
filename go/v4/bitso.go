@@ -506,7 +506,7 @@ func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var balanceUpdates []any = SafeListTypedDefault(item, "balance_updates", []any{})
 	var firstBalance map[string]any = SafeMapTyped(balanceUpdates, 0)
 	var direction any = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var amount *string = this.SafeString(firstBalance, "amount")
 	var currencyId *string = this.SafeString(firstBalance, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -624,8 +624,8 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var flatRate map[string]any = SafeMapTyped(fees, "flat_rate")
 		var takerString *string = this.SafeString(flatRate, "taker")
 		var makerString *string = this.SafeString(flatRate, "maker")
-		var taker any = this.ParseNumber(Precise.StringDiv(takerString, "100"))
-		var maker any = this.ParseNumber(Precise.StringDiv(makerString, "100"))
+		var taker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(takerString, "100")))
+		var maker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(makerString, "100")))
 		var feeTiers []any = SafeListTyped(fees, "structure")
 		var fee map[string]any = map[string]any{
 			"taker":      taker,
@@ -1055,13 +1055,13 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	if since != nil {
 		request["start"] = since
 		if limit != nil {
-			var duration any = this.ParseTimeframe(timeframe)
+			var duration int64 = this.ParseTimeframe(timeframe)
 			request["end"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
 		}
 	} else if limit != nil {
 		var now int64 = this.Milliseconds()
 		request["end"] = now
-		request["start"] = Subtract(now, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit))
+		request["start"] = Subtract(now, Multiply(this.ParseTimeframe(timeframe)*1000, limit))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOhlc(this.Extend(request, params))).Raw))
@@ -1182,7 +1182,7 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) any {
 	if amount != nil {
 		amount = Precise.StringAbs(amount)
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "fees_amount")
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fees_currency")
@@ -1535,7 +1535,7 @@ func (this *Bitso) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	if !IsArray(ids) {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() ids argument should be an array"))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1602,12 +1602,12 @@ func (this *Bitso) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var payload []any = SafeListTyped(response, "payload")
 	var canceledOrders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var order any = this.ParseOrder(func() any {
+		var order map[string]any = MapTyped(this.ParseOrder(func() any {
 			if i >= 0 && i < len(payload) {
 				return DerefScalar(payload[i])
 			}
 			return nil
-		}())
+		}()))
 		canceledOrders = append(canceledOrders, order)
 	}
 
@@ -1911,9 +1911,9 @@ func (this *Bitso) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundings(params)).Raw))
@@ -2270,7 +2270,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 		var currencyId string = GetValue(withdrawalKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (InOp(codes, code))) {
-			var withdrawFee any = this.ParseNumber(GetValue(withdrawalResponse, currencyId))
+			var withdrawFee *float64 = Float64PtrTyped(this.ParseNumber(GetValue(withdrawalResponse, currencyId)))
 			var resultValue any = this.SafeDict(result, code)
 			if IsEqual(resultValue, nil) {
 				AddElementToObject(result, code, this.DepositWithdrawFee(map[string]any{}))
@@ -2412,7 +2412,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString2(transaction, "network", "method")
 	var status *string = this.SafeString(transaction, "status")
 	var withdrawId *string = this.SafeString(transaction, "wid")
-	var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
+	var networkCode *string = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
 	var networkCodeUpper any = func() any {
 		if networkCode != nil {
 			return ToUpper(networkCode)

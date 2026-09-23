@@ -602,8 +602,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -658,9 +657,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes47615 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes47615)
-	ch <- retRes47615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
@@ -700,7 +697,7 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(entry, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var levels any = this.SafeList(entry, "l", []any{})
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
@@ -718,7 +715,7 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -846,9 +843,7 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		},
 	}
 
-	retRes60915 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(retRes60915)
-	ch <- retRes60915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
 
@@ -971,9 +966,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes68415 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes68415)
-	ch <- retRes68415
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Pacifica) HandleWsTickers(client any, message map[string]any) any {
@@ -1007,9 +1000,9 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(info, "symbol")
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
-		var ticker any = this.ParseWsTicker(info, market)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(info, market))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		parsedTickers = append(parsedTickers, ticker)
 	}
@@ -1065,8 +1058,8 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseWsTrade(rawTrade)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
+		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
 			ccxt.AddElementToObject(symbols, symbol, true)
 		}
@@ -1185,9 +1178,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes84715 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes84715)
-	ch <- retRes84715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Pacifica) HandleTrades(client any, message map[string]any) {
@@ -1212,7 +1203,7 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	var first map[string]any = ccxt.SafeMapTyped(entry, 0)
 	var marketId *string = this.SafeString(first, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
@@ -1221,10 +1212,10 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	var trades any = ccxt.GetValue(this.Trades, symbol)
 	for i := 0; i < ccxt.GetArrayLength(entry); i++ {
 		var data any = this.SafeDict(entry, i, map[string]any{})
-		var trade any = this.ParseWsTrade(data)
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 		trades.(ccxt.Appender).Append(trade)
 	}
-	var messageHash any = ccxt.Add("trade:", symbol)
+	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
 func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -1269,7 +1260,7 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(trade, "a")
 	var marketId *string = this.SafeString(trade, "s")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var id *string = this.SafeString(trade, "h")
 	var fee *string = this.SafeString(trade, "f")
 	var side *string = this.SafeString2(trade, "ts", "d")
@@ -1425,13 +1416,11 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 			"interval": timeframe,
 		},
 	}
-	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
+	var subMessageHash any = ccxt.Add("candles:"+timeframe+":", symbol)
 	var messagehash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var message map[string]any = this.Extend(request, params)
 
-	retRes103715 := (<-this.Watch(url, messagehash, message, messagehash))
-	ccxt.PanicOnError(retRes103715)
-	ch <- retRes103715
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messagehash, message, messagehash)))
 	return nil
 }
 func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
@@ -1455,7 +1444,7 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timeframe *string = this.SafeString(data, "i")
 	if timeframe == nil {
 		return
@@ -1472,7 +1461,7 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	}
 	var parsed any = this.ParseOHLCV(data)
 	ohlcv.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add("candles:"+*timeframe+":", symbol)
+	var messageHash string = "candles:" + *timeframe + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
 
@@ -1597,9 +1586,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes115615 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes115615)
-	ch <- retRes115615
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Pacifica) HandleOrder(client any, message map[string]any) {
@@ -1649,7 +1636,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var order any = this.ParseOrder(rawOrder)
+		var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
 		stored.(ccxt.Appender).Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {
@@ -1703,9 +1690,9 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
-	var subMessageHash any = ccxt.Add("orderbook:", symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var subMessageHash string = "orderbook:" + *symbol
+	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Orderbooks, symbol) {
 		ccxt.Remove(this.Orderbooks, symbol)
@@ -1714,9 +1701,9 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription any
 func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
-	var subMessageHash any = ccxt.Add("trade:", symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var subMessageHash string = "trade:" + *symbol
+	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Trades, symbol) {
 		ccxt.Remove(this.Trades, symbol)
@@ -1734,14 +1721,14 @@ func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) 
 func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(subscription, "interval")
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe == nil {
 		return
 	}
-	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
-	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var subMessageHash string = "candles:" + *timeframe + ":" + *symbol
+	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if (symbol != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
 		if (timeframe != nil) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {

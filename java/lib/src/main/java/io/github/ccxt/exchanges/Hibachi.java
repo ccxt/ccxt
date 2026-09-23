@@ -680,9 +680,9 @@ public class Hibachi extends HibachiApi
         String amount = this.safeString(trade, "quantity");
         Long timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
         String cost = Precise.stringMul(price, amount);
-        Object side = null;
+        String side = null;
         Map<String, Object> fee = null;
-        Object orderType = null;
+        String orderType = null;
         String orderId = null;
         String takerOrMaker = null;
         if (java.util.Objects.equals(id, null))
@@ -708,10 +708,10 @@ public class Hibachi extends HibachiApi
             }
         }
         final String finalId = id;
-        final Object finalSide = side;
+        final String finalSide = side;
         final String finalOrderId = orderId;
         final String finalTakerOrMaker = takerOrMaker;
-        final Object finalOrderType = orderType;
+        final String finalOrderType = orderType;
         final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -1143,7 +1143,7 @@ public class Hibachi extends HibachiApi
         return this.orderMessage(market, nonce, feeRate, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
-    public Object createOrderRequest(Object nonce, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(Object nonce, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -1206,9 +1206,9 @@ public class Hibachi extends HibachiApi
             ((Map<String, Object>)request).put("triggerPrice", triggerPrice);
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"))));
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(Object nonce, String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(Object nonce, String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(nonce, symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1235,8 +1235,8 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
-            Object request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Long nonce = this.nonce();
+            Map<String, Object> request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             ((Map<String, Object>)request).put("accountId", this.getAccountId());
             Map<String, Object> response = (this.privatePostTradeOrder(request)).join();
             //
@@ -1287,7 +1287,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -1298,7 +1298,7 @@ public class Hibachi extends HibachiApi
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest((nonce + ((long) i)), symbol, type, side, amount, price, orderParams);
                 ((Map<String, Object>)orderRequest).put("action", "place");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1339,7 +1339,7 @@ public class Hibachi extends HibachiApi
         return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object editOrderRequest(Object nonce, String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> editOrderRequest(Object nonce, String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -1365,9 +1365,9 @@ public class Hibachi extends HibachiApi
             put( "maxFeesPercent", Hibachi.this.numberToString(feeRate) );
             put( "signature", signature );
         }};
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object editOrderRequest(Object nonce, String id, String symbol, String type, String side, Object... optionalArgs)
+    public Map<String, Object> editOrderRequest(Object nonce, String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrderRequest(nonce, id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -1395,8 +1395,8 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
-            Object request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Long nonce = this.nonce();
+            Map<String, Object> request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             ((Map<String, Object>)request).put("accountId", this.getAccountId());
             (this.privatePutTradeOrder(request)).join();
             // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
@@ -1447,7 +1447,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -1459,7 +1459,7 @@ public class Hibachi extends HibachiApi
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.editOrderRequest((nonce + ((long) i)), id, symbol, type, side, amount, price, orderParams);
                 ((Map<String, Object>)orderRequest).put("action", "modify");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1636,7 +1636,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             String nonce16 = this.intToBase16(nonce);
             String noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
             Object message = this.base16ToBinary(noncePadded);
@@ -1798,9 +1798,9 @@ public class Hibachi extends HibachiApi
         return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object signMessage(Object message, Object privateKey)
@@ -2582,7 +2582,7 @@ public class Hibachi extends HibachiApi
     public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         String transactionType = this.safeString(item, "transactionType");
-        Object timestamp = null;
+        Long timestamp = null;
         String type = null;
         String direction = null;
         Double amount = null;
@@ -2633,7 +2633,7 @@ public class Hibachi extends HibachiApi
         final Double finalAmount = amount;
         final Map<String, Object> finalFee = fee;
         final String finalDirection = direction;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalType = type;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "id", Hibachi.this.safeString(item, "id") );
@@ -3036,7 +3036,7 @@ public class Hibachi extends HibachiApi
         //         "timestampNsPartial": 0
         //     }
         //
-        Object timestamp = this.safeTimestamp(settlement, "timestamp");
+        Long timestamp = this.safeTimestamp(settlement, "timestamp");
         String marketId = this.safeString(settlement, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", settlement );

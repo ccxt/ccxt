@@ -65,9 +65,7 @@ func (this *Bitopro) watchPublicBody(ch chan any, path any, messageHash any, mar
 	defer ccxt.ReturnPanicError(ch)
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "public"), "/"), path), "/"), marketId)
 
-	retRes5315 := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(retRes5315)
-	ch <- retRes5315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash)))
 	return nil
 }
 
@@ -112,8 +110,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		endPart = ccxt.Add(ccxt.Add(market["id"], ":"), this.NumberToString(limit))
 	}
 
-	orderbook := (<-this.WatchPublicAsync("order-books", messageHash, endPart))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync("order-books", messageHash, endPart))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -142,7 +139,7 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
@@ -218,8 +215,8 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var market any = this.SafeMarket(marketId, nil, "_")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
 	var rawData any = this.SafeList(message, "data", []any{})
@@ -321,7 +318,7 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trades any = this.MyTrades
-	var parsed any = this.ParseWsTrade(data)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	trades.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	client.(ccxt.ClientInterface).Resolve(trades, ccxt.Add(ccxt.Add(messageHash, ":"), symbol))
@@ -367,7 +364,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var amount *string = this.SafeString(trade, "volume")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *string = this.SafeString(trade, "fee")
 	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
 	if feeAmount != nil {
@@ -430,9 +427,7 @@ func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("TICKER"+":", symbol)
 
-	retRes35215 := (<-this.WatchPublicAsync("tickers", messageHash, market["id"]))
-	ccxt.PanicOnError(retRes35215)
-	ch <- retRes35215
+	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync("tickers", messageHash, market["id"])))
 	return nil
 }
 func (this *Bitopro) HandleTicker(client any, message map[string]any) {
@@ -459,15 +454,15 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 		return // some TICKER frames arrive without a pair - nothing to resolve them against
 	}
 	// market-ids are lowercase in REST API and uppercase in WS API
-	var market any = this.SafeMarket(marketId, nil, "_")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
-	var result any = this.ParseTicker(message, market)
-	ccxt.AddElementToObject(result, "symbol", this.SafeString(market, "symbol")) // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
+	var result map[string]any = ccxt.MapTyped(this.ParseTicker(message, market))
+	result["symbol"] = this.SafeString(market, "symbol") // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	ccxt.AddElementToObject(result, "timestamp", timestamp)
-	ccxt.AddElementToObject(result, "datetime", this.Iso8601(timestamp)) // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
+	result["timestamp"] = timestamp
+	result["datetime"] = this.Iso8601(timestamp) // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
 	ccxt.AddElementToObject(this.Tickers, symbol, result)
 	client.(ccxt.ClientInterface).Resolve(result, messageHash)
 }
@@ -532,9 +527,7 @@ func (this *Bitopro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
 	this.Authenticate(url)
 
-	retRes44215 := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(retRes44215)
-	ch <- retRes44215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash)))
 	return nil
 }
 func (this *Bitopro) HandleBalance(client any, message map[string]any) {

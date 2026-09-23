@@ -359,10 +359,10 @@ func (this *Coincheck) ParseBalance(response any) any {
 	for i := 0; i < len(codes); i++ {
 		var code string = GetValue(codes, i).(string)
 		var currency map[string]any = MapTyped(this.Currency(code))
-		var currencyId any = currency["id"]
+		var currencyId *string = SafeStringPtr(currency["id"])
 		if InOp(response, currencyId) {
 			var account map[string]any = this.Account()
-			var reserved any = Add(currencyId, "_reserved")
+			var reserved string = *currencyId + "_reserved"
 			account["free"] = this.SafeString(response, currencyId)
 			account["used"] = this.SafeString(response, reserved)
 			result[code] = account
@@ -499,7 +499,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// Only BTC/JPY is meaningful
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -737,14 +737,14 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "rate")
 	var marketId *string = this.SafeString(trade, "pair")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var baseId any = GetValue(market, "baseId")
-	var quoteId any = GetValue(market, "quoteId")
-	var symbol any = GetValue(market, "symbol")
+	var baseId *string = SafeStringPtr(GetValue(market, "baseId"))
+	var quoteId *string = SafeStringPtr(GetValue(market, "quoteId"))
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var takerOrMaker any = nil
 	var amountString *string = nil
 	var costString *string = nil
 	var side *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var orderId *string = nil
 	if InOp(trade, "liquidity") {
 		if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "T" {
@@ -954,7 +954,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 		return nil
 	}
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var fee map[string]any = MapTyped(this.SafeDict(fees, market["id"], map[string]any{}))
 		AddElementToObject(result, symbol, map[string]any{
@@ -1103,10 +1103,10 @@ func (this *Coincheck) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -1176,9 +1176,9 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
@@ -1262,7 +1262,7 @@ func (this *Coincheck) ParseTransaction(transaction any, optionalArgs ...any) an
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var updated *int64 = this.Parse8601(this.SafeString(transaction, "confirmed_at"))
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost != nil {
 		fee = map[string]any{

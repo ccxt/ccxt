@@ -384,7 +384,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	// maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
 	// markets — then flatten those markets.
 	if queriesLength > 0 {
-		var eventParams any = this.Omit(params, []any{"limit"})
+		var eventParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
 
 		events := (<-this.FetchEventsAsync(eventParams))
 		ccxt.PanicOnError(events)
@@ -406,7 +406,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		ch <- queryMarkets
 		return nil
 	}
-	var rest any = this.Omit(params, []any{"query", "queries", "limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit"}))
 	// no query: page the markets listing directly. Cap the total collected so an unscoped
 	// loadMarkets cannot run away through every kalshi market via the cursor.
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 1000))
@@ -628,12 +628,10 @@ func (this *Kalshi) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		}
 	}
 
-	retRes39015 := (<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol))
-	ccxt.PanicOnError(retRes39015)
 	// free-text fallback: the base derives a search query from the handle's words, resolves it
 	// through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich ccxt.BadSymbol
 	// on a genuine miss
-	ch <- retRes39015
+	ch <- ccxt.PanicOnError((<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol)))
 	return nil
 }
 
@@ -657,8 +655,13 @@ func (this *Kalshi) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 	var tickers []any = []any{}
 	var seen map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
-		var outcomeSymbol any = ccxt.GetValue(outcomeSymbols, i)
-		if ccxt.GetIndexOf(outcomeSymbol, ":") >= 0 {
+		var outcomeSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeSymbols, i))
+		if func() int {
+			if outcomeSymbol == nil {
+				return -1
+			}
+			return strings.Index(*outcomeSymbol, ":")
+		}() >= 0 {
 			continue
 		}
 		// parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
@@ -869,12 +872,12 @@ func (this *Kalshi) ParseMarket(raw any) any {
 	var outcomes []any = []any{}
 	var resolvedOutcome any = nil
 	for oi := 0; oi < len(outcomeLabels); oi++ {
-		var label any = func() any {
+		var label *string = ccxt.SafeStringPtr(func() any {
 			if oi >= 0 && oi < len(outcomeLabels) {
 				return ccxt.DerefScalar(outcomeLabels[oi])
 			}
 			return nil
-		}()
+		}())
 		var outcomeHandle any = this.SlugToOutcomeSymbol(eventTicker, subtitleOrTicker, label)
 		var winnerRaw any = nil
 		var settleFractionRaw any = nil
@@ -1659,7 +1662,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 		// hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
 		var tfKeys []string = ccxt.ObjectKeys(this.Timeframes)
 		var supported string = strings.Join(tfKeys, ", ")
-		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOHLCV() does not support the ", timeframe), " timeframe (supported: "), supported), ")")))
+		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() does not support the " + timeframe + " timeframe (supported: " + supported + ")"))
 	}
 	var request map[string]any = map[string]any{
 		"series_ticker":   seriesTicker,
@@ -1667,7 +1670,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 		"period_interval": periodMin,
 	}
 	var now int64 = this.Seconds()
-	var tf any = this.ParseTimeframe(timeframe)
+	var tf int64 = this.ParseTimeframe(timeframe)
 	if since != nil {
 		var sinceS int64 = this.ParseToInt(ccxt.Divide(since, 1000))
 		request["start_ts"] = sinceS
@@ -2034,9 +2037,9 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	var ticker *string = this.SafeString2(fill, "ticker", "market_ticker")
 	// the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
 	var sideLeg *string = this.SafeStringLower(fill, "side")
-	var outcomeKey any = ticker
+	var outcomeKey *string = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = *ticker + "-NO"
+		outcomeKey = ccxt.SafeStringPtr(*ticker+"-NO")
 	}
 	var mkt any = this.SafeOutcome(outcomeKey, market)
 	var ts *int64 = this.Parse8601(this.SafeString(fill, "created_time"))
@@ -2080,7 +2083,7 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 		return "maker"
 	}()
 	var feeCost *float64 = this.SafeNumber(fill, "fee_cost")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -2654,9 +2657,9 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	// a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no')
 	// the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
 	var sideLeg *string = this.SafeStringLower(order, "side")
-	var outcomeKey any = ticker
+	var outcomeKey *string = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = *ticker + "-NO"
+		outcomeKey = ccxt.SafeStringPtr(*ticker+"-NO")
 	}
 	var mkt any = this.SafeOutcome(outcomeKey, market)
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
@@ -3087,7 +3090,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		status = "settled"
 	}
 	// anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-	var rest any = this.Omit(params, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"}))
 	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
@@ -3140,7 +3143,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	// scoping already happened server-side, so strip the resolved scopes before the client-side
 	// pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
 	// and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-	var postParams any = this.Omit(params, []any{"tags", "category", "series_ticker"})
+	var postParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"tags", "category", "series_ticker"}))
 
 	ch <- this.ApplyEventFetchParams(result, postParams, []any{})
 	return nil
@@ -3720,7 +3723,7 @@ func (this *Kalshi) Sign(path any, optionalArgs ...any) any {
 		}()
 		var versionPrefix string = ccxt.Slice(baseUrl, tradeApiIndex, nil)
 		var pathForSigning any = ccxt.Add(versionPrefix+"/", implodedPath)
-		var payload any = ccxt.Add(ccxt.Add(timestamp, method), pathForSigning)
+		var payload any = ccxt.Add(timestamp+method, pathForSigning)
 		// RSA-PSS SHA-256 signature with the private key PEM
 		var keyParts []string = ccxt.Split(this.PrivateKey, "\\n")
 		var cleanPrivateKey string = strings.Join(keyParts, "\n")

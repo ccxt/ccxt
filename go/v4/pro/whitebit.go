@@ -108,7 +108,7 @@ func (this *Whitebit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = market["symbol"]
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *int64 = this.SafeInteger(timeframes, timeframe)
-	var marketId any = market["id"]
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	// currently there is no way of knowing
 	// the interval upon getting an update
 	// so that can't be part of the message hash, and the user can only subscribe
@@ -154,9 +154,9 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(data, 7)
-		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add("candles"+":", symbol)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+		var messageHash string = "candles" + ":" + *symbol
 		var parsed any = this.ParseOHLCV(data, market)
 		// this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol)
 		if !(ccxt.InOp(this.Ohlcvs, symbol)) {
@@ -213,8 +213,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	params = ccxt.MapTyped(this.Omit(params, "priceInterval"))
 	var reqParams []any = []any{market["id"], limit, priceInterval, true}
 
-	orderbook := (<-this.WatchPublicAsync(messageHash, method, reqParams, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, method, reqParams, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -261,7 +260,7 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	var isSnapshot any = this.SafeValue(params, 0)
 	var marketId *string = this.SafeString(params, 2)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data any = this.SafeDict(params, 1)
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -280,7 +279,7 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 	}
-	var messageHash any = ccxt.Add("orderbook"+":", symbol)
+	var messageHash string = "orderbook" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Whitebit) HandleDelta(bookside any, delta any) {
@@ -322,10 +321,8 @@ func (this *Whitebit) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var method string = "market_subscribe"
 	var messageHash any = ccxt.Add("ticker:", symbol)
 
-	retRes27215 := (<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params))
-	ccxt.PanicOnError(retRes27215)
 	// every time we want to subscribe to another market we have to "re-subscribe" sending it all again
-	ch <- retRes27215
+	ch <- ccxt.PanicOnError((<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params)))
 	return nil
 }
 
@@ -398,11 +395,11 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
 	//
 	var tickers any = this.SafeList(message, "params", []any{})
 	var marketId *string = this.SafeString(tickers, 0)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var rawTicker any = this.SafeDict(tickers, 1, map[string]any{})
-	var messageHash any = ccxt.Add("ticker"+":", symbol)
-	var ticker any = this.ParseTicker(rawTicker, market)
+	var messageHash string = "ticker" + ":" + *symbol
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(rawTicker, market))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	// watchTicker
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -497,8 +494,8 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	//
 	var params any = this.SafeList(message, "params", []any{})
 	var marketId *string = this.SafeString(params, 0)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -510,7 +507,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
 	}
-	var messageHash any = ccxt.Add("trades:", ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add("trades:", market["symbol"])
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -592,9 +589,9 @@ func (this *Whitebit) HandleMyTrades(client any, message map[string]any, optiona
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
 	var stored any = this.MyTrades
-	var parsed any = this.ParseWsTrade(trade)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade))
 	stored.(ccxt.Appender).Append(parsed)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var messageHash any = ccxt.Add("myTrades:", symbol)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -623,7 +620,7 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(trade, 5)
 	var marketId *string = this.SafeString(trade, 2)
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, 6)
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, 10)
@@ -756,11 +753,11 @@ func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalAr
 	}
 	var stored any = this.Orders
 	var status *int64 = this.SafeInteger(params, 0)
-	var parsed any = this.ParseWsOrder(this.Extend(data, map[string]any{
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(this.Extend(data, map[string]any{
 		"status": status,
-	}))
+	})))
 	stored.(ccxt.Appender).Append(parsed)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var messageHash any = ccxt.Add("orders:", symbol)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
@@ -811,7 +808,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 	}
 	var timestamp *int64 = this.SafeTimestamp(order, "ctime")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "mtime")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var rawSide *int64 = this.SafeInteger(order, "side")
 	var side string = func() string {
 		if rawSide != nil && *rawSide == 1 {
@@ -820,7 +817,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 		return "buy"
 	}()
 	var dealFee *string = this.SafeString(order, "deal_fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if dealFee != nil {
 		fee = map[string]any{
 			"cost":     this.ParseNumber(dealFee),
@@ -907,14 +904,14 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
-	var messageHash any = "wallet:"
+	var messageHash string = "wallet:"
 	var method string
 	if ccxt.IsEqual(typeVar, "spot") {
 		method = "balanceSpot_subscribe"
-		messageHash = ccxt.Add(messageHash, "spot")
+		messageHash += "spot"
 	} else {
 		method = "balanceMargin_subscribe"
-		messageHash = ccxt.Add(messageHash, "margin")
+		messageHash += "margin"
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client ccxt.ClientInterface = this.Client(url)
@@ -932,11 +929,9 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))))
 	}
 
-	retRes77415 := (<-this.WatchPrivateAsync(messageHash, method, []any{}, params))
-	ccxt.PanicOnError(retRes77415)
 	// an empty params array subscribes to updates for all assets,
 	// listing all tickers explicitly is rejected with "invalid argument"
-	ch <- retRes77415
+	ch <- ccxt.PanicOnError((<-this.WatchPrivateAsync(messageHash, method, []any{}, params)))
 	return nil
 }
 func (this *Whitebit) SetBalanceCache(client any, typeVar any, subscriptionHash any) {
@@ -1051,16 +1046,16 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	this.Balance = this.SafeBalance(this.Balance)
-	var messageHash any = "wallet:"
+	var messageHash string = "wallet:"
 	if func() int {
 		if method == nil {
 			return -1
 		}
 		return strings.Index(*method, "Spot")
 	}() >= 0 {
-		messageHash = ccxt.Add(messageHash, "spot")
+		messageHash += "spot"
 	} else {
-		messageHash = ccxt.Add(messageHash, "margin")
+		messageHash += "margin"
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
@@ -1085,9 +1080,7 @@ func (this *Whitebit) watchPublicBody(ch chan any, messageHash any, method any, 
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes89215 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes89215)
-	ch <- retRes89215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Whitebit) WatchMultipleSubscriptionAsync(messageHash any, method any, symbol any, optionalArgs ...any) <-chan any {
@@ -1114,7 +1107,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 	if ccxt.IsEqual(client, nil) {
 		var subscription map[string]any = map[string]any{}
 		var market map[string]any = this.Market(symbol)
-		var marketId any = market["id"]
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		if marketId != nil {
 			ccxt.AddElementToObject(subscription, marketId, true)
 		}
@@ -1129,15 +1122,13 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 		}
 		var message map[string]any = this.Extend(request, params)
 
-		retRes92119 := (<-this.Watch(url, messageHash, message, method, subscription))
-		ccxt.PanicOnError(retRes92119)
-		ch <- retRes92119
+		ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, method, subscription)))
 		return nil
 	} else {
 		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), method, map[string]any{})
 		var hasSymbolSubscription bool = true
 		var market map[string]any = this.Market(symbol)
-		var marketId any = market["id"]
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var isSubscribed *bool = this.SafeBool(subscription, marketId, false)
 		if isSubscribed == nil || *isSubscribed != true {
 			if marketId != nil {
@@ -1147,10 +1138,8 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 		}
 		if hasSymbolSubscription {
 
-			retRes93623 := (<-this.Watch(url, messageHash, request, method, subscription))
-			ccxt.PanicOnError(retRes93623)
 			// already subscribed to this market(s)
-			ch <- retRes93623
+			ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, method, subscription)))
 			return nil
 		} else {
 			// resubscribe
@@ -1168,9 +1157,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), method)
 			}
 
-			retRes95223 := (<-this.Watch(url, messageHash, resubRequest, method, subscription))
-			ccxt.PanicOnError(retRes95223)
-			ch <- retRes95223
+			ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, resubRequest, method, subscription)))
 			return nil
 		}
 	}
@@ -1199,9 +1186,7 @@ func (this *Whitebit) watchPrivateBody(ch chan any, messageHash any, method any,
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	retRes96815 := (<-this.Watch(url, messageHash, message, messageHash))
-	ccxt.PanicOnError(retRes96815)
-	ch <- retRes96815
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
 func (this *Whitebit) AuthenticateAsync(optionalArgs ...any) <-chan any {

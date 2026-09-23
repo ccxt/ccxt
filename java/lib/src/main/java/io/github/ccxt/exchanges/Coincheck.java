@@ -668,7 +668,7 @@ public class Coincheck extends CoincheckApi
         // }
         //
         String symbol = this.safeSymbol(null, market);
-        Object timestamp = this.safeTimestamp(ticker, "timestamp");
+        Long timestamp = this.safeTimestamp(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1423,9 +1423,9 @@ public class Coincheck extends CoincheckApi
         return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

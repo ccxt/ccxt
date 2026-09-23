@@ -1066,7 +1066,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	// }
 	//
 	var chainPromise any = EndpointRaw(this.V1PublicGetPublicChainInfo(params))
-	tokenResponsechainResponseVariable := (<-promiseAll([]any{tokenPromise, chainPromise}))
+	var tokenResponsechainResponseVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{tokenPromise, chainPromise}))))
 	tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
 	chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
 	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
@@ -1111,7 +1111,7 @@ func (this *Woofipro) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(networkEntry, "chain_id")
 		var networkRow any = this.SafeDict(indexedChains, networkId)
 		var networkName *string = this.SafeString(networkRow, "name", networkId)
-		var networkCode any = this.NetworkIdToCode(networkName, code)
+		var networkCode *string = this.NetworkIdToCode(networkName, code)
 		if networkCode != nil {
 			AddElementToObject(resultingNetworks, networkCode, map[string]any{
 				"id":      networkId,
@@ -1208,7 +1208,7 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "executed_timestamp")
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price *string = this.SafeString(trade, "executed_price")
 	var amount *string = this.SafeString(trade, "executed_quantity")
 	var order_id *string = this.SafeString(trade, "order_id")
@@ -1860,9 +1860,8 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes135819 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-		PanicOnError(retRes135819)
-		ch <- retRes135819
+		var retRes135819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))))
+		ch <- BoxAbsent(retRes135819)
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2001,13 +2000,12 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes146119 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes146119)
-		ch <- retRes146119
+		var retRes146119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes146119)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2113,7 +2111,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -2314,7 +2312,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.OmitZero(this.SafeString2(order, "client_order_id", "clientOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price *string = this.SafeString2(order, "order_price", "price")
 	var amount *string = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
@@ -2606,8 +2604,8 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-	var order any = this.ParseOrder(data, market)
-	AddElementToObject(order, "type", typeVar)
+	var order map[string]any = MapTyped(this.ParseOrder(data, market))
+	order["type"] = typeVar
 
 	ch <- order
 	return nil
@@ -2835,7 +2833,7 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3069,7 +3067,7 @@ func (this *Woofipro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3192,13 +3190,12 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes242819 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-		PanicOnError(retRes242819)
-		ch <- retRes242819
+		var retRes242819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))))
+		ch <- BoxAbsent(retRes242819)
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3393,7 +3390,7 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3469,13 +3466,12 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes261419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes261419)
-		ch <- retRes261419
+		var retRes261419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes261419)
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -3939,8 +3935,8 @@ func (this *Woofipro) HashMessage(message any) any {
 }
 func (this *Woofipro) SignHash(hash any, privateKey any) any {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-	var r any = signature["r"]
-	var s any = signature["s"]
+	var r *string = SafeStringPtr(signature["r"])
+	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
@@ -4200,15 +4196,13 @@ func (this *Woofipro) setMarginModeBody(ch chan any, marginMode any, optionalArg
 		"default_margin_mode": ToUpper(marginMode),
 	}
 
-	retRes315015 := (<-this.V1PrivatePostClientMarginMode(this.Extend(request, params))).Raw
-	PanicOnError(retRes315015)
 	//
 	// {
 	//     "success": true,
 	//     "timestamp": 1702989203989
 	// }
 	//
-	ch <- retRes315015
+	ch <- PanicOnError((<-this.V1PrivatePostClientMarginMode(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) any {
@@ -4451,9 +4445,7 @@ func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		"leverage": leverage,
 	}
 
-	retRes331615 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes331615)
-	ch <- retRes331615
+	ch <- PanicOnError((<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Woofipro) ParsePosition(position any, optionalArgs ...any) any {
@@ -4717,7 +4709,7 @@ func (this *Woofipro) Sign(path any, optionalArgs ...any) any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		auth = Add(Add(Add(Add(Add(ts, method), "/"), version), "/"), pathWithParams)
+		auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
 		if (method == "POST") || (method == "PUT") {
 			body = this.Json(params)
 			auth = Add(auth, body)

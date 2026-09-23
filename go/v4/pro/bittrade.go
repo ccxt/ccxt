@@ -102,9 +102,7 @@ func (this *Bittrade) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"params":      params,
 	}
 
-	retRes8315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes8315)
-	ch <- retRes8315
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
 func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
@@ -132,12 +130,12 @@ func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
 	}
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
-	var ticker any = this.ParseTicker(tick, market)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	ccxt.AddElementToObject(ticker, "timestamp", timestamp)
-	ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	ticker["timestamp"] = timestamp
+	ticker["datetime"] = this.Iso8601(timestamp)
+	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, ch)
 	return message
@@ -230,8 +228,8 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 	}
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesCache, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -239,12 +237,12 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 		ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
 	}
 	for i := 0; i < len(data); i++ {
-		var trade any = this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}(), market)
+		}(), market))
 		tradesCache.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
@@ -336,10 +334,10 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	}
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(parts, 3)
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
@@ -410,8 +408,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"method":      this.HandleOrderBookSubscription,
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -508,8 +505,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan any, client any, messag
 				"method":      this.HandleOrderBookSnapshot,
 			}
 
-			orderbook := (<-this.Watch(url, requestId, request, requestId, snapshotSubscription))
-			ccxt.PanicOnError(orderbook)
+			var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, requestId, request, requestId, snapshotSubscription))).(ccxt.OrderBookInterface)
 
 			ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 			chSent = true

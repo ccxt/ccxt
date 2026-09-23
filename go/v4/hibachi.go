@@ -621,14 +621,14 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var id *string = this.SafeString(trade, "id")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "quantity")
 	var timestamp *int64 = this.SafeIntegerProduct(trade, "timestamp", 1000)
 	var cost *string = Precise.StringMul(price, amount)
 	var side any = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var orderType *string = nil
 	var orderId *string = nil
 	var takerOrMaker any = nil
@@ -754,8 +754,7 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var rawPromises []any = []any{EndpointRaw(this.PublicGetMarketDataPrices(this.Extend(request, params))), EndpointRaw(this.PublicGetMarketDataStats(this.Extend(request, params)))}
 
-	promises := (<-promiseAll(rawPromises))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var pricesResponse any = GetValue(promises, 0)
 	// {
 	//     "askPrice": "3514.650296",
@@ -901,7 +900,7 @@ func (this *Hibachi) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -954,7 +953,7 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -1645,8 +1644,8 @@ func (this *Hibachi) SignMessage(message any, privateKey any) any {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
 		var hash any = this.Hash(message, sha256, "hex")
 		var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-		var r any = signature["r"]
-		var s any = signature["s"]
+		var r *string = SafeStringPtr(signature["r"])
+		var s *string = SafeStringPtr(signature["s"])
 		var v string = this.IntToBase16(signature["v"])
 		return PadStart(r, 64, "0") + PadStart(s, 64, "0") + PadStart(v, 2, "0")
 	}
@@ -1761,7 +1760,7 @@ func (this *Hibachi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1850,7 +1849,7 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1928,7 +1927,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
@@ -2221,7 +2220,7 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var side *string = this.SafeStringLower(position, "direction")
 	var quantity *string = this.SafeString(position, "quantity")
 	var unrealizedFunding *string = this.SafeString(position, "unrealizedFundingPnl", "0")
@@ -2338,7 +2337,7 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var direction string
 	var amount any = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var referenceId *string = nil
 	var referenceAccount *string = nil
 	var status any = nil
@@ -2434,8 +2433,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rawPromises []any = []any{EndpointRaw(this.PrivateGetCapitalHistory(this.Extend(request, params))), EndpointRaw(this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params)))}
 
-	promises := (<-promiseAll(rawPromises))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var responseCapitalHistory map[string]any = MapTyped(GetValue(promises, 0))
 	//
 	// {
@@ -2806,7 +2804,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}

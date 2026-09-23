@@ -639,7 +639,7 @@ func (this *Apex) ParseCurrency(currency any) any {
 			var tokenName *string = this.SafeString(token, "token")
 			if tokenName == currencyId || (tokenName != nil && currencyId != nil && *tokenName == *currencyId) {
 				var networkId *string = this.SafeString(chain, "chainId")
-				var networkCode any = this.NetworkIdToCode(networkId, code)
+				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
 					AddElementToObject(networks, networkCode, map[string]any{
 						"info":      chain,
@@ -795,8 +795,8 @@ func (this *Apex) ParseMarket(market any) any {
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(baseId, "/"), quote), ":"), settle)
 	var expiry int = 0
-	var takerFee any = this.ParseNumber("0.0002")
-	var makerFee any = this.ParseNumber("0.0005")
+	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0002"))
+	var makerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0005"))
 	return this.SafeMarketStructure(map[string]any{
 		"id":           id,
 		"id2":          id2,
@@ -1464,7 +1464,7 @@ func (this *Apex) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId *string = this.SafeString(order, "clientId")
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "size")
 	var orderType *string = this.SafeString(order, "type")
@@ -1873,7 +1873,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 		PanicOnError(response)
 		var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 		var currentTime int64 = this.Milliseconds()
-		var parsedAmount any = this.ParseNumber(amount)
+		var parsedAmount *float64 = Float64PtrTyped(this.ParseNumber(amount))
 
 		ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
 			"timestamp":   currentTime,
@@ -1977,7 +1977,7 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2160,7 +2160,7 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2270,7 +2270,7 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2330,7 +2330,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2484,7 +2484,7 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	var timestamp *int64 = this.SafeInteger(position, "updatedTime")
@@ -2538,7 +2538,7 @@ func (this *Apex) Sign(path any, optionalArgs ...any) any {
 	}
 	var signPath any = Add("/api/", path)
 	var signBody any = body
-	if ToUpper(method) != "POST" {
+	if strings.ToUpper(method) != "POST" {
 		if len(ObjectKeys(params)) > 0 {
 			signPath = Add(signPath, "?"+this.Rawencode(params))
 			url = Add(url, "?"+this.Rawencode(params))
@@ -2550,7 +2550,7 @@ func (this *Apex) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Milliseconds())
-		var messageString any = Add(timestamp+ToUpper(method), signPath)
+		var messageString any = Add(timestamp+strings.ToUpper(method), signPath)
 		if signBody != nil {
 			messageString = Add(messageString, signBody)
 		}

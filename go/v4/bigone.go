@@ -605,7 +605,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "gateway_name")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var deposit *bool = this.SafeBool(chain, "is_deposit_enabled")
 		var withdraw *bool = this.SafeBool(chain, "is_withdrawal_enabled")
 		var minDepositAmount *string = this.SafeString(chain, "min_deposit_amount")
@@ -694,8 +694,7 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promises []any = []any{EndpointRaw(this.PublicGetAssetPairs(params)), EndpointRaw(this.ContractPublicGetSymbols(params))}
 
-	promisesResult := (<-promiseAll(promises))
-	PanicOnError(promisesResult)
+	var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var response any = GetValue(promisesResult, 0)
 	var contractResponse any = GetValue(promisesResult, 1)
 	//
@@ -1059,7 +1058,7 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var symbol *string = this.SafeString(symbols, 0)
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1570,7 +1569,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	if sinceIsDefined {
 		// const start = this.parseToInt (since / 1000);
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		var endByLimit any = this.Sum(since, Multiply(Multiply(limit, duration), 1000))
 		if untilIsDefined {
 			request["time"] = this.Iso8601(mathMin(endByLimit, Add(until, 1)))
@@ -2603,9 +2602,9 @@ func (this *Bigone) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["asset_symbol"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -2672,9 +2671,9 @@ func (this *Bigone) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["asset_symbol"] = GetValue(currency, "id")
 	}
 	if limit != nil {

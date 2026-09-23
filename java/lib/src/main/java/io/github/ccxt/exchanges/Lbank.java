@@ -645,11 +645,11 @@ public class Lbank extends LbankApi
             {
                 networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
             }
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final String finalNetworkId = networkId;
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
@@ -967,7 +967,7 @@ public class Lbank extends LbankApi
         //         "lastPrice": "29387.0"
         //     }
         //
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         if (java.util.Objects.equals(timestamp, null))
         {
             timestamp = this.safeTimestamp(ticker, "lastTime");
@@ -977,7 +977,7 @@ public class Lbank extends LbankApi
         Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(ticker, "ticker", new HashMap<String, Object>() {{}});
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Object data = (((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)))) ? ticker : tickerData;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
@@ -3705,7 +3705,7 @@ public class Lbank extends LbankApi
                     Double fee = this.safeNumber(networkEntry, "withdrawFee");
                     if (!java.util.Objects.equals(fee, null))
                     {
-                        Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
+                        String networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
                             if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(networkCode, null)))
@@ -4006,7 +4006,7 @@ public class Lbank extends LbankApi
                             Object resultCodeInfo = Helpers.GetValue((result == null || code == null ? null : result.get(code)), "info");
                             ((List<Object>)resultCodeInfo).add(fee);
                         }
-                        Object networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
+                        String networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
                             final Double finalWithdrawFee = withdrawFee;
@@ -4073,7 +4073,7 @@ public class Lbank extends LbankApi
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
             Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
-            Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
+            String networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault");
             if (!java.util.Objects.equals(withdrawFee, null))

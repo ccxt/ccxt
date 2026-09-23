@@ -884,9 +884,8 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes69219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 500))
-		PanicOnError(retRes69219)
-		ch <- retRes69219
+		var retRes69219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 500))))
+		ch <- BoxAbsent(retRes69219)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1017,8 +1016,7 @@ func (this *Poloniex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promises []any = []any{this.FetchSpotMarketsAsync(params), this.FetchSwapMarketsAsync(params)}
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 
 	ch <- this.ArrayConcat(GetValue(results, 0), GetValue(results, 1))
 	return nil
@@ -1433,7 +1431,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols, nil, true, true, false)
@@ -1585,7 +1583,7 @@ func (this *Poloniex) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var chainId *string = this.SafeString(chain, "blockchain")
-		var networkCode any = this.NetworkIdToCode(chainId, code)
+		var networkCode *string = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      chain,
@@ -1793,9 +1791,9 @@ func (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"ts", "createTime", "cT", "cTime"})
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var side *string = this.SafeStringLower2(trade, "side", "takerSide")
-	var fee any = nil
+	var fee map[string]any = nil
 	var priceString *string = this.SafeString2(trade, "price", "px")
 	var amountString *string = this.SafeString2(trade, "quantity", "qty")
 	var costString *string = this.SafeString2(trade, "amount", "amt")
@@ -1946,7 +1944,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes156419)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2167,7 +2165,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var resultingTrades any = this.SafeValue(order, "resultingTrades")
 	if !IsEqual(resultingTrades, nil) {
 		if !IsArray(resultingTrades) {
@@ -2182,7 +2180,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	var rawType *string = this.SafeString(order, "type")
 	var typeVar *string = this.ParseOrderType(rawType)
 	var id *string = this.SafeStringN(order, []any{"orderNumber", "id", "orderId", "ordId"})
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCurrency *string = this.SafeString2(order, "tokenFeeCurrency", "feeCcy")
 	var feeCost *string = nil
 	var feeCurrencyCode any = nil
@@ -2295,7 +2293,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2430,7 +2428,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2864,7 +2862,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"symbols": []any{},
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbols"] = []any{GetValue(market, "id")}
@@ -2959,7 +2957,7 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3005,8 +3003,8 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//         "updateTime": 1646196019020
 	//     }
 	//
-	var order any = this.ParseOrder(response)
-	AddElementToObject(order, "id", id)
+	var order map[string]any = MapTyped(this.ParseOrder(response))
+	order["id"] = id
 
 	ch <- order
 	return nil
@@ -3280,7 +3278,7 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol any = GetValue(symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -3369,14 +3367,14 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var asksResult []any = []any{}
 	var bidsResult []any = []any{}
 	for i := 0; i < GetArrayLength(asks); i++ {
-		if IsLessThan((i % 2), 1) {
+		if (i % 2) < 1 {
 			var price *float64 = this.SafeNumber(asks, i)
 			var amount *float64 = this.SafeNumber(asks, this.Sum(i, 1))
 			asksResult = append(asksResult, []any{price, amount})
 		}
 	}
 	for i := 0; i < GetArrayLength(bids); i++ {
-		if IsLessThan((i % 2), 1) {
+		if (i % 2) < 1 {
 			var price *float64 = this.SafeNumber(bids, i)
 			var amount *float64 = this.SafeNumber(bids, this.Sum(i, 1))
 			bidsResult = append(bidsResult, []any{price, amount})
@@ -3493,7 +3491,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code any, optionalArgs ...
 		panic(ArgumentsRequired(Add(Add(this.Id+" fetchDepositAddress requires a network parameter for ", code), ".")))
 	}
 	var exchangeNetworkId any = nil
-	networkCode = this.NetworkIdToCode(networkCode, code)
+	networkCode = DerefScalar(this.NetworkIdToCode(networkCode, code))
 	var networkEntry any = func() any {
 		if networkCode == nil {
 			return nil
@@ -3800,9 +3798,9 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, params))
 	PanicOnError(response)
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
 	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
@@ -3844,9 +3842,9 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, params))
 	PanicOnError(response)
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
 	var transactions any = this.ParseTransactions(withdrawals, currency, since, limit)
@@ -3963,7 +3961,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				for j := 0; j < GetArrayLength(childChains); j++ {
 					var networkId any = GetValue(childChains, j)
 					networkId = Replace(networkId, code, "")
-					var networkCode any = this.NetworkIdToCode(networkId, currency["code"])
+					var networkCode *string = this.NetworkIdToCode(networkId, currency["code"])
 					var networkInfo map[string]any = SafeMapTyped(response, networkId)
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")
@@ -4019,7 +4017,7 @@ func (this *Poloniex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any 
 	}
 	AddElementToObject(depositWithdrawFee, "withdraw", withdrawResult)
 	AddElementToObject(depositWithdrawFee, "deposit", depositResult)
-	var networkCode any = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
+	var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 	if networkCode != nil {
 		AddElementToObject(GetValue(depositWithdrawFee, "networks"), networkCode, map[string]any{
 			"withdraw": withdrawResult,
@@ -4059,9 +4057,9 @@ func (this *Poloniex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, params))
 	PanicOnError(response)
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
 	var transactions any = this.ParseTransactions(deposits, currency, since, limit)
@@ -4728,7 +4726,7 @@ func (this *Poloniex) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
-		var auth any = Add(method, "\n") // eslint-disable-line quotes
+		var auth any = method + "\n" // eslint-disable-line quotes
 		url = Add(url, Add("/", implodedPath))
 		auth = Add(auth, Add("/", implodedPath))
 		if (method == "POST") || (method == "PUT") || (method == "DELETE") {

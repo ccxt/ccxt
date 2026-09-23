@@ -367,9 +367,9 @@ public class Indodax extends IndodaxApi
         }});
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     /**
@@ -537,7 +537,7 @@ public class Indodax extends IndodaxApi
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
         Map<String, Object> free = (Map<String, Object>) this.safeDict(balances, "balance", new HashMap<String, Object>() {{}});
         Map<String, Object> used = (Map<String, Object>) this.safeDict(balances, "balance_hold", new HashMap<String, Object>() {{}});
-        Object timestamp = this.safeTimestamp(balances, "server_time");
+        Long timestamp = this.safeTimestamp(balances, "server_time");
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
@@ -682,7 +682,7 @@ public class Indodax extends IndodaxApi
         //     }
         //
         String symbol = this.safeSymbol(null, market);
-        Object timestamp = this.safeTimestamp(ticker, "server_time");
+        Long timestamp = this.safeTimestamp(ticker, "server_time");
         String baseVolume = ("vol_" + this.safeStringLower(market, "baseId"));
         String quoteVolume = ("vol_" + this.safeStringLower(market, "quoteId"));
         String last = this.safeString(ticker, "last");
@@ -837,7 +837,7 @@ public class Indodax extends IndodaxApi
 
     public Object parseTrade(Object trade, Map<String, Object> market)
     {
-        Object timestamp = this.safeTimestamp(trade, "date");
+        Long timestamp = this.safeTimestamp(trade, "date");
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Indodax.this.safeString(trade, "tid") );
             put( "info", trade );
@@ -1863,7 +1863,7 @@ public class Indodax extends IndodaxApi
         //         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
         //     },
         String status = this.safeString(transaction, "status");
-        Object timestamp = this.safeTimestamp2(transaction, "success_time", "submit_time");
+        Long timestamp = this.safeTimestamp2(transaction, "success_time", "submit_time");
         String depositId = this.safeString(transaction, "deposit_id");
         Double feeCost = this.safeNumber(transaction, "fee");
         Map<String, Object> fee = null;
@@ -2001,18 +2001,18 @@ public class Indodax extends IndodaxApi
                             List<Object> networkIds = new ArrayList<Object>(Arrays.asList(((String)networkId).split(java.util.regex.Pattern.quote(","))));
                             for (var j = 0; j < ((List<?>)networkIds).size(); j++)
                             {
-                                Object _netIdTmp = this.networkIdToCode(Helpers.GetValue(networkIds, j), code);
+                                String _netIdTmp = this.networkIdToCode(Helpers.GetValue(networkIds, j), code);
                                 if (!java.util.Objects.equals(_netIdTmp, null))
                                 {
-                                    ((List<Object>)network).add(((String)_netIdTmp).toUpperCase());
+                                    ((List<Object>)network).add(_netIdTmp.toUpperCase());
                                 }
                             }
                         } else
                         {
-                            Object _netIdTmp = this.networkIdToCode(networkId, code);
+                            String _netIdTmp = this.networkIdToCode(networkId, code);
                             if (!java.util.Objects.equals(_netIdTmp, null))
                             {
-                                network = ((String)_netIdTmp).toUpperCase();
+                                network = _netIdTmp.toUpperCase();
                             }
                         }
                     }

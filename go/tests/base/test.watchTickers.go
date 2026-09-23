@@ -31,10 +31,10 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	_ = argParams
 	var method string = "watchTickers"
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
+	var ends int64 = now + 15000
 	var maxIdleTime int = 5000
 	var idle bool = false
-	for (IsLessThan(now, ends)) && !idle {
+	for (now < ends) && !idle {
 		var response any = map[string]any{}
 		var success bool = true
 		var shouldReturn bool = false
@@ -106,7 +106,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 								ret_ = func() any {
 									// catch block:
 									var ohlcv any = nil
-									var tickerSymbol any = GetValue(ticker, "symbol")
+									var tickerSymbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 									if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
 										ohlcv = (<-exchange.FetchOHLCVAsync(tickerSymbol, "1d", nil, 5))

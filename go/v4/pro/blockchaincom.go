@@ -89,9 +89,7 @@ func (this *Blockchaincom) watchBalanceBody(ch chan any, optionalArgs ...any) an
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	retRes7215 := (<-this.Watch(url, messageHash, request, messageHash, request))
-	ccxt.PanicOnError(retRes7215)
-	ch <- retRes7215
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request)))
 	return nil
 }
 func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
@@ -237,7 +235,7 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 		var messageHash string = "ohlcv:" + *symbol
 		var request map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var timeframeId *string = this.SafeString(request, "granularity")
-		var timeframe any = this.FindTimeframe(timeframeId)
+		var timeframe *string = this.FindTimeframe(timeframeId)
 		var ohlcv any = this.SafeList(message, "price", []any{})
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -287,9 +285,7 @@ func (this *Blockchaincom) watchTickerBody(ch chan any, symbol any, optionalArgs
 	}
 	request = this.DeepExtend(request, params)
 
-	retRes23115 := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(retRes23115)
-	ch <- retRes23115
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
 func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
@@ -323,8 +319,8 @@ func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
 	//
 	var event *string = this.SafeString(message, "event")
 	var marketId *string = this.SafeString(message, "symbol")
-	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var ticker any = nil
 	if event != nil && *event == "subscribed" {
 		return
@@ -334,7 +330,7 @@ func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
 		var lastTicker any = this.SafeDict(this.Tickers, symbol)
 		ticker = this.ParseWsUpdatedTicker(message, lastTicker, market)
 	}
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash string = "ticker:" + *symbol
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
@@ -453,7 +449,7 @@ func (this *Blockchaincom) HandleTrades(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString(message, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var messageHash string = "trades:" + *symbol
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -461,7 +457,7 @@ func (this *Blockchaincom) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var parsed any = this.ParseWsTrade(message, market)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
 	stored.(ccxt.Appender).Append(parsed)
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
@@ -785,8 +781,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol any, optionalA
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -928,9 +923,7 @@ func (this *Blockchaincom) authenticateBody(ch chan any, optionalArgs ...any) an
 		return nil
 	}
 
-	retRes80015 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes80015)
-	ch <- retRes80015
+	ch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 	return nil
 }
 

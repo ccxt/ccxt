@@ -1700,7 +1700,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String subscription = this.safeString(ohlcv, "n", "");
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)subscription).split(java.util.regex.Pattern.quote("_"))));
             String timeframeId = this.safeString(parts, 0);
-            Object timeframe = this.findTimeframe(timeframeId);
+            String timeframe = this.findTimeframe(timeframeId);
             String prefix = (timeframe + "_");
             String marketId = Helpers.replace(subscription, (String)prefix, (String)"");
             String symbol = this.safeSymbol(marketId, null, "_", marketType);
@@ -1724,7 +1724,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object timeframe = (marketIds == null || symbol == null ? null : marketIds.get(symbol));
-            Object interval = this.findTimeframe(timeframe);
+            String interval = this.findTimeframe(timeframe);
             String hash = (((("candles" + ":") + interval) + ":") + symbol);
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), interval);
             client.resolve(stored, hash);
@@ -3146,7 +3146,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         return "spot";
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         // their support said that reqid must be an int32, not documented
         Object reqid;
@@ -3154,7 +3154,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         Helpers.addElementToObject(this.options, "reqid", reqid);
         }
-        return reqid;
+        return Helpers.toLongOrNull(reqid);
     }
 
     public CompletableFuture<Object> subscribePublic(String url, Object messageHash2, Object payload, String channel, Map<String, Object> parameters, Object subscription2)
@@ -3164,7 +3164,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object subscription = subscription3;
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Long time = this.seconds();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -3179,7 +3179,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {
                     String tempSubscriptionHash = String.valueOf(requestId);
-                    Helpers.addElementToObject(client.subscriptions, tempSubscriptionHash, messageHash);
+                    ((Map)client.subscriptions).put((String)tempSubscriptionHash, messageHash);
                 }
             }
             Map<String, Object> message = this.extend(request, parameters);
@@ -3197,7 +3197,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Long time = this.seconds();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -3221,7 +3221,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Long time = this.seconds();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -3286,7 +3286,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String eventVar = "api";
             if (java.util.Objects.equals(requestId, null))
             {
-                Object reqId = this.requestId();
+                Long reqId = this.requestId();
                 requestId = String.valueOf(reqId);
             }
             Object messageHash = requestId;
@@ -3358,7 +3358,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "KEY", Gate.this.apiKey );
                 put( "SIGN", signature );
             }};
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "time", time );
@@ -3375,7 +3375,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 String tempSubscriptionHash = String.valueOf(requestId);
                 // in case of authenticationError we will throw
-                Helpers.addElementToObject(client.subscriptions, tempSubscriptionHash, messageHash);
+                ((Map)client.subscriptions).put((String)tempSubscriptionHash, messageHash);
             }
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, messageHash)).join();

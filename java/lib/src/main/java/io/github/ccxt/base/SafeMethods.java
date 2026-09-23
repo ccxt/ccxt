@@ -41,10 +41,10 @@ public final class SafeMethods {
 
     // ----------------------------
 
-    public static Object safeTimestampN(Object obj, List<Object> keys, Object... defaultValue2) {
+    public static Long safeTimestampN(Object obj, List<Object> keys, Object... defaultValue2) {
         Object defaultValue = opt(defaultValue2);
         Object result = SafeValueN(obj, keys);
-        if (result == null) return defaultValue;
+        if (result == null) return toLongQuiet(defaultValue);
 
         // string with '.' → treat as seconds, multiply by 1000 after parsing double
         if (result instanceof String s && s.contains(".")) {
@@ -57,11 +57,11 @@ public final class SafeMethods {
         return base * 1000;
     }
 
-    public static Object safeTimestamp(Object obj, Object key, Object... defaultValue) {
+    public static Long safeTimestamp(Object obj, Object key, Object... defaultValue) {
         return safeTimestampN(obj, Arrays.asList(key), defaultValue);
     }
 
-    public static Object safeTimestamp2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public static Long safeTimestamp2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return safeTimestampN(obj, Arrays.asList(key1, key2), defaultValue);
     }
 

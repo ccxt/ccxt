@@ -2762,7 +2762,7 @@ public class Htx extends HtxApi
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 Object baseId = null;
-                Object quoteId = null;
+                String quoteId = null;
                 Object settleId = null;
                 Object id = null;
                 Object lowercaseId = null;
@@ -2831,11 +2831,11 @@ public class Htx extends HtxApi
                     {
                         throw new ExchangeError((this.id + " method() missing baseId")) ;
                     }
-                    id = Helpers.add(baseId, quoteId);
+                    id = (baseId + quoteId);
                     lowercaseId = ((String)id).toLowerCase();
                 }
                 String base = this.safeCurrencyCode((String) (baseId));
-                String quote = this.safeCurrencyCode((String) (quoteId));
+                String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode((String) (settleId));
                 String symbol = ((base + "/") + quote);
                 Long expiry = null;
@@ -2918,7 +2918,7 @@ public class Htx extends HtxApi
                 final String finalSymbol = symbol;
                 final String finalBase = base;
                 final Object finalBaseId = baseId;
-                final Object finalQuoteId = quoteId;
+                final String finalQuoteId = quoteId;
                 final Object finalSettleId = settleId;
                 final String finalType = type;
                 final Boolean finalSpot = spot;
@@ -4792,11 +4792,11 @@ public class Htx extends HtxApi
             {
                 Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networkNamesByChainIds")), uniqueChainId, title);
             }
-            Object networkCode = this.networkIdToCode(uniqueChainId, code);
+            String networkCode = this.networkIdToCode(uniqueChainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final String finalUniqueChainId = uniqueChainId;
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chainEntry );
     put( "id", finalUniqueChainId );
@@ -4849,7 +4849,7 @@ public class Htx extends HtxApi
         }}));
     }
 
-    public Object networkIdToCode(String networkId, String currencyCode)
+    public String networkIdToCode(String networkId, String currencyCode)
     {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         List<Object> keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkNamesByChainIds"));
@@ -4859,9 +4859,9 @@ public class Htx extends HtxApi
             throw new ExchangeError((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
         }
         Object networkTitle = this.safeValue(((Map<String, Object>)this.options).get("networkNamesByChainIds"), networkId, networkId);
-        return super.networkIdToCode(Helpers.toStringArg(networkTitle), currencyCode);
+        return (String) (super.networkIdToCode(Helpers.toStringArg(networkTitle), currencyCode));
     }
-    public Object networkIdToCode(Object... optionalArgs)
+    public String networkIdToCode(Object... optionalArgs)
     {
         return this.networkIdToCode(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null));
     }
@@ -10268,9 +10268,9 @@ public class Htx extends HtxApi
         return this.parseBorrowInterest(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -12431,7 +12431,7 @@ public class Htx extends HtxApi
             Object chainEntry = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chainEntry, "chain");
             String withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             Double withdrawFee = null;
             Map<String, Object> withdrawResult = null;
             if (java.util.Objects.equals(withdrawFeeType, "fixed"))

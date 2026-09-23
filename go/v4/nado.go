@@ -834,7 +834,7 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	this.CheckRequiredCredentials()
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1171,7 +1171,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var productIds []any = []any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		productIds = append(productIds, this.ParseToInt(GetValue(market, "id")))
@@ -1378,7 +1378,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1558,7 +1558,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1780,9 +1780,9 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount", "default")
@@ -2091,8 +2091,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var pairsRequest any = EndpointRaw(this.GatewayV2PublicGetPairs(params))
 	var assetsRequest any = EndpointRaw(this.GatewayV2PublicGetAssets(params))
 
-	responses := (<-promiseAll([]any{symbolsRequest, pairsRequest, assetsRequest}))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll([]any{symbolsRequest, pairsRequest, assetsRequest}))))
 	var symbols []any = SafeListTyped(responses, 0)
 	var pairs []any = SafeListTyped(responses, 1)
 	var assets []any = SafeListTyped(responses, 2)
@@ -3028,7 +3027,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		feeCost = this.ParseNumber(feeString)
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -3515,7 +3514,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining any = nil
 	var cost any = nil
 	var average *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var lastTradeTimestamp *int64 = nil
 	var lastUpdateTimestamp *int64 = nil
 	var status any = nil
@@ -3895,8 +3894,8 @@ func (this *Nado) SignHash(hash any, privateKey any) any {
 		panic(ArgumentsRequired(this.Id + " signHash() requires privateKey"))
 	}
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-	var r any = signature["r"]
-	var s any = signature["s"]
+	var r *string = SafeStringPtr(signature["r"])
+	var s *string = SafeStringPtr(signature["s"])
 	var v string = strings.ToLower(this.IntToBase16(this.Sum(27, signature["v"])))
 	return Add(Add(Add("0x", this.PadHex(r, 64)), this.PadHex(s, 64)), v)
 }

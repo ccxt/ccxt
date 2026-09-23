@@ -736,7 +736,7 @@ func (this *Coinbaseexchange) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(network, "id")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,
@@ -1243,8 +1243,8 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 		var marketId string = GetValue(marketIds, i).(string)
 		var entry []any = SafeListTypedDefault(response, marketId, []any{})
 		var first []any = SafeListTypedDefault(entry, 0, []any{})
-		var market any = this.SafeMarket(marketId, nil, delimiter)
-		var symbol any = GetValue(market, "symbol")
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, delimiter))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.ParseTicker(first, market))
 	}
 
@@ -1390,7 +1390,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "size")
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        orderId,
@@ -1568,7 +1568,7 @@ func (this *Coinbaseexchange) fetchTradingFeesBody(ch chan any, optionalArgs ...
 	var taker *float64 = this.SafeNumber(response, "taker_fee_rate")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
-		var symbol any = GetValue(this.Symbols, i)
+		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -1638,9 +1638,8 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes127519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
-		PanicOnError(retRes127519)
-		ch <- retRes127519
+		var retRes127519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))))
+		ch <- BoxAbsent(retRes127519)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1765,7 +1764,7 @@ func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "size", filled)
 	var cost *string = this.SafeString(order, "executed_value")
 	var feeCost *float64 = this.SafeNumber(order, "fill_fees")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -1882,7 +1881,7 @@ func (this *Coinbaseexchange) fetchOrderTradesBody(ch chan any, id any, optional
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1978,7 +1977,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["product_id"] = GetValue(market, "id")
@@ -2243,9 +2242,7 @@ func (this *Coinbaseexchange) fetchPaymentMethodsBody(ch chan any, optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes171715 := (<-this.PrivateGetPaymentMethods(params)).Raw
-	PanicOnError(retRes171715)
-	ch <- retRes171715
+	ch <- PanicOnError((<-this.PrivateGetPaymentMethods(params)).Raw)
 	return nil
 }
 
@@ -2360,9 +2357,9 @@ func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) an
 	} else {
 		direction = "in"
 	}
-	var amount any = this.ParseNumber(amountString)
-	var after any = this.ParseNumber(afterString)
-	var before any = this.ParseNumber(beforeString)
+	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
+	var after *float64 = Float64PtrTyped(this.ParseNumber(afterString))
+	var before *float64 = Float64PtrTyped(this.ParseNumber(beforeString))
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "created_at"))
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var code *string = this.SafeCurrencyCode(nil, currency)
@@ -2501,11 +2498,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 	}
 
 	PanicOnError((<-this.LoadAccountsAsync()))
-	var currency any = nil
+	var currency map[string]any = nil
 	var id any = DerefScalar(this.SafeString(params, "id")) // account id
 	if IsEqual(id, nil) {
 		if code != nil {
-			currency = this.Currency(code)
+			currency = MapTyped(this.Currency(code))
 			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 			var account any = this.SafeDict(accountsByCurrencyCode, code)
 			if IsEqual(account, nil) {
@@ -2800,7 +2797,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 		this.Options.Store("coinbaseAccounts", accounts) // cache it
 		this.Options.Store("coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
 	}
-	var currencyId any = currency["id"]
+	var currencyId *string = SafeStringPtr(currency["id"])
 	var account any = this.SafeDict(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
 	if IsEqual(account, nil) {
 		panic(InvalidAddress(Add(Add(Add(Add(this.Id+" createDepositAddress() could not find currency code ", code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")))
@@ -2852,7 +2849,7 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 				payload = body
 			}
 		}
-		var what any = Add(Add(Add(nonce, method), request), payload)
+		var what any = Add(Add(nonce+method, request), payload)
 		var secret any = nil
 
 		{

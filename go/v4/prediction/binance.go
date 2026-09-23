@@ -199,7 +199,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var queries any = this.ParseSearchQueries(params)
 	var queriesLength int = ccxt.GetArrayLength(queries)
 	if queriesLength > 0 {
-		var eventParams any = this.Omit(params, []any{"limit"})
+		var eventParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
 
 		events := (<-this.FetchEventsAsync(eventParams))
 		ccxt.PanicOnError(events)
@@ -222,7 +222,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 200))
-	var rest any = this.Omit(params, []any{"query", "queries", "limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit"}))
 
 	var rawTopics []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawTopicsAsync(maxMarkets, rest))))
 	var parsedEvents []any = []any{}
@@ -369,9 +369,7 @@ func (this *Binance) fetchRawTopicDetailBody(ch chan any, topicId any, optionalA
 		"marketTopicId": topicId,
 	}
 
-	retRes28515 := (<-this.SapiPrivateGetMarketDetail(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(retRes28515)
-	ch <- retRes28515
+	ch <- ccxt.PanicOnError((<-this.SapiPrivateGetMarketDetail(this.Extend(request, params))).Raw)
 	return nil
 }
 
@@ -482,7 +480,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	if userLimit != nil {
 		fetchCap = userLimit
 	}
-	var rest any = this.Omit(params, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"}))
 	var eventId *string = this.SafeString(params, "eventId")
 	var l1Category *string = this.SafeString(params, "l1Category")
 	var l2Category *string = this.SafeString(params, "l2Category")
@@ -555,7 +553,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	// scoping already happened server-side: the tag filter needs an event-level tags field
 	// binance topics lack, and the query filter would drop semantic-search matches whose
 	// title uses different words than the query
-	var postParams any = this.Omit(params, []any{"tags", "l1Category", "l2Category"})
+	var postParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"tags", "l1Category", "l2Category"}))
 
 	ch <- this.ApplyEventFetchParams(result, postParams, []any{})
 	return nil
@@ -800,9 +798,9 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolved bool = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	var endDate *int64 = this.SafeInteger(rawTopic, "endDate")
 	var feeRateBps *string = this.SafeString(rawTopic, "feeRateBps", "200")
-	var feeRate any = this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000"))
+	var feeRate *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")))
 	var decimalPrecision *string = this.SafeString(rawMarket, "decimalPrecision", "2")
-	var pricePrecision any = this.ParseNumber(this.ParsePrecision(decimalPrecision))
+	var pricePrecision *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.ParsePrecision(decimalPrecision)))
 	var precision map[string]any = map[string]any{
 		"amount": 0.01,
 		"price":  pricePrecision,
@@ -1344,9 +1342,8 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		retRes106619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes106619)
-		ch <- retRes106619
+		var retRes106619 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- ccxt.BoxAbsent(retRes106619)
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1456,9 +1453,8 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		retRes114919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes114919)
-		ch <- retRes114919
+		var retRes114919 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- ccxt.BoxAbsent(retRes114919)
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1559,7 +1555,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
 	if outcomes != nil {
 		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
-			var requested any = ccxt.GetValue(outcomes, i)
+			var requested *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomes, i))
 			var requestedOutcomeObj any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			ccxt.AddElementToObject(requestedOutcomeSymbols, requestedOutcome, true)
@@ -1717,7 +1713,7 @@ func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) 
 		outcomeObj = this.SafeOutcome(outcomeName)
 	}
 	var timestamp *int64 = this.SafeInteger(position, "createdTime")
-	var totalCost any = this.ParseNumber(this.SafeString(position, "totalCost"))
+	var totalCost *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(position, "totalCost")))
 	return this.SafePredictionPosition(map[string]any{
 		"id":                          this.SafeInteger(position, "positionId"),
 		"outcome":                     this.SafeString(outcomeObj, "outcome"),
@@ -1792,9 +1788,8 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		retRes141419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes141419)
-		ch <- retRes141419
+		var retRes141419 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- ccxt.BoxAbsent(retRes141419)
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1925,7 +1920,7 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var cost *string = this.SafeString(trade, "filledUsdtAmount")
 	var price *string = this.SafeString(trade, "price")
 	var orderType *string = this.SafeStringLower(trade, "orderType")
-	var fee any = nil
+	var fee map[string]any = nil
 	if (orderType != nil && *orderType == "market") && (cost != nil) && (price != nil) && (filled != nil) {
 		// buys pay cost above price*filled, sells receive proceeds net of the fee —
 		// either way the fee is the absolute difference

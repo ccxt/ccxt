@@ -870,7 +870,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String marketType = this.getAccountTypeFromUrl(client.url);
-        Object data = message;
+        Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object ticker = this.parseWsBidAsk((Map<String, Object>) (data), market);
@@ -1153,10 +1153,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String marketType = this.getAccountTypeFromUrl(client.url);
-        Object trade = message;
+        Map<String, Object> trade = message;
         String marketId = this.safeString(trade, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-        Object parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
+        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
         String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -1172,7 +1172,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // public watchTrades (spot)
@@ -1319,7 +1319,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         final String finalAmount = amount;
         final String finalCost = cost;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
@@ -1333,9 +1333,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             put( "amount", finalAmount );
             put( "cost", finalCost );
             put( "fee", finalFee );
-        }}));
+        }})));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1914,7 +1914,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> kline = (Map<String, Object>) this.safeDict(data, "k");
         String timeframeId = this.safeString(kline, "i");
-        Object timeframe = this.findTimeframe(timeframeId);
+        String timeframe = this.findTimeframe(timeframeId);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;
@@ -2694,7 +2694,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(new HashMap<String, Object>() {{
                 put( "type", type );
             }});
-            Object trade = this.parseWsTrade((Map<String, Object>) (message), fakeMarket);
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), fakeMarket);
             String orderId = this.safeString(trade, "order");
             Object tradeFee = this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
             tradeFee = this.extend(new HashMap<String, Object>() {{}}, tradeFee);

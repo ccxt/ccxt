@@ -517,7 +517,7 @@ public class Mercado extends MercadoApi
         //     }
         //
         String symbol = this.safeSymbol(null, market);
-        Object timestamp = this.safeTimestamp(ticker, "date");
+        Long timestamp = this.safeTimestamp(ticker, "date");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -603,7 +603,7 @@ public class Mercado extends MercadoApi
 
     public Object parseTrade(Object trade, Map<String, Object> market)
     {
-        Object timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
+        Long timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         market = (Map<String, Object>) (this.safeMarket(null, market));
         String id = this.safeString2(trade, "tid", "operation_id");
         Object type = null;
@@ -965,7 +965,7 @@ public class Mercado extends MercadoApi
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String marketId = this.safeString(order, "coin_pair");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = this.safeTimestamp(order, "created_timestamp");
+        Long timestamp = this.safeTimestamp(order, "created_timestamp");
         final Map<String, Object> finalMarket = market;
         Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "cost", Mercado.this.safeString(order, "fee") );
@@ -976,7 +976,7 @@ public class Mercado extends MercadoApi
         String average = this.safeString(order, "executed_price_avg");
         String amount = this.safeString(order, "quantity");
         String filled = this.safeString(order, "executed_quantity");
-        Object lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
+        Long lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
         List<Object> rawTrades = (List<Object>) this.safeList(order, "operations", new ArrayList<Object>(Arrays.asList()));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         final String finalSide = side;
@@ -1458,7 +1458,7 @@ public class Mercado extends MercadoApi
         {
             this.checkRequiredCredentials();
             url = Helpers.add(url, (this.version + "/"));
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             body = (String) (this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );

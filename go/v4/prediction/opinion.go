@@ -178,7 +178,7 @@ func (this *Opinion) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var rest any = this.Omit(params, []any{"limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 	var pageLimit *int64 = this.SafeInteger(this.Options, "marketsPageLimit", 20)
 	var maxPages *int64 = this.SafeInteger(this.Options, "maxMarketsPages", 50)
@@ -282,9 +282,7 @@ func (this *Opinion) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		}
 	}
 
-	retRes24715 := (<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol))
-	ccxt.PanicOnError(retRes24715)
-	ch <- retRes24715
+	ch <- ccxt.PanicOnError((<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol)))
 	return nil
 }
 
@@ -342,23 +340,23 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 	var outcomes []any = []any{}
 	var resolvedOutcome any = nil
 	for i := 0; i < len(outcomeLabels); i++ {
-		var label any = func() any {
+		var label *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(outcomeLabels) {
 				return ccxt.DerefScalar(outcomeLabels[i])
 			}
 			return nil
-		}()
-		var tokenId any = func() any {
+		}())
+		var tokenId *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(outcomeTokenIds) {
 				return ccxt.DerefScalar(outcomeTokenIds[i])
 			}
 			return nil
-		}()
+		}())
 		var outcomeHandle any = this.SlugToOutcomeSymbol(effectiveEventSlug, slug, label)
 		var winner any = nil
 		var settleFraction any = nil
 		if hasResult {
-			winner = (ccxt.IsEqual(tokenId, resultTokenId))
+			winner = (tokenId == resultTokenId || (tokenId != nil && resultTokenId != nil && *tokenId == *resultTokenId))
 			settleFraction = func() int {
 				if winner == true {
 					return 1
@@ -476,7 +474,7 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var eventId *string = this.SafeString(params, "eventId")
 	var slug *string = this.SafeString(params, "slug")
 	if (eventId != nil) || (slug != nil) {
-		var singleRest any = this.Omit(params, []any{"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"})
+		var singleRest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"}))
 		var singleResponse any = nil
 		if slug != nil {
 
@@ -499,7 +497,7 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.ApplyEventFetchParams([]any{single}, params, queries)
 		return nil
 	}
-	var rest any = this.Omit(params, []any{"query", "queries", "tags", "status", "sort", "searchIn", "limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "tags", "status", "sort", "searchIn", "limit"}))
 	var pageLimit *int64 = this.SafeInteger(this.Options, "defaultFetchEventsLimit", 20)
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 	// bound how many events are actually FETCHED: the user limit when given, otherwise
@@ -792,13 +790,13 @@ func (this *Opinion) fetchTickerBody(ch chan any, outcome any, optionalArgs ...a
 
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var promises []any = []any{this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 		"token_id": tokenId,
 	}, params)), this.OpinionPublicGetTokenOrderbook(this.Extend(map[string]any{
 		"token_id": tokenId,
 	}, params))}
-	priceResponsebookResponseVariable := (<-ccxt.PromiseAll(promises))
+	var priceResponsebookResponseVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	priceResponse := ccxt.GetValue(priceResponsebookResponseVariable, 0)
 	bookResponse := ccxt.GetValue(priceResponsebookResponseVariable, 1)
 	var response map[string]any = map[string]any{
@@ -905,7 +903,7 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var promises []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
-		var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+		var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 		promises = append(promises, this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 			"token_id": tokenId,
 		}, params)))
@@ -914,8 +912,7 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}, params)))
 	}
 
-	responses := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(responses)
+	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var result map[string]any = map[string]any{}
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
@@ -962,7 +959,7 @@ func (this *Opinion) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var request map[string]any = map[string]any{
 		"token_id": tokenId,
 	}
@@ -1022,12 +1019,11 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	_ = params
 	if !(ccxt.InOp(this.Timeframes, timeframe)) {
 		var supportedKeys []string = ccxt.ObjectKeys(this.Timeframes)
-		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOHLCV() unsupported timeframe ", timeframe), ", supported timeframes are "), strings.Join(supportedKeys, ", "))))
+		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() unsupported timeframe " + timeframe + ", supported timeframes are " + strings.Join(supportedKeys, ", ")))
 	}
 
-	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(outcomeObj)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 
 	response := (<-this.OpinionPublicGetTokenPriceHistory(this.Extend(map[string]any{
@@ -1302,7 +1298,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
 	var sideStr string = ccxt.ToUpper(side)
 	if price == nil {
@@ -1335,7 +1331,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 	}()
 	var salt *string = this.NumberToString(this.Milliseconds())
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
-	var rest any = this.Omit(params, []any{"postOnly"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"postOnly"}))
 
 	maker := (<-this.LoadMultiSignAddressAsync())
 	ccxt.PanicOnError(maker)
@@ -2055,8 +2051,8 @@ func (this *Opinion) HashMessage(message any) any {
 func (this *Opinion) SignHash(hash any, privateKey any) any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches
-	var rRaw any = signature["r"]
-	var sRaw any = signature["s"]
+	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
+	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
 	var r string = ccxt.PadStart(rRaw, 64, "0")
 	var s string = ccxt.PadStart(sRaw, 64, "0")
 	return map[string]any{
@@ -2320,9 +2316,7 @@ func (this *Opinion) subscribeOpinionChannelBody(ch chan any, messageHash any, c
 		"marketId": marketId,
 	}
 
-	retRes169915 := (<-this.Watch(url, messageHash, subscribeMsg, subscriptionKey))
-	ccxt.PanicOnError(retRes169915)
-	ch <- retRes169915
+	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribeMsg, subscriptionKey)))
 	return nil
 }
 func (this *Opinion) HandleMessage(client any, message any) {
@@ -2518,9 +2512,7 @@ func (this *Opinion) watchTickerBody(ch chan any, outcome any, optionalArgs ...a
 	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var messageHash any = ccxt.Add("ticker::", sym)
 
-	retRes184415 := (<-this.SubscribeOpinionChannelAsync(messageHash, "market.last.price", marketId))
-	ccxt.PanicOnError(retRes184415)
-	ch <- retRes184415
+	ch <- ccxt.PanicOnError((<-this.SubscribeOpinionChannelAsync(messageHash, "market.last.price", marketId)))
 	return nil
 }
 func (this *Opinion) HandleTicker(client any, message any) {

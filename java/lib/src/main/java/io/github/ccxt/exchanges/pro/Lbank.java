@@ -77,7 +77,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         }});
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object newValue;
         synchronized (this) {
@@ -85,7 +85,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject(this.options, "requestId", newValue);
         }
-        return newValue;
+        return Helpers.toLongOrNull(newValue);
     }
 
     public void checkContractMarket(Map<String, Object> market, Object methodName)
@@ -143,7 +143,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 ((Map<String, Object>)message).put("size", limit);
             }
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -350,7 +350,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
         }).thenApply(Ticker::new);
 
@@ -540,7 +540,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 put( "size", finalLimit );
             }};
             Map<String,Object> request = this.deepExtend(message, parameters);
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -655,7 +655,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList(rawTrade)));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), market);
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), market);
             Helpers.addElementToObject(trade, "symbol", symbol);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
@@ -666,7 +666,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // request
@@ -698,7 +698,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         }
         final Long finalTimestamp = timestamp;
         final String finalSide = side;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
             put( "datetime", datetime );
             put( "symbol", null );
@@ -712,9 +712,9 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "cost", Lbank.this.safeString(trade, "amount") );
             put( "fee", null );
             put( "info", trade );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

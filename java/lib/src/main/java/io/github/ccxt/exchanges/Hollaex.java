@@ -634,10 +634,10 @@ public class Hollaex extends HollaexApi
         {
             Object networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawNetworks, networkId);
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -2678,12 +2678,12 @@ public class Hollaex extends HollaexApi
                 Object value = (withdrawalFees == null || key == null ? null : withdrawalFees.get(key));
                 String currencyId = this.safeString(value, "symbol");
                 String currencyCode = this.safeCurrencyCode(currencyId);
-                Object networkCode = this.networkIdToCode(key, currencyCode);
+                String networkCode = this.networkIdToCode(key, currencyCode);
                 if (java.util.Objects.equals(networkCode, null))
                 {
                     throw new ArgumentsRequired((this.id + " requires a networkCode argument")) ;
                 }
-                String networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
+                String networkCodeUpper = networkCode.toUpperCase(); // default to the upper case network code
                 Double withdrawalFee = this.safeNumber(value, "value");
                 Helpers.addElementToObject(result.get("networks"), networkCodeUpper, new HashMap<String, Object>() {{
     put( "deposit", null );

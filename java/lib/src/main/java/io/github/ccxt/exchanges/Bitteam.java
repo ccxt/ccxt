@@ -803,11 +803,11 @@ public class Bitteam extends BitteamApi
         for (var j = 0; j < ((List<?>)networkIds).size(); j++)
         {
             Object networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             Double networkFee = this.safeNumber(feesByNetworkId, networkId);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );

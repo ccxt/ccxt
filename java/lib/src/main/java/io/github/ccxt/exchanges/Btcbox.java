@@ -669,7 +669,7 @@ public class Btcbox extends BtcboxApi
         //          "type":"buy"
         //      }
         //
-        Object timestamp = this.safeTimestamp(trade, "date");
+        Long timestamp = this.safeTimestamp(trade, "date");
         market = (Map<String, Object>) (this.safeMarket(null, market));
         String id = this.safeString(trade, "tid");
         String priceString = this.safeString(trade, "price");
@@ -1139,9 +1139,9 @@ public class Btcbox extends BtcboxApi
         return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

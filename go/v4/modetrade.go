@@ -1139,7 +1139,7 @@ func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "executed_timestamp")
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price *string = this.SafeString(trade, "executed_price")
 	var amount *string = this.SafeString(trade, "executed_quantity")
 	var order_id *string = this.SafeString(trade, "order_id")
@@ -1469,9 +1469,8 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes104619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-		PanicOnError(retRes104619)
-		ch <- retRes104619
+		var retRes104619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))))
+		ch <- BoxAbsent(retRes104619)
 		return nil
 	}
 	var request any = map[string]any{}
@@ -1610,13 +1609,12 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes114919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes114919)
-		ch <- retRes114919
+		var retRes114919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes114919)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -1723,7 +1721,7 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	var symbols any = this.Symbols
 	if !IsEqual(symbols, nil) {
 		for i := 0; i < GetArrayLength(symbols); i++ {
-			var symbol any = GetValue(symbols, i)
+			var symbol *string = SafeStringPtr(GetValue(symbols, i))
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,
@@ -1925,7 +1923,7 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.OmitZero(this.SafeString2(order, "client_order_id", "clientOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var price *string = this.SafeString2(order, "order_price", "price")
 	var amount *string = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
@@ -2229,8 +2227,8 @@ func (this *Modetrade) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-	var order any = this.ParseOrder(data, market)
-	AddElementToObject(order, "type", typeVar)
+	var order map[string]any = MapTyped(this.ParseOrder(data, market))
+	order["type"] = typeVar
 
 	ch <- order
 	return nil
@@ -2460,7 +2458,7 @@ func (this *Modetrade) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2688,7 +2686,7 @@ func (this *Modetrade) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2805,13 +2803,12 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes213019 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-		PanicOnError(retRes213019)
-		ch <- retRes213019
+		var retRes213019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))))
+		ch <- BoxAbsent(retRes213019)
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3006,7 +3003,7 @@ func (this *Modetrade) fetchOrderTradesBody(ch chan any, id any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3082,13 +3079,12 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		retRes231619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes231619)
-		ch <- retRes231619
+		var retRes231619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes231619)
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -3306,9 +3302,9 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		}()
 	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
-	var feeCost any = this.ParseNumber(this.SafeString(item, "fee"))
-	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(item, "fee")))
+	var fee map[string]any = nil
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
@@ -3400,9 +3396,9 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) an
 	if movementDirection != nil && *movementDirection == "withdraw" {
 		movementDirection = SafeStringPtr("withdrawal")
 	}
-	var feeCost any = this.ParseNumber(this.SafeString(transaction, "fee"))
-	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(transaction, "fee")))
+	var fee map[string]any = nil
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
@@ -3600,8 +3596,8 @@ func (this *Modetrade) HashMessage(message any) any {
 }
 func (this *Modetrade) SignHash(hash any, privateKey any) any {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
-	var r any = signature["r"]
-	var s any = signature["s"]
+	var r *string = SafeStringPtr(signature["r"])
+	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
@@ -3833,9 +3829,7 @@ func (this *Modetrade) setLeverageBody(ch chan any, leverage any, optionalArgs .
 		"leverage": leverage,
 	}
 
-	retRes287715 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw
-	PanicOnError(retRes287715)
-	ch <- retRes287715
+	ch <- PanicOnError((<-this.V1PrivatePostClientLeverage(this.Extend(request, params))).Raw)
 	return nil
 }
 func (this *Modetrade) ParsePosition(position any, optionalArgs ...any) any {
@@ -4104,7 +4098,7 @@ func (this *Modetrade) Sign(path any, optionalArgs ...any) any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		auth = Add(Add(Add(Add(Add(ts, method), "/"), version), "/"), pathWithParams)
+		auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
 		if (method == "POST") || (method == "PUT") {
 			body = this.Json(params)
 			auth = Add(auth, body)

@@ -4589,13 +4589,13 @@ public class Bitget extends BitgetApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             Object marginMode = null;
-            Object productType = null;
+            String productType = null;
             Object uta = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, "isolated");
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchMarketLeverageTiers", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -5608,9 +5608,9 @@ final Object finalMinNotional = minNotional;
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             Object uta = null;
@@ -5857,9 +5857,9 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             Object uta = null;
@@ -6051,9 +6051,9 @@ final Object finalMinNotional = minNotional;
                 throw new NotSupported((this.id + " fetchMarkPrice() is not supported for spot markets")) ;
             } else
             {
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, parameters))).join();
@@ -6118,9 +6118,9 @@ final Object finalMinNotional = minNotional;
             // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
             // with higher priority and only default to spot, if `subType` is not set in params
             String passedSubType = this.safeString(parameters, "subType");
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             // only if passedSubType && productType is undefined, then use spot
             Object uta = null;
@@ -6512,9 +6512,9 @@ final Object finalMinNotional = minNotional;
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
             Map<String, Object> response = null;
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
@@ -6686,9 +6686,9 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("category", productType);
                 Map<String, Object> utaResponse = (this.privateUtaGetV3AccountFeeRate(this.extend(request, parameters))).join();
@@ -6809,9 +6809,9 @@ final Object finalMinNotional = minNotional;
                     }
                 } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
                 {
-                    Object productType = null;
+                    String productType = null;
                     List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(null, parameters);
-                    productType = ((List<Object>) productTypeparametersVariable).get(0);
+                    productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                     ((Map<String, Object>)request).put("category", productType);
                 } else
@@ -6866,9 +6866,9 @@ final Object finalMinNotional = minNotional;
                 }
             } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
             {
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(null, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)parameters).put("productType", productType);
                 response = (this.publicMixGetV2MixMarketContracts(parameters)).join();
@@ -7176,13 +7176,13 @@ final Object finalMinNotional = minNotional;
             ((Map<String, Object>)request).put("limit", limit);
             // make request
             Object response = null;
-            Object productType = null;
+            String productType = null;
             String priceType = null;
             List<Object> priceTypeparametersVariable = (List<Object>) this.handleParamString(parameters, "price");
             priceType = (String) ((List<Object>) priceTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) priceTypeparametersVariable).get(1);
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
@@ -7355,9 +7355,9 @@ final Object finalMinNotional = minNotional;
                 return this.parseUtaBalance(assets);
             } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
             {
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(null, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.privateMixGetV2MixAccountAccounts(this.extend(request, parameters))).join();
@@ -8164,7 +8164,7 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
                     if (Boolean.TRUE.equals(isTriggerOrder))
@@ -8271,9 +8271,9 @@ final Object finalMinNotional = minNotional;
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object productType = null;
+        String productType = null;
         List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-        productType = ((List<Object>) productTypeparametersVariable).get(0);
+        productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
         if (java.util.Objects.equals(productType, "SPOT"))
         {
@@ -8286,7 +8286,7 @@ final Object finalMinNotional = minNotional;
                 productType = "MARGIN";
             }
         }
-        final Object finalProductType = productType;
+        final String finalProductType = productType;
         final String finalSide = side;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "category", finalProductType );
@@ -8433,7 +8433,7 @@ final Object finalMinNotional = minNotional;
         return this.createUtaOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -8535,9 +8535,9 @@ final Object finalMinNotional = minNotional;
         {
             ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
             ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             ((Map<String, Object>)request).put("productType", productType);
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -8654,7 +8654,7 @@ final Object finalMinNotional = minNotional;
                 }
                 String marginModeRequest = (((java.util.Objects.equals(marginMode, "cross")))) ? "crossed" : "isolated";
                 ((Map<String, Object>)request).put("marginMode", marginModeRequest);
-                Object requestSide = side;
+                String requestSide = side;
                 if (java.util.Objects.equals(reduceOnly, true))
                 {
                     if (!java.util.Objects.equals(hedged, true))
@@ -8752,9 +8752,9 @@ final Object finalMinNotional = minNotional;
         {
             throw new NotSupported((((this.id + " createOrder() does not support ") + marketType) + " orders")) ;
         }
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -8901,7 +8901,7 @@ final Object finalMinNotional = minNotional;
                         }
                     }
                 }
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -8919,9 +8919,9 @@ final Object finalMinNotional = minNotional;
                 String marginModeRequest = (((java.util.Objects.equals(marginMode, "cross")))) ? "crossed" : "isolated";
                 ((Map<String, Object>)request).put("marginMode", marginModeRequest);
                 ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.privateMixPostV2MixOrderBatchPlaceOrder(request)).join();
@@ -9074,10 +9074,10 @@ final Object finalMinNotional = minNotional;
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "clientOrderId", "trailingTriggerPrice", "trailingPercent")));
             Map<String, Object> response = null;
-            Object productType = null;
+            String productType = null;
             Object uta = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "editOrder", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -9410,9 +9410,9 @@ final Object finalMinNotional = minNotional;
                 }
             } else if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))
             {
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("productType", productType);
                 if (java.util.Objects.equals(trailing, true))
@@ -9566,15 +9566,15 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             List<Object> requestList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object individualId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
-                final Object finalProductType = productType;
+                final String finalProductType = productType;
                 Map<String, Object> order = new HashMap<String, Object>() {{
                     put( "orderId", individualId );
                     put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -9691,9 +9691,9 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("productType", productType);
                 if (java.util.Objects.equals(trigger, true))
@@ -9785,9 +9785,9 @@ final Object finalMinNotional = minNotional;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -9949,9 +9949,9 @@ final Object finalMinNotional = minNotional;
             } else if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))
             {
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.privateMixGetV2MixOrderDetail(this.extend(request, parameters))).join();
@@ -10225,9 +10225,9 @@ final Object finalMinNotional = minNotional;
                     ((Map<String, Object>)request).put("clientOid", clientOrderId);
                 }
             }
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "stop", "trigger", "trailing")));
             if (java.util.Objects.equals(uta, true))
@@ -10880,9 +10880,9 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("productType", productType);
                 Boolean planTypeDefined = !java.util.Objects.equals(this.safeString(parameters, "planType"), null);
@@ -11149,9 +11149,9 @@ final Object finalMinNotional = minNotional;
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             if (java.util.Objects.equals(productType, "SPOT"))
             {
@@ -11164,7 +11164,7 @@ final Object finalMinNotional = minNotional;
                     productType = "MARGIN";
                 }
             }
-            final Object finalProductType = productType;
+            final String finalProductType = productType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", finalProductType );
             }};
@@ -11423,9 +11423,9 @@ final Object finalMinNotional = minNotional;
                         }
                     } else
                     {
-                        Object productType = null;
+                        String productType = null;
                         List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                        productType = ((List<Object>) productTypeparametersVariable).get(0);
+                        productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                         parameters = ((List<Object>) productTypeparametersVariable).get(1);
                         ((Map<String, Object>)request).put("category", productType);
                     }
@@ -11448,9 +11448,9 @@ final Object finalMinNotional = minNotional;
                 {
                     ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
                 }
-                Object productType = null;
+                String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                productType = ((List<Object>) productTypeparametersVariable).get(0);
+                productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = ((List<Object>) productTypeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.privateMixGetV2MixAccountBill(this.extend(request, parameters))).join();
@@ -11947,9 +11947,9 @@ final Object finalMinNotional = minNotional;
                     }
                 } else
                 {
-                    Object productType = null;
+                    String productType = null;
                     List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                    productType = ((List<Object>) productTypeparametersVariable).get(0);
+                    productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
                     ((Map<String, Object>)request).put("productType", productType);
                     response = (this.privateMixGetV2MixOrderFills(this.extend(request, parameters))).join();
@@ -12148,9 +12148,9 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -12320,9 +12320,9 @@ final Object finalMinNotional = minNotional;
                     market = (Map<String, Object>) this.market(first);
                 }
             }
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
@@ -12796,12 +12796,12 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object productType = null;
+            String productType = null;
             Object uta = null;
             Map<String, Object> response = null;
             List<Object> result = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -12930,9 +12930,9 @@ final Object finalMinNotional = minNotional;
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
             }
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -13013,9 +13013,9 @@ final Object finalMinNotional = minNotional;
                 market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Object method = "publicMixGetV2MixMarketTickers";
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRates", "method", method);
@@ -13293,9 +13293,9 @@ final Object finalMinNotional = minNotional;
             {
                 throw new BadSymbol((this.id + " fetchFundingHistory() supports swap contracts only")) ;
             }
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
@@ -13432,11 +13432,11 @@ final Object finalMinNotional = minNotional;
             }
             String holdSide = this.safeString(parameters, "holdSide");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-            final Object finalProductType = productType;
+            final String finalProductType = productType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "marginCoin", ((Map<String, Object>)market).get("settleId") );
@@ -13599,11 +13599,11 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-            final Object finalProductType = productType;
+            final String finalProductType = productType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "marginCoin", ((Map<String, Object>)market).get("settleId") );
@@ -13705,9 +13705,9 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -13800,12 +13800,12 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             final String finalMarginMode = marginMode;
-            final Object finalProductType = productType;
+            final String finalProductType = productType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "marginCoin", ((Map<String, Object>)market).get("settleId") );
@@ -13877,11 +13877,11 @@ final Object finalMinNotional = minNotional;
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object productType = null;
+            String productType = null;
             Object uta = null;
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "setPositionMode", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -13943,9 +13943,9 @@ final Object finalMinNotional = minNotional;
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
             }
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -14324,7 +14324,7 @@ final Object finalMinNotional = minNotional;
             Object chain = (chains == null || i < 0 || i >= chains.size() ? null : chains.get(i));
             String networkId = this.safeString(chain, "chain");
             String currencyCode = this.safeString(currency, "code");
-            Object networkCode = this.networkIdToCode(networkId, currencyCode);
+            String networkCode = this.networkIdToCode(networkId, currencyCode);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
@@ -14699,12 +14699,12 @@ final Object finalMinNotional = minNotional;
         //
         String currencyId = this.safeString(info, "coin");
         String marketId = this.safeString(info, "symbol");
-        Object symbol = null;
+        String symbol = null;
         if (!java.util.Objects.equals(marketId, null))
         {
             symbol = this.safeSymbol(marketId, market, null, "spot");
         }
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         return new HashMap<String, Object>() {{
             put( "id", Bitget.this.safeString2(info, "loanId", "repayId") );
             put( "currency", Bitget.this.safeCurrencyCode(currencyId, currency) );
@@ -15105,7 +15105,7 @@ final Object finalMinNotional = minNotional;
             }};
             Object uta = null;
             Map<String, Object> response = null;
-            Object result = new HashMap<String, Object>() {{}};
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchCrossBorrowRate", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
@@ -15124,7 +15124,7 @@ final Object finalMinNotional = minNotional;
                 //         }
                 //     }
                 //
-                result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             } else
             {
                 response = (this.privateMarginGetV2MarginCrossedInterestRateAndLimit(this.extend(request, parameters))).join();
@@ -15155,7 +15155,7 @@ final Object finalMinNotional = minNotional;
                 //     }
                 //
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             }
             Long timestamp = this.safeInteger(response, "requestTime");
             ((Map<String, Object>)result).put("timestamp", timestamp);
@@ -15460,11 +15460,11 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object productType = null;
+            String productType = null;
             Object uta = null;
             Map<String, Object> response = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "closePosition", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -15530,11 +15530,11 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object productType = null;
+            String productType = null;
             Object uta = null;
             Map<String, Object> response = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(null, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "closeAllPositions", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -15589,11 +15589,11 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-            final Object finalProductType = productType;
+            final String finalProductType = productType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "marginCoin", ((Map<String, Object>)market).get("settleId") );
@@ -15695,7 +15695,7 @@ final Object finalMinNotional = minNotional;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Object productType = null;
+            String productType = null;
             Object uta = null;
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(symbols, null))
@@ -15719,7 +15719,7 @@ final Object finalMinNotional = minNotional;
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchPositionsHistory", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -16173,9 +16173,9 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object productType = null;
+            String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = ((List<Object>) productTypeparametersVariable).get(0);
+            productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = ((List<Object>) productTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -16351,9 +16351,9 @@ final Object finalMinNotional = minNotional;
         return null;
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

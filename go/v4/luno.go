@@ -537,7 +537,7 @@ func (this *Luno) ParseCurrency(rawCurrency any) any {
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
 		var networkEntry any = GetValue(rawCurrency, i)
 		var networkId *string = this.SafeString(networkEntry, "name")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":      networkId,
@@ -951,7 +951,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 	var baseFee *float64 = this.SafeNumber(order, "fee_base")
 	var filled *string = this.SafeString(order, "base")
 	var cost *string = this.SafeString(order, "counter")
-	var fee any = nil
+	var fee map[string]any = nil
 	if quoteFee != nil {
 		fee = map[string]any{
 			"cost":     quoteFee,
@@ -1046,7 +1046,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(state, nil) {
 		request["state"] = state
 	}
@@ -1234,8 +1234,8 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
-		var market any = this.SafeMarket(id)
-		var symbol any = GetValue(market, "symbol")
+		var market map[string]any = MapTyped(this.SafeMarket(id))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		var ticker any = tickers[id]
 		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 	}
@@ -1826,7 +1826,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	PanicOnError((<-this.LoadAccountsAsync()))
-	var currency any = nil
+	var currency map[string]any = nil
 	var id any = DerefScalar(this.SafeString(params, "id")) // account id
 	var min_row any = this.SafeValue(params, "min_row")
 	var max_row any = this.SafeValue(params, "max_row")
@@ -1834,7 +1834,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " fetchLedger() requires a currency code argument if no account id specified in params"))
 		}
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
 		var account any = this.SafeDict(accountsByCurrencyCode, code)
 		if IsEqual(account, nil) {
@@ -1918,8 +1918,8 @@ func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) any {
 	var before *string = after
 	var amount any = "0.0"
 	var result any = this.ParseLedgerComment(comment)
-	var typeVar any = GetValue(result, "type")
-	var referenceId any = GetValue(result, "referenceId")
+	var typeVar *string = SafeStringPtr(GetValue(result, "type"))
+	var referenceId *string = SafeStringPtr(GetValue(result, "referenceId"))
 	var direction any = nil
 	var status any = nil
 	if !Precise.StringEquals(balance_delta, "0.0") {

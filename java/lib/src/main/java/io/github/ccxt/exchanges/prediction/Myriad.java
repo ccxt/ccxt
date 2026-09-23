@@ -1299,7 +1299,7 @@ public class Myriad extends MyriadApi
                 put( "networkId", networkId );
                 put( "timeInForce", timeInForce );
             }});
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Object parsed = this.parsePredictionOrder((Map<String, Object>) (wrapper), outcomeObj);
             // the POST /orders response is minimal (hash + status), so backfill the known request values
             // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
@@ -1358,7 +1358,7 @@ public class Myriad extends MyriadApi
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires a privateKey to sign the order")) ;
         }
-        Object outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
         Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String networkId = this.safeString(info, "networkId", this.safeString(this.options, "defaultNetworkId", "56"));
         String marketId = this.safeString(info, "marketId");
@@ -2015,7 +2015,7 @@ public class Myriad extends MyriadApi
         {
             composite = ((((networkId + ":") + marketId) + "/") + rawOutcomeId);
         }
-        Object outcomeObj = this.safeOutcome(composite, market);
+        Map<String, Object> outcomeObj = this.safeOutcome(composite, market);
         String marketSlug = this.safeString(trade, "marketSlug", marketId);
         String outcomeTitle = this.safeString(trade, "outcomeTitle", rawOutcomeId);
         Object outcome = this.safeString(outcomeObj, "outcome");
@@ -2033,7 +2033,7 @@ public class Myriad extends MyriadApi
         {
             label = outcomeTitle;
         }
-        Object timestamp = this.safeTimestamp(trade, "timestamp");
+        Long timestamp = this.safeTimestamp(trade, "timestamp");
         String amountStr = this.safeString(trade, "shares");
         String costStr = this.safeString(trade, "value");
         String priceStr = null;
@@ -2258,12 +2258,12 @@ public class Myriad extends MyriadApi
                 }}, parameters))).join();
             }
             Map<String, Object> fetchedInfo = (Map<String, Object>) this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
-            Object rawOrder = this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
-            List<Object> rawOrderKeys = new ArrayList<Object>(((Map<String, Object>)rawOrder).keySet());
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
+            List<Object> rawOrderKeys = new ArrayList<Object>(rawOrder.keySet());
             Integer rawOrderKeysLength = ((List<?>)rawOrderKeys).size();
             if (java.util.Objects.equals(rawOrderKeysLength, 0))
             {
-                rawOrder = this.safeDict(fetchedInfo, "order", new HashMap<String, Object>() {{}});
+                rawOrder = (Map<String, Object>) this.safeDict(fetchedInfo, "order", new HashMap<String, Object>() {{}});
             }
             String networkId = this.safeStringN(fetched, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
             if (java.util.Objects.equals(networkId, null))
@@ -2440,12 +2440,12 @@ public class Myriad extends MyriadApi
                     }})).join();
                 }
                 Map<String, Object> fetchedInfo = (Map<String, Object>) this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
-                Object rawOrder = this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
-                List<Object> rawOrderKeys = new ArrayList<Object>(((Map<String, Object>)rawOrder).keySet());
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
+                List<Object> rawOrderKeys = new ArrayList<Object>(rawOrder.keySet());
                 Integer rawOrderKeysLength = ((List<?>)rawOrderKeys).size();
                 if (java.util.Objects.equals(rawOrderKeysLength, 0))
                 {
-                    rawOrder = this.safeDict(fetchedInfo, "order", new HashMap<String, Object>() {{}});
+                    rawOrder = (Map<String, Object>) this.safeDict(fetchedInfo, "order", new HashMap<String, Object>() {{}});
                 }
                 String fetchedNetworkId = this.safeStringN(fetched, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
                 if (java.util.Objects.equals(fetchedNetworkId, null))
@@ -3270,8 +3270,8 @@ final Object finalNetworkId = networkId;
         return BaseExchange.supplyAsync(() -> {
 
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            String networkId = this.safeString(Helpers.GetValue(outcomeObj, "info"), "networkId");
-            String marketId = this.safeString(Helpers.GetValue(outcomeObj, "info"), "marketId");
+            String networkId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "networkId");
+            String marketId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", marketId );
                 put( "network_id", networkId );
@@ -3601,10 +3601,10 @@ final Object finalNetworkId = networkId;
         return BaseExchange.supplyAsync(() -> {
 
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            String networkId = this.safeString(Helpers.GetValue(outcomeObj, "info"), "networkId");
-            String marketId = this.safeString(Helpers.GetValue(outcomeObj, "info"), "marketId");
-            String outcomeId = this.safeString(Helpers.GetValue(outcomeObj, "info"), "outcomeId");
-            String tradingModel = this.safeString(Helpers.GetValue(outcomeObj, "info"), "tradingModel", "amm");
+            String networkId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "networkId");
+            String marketId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketId");
+            String outcomeId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "outcomeId");
+            String tradingModel = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "tradingModel", "amm");
             if (java.util.Objects.equals(tradingModel, "ob"))
             {
                 Map<String, Object> obRequest = new HashMap<String, Object>() {{
@@ -3821,8 +3821,8 @@ final Object finalNetworkId = networkId;
 
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(Helpers.GetValue(outcomeObj, "info"), "networkId");
-            String marketId = this.safeString(Helpers.GetValue(outcomeObj, "info"), "marketId");
+            String networkId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "networkId");
+            String marketId = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketId");
             String outcomeId = this.safeString(outcomeInfo, "outcomeId", this.safeString(outcomeInfo, "id"));
             String outcomeTitle = this.safeString(outcomeInfo, "outcomeLabel", this.safeString(outcomeInfo, "label", this.safeString(outcomeInfo, "title")));
             String bucketKey = this.safeString(this.timeframes, timeframe, "30d");
@@ -4013,7 +4013,7 @@ final Object finalNetworkId = networkId;
             List<Object> marketKeys = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
-                Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String networkId = this.safeString(info, "networkId");
                 String marketId = this.safeString(info, "marketId");
@@ -4177,7 +4177,7 @@ final Object finalNetworkId = networkId;
      */
     public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
-        Object timestamp = this.safeTimestamp(trade, "timestamp");
+        Long timestamp = this.safeTimestamp(trade, "timestamp");
         String amountStr = this.safeString(trade, "shares");
         String costStr = this.safeString(trade, "value");
         String priceStr = null;
@@ -4433,7 +4433,7 @@ final Object finalNetworkId = networkId;
         }});
     }
 
-    public Object requestId(String url)
+    public Long requestId(String url)
     {
         Object existing = this.safeValue(this.options, "requestId");
         if (java.util.Objects.equals(existing, null))
@@ -4447,7 +4447,7 @@ final Object finalNetworkId = networkId;
         {
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
         }
-        return newValue;
+        return Helpers.toLongOrNull(newValue);
     }
 
     public Object fromWei(String wei)
@@ -4484,7 +4484,7 @@ final Object finalNetworkId = networkId;
             if (java.util.Objects.equals(connectSent, null))
             {
                 Helpers.addElementToObject(this.options, "wsConnected", false);
-                Object requestId = this.requestId((String) (url));
+                Long requestId = this.requestId((String) (url));
                 // give the anonymous connect a name so the params object is non-empty (PHP serialises an
                 // empty array as a JSON array, which Centrifugo rejects)
                 Map<String, Object> connectMsg = new HashMap<String, Object>() {{
@@ -4530,7 +4530,7 @@ final Object finalNetworkId = networkId;
             String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             // finish the connect handshake first so the subscribe frame is sent after the connect reply
             (this.connectCentrifugo((String) (url))).join();
-            Object requestId = this.requestId((String) (url));
+            Long requestId = this.requestId((String) (url));
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "subscribe", new HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -4650,7 +4650,7 @@ final Object finalNetworkId = networkId;
                 // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
                 (this.seedOrderBook((String) (outcome), (String) (sym), limit)).join();
             }
-            Object requestId = this.requestId((String) (url));
+            Long requestId = this.requestId((String) (url));
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "subscribe", new HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -4864,7 +4864,7 @@ final Object finalNetworkId = networkId;
             return;
         }
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(sym);
-        Object outcomeObj = this.safeOutcome((String) (sym));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (sym));
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(taker, "totalFees", new HashMap<String, Object>() {{}});
@@ -4922,7 +4922,7 @@ final Object finalNetworkId = networkId;
                 {
                     String makerSym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), this.safeString(maker, "outcome"));
                     Map<String, Object> makerMarket = (Map<String, Object>) this.safeMarket(makerSym);
-                    Object makerOutcomeObj = this.safeOutcome((String) (makerSym));
+                    Map<String, Object> makerOutcomeObj = this.safeOutcome((String) (makerSym));
                     Map<String, Object> makerFees = (Map<String, Object>) this.safeDict(maker, "fees", new HashMap<String, Object>() {{}});
                     Object makerTrade = this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
                         put( "id", txHash );
@@ -5032,7 +5032,7 @@ final Object finalNetworkId = networkId;
             List<Object> resolvedSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
             {
-                Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String networkId = this.safeString(info, "networkId");
                 String marketId = this.safeString(info, "marketId");
@@ -5041,7 +5041,7 @@ final Object finalNetworkId = networkId;
                 if (java.util.Objects.equals(this.safeValue(seenChannels, channel), null))
                 {
                     ((Map<String, Object>)seenChannels).put((String)channel, true);
-                    Object requestId = this.requestId((String) (url));
+                    Long requestId = this.requestId((String) (url));
                     Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                         put( "subscribe", new HashMap<String, Object>() {{
                             put( "channel", channel );
@@ -5139,7 +5139,7 @@ final Object finalNetworkId = networkId;
                 continue;
             }
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(sym);
-            Object outcomeObj = this.safeOutcome((String) (sym));
+            Map<String, Object> outcomeObj = this.safeOutcome((String) (sym));
             Object last = this.fromWei(this.safeString(oc, "last"));
             final String finalSym = sym;
             Object ticker = this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -5232,7 +5232,7 @@ final Object finalNetworkId = networkId;
         String marketId = this.safeString(data, "marketId");
         String outcomeId = this.safeString(data, "outcome");
         String sym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), (String) (outcomeId));
-        Object outcomeObj = this.safeOutcome((String) (sym));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (sym));
         Object price = this.fromWei(this.safeString(data, "price"));
         Object amount = this.fromWei(this.safeString(data, "amount"));
         Object filled = this.fromWei(this.safeString(data, "filledAmount"));
@@ -5308,7 +5308,7 @@ final Object finalNetworkId = networkId;
                 // handlePosition can maintain a running contracts figure
                 (this.seedPositionBalances(trader)).join();
             }
-            Object requestId = this.requestId((String) (url));
+            Long requestId = this.requestId((String) (url));
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "subscribe", new HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -5376,7 +5376,7 @@ final Object finalNetworkId = networkId;
         String marketId = this.safeString(data, "marketId");
         String outcomeId = this.safeString(data, "outcome");
         String sym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), (String) (outcomeId));
-        Object outcomeObj = this.safeOutcome((String) (sym));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (sym));
         Long ts = this.safeInteger(data, "ts");
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure

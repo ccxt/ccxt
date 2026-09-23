@@ -1264,7 +1264,7 @@ public class Bitfinex extends BitfinexApi
             {
                 continue;
             }
-            Object network = this.networkIdToCode(networkId, code);
+            String network = this.networkIdToCode(networkId, code);
             List<Object> dwStatuses = (List<Object>) this.safeList(((Map<String, Object>)indexed).get("statuses"), networkId, new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(network, null))
             {
@@ -1705,7 +1705,7 @@ public class Bitfinex extends BitfinexApi
         String firstValue = this.safeString(ticker, 0);
         Boolean hasMarketId = (!java.util.Objects.equals(firstValue, null)) && (Helpers.isTrue(firstValue.startsWith(((String)"t"))) || Helpers.isTrue(firstValue.startsWith(((String)"f"))));
         Boolean isFetchTicker = !Boolean.TRUE.equals(hasMarketId);
-        Object symbol = null;
+        String symbol = null;
         Integer minusIndex = 0;
         if (Boolean.TRUE.equals(isFetchTicker))
         {
@@ -1751,7 +1751,7 @@ public class Bitfinex extends BitfinexApi
             high = this.safeString(ticker, (9L - ((long) minusIndex)));
             low = this.safeString(ticker, (10L - ((long) minusIndex)));
         }
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         final String finalHigh = high;
         final String finalLow = low;
         final String finalBid = bid;
@@ -2344,7 +2344,7 @@ public class Bitfinex extends BitfinexApi
         return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -2459,9 +2459,9 @@ public class Bitfinex extends BitfinexApi
             ((Map<String, Object>)request).put("cid", clientOrderId);
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId"))));
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2498,7 +2498,7 @@ public class Bitfinex extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             List<Object> response = (this.privatePostAuthWOrderSubmit(request)).join();
             //
             //      [
@@ -2618,7 +2618,7 @@ public class Bitfinex extends BitfinexApi
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(new ArrayList<Object>(Arrays.asList("on", orderRequest)));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4195,9 +4195,9 @@ public class Bitfinex extends BitfinexApi
         return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

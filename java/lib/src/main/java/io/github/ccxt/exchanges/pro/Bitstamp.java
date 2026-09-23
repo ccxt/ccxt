@@ -281,7 +281,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        Object timestamp = this.safeTimestamp(delta, "timestamp");
+        Long timestamp = this.safeTimestamp(delta, "timestamp");
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "microtimestamp"));
@@ -429,7 +429,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         return this.unWatchTrades(symbol, (Object) (parameters));
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -457,7 +457,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long sideRaw = this.safeInteger(trade, "type");
         String side = ((((sideRaw != null && sideRaw == 0)))) ? "buy" : "sell";
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Bitstamp.this.iso8601(timestamp) );
@@ -471,9 +471,9 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -511,7 +511,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trades:" + symbol);
         Object data = this.safeValue(message, "data");
-        Object trade = this.parseWsTrade((Map<String, Object>) (data), market);
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
         {
@@ -1049,7 +1049,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             status = "canceled";
         }
         String triggerPrice = this.safeString(order, "stop_price");
-        Object timestamp = this.safeTimestamp(order, "datetime");
+        Long timestamp = this.safeTimestamp(order, "datetime");
         market = (Map<String, Object>) (this.safeMarket(null, market));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         final String finalOrderType = orderType;

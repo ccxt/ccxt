@@ -574,7 +574,7 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "amount", "quantity")
 	var feeCost *string = this.SafeString(trade, "fee_rate")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -903,7 +903,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "executed_quantity")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "updated_timestamp")
 	var rawTrades []any = SafeListTypedDefault(order, "operations", []any{})
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,

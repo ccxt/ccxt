@@ -766,10 +766,10 @@ public class Delta extends DeltaApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "network");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -2001,7 +2001,7 @@ public class Delta extends DeltaApi
             }};
             int duration = this.parseTimeframe(timeframe);
             limit = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0)))) ? limit : 2000; // max 2000
-            Object until = this.safeIntegerProduct(parameters, "until", 0.001);
+            Long until = this.safeIntegerProduct(parameters, "until", 0.001);
             Boolean untilIsDefined = (!java.util.Objects.equals(until, null));
             if (Boolean.TRUE.equals(untilIsDefined))
             {
@@ -2009,7 +2009,7 @@ public class Delta extends DeltaApi
             }
             if (java.util.Objects.equals(since, null))
             {
-                Object end = ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.seconds();
+                Long end = ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.seconds();
                 ((Map<String, Object>)request).put("end", end);
                 if (java.util.Objects.equals(end, null))
                 {
@@ -2401,7 +2401,7 @@ public class Delta extends DeltaApi
         String id = this.safeString(order, "id");
         String clientOrderId = this.safeString(order, "client_order_id");
         String createdAt = this.safeString(order, "created_at");
-        Object timestamp = null;
+        Long timestamp = null;
         if (!java.util.Objects.equals(createdAt, null))
         {
             if (((String)createdAt).indexOf("-") >= 0)
@@ -2445,7 +2445,7 @@ public class Delta extends DeltaApi
                 put( "currency", finalFeeCurrencyCode );
             }};
         }
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalType = type;
         final Map<String, Object> finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{

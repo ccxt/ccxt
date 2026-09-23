@@ -51,21 +51,21 @@ func testLoadMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 		}
 	}
 	for i := 0; i < len(marketTypes); i++ {
-		var mType any = func() any {
+		var mType *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(marketTypes) {
 				return DerefScalar(marketTypes[i])
 			}
 			return nil
-		}()
+		}())
 		if !IsEqual(GetValue(exchange.GetHas(), mType), nil) && !IsEqual(GetValue(exchange.GetHas(), mType), false) {
-			var skipMarketTypes bool = (InOp(skippedProperties, "optionsNotLoadedByDefault")) && (mType == "option")
-			Assert(EvalTruthy(exchange.InArray(mType, collectedTypes)) || skipMarketTypes, Add(Add(Add(Add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"))
+			var skipMarketTypes bool = (InOp(skippedProperties, "optionsNotLoadedByDefault")) && (mType != nil && *mType == "option")
+			Assert(EvalTruthy(exchange.InArray(mType, collectedTypes)) || skipMarketTypes, "exchange.has["+*mType+"] is true, but no markets of type "+*mType+" were found in exchange.markets")
 		} else if GetValue(exchange.GetHas(), mType) == false {
 			// some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
 			// marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
 			// in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
 			var isKnownException bool = (InOp(skippedProperties, mType))
-			Assert(!EvalTruthy(exchange.InArray(mType, collectedTypes)) || isKnownException, Add(Add(Add(Add("exchange.has[", mType), "] is false, but markets of type "), mType), " were found in exchange.markets"))
+			Assert(!EvalTruthy(exchange.InArray(mType, collectedTypes)) || isKnownException, "exchange.has["+*mType+"] is false, but markets of type "+*mType+" were found in exchange.markets")
 		}
 	}
 

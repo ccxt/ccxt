@@ -740,7 +740,7 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	var numericId *int64 = this.SafeInteger(currency, "id")
 	var code *string = this.SafeCurrencyCode(id)
 	var active *bool = this.SafeBool(currency, "active", false)
-	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision")))
+	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision"))))
 	var txLimits map[string]any = SafeMapTyped(currency, "txLimits")
 	var minWithdraw *string = this.SafeString(txLimits, "minWithdraw")
 	var maxWithdraw *string = this.SafeString(txLimits, "maxWithdraw")
@@ -761,11 +761,11 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	var withdraw *bool = this.SafeBool(statuses, "withdrawStatus")
 	var networkIds []string = ObjectKeys(feesByNetworkId)
 	var networks map[string]any = map[string]any{}
-	var networkPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
+	var networkPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))))
 	var typeRaw *string = this.SafeString(currency, "type")
 	for j := 0; j < len(networkIds); j++ {
 		var networkId string = GetValue(networkIds, j).(string)
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkFee *float64 = this.SafeNumber(feesByNetworkId, networkId)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
@@ -1015,7 +1015,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"type": typeVar,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")
@@ -1143,7 +1143,7 @@ func (this *Bitteam) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1456,7 +1456,7 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1588,7 +1588,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed")
-	var fee any = nil
+	var fee map[string]any = nil
 	if !IsEqual(feeRaw, nil) {
 		var feeCost *string = this.SafeString(feeRaw, "amount")
 		var feeCurrencyId *string = this.SafeString(feeRaw, "symbol")
@@ -1719,7 +1719,7 @@ func (this *Bitteam) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	for i := 0; i < GetArrayLength(rawTickers); i++ {
 		var rawTicker any = GetValue(rawTickers, i)
-		var ticker any = this.ParseTicker(rawTicker)
+		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
 		tickers = append(tickers, ticker)
 	}
 
@@ -2169,7 +2169,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pairId"] = GetValue(market, "numericId")
@@ -2377,7 +2377,7 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "pair")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var id *string = this.SafeString2(trade, "id", "trade_id")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "quantity", "base_volume")
@@ -2389,7 +2389,7 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	// the exchange returns the side of the taker
 	var side *string = this.SafeString2(trade, "side", "type")
-	var feeInfo any = nil
+	var feeInfo map[string]any = nil
 	var order *string = nil
 	if takerOrMaker != nil && *takerOrMaker == "maker" {
 		if side != nil && *side == "sell" {
@@ -2398,10 +2398,10 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 			side = SafeStringPtr("sell")
 		}
 		order = this.SafeString(trade, "makerOrderId")
-		feeInfo = this.SafeDict(trade, "feeMaker", map[string]any{})
+		feeInfo = MapTyped(this.SafeDict(trade, "feeMaker", map[string]any{}))
 	} else if takerOrMaker != nil && *takerOrMaker == "taker" {
 		order = this.SafeString(trade, "takerOrderId")
-		feeInfo = this.SafeDict(trade, "feeTaker", map[string]any{})
+		feeInfo = MapTyped(this.SafeDict(trade, "feeTaker", map[string]any{}))
 	}
 	var feeCurrencyId *string = this.SafeString(feeInfo, "symbol")
 	var feeCost *string = this.SafeString(feeInfo, "amount")
@@ -2504,7 +2504,7 @@ func (this *Bitteam) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
-	var balanceByCurrencies any = this.Omit(result, []any{"free", "used", "total"})
+	var balanceByCurrencies map[string]any = MapTyped(this.Omit(result, []any{"free", "used", "total"}))
 	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; i < len(rawCurrencyIds); i++ {
 		var rawCurrencyId string = GetValue(rawCurrencyIds, i).(string)
@@ -2555,10 +2555,10 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "numericId")
 	}
 	if limit != nil {

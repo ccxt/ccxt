@@ -391,9 +391,9 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method any,
 	if since != nil {
 		request["after"] = since
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var response any = nil
 	if IsEqual(method, "privateGetTransfers") {
@@ -682,11 +682,11 @@ func (this *Btcmarkets) ParseMarket(market any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	var fees any = this.SafeDict(this.SafeDict(this.Options, "fees", map[string]any{}), quote, this.Fees)
-	var pricePrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "priceDecimals")))
+	var pricePrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "priceDecimals"))))
 	var minAmount *float64 = this.SafeNumber(market, "minOrderAmount")
 	var maxAmount *float64 = this.SafeNumber(market, "maxOrderAmount")
 	var status *string = this.SafeString(market, "status")
-	var minPrice any = nil
+	var minPrice *float64 = nil
 	if quote != nil && *quote == "AUD" {
 		minPrice = pricePrecision
 	}
@@ -970,7 +970,7 @@ func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "marketId")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "timestamp"))
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var baseVolume *string = this.SafeString(ticker, "volume24h")
@@ -1123,7 +1123,7 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var orderId *string = this.SafeString(trade, "orderId")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		fee = map[string]any{
@@ -1604,7 +1604,7 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"status": "all",
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["marketId"] = GetValue(market, "id")
@@ -1725,7 +1725,7 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["marketId"] = GetValue(market, "id")

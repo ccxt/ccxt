@@ -396,7 +396,7 @@ final Object finalTokenId = tokenId;
         {
             expiryTimestamp = this.safeTimestamp(raw, "cutoffAt");
         }
-        Object created = this.safeTimestamp(raw, "createdAt");
+        Long created = this.safeTimestamp(raw, "createdAt");
         final Boolean finalResolved = resolved;
         final Object finalExpiryTimestamp = expiryTimestamp;
         return new HashMap<String, Object>() {{
@@ -771,7 +771,7 @@ final Object finalTokenId = tokenId;
         {
             end = this.safeTimestamp(rawEvent, "cutoffAt");
         }
-        Object created = this.safeTimestamp(rawEvent, "createdAt");
+        Long created = this.safeTimestamp(rawEvent, "createdAt");
         List<Object> labels = (List<Object>) this.safeList(rawEvent, "labels", new ArrayList<Object>(Arrays.asList()));
         final String finalTitle = title;
         final Object finalEnd = end;
@@ -811,7 +811,7 @@ final Object finalTokenId = tokenId;
         return BaseExchange.supplyAsync(() -> {
 
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
+            Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.opinionPublicGetTokenLatestPrice(this.extend(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
     }}, parameters)), this.opinionPublicGetTokenOrderbook(this.extend(new HashMap<String, Object>() {{
@@ -945,7 +945,7 @@ final Object finalTokenId = tokenId;
             for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
             {
                 Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
+                Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
                 ((List<Object>)promises).add(this.opinionPublicGetTokenLatestPrice(this.extend(new HashMap<String, Object>() {{
                     put( "token_id", tokenId );
                 }}, parameters)));
@@ -1006,7 +1006,7 @@ final Object finalTokenId = tokenId;
         return BaseExchange.supplyAsync(() -> {
 
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
+            Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
             }};
@@ -1071,7 +1071,7 @@ final Object finalTokenId = tokenId;
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + timeframe) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
+            Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             String interval = this.safeString(this.timeframes, timeframe);
             Object response = (this.opinionPublicGetTokenPriceHistory(this.extend(new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -1096,7 +1096,7 @@ final Object finalTokenId = tokenId;
             {
                 Object point = (history == null || i < 0 || i >= history.size() ? null : history.get(i));
                 Double price = this.safeNumber(point, "p");
-                Object timestamp = this.safeTimestamp(point, "t");
+                Long timestamp = this.safeTimestamp(point, "t");
                 if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(timestamp, null)))
                 {
                     ((List<Object>)candles).add(new ArrayList<Object>(Arrays.asList(timestamp, price, price, price, price, null)));
@@ -1359,7 +1359,7 @@ final Object finalTokenId = tokenId;
             (this.loadApiKey()).join();
             this.checkRequiredCredentials();
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
+            Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
             String sideStr = ((String)((String)side)).toUpperCase();
             if (java.util.Objects.equals(price, null))
@@ -1574,7 +1574,7 @@ final Object finalTokenId = tokenId;
         String status = this.parseOrderStatus((String) (statusEnum));
         String sideEnum = this.safeStringLower(order, "sideEnum");
         String tradingMethodEnum = this.safeStringLower(order, "tradingMethodEnum");
-        Object timestamp = this.safeTimestamp(order, "createdAt");
+        Long timestamp = this.safeTimestamp(order, "createdAt");
         return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -1913,8 +1913,8 @@ final Object finalTokenId = tokenId;
     public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         String tokenId = this.safeString(trade, "tokenId");
-        Object outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
-        Object timestamp = this.safeTimestamp(trade, "createdAt");
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
+        Long timestamp = this.safeTimestamp(trade, "createdAt");
         String side = this.safeStringLower(trade, "side");
         return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Opinion.this.safeString(trade, "txHash") );
@@ -2062,7 +2062,7 @@ final Object finalTokenId = tokenId;
             Object outcomesList = (((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes;
             for (var i = 0; i < ((List<?>)outcomesList).size(); i++)
             {
-                Object outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if (!java.util.Objects.equals(tokenId, null))
                 {
@@ -2110,7 +2110,7 @@ final Object finalTokenId = tokenId;
     public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String tokenId = this.safeString(position, "tokenId");
-        Object outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
         String outcomeSideEnum = this.safeStringLower(position, "outcomeSideEnum");
         return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "contracts", Opinion.this.safeNumber(position, "sharesOwned") );
@@ -2863,7 +2863,7 @@ final Object finalTokenId = tokenId;
         Long marketId = this.safeInteger(message, "marketId");
         Long outcomeSide = this.safeInteger(message, "outcomeSide");
         Object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
-        Object timestamp = this.safeTimestamp(message, "createdAt");
+        Long timestamp = this.safeTimestamp(message, "createdAt");
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         Long sideInt = this.safeInteger(message, "side");
@@ -2974,7 +2974,7 @@ final Object finalTokenId = tokenId;
         Long outcomeSide = this.safeInteger(message, "outcomeSide");
         Object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
         String sym = this.safeString(outcomeObj, "outcome");
-        Object timestamp = this.safeTimestamp(message, "createdAt");
+        Long timestamp = this.safeTimestamp(message, "createdAt");
         Object trade = this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Opinion.this.safeString(message, "tradeNo") );
             put( "info", message );
