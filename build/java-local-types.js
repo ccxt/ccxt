@@ -4647,7 +4647,7 @@ function dataflowSurvivingType (printer, declaration) {
 // the Java type the FINAL output declares for this local, or undefined when it stays
 // Object. Used both for the declaration itself and for reads resolving through it.
 function dataflowEmittedType (printer, declaration, context) {
-    if (declaration === undefined || declaration.initializer === undefined) {
+    if (declaration === undefined) {
         return undefined;
     }
     if (declaration.name?.kind !== ts.SyntaxKind.Identifier) {
@@ -4656,7 +4656,10 @@ function dataflowEmittedType (printer, declaration, context) {
     if (declaration.parent?.declarations?.length !== 1) {
         return undefined; // a multi-declarator list the printer never rewrites
     }
-    if (declaration.initializer.kind === ts.SyntaxKind.NewExpression) {
+    // the initializer may be missing here (the printer emits `Object x = null;` for it), so
+    // only a present NewExpression initializer skips the retype
+    if (declaration.initializer !== undefined
+        && declaration.initializer.kind === ts.SyntaxKind.NewExpression) {
         return undefined; // the printer emits `var x = ...` for a NewExpression initializer
     }
     const type = dataflowEmittedTypeUnchecked (printer, declaration, context);
@@ -4992,7 +4995,11 @@ function dataflowLocalTypeOf (printer, declaration, context) {
         stack: context?.stack ?? new Set (),
         depth: context?.depth ?? 0,
     };
-    let javaType = dataflowValueType (printer, unwrapParens (declaration.initializer), ctx);
+    // a declaration with no initializer prints `Object x = null;`: its missing initializer is
+    // the neutral null, exactly like an `= undefined` one, so the write join and the use scan
+    // below decide the type
+    const initializer = unwrapParens (declaration.initializer);
+    let javaType = (initializer === undefined) ? 'null' : dataflowValueType (printer, initializer, ctx);
     if (javaType === undefined) {
         dataflowDebug (`decl ${sourceName}: rejected (unprovable initializer)`);
         return undefined;
@@ -5049,7 +5056,8 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
         return printed;
     }
     const declaration = declarations[0];
-    if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+    // a declaration with no initializer is typed from its writes alone (the printed `= null` is neutral)
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier) {
         return printed;
     }
     const info = dataflowLocalTypeOf (printer, declaration, undefined);
