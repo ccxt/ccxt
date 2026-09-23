@@ -2191,6 +2191,12 @@ func Int64PtrTyped(v any) *int64 {
 	return &num
 }
 
+// Float64PtrTyped stores a numeric result boxed in `any` (ParseNumber) into a *float64 local;
+// absent stays a nil pointer.
+func Float64PtrTyped(v any) *float64 {
+	return toFloat64Ptr(v)
+}
+
 // GetArgFloat64Ptr is GetArgStringPtr for a `number` parameter (`price`, `amount`).
 func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
 	if len(args) <= index {
