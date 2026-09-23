@@ -8,6 +8,212 @@
     ],
     "options": {},
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "funding account balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "accountType": "funding",
+                            "balance": "40",
+                            "freeze": "0",
+                            "equity": "40",
+                            "withdrawAble": "40"
+                        }
+                    ],
+                    "msg": "Success",
+                    "ts": "1790195786729",
+                    "traceId": "a07bb12f352a94f2f775256cff52448a"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "accountName": "1000000000000000000",
+                                "pid": "1000000000000000000",
+                                "uid": "100000000000001",
+                                "cid": "100000000000002",
+                                "currency": "USDT",
+                                "accountType": "funding",
+                                "balance": "40",
+                                "freeze": "0",
+                                "equity": "40",
+                                "withdrawAble": "40"
+                            }
+                        ],
+                        "msg": "Success",
+                        "ts": "1790195786729",
+                        "traceId": "a07bb12f352a94f2f775256cff52448a"
+                    },
+                    "timestamp": 1790195786729,
+                    "datetime": "2026-09-23T20:36:26.729Z",
+                    "USDT": {
+                        "free": 40,
+                        "used": 0,
+                        "total": 40
+                    },
+                    "free": {
+                        "USDT": 40
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 40
+                    }
+                }
+            },
+            {
+                "description": "trading account balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "totalEquity": "30",
+                        "totalMarginBalance": "30",
+                        "totalAvailableBalance": "30",
+                        "totalEffectiveMargin": "30",
+                        "totalPositionValue": "0",
+                        "totalIm": "0",
+                        "totalMm": "0",
+                        "totalOpenLoss": "0",
+                        "mmr": "0",
+                        "imr": "0",
+                        "accountLeverage": "0",
+                        "contractUpl": "0",
+                        "flexibleEquity": "0",
+                        "flexiblePnl": "0",
+                        "autoSubscribe": false,
+                        "flexibleCurrency": null,
+                        "details": [
+                            {
+                                "currency": "USDT",
+                                "equity": "30",
+                                "totalBalance": "30",
+                                "cashBalance": "30",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.023205470000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0",
+                                "intLiability": "0",
+                                "fixedBalance": "0"
+                            }
+                        ],
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001"
+                    },
+                    "ts": "1790195783594"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "Success",
+                        "data": {
+                            "accountName": "1000000000000000000",
+                            "totalEquity": "30",
+                            "totalMarginBalance": "30",
+                            "totalAvailableBalance": "30",
+                            "totalEffectiveMargin": "30",
+                            "totalPositionValue": "0",
+                            "totalIm": "0",
+                            "totalMm": "0",
+                            "totalOpenLoss": "0",
+                            "mmr": "0",
+                            "imr": "0",
+                            "accountLeverage": "0",
+                            "contractUpl": "0",
+                            "flexibleEquity": "0",
+                            "flexiblePnl": "0",
+                            "autoSubscribe": false,
+                            "flexibleCurrency": null,
+                            "details": [
+                                {
+                                    "currency": "USDT",
+                                    "equity": "30",
+                                    "totalBalance": "30",
+                                    "cashBalance": "30",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.023205470000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0",
+                                    "intLiability": "0",
+                                    "fixedBalance": "0"
+                                }
+                            ],
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001"
+                        },
+                        "ts": "1790195783594"
+                    },
+                    "timestamp": 1790195783594,
+                    "datetime": "2026-09-23T20:36:23.594Z",
+                    "USDT": {
+                        "free": 30,
+                        "used": 0,
+                        "total": 30,
+                        "debt": 0
+                    },
+                    "free": {
+                        "USDT": 30
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 30
+                    },
+                    "debt": {
+                        "USDT": 0
+                    }
+                }
+            }
+        ],
         "fetchCrossBorrowRates": [
             {
                 "description": "cross borrow rate of one currency",

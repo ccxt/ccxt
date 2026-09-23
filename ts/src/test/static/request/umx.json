@@ -8,6 +8,26 @@
     ],
     "options": {},
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "funding account balance",
+                "method": "fetchBalance",
+                "url": "https://api.umx.com/api/v1/asset/balances",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "trading account balance",
+                "method": "fetchBalance",
+                "url": "https://api.umx.com/api/v1/account/balance",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchCrossBorrowRates": [
             {
                 "description": "cross borrow rate of one currency",

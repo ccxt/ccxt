@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ export default class umx extends Exchange {
                 'createTriggerOrder': false,
                 'editOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchClosedOrders': false,
@@ -1874,6 +1874,159 @@ export default class umx extends Exchange {
             },
             'info': rawCurrency,
         });
+    }
+
+    /**
+     * @method
+     * @name umx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/asset-information/get-trading-account-balance
+     * @see https://www.umx.com/docs/coin-apis/funding-account/get-funding-account-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] "funding" queries the funding account, any other value queries the trading account, which the venue shares across spot, margin and derivatives
+     * @param {string} [params.currencyList] comma separated exchange currency ids to narrow the trading account answer, e.g. "BTC,USDT"
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    override async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let response = undefined;
+        if (marketType === 'funding') {
+            response = await this.privateGetV1AssetBalances (params);
+            //
+            //     {
+            //         "code": "0",
+            //         "data": [
+            //             {
+            //                 "accountName": "1234567890123456789",
+            //                 "pid": "1234567890123456789",
+            //                 "uid": "123456789012345",
+            //                 "cid": "123456789012345",
+            //                 "currency": "USDT",
+            //                 "accountType": "funding",
+            //                 "balance": "70",
+            //                 "freeze": "0",
+            //                 "equity": "70",
+            //                 "withdrawAble": "70"
+            //             }
+            //         ],
+            //         "msg": "Success",
+            //         "ts": "1790194851224",
+            //         "traceId": "c6632b1e50da939c41e6011054a7258c"
+            //     }
+            //
+        } else {
+            response = await this.privateGetV1AccountBalance (params);
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "Success",
+            //         "data": {
+            //             "accountName": "1234567890123456789",
+            //             "totalEquity": "30",
+            //             "totalMarginBalance": "30",
+            //             "totalAvailableBalance": "30",
+            //             "totalEffectiveMargin": "30",
+            //             "totalPositionValue": "0",
+            //             "totalIm": "0",
+            //             "totalMm": "0",
+            //             "totalOpenLoss": "0",
+            //             "mmr": "0",
+            //             "imr": "0",
+            //             "accountLeverage": "0",
+            //             "contractUpl": "0",
+            //             "flexibleEquity": "0",
+            //             "flexiblePnl": "0",
+            //             "autoSubscribe": false,
+            //             "flexibleCurrency": null,
+            //             "details": [
+            //                 {
+            //                     "currency": "USDT",
+            //                     "equity": "30",
+            //                     "totalBalance": "30",
+            //                     "cashBalance": "30",
+            //                     "savingBalance": "0",
+            //                     "leftPersonalQuota": null,
+            //                     "savingTotalPnl": null,
+            //                     "savingLastPnl": null,
+            //                     "savingHoldDays": null,
+            //                     "savingTotalAPR": "0.023205470000000000",
+            //                     "savingLastAPR": null,
+            //                     "borrow": "0",
+            //                     "frozen": "0",
+            //                     "realLiability": "0",
+            //                     "potentialLiability": "0",
+            //                     "accruedInterest": "0",
+            //                     "upl": "0",
+            //                     "optionUpl": "0",
+            //                     "positionInitialMargin": null,
+            //                     "orderInitialMargin": null,
+            //                     "liabilityInitialMargin": "0",
+            //                     "initialMargin": "0",
+            //                     "intLiability": "0",
+            //                     "fixedBalance": "0"
+            //                 }
+            //             ],
+            //             "cid": "123456789012345",
+            //             "pid": "1234567890123456789",
+            //             "uid": "123456789012345"
+            //         },
+            //         "ts": "1790195068770"
+            //     }
+            //
+        }
+        return this.parseBalance (response);
+    }
+
+    override parseBalance (response: any): Balances {
+        const result: Dict = {
+            'info': response,
+        };
+        const timestamp = this.safeInteger (response, 'ts');
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        // the funding account answers a list of rows, the trading account a single object whose
+        // details member carries the per currency rows, with different field names in each
+        const fundingRows = this.safeList (response, 'data');
+        if (fundingRows !== undefined) {
+            for (let i = 0; i < fundingRows.length; i++) {
+                const entry = this.safeDict (fundingRows, i, {});
+                const currencyId = this.safeString (entry, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                if (code !== undefined) {
+                    const account = this.account ();
+                    account['free'] = this.safeString (entry, 'balance');
+                    account['used'] = this.safeString (entry, 'freeze');
+                    account['total'] = this.safeString (entry, 'equity');
+                    result[code] = account;
+                }
+            }
+        } else {
+            const data = this.safeDict (response, 'data', {});
+            const details = this.safeList (data, 'details', []);
+            for (let i = 0; i < details.length; i++) {
+                const entry = this.safeDict (details, i, {});
+                const currencyId = this.safeString (entry, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                if (code !== undefined) {
+                    const account = this.account ();
+                    // the entry carries no available amount of its own. the margins a position, an
+                    // open order and a liability hold are counted as used and the rest of the equity
+                    // is derived as free, matching totalAvailableBalance on the account level.
+                    // initialMargin already includes the position and the liability legs, the venue
+                    // sends the unused margin fields as null, which the zero defaults paper over
+                    let used: Str = this.safeString (entry, 'frozen', '0');
+                    used = Precise.stringAdd (used, this.safeString (entry, 'initialMargin', '0'));
+                    used = Precise.stringAdd (used, this.safeString (entry, 'orderInitialMargin', '0'));
+                    account['used'] = used;
+                    account['total'] = this.safeString (entry, 'equity');
+                    account['debt'] = this.safeString (entry, 'realLiability');
+                    result[code] = account;
+                }
+            }
+        }
+        return this.safeBalance (result);
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
