@@ -2478,7 +2478,17 @@ class NewTranspiler {
     // Remove a whole method (signature + brace-matched body) from a transpiled Java
     // class body, by method name (first match only — the base tier has no overloaded
     // trading-method names).
+    // removes every overload of the name (a typed core and its Object... front)
     removeJavaMethod(classBody: string, methodName: string): string {
+        let out = this.removeFirstJavaMethod(classBody, methodName);
+        while (out !== classBody) {
+            classBody = out;
+            out = this.removeFirstJavaMethod(classBody, methodName);
+        }
+        return out;
+    }
+
+    removeFirstJavaMethod(classBody: string, methodName: string): string {
         const declRe = new RegExp('\\n {4}(?:@[\\w.]+\\s*(?:\\([^)]*\\))?\\s*)*(?:public|private|protected)\\b[^\\n(]*?\\b' + methodName + '\\s*\\(');
         const m = declRe.exec(classBody);
         if (!m) {
