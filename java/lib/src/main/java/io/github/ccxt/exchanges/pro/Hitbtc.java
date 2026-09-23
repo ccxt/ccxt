@@ -512,7 +512,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object marketId = this.marketId((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
+                    String marketId = this.marketId((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         ((List<Object>)marketIds).add(marketId);

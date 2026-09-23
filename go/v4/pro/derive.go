@@ -60,10 +60,10 @@ func (this *Derive) Describe() any {
 		},
 	})
 }
-func (this *Derive) RequestId(url any) any {
+func (this *Derive) RequestId(url any) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue any = this.Sum(previousValue, 1)
+	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
 	return newValue
 }
@@ -76,7 +76,7 @@ func (this *Derive) watchPublicBody(ch chan any, messageHash any, message any, s
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
 	})
@@ -414,7 +414,7 @@ func (this *Derive) unWatchPublicBody(ch chan any, messageHash any, message any,
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
 	})
@@ -572,7 +572,7 @@ func (this *Derive) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
-		var requestId any = this.RequestId(url)
+		var requestId int64 = this.RequestId(url)
 		var now string = ccxt.ToString(this.Milliseconds())
 		var signature any = this.SignMessage(now, this.PrivateKey)
 		var deriveWalletAddress *string = this.SafeString(this.Options, "deriveWalletAddress")
@@ -608,7 +608,7 @@ func (this *Derive) watchPrivateBody(ch chan any, messageHash any, message any, 
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
 	})

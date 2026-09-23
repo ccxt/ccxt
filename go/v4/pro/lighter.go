@@ -1536,7 +1536,7 @@ func (this *Lighter) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 func (this *Lighter) RequestId(url any) any {
 	var options any = this.SafeDict(this.Options, "requestId", this.CreateSafeDictionary())
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue any = this.Sum(previousValue, 1)
+	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
 	return this.NumberToString(newValue)
 }

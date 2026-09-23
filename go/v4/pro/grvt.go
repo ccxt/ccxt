@@ -144,9 +144,9 @@ func (this *Grvt) subscribeMultipleBody(ch chan any, messageHashes any, request 
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes)))
 	return nil
 }
-func (this *Grvt) RequestId() any {
+func (this *Grvt) RequestId() int64 {
 	this.LockId()
-	var newValue any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+	var newValue int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", newValue)
 	this.UnlockId()
 	return newValue

@@ -178,7 +178,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     throw new ArgumentsRequired((this.id + " subscribeMultiple() symbols is required")) ;
                 }
-                Object marketId = this.marketId((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
+                String marketId = this.marketId((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                 final Object finalChannel = channel;
                 Map<String, Object> arg = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -318,7 +318,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 final Object finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -400,7 +400,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((("unsubscribe:" + channel) + ":") + symbol));
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 final Object finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -597,7 +597,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 final String finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -932,7 +932,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + symbol));
-                Object marketId = this.marketId(symbol);
+                String marketId = this.marketId(symbol);
                 final Object finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -1050,7 +1050,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object marketId = this.marketId((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
+                String marketId = this.marketId((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                 final Object finalChannel = channel;
                 Map<String, Object> arg = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -1228,9 +1228,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 ((List<Object>)messageHashes).add(messageHash);
             }
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String channel = "liquidation-orders";
             if (java.util.Objects.equals(type, "spot"))
@@ -1244,7 +1244,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 throw new ArgumentsRequired((this.id + " watchLiquidationsForSymbols() type is required")) ;
             }
-            String uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = type.toUpperCase();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -1680,7 +1680,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object sym = (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
                 Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
-                Object marketId = this.marketId((String) (sym));
+                String marketId = this.marketId((String) (sym));
                 String interval = this.safeString(this.timeframes, tf, tf);
                 String channel = ("candle" + interval);
                 Map<String, Object> topic = new HashMap<String, Object>() {{
@@ -1754,7 +1754,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object sym = (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
                 Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
-                Object marketId = this.marketId((String) (sym));
+                String marketId = this.marketId((String) (sym));
                 String interval = this.safeString(this.timeframes, tf, tf);
                 String channel = ("candle" + interval);
                 Map<String, Object> topic = new HashMap<String, Object>() {{
@@ -1948,7 +1948,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((depth + ":") + symbol));
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 final Object finalDepth = depth;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalDepth );
@@ -2034,7 +2034,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)subMessageHashes).add(((depth + ":") + symbol));
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 final Object finalDepth = depth;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalDepth );
@@ -3243,7 +3243,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object args = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> args = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         // filter out partial errors
         args = this.filterBy(args, "sCode", "0");
         // if empty means request failed and handle error

@@ -1653,7 +1653,7 @@ func (this *Bitvavo) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
 	return nil
 }
-func (this *Bitvavo) RequestId() any {
+func (this *Bitvavo) RequestId() int64 {
 	var ts string = ccxt.ToString(this.Milliseconds())
 	var randomNumber int64 = this.RandNumber(4)
 	var randomPart string = ccxt.ToString(randomNumber)
@@ -1667,7 +1667,7 @@ func (this *Bitvavo) WatchRequestAsync(action any, request any) <-chan any {
 func (this *Bitvavo) watchRequestBody(ch chan any, action any, request any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var messageHash any = this.RequestId()
+	var messageHash int64 = this.RequestId()
 	var messageHashStr string = ccxt.ToString(messageHash)
 	ccxt.AddElementToObject(request, "action", action)
 	ccxt.AddElementToObject(request, "requestId", messageHash)

@@ -682,7 +682,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 		// python transpiler collapses every for-loop bound to an exclusive
 		// range(), so `<=` silently emits range(1, maxLimit) and loads one dex
 		// too few (build/transpile.ts treats <, <=, > and >= identically)
-		var maxIteration any = this.Sum(maxLimit, 1)
+		var maxIteration int64 = this.Sum(maxLimit, 1).(int64)
 		for i := 1; IsLessThan(i, maxIteration); i++ {
 			if i >= fetchDexesLength {
 				break

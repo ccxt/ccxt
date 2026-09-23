@@ -1815,12 +1815,12 @@ func (this *Mexc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
-	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
+	typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
-	var messageHash any = ccxt.Add("balance:", typeVar)
-	if ccxt.IsEqual(typeVar, "spot") {
+	var messageHash string = "balance:" + *typeVar
+	if typeVar != nil && *typeVar == "spot" {
 		var channel string = "spot@private.account.v3.api.pb"
 
 		ch <- ccxt.PanicOnError((<-this.WatchSpotPrivateAsync(channel, messageHash, params)))

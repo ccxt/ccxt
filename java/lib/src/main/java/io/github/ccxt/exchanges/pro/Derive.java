@@ -370,10 +370,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 (this.loadMarkets()).join();
             }
-            Object limit = this.safeInteger(parameters, "limit");
+            Long limit = this.safeInteger(parameters, "limit");
             if (java.util.Objects.equals(limit, null))
             {
-                limit = 10;
+                limit = 10L;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String topic = ((("orderbook." + ((Map<String, Object>)market).get("id")) + ".10.") + this.numberToString(limit));

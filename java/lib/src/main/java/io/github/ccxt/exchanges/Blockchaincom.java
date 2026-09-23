@@ -957,7 +957,7 @@ public class Blockchaincom extends BlockchaincomApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 ((Map<String, Object>)request).put("symbol", marketId);
             }
             Map<String, Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();

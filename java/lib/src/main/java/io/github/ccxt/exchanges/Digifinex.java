@@ -935,7 +935,7 @@ public class Digifinex extends DigifinexApi
                 // const status = this.safeString (market, 'status');
                 // const active = (status === 'TRADING');
                 //
-                Object isAllowed = this.safeInteger(market, "is_allow", 1);
+                Long isAllowed = this.safeInteger(market, "is_allow", 1);
                 String type = (((java.util.Objects.equals(defaultType, "margin")))) ? "margin" : "spot";
                 Boolean spot = java.util.Objects.equals(settle, null);
                 Boolean swap = !Boolean.TRUE.equals(spot);
@@ -952,10 +952,10 @@ public class Digifinex extends DigifinexApi
                     Boolean isTrading = (Boolean) this.safeBool(market, "isTrading");
                     if (java.util.Objects.equals(isTrading, true))
                     {
-                        isAllowed = 1;
+                        isAllowed = 1L;
                     }
                 }
-                Boolean isActive = (!Helpers.isEqual(isAllowed, 0));
+                Boolean isActive = ((isAllowed == null || isAllowed != 0));
     final String finalSymbol = symbol;
                 final String finalBase = base;
                 final String finalSettle = settle;

@@ -2878,7 +2878,7 @@ public class Gate extends GateApi
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
         var marginModequeryVariable = this.getMarginMode((Boolean) (trigger), (Map<String, Object>) (parameters));
-        var marginMode = ((List<Object>) marginModequeryVariable).get(0);
+        String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
         var query = ((List<Object>) marginModequeryVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!Helpers.isTrue(trigger))
@@ -2910,7 +2910,7 @@ public class Gate extends GateApi
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
         var marginModequeryVariable = this.getMarginMode((Boolean) (trigger), (Map<String, Object>) (parameters));
-        var marginMode = ((List<Object>) marginModequeryVariable).get(0);
+        String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
         var query = ((List<Object>) marginModequeryVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "account", marginMode );
@@ -4573,7 +4573,7 @@ public class Gate extends GateApi
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             var marginModerequestQueryVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (requestParams));
-            var marginMode = ((List<Object>) marginModerequestQueryVariable).get(0);
+            String marginMode = (String) ((List<Object>) marginModerequestQueryVariable).get(0);
             var requestQuery = ((List<Object>) marginModerequestQueryVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -5462,7 +5462,7 @@ public class Gate extends GateApi
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
             String type = null;
-            Object marginMode = null;
+            String marginMode = null;
             Object request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = (Map<String, Object>) ((((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null);
             Long until = this.safeInteger(parameters, "until");
@@ -5487,7 +5487,7 @@ public class Gate extends GateApi
                     ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id")); // Should always be set for non-trigger
                 }
                 var marginModeparametersVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (parameters));
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("account", marginMode);
             }
@@ -6593,9 +6593,9 @@ final String finalPointFee = pointFee;
                 }
             } else
             {
-                Object marginMode = null;
+                String marginMode = null;
                 var marginModeparametersVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (parameters));
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 // spot order
                 final String finalType = type;
@@ -6744,9 +6744,9 @@ final String finalPointFee = pointFee;
             {
                 // spot conditional order
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
-                Object marginMode = null;
+                String marginMode = null;
                 var marginModeparametersVariable = this.getMarginMode((Boolean) (true), (Map<String, Object>) (parameters));
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 if (java.util.Objects.equals(timeInForce, null))
                 {
@@ -6756,7 +6756,7 @@ final String finalPointFee = pointFee;
                 final String finalSide_2 = side;
                 final Object finalPrice = price;
                 final Object finalAmount_3 = amount;
-                final Object finalMarginMode = marginMode;
+                final String finalMarginMode = marginMode;
                 final String finalTimeInForce = timeInForce;
                 request = new HashMap<String, Object>() {{
                     put( "put", new HashMap<String, Object>() {{
@@ -9383,12 +9383,12 @@ final Object finalRebate = rebate;
         String initialMarginUnit = Precise.stringDiv("1", leverageMax);
         String maintenanceMarginRate = maintenanceMarginUnit;
         String initialMarginRatio = initialMarginUnit;
-        Object floor = "0";
+        String floor = "0";
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         while (Precise.stringLt(floor, riskLimitMax))
         {
             String cap = Precise.stringAdd(floor, riskLimitStep);
-final Object finalFloor = floor;
+final String finalFloor = floor;
             final String finalMaintenanceMarginRate = maintenanceMarginRate;
             final String finalInitialMarginRatio = initialMarginRatio;
                         ((List<Object>)tiers).add(new HashMap<String, Object>() {{
@@ -9963,7 +9963,7 @@ final Object finalI = i;
             if (((java.util.Objects.equals(type, "futures")) || (java.util.Objects.equals(type, "delivery"))) && java.util.Objects.equals(method, "POST"))
             {
                 List<Object> pathParts = (List<Object>) Helpers.split(path, "/");
-                Object secondPart = this.safeString(pathParts, 1, "");
+                String secondPart = this.safeString(pathParts, 1, "");
                 requiresURLEncoding = (((String)secondPart).indexOf("dual") >= 0) || (((String)secondPart).indexOf("positions") >= 0);
             }
             if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")) || Boolean.TRUE.equals(requiresURLEncoding) || (java.util.Objects.equals(method, "PATCH")))

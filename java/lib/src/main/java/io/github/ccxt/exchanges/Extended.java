@@ -3775,7 +3775,7 @@ public class Extended extends ExtendedApi
                 builderId = ((List<Object>) builderIdparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) builderIdparametersVariable).get(1);
             }
-            Object totalFee = fee;
+            String totalFee = fee;
             if (!java.util.Objects.equals(builderFeeRate, null))
             {
                 totalFee = ((String)Precise.stringAdd(fee, builderFeeRate));
@@ -3797,7 +3797,7 @@ public class Extended extends ExtendedApi
             {
                 throw new BadRequest((this.id + " createOrder() requires l2Config in market info")) ;
             }
-            final Object finalTotalFee = totalFee;
+            final String finalTotalFee = totalFee;
             final String finalSyntheticId = syntheticId;
             final Long finalSyntheticResolution = syntheticResolution;
             final String finalCollateralId = collateralId;
@@ -4954,7 +4954,7 @@ public class Extended extends ExtendedApi
             }
             return ("0x" + this.getExtendedDecimalToBase16(signature));
         }
-        Object signatureString = this.numberToString(signature);
+        String signatureString = this.numberToString(signature);
         if ((((String)signatureString).indexOf("0x") == 0))
         {
             return signatureString;

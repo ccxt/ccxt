@@ -640,7 +640,7 @@ public class Predictfun extends PredictfunApi
                 //         "success": true
                 //     }
                 //
-                Object data = this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = (List<Object>) this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 rawTopics = this.arrayConcat(rawTopics, data);
                 Integer topicsLength = ((List<?>)rawTopics).size();
                 while (Helpers.isLessThan(topicsLength, fetchCap))
@@ -652,7 +652,7 @@ public class Predictfun extends PredictfunApi
                     }
                     Helpers.addElementToObject(extendedRequest, "after", nextPageToken);
                     rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
-                    data = this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                    data = (List<Object>) this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
                     rawTopics = this.arrayConcat(rawTopics, data);
                     topicsLength = ((List<?>)rawTopics).size();
                 }

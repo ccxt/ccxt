@@ -421,7 +421,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         if (!java.util.Objects.equals(data, null))
         {
             data = this.sortBy(data, "t");

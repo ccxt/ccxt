@@ -431,8 +431,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             ((Map<String, Object>)ticker).put("market", this.safeString(ticker, "market", code));
             return this.parseTicker(ticker, market);
         }
-        Object date = this.safeString(ticker, "date", "");
-        Object time = this.safeString(ticker, "time", "");
+        String date = this.safeString(ticker, "date", "");
+        String time = this.safeString(ticker, "time", "");
         String kstDatetime = (((((((((((date == null ? null : ((String)date).substring(0, Math.min(4, ((String)date).length()))) + "-") + (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())))) + "-") + (date == null ? null : ((String)date).substring(Math.min(6, ((String)date).length()), Math.min(8, ((String)date).length())))) + "T") + (time == null ? null : ((String)time).substring(0, Math.min(2, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(2, ((String)time).length()), Math.min(4, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(4, ((String)time).length()), Math.min(6, ((String)time).length()))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         Object timestamp = this.parse8601(kstDatetime);
@@ -599,7 +599,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 return;
             }
             String legacySymbol = this.safeSymbol(legacyMarketId, null, "_");
-            Object timestampStr = this.safeString(content, "datetime");
+            String timestampStr = this.safeString(content, "datetime");
             if (java.util.Objects.equals(timestampStr, null))
             {
                 return;
@@ -654,7 +654,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 Helpers.callDynamically(asks, "store", new Object[]{askPrice, askSize});
             }
         }
-        Object gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
+        String gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
         Long timestamp = null;
         if (!java.util.Objects.equals(gen2TimestampStr, null))
         {

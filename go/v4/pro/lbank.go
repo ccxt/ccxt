@@ -62,10 +62,10 @@ func (this *Lbank) Describe() any {
 		"exceptions": map[string]any{},
 	})
 }
-func (this *Lbank) RequestId() any {
+func (this *Lbank) RequestId() int64 {
 	this.LockId()
 	var previousValue *int64 = this.SafeInteger(this.Options, "requestId", 0)
-	var newValue any = this.Sum(previousValue, 1)
+	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	this.Options.Store("requestId", newValue)
 	this.UnlockId()
 	return newValue
@@ -130,7 +130,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any
 		message["size"] = limit
 	}
 	var request map[string]any = this.DeepExtend(message, params)
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, requestId, request)))
 	return nil
@@ -315,7 +315,7 @@ func (this *Lbank) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...an
 		"pair":    market["id"],
 	}
 	var request map[string]any = this.DeepExtend(message, params)
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, requestId, request)))
 	return nil
@@ -485,7 +485,7 @@ func (this *Lbank) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...an
 		"size":    limit,
 	}
 	var request map[string]any = this.DeepExtend(message, params)
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, requestId, request)))
 	return nil

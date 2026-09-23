@@ -2936,7 +2936,7 @@ final String finalId = id;
                 ((Map<String, Object>)request).put("reduce_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        Object close = this.safeDict(parameters, "close");
+        Map<String, Object> close = (Map<String, Object>) this.safeDict(parameters, "close");
         if (!java.util.Objects.equals(close, null))
         {
             close = this.extend(new HashMap<String, Object>() {{}}, close);

@@ -1352,7 +1352,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 String topic = ((("orderbook." + String.valueOf(limit)) + ".") + marketId);
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("orderbook:" + symbol);
@@ -2154,10 +2154,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String topic = this.safeString(message, "topic", "");
         Boolean spot = java.util.Objects.equals(topic, "ticketInfo");
         Boolean executionFast = java.util.Objects.equals(topic, "execution.fast");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (!(data instanceof List))
         {
-            data = this.safeList(data, "result", new ArrayList<Object>(Arrays.asList()));
+            data = (List<Object>) this.safeList(data, "result", new ArrayList<Object>(Arrays.asList()));
         }
         if (java.util.Objects.equals(this.myTrades, null))
         {
@@ -2187,7 +2187,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawTrade = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
+            Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object parsed = null;
             if (Boolean.TRUE.equals(spot) && !Boolean.TRUE.equals(executionFast))
             {

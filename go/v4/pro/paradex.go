@@ -51,8 +51,8 @@ func (this *Paradex) Describe() any {
 		"streaming": map[string]any{},
 	})
 }
-func (this *Paradex) RequestId() any {
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+func (this *Paradex) RequestId() int64 {
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	return requestId
 }

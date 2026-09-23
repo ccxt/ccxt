@@ -1311,8 +1311,8 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing periodUnit"))
 	}
 	periodunitVariable := Split(periodUnit, "/")
-	period := GetValue(periodunitVariable, 0)
-	unit := GetValue(periodunitVariable, 1)
+	var period *string = SafeStringPtr(GetValue(periodunitVariable, 0))
+	var unit *string = SafeStringPtr(GetValue(periodunitVariable, 1))
 	var durationInSeconds int64 = this.ParseTimeframe(timeframe)
 	var duration int64 = durationInSeconds * 1000
 	if limit == nil {

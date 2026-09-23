@@ -4747,7 +4747,7 @@ public class Mexc extends MexcApi
         {
             id = this.safeString2(order, "orderId", "id");
         }
-        Object timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
+        String timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
         String typeRaw = this.safeString(order, "type");
         if (java.util.Objects.equals(timeInForce, null))
         {
@@ -4771,7 +4771,7 @@ public class Mexc extends MexcApi
         }
         final Object finalId = id;
         final Map<String, Object> finalMarket = market;
-        final Object finalTimeInForce = timeInForce;
+        final String finalTimeInForce = timeInForce;
         final Map<String, Object> finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -6195,7 +6195,7 @@ public class Mexc extends MexcApi
         String riskIncrVol = this.safeString(info, "riskIncrVol");
         String riskIncrMmr = this.safeString(info, "riskIncrMmr");
         String riskIncrImr = this.safeString(info, "riskIncrImr");
-        Object floor = "0";
+        String floor = "0";
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         String quoteId = this.safeString(info, "quoteCoin");
         if (java.util.Objects.equals(riskIncrVol, "0"))

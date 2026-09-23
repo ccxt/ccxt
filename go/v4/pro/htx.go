@@ -143,9 +143,9 @@ func (this *Htx) Describe() any {
 		},
 	})
 }
-func (this *Htx) RequestId() any {
+func (this *Htx) RequestId() string {
 	this.LockId()
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	this.UnlockId()
 	return ccxt.ToString(requestId)
@@ -769,7 +769,7 @@ func (this *Htx) watchOrderBookSnapshotBody(ch chan any, client any, message any
 	var attempts *int64 = this.SafeInteger(subscription, "numAttempts", 0)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"], false, true)
-	var requestId any = this.RequestId()
+	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"req": messageHash,
 		"id":  requestId,
@@ -3340,7 +3340,7 @@ func (this *Htx) subscribePublicBody(ch chan any, url any, symbol any, messageHa
 	_ = method
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var requestId any = this.RequestId()
+	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
 		"id":  requestId,
@@ -3368,7 +3368,7 @@ func (this *Htx) unsubscribePublicBody(ch chan any, market any, subMessageHash a
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var requestId any = this.RequestId()
+	var requestId string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"unsub": subMessageHash,
 		"id":    requestId,
@@ -3408,7 +3408,7 @@ func (this *Htx) subscribePrivateBody(ch chan any, channel any, messageHash any,
 	_ = params
 	var subscriptionParams map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subscriptionParams
-	var requestId any = this.RequestId()
+	var requestId string = this.RequestId()
 	var subscription map[string]any = map[string]any{
 		"id":          requestId,
 		"messageHash": messageHash,
@@ -3518,7 +3518,7 @@ func (this *Htx) authenticateBody(ch chan any, optionalArgs ...any) any {
 				"Signature":        signature,
 			}
 		}
-		var requestId any = this.RequestId()
+		var requestId string = this.RequestId()
 		var subscription map[string]any = map[string]any{
 			"id":          requestId,
 			"messageHash": messageHash,

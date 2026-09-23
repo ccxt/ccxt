@@ -302,7 +302,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                    Object marketId = this.marketId(symbol);
+                    String marketId = this.marketId(symbol);
                     ((List<Object>)messageHashes).add((messageHash + symbol));
                     ((List<Object>)channels).add((marketId + channel));
                 }
@@ -369,7 +369,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                         {
                             continue;
                         }
-                        Object marketId = this.marketId((String) (symbol));
+                        String marketId = this.marketId((String) (symbol));
                         ((List<Object>)channels).add((marketId + channel));
                     }
                 }
@@ -380,7 +380,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                    Object marketId = this.marketId((String) (symbol));
+                    String marketId = this.marketId((String) (symbol));
                     ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
                     ((List<Object>)channels).add((marketId + channel));
                 }

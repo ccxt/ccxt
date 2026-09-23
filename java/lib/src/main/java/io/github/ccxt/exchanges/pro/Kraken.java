@@ -696,7 +696,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object ticker = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-        Object symbol = this.safeString(ticker, "symbol");
+        String symbol = this.safeString(ticker, "symbol");
         String messageHash = this.getMessageHash("ticker", null, symbol);
         String vwap = this.safeString(ticker, "vwap");
         String quoteVolume = null;
@@ -756,7 +756,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object trade = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-        Object symbol = this.safeString(trade, "symbol");
+        String symbol = this.safeString(trade, "symbol");
         String messageHash = this.getMessageHash("trade", null, symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -1201,7 +1201,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                         Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-                        Object wsName = this.safeString(info, "wsname");
+                        String wsName = this.safeString(info, "wsname");
                         ((Map<String, Object>)marketsByWsName).put((String)wsName, market);
                     }
                 }

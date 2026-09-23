@@ -5496,9 +5496,9 @@ func (this *Xt) withdrawBody(ch chan any, code any, amount any, address any, opt
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = MapTyped(GetValue(tagparamsVariable, 1))
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
 	var networkId *string = this.SafeString2(networkIdsByCodes, networkCode, code, code)

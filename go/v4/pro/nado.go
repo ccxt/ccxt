@@ -82,8 +82,8 @@ func (this *Nado) Describe() any {
 		},
 	})
 }
-func (this *Nado) RequestId() any {
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+func (this *Nado) RequestId() int64 {
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	return requestId
 }
@@ -1573,7 +1573,7 @@ func (this *Nado) watchPrivateBody(ch chan any, streamType any, stream any, mess
 		ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash)))
 		return nil
 	}
-	var id any = this.RequestId()
+	var id int64 = this.RequestId()
 	var subscribeHash any = ccxt.Add("subscribe:", messageHash)
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1602,7 +1602,7 @@ func (this *Nado) unWatchPrivateBody(ch chan any, stream any, messageHash any, o
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "subscriptions")
-	var id any = this.RequestId()
+	var id int64 = this.RequestId()
 	var unsubscribeHash any = ccxt.Add("unsubscribe:", messageHash)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -1656,7 +1656,7 @@ func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "authenticate", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
-	var id any = this.RequestId()
+	var id int64 = this.RequestId()
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var expiration any = this.Sum(this.Milliseconds(), recvWindow)
 	var tx map[string]any = map[string]any{
@@ -1740,7 +1740,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan any, streamType any, markets a
 		var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		if ccxt.IsEqual(clientSubscription, nil) {
 			var market any = ccxt.GetValue(markets, i)
-			var id any = this.RequestId()
+			var id int64 = this.RequestId()
 			var requestParams any = func() any {
 				if subscriptionParams == nil {
 					return params
@@ -1777,7 +1777,7 @@ func (this *Nado) unWatchPublicBody(ch chan any, streamType any, market any, mes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "subscriptions")
-	var id any = this.RequestId()
+	var id int64 = this.RequestId()
 	var request any = this.CreatePublicSubscriptionRequest("unsubscribe", streamType, market, id, params)
 	var subscription map[string]any = map[string]any{
 		"id":          id,
@@ -1810,7 +1810,7 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan any, streamType any, markets
 	var results []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, i))
-		var id any = this.RequestId()
+		var id int64 = this.RequestId()
 		var unsubscribeHash string = "unsubscribe:" + *messageHash
 		var requestParams any = func() any {
 			if subscriptionParams == nil {

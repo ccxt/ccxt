@@ -2559,18 +2559,18 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var code *string = this.SafeString(params, "code")
 	params = MapTyped(this.Omit(params, []any{"code"}))
 	var response any = nil
 	var request map[string]any = map[string]any{}
-	if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "swap")) {
-		panic(BadRequest(Add(Add(this.Id+" does not support ", typeVar), " markets, only spot and swap")))
+	if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "swap") {
+		panic(BadRequest(this.Id + " does not support " + *typeVar + " markets, only spot and swap"))
 	}
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 		var settle any = nil
 		var settleparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "settle", "USDT")
 		settle = GetValue(settleparamsVariable, 0)
@@ -2596,7 +2596,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			var currency *string = this.SafeString(params, "currency")
 			if currency == nil {
-				panic(ArgumentsRequired(Add(Add(this.Id+" fetchBalance() requires a code parameter or a currency or settle parameter for ", typeVar), " type")))
+				panic(ArgumentsRequired(this.Id + " fetchBalance() requires a code parameter or a currency or settle parameter for " + *typeVar + " type"))
 			}
 
 			response = (<-this.PrivateGetSpotWallets(this.Extend(request, params))).Raw
@@ -2724,7 +2724,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 
 		ch <- this.ParseSwapBalance(response)
 		return nil
@@ -5631,7 +5631,7 @@ func (this *Phemex) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Seconds()
 		var xPhemexRequestExpiry *int64 = this.SafeInteger(this.Options, "x-phemex-request-expiry", 60)
-		var expiry any = this.Sum(timestamp, xPhemexRequestExpiry)
+		var expiry int64 = this.Sum(timestamp, xPhemexRequestExpiry).(int64)
 		var expiryString string = ToString(expiry)
 		headers = map[string]any{
 			"x-phemex-access-token":   this.ApiKey,

@@ -331,7 +331,7 @@ func (this *Kraken) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 	ccxt.PanicOnError(token)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request any = map[string]any{
 		"method": "add_order",
@@ -418,7 +418,7 @@ func (this *Kraken) editOrderWsBody(ch chan any, id any, symbol any, typeVar any
 	token := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(token)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request any = map[string]any{
 		"method": "amend_order",
@@ -468,7 +468,7 @@ func (this *Kraken) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any
 	token := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(token)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
 		"method": "cancel_order",
@@ -514,7 +514,7 @@ func (this *Kraken) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	token := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(token)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
 		"method": "cancel_order",
@@ -575,7 +575,7 @@ func (this *Kraken) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	token := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(token)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
 		"method": "cancel_all",
@@ -768,10 +768,10 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Kraken) RequestId() any {
+func (this *Kraken) RequestId() int64 {
 	// their support said that reqid must be an int32, not documented
 	this.LockId()
-	var reqid any = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1)
+	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1).(int64)
 	this.Options.Store("reqid", reqid)
 	this.UnlockId()
 	return reqid
@@ -1052,7 +1052,7 @@ func (this *Kraken) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var messageHash any = this.GetMessageHash("ohlcv", nil, symbol)
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1456,7 +1456,7 @@ func (this *Kraken) watchPrivateBody(ch chan any, name any, optionalArgs ...any)
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1887,7 +1887,7 @@ func (this *Kraken) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(token)
 	var messageHash string = "balances"
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",
 		"req_id": requestId,

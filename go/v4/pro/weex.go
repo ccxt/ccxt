@@ -90,7 +90,7 @@ func (this *Weex) Describe() any {
 }
 func (this *Weex) RequestId() any {
 	this.LockId()
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	this.UnlockId()
 	return this.NumberToString(requestId)

@@ -1971,13 +1971,13 @@ public class Bitmex extends BitmexApi
         currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
         String amountString = this.safeString(item, "amount");
         Object amount = this.convertToRealAmount(code, amountString);
-        Object timestamp = this.parse8601(this.safeString(item, "transactTime"));
+        Long timestamp = this.parse8601(this.safeString(item, "transactTime"));
         if (java.util.Objects.equals(timestamp, null))
         {
             // https://github.com/ccxt/ccxt/issues/6047
             // set the timestamp to zero, 1970 Jan 1 00:00:00
             // for unrealized pnl and other transactions without a timestamp
-            timestamp = 0; // see comments above
+            timestamp = 0L; // see comments above
         }
         Map<String, Object> fee = null;
         Object feeCost = this.safeString(item, "fee");
@@ -2006,7 +2006,7 @@ public class Bitmex extends BitmexApi
             direction = "in";
         }
         String status = this.parseTransactionStatus(this.safeString(item, "transactStatus"));
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalDirection = direction;
         final Object finalAmount = amount;
         final Object finalAfter = after;
