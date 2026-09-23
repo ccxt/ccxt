@@ -2372,11 +2372,11 @@ func (this *Onetrading) Init(userConfig map[string]any) {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Onetrading) FetchTime(params ...any) (int64, error) {
-	res := <-this.FetchTimeAsync(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	res := AwaitResult(this.FetchTimeAsync(params...))
+	if res.Err != nil {
+		return -1, res.Err
 	}
-	return (res).(int64), nil
+	return (res.Value).(int64), nil
 }
 
 /**
@@ -2388,11 +2388,11 @@ func (this *Onetrading) FetchTime(params ...any) (int64, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Onetrading) FetchCurrencies(params ...any) (Currencies, error) {
-	res := <-this.FetchCurrenciesAsync(params...)
-	if IsError(res) {
-		return Currencies{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchCurrenciesAsync(params...))
+	if res.Err != nil {
+		return Currencies{}, res.Err
 	}
-	return NewCurrencies(res), nil
+	return NewCurrencies(res.Value), nil
 }
 
 /**
@@ -2404,11 +2404,11 @@ func (this *Onetrading) FetchCurrencies(params ...any) (Currencies, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Onetrading) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	res := <-this.FetchMarketsAsync(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchMarketsAsync(params...))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewMarketInterfaceArray(res), nil
+	return NewMarketInterfaceArray(res.Value), nil
 }
 
 /**
@@ -2422,25 +2422,25 @@ func (this *Onetrading) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Onetrading) FetchTradingFees(params ...any) (TradingFees, error) {
-	res := <-this.FetchTradingFeesAsync(params...)
-	if IsError(res) {
-		return TradingFees{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchTradingFeesAsync(params...))
+	if res.Err != nil {
+		return TradingFees{}, res.Err
 	}
-	return NewTradingFees(res), nil
+	return NewTradingFees(res.Value), nil
 }
 func (this *Onetrading) FetchPublicTradingFees(params ...any) (map[string]any, error) {
-	res := <-this.FetchPublicTradingFeesAsync(params...)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchPublicTradingFeesAsync(params...))
+	if res.Err != nil {
+		return map[string]any{}, res.Err
 	}
-	return res.(map[string]any), nil
+	return res.Value.(map[string]any), nil
 }
 func (this *Onetrading) FetchPrivateTradingFees(params ...any) (map[string]any, error) {
-	res := <-this.FetchPrivateTradingFeesAsync(params...)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchPrivateTradingFeesAsync(params...))
+	if res.Err != nil {
+		return map[string]any{}, res.Err
 	}
-	return res.(map[string]any), nil
+	return res.Value.(map[string]any), nil
 }
 
 /**
@@ -2459,11 +2459,11 @@ func (this *Onetrading) FetchTicker(symbol string, options ...FetchTickerOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTickerAsync(symbol, opts.Params)
-	if IsError(res) {
-		return Ticker{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchTickerAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return Ticker{}, res.Err
 	}
-	return NewTicker(res), nil
+	return NewTicker(res.Value), nil
 }
 
 /**
@@ -2482,11 +2482,11 @@ func (this *Onetrading) FetchTickers(options ...FetchTickersOptions) (Tickers, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchTickersAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return Tickers{}, res.Err
 	}
-	return NewTickers(res), nil
+	return NewTickers(res.Value), nil
 }
 
 /**
@@ -2506,11 +2506,11 @@ func (this *Onetrading) FetchOrderBook(symbol string, options ...FetchOrderBookO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(res) {
-		return OrderBook{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return OrderBook{}, res.Err
 	}
-	return NewOrderBook(res), nil
+	return NewOrderBook(res.Value), nil
 }
 
 /**
@@ -2532,11 +2532,11 @@ func (this *Onetrading) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOHLCVArray(res), nil
+	return NewOHLCVArray(res.Value), nil
 }
 
 /**
@@ -2548,11 +2548,11 @@ func (this *Onetrading) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) 
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Onetrading) FetchBalance(params ...any) (Balances, error) {
-	res := <-this.FetchBalanceAsync(params...)
-	if IsError(res) {
-		return Balances{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchBalanceAsync(params...))
+	if res.Err != nil {
+		return Balances{}, res.Err
 	}
-	return NewBalances(res), nil
+	return NewBalances(res.Value), nil
 }
 
 /**
@@ -2576,11 +2576,11 @@ func (this *Onetrading) CreateOrder(symbol string, typeVar string, side string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 /**
@@ -2601,11 +2601,11 @@ func (this *Onetrading) CancelOrder(id string, options ...CancelOrderOptions) (O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.CancelOrderAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 /**
@@ -2624,11 +2624,11 @@ func (this *Onetrading) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -2648,11 +2648,11 @@ func (this *Onetrading) CancelOrders(ids []string, options ...CancelOrdersOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelOrdersAsync(ids, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.CancelOrdersAsync(ids, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -2672,11 +2672,11 @@ func (this *Onetrading) FetchOrder(id string, options ...FetchOrderOptions) (Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchOrderAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 /**
@@ -2698,11 +2698,11 @@ func (this *Onetrading) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -2724,11 +2724,11 @@ func (this *Onetrading) FetchClosedOrders(options ...FetchClosedOrdersOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -2750,11 +2750,11 @@ func (this *Onetrading) FetchOrderTrades(id string, options ...FetchOrderTradesO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTradeArray(res), nil
+	return NewTradeArray(res.Value), nil
 }
 
 /**
@@ -2776,11 +2776,11 @@ func (this *Onetrading) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTradeArray(res), nil
+	return NewTradeArray(res.Value), nil
 }
 
 // missing typed methods from base

@@ -94,11 +94,11 @@ func (this *Binancecoinm) TransferIn(code string, amount float64, options ...Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.TransferInAsync(code, amount, opts.Params)
-	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+	res := AwaitResult(this.TransferInAsync(code, amount, opts.Params))
+	if res.Err != nil {
+		return TransferEntry{}, res.Err
 	}
-	return NewTransferEntry(res), nil
+	return NewTransferEntry(res.Value), nil
 }
 func (this *Binancecoinm) TransferOut(code string, amount float64, options ...TransferOutOptions) (TransferEntry, error) {
 
@@ -107,9 +107,9 @@ func (this *Binancecoinm) TransferOut(code string, amount float64, options ...Tr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.TransferOutAsync(code, amount, opts.Params)
-	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+	res := AwaitResult(this.TransferOutAsync(code, amount, opts.Params))
+	if res.Err != nil {
+		return TransferEntry{}, res.Err
 	}
-	return NewTransferEntry(res), nil
+	return NewTransferEntry(res.Value), nil
 }

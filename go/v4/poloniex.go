@@ -4823,11 +4823,11 @@ func (this *Poloniex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOHLCVArray(res), nil
+	return NewOHLCVArray(res.Value), nil
 }
 
 /**
@@ -4840,25 +4840,25 @@ func (this *Poloniex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Poloniex) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	res := <-this.FetchMarketsAsync(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchMarketsAsync(params...))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewMarketInterfaceArray(res), nil
+	return NewMarketInterfaceArray(res.Value), nil
 }
 func (this *Poloniex) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
-	res := <-this.FetchSpotMarketsAsync(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchSpotMarketsAsync(params...))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewMarketInterfaceArray(res), nil
+	return NewMarketInterfaceArray(res.Value), nil
 }
 func (this *Poloniex) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
-	res := <-this.FetchSwapMarketsAsync(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchSwapMarketsAsync(params...))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewMarketInterfaceArray(res), nil
+	return NewMarketInterfaceArray(res.Value), nil
 }
 
 /**
@@ -4870,11 +4870,11 @@ func (this *Poloniex) FetchSwapMarkets(params ...any) ([]MarketInterface, error)
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Poloniex) FetchTime(params ...any) (int64, error) {
-	res := <-this.FetchTimeAsync(params...)
-	if IsError(res) {
-		return -1, CreateReturnError(res)
+	res := AwaitResult(this.FetchTimeAsync(params...))
+	if res.Err != nil {
+		return -1, res.Err
 	}
-	return (res).(int64), nil
+	return (res.Value).(int64), nil
 }
 
 /**
@@ -4894,11 +4894,11 @@ func (this *Poloniex) FetchTickers(options ...FetchTickersOptions) (Tickers, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchTickersAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return Tickers{}, res.Err
 	}
-	return NewTickers(res), nil
+	return NewTickers(res.Value), nil
 }
 
 /**
@@ -4910,11 +4910,11 @@ func (this *Poloniex) FetchTickers(options ...FetchTickersOptions) (Tickers, err
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Poloniex) FetchCurrencies(params ...any) (Currencies, error) {
-	res := <-this.FetchCurrenciesAsync(params...)
-	if IsError(res) {
-		return Currencies{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchCurrenciesAsync(params...))
+	if res.Err != nil {
+		return Currencies{}, res.Err
 	}
-	return NewCurrencies(res), nil
+	return NewCurrencies(res.Value), nil
 }
 
 /**
@@ -4934,11 +4934,11 @@ func (this *Poloniex) FetchTicker(symbol string, options ...FetchTickerOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTickerAsync(symbol, opts.Params)
-	if IsError(res) {
-		return Ticker{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchTickerAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return Ticker{}, res.Err
 	}
-	return NewTicker(res), nil
+	return NewTicker(res.Value), nil
 }
 
 /**
@@ -4960,11 +4960,11 @@ func (this *Poloniex) FetchTrades(symbol string, options ...FetchTradesOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTradeArray(res), nil
+	return NewTradeArray(res.Value), nil
 }
 
 /**
@@ -4988,11 +4988,11 @@ func (this *Poloniex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTradeArray(res), nil
+	return NewTradeArray(res.Value), nil
 }
 
 /**
@@ -5016,11 +5016,11 @@ func (this *Poloniex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -5042,11 +5042,11 @@ func (this *Poloniex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -5073,11 +5073,11 @@ func (this *Poloniex) CreateOrder(symbol string, typeVar string, side string, am
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 /**
@@ -5104,11 +5104,11 @@ func (this *Poloniex) EditOrder(id string, symbol string, typeVar string, side s
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 // @name poloniex#cancelOrder
@@ -5119,11 +5119,11 @@ func (this *Poloniex) CancelOrder(id string, options ...CancelOrderOptions) (Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.CancelOrderAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 /**
@@ -5145,11 +5145,11 @@ func (this *Poloniex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -5171,11 +5171,11 @@ func (this *Poloniex) FetchOrder(id string, options ...FetchOrderOptions) (Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchOrderAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 func (this *Poloniex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 
@@ -5184,11 +5184,11 @@ func (this *Poloniex) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderStatusAsync(id, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return "", CreateReturnError(res)
+	res := AwaitResult(this.FetchOrderStatusAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return "", res.Err
 	}
-	return res.(string), nil
+	return res.Value.(string), nil
 }
 
 /**
@@ -5210,11 +5210,11 @@ func (this *Poloniex) FetchOrderTrades(id string, options ...FetchOrderTradesOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTradeArray(res), nil
+	return NewTradeArray(res.Value), nil
 }
 
 /**
@@ -5227,11 +5227,11 @@ func (this *Poloniex) FetchOrderTrades(id string, options ...FetchOrderTradesOpt
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Poloniex) FetchBalance(params ...any) (Balances, error) {
-	res := <-this.FetchBalanceAsync(params...)
-	if IsError(res) {
-		return Balances{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchBalanceAsync(params...))
+	if res.Err != nil {
+		return Balances{}, res.Err
 	}
-	return NewBalances(res), nil
+	return NewBalances(res.Value), nil
 }
 
 /**
@@ -5243,11 +5243,11 @@ func (this *Poloniex) FetchBalance(params ...any) (Balances, error) {
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Poloniex) FetchTradingFees(params ...any) (TradingFees, error) {
-	res := <-this.FetchTradingFeesAsync(params...)
-	if IsError(res) {
-		return TradingFees{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchTradingFeesAsync(params...))
+	if res.Err != nil {
+		return TradingFees{}, res.Err
 	}
-	return NewTradingFees(res), nil
+	return NewTradingFees(res.Value), nil
 }
 
 /**
@@ -5268,11 +5268,11 @@ func (this *Poloniex) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(res) {
-		return OrderBook{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return OrderBook{}, res.Err
 	}
-	return NewOrderBook(res), nil
+	return NewOrderBook(res.Value), nil
 }
 
 /**
@@ -5291,11 +5291,11 @@ func (this *Poloniex) CreateDepositAddress(code string, options ...CreateDeposit
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateDepositAddressAsync(code, opts.Params)
-	if IsError(res) {
-		return DepositAddress{}, CreateReturnError(res)
+	res := AwaitResult(this.CreateDepositAddressAsync(code, opts.Params))
+	if res.Err != nil {
+		return DepositAddress{}, res.Err
 	}
-	return NewDepositAddress(res), nil
+	return NewDepositAddress(res.Value), nil
 }
 
 /**
@@ -5314,11 +5314,11 @@ func (this *Poloniex) FetchDepositAddress(code string, options ...FetchDepositAd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchDepositAddressAsync(code, opts.Params)
-	if IsError(res) {
-		return DepositAddress{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchDepositAddressAsync(code, opts.Params))
+	if res.Err != nil {
+		return DepositAddress{}, res.Err
 	}
-	return NewDepositAddress(res), nil
+	return NewDepositAddress(res.Value), nil
 }
 
 /**
@@ -5340,11 +5340,11 @@ func (this *Poloniex) Transfer(code string, amount float64, fromAccount string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
-	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+	res := AwaitResult(this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
+	if res.Err != nil {
+		return TransferEntry{}, res.Err
 	}
-	return NewTransferEntry(res), nil
+	return NewTransferEntry(res.Value), nil
 }
 
 /**
@@ -5366,11 +5366,11 @@ func (this *Poloniex) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(res) {
-		return Transaction{}, CreateReturnError(res)
+	res := AwaitResult(this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
+	if res.Err != nil {
+		return Transaction{}, res.Err
 	}
-	return NewTransaction(res), nil
+	return NewTransaction(res.Value), nil
 }
 func (this *Poloniex) FetchTransactionsHelper(options ...FetchTransactionsHelperOptions) (map[string]any, error) {
 
@@ -5379,11 +5379,11 @@ func (this *Poloniex) FetchTransactionsHelper(options ...FetchTransactionsHelper
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTransactionsHelperAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchTransactionsHelperAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return map[string]any{}, res.Err
 	}
-	return res.(map[string]any), nil
+	return res.Value.(map[string]any), nil
 }
 
 /**
@@ -5404,11 +5404,11 @@ func (this *Poloniex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTransactionArray(res), nil
+	return NewTransactionArray(res.Value), nil
 }
 
 /**
@@ -5429,11 +5429,11 @@ func (this *Poloniex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTransactionArray(res), nil
+	return NewTransactionArray(res.Value), nil
 }
 
 /**
@@ -5452,11 +5452,11 @@ func (this *Poloniex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFe
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchDepositWithdrawFeesAsync(opts.Codes, opts.Params)
-	if IsError(res) {
-		return DepositWithdrawFees{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchDepositWithdrawFeesAsync(opts.Codes, opts.Params))
+	if res.Err != nil {
+		return DepositWithdrawFees{}, res.Err
 	}
-	return NewDepositWithdrawFees(res), nil
+	return NewDepositWithdrawFees(res.Value), nil
 }
 
 /**
@@ -5477,11 +5477,11 @@ func (this *Poloniex) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTransactionArray(res), nil
+	return NewTransactionArray(res.Value), nil
 }
 
 /**
@@ -5502,11 +5502,11 @@ func (this *Poloniex) SetLeverage(leverage int64, options ...SetLeverageOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+	res := AwaitResult(this.SetLeverageAsync(leverage, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return map[string]any{}, res.Err
 	}
-	return res.(map[string]any), nil
+	return res.Value.(map[string]any), nil
 }
 
 /**
@@ -5525,11 +5525,11 @@ func (this *Poloniex) FetchLeverage(symbol string, options ...FetchLeverageOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchLeverageAsync(symbol, opts.Params)
-	if IsError(res) {
-		return Leverage{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchLeverageAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return Leverage{}, res.Err
 	}
-	return NewLeverage(res), nil
+	return NewLeverage(res.Value), nil
 }
 
 /**
@@ -5548,11 +5548,11 @@ func (this *Poloniex) FetchPositionMode(options ...FetchPositionModeOptions) (Po
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(res) {
-		return PositionModeInfo{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchPositionModeAsync(opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return PositionModeInfo{}, res.Err
 	}
-	return NewPositionModeInfo(res), nil
+	return NewPositionModeInfo(res.Value), nil
 }
 
 /**
@@ -5572,11 +5572,11 @@ func (this *Poloniex) SetPositionMode(hedged bool, options ...SetPositionModeOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+	res := AwaitResult(this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return map[string]any{}, res.Err
 	}
-	return res.(map[string]any), nil
+	return res.Value.(map[string]any), nil
 }
 
 /**
@@ -5596,11 +5596,11 @@ func (this *Poloniex) FetchPositions(options ...FetchPositionsOptions) ([]Positi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchPositionsAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewPositionArray(res), nil
+	return NewPositionArray(res.Value), nil
 }
 
 // missing typed methods from base

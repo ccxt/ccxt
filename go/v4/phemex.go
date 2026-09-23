@@ -6853,11 +6853,11 @@ func (this *Phemex) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Phemex) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	res := <-this.FetchMarketsAsync(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchMarketsAsync(params...))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewMarketInterfaceArray(res), nil
+	return NewMarketInterfaceArray(res.Value), nil
 }
 
 /**
@@ -6868,11 +6868,11 @@ func (this *Phemex) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Phemex) FetchCurrencies(params ...any) (Currencies, error) {
-	res := <-this.FetchCurrenciesAsync(params...)
-	if IsError(res) {
-		return Currencies{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchCurrenciesAsync(params...))
+	if res.Err != nil {
+		return Currencies{}, res.Err
 	}
-	return NewCurrencies(res), nil
+	return NewCurrencies(res.Value), nil
 }
 
 /**
@@ -6892,11 +6892,11 @@ func (this *Phemex) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(res) {
-		return OrderBook{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return OrderBook{}, res.Err
 	}
-	return NewOrderBook(res), nil
+	return NewOrderBook(res.Value), nil
 }
 
 /**
@@ -6920,11 +6920,11 @@ func (this *Phemex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOHLCVArray(res), nil
+	return NewOHLCVArray(res.Value), nil
 }
 
 /**
@@ -6943,11 +6943,11 @@ func (this *Phemex) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTickerAsync(symbol, opts.Params)
-	if IsError(res) {
-		return Ticker{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchTickerAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return Ticker{}, res.Err
 	}
-	return NewTicker(res), nil
+	return NewTicker(res.Value), nil
 }
 
 /**
@@ -6968,11 +6968,11 @@ func (this *Phemex) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchTickersAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return Tickers{}, res.Err
 	}
-	return NewTickers(res), nil
+	return NewTickers(res.Value), nil
 }
 
 /**
@@ -6993,11 +6993,11 @@ func (this *Phemex) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTradeArray(res), nil
+	return NewTradeArray(res.Value), nil
 }
 
 /**
@@ -7013,11 +7013,11 @@ func (this *Phemex) FetchTrades(symbol string, options ...FetchTradesOptions) ([
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Phemex) FetchBalance(params ...any) (Balances, error) {
-	res := <-this.FetchBalanceAsync(params...)
-	if IsError(res) {
-		return Balances{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchBalanceAsync(params...))
+	if res.Err != nil {
+		return Balances{}, res.Err
 	}
-	return NewBalances(res), nil
+	return NewBalances(res.Value), nil
 }
 
 /**
@@ -7048,11 +7048,11 @@ func (this *Phemex) CreateOrder(symbol string, typeVar string, side string, amou
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 /**
@@ -7077,11 +7077,11 @@ func (this *Phemex) EditOrder(id string, symbol string, typeVar string, side str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 /**
@@ -7102,11 +7102,11 @@ func (this *Phemex) CancelOrder(id string, options ...CancelOrderOptions) (Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.CancelOrderAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 /**
@@ -7125,11 +7125,11 @@ func (this *Phemex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -7149,11 +7149,11 @@ func (this *Phemex) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchOrderAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return Order{}, res.Err
 	}
-	return NewOrder(res), nil
+	return NewOrder(res.Value), nil
 }
 
 /**
@@ -7174,11 +7174,11 @@ func (this *Phemex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -7201,11 +7201,11 @@ func (this *Phemex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -7230,11 +7230,11 @@ func (this *Phemex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewOrderArray(res), nil
+	return NewOrderArray(res.Value), nil
 }
 
 /**
@@ -7257,11 +7257,11 @@ func (this *Phemex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTradeArray(res), nil
+	return NewTradeArray(res.Value), nil
 }
 
 /**
@@ -7280,11 +7280,11 @@ func (this *Phemex) FetchDepositAddress(code string, options ...FetchDepositAddr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchDepositAddressAsync(code, opts.Params)
-	if IsError(res) {
-		return DepositAddress{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchDepositAddressAsync(code, opts.Params))
+	if res.Err != nil {
+		return DepositAddress{}, res.Err
 	}
-	return NewDepositAddress(res), nil
+	return NewDepositAddress(res.Value), nil
 }
 
 /**
@@ -7304,11 +7304,11 @@ func (this *Phemex) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTransactionArray(res), nil
+	return NewTransactionArray(res.Value), nil
 }
 
 /**
@@ -7328,11 +7328,11 @@ func (this *Phemex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTransactionArray(res), nil
+	return NewTransactionArray(res.Value), nil
 }
 
 /**
@@ -7355,11 +7355,11 @@ func (this *Phemex) FetchPositions(options ...FetchPositionsOptions) ([]Position
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchPositionsAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewPositionArray(res), nil
+	return NewPositionArray(res.Value), nil
 }
 
 /**
@@ -7381,11 +7381,11 @@ func (this *Phemex) FetchPositionHistory(symbol string, options ...FetchPosition
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchPositionHistoryAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchPositionHistoryAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewPositionArray(res), nil
+	return NewPositionArray(res.Value), nil
 }
 
 /**
@@ -7406,11 +7406,11 @@ func (this *Phemex) FetchFundingHistory(options ...FetchFundingHistoryOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewFundingHistoryArray(res), nil
+	return NewFundingHistoryArray(res.Value), nil
 }
 
 /**
@@ -7428,11 +7428,11 @@ func (this *Phemex) FetchFundingRate(symbol string, options ...FetchFundingRateO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchFundingRateAsync(symbol, opts.Params)
-	if IsError(res) {
-		return FundingRate{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchFundingRateAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return FundingRate{}, res.Err
 	}
-	return NewFundingRate(res), nil
+	return NewFundingRate(res.Value), nil
 }
 
 /**
@@ -7452,11 +7452,11 @@ func (this *Phemex) SetMargin(symbol string, amount float64, options ...SetMargi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.SetMarginAsync(symbol, amount, opts.Params)
-	if IsError(res) {
-		return MarginModification{}, CreateReturnError(res)
+	res := AwaitResult(this.SetMarginAsync(symbol, amount, opts.Params))
+	if res.Err != nil {
+		return MarginModification{}, res.Err
 	}
-	return NewMarginModification(res), nil
+	return NewMarginModification(res.Value), nil
 }
 
 /**
@@ -7476,11 +7476,11 @@ func (this *Phemex) SetMarginMode(marginMode string, options ...SetMarginModeOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+	res := AwaitResult(this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return map[string]any{}, res.Err
 	}
-	return res.(map[string]any), nil
+	return res.Value.(map[string]any), nil
 }
 
 /**
@@ -7500,11 +7500,11 @@ func (this *Phemex) SetPositionMode(hedged bool, options ...SetPositionModeOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+	res := AwaitResult(this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return map[string]any{}, res.Err
 	}
-	return res.(map[string]any), nil
+	return res.Value.(map[string]any), nil
 }
 
 /**
@@ -7522,11 +7522,11 @@ func (this *Phemex) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Le
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchLeverageTiersAsync(opts.Symbols, opts.Params)
-	if IsError(res) {
-		return LeverageTiers{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchLeverageTiersAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return LeverageTiers{}, res.Err
 	}
-	return NewLeverageTiers(res), nil
+	return NewLeverageTiers(res.Value), nil
 }
 
 /**
@@ -7549,11 +7549,11 @@ func (this *Phemex) SetLeverage(leverage int64, options ...SetLeverageOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+	res := AwaitResult(this.SetLeverageAsync(leverage, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return map[string]any{}, res.Err
 	}
-	return res.(map[string]any), nil
+	return res.Value.(map[string]any), nil
 }
 
 /**
@@ -7577,11 +7577,11 @@ func (this *Phemex) Transfer(code string, amount float64, fromAccount string, to
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
-	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+	res := AwaitResult(this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
+	if res.Err != nil {
+		return TransferEntry{}, res.Err
 	}
-	return NewTransferEntry(res), nil
+	return NewTransferEntry(res.Value), nil
 }
 
 /**
@@ -7602,11 +7602,11 @@ func (this *Phemex) FetchTransfers(options ...FetchTransfersOptions) ([]Transfer
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewTransferEntryArray(res), nil
+	return NewTransferEntryArray(res.Value), nil
 }
 
 /**
@@ -7629,11 +7629,11 @@ func (this *Phemex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewFundingRateHistoryArray(res), nil
+	return NewFundingRateHistoryArray(res.Value), nil
 }
 
 /**
@@ -7656,11 +7656,11 @@ func (this *Phemex) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
-	if IsError(res) {
-		return Transaction{}, CreateReturnError(res)
+	res := AwaitResult(this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
+	if res.Err != nil {
+		return Transaction{}, res.Err
 	}
-	return NewTransaction(res), nil
+	return NewTransaction(res.Value), nil
 }
 
 /**
@@ -7679,11 +7679,11 @@ func (this *Phemex) FetchOpenInterest(symbol string, options ...FetchOpenInteres
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOpenInterestAsync(symbol, opts.Params)
-	if IsError(res) {
-		return OpenInterest{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchOpenInterestAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return OpenInterest{}, res.Err
 	}
-	return NewOpenInterest(res), nil
+	return NewOpenInterest(res.Value), nil
 }
 
 /**
@@ -7704,11 +7704,11 @@ func (this *Phemex) FetchConvertQuote(fromCode string, toCode string, options ..
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchConvertQuoteAsync(fromCode, toCode, opts.Amount, opts.Params)
-	if IsError(res) {
-		return Conversion{}, CreateReturnError(res)
+	res := AwaitResult(this.FetchConvertQuoteAsync(fromCode, toCode, opts.Amount, opts.Params))
+	if res.Err != nil {
+		return Conversion{}, res.Err
 	}
-	return NewConversion(res), nil
+	return NewConversion(res.Value), nil
 }
 
 /**
@@ -7730,11 +7730,11 @@ func (this *Phemex) CreateConvertTrade(id string, fromCode string, toCode string
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateConvertTradeAsync(id, fromCode, toCode, opts.Amount, opts.Params)
-	if IsError(res) {
-		return Conversion{}, CreateReturnError(res)
+	res := AwaitResult(this.CreateConvertTradeAsync(id, fromCode, toCode, opts.Amount, opts.Params))
+	if res.Err != nil {
+		return Conversion{}, res.Err
 	}
-	return NewConversion(res), nil
+	return NewConversion(res.Value), nil
 }
 
 /**
@@ -7758,11 +7758,11 @@ func (this *Phemex) FetchConvertTradeHistory(options ...FetchConvertTradeHistory
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchConvertTradeHistoryAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchConvertTradeHistoryAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewConversionArray(res), nil
+	return NewConversionArray(res.Value), nil
 }
 
 /**
@@ -7785,11 +7785,11 @@ func (this *Phemex) FetchPositionsADLRank(options ...FetchPositionsADLRankOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchPositionsADLRankAsync(opts.Symbols, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	res := AwaitResult(this.FetchPositionsADLRankAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return NewADLArray(res), nil
+	return NewADLArray(res.Value), nil
 }
 
 // missing typed methods from base

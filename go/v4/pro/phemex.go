@@ -1896,11 +1896,11 @@ func (this *Phemex) Init(userConfig map[string]any) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Phemex) WatchBalance(params ...any) (ccxt.Balances, error) {
-	res := <-this.WatchBalanceAsync(params...)
-	if ccxt.IsError(res) {
-		return ccxt.Balances{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchBalanceAsync(params...))
+	if res.Err != nil {
+		return ccxt.Balances{}, res.Err
 	}
-	return ccxt.NewBalances(res), nil
+	return ccxt.NewBalances(res.Value), nil
 }
 
 /**
@@ -1921,11 +1921,11 @@ func (this *Phemex) WatchTicker(symbol string, options ...ccxt.WatchTickerOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTickerAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return ccxt.Ticker{}, res.Err
 	}
-	return ccxt.NewTicker(res), nil
+	return ccxt.NewTicker(res.Value), nil
 }
 
 /**
@@ -1947,11 +1947,11 @@ func (this *Phemex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tick
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTickersAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return ccxt.Tickers{}, res.Err
 	}
-	return ccxt.NewTickers(res), nil
+	return ccxt.NewTickers(res.Value), nil
 }
 
 /**
@@ -1974,11 +1974,11 @@ func (this *Phemex) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	return ccxt.NewTradeArray(res.Value), nil
 }
 
 /**
@@ -2001,11 +2001,11 @@ func (this *Phemex) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBook
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res), nil
+	return ccxt.NewOrderBookFromWs(res.Value), nil
 }
 
 /**
@@ -2029,11 +2029,11 @@ func (this *Phemex) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res), nil
+	return ccxt.NewOHLCVArray(res.Value), nil
 }
 
 /**
@@ -2053,11 +2053,11 @@ func (this *Phemex) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	return ccxt.NewTradeArray(res.Value), nil
 }
 
 /**
@@ -2077,9 +2077,9 @@ func (this *Phemex) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
