@@ -1920,9 +1920,7 @@ export default class hollaex extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        if (tagWithdrawTag !== undefined) {
-            address += ':' + tagWithdrawTag;
-        }
+        const addressWithTag = (tagWithdrawTag !== undefined) ? address + ':' + tagWithdrawTag : address;
         const network = this.safeString (paramsWithdrawTag, 'network');
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
@@ -1931,7 +1929,7 @@ export default class hollaex extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
-            'address': address,
+            'address': addressWithTag,
             'network': this.networkCodeToId (network, code),
         };
         const response = await this.privatePostUserWithdrawal (this.extend (request, paramsOmitted));
@@ -2071,34 +2069,38 @@ export default class hollaex extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const query = this.omit (params, this.extractParams (path));
-        path = '/' + this.version + '/' + this.implodeParams (path, params);
+        let requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys (query).length > 0) {
-                path += '?' + this.urlencode (query);
+                requestPath += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api']['rest'] + path;
+        const url = this.urls['api']['rest'] + requestPath;
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (this.timeout / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
             const expiresString = expires.toString ();
-            let auth = method + path + expiresString;
-            headers = {
+            let auth = method + requestPath + expiresString;
+            requestHeaders = {
                 'api-key': this.apiKey,
                 'api-expires': expiresString,
             };
             if (method === 'POST') {
-                headers['Content-type'] = 'application/json';
+                requestHeaders['Content-type'] = 'application/json';
                 if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    auth += body;
+                    requestBody = this.json (query);
+                    auth += requestBody;
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            headers['api-signature'] = signature;
+            requestHeaders['api-signature'] = signature;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
