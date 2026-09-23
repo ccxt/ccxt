@@ -983,7 +983,7 @@ func (this *Pacifica) ParseMarket(market any) any {
 	if isSwap {
 		symbol = Add(Add(symbol, ":"), settle)
 	}
-	var fees any = this.SafeDict(this.Fees, typeVar, map[string]any{})
+	var fees map[string]any = SafeMapTyped(this.Fees, typeVar)
 	var taker *float64 = this.SafeNumber(fees, "taker")
 	var maker *float64 = this.SafeNumber(fees, "maker")
 	var amountPrecision *float64 = this.SafeNumber(market, "lot_size")
@@ -3328,7 +3328,7 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//   "code": null
 	// }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	// return last state
 	var sorted []any = this.SortBy(data, "created_at", true)
 	var lastIdx int = len(sorted)

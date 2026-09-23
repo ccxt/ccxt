@@ -420,11 +420,11 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 		"bids": bids,
 		"asks": asks,
 	}
-	var parsed any = this.ParseOrderBook(snapshot, symbol, timestamp)
+	var parsed map[string]any = this.ParseOrderBook(snapshot, symbol, timestamp)
 	var sequenceNumberRange any = this.SafeList(data, "sequenceNumberRange", []any{})
 	if ccxt.GetArrayLength(sequenceNumberRange) > 0 {
 		var lastIndex int64 = ccxt.Subtract(ccxt.GetArrayLength(sequenceNumberRange), 1).(int64)
-		ccxt.AddElementToObject(parsed, "nonce", this.SafeInteger(sequenceNumberRange, lastIndex))
+		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)
 	}
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -809,7 +809,7 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		var data any = this.SafeList(message, "data", []any{})
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.ParseBalance(data))
 	} else {
-		var data any = this.SafeDict(message, "data", map[string]any{})
+		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		var assetId *string = this.SafeString(data, "assetSymbol")
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(data, "availableQuantity")

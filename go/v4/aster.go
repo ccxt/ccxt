@@ -1379,9 +1379,9 @@ func (this *Aster) ParseMarket(market any) any {
 		symbol = Add(Add(base, "/"), quote)
 	}
 	// filters
-	var filters any = this.SafeList(market, "filters", []any{})
+	var filters []any = SafeListTyped(market, "filters")
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
-	var filterNotional any = this.SafeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL")
+	var filterNotional map[string]any = SafeDict2Typed(filtersByType, "MIN_NOTIONAL", "NOTIONAL")
 	var filterPrice map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 	var filterLotSize any = this.SafeDict(filtersByType, "LOT_SIZE")
 	var filterMarketLotSize map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")

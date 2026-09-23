@@ -417,7 +417,7 @@ func (this *Krakenfutures) watchTradesForSymbolsBody(ch chan any, symbols any, o
 	trades := (<-this.WatchMultiHelperAsync("trade", "trade", symbols, nil, params))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeList(trades, 0)
+		var first []any = ccxt.SafeListTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -833,8 +833,8 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 		}
 		var tradesArray any = ccxt.GetValue(this.Trades, symbol)
 		if channel != nil && *channel == "trade_snapshot" {
-			var trades any = this.SafeList(message, "trades", []any{})
-			var length int = ccxt.GetArrayLength(trades)
+			var trades []any = ccxt.SafeListTyped(message, "trades")
+			var length int = len(trades)
 			for i := 0; i < length; i++ {
 				var index any = ccxt.Subtract(ccxt.Subtract(length, 1), i) // need reverse to correct chronology
 				var item any = ccxt.GetValue(trades, index)
@@ -1177,7 +1177,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 	//            ...
 	//        ]
 	//    }
-	var orders any = this.SafeList(message, "orders", []any{})
+	var orders []any = ccxt.SafeListTyped(message, "orders")
 	var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
 	this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	var feed *string = this.SafeString(message, "feed")
@@ -1187,8 +1187,13 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 	}
 	var symbols map[string]any = map[string]any{}
 	var cachedOrders any = this.Orders
-	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
-		var order any = ccxt.GetValue(orders, i)
+	for i := 0; i < len(orders); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(orders) {
+				return ccxt.DerefScalar(orders[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseWsOrder(order)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		if symbol != nil {

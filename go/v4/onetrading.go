@@ -738,7 +738,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	var method *string = this.SafeString(params, "method")
 	params = this.Omit(params, "method")
 	if method == nil {
-		var options any = this.SafeDict(this.Options, "fetchTradingFees", map[string]any{})
+		var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFees")
 		method = this.SafeString(options, "method", "fetchPrivateTradingFees")
 	}
 	if method != nil && *method == "fetchPrivateTradingFees" {
@@ -917,13 +917,13 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market map[string]any = MapTyped(this.Market(symbol))
-		var makerFee any = func() any {
+		var makerFee *string = func() *string {
 			if GetValue(market, "spot") == true {
 				return spotMakerFee
 			}
 			return futuresMakerFee
 		}()
-		var takerFee any = func() any {
+		var takerFee *string = func() *string {
 			if GetValue(market, "spot") == true {
 				return spotTakerFee
 			}
@@ -1277,7 +1277,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " parseOHLCV() missing timestamp"))
 	}
 	var alignedTimestamp any = Multiply(duration, this.ParseToInt(Divide(timestamp, duration)))
-	var options any = this.SafeDict(this.Options, "fetchOHLCV", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchOHLCV")
 	var volumeField *string = this.SafeString(options, "volume", "total_amount")
 	return []any{alignedTimestamp, this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeField)}
 }

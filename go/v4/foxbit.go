@@ -1189,7 +1189,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 		retRes90912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes90912)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"state": status,
 	}

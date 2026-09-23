@@ -312,10 +312,15 @@ func (this *Predictfun) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var eventsLength int = ccxt.GetArrayLength(events)
 	var markets []any = []any{}
 	for ei := 0; ei < eventsLength; ei++ {
-		var eventMarkets any = this.SafeList(ccxt.GetValue(events, ei), "markets", []any{})
-		var eventMarketsLength int = ccxt.GetArrayLength(eventMarkets)
+		var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
+		var eventMarketsLength int = len(eventMarkets)
 		for mi := 0; mi < eventMarketsLength; mi++ {
-			markets = append(markets, ccxt.GetValue(eventMarkets, mi))
+			markets = append(markets, func() any {
+				if mi >= 0 && mi < len(eventMarkets) {
+					return ccxt.DerefScalar(eventMarkets[mi])
+				}
+				return nil
+			}())
 		}
 	}
 
@@ -626,10 +631,15 @@ func (this *Predictfun) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < rawTopicsLength; i++ {
 		var parsedEvent any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
 		result = append(result, parsedEvent)
-		var parsedMarkets any = this.SafeList(parsedEvent, "markets", []any{})
-		var parsedMarketsLength int = ccxt.GetArrayLength(parsedMarkets)
+		var parsedMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
+		var parsedMarketsLength int = len(parsedMarkets)
 		for mi := 0; mi < parsedMarketsLength; mi++ {
-			var m any = ccxt.GetValue(parsedMarkets, mi)
+			var m any = func() any {
+				if mi >= 0 && mi < len(parsedMarkets) {
+					return ccxt.DerefScalar(parsedMarkets[mi])
+				}
+				return nil
+			}()
 			// prediction market rows are keyed by the unified 'market' handle
 			var handle *string = this.SafeString(m, "market")
 			if handle != nil {
@@ -759,10 +769,15 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan any, queries any, op
 		//     }
 		//
 		var data map[string]any = ccxt.SafeMapTyped(response, "data")
-		var categories any = this.SafeList(data, "categories", []any{})
-		var categoriesLength int = ccxt.GetArrayLength(categories)
+		var categories []any = ccxt.SafeListTyped(data, "categories")
+		var categoriesLength int = len(categories)
 		for ci := 0; ci < categoriesLength; ci++ {
-			var category any = ccxt.GetValue(categories, ci)
+			var category any = func() any {
+				if ci >= 0 && ci < len(categories) {
+					return ccxt.DerefScalar(categories[ci])
+				}
+				return nil
+			}()
 			var categorySlug *string = this.SafeString(category, "slug")
 			if categorySlug == nil {
 				// nothing to key a duplicate on, keep the row rather than drop it
@@ -781,10 +796,15 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan any, queries any, op
 		// a term can match a market whose category row is not in the response - those rows are
 		// the other half of the payload and would otherwise be dropped, so bucket them by the
 		// categorySlug they carry
-		var rawMarkets any = this.SafeList(data, "markets", []any{})
-		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+		var rawMarkets []any = ccxt.SafeListTyped(data, "markets")
+		var rawMarketsLength int = len(rawMarkets)
 		for mi := 0; mi < rawMarketsLength; mi++ {
-			var rawMarket any = ccxt.GetValue(rawMarkets, mi)
+			var rawMarket any = func() any {
+				if mi >= 0 && mi < len(rawMarkets) {
+					return ccxt.DerefScalar(rawMarkets[mi])
+				}
+				return nil
+			}()
 			var marketSlug *string = this.SafeString(rawMarket, "categorySlug")
 			if marketSlug != nil {
 				if func() bool {
@@ -1025,12 +1045,17 @@ func (this *Predictfun) ParseEvent(rawTopic any) any {
 	//         }
 	//     }
 	//
-	var rawMarkets any = this.SafeList(rawTopic, "markets", []any{})
+	var rawMarkets []any = ccxt.SafeListTyped(rawTopic, "markets")
 	var marketsList []any = []any{}
 	var anyActive bool = false
-	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var parsed any = this.ParseTopicMarket(ccxt.GetValue(rawMarkets, i), rawTopic)
+		var parsed any = this.ParseTopicMarket(func() any {
+			if i >= 0 && i < len(rawMarkets) {
+				return ccxt.DerefScalar(rawMarkets[i])
+			}
+			return nil
+		}(), rawTopic)
 		marketsList = append(marketsList, parsed)
 		if this.SafeBool(parsed, "active", false) != nil && *this.SafeBool(parsed, "active", false) {
 			anyActive = true
@@ -1260,12 +1285,17 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
 		"amount": 0.01,
 		"price":  pricePrecision,
 	}
-	var rawOutcomes any = this.SafeList(rawMarket, "outcomes", []any{})
+	var rawOutcomes []any = ccxt.SafeListTyped(rawMarket, "outcomes")
 	var outcomes []any = []any{}
 	var resolvedOutcomeRaw any = nil
-	var rawOutcomesLength int = ccxt.GetArrayLength(rawOutcomes)
+	var rawOutcomesLength int = len(rawOutcomes)
 	for oi := 0; oi < rawOutcomesLength; oi++ {
-		var rawOutcome any = ccxt.GetValue(rawOutcomes, oi)
+		var rawOutcome any = func() any {
+			if oi >= 0 && oi < len(rawOutcomes) {
+				return ccxt.DerefScalar(rawOutcomes[oi])
+			}
+			return nil
+		}()
 		// a label can carry a formatted price ("$1,800+"), and it goes into the outcome
 		// handle verbatim - strip the same formatting the title gets
 		var rawLabel *string = this.SafeStringUpper(rawOutcome, "name")
@@ -1429,7 +1459,7 @@ func (this *Predictfun) fetchOrderBookBody(ch chan any, outcome any, optionalArg
 	var outcomeSymbol any = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	// the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
 	if isYesOutcome {
-		var yesOrderbook any = this.ParseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1)
+		var yesOrderbook map[string]any = this.ParseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1)
 
 		ch <- this.SafePredictionOrderBook(yesOrderbook, outcomeObj)
 		return nil
@@ -3078,7 +3108,7 @@ func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) any
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var data any = this.SafeDict2(order, "order", "data")
+	var data map[string]any = ccxt.SafeDict2Typed(order, "order", "data")
 	// the fetch endpoints nest the hash inside the contract order, the create endpoint
 	// returns it at the top level as orderHash - accept either
 	var topLevelHash *string = this.SafeString2(order, "hash", "orderHash")
@@ -4148,26 +4178,36 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "marketId")
 	var timestamp *int64 = this.SafeInteger(data, "updateTimestampMs")
-	var rawAsks any = this.SafeList(data, "asks", []any{})
-	var rawBids any = this.SafeList(data, "bids", []any{})
+	var rawAsks []any = ccxt.SafeListTyped(data, "asks")
+	var rawBids []any = ccxt.SafeListTyped(data, "bids")
 	// every message carries the whole book - the venue publishes no deltas - and the levels
 	// arrive already sorted, best first
 	var yesBids []any = []any{}
 	var yesAsks []any = []any{}
 	var noBids []any = []any{}
 	var noAsks []any = []any{}
-	var bidsLength int = ccxt.GetArrayLength(rawBids)
+	var bidsLength int = len(rawBids)
 	for i := 0; i < bidsLength; i++ {
-		var bid any = ccxt.GetValue(rawBids, i)
+		var bid any = func() any {
+			if i >= 0 && i < len(rawBids) {
+				return ccxt.DerefScalar(rawBids[i])
+			}
+			return nil
+		}()
 		var bidPrice *string = this.SafeString(bid, 0)
 		var bidSize any = this.ParseNumber(this.SafeString(bid, 1))
 		yesBids = append(yesBids, []any{this.ParseNumber(bidPrice), bidSize})
 		// a bid for yes at p is an offer of no at 1 - p
 		noAsks = append(noAsks, []any{this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)), bidSize})
 	}
-	var asksLength int = ccxt.GetArrayLength(rawAsks)
+	var asksLength int = len(rawAsks)
 	for i := 0; i < asksLength; i++ {
-		var ask any = ccxt.GetValue(rawAsks, i)
+		var ask any = func() any {
+			if i >= 0 && i < len(rawAsks) {
+				return ccxt.DerefScalar(rawAsks[i])
+			}
+			return nil
+		}()
 		var askPrice *string = this.SafeString(ask, 0)
 		var askSize any = this.ParseNumber(this.SafeString(ask, 1))
 		yesAsks = append(yesAsks, []any{this.ParseNumber(askPrice), askSize})

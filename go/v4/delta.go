@@ -1293,7 +1293,7 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
 	var turnoverSymbol *string = this.SafeStringUpper(ticker, "turnover_symbol")
 	var quoteId *string = this.SafeStringUpper(market, "quoteId")
 	var baseDenominated bool = (turnoverSymbol != nil) && (quoteId != nil) && (turnoverSymbol != quoteId && (turnoverSymbol == nil || quoteId == nil || *turnoverSymbol != *quoteId))
-	var quoteVolume any = func() any {
+	var quoteVolume *float64 = func() *float64 {
 		if baseDenominated {
 			return this.SafeNumber(ticker, "turnover_usd")
 		}

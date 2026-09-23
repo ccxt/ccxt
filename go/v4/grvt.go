@@ -3021,7 +3021,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{
 		"sub_account_id": this.GetSubAccountId(params),
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "base", []any{})

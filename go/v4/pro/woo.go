@@ -84,7 +84,7 @@ func (this *Woo) Describe() any {
 	})
 }
 func (this *Woo) RequestId(url any) any {
-	var options any = this.SafeDict(this.Options, "requestId", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue any = this.Sum(previousValue, 1)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
@@ -193,8 +193,8 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
 	method = ccxt.GetValue(methodparamsVariable, 0)
 	params = ccxt.GetValue(methodparamsVariable, 1)
-	var market any = this.Market(symbol)
-	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), method)
+	var market map[string]any = this.Market(symbol)
+	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var urlUid any = func() any {
 		if this.Uid != "" {
 			return ccxt.Add("/", this.Uid)
@@ -211,7 +211,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var subscription map[string]any = map[string]any{
 		"id":     ccxt.ToString(requestId),
 		"name":   method,
-		"symbol": ccxt.GetValue(market, "symbol"),
+		"symbol": market["symbol"],
 		"limit":  limit,
 		"params": params,
 	}
@@ -255,11 +255,11 @@ func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
 	method = ccxt.GetValue(methodparamsVariable, 0)
 	params = ccxt.GetValue(methodparamsVariable, 1)
-	var market any = this.Market(symbol)
-	var subHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), method)
+	var market map[string]any = this.Market(symbol)
+	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var topic string = "orderbook"
 
-	retRes18415 := (<-this.UnwatchPublicAsync(subHash, ccxt.GetValue(market, "symbol"), topic, params))
+	retRes18415 := (<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params))
 	ccxt.PanicOnError(retRes18415)
 	ch <- retRes18415
 	return nil
@@ -347,7 +347,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 		}
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 		var timestamp *int64 = this.SafeInteger(message, "ts")
-		var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
+		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 	}
@@ -473,9 +473,9 @@ func (this *Woo) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 		ccxt.PanicOnError(retRes34512)
 	}
 	var name string = "ticker"
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
+	var market map[string]any = this.Market(symbol)
+	symbol = market["symbol"]
+	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), name)
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -515,11 +515,11 @@ func (this *Woo) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "method", "ticker")
 	method = ccxt.GetValue(methodparamsVariable, 0)
 	params = ccxt.GetValue(methodparamsVariable, 1)
-	var market any = this.Market(symbol)
-	var subHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), method)
+	var market map[string]any = this.Market(symbol)
+	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var topic string = "ticker"
 
-	retRes37615 := (<-this.UnwatchPublicAsync(subHash, ccxt.GetValue(market, "symbol"), topic, params))
+	retRes37615 := (<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params))
 	ccxt.PanicOnError(retRes37615)
 	ch <- retRes37615
 	return nil
@@ -893,10 +893,10 @@ func (this *Woo) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	if (!ccxt.IsEqual(timeframe, "1m")) && (!ccxt.IsEqual(timeframe, "5m")) && (!ccxt.IsEqual(timeframe, "15m")) && (!ccxt.IsEqual(timeframe, "30m")) && (!ccxt.IsEqual(timeframe, "1h")) && (!ccxt.IsEqual(timeframe, "1d")) && (!ccxt.IsEqual(timeframe, "1w")) && (!ccxt.IsEqual(timeframe, "1M")) {
 		panic(ccxt.ExchangeError(this.Id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "kline"
-	var topic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name), "_"), interval)
+	var topic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@"), name), "_"), interval)
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -906,7 +906,7 @@ func (this *Woo) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	ohlcv := (<-this.WatchPublicAsync(topic, message))
 	ccxt.PanicOnError(ohlcv)
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(ccxt.GetValue(market, "symbol"), limit)
+		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(market["symbol"], limit)
 	}
 
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
@@ -941,14 +941,14 @@ func (this *Woo) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes68812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes68812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var topic string = "ohlcv"
 	var name string = "kline"
-	var subHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name), "_"), interval)
-	ccxt.AddElementToObject(params, "symbolsAndTimeframes", []any{[]any{ccxt.GetValue(market, "symbol"), timeframe}})
+	var subHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@"), name), "_"), interval)
+	ccxt.AddElementToObject(params, "symbolsAndTimeframes", []any{[]any{market["symbol"], timeframe}})
 
-	retRes69615 := (<-this.UnwatchPublicAsync(subHash, ccxt.GetValue(market, "symbol"), topic, params))
+	retRes69615 := (<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params))
 	ccxt.PanicOnError(retRes69615)
 	ch <- retRes69615
 	return nil
@@ -1023,9 +1023,9 @@ func (this *Woo) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes75912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes75912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
+	var market map[string]any = this.Market(symbol)
+	symbol = market["symbol"]
+	var topic any = ccxt.Add(market["id"], "@trade")
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -1035,7 +1035,7 @@ func (this *Woo) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	trades := (<-this.WatchPublicAsync(topic, message))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(trades).GetLimit(ccxt.GetValue(market, "symbol"), limit)
+		limit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
@@ -1066,11 +1066,11 @@ func (this *Woo) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes78712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes78712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var topic string = "trades"
-	var subHash any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
+	var subHash any = ccxt.Add(market["id"], "@trade")
 
-	retRes79215 := (<-this.UnwatchPublicAsync(subHash, ccxt.GetValue(market, "symbol"), topic, params))
+	retRes79215 := (<-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params))
 	ccxt.PanicOnError(retRes79215)
 	ch <- retRes79215
 	return nil
@@ -1601,7 +1601,7 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var cachedOrders any = this.Orders
-		var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var order any = this.SafeDict(orders, orderId)
 		if !ccxt.IsEqual(order, nil) {
 			var fee any = this.SafeValue(order, "fee")
@@ -1949,9 +1949,9 @@ func (this *Woo) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 		retRes150712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes150712)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@estfundingrate")
+	var market map[string]any = this.Market(symbol)
+	symbol = market["symbol"]
+	var topic any = ccxt.Add(market["id"], "@estfundingrate")
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,

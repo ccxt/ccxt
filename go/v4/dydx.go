@@ -762,7 +762,7 @@ func (this *Dydx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "markets", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "markets")
 	var markets []any = ObjectValues(data)
 
 	ch <- this.ParseMarkets(markets)

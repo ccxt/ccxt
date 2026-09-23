@@ -277,13 +277,13 @@ func (this *Nado) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 	retRes1908 := (<-this.LoadMarketsAsync())
 	ccxt.PanicOnError(retRes1908)
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
-	if !(ccxt.InOp(this.Orderbooks, ccxt.GetValue(market, "symbol"))) {
+	var market map[string]any = this.Market(symbol)
+	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
+	if !(ccxt.InOp(this.Orderbooks, market["symbol"])) {
 
 		snapshot := (<-this.FetchOrderBookAsync(symbol, limit))
 		ccxt.PanicOnError(snapshot)
-		ccxt.AddElementToObject(this.Orderbooks, ccxt.GetValue(market, "symbol"), this.OrderBook(snapshot, limit))
+		ccxt.AddElementToObject(this.Orderbooks, market["symbol"], this.OrderBook(snapshot, limit))
 	}
 
 	orderbook := (<-this.WatchPublicAsync("book_depth", market, messageHash, params))
@@ -356,15 +356,15 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
+		var market map[string]any = this.Market(symbol)
+		var messageHash any = ccxt.Add("orderbook:", market["symbol"])
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, messageHash)
-		if !(ccxt.InOp(this.Orderbooks, ccxt.GetValue(market, "symbol"))) {
+		if !(ccxt.InOp(this.Orderbooks, market["symbol"])) {
 
 			snapshot := (<-this.FetchOrderBookAsync(symbol, limit))
 			ccxt.PanicOnError(snapshot)
-			ccxt.AddElementToObject(this.Orderbooks, ccxt.GetValue(market, "symbol"), this.OrderBook(snapshot, limit))
+			ccxt.AddElementToObject(this.Orderbooks, market["symbol"], this.OrderBook(snapshot, limit))
 		}
 	}
 
@@ -896,7 +896,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes5568 := (<-this.AuthenticateAsync(this.Extend(map[string]any{}, params)))
 	ccxt.PanicOnError(retRes5568)
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = "orders"
 	var productId any = nil
 	if symbol != nil {
@@ -955,7 +955,7 @@ func (this *Nado) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes5948 := (<-this.AuthenticateAsync(this.Extend(map[string]any{}, params)))
 	ccxt.PanicOnError(retRes5948)
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = "orders"
 	var productId any = nil
 	if symbol != nil {
@@ -1017,7 +1017,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	retRes6318 := (<-this.AuthenticateAsync(this.Extend(map[string]any{}, params)))
 	ccxt.PanicOnError(retRes6318)
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = "myTrades"
 	var productId any = nil
 	if symbol != nil {
@@ -1076,7 +1076,7 @@ func (this *Nado) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	retRes6698 := (<-this.AuthenticateAsync(this.Extend(map[string]any{}, params)))
 	ccxt.PanicOnError(retRes6698)
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = "myTrades"
 	var productId any = nil
 	if symbol != nil {

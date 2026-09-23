@@ -178,7 +178,7 @@ func (this *Htx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var options any = this.SafeDict(this.Options, "watchTicker", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var topic *string = this.SafeString(options, "name", "market.{marketId}.detail")
 	if (topic != nil && *topic == "market.{marketId}.ticker") && (ccxt.GetValue(market, "type") != "spot") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead"))
@@ -221,7 +221,7 @@ func (this *Htx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var topic string = "ticker"
-	var options any = this.SafeDict(this.Options, "watchTicker", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var channel *string = this.SafeString(options, "name", "market.{marketId}.detail")
 	if (channel != nil && *channel == "market.{marketId}.ticker") && (ccxt.GetValue(market, "type") != "spot") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead"))
@@ -363,7 +363,7 @@ func (this *Htx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var topic string = "trades"
-	var options any = this.SafeDict(this.Options, "watchTrades", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTrades")
 	var channel *string = this.SafeString(options, "name", "market.{marketId}.trade.detail")
 	var subMessageHash any = this.ImplodeParams(channel, map[string]any{
 		"marketId": market["id"],
@@ -594,7 +594,7 @@ func (this *Htx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	// which means whenever there is an order book change at that level, it pushes an update
 	// 150-levels/400-level incremental MBP feed is based on the gap
 	// between two snapshots at 100ms interval.
-	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	if ccxt.IsEqual(limit, nil) {
 		limit = ccxt.DerefScalar(this.SafeInteger(options, "depth", 150))
 	}
@@ -651,7 +651,7 @@ func (this *Htx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var topic string = "orderbook"
-	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var depth *int64 = this.SafeInteger(options, "depth", 150)
 	var subMessageHash any = nil
 	if ccxt.GetValue(market, "spot") == true {
@@ -723,14 +723,14 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 			var data any = this.SafeDict(message, "data")
 			var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
 			var firstMessage map[string]any = ccxt.SafeMapTyped(messages, 0)
-			var snapshot any = this.ParseOrderBook(data, symbol)
+			var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 			var tick map[string]any = ccxt.SafeMapTyped(firstMessage, "tick")
 			var sequence *int64 = this.SafeInteger(tick, "prevSeqNum")
 			var nonce *int64 = this.SafeInteger(data, "seqNum")
 			if nonce == nil {
 				return
 			}
-			ccxt.AddElementToObject(snapshot, "nonce", nonce)
+			snapshot["nonce"] = nonce
 			var snapshotTimestamp *int64 = this.SafeInteger(message, "ts")
 			subscription["lastTimestamp"] = snapshotTimestamp
 			var snapshotLimit *int64 = this.SafeInteger(subscription, "limit")
@@ -933,7 +933,7 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var version *int64 = this.SafeInteger(tick, "version")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	if event != nil && *event == "snapshot" {
-		var snapshot any = this.ParseOrderBook(tick, symbol, timestamp)
+		var snapshot map[string]any = this.ParseOrderBook(tick, symbol, timestamp)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		ccxt.AddElementToObject(orderbook, "nonce", version)
 	}
@@ -3176,7 +3176,7 @@ func (this *Htx) HandleMyTrade(client any, message any, optionalArgs ...any) {
 			// in handleOrder
 			var rawTrades []any = ccxt.SafeListTyped(message, "trades")
 			var marketId *string = this.SafeString(message, "symbol")
-			var market any = this.Market(marketId)
+			var market map[string]any = this.Market(marketId)
 			for i := 0; i < len(rawTrades); i++ {
 				var trade any = func() any {
 					if i >= 0 && i < len(rawTrades) {
@@ -3198,7 +3198,7 @@ func (this *Htx) HandleMyTrade(client any, message any, optionalArgs ...any) {
 			// however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
 			// since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
 			// so we must remove it
-			var genericOrderHash string = ccxt.Replace(messageHash, ccxt.Add(".", ccxt.GetValue(market, "lowercaseId")), "")
+			var genericOrderHash string = ccxt.Replace(messageHash, ccxt.Add(".", market["lowercaseId"]), "")
 			var lowerCaseBaseId *string = this.SafeStringLower(market, "baseId")
 			genericOrderHash = ccxt.Replace(genericOrderHash, ccxt.Add(".", lowerCaseBaseId), "")
 			var genericTradesHash string = genericOrderHash + ":" + "trade"

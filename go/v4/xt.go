@@ -1332,7 +1332,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//
 	// note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
 	//
-	var chainsData any = this.SafeList(chainsResponse, "result", []any{})
+	var chainsData []any = SafeListTyped(chainsResponse, "result")
 	var currenciesResult map[string]any = SafeMapTyped(currenciesResponse, "result")
 	var currenciesData []any = SafeListTyped(currenciesResult, "currencies")
 	var chainsDataIndexed map[string]any = this.IndexBy(chainsData, "currency")
@@ -2160,14 +2160,14 @@ func (this *Xt) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any)
 	var orderBook any = this.SafeDict(response, "result", map[string]any{})
 	var timestamp *int64 = this.SafeInteger2(orderBook, "timestamp", "t")
 	if GetValue(market, "spot") == true {
-		var ob any = this.ParseOrderBook(orderBook, symbol, timestamp)
-		AddElementToObject(ob, "nonce", this.SafeInteger(orderBook, "lastUpdateId"))
+		var ob map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp)
+		ob["nonce"] = this.SafeInteger(orderBook, "lastUpdateId")
 
 		ch <- ob
 		return nil
 	}
-	var swapOb any = this.ParseOrderBook(orderBook, symbol, timestamp, "b", "a")
-	AddElementToObject(swapOb, "nonce", this.SafeInteger2(orderBook, "u", "lastUpdateId"))
+	var swapOb map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "b", "a")
+	swapOb["nonce"] = this.SafeInteger2(orderBook, "u", "lastUpdateId")
 
 	ch <- swapOb
 	return nil
@@ -5621,7 +5621,7 @@ func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var memo *string = this.SafeString(transaction, "memo")
 	var currencyCode *string = this.SafeCurrencyCode(this.SafeString(transaction, "currency"), currency)
 	var fee *float64 = this.SafeNumber(transaction, "fee")
-	var feeCurrency any = func() any {
+	var feeCurrency *string = func() *string {
 		if fee != nil {
 			return currencyCode
 		}

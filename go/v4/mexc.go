@@ -2347,7 +2347,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ch <- retRes185819
 		return nil
 	}
-	var options any = this.SafeDict(this.Options, "timeframes", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "timeframes")
 	var timeframes map[string]any = SafeMapTyped(options, market["type"])
 	var timeframeValue *string = this.SafeString(timeframes, timeframe)
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
@@ -5356,7 +5356,7 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		retRes443212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes443212)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -6013,7 +6013,7 @@ func (this *Mexc) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 			return this.SafeDict(addressStructures, netCode)
 		}()
 	} else {
-		var options any = this.SafeDict(this.Options, "defaultNetworks")
+		var options map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
 		var defaultNetworkForCurrency *string = this.SafeString(options, code)
 		if defaultNetworkForCurrency != nil {
 			result = this.SafeDict(addressStructures, defaultNetworkForCurrency)
@@ -6890,7 +6890,7 @@ func (this *Mexc) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString2(transfer, "currency", "asset")
 	var id *string = this.SafeStringN(transfer, []any{"transact_id", "txid", "tranId"})
 	var timestamp *int64 = this.SafeInteger2(transfer, "createTime", "timestamp")
-	var datetime any = func() any {
+	var datetime *string = func() *string {
 		if timestamp != nil {
 			return this.Iso8601(timestamp)
 		}

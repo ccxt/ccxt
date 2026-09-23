@@ -77,7 +77,7 @@ func (this *Modetrade) Describe() any {
 	})
 }
 func (this *Modetrade) RequestId(url any) any {
-	var options any = this.SafeDict(this.Options, "requestId", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue any = this.Sum(previousValue, 1)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
@@ -137,8 +137,8 @@ func (this *Modetrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		ccxt.PanicOnError(retRes10712)
 	}
 	var name string = "orderbook"
-	var market any = this.Market(symbol)
-	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
+	var market map[string]any = this.Market(symbol)
+	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), name)
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -183,7 +183,7 @@ func (this *Modetrade) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
+	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 }
@@ -213,9 +213,9 @@ func (this *Modetrade) watchTickerBody(ch chan any, symbol any, optionalArgs ...
 		ccxt.PanicOnError(retRes16912)
 	}
 	var name string = "ticker"
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
+	var market map[string]any = this.Market(symbol)
+	symbol = market["symbol"]
+	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), name)
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -515,10 +515,10 @@ func (this *Modetrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	if (!ccxt.IsEqual(timeframe, "1m")) && (!ccxt.IsEqual(timeframe, "5m")) && (!ccxt.IsEqual(timeframe, "15m")) && (!ccxt.IsEqual(timeframe, "30m")) && (!ccxt.IsEqual(timeframe, "1h")) && (!ccxt.IsEqual(timeframe, "1d")) && (!ccxt.IsEqual(timeframe, "1w")) && (!ccxt.IsEqual(timeframe, "1M")) {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "kline"
-	var topic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name), "_"), interval)
+	var topic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@"), name), "_"), interval)
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -528,7 +528,7 @@ func (this *Modetrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	ohlcv := (<-this.WatchPublicAsync(topic, message))
 	ccxt.PanicOnError(ohlcv)
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(ccxt.GetValue(market, "symbol"), limit)
+		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(market["symbol"], limit)
 	}
 
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
@@ -606,9 +606,9 @@ func (this *Modetrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 		retRes47912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes47912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
+	var market map[string]any = this.Market(symbol)
+	symbol = market["symbol"]
+	var topic any = ccxt.Add(market["id"], "@trade")
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -618,7 +618,7 @@ func (this *Modetrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 	trades := (<-this.WatchPublicAsync(topic, message))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(trades).GetLimit(ccxt.GetValue(market, "symbol"), limit)
+		limit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
@@ -1175,7 +1175,7 @@ func (this *Modetrade) HandleOrder(client any, message any, topic any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var cachedOrders any = this.Orders
-		var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var order any = func() any {
 			if orderId == nil {
 				return nil

@@ -759,7 +759,7 @@ func (this *Bittrade) ParseTradingLimits(limits any, optionalArgs ...any) any {
 	}
 }
 func (this *Bittrade) CostToPrecision(symbol any, cost any) any {
-	return this.DecimalToPrecision(cost, TRUNCATE, GetValue(GetValue(this.Market(symbol), "precision"), "cost"), this.PrecisionMode)
+	return this.DecimalToPrecision(cost, TRUNCATE, GetValue(this.Market(symbol)["precision"], "cost"), this.PrecisionMode)
 }
 
 /**
@@ -1055,8 +1055,8 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		}
 		var tick any = this.SafeDict(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
-		var result any = this.ParseOrderBook(tick, symbol, timestamp)
-		AddElementToObject(result, "nonce", this.SafeInteger(tick, "version"))
+		var result map[string]any = this.ParseOrderBook(tick, symbol, timestamp)
+		result["nonce"] = this.SafeInteger(tick, "version")
 
 		ch <- result
 		return nil
@@ -2463,7 +2463,7 @@ func (this *Bittrade) ParseCancelOrders(orders any) any {
 	} else {
 		success = this.SafeList(orders, "success", []any{})
 	}
-	var failed any = this.SafeList2(orders, "errors", "failed", []any{})
+	var failed []any = SafeList2Typed(orders, "errors", "failed")
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(success); i++ {
 		var order any = GetValue(success, i)
@@ -2473,8 +2473,13 @@ func (this *Bittrade) ParseCancelOrders(orders any) any {
 			"status": "canceled",
 		}))
 	}
-	for i := 0; i < GetArrayLength(failed); i++ {
-		var order any = GetValue(failed, i)
+	for i := 0; i < len(failed); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(failed) {
+				return DerefScalar(failed[i])
+			}
+			return nil
+		}()
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
@@ -2511,7 +2516,7 @@ func (this *Bittrade) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes181212)
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")

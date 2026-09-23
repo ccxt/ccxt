@@ -462,7 +462,7 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var dataEntry any = this.SafeDict(data, 0)
 	var timestamp *int64 = this.SafeInteger(dataEntry, "t")
-	var snapshot any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
+	var snapshot map[string]any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(message, "id"))
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -959,7 +959,7 @@ func (this *Hashkey) SetBalanceCache(client any, typeVar any, subscribeHash any)
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
 		return
 	}
-	var options any = this.SafeDict(this.Options, "watchBalance")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var snapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", true)
 	if snapshot != nil && *snapshot == true {
 		var messageHash any = ccxt.Add(ccxt.Add(typeVar, ":"), "fetchBalanceSnapshot")

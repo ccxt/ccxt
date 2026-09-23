@@ -333,7 +333,7 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if isSnapshot != nil && *isSnapshot == true {
-		var snapshot any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
+		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
 		var asks any = this.SafeList(message, "a", []any{})

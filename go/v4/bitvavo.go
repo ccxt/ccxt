@@ -1306,8 +1306,8 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	var orderbook any = this.ParseOrderBook(response, market["symbol"])
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "nonce"))
+	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"])
+	orderbook["nonce"] = this.SafeInteger(response, "nonce")
 
 	ch <- orderbook
 	return nil

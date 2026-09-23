@@ -489,7 +489,7 @@ func (this *Bybit) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	url := (<-this.GetUrlByMarketTypeAsync(symbol, false, "watchTicker", params))
 	ccxt.PanicOnError(url)
 	params = this.CleanParams(params)
-	var options any = this.SafeDict(this.Options, "watchTicker", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var topic any = ccxt.DerefScalar(this.SafeString(options, "name", "tickers"))
 	if (ccxt.GetValue(market, "spot") != true) && !ccxt.IsEqual(topic, "tickers") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() only supports name tickers for contract markets"))
@@ -536,7 +536,7 @@ func (this *Bybit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	url := (<-this.GetUrlByMarketTypeAsync(ccxt.GetValue(symbols, 0), false, "watchTickers", params))
 	ccxt.PanicOnError(url)
 	params = this.CleanParams(params)
-	var options any = this.SafeDict(this.Options, "watchTickers", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
 	var topic *string = this.SafeString(options, "name", "tickers")
 	var marketIds any = this.MarketIds(symbols)
 	var topics []any = []any{}
@@ -588,7 +588,7 @@ func (this *Bybit) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes45312)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var options any = this.SafeDict(this.Options, "watchTickers", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
 	var topic *string = this.SafeString(options, "name", "tickers")
 	var messageHashes []any = []any{}
 	var subMessageHashes []any = []any{}
@@ -1376,7 +1376,7 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	if isSnapshot {
-		var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
+		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
 		var asks any = this.SafeList(data, "a", []any{})
@@ -2900,9 +2900,14 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 	var account any = nil
 	if topic != nil && *topic == "outboundAccountInfo" {
 		account = "spot"
-		var data any = this.SafeList(message, "data", []any{})
-		for i := 0; i < ccxt.GetArrayLength(data); i++ {
-			var B any = this.SafeList(ccxt.GetValue(data, i), "B", []any{})
+		var data []any = ccxt.SafeListTyped(message, "data")
+		for i := 0; i < len(data); i++ {
+			var B any = this.SafeList(func() any {
+				if i >= 0 && i < len(data) {
+					return ccxt.DerefScalar(data[i])
+				}
+				return nil
+			}(), "B", []any{})
 			rawBalances = this.ArrayConcat(rawBalances, B)
 		}
 		info = rawBalances

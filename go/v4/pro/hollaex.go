@@ -129,7 +129,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data")
 	var timestamp *string = this.SafeString(data, "timestamp")
 	var timestampMs *int64 = this.Parse8601(timestamp)
-	var snapshot any = this.ParseOrderBook(data, symbol, timestampMs)
+	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestampMs)
 	var orderbook any = nil
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		orderbook = this.OrderBook(snapshot)
@@ -257,7 +257,7 @@ func (this *Hollaex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes20012)
 	}
 	var messageHash any = "usertrade"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -366,7 +366,7 @@ func (this *Hollaex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes28712)
 	}
 	var messageHash any = "order"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")

@@ -246,7 +246,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if event != nil && *event == "OrderBookSnapshot" {
-		var snapshot any = this.ParseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume")
+		var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		// write through the parent index: php copies arrays by value, so
 		// mutating the local bind would not persist the flag

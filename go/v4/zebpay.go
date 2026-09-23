@@ -857,8 +857,8 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(response)
 	}
 	var bookData any = this.SafeDict(response, "data", map[string]any{})
-	var orderbook any = this.ParseOrderBook(bookData, market["symbol"], nil, "bids", "asks", 0, 1)
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(bookData, "nonce"))
+	var orderbook map[string]any = this.ParseOrderBook(bookData, market["symbol"], nil, "bids", "asks", 0, 1)
+	orderbook["nonce"] = this.SafeInteger(bookData, "nonce")
 
 	ch <- orderbook
 	return nil
@@ -1683,7 +1683,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.PrivateSpotGetV2ExOrders(this.Extend(request, params)))
 		PanicOnError(response)
-		var responseData any = this.SafeDict(response, "data", map[string]any{})
+		var responseData map[string]any = SafeMapTyped(response, "data")
 		orders = this.SafeList(responseData, "items", []any{})
 	} else {
 		if since != nil {
@@ -1695,7 +1695,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.PrivateSwapGetV1TradeOrderOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
-		var responseData any = this.SafeDict(response, "data", map[string]any{})
+		var responseData map[string]any = SafeMapTyped(response, "data")
 		orders = this.SafeList(responseData, "data", []any{})
 	}
 

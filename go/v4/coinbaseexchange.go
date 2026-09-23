@@ -1098,8 +1098,8 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan any, symbol any, option
 	//         ]
 	//     }
 	//
-	var orderbook any = this.ParseOrderBook(response, symbol)
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "sequence"))
+	var orderbook map[string]any = this.ParseOrderBook(response, symbol)
+	orderbook["nonce"] = this.SafeInteger(response, "sequence")
 
 	ch <- orderbook
 	return nil
@@ -2192,7 +2192,7 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan any, id any, optionalArgs 
 		request["client_oid"] = clientOrderId
 		params = this.Omit(params, []any{"clientOrderId", "client_oid"})
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["product_id"] = GetValue(market, "symbol") // the request will be more performant if you include it
@@ -2241,7 +2241,7 @@ func (this *Coinbaseexchange) cancelAllOrdersBody(ch chan any, optionalArgs ...a
 		PanicOnError(retRes170412)
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["product_id"] = GetValue(market, "symbol") // the request will be more performant if you include it
@@ -2586,7 +2586,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		response = this.ToArray(transfers)
 		for i := 0; i < GetArrayLength(response); i++ {
 			var account_id *string = this.SafeString(GetValue(response, i), "account_id")
-			var account any = this.SafeDict(this.AccountsById, account_id)
+			var account map[string]any = SafeMapTyped(this.AccountsById, account_id)
 			var codeInner *string = this.SafeString(account, "code")
 			AddElementToObject(GetValue(response, i), "currency", codeInner)
 		}

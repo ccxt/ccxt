@@ -524,7 +524,7 @@ func (this *Luno) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var currenciesData any = this.SafeList(response, "data", []any{})
+	var currenciesData []any = SafeListTyped(response, "data")
 	var grouped map[string]any = this.GroupBy(currenciesData, "native_currency")
 	var values []any = ObjectValues(grouped)
 
@@ -1241,7 +1241,7 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetTickers(params))
 	PanicOnError(response)
-	var rawTickers any = this.SafeList(response, "tickers", []any{})
+	var rawTickers []any = SafeListTyped(response, "tickers")
 	var tickers map[string]any = this.IndexBy(rawTickers, "pair")
 	var ids []string = ObjectKeys(tickers)
 	var result map[string]any = map[string]any{}

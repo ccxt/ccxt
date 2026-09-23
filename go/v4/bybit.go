@@ -2880,9 +2880,14 @@ func (this *Bybit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				"category": "inverse",
 			}))
 		} else if IsEqual(marketType, "option") {
-			var optionsCurrencies any = this.SafeList(fetchMarketsOptions, "options", []any{"BTC", "ETH", "SOL"})
-			for j := 0; j < GetArrayLength(optionsCurrencies); j++ {
-				var currency any = GetValue(optionsCurrencies, j)
+			var optionsCurrencies []any = SafeListTypedDefault(fetchMarketsOptions, "options", []any{"BTC", "ETH", "SOL"})
+			for j := 0; j < len(optionsCurrencies); j++ {
+				var currency any = func() any {
+					if j >= 0 && j < len(optionsCurrencies) {
+						return DerefScalar(optionsCurrencies[j])
+					}
+					return nil
+				}()
 				promisesUnresolved = append(promisesUnresolved, this.FetchOptionMarketsAsync(map[string]any{
 					"baseCoin": currency,
 				}))
@@ -3168,7 +3173,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
-		var defaultSettledId any = func() any {
+		var defaultSettledId *string = func() *string {
 			if linear {
 				return quoteId
 			}
@@ -5765,7 +5770,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				var quoteAmount *string = Precise.StringMul(this.NumberToString(amount), priceString)
-				var costRequest any = func() any {
+				var costRequest *string = func() *string {
 					if cost != nil {
 						return cost
 					}
@@ -8473,7 +8478,7 @@ func (this *Bybit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var after any = nil
 	var amount any = nil
 	if (afterString != nil) && (amountString != nil) {
-		var difference any = func() any {
+		var difference *string = func() *string {
 			if direction == "out" {
 				return amountString
 			}
@@ -9199,7 +9204,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
-	var market any = nil
+	var market map[string]any = nil
 	var response any = nil
 	if isUnifiedAccount {
 		if IsEqual(marginMode, "isolated") {
@@ -9681,13 +9686,13 @@ func (this *Bybit) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	// the openInterest is in the base asset for linear and quote asset for inverse
 	var isLinear bool = (IsEqual(this.SafeBool(market, "linear"), true))
 	var isInverse bool = (IsEqual(this.SafeBool(market, "inverse"), true))
-	var amount any = func() any {
+	var amount *float64 = func() *float64 {
 		if isLinear {
 			return openInterest
 		}
 		return nil
 	}()
-	var value any = func() any {
+	var value *float64 = func() *float64 {
 		if isInverse {
 			return openInterest
 		}
@@ -10410,7 +10415,7 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan any, symbol any, optiona
 		PanicOnError(retRes805812)
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	market = this.Market(symbol)
 	if (GetValue(market, "spot") == true) || (GetValue(market, "option") == true) {
 		panic(BadRequest(Add(this.Id+" fetchMarketLeverageTiers() symbol does not support market ", symbol)))
@@ -11143,7 +11148,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		"category": "option",
 		"baseCoin": baseCoin,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
@@ -11508,7 +11513,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any 
 		retRes891912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes891912)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var symbol any = nil
 	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))

@@ -1620,7 +1620,7 @@ func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	// on inverse contracts 'value' is denominated in the settle currency, not
 	// the quote, so it is the quote volume only for spot and linear markets
-	var quoteVolume any = func() any {
+	var quoteVolume *string = func() *string {
 		if GetValue(market, "inverse") == true {
 			return nil
 		}
@@ -4396,9 +4396,14 @@ func (this *Coinex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 
-	ch <- this.ParsePosition(GetValue(data, 0), market)
+	ch <- this.ParsePosition(func() any {
+		if 0 >= 0 && 0 < len(data) {
+			return DerefScalar(data[0])
+		}
+		return nil
+	}(), market)
 	return nil
 }
 func (this *Coinex) ParsePosition(position any, optionalArgs ...any) any {
@@ -5168,7 +5173,7 @@ func (this *Coinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)

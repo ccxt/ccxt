@@ -238,8 +238,8 @@ func (this *Lighter) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var typeVar *string = this.SafeString(message, "type", "")
 	if typeVar != nil && *typeVar == "subscribed/order_book" {
-		var parsed any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
-		ccxt.AddElementToObject(parsed, "nonce", this.SafeInteger(data, "offset"))
+		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
+		parsed["nonce"] = this.SafeInteger(data, "offset")
 		orderbook.(ccxt.OrderBookInterface).Reset(parsed)
 	} else if typeVar != nil && *typeVar == "update/order_book" {
 		this.HandleOrderBookMessage(client, message, orderbook)
@@ -1797,9 +1797,14 @@ func (this *Lighter) HandleOrders(client any, message any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
-		var orders any = this.SafeList(data, marketId, []any{})
-		for j := 0; j < ccxt.GetArrayLength(orders); j++ {
-			var order any = this.ParseOrder(ccxt.GetValue(orders, j), market)
+		var orders []any = ccxt.SafeListTyped(data, marketId)
+		for j := 0; j < len(orders); j++ {
+			var order any = this.ParseOrder(func() any {
+				if j >= 0 && j < len(orders) {
+					return ccxt.DerefScalar(orders[j])
+				}
+				return nil
+			}(), market)
 			stored.(ccxt.Appender).Append(order)
 			var symbol any = ccxt.GetValue(order, "symbol")
 			if symbol != nil {

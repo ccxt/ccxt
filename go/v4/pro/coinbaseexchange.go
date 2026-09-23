@@ -84,7 +84,7 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs 
 		retRes6412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6412)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = messageHashStart
 	var productIds []any = []any{}
 	if symbol != nil {
@@ -128,7 +128,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name any, optio
 		retRes9212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes9212)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	symbols = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{}
 	var productIds []any = []any{}

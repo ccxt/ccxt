@@ -829,7 +829,7 @@ func (this *Blofin) ParseMarket(market any) any {
 	var strikePrice any = nil
 	var optionType any = nil
 	var tickSize *string = this.SafeString(market, "tickSize")
-	var fees any = this.SafeDict2(this.Fees, typeVar, "trading", map[string]any{})
+	var fees map[string]any = SafeDict2Typed(this.Fees, typeVar, "trading")
 	var taker *float64 = this.SafeNumber(fees, "taker")
 	var maker *float64 = this.SafeNumber(fees, "maker")
 	var maxLeverage *string = this.SafeString(market, "maxLeverage", "100")
@@ -1012,7 +1012,7 @@ func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) any {
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(market, "spot", false)
-	var quoteVolume any = func() any {
+	var quoteVolume *string = func() *string {
 		if spot != nil && *spot == true {
 			return this.SafeString(ticker, "volCurrency24h")
 		}
@@ -1490,9 +1490,14 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	response := (<-this.PublicGetMarketFundingRateHistory(this.Extend(request, params)))
 	PanicOnError(response)
 	var rates []any = []any{}
-	var data any = this.SafeList(response, "data", []any{})
-	for i := 0; i < GetArrayLength(data); i++ {
-		var rate any = GetValue(data, i)
+	var data []any = SafeListTyped(response, "data")
+	for i := 0; i < len(data); i++ {
+		var rate any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
 		rates = append(rates, map[string]any{
 			"info":        rate,
@@ -1640,9 +1645,14 @@ func (this *Blofin) ParseBalance(response any) any {
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(data, "ts")
-	var details any = this.SafeList(data, "details", []any{})
-	for i := 0; i < GetArrayLength(details); i++ {
-		var balance any = GetValue(details, i)
+	var details []any = SafeListTyped(data, "details")
+	for i := 0; i < len(details); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(details) {
+				return DerefScalar(details[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1681,9 +1691,14 @@ func (this *Blofin) ParseFundingBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data any = this.SafeList(response, "data", []any{})
-	for i := 0; i < GetArrayLength(data); i++ {
-		var balance any = GetValue(data, i)
+	var data []any = SafeListTyped(response, "data")
+	for i := 0; i < len(data); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1740,7 +1755,7 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if (accountType != nil) && (!IsEqual(accountType, "swap")) {
-		var options any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var options map[string]any = SafeMapTyped(this.Options, "accountsByType")
 		var parsedAccountType *string = this.SafeString(options, accountType, accountType)
 		request["accountType"] = parsedAccountType
 
@@ -3242,7 +3257,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes249912)
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 0 {

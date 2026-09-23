@@ -93,7 +93,7 @@ func (this *Coinbase) subscribeBody(ch chan any, name any, isPrivate any, option
 		retRes7112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes7112)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = name
 	var productIds any = []any{}
 	if ccxt.IsArray(symbol) {
@@ -156,7 +156,7 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic any, name any, isPrivat
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
 	this.Options.Store("unSubscriptionPending", true)
-	var market any = nil
+	var market map[string]any = nil
 	var watchMessageHash any = name
 	var unWatchMessageHash any = ccxt.Add("unsubscribe:", name)
 	var productIds any = []any{}
@@ -604,9 +604,14 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var tickers any = this.SafeList(tickersObj, "tickers", []any{})
-		for j := 0; j < ccxt.GetArrayLength(tickers); j++ {
-			var ticker any = ccxt.GetValue(tickers, j)
+		var tickers []any = ccxt.SafeListTyped(tickersObj, "tickers")
+		for j := 0; j < len(tickers); j++ {
+			var ticker any = func() any {
+				if j >= 0 && j < len(tickers) {
+					return ccxt.DerefScalar(tickers[j])
+				}
+				return nil
+			}()
 			var wsMarketId *string = this.SafeString(ticker, "product_id")
 			if wsMarketId == nil {
 				continue

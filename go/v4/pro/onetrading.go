@@ -262,10 +262,15 @@ func (this *Onetrading) HandleTicker(client any, message map[string]any) {
 	//         "time": "2022-06-23T16:41:00.004162Z"
 	//     }
 	//
-	var tickers any = this.SafeList(message, "ticker_updates", []any{})
+	var tickers []any = ccxt.SafeListTyped(message, "ticker_updates")
 	var datetime *string = this.SafeString(message, "time")
-	for i := 0; i < ccxt.GetArrayLength(tickers); i++ {
-		var ticker any = ccxt.GetValue(tickers, i)
+	for i := 0; i < len(tickers); i++ {
+		var ticker any = func() any {
+			if i >= 0 && i < len(tickers) {
+				return ccxt.DerefScalar(tickers[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(ticker, "instrument")
 		var symbol *string = this.SafeSymbol(marketId)
 		ccxt.AddElementToObject(this.Tickers, symbol, this.ParseWSTicker(ticker))
@@ -476,7 +481,7 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 		orderbook = this.OrderBook(map[string]any{})
 	}
 	if typeVar != nil && *typeVar == "ORDER_BOOK_SNAPSHOT" {
-		var snapshot any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks")
+		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else if typeVar != nil && *typeVar == "ORDER_BOOK_UPDATE" {
 		var changes any = this.SafeList(message, "changes", []any{})

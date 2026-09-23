@@ -494,12 +494,12 @@ func (this *Bydfi) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
-		var market any = this.Market(marketId)
+		var market map[string]any = this.Market(marketId)
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
 		var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 		var interval *string = this.SafeString(timeframes, tf, tf)
-		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@kline_"), interval))
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), interval))
+		channels = append(channels, ccxt.Add(ccxt.Add(market["id"], "@kline_"), interval))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", market["symbol"]), "::"), interval))
 	}
 	symboltimeframecandlesVariable := (<-this.WatchPublicAsync(messageHashes, channels, params))
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
@@ -545,11 +545,11 @@ func (this *Bydfi) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
-		var market any = this.Market(marketId)
+		var market map[string]any = this.Market(marketId)
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
-		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@kline_"), interval))
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::ohlcv::", ccxt.GetValue(market, "symbol")), "::"), interval))
+		channels = append(channels, ccxt.Add(ccxt.Add(market["id"], "@kline_"), interval))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::ohlcv::", market["symbol"]), "::"), interval))
 	}
 	params = this.Extend(params, map[string]any{
 		"unsubscribe": true,
@@ -699,8 +699,8 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@depth"), depth), channelSuffix))
+		var market map[string]any = this.Market(symbol)
+		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@depth"), depth), channelSuffix))
 		messageHashes = append(messageHashes, ccxt.Add("orderbook::", symbol))
 	}
 
@@ -753,8 +753,8 @@ func (this *Bydfi) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
-		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@depth"), depth), channelSuffix))
+		var market map[string]any = this.Market(symbol)
+		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@depth"), depth), channelSuffix))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe::orderbook::", symbol))
 	}
 	var subscription map[string]any = map[string]any{
@@ -787,7 +787,7 @@ func (this *Bydfi) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var parsed any = this.ParseOrderBook(message, symbol, timestamp, "b", "a")
+	var parsed map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
 	var messageHash any = "orderbook::" + *symbol
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -1204,7 +1204,7 @@ func (this *Bydfi) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	this.FetchBalanceSnapshot(client)
-	var options any = this.SafeDict(this.Options, "watchBalance")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot == true) {
@@ -1220,7 +1220,7 @@ func (this *Bydfi) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Bydfi) FetchBalanceSnapshot(client any) {
-	var options any = this.SafeDict(this.Options, "watchBalance")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
 		var messageHash string = "fetchBalanceSnapshot"

@@ -1199,7 +1199,7 @@ func (this *Hashkey) ParseMarket(market any) any {
 			subType = "linear"
 		}
 	}
-	var filtersList any = this.SafeList(market, "filters", []any{})
+	var filtersList []any = SafeListTyped(market, "filters")
 	var filters map[string]any = this.IndexBy(filtersList, "filterType")
 	var priceFilter map[string]any = SafeMapTyped(filters, "PRICE_FILTER")
 	var amountFilter map[string]any = SafeMapTyped(filters, "LOT_SIZE")
@@ -1351,10 +1351,15 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Hashkey) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "coinId")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var networks any = this.SafeList(rawCurrency, "chainTypes")
+	var networks []any = SafeListTyped(rawCurrency, "chainTypes")
 	var parsedNetworks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(networks); j++ {
-		var network any = GetValue(networks, j)
+	for j := 0; j < len(networks); j++ {
+		var network any = func() any {
+			if j >= 0 && j < len(networks) {
+				return DerefScalar(networks[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(network, "chainType")
 		var networkCode any = this.NetworkCodeToId(networkId, code)
 		if networkCode != nil {
@@ -2155,9 +2160,14 @@ func (this *Hashkey) ParseBalance(balance any) any {
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}
-	var balances any = this.SafeList(balance, "balances", []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balanceEntry any = GetValue(balances, i)
+	var balances []any = SafeListTyped(balance, "balances")
+	for i := 0; i < len(balances); i++ {
+		var balanceEntry any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balanceEntry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -5020,12 +5030,17 @@ func (this *Hashkey) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var riskLimits any = this.SafeList(info, "riskLimits", []any{})
+	var riskLimits []any = SafeListTyped(info, "riskLimits")
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var tiers []any = []any{}
-	for i := 0; i < GetArrayLength(riskLimits); i++ {
-		var tier any = GetValue(riskLimits, i)
+	for i := 0; i < len(riskLimits); i++ {
+		var tier any = func() any {
+			if i >= 0 && i < len(riskLimits) {
+				return DerefScalar(riskLimits[i])
+			}
+			return nil
+		}()
 		var initialMarginRate *string = this.SafeString(tier, "initialMargin")
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),

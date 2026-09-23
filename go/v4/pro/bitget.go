@@ -1244,7 +1244,7 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 				bidsKey = "b"
 			}
 		}
-		var parsedOrderbook any = this.ParseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
+		var parsedOrderbook map[string]any = this.ParseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
 		orderbook.(ccxt.OrderBookInterface).Reset(parsedOrderbook)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	}

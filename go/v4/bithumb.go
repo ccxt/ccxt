@@ -1170,7 +1170,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var symbolsForMarketIdsLength int = GetArrayLength(symbolsForMarketIds)
 		for i := 0; i < symbolsForMarketIdsLength; i++ {
-			var market any = this.Market(GetValue(symbolsForMarketIds, i))
+			var market map[string]any = this.Market(GetValue(symbolsForMarketIds, i))
 			marketIds = append(marketIds, this.GetGen2MarketId(market))
 		}
 		var marketIdsLength int = len(marketIds)
@@ -1294,7 +1294,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			var requiredQuotes map[string]any = map[string]any{}
 			for i := 0; i < GetArrayLength(symbols); i++ {
 				var symbol any = GetValue(symbols, i)
-				var market any = this.Market(symbol)
+				var market map[string]any = this.Market(symbol)
 				var quoteId *string = this.SafeString(market, "quoteId")
 				if (quoteId != nil) && (func() bool {
 					if quoteId == nil {

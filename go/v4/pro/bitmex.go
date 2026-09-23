@@ -761,7 +761,7 @@ func (this *Bitmex) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var table string = "trade"
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var dataByMarketIds map[string]any = this.GroupBy(data, "symbol")
 	var marketIds []string = ccxt.ObjectKeys(dataByMarketIds)
 	for i := 0; i < len(marketIds); i++ {
@@ -1480,7 +1480,7 @@ func (this *Bitmex) HandleMyTrades(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString(message, "table")
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var dataByExecType map[string]any = this.GroupBy(data, "execType")
 	var rawTrades any = this.SafeList(dataByExecType, "Trade", []any{})
 	var trades any = this.ParseTrades(rawTrades)

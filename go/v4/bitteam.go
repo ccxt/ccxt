@@ -978,7 +978,7 @@ func (this *Bitteam) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
+	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
 
 	ch <- orderbook
 	return nil

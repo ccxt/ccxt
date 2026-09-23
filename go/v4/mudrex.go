@@ -377,11 +377,11 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes28512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes28512)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var priceType *string = this.SafeString(params, "price")
 	params = this.Omit(params, "price")
 	// the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-	var assetPair any = Add(Add(GetValue(market, "baseId"), "/"), GetValue(market, "quoteId"))
+	var assetPair any = Add(Add(market["baseId"], "/"), market["quoteId"])
 	var request map[string]any = map[string]any{
 		"assets":      assetPair,
 		"aggregation": this.SafeString(this.Timeframes, timeframe, timeframe),

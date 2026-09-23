@@ -1096,7 +1096,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var option bool = (inst_type != nil && *inst_type == "WARRANT")
 		var baseId *string = this.SafeString(market, "base_ccy")
 		var quoteId *string = this.SafeString(market, "quote_ccy")
-		var settleId any = func() any {
+		var settleId *string = func() *string {
 			if spot {
 				return nil
 			}
@@ -1104,7 +1104,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var settle any = func() any {
+		var settle *string = func() *string {
 			if spot {
 				return nil
 			}
@@ -1240,7 +1240,7 @@ func (this *Cryptocom) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes88712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes88712)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		var symbol any = nil
@@ -2356,7 +2356,7 @@ func (this *Cryptocom) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 		retRes176212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes176212)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -4271,7 +4271,7 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {

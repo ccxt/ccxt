@@ -399,7 +399,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(responses)
 		var length int = ccxt.GetArrayLength(responses)
 		for j := 0; j < length; j++ {
-			var response any = this.SafeDict(responses, j)
+			var response map[string]any = ccxt.SafeMapTyped(responses, j)
 			var data any = this.SafeList(response, "data", []any{})
 			allRaw = this.ArrayConcat(allRaw, data)
 		}
@@ -1036,7 +1036,7 @@ func (this *Limitless) ParseEvent(event any) any {
 		return nil
 	}()
 	var hasEndDate bool = (endDate != nil) && (endDate == nil || *endDate != "")
-	var endTimestamp any = func() any {
+	var endTimestamp *int64 = func() *int64 {
 		if hasEndDate {
 			return this.Parse8601(endDate)
 		}

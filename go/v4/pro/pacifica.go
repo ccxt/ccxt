@@ -714,10 +714,10 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 		"asks": this.SafeList(levels, 1, []any{}),
 	}
 	var timestamp *int64 = this.SafeInteger(entry, "t")
-	var snapshot any = this.ParseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a")
+	var snapshot map[string]any = this.ParseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a")
 	var nonce *int64 = this.SafeInteger(entry, "li")
 	if (nonce != nil) && (nonce == nil || *nonce != 0) {
-		ccxt.AddElementToObject(snapshot, "nonce", nonce)
+		snapshot["nonce"] = nonce
 	}
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
@@ -1529,7 +1529,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("watchOrders", params)
 	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
 	params = ccxt.GetValue(userAddressparamsVariable, 1)
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = "order"
 	if symbol != nil {
 		market = this.Market(symbol)

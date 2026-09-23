@@ -209,7 +209,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var messageHash any = ccxt.Add("orderbook"+":", market["symbol"])
 	var method string = "depth_subscribe"
-	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var defaultPriceInterval *string = this.SafeString(options, "priceInterval", "0")
 	var priceInterval *string = this.SafeString(params, "priceInterval", defaultPriceInterval)
 	params = this.Omit(params, "priceInterval")
@@ -274,7 +274,7 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	if isSnapshot == true {
-		var snapshot any = this.ParseOrderBook(data, symbol)
+		var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
 		var asks any = this.SafeList(data, "asks", []any{})
@@ -1126,8 +1126,8 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 	var marketIds []any = []any{}
 	if ccxt.IsEqual(client, nil) {
 		var subscription map[string]any = map[string]any{}
-		var market any = this.Market(symbol)
-		var marketId any = ccxt.GetValue(market, "id")
+		var market map[string]any = this.Market(symbol)
+		var marketId any = market["id"]
 		if marketId != nil {
 			ccxt.AddElementToObject(subscription, marketId, true)
 		}
@@ -1149,8 +1149,8 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 	} else {
 		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), method, map[string]any{})
 		var hasSymbolSubscription bool = true
-		var market any = this.Market(symbol)
-		var marketId any = ccxt.GetValue(market, "id")
+		var market map[string]any = this.Market(symbol)
+		var marketId any = market["id"]
 		var isSubscribed *bool = this.SafeBool(subscription, marketId, false)
 		if isSubscribed == nil || *isSubscribed != true {
 			if marketId != nil {

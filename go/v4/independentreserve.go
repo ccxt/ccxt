@@ -1187,7 +1187,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market map[string]any = MapTyped(this.Market(symbol))
-		var fee any = this.SafeDict(fees, market["base"], map[string]any{})
+		var fee map[string]any = SafeMapTyped(fees, market["base"])
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       this.SafeDict(fee, "info"),
 			"symbol":     symbol,

@@ -4341,7 +4341,7 @@ func (this *Binance) CreateExpiredOptionMarket(symbol any) any {
 		"info": nil,
 	}
 }
-func (this *Binance) Market(symbol any) any {
+func (this *Binance) Market(symbol any) map[string]any {
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " market() requires a symbol argument"))
 	}
@@ -4367,10 +4367,10 @@ func (this *Binance) Market(symbol any) any {
 				}()
 				var futuresSymbol any = Add(Add(symbol, ":"), settle)
 				if (this.Markets != nil) && (InOp(this.Markets, futuresSymbol)) {
-					return GetValue(this.Markets, futuresSymbol)
+					return MapTyped(GetValue(this.Markets, futuresSymbol))
 				}
 			} else {
-				return market
+				return MapTyped(market)
 			}
 		} else if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, symbol)) {
 			var markets any = GetValue(this.Markets_by_id, symbol)
@@ -4386,10 +4386,10 @@ func (this *Binance) Market(symbol any) any {
 			for i := 0; i < GetArrayLength(markets); i++ {
 				var market any = GetValue(markets, i)
 				if IsEqual(this.SafeBool(market, defaultType), true) {
-					return market
+					return MapTyped(market)
 				}
 			}
-			return GetValue(markets, 0)
+			return MapTyped(GetValue(markets, 0))
 		} else if (GetIndexOf(symbol, "/") > -1) && (GetIndexOf(symbol, ":") < 0) {
 			if (!IsEqual(defaultType, nil)) && (!IsEqual(defaultType, "spot")) {
 				// support legacy symbols
@@ -4404,11 +4404,11 @@ func (this *Binance) Market(symbol any) any {
 				}()
 				var futuresSymbol any = Add(Add(symbol, ":"), settle)
 				if (this.Markets != nil) && (InOp(this.Markets, futuresSymbol)) {
-					return GetValue(this.Markets, futuresSymbol)
+					return MapTyped(GetValue(this.Markets, futuresSymbol))
 				}
 			}
 		} else if (GetIndexOf(symbol, "-C") > -1) || (GetIndexOf(symbol, "-P") > -1) {
-			return this.CreateExpiredOptionMarket(symbol)
+			return MapTyped(this.CreateExpiredOptionMarket(symbol))
 		}
 	}
 	panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
@@ -5338,7 +5338,7 @@ func (this *Binance) ParseMarket(market any) any {
 	}
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var spot bool = !contract
-	var filters any = this.SafeList(market, "filters", []any{})
+	var filters []any = SafeListTyped(market, "filters")
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var status *string = this.SafeString2(market, "status", "contractStatus")
 	var contractSize *float64 = nil
@@ -5479,7 +5479,7 @@ func (this *Binance) ParseMarket(market any) any {
 		AddElementToObject(entry["precision"], "amount", stepSize)
 	}
 	if func() bool { _, ok := filtersByType["PRICE_FILTER"]; return ok }() {
-		var filter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
+		var filter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 		// PRICE_FILTER reports zero values for maxPrice
 		// since they updated filter types in November 2018
 		// https://github.com/ccxt/ccxt/issues/4286
@@ -5491,7 +5491,7 @@ func (this *Binance) ParseMarket(market any) any {
 		AddElementToObject(entry["precision"], "price", this.SafeNumber(filter, "tickSize"))
 	}
 	if func() bool { _, ok := filtersByType["LOT_SIZE"]; return ok }() {
-		var filter any = this.SafeDict(filtersByType, "LOT_SIZE", map[string]any{})
+		var filter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 		AddElementToObject(entry["precision"], "amount", this.SafeNumber(filter, "stepSize"))
 		AddElementToObject(entry["limits"], "amount", map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
@@ -5499,14 +5499,14 @@ func (this *Binance) ParseMarket(market any) any {
 		})
 	}
 	if func() bool { _, ok := filtersByType["MARKET_LOT_SIZE"]; return ok }() {
-		var filter any = this.SafeDict(filtersByType, "MARKET_LOT_SIZE", map[string]any{})
+		var filter map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
 		AddElementToObject(entry["limits"], "market", map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
 			"max": this.SafeNumber(filter, "maxQty"),
 		})
 	}
 	if (func() bool { _, ok := filtersByType["MIN_NOTIONAL"]; return ok }()) || (func() bool { _, ok := filtersByType["NOTIONAL"]; return ok }()) {
-		var filter any = this.SafeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", map[string]any{})
+		var filter map[string]any = SafeDict2Typed(filtersByType, "MIN_NOTIONAL", "NOTIONAL")
 		AddElementToObject(GetValue(entry["limits"], "cost"), "min", this.SafeNumber2(filter, "minNotional", "notional"))
 		AddElementToObject(GetValue(entry["limits"], "cost"), "max", this.SafeNumber(filter, "maxNotional"))
 	}
@@ -5566,9 +5566,14 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) any {
 		}
 	} else if !isolated && ((IsEqual(typeVar, "spot")) || cross) {
 		timestamp = this.SafeInteger(response, "updateTime")
-		var balances any = this.SafeList2(response, "balances", "userAssets", []any{})
-		for i := 0; i < GetArrayLength(balances); i++ {
-			var balance any = GetValue(balances, i)
+		var balances []any = SafeList2Typed(response, "balances", "userAssets")
+		for i := 0; i < len(balances); i++ {
+			var balance any = func() any {
+				if i >= 0 && i < len(balances) {
+					return DerefScalar(balances[i])
+				}
+				return nil
+			}()
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -6080,8 +6085,8 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "T")
-	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
-	AddElementToObject(orderbook, "nonce", this.SafeInteger2(response, "lastUpdateId", "u"))
+	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
+	orderbook["nonce"] = this.SafeInteger2(response, "lastUpdateId", "u")
 
 	ch <- orderbook
 	return nil
@@ -10722,7 +10727,7 @@ func (this *Binance) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market any = nil
+	var market map[string]any = nil
 	var stock any = nil
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
@@ -10786,7 +10791,7 @@ func (this *Binance) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market any = nil
+	var market map[string]any = nil
 	var stock any = nil
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledOrders", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
@@ -10850,7 +10855,7 @@ func (this *Binance) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market any = nil
+	var market map[string]any = nil
 	var stock any = nil
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
@@ -16323,7 +16328,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 					}
 					return "x-TKT5PX2F"
 				}()
-				var broker any = this.SafeDict(this.Options, "broker", map[string]any{})
+				var broker map[string]any = SafeMapTyped(this.Options, "broker")
 				var brokerId *string = this.SafeString(broker, marketType, defaultId)
 				AddElementToObject(params, "newClientOrderId", *brokerId+this.Uuid22())
 			}
@@ -16341,7 +16346,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 					var newClientOrderId any = DerefScalar(this.SafeString(batchOrder, "newClientOrderId"))
 					if IsEqual(newClientOrderId, nil) {
 						var defaultId string = "x-xcKtGhcu" // batchOrders can not be spot or margin
-						var broker any = this.SafeDict(this.Options, "broker", map[string]any{})
+						var broker map[string]any = SafeMapTyped(this.Options, "broker")
 						var brokerId *string = this.SafeString(broker, "future", defaultId)
 						newClientOrderId = *brokerId + this.Uuid22()
 						AddElementToObject(batchOrder, "newClientOrderId", newClientOrderId)
@@ -16368,14 +16373,14 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 		} else if (IsEqual(path, "batchOrders")) || (GetIndexOf(path, "sub-account") >= 0) || (IsEqual(path, "capital/withdraw/apply")) || (GetIndexOf(path, "staking") >= 0) || (GetIndexOf(path, "simple-earn") >= 0) {
 			if (IsEqual(method, "DELETE")) && (IsEqual(path, "batchOrders")) {
 				var orderidlist any = this.SafeList(extendedParams, "orderidlist", []any{})
-				var origclientorderidlist any = this.SafeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", []any{})
+				var origclientorderidlist []any = SafeList2Typed(extendedParams, "origclientorderidlist", "origClientOrderIdList")
 				extendedParams = this.Omit(extendedParams, []any{"orderidlist", "origclientorderidlist", "origClientOrderIdList"})
 				if InOp(extendedParams, "symbol") {
 					AddElementToObject(extendedParams, "symbol", this.EncodeURIComponent(GetValue(extendedParams, "symbol")))
 				}
 				query = this.Rawencode(extendedParams)
 				var orderidlistLength int = GetArrayLength(orderidlist)
-				var origclientorderidlistLength int = GetArrayLength(origclientorderidlist)
+				var origclientorderidlistLength int = len(origclientorderidlist)
 				if orderidlistLength > 0 {
 					query = Add(Add(Add(Add(query, "&"), "orderidlist=%5B"), Join(orderidlist, "%2C")), "%5D")
 				}
@@ -16383,7 +16388,12 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 					// wrap clientOrderids around ""
 					var newClientOrderIds []any = []any{}
 					for i := 0; i < origclientorderidlistLength; i++ {
-						newClientOrderIds = append(newClientOrderIds, Add(Add("%22", GetValue(origclientorderidlist, i)), "%22"))
+						newClientOrderIds = append(newClientOrderIds, Add(Add("%22", func() any {
+							if i >= 0 && i < len(origclientorderidlist) {
+								return DerefScalar(origclientorderidlist[i])
+							}
+							return nil
+						}()), "%22"))
 					}
 					query = Add(Add(Add(Add(query, "&"), "origclientorderidlist=%5B"), Join(newClientOrderIds, "%2C")), "%5D")
 				}
@@ -17790,7 +17800,7 @@ func (this *Binance) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	// Inverse returns the number of contracts different from the base or quote volume in this case
 	// compared with https://www.binance.com/en/futures/funding-history/quarterly/4
 	var isInverse bool = (IsEqual(this.SafeBool(market, "inverse"), true))
-	var baseVolume any = func() any {
+	var baseVolume *float64 = func() *float64 {
 		if isInverse {
 			return nil
 		}
@@ -18195,7 +18205,7 @@ func (this *Binance) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {

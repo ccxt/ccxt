@@ -587,7 +587,7 @@ func (this *Lbank) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//        "ts": "1747973911431"
 	//    }
 	//
-	var currenciesData any = this.SafeList(response, "data", []any{})
+	var currenciesData []any = SafeListTyped(response, "data")
 	var grouped map[string]any = this.GroupBy(currenciesData, "assetCode")
 	var values []any = ObjectValues(grouped)
 
@@ -1328,7 +1328,7 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCost *string = this.SafeString(trade, "tradeFee")
 	if feeCost != nil {
-		var feeCurr any = func() any {
+		var feeCurr *string = func() *string {
 			if side != nil && *side == "buy" {
 				return this.SafeString(market, "base")
 			}
@@ -1400,7 +1400,7 @@ func (this *Lbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	} else {
 		request["size"] = 600 // max
 	}
-	var options any = this.SafeDict(this.Options, "fetchTrades", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchTrades")
 	var defaultMethod *string = this.SafeString(options, "method", "spotPublicGetTrades")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = this.Omit(params, "method")
@@ -1839,7 +1839,7 @@ func (this *Lbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		retRes151912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes151912)
 	}
-	var options any = this.SafeDict(this.Options, "fetchBalance", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchBalance")
 	var defaultMethod *string = this.SafeString(options, "method", "spotPrivatePostSupplementUserInfo")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var response any = nil
@@ -2124,7 +2124,7 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	if clientOrderId != nil {
 		request["custom_id"] = clientOrderId
 	}
-	var options any = this.SafeDict(this.Options, "createOrder", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
 	var defaultMethod *string = this.SafeString(options, "method", "spotPrivatePostSupplementCreateOrder")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = this.Omit(params, "method")
@@ -2346,7 +2346,7 @@ func (this *Lbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var method *string = this.SafeString(params, "method")
 	if method == nil {
-		var options any = this.SafeDict(this.Options, "fetchOrder", map[string]any{})
+		var options map[string]any = SafeMapTyped(this.Options, "fetchOrder")
 		method = this.SafeString(options, "method", "fetchOrderSupplement")
 	}
 	if method != nil && *method == "fetchOrderSupplement" {
@@ -2876,7 +2876,7 @@ func (this *Lbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes231912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes231912)
 	}
-	var options any = this.SafeDict(this.Options, "fetchDepositAddress", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchDepositAddress")
 	var defaultMethod *string = this.SafeString(options, "method", "fetchDepositAddressDefault")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = this.Omit(params, "method")
@@ -3363,7 +3363,7 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 	var isAuthorized bool = this.CheckRequiredCredentials(false)
 	var result any = nil
 	if isAuthorized == true {
-		var options any = this.SafeDict(this.Options, "fetchTransactionFees", map[string]any{})
+		var options map[string]any = SafeMapTyped(this.Options, "fetchTransactionFees")
 		var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTransactionFees")
 		var method *string = this.SafeString(params, "method", defaultMethod)
 		params = this.Omit(params, "method")
@@ -3591,7 +3591,7 @@ func (this *Lbank) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 	var isAuthorized bool = this.CheckRequiredCredentials(false)
 	var response any = nil
 	if isAuthorized == true {
-		var options any = this.SafeDict(this.Options, "fetchDepositWithdrawFees", map[string]any{})
+		var options map[string]any = SafeMapTyped(this.Options, "fetchDepositWithdrawFees")
 		var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateDepositWithdrawFees")
 		var method *string = this.SafeString(params, "method", defaultMethod)
 		params = this.Omit(params, "method")

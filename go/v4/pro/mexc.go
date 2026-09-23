@@ -352,7 +352,7 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 	//         "s": "BTCUSDT"
 	//     }
 	//
-	var data any = this.SafeList2(message, "data", "d", []any{})
+	var data []any = ccxt.SafeList2Typed(message, "data", "d")
 	var channel *string = this.SafeString(message, "c", "")
 	var marketId *string = this.SafeString(message, "s")
 	var market any = this.SafeMarket(marketId)
@@ -373,8 +373,13 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 	}()
 	var topic string = messageHashPrefix + "ticker"
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var entry any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var ticker any = nil
 		if isSpot == true {
 			ticker = this.ParseWsTicker(entry, market)

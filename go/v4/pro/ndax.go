@@ -670,7 +670,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	//     ]
 	//
 	var symbol *string = this.SafeString(subscription, "symbol")
-	var snapshot any = this.ParseOrderBook(payload, symbol)
+	var snapshot map[string]any = this.ParseOrderBook(payload, symbol)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, limit)
 	if symbol != nil {

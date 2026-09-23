@@ -754,10 +754,15 @@ func (this *PredictionExchange) IndexEventOutcomes(event any) {
 	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
-	var markets any = this.SafeList(event, "markets", []any{})
-	var marketsLength int = GetArrayLength(markets)
+	var markets []any = SafeListTyped(event, "markets")
+	var marketsLength int = len(markets)
 	for i := 0; i < marketsLength; i++ {
-		var m any = GetValue(markets, i)
+		var m any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var marketHandle *string = this.SafeString2(m, "market", "symbol")
 		if marketHandle != nil {
 			AddElementToObject(this.Markets, marketHandle, m)

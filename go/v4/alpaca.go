@@ -905,7 +905,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		//        }
 		//    }
 		//
-		var trades any = this.SafeDict(response, "trades", map[string]any{})
+		var trades map[string]any = SafeMapTyped(response, "trades")
 		symbolTrades = this.SafeList(trades, marketId, []any{})
 	} else if method != nil && *method == "marketPublicGetV1beta3CryptoLocLatestTrades" {
 
@@ -924,7 +924,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		//        }
 		//    }
 		//
-		var trades any = this.SafeDict(response, "trades", map[string]any{})
+		var trades map[string]any = SafeMapTyped(response, "trades")
 		var symbolTrade any = this.SafeDict(trades, marketId, map[string]any{})
 		symbolTrades = []any{symbolTrade}
 	} else {
@@ -1168,7 +1168,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		//        }
 		//     }
 		//
-		var bars any = this.SafeDict(response, "bars", map[string]any{})
+		var bars map[string]any = SafeMapTyped(response, "bars")
 		var bar any = this.SafeDict(bars, marketId, map[string]any{})
 		ohlcvs = []any{bar}
 	} else {
@@ -2829,7 +2829,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 	//         }
 	//     ]
 	//
-	var account any = this.SafeDict(response, "account", map[string]any{})
+	var account map[string]any = SafeMapTyped(response, "account")
 	var positions []any = SafeListTyped(response, "positions")
 	var result map[string]any = map[string]any{
 		"info": response,

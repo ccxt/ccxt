@@ -1173,8 +1173,8 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microseconds"))
 	}
 	var timestamp int64 = this.ParseToInt(Divide(microseconds, 1000))
-	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
+	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
+	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
 
 	ch <- orderbook
 	return nil

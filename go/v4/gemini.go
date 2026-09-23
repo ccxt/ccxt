@@ -1009,7 +1009,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 	//     ]
 	//
 	var result []any = []any{}
-	var options any = this.SafeDict(this.Options, "fetchMarketsFromAPI", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchMarketsFromAPI")
 	var brokenPairs any = this.SafeList(this.Options, "brokenPairs", []any{})
 	var marketIds []any = []any{}
 	var allMarketIds any = []any{}

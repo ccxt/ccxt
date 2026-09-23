@@ -1707,7 +1707,7 @@ func (this *Cryptocom) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) a
 		retRes122912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes122912)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"method": "private/cancel-all-orders",
 		"params": this.Extend(map[string]any{}, params),

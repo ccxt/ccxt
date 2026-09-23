@@ -1562,8 +1562,8 @@ func (this *Woo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	tokenResponsetokenNetworkResponseVariable := (<-promiseAll([]any{tokenResponsePromise, tokenNetworkResponsePromise}))
 	tokenResponse := GetValue(tokenResponsetokenNetworkResponseVariable, 0)
 	tokenNetworkResponse := GetValue(tokenResponsetokenNetworkResponseVariable, 1)
-	var tokenRows any = this.SafeList(tokenResponse, "rows", []any{})
-	var tokenNetworkRows any = this.SafeList(tokenNetworkResponse, "rows", []any{})
+	var tokenRows []any = SafeListTyped(tokenResponse, "rows")
+	var tokenNetworkRows []any = SafeListTyped(tokenNetworkResponse, "rows")
 	var networksById map[string]any = this.GroupBy(tokenNetworkRows, "token")
 	var tokensById map[string]any = this.GroupBy(tokenRows, "balance_token")
 	var currencyIds []string = ObjectKeys(tokensById)
@@ -4279,7 +4279,7 @@ func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs
 		retRes344312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes344312)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")

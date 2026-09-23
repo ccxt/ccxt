@@ -3156,10 +3156,10 @@ func (this *Poloniex) ParseBalance(response any) any {
 	}
 	// for spot
 	for i := 0; i < GetArrayLength(response); i++ {
-		var account any = this.SafeDict(response, i, map[string]any{})
+		var account map[string]any = SafeMapTyped(response, i)
 		var balances any = this.SafeValue(account, "balances")
 		for j := 0; j < GetArrayLength(balances); j++ {
-			var balance any = this.SafeDict(balances, j)
+			var balance map[string]any = SafeMapTyped(balances, j)
 			var currencyId *string = this.SafeString(balance, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var newAccount map[string]any = this.Account()

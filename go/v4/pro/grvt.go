@@ -785,7 +785,7 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	var isSnapshotChannel bool = (stream != nil && *stream == "v1.book.s")
 	var isSnapshotMessage bool = (sequenceNumber == nil || *sequenceNumber <= 0)
 	if isSnapshotChannel || isSnapshotMessage {
-		var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
+		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
 		var asks any = this.SafeList(data, "asks", []any{})

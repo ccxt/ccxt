@@ -846,25 +846,25 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 	var rawAsks any = this.SafeList(levels, 1, []any{})
 	var topBid any = this.SafeDict(rawBids, 0)
 	var topAsk any = this.SafeDict(rawAsks, 0)
-	var bid any = func() any {
+	var bid *float64 = func() *float64 {
 		if !ccxt.IsEqual(topBid, nil) {
 			return this.SafeNumber(topBid, "px")
 		}
 		return nil
 	}()
-	var ask any = func() any {
+	var ask *float64 = func() *float64 {
 		if !ccxt.IsEqual(topAsk, nil) {
 			return this.SafeNumber(topAsk, "px")
 		}
 		return nil
 	}()
-	var bidVolume any = func() any {
+	var bidVolume *float64 = func() *float64 {
 		if !ccxt.IsEqual(topBid, nil) {
 			return this.SafeNumber(topBid, "sz")
 		}
 		return nil
 	}()
-	var askVolume any = func() any {
+	var askVolume *float64 = func() *float64 {
 		if !ccxt.IsEqual(topAsk, nil) {
 			return this.SafeNumber(topAsk, "sz")
 		}
@@ -985,7 +985,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, outcome any, optionalAr
 		}()
 		asks = append(asks, []any{this.SafeNumber(entry, "px"), this.SafeNumber(entry, "sz")})
 	}
-	var orderbook any = this.ParseOrderBook(map[string]any{
+	var orderbook map[string]any = this.ParseOrderBook(map[string]any{
 		"bids": bids,
 		"asks": asks,
 	}, this.SafeString(outcomeObj, "outcome", outcome), timestamp)
@@ -2106,7 +2106,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) an
 	var tif *string = this.ParseTimeInForce(tifRaw)
 	var postOnly bool = (tif != nil && *tif == "PO")
 	var isTrigger bool = (ccxt.IsEqual(this.SafeBool(entry, "isTrigger"), true))
-	var triggerPrice any = func() any {
+	var triggerPrice *float64 = func() *float64 {
 		if isTrigger {
 			return this.SafeNumber(entry, "triggerPx")
 		}

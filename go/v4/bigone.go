@@ -2475,8 +2475,8 @@ func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
-	var dataLength int = GetArrayLength(data)
+	var data []any = SafeListTyped(response, "data")
+	var dataLength int = len(data)
 	if dataLength < 1 {
 		panic(ExchangeError(this.Id + " fetchDepositAddress() returned empty address response"))
 	}

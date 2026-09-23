@@ -605,9 +605,9 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	var messageLength int = len(message)
 	if messageLength == 2 {
 		// initial snapshot
-		var trades any = this.SafeList(message, 1, []any{})
+		var trades []any = ccxt.SafeListTyped(message, 1)
 		// needs to be reversed to make chronological order
-		var length int = ccxt.GetArrayLength(trades)
+		var length int = len(trades)
 		for i := 0; i < length; i++ {
 			var index any = ccxt.Subtract(ccxt.Subtract(length, i), 1)
 			var parsed any = this.ParseWsTrade(ccxt.GetValue(trades, index), market)
@@ -708,7 +708,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 			typeVar = "market"
 		}
 	}
-	var orderId any = func() any {
+	var orderId *string = func() *string {
 		if !isPublic {
 			return this.SafeString(trade, 3)
 		}
@@ -864,7 +864,7 @@ func (this *Bitfinex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 			panic(ccxt.ExchangeError(this.Id + " watchOrderBook limit argument must be undefined, 25 or 100"))
 		}
 	}
-	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var prec *string = this.SafeString(options, "prec", "P0")
 	var freq *string = this.SafeString(options, "freq", "F0")
 	var request map[string]any = map[string]any{

@@ -761,8 +761,8 @@ func (this *Bydfi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var orderBook any = this.ParseOrderBook(data, market["symbol"], nil, "bids", "asks", "price", "amount")
-	AddElementToObject(orderBook, "nonce", this.SafeInteger(data, "lastUpdateId"))
+	var orderBook map[string]any = this.ParseOrderBook(data, market["symbol"], nil, "bids", "asks", "price", "amount")
+	orderBook["nonce"] = this.SafeInteger(data, "lastUpdateId")
 
 	ch <- orderBook
 	return nil
@@ -3276,7 +3276,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if wallet == nil {
-		var options any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var options map[string]any = SafeMapTyped(this.Options, "accountsByType")
 		var parsedAccountType *string = this.SafeStringUpper(options, typeVar, typeVar)
 		request["walletType"] = parsedAccountType
 		//

@@ -614,7 +614,7 @@ func (this *Coinex) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var trades any = this.SafeList(data, "deal_list", []any{})
+	var trades []any = ccxt.SafeListTyped(data, "deal_list")
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
 	var defaultType string = func() string {
@@ -632,8 +632,13 @@ func (this *Coinex) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-		var trade any = ccxt.GetValue(trades, i)
+	for i := 0; i < len(trades); i++ {
+		var trade any = func() any {
+			if i >= 0 && i < len(trades) {
+				return ccxt.DerefScalar(trades[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -962,7 +967,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
-	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var limits any = this.SafeList(options, "limits", []any{})
 	if ccxt.IsEqual(limit, nil) {
 		limit = ccxt.DerefScalar(this.SafeInteger(options, "defaultLimit", 50))
@@ -1098,7 +1103,7 @@ func (this *Coinex) HandleOrderBook(client any, message map[string]any) {
 	var currentOrderBook any = this.SafeValue(this.Orderbooks, symbol)
 	var fullOrderBook *bool = this.SafeBool(data, "is_full", false)
 	if fullOrderBook != nil && *fullOrderBook == true {
-		var snapshot any = this.ParseOrderBook(depth, symbol, timestamp)
+		var snapshot map[string]any = this.ParseOrderBook(depth, symbol, timestamp)
 		if ccxt.IsEqual(currentOrderBook, nil) {
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(snapshot))
 		} else {

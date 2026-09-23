@@ -703,7 +703,7 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var exchangeOrderId *string = this.SafeString(order, "exOrdId")
-	var price any = func() any {
+	var price *string = func() *string {
 		if typeVar == nil || *typeVar != "market" {
 			return this.SafeString(order, "price")
 		}
@@ -1296,7 +1296,7 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 		typeVar = "withdrawal"
 		id = this.SafeString(transaction, "withdrawalId")
 	}
-	var feeCost any = func() any {
+	var feeCost *float64 = func() *float64 {
 		if IsEqual(typeVar, "withdrawal") {
 			return this.SafeNumber(transaction, "fee")
 		}

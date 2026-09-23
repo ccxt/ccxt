@@ -1074,7 +1074,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
 	var tokenRows []any = SafeListTyped(tokenData, "rows")
 	var chainData map[string]any = SafeMapTyped(chainResponse, "data")
-	var chainRows any = this.SafeList(chainData, "rows", []any{})
+	var chainRows []any = SafeListTyped(chainData, "rows")
 	var indexedChains map[string]any = this.IndexBy(chainRows, "chain_id")
 	for i := 0; i < len(tokenRows); i++ {
 		var token any = func() any {

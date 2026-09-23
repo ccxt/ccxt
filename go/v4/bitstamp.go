@@ -1229,7 +1229,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		var isSpot bool = (IsEqual(typeVar, "spot"))
-		var settle any = func() any {
+		var settle *string = func() *string {
 			if (settleId != nil) && (!IsEqual(settleId, "")) {
 				return this.SafeCurrencyCode(settleId)
 			}
@@ -1536,8 +1536,8 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microtimestamp"))
 	}
 	var timestamp int64 = this.ParseToInt(Divide(microtimestamp, 1000))
-	var orderbook any = this.ParseOrderBook(response, market["symbol"], timestamp)
-	AddElementToObject(orderbook, "nonce", microtimestamp)
+	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"], timestamp)
+	orderbook["nonce"] = microtimestamp
 
 	ch <- orderbook
 	return nil
@@ -2633,7 +2633,7 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		retRes179812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes179812)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if symbol != nil {

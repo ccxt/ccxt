@@ -1021,7 +1021,7 @@ func (this *Deribit) CodeFromOptions(methodName any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var defaultCode *string = this.SafeString(this.Options, "code", "BTC")
-	var options any = this.SafeDict(this.Options, methodName, map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, methodName)
 	var code *string = this.SafeString(options, "code", defaultCode)
 	return this.SafeString(params, "code", code)
 }
@@ -2366,20 +2366,20 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = map[string]any{
 			"info":       market,
 			"symbol":     symbol,
 			"percentage": true,
 			"tierBased":  true,
-			"maker":      GetValue(market, "maker"),
-			"taker":      GetValue(market, "taker"),
+			"maker":      market["maker"],
+			"taker":      market["taker"],
 		}
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 			fee = this.Extend(fee, perpetualFee)
-		} else if GetValue(market, "future") == true {
+		} else if market["future"] == true {
 			fee = this.Extend(fee, futureFee)
-		} else if GetValue(market, "option") == true {
+		} else if market["option"] == true {
 			fee = this.Extend(fee, optionFee)
 		}
 		AddElementToObject(parsedFees, symbol, fee)
@@ -2468,8 +2468,8 @@ func (this *Deribit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(result, "timestamp")
 	var nonce *int64 = this.SafeInteger(result, "change_id")
-	var orderbook any = this.ParseOrderBook(result, market["symbol"], timestamp)
-	AddElementToObject(orderbook, "nonce", nonce)
+	var orderbook map[string]any = this.ParseOrderBook(result, market["symbol"], timestamp)
+	orderbook["nonce"] = nonce
 
 	ch <- orderbook
 	return nil
@@ -4907,7 +4907,7 @@ func (this *Deribit) fetchOptionChainBody(ch chan any, code any, optionalArgs ..
 	//         "testnet": false
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTyped(response, "result")
 
 	ch <- this.ParseOptionChain(result, "base_currency", "instrument_name")
 	return nil

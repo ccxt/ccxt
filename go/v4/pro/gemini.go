@@ -133,7 +133,7 @@ func (this *Gemini) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	trades := (<-this.HelperForWatchMultipleConstructAsync("trades", symbols, params))
 	ccxt.PanicOnError(trades)
 	if this.NewUpdates {
-		var first any = this.SafeList(trades, 0)
+		var first []any = ccxt.SafeListTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}

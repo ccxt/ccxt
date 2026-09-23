@@ -946,7 +946,7 @@ func (this *Ndax) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
+func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any {
 	timestamp := GetArg(optionalArgs, 0, nil)
 	_ = timestamp
 	bidsKey := GetArg(optionalArgs, 1, "bids")
@@ -1002,7 +1002,7 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 	result["timestamp"] = timestamp
 	result["datetime"] = this.Iso8601(timestamp)
 	result["nonce"] = nonce
-	return result
+	return MapTyped(result)
 }
 
 /**

@@ -2292,7 +2292,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		return map[string]any{}
 	}()
-	var crossItems any = this.SafeList(crossData, "items", []any{})
+	var crossItems []any = SafeListTyped(crossData, "items")
 	var crossById map[string]any = this.IndexBy(crossItems, "symbol")
 	var isolatedData any = func() any {
 		if requestMarginables == true {
@@ -2300,7 +2300,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		return map[string]any{}
 	}()
-	var isolatedItems any = this.SafeList(isolatedData, "data", []any{})
+	var isolatedItems []any = SafeListTyped(isolatedData, "data")
 	var isolatedById map[string]any = this.IndexBy(isolatedItems, "symbol")
 	var tickersResponse any = func() any {
 		if fetchTickersFees == true {
@@ -2308,7 +2308,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		return map[string]any{}
 	}()
-	var tickerItems any = this.SafeList(this.SafeDict(tickersResponse, "data", map[string]any{}), "ticker", []any{})
+	var tickerItems []any = SafeListTyped(this.SafeDict(tickersResponse, "data", map[string]any{}), "ticker")
 	var tickersById map[string]any = this.IndexBy(tickerItems, "symbol")
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(symbolsData); i++ {
@@ -2918,7 +2918,7 @@ func (this *Kucoin) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PublicGetCurrencies(params))
 		PanicOnError(response)
 	}
-	var currenciesData any = this.SafeList(response, "data", []any{})
+	var currenciesData []any = SafeListTyped(response, "data")
 	var brokenCurrencies any = this.HandleOption("fetchCurrencies", "brokenCurrencies", []any{})
 	var filteredCurrencies any = this.FilterOutByArray(currenciesData, "currency", brokenCurrencies) // remove broken entries
 
@@ -2930,10 +2930,15 @@ func (this *Kucoin) ParseCurrency(currency any) any {
 	var id *string = this.SafeString(entry, "currency")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains any = this.SafeList2(entry, "chains", "items", []any{})
-	var chainsLength int = GetArrayLength(chains)
+	var chains []any = SafeList2Typed(entry, "chains", "items")
+	var chainsLength int = len(chains)
 	for j := 0; j < chainsLength; j++ {
-		var chain any = GetValue(chains, j)
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var chainId *string = this.SafeString(chain, "chainId")
 		var networkCode any = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
@@ -3660,12 +3665,17 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var tickers any = this.SafeList2(data, "ticker", "list", []any{})
+	var tickers []any = SafeList2Typed(data, "ticker", "list")
 	var time *int64 = this.SafeInteger2(data, "time", "ts")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(tickers); i++ {
+	for i := 0; i < len(tickers); i++ {
 		AddElementToObject(GetValue(tickers, i), "time", time)
-		var ticker any = this.ParseSpotOrUtaTicker(GetValue(tickers, i))
+		var ticker any = this.ParseSpotOrUtaTicker(func() any {
+			if i >= 0 && i < len(tickers) {
+				return DerefScalar(tickers[i])
+			}
+			return nil
+		}())
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
@@ -3881,7 +3891,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		//         }
 		//     }
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		var resultList any = this.SafeList(data, "list", []any{})
 		result = this.SafeDict(resultList, 0, map[string]any{})
 	} else if GetValue(market, "contract") == true {
@@ -4129,9 +4139,9 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		ch <- retRes338019
 		return nil
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
@@ -4173,7 +4183,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		if suffix == nil {
 			panic(NotSupported(this.Id + " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\""))
 		}
-		request["symbol"] = Add(Add(GetValue(market, "id"), "-"), suffix)
+		request["symbol"] = Add(Add(market["id"], "-"), suffix)
 	}
 
 	response := (<-this.UtaGetMarketKline(this.Extend(request, params)))
@@ -4874,8 +4884,8 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			timestamp = this.ParseToInt(Divide(nanoseconds, 1000000))
 		}
 	}
-	var orderbook any = this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", Subtract(level, 2), Subtract(level, 1))
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "sequence"))
+	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", Subtract(level, 2), Subtract(level, 1))
+	orderbook["nonce"] = this.SafeInteger(data, "sequence")
 
 	ch <- orderbook
 	return nil
@@ -9520,7 +9530,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		//         }
 		//     }
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		var dataList any = this.SafeList(data, "list", []any{})
 		entry = this.SafeDict(dataList, 0)
 	} else if GetValue(market, "spot") == true {
@@ -10435,7 +10445,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	} else if cross {
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		var accounts []any = SafeListTyped(data, "accounts")
 		for i := 0; i < len(accounts); i++ {
 			var balance any = func() any {
@@ -10451,9 +10461,14 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		var data any = this.SafeList(response, "data", []any{})
-		for i := 0; i < GetArrayLength(data); i++ {
-			var balance any = GetValue(data, i)
+		var data []any = SafeListTyped(response, "data")
+		for i := 0; i < len(data); i++ {
+			var balance any = func() any {
+				if i >= 0 && i < len(data) {
+					return DerefScalar(data[i])
+				}
+				return nil
+			}()
 			var balanceType *string = this.SafeString(balance, "type")
 			if IsEqual(balanceType, typeVar) {
 				var currencyId *string = this.SafeString(balance, "currency")
@@ -11067,13 +11082,13 @@ func (this *Kucoin) ParseTransfer(transfer any, optionalArgs ...any) any {
 		accountToRaw = this.SafeStringLower(transfer, "recAccountType")
 	}
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	var accountFrom any = func() any {
+	var accountFrom *string = func() *string {
 		if IsEqual(accountFromRaw, nil) {
 			return nil
 		}
 		return this.SafeString(accountsByType, accountFromRaw, accountFromRaw)
 	}()
-	var accountTo any = func() any {
+	var accountTo *string = func() *string {
 		if IsEqual(accountToRaw, nil) {
 			return nil
 		}
@@ -13062,7 +13077,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		//             ]
 		//         }
 		//     }
-		var data any = this.SafeDict(response, "data")
+		var data map[string]any = SafeMapTyped(response, "data")
 		dataList = this.SafeList(data, "items", []any{})
 	} else {
 		if limit != nil {
@@ -13094,7 +13109,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		//        }
 		//    }
 		//
-		var data any = this.SafeDict(response, "data")
+		var data map[string]any = SafeMapTyped(response, "data")
 		dataList = this.SafeList(data, "dataList", []any{})
 	}
 	var fees []any = []any{}

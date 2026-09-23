@@ -673,7 +673,7 @@ func (this *Kraken) Describe() any {
 	})
 }
 func (this *Kraken) FeeToPrecision(symbol any, fee any) any {
-	return this.DecimalToPrecision(fee, TRUNCATE, GetValue(GetValue(this.Market(symbol), "precision"), "amount"), this.PrecisionMode)
+	return this.DecimalToPrecision(fee, TRUNCATE, GetValue(this.Market(symbol)["precision"], "amount"), this.PrecisionMode)
 }
 
 /**
@@ -1344,9 +1344,9 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var symbol any = GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			if GetValue(market, "active") == true {
-				marketIds = append(marketIds, GetValue(market, "id"))
+			var market map[string]any = this.Market(symbol)
+			if market["active"] == true {
+				marketIds = append(marketIds, market["id"])
 			}
 		}
 		request["pair"] = Join(marketIds, ",")
@@ -3026,7 +3026,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	if symbol != nil {
 		symbol = this.Symbol(symbol)
 	}
-	var options any = this.SafeDict(this.Options, "fetchOrderTrades", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchOrderTrades")
 	var batchSize *int64 = this.SafeInteger(options, "batchSize", 20)
 	var numTradeIds int = len(tradeIds)
 	var numBatches any = this.ParseToInt(Divide(numTradeIds, batchSize))

@@ -1239,7 +1239,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method any, symbol any,
 	accountIndex = GetValue(accountIndexparamsVariable, 0)
 	params = GetValue(accountIndexparamsVariable, 1)
 	AddElementToObject(params, "accountIndex", accountIndex)
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var groupingType any = nil
 	var groupingTypeparamsVariable []any = this.HandleOptionAndParams(params, method, "groupingType", 3)
 	groupingType = GetValue(groupingTypeparamsVariable, 0)
@@ -1894,7 +1894,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	var result any = this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "remaining_base_amount")
+	var result map[string]any = this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "remaining_base_amount")
 
 	ch <- result
 	return nil
@@ -4183,7 +4183,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method any, id any, opt
 	accountIndexparamsVariable := (<-this.HandleAccountIndexAsync(params, method, "accountIndex", "account_index"))
 	accountIndex = GetValue(accountIndexparamsVariable, 0)
 	params = GetValue(accountIndexparamsVariable, 1)
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString2(params, "client_order_index", "clientOrderId")
 	params = this.Omit(params, []any{"client_order_index", "clientOrderId"})
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -4195,7 +4195,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method any, id any, opt
 	nonce := (<-this.FetchNonceAsync(accountIndex, apiKeyIndex, params))
 	PanicOnError(nonce)
 	var signRaw map[string]any = map[string]any{
-		"market_index":  this.ParseToInt(GetValue(market, "id")),
+		"market_index":  this.ParseToInt(market["id"]),
 		"nonce":         nonce,
 		"api_key_index": apiKeyIndex,
 		"account_index": accountIndex,

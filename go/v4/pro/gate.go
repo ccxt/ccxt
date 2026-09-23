@@ -846,9 +846,9 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if full != nil && *full == true {
-		var snapshopt any = this.ParseOrderBook(result, symbol, nil, "b", "a")
-		ccxt.AddElementToObject(snapshopt, "nonce", this.SafeInteger(result, "u"))
-		ccxt.AddElementToObject(snapshopt, "timestamp", this.SafeInteger(result, "t"))
+		var snapshopt map[string]any = this.ParseOrderBook(result, symbol, nil, "b", "a")
+		snapshopt["nonce"] = this.SafeInteger(result, "u")
+		snapshopt["timestamp"] = this.SafeInteger(result, "t")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshopt)
 	} else {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
@@ -2118,7 +2118,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	if symbol != nil {
-		var marketResolved any = this.Market(symbol)
+		var marketResolved map[string]any = this.Market(symbol)
 		market = marketResolved
 		symbol = ccxt.GetValue(market, "symbol")
 	}

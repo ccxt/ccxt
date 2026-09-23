@@ -2187,7 +2187,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		//         }
 		//     }
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		var marketStatus *int64 = this.SafeInteger(data, "marketStatus")
 		status = func() string {
 			if marketStatus != nil && *marketStatus == 1 {
@@ -2220,7 +2220,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		//         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
 		//     }
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		var heartbeatKey string = "heartbeat"
 		var etaKey string = "estimated_recovery_time"
 		if IsEqual(subType, "linear") {
@@ -2269,7 +2269,7 @@ func (this *Htx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeDict(this.Options, "fetchTime", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchTime")
 	var defaultType *string = this.SafeString(this.Options, "defaultType", "spot")
 	var typeVar *string = this.SafeString(options, "type", defaultType)
 	typeVar = this.SafeString(params, "type", typeVar)
@@ -2483,7 +2483,7 @@ func (this *Htx) ParseTradingLimits(limits any, optionalArgs ...any) map[string]
 	}
 }
 func (this *Htx) CostToPrecision(symbol any, cost any) any {
-	return this.DecimalToPrecision(cost, TRUNCATE, GetValue(GetValue(this.Market(symbol), "precision"), "cost"), this.PrecisionMode)
+	return this.DecimalToPrecision(cost, TRUNCATE, GetValue(this.Market(symbol)["precision"], "cost"), this.PrecisionMode)
 }
 
 /**
@@ -3468,8 +3468,8 @@ func (this *Htx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		}
 		var tick any = this.SafeDict(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
-		var result any = this.ParseOrderBook(tick, symbol, timestamp)
-		AddElementToObject(result, "nonce", this.SafeInteger(tick, "version"))
+		var result map[string]any = this.ParseOrderBook(tick, symbol, timestamp)
+		result["nonce"] = this.SafeInteger(tick, "version")
 
 		ch <- result
 		return nil
@@ -4918,9 +4918,14 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 			result = this.SafeBalance(result)
 		} else {
-			var balances any = this.SafeList(data, "list", []any{})
-			for i := 0; i < GetArrayLength(balances); i++ {
-				var balance any = GetValue(balances, i)
+			var balances []any = SafeListTyped(data, "list")
+			for i := 0; i < len(balances); i++ {
+				var balance any = func() any {
+					if i >= 0 && i < len(balances) {
+						return DerefScalar(balances[i])
+					}
+					return nil
+				}()
 				var currencyId *string = this.SafeString(balance, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code != nil {
@@ -6665,7 +6670,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	}
 	var orderType any = Replace(typeVar, "buy-", "")
 	orderType = Replace(orderType, "sell-", "")
-	var options any = this.SafeDict(this.Options, market["type"], map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, market["type"])
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "stop-price"})
 	if triggerPrice == nil {
 		var stopOrderTypes map[string]any = SafeMapTyped(options, "stopOrderTypes")
@@ -7877,7 +7882,7 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 	} else {
 		success = this.SafeList(orders, "success", []any{})
 	}
-	var failed any = this.SafeList2(orders, "errors", "failed", []any{})
+	var failed []any = SafeList2Typed(orders, "errors", "failed")
 	var data []any = SafeListTyped(orders, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -7902,8 +7907,13 @@ func (this *Htx) ParseCancelOrders(orders any) []any {
 			"status": "canceled",
 		}))
 	}
-	for i := 0; i < GetArrayLength(failed); i++ {
-		var order any = GetValue(failed, i)
+	for i := 0; i < len(failed); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(failed) {
+				return DerefScalar(failed[i])
+			}
+			return nil
+		}()
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
@@ -9640,7 +9650,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 		} else if access != nil && *access == "private" {
 			this.CheckRequiredCredentials()
 			if IsEqual(method, "POST") {
-				var options any = this.SafeDict(this.Options, "broker", map[string]any{})
+				var options map[string]any = SafeMapTyped(this.Options, "broker")
 				var id *string = this.SafeString(options, "id", "AA03022abc")
 				if !isArrayParams {
 					if (GetIndexOf(pathString, "cancel") == OpNeg(1)) && EndsWith(pathString, "order") {

@@ -135,8 +135,8 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
-		var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
-		ccxt.AddElementToObject(snapshot, "nonce", nonce)
+		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
+		snapshot["nonce"] = nonce
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		return

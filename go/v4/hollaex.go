@@ -577,7 +577,7 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         "network":"https://api.hollaex.network"
 	//     }
 	//
-	var coins any = this.SafeDict(response, "coins", map[string]any{})
+	var coins map[string]any = SafeMapTyped(response, "coins")
 	var values []any = ObjectValues(coins)
 
 	ch <- this.ParseCurrencies(values)
@@ -1810,7 +1810,7 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes145012)
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	market = this.Market(symbol)
 	request["symbol"] = GetValue(market, "id")
 

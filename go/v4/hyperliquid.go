@@ -370,7 +370,7 @@ func (this *Hyperliquid) Nonce() any {
 	// incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
 	return this.Milliseconds()
 }
-func (this *Hyperliquid) Market(symbol any) any {
+func (this *Hyperliquid) Market(symbol any) map[string]any {
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " market() requires a symbol argument"))
 	}
@@ -386,11 +386,11 @@ func (this *Hyperliquid) Market(symbol any) any {
 			var quote *string = this.SafeString(symbolParts, 1)
 			var newSymbol any = Add(Add(this.SafeCurrencyCode(unifiedBaseName), "/"), quote)
 			if InOp(this.Markets, newSymbol) {
-				return GetValue(this.Markets, newSymbol)
+				return MapTyped(GetValue(this.Markets, newSymbol))
 			}
 		}
 	}
-	return this.Exchange.Market(symbol)
+	return MapTyped(this.Exchange.Market(symbol))
 }
 
 /**
@@ -587,7 +587,7 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var types []any = SafeListTyped(options, "types")
 	var rawPromises []any = []any{}
 	for i := 0; i < len(types); i++ {
@@ -662,13 +662,13 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 	var perpDexesOffset map[string]any = map[string]any{}
 	for i := 1; i < GetArrayLength(fetchDexes); i++ {
 		// builder-deployed perp dexs start at 110000
-		var dex any = this.SafeDict(fetchDexes, i, map[string]any{})
+		var dex map[string]any = SafeMapTyped(fetchDexes, i)
 		var secondPart any = Multiply((Subtract(i, 1)), 10000)
 		var offset any = this.Sum(110000, secondPart)
-		AddElementToObject(perpDexesOffset, GetValue(dex, "name"), offset)
+		AddElementToObject(perpDexesOffset, dex["name"], offset)
 	}
 	var fetchDexesList any = []any{}
-	var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var hip3 map[string]any = SafeMapTyped(options, "hip3")
 	var dexesProvided any = this.SafeList(hip3, "dexes", []any{}) // let users provide their own list of dexes to load
 	var maxLimit *int64 = this.SafeInteger(hip3, "limit", 10)
@@ -988,7 +988,7 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) 
 		// const marketParts = marketName.split ('/');
 		// const baseName = this.safeString (marketParts, 0);
 		// const quoteId = this.safeString (marketParts, 1);
-		var fees any = this.SafeDict(this.Fees, "spot", map[string]any{})
+		var fees map[string]any = SafeMapTyped(this.Fees, "spot")
 		var taker *float64 = this.SafeNumber(fees, "taker")
 		var maker *float64 = this.SafeNumber(fees, "maker")
 		var tokensPos any = this.SafeList(market, "tokens", []any{})
@@ -1131,7 +1131,7 @@ func (this *Hyperliquid) ParseMarket(market any) any {
 			symbol = Add(Add(symbol, ":"), settle)
 		}
 	}
-	var fees any = this.SafeDict(this.Fees, "swap", map[string]any{})
+	var fees map[string]any = SafeMapTyped(this.Fees, "swap")
 	var taker *float64 = this.SafeNumber(fees, "taker")
 	var maker *float64 = this.SafeNumber(fees, "maker")
 	var amountPrecisionStr *string = this.SafeString(market, "szDecimals")
@@ -1463,7 +1463,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		// infer from first symbol
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		if firstSymbol != nil {
-			var market any = this.Market(firstSymbol)
+			var market map[string]any = this.Market(firstSymbol)
 			if IsEqual(this.SafeBool(this.SafeDict(market, "info"), "hip3"), true) {
 				hip3 = true
 			}
@@ -2934,7 +2934,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 	var hasClientOrderId bool = false
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
 		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
 		if clientOrderId != nil {
 			hasClientOrderId = true
@@ -2943,7 +2943,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 	if hasClientOrderId {
 		for i := 0; i < GetArrayLength(orders); i++ {
 			var rawOrder any = GetValue(orders, i)
-			var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+			var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
 			var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
 			if clientOrderId == nil {
 				panic(ArgumentsRequired(this.Id + " createOrders() all orders must have clientOrderId if at least one has a clientOrderId"))
@@ -3509,7 +3509,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 	var hasClientOrderId bool = false
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
-		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
 		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
 		if clientOrderId != nil {
 			hasClientOrderId = true
@@ -3518,7 +3518,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 	if hasClientOrderId {
 		for i := 0; i < GetArrayLength(orders); i++ {
 			var rawOrder any = GetValue(orders, i)
-			var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+			var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
 			var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
 			if clientOrderId == nil {
 				panic(ArgumentsRequired(this.Id + " editOrders() all orders must have clientOrderId if at least one has a clientOrderId"))
@@ -4776,10 +4776,10 @@ func (this *Hyperliquid) GetDexFromSymbols(methodName any, optionalArgs ...any) 
 	var dexName any = nil
 	for i := 0; i < symbolsLength; i++ {
 		if dexName == nil {
-			var market any = this.Market(GetValue(symbols, i))
+			var market map[string]any = this.Market(GetValue(symbols, i))
 			dexName = this.GetDexFromHip3Symbol(market)
 		} else {
-			var market any = this.Market(GetValue(symbols, i))
+			var market map[string]any = this.Market(GetValue(symbols, i))
 			var currentDexName any = this.GetDexFromHip3Symbol(market)
 			if !IsEqual(currentDexName, dexName) {
 				panic(NotSupported(Add(Add(this.Id+" ", methodName), " only supports fetching positions for one DEX at a time for HIP3 markets")))

@@ -3266,13 +3266,13 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	//
 	var result any = this.SafeList(response, 4, []any{})
 	var poolAddress *string = this.SafeString(result, 5)
-	var address any = func() any {
+	var address *string = func() *string {
 		if poolAddress == nil {
 			return this.SafeString(result, 4)
 		}
 		return poolAddress
 	}()
-	var tag any = func() any {
+	var tag *string = func() *string {
 		if poolAddress == nil {
 			return nil
 		}
@@ -3554,17 +3554,17 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var takerFeeDeriv *float64 = this.SafeNumber(takerData, 5)
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"percentage": true,
 			"tierBased":  true,
 		}
-		if InOp(fiat, GetValue(market, "quote")) {
+		if InOp(fiat, market["quote"]) {
 			fee["maker"] = makerFeeFiat
 			fee["taker"] = takerFeeFiat
-		} else if GetValue(market, "contract") == true {
+		} else if market["contract"] == true {
 			fee["maker"] = makerFeeDeriv
 			fee["taker"] = takerFeeDeriv
 		} else {

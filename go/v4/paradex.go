@@ -955,7 +955,7 @@ func (this *Paradex) ParseMarket(market any) any {
 	} else {
 		expiry = nil
 	}
-	var expireDatetime any = func() any {
+	var expireDatetime *string = func() *string {
 		if IsEqual(expiry, 0) {
 			return nil
 		}
@@ -1156,10 +1156,15 @@ func (this *Paradex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var fees any = this.SafeList(response, "results", []any{})
+	var fees []any = SafeListTyped(response, "results")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(fees); i++ {
-		var fee any = this.ParseTradingFee(GetValue(fees, i))
+	for i := 0; i < len(fees); i++ {
+		var fee any = this.ParseTradingFee(func() any {
+			if i >= 0 && i < len(fees) {
+				return DerefScalar(fees[i])
+			}
+			return nil
+		}())
 		var symbol any = GetValue(fee, "symbol")
 		AddElementToObject(result, symbol, fee)
 	}
@@ -1475,7 +1480,7 @@ func (this *Paradex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
-			target = GetValue(this.Market(GetValue(symbols, 0)), "id")
+			target = this.Market(GetValue(symbols, 0))["id"]
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -1647,8 +1652,8 @@ func (this *Paradex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["depth"] = limit
 	}
 	var timestamp *int64 = this.SafeInteger(response, "last_updated_at")
-	var orderbook any = this.ParseOrderBook(response, market["symbol"], timestamp)
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "seq_no"))
+	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"], timestamp)
+	orderbook["nonce"] = this.SafeInteger(response, "seq_no")
 
 	ch <- orderbook
 	return nil
@@ -2697,9 +2702,14 @@ func (this *Paradex) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	//
 	var responseOrders any = this.SafeList(response, "orders", []any{})
 	var parsedOrders any = this.ParseOrders(responseOrders)
-	var errors any = this.SafeList(response, "errors", []any{})
-	for i := 0; i < GetArrayLength(errors); i++ {
-		var error any = GetValue(errors, i)
+	var errors []any = SafeListTyped(response, "errors")
+	for i := 0; i < len(errors); i++ {
+		var error any = func() any {
+			if i >= 0 && i < len(errors) {
+				return DerefScalar(errors[i])
+			}
+			return nil
+		}()
 		AppendToArray(&parsedOrders, this.SafeOrder(map[string]any{
 			"info":   error,
 			"status": "rejected",
@@ -2836,10 +2846,15 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	//     ]
 	// }
 	//
-	var results any = this.SafeList(response, "results", []any{})
+	var results []any = SafeListTyped(response, "results")
 	var orders []any = []any{}
-	for i := 0; i < GetArrayLength(results); i++ {
-		var result any = GetValue(results, i)
+	for i := 0; i < len(results); i++ {
+		var result any = func() any {
+			if i >= 0 && i < len(results) {
+				return DerefScalar(results[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(result, "market")
 		var market any = this.SafeMarket(marketId)
 		var status *string = this.SafeString(result, "status")
@@ -3680,10 +3695,15 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var rows any = this.SafeList(response, "results", []any{})
+	var rows []any = SafeListTyped(response, "results")
 	var deposits []any = []any{}
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var row any = GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		if IsEqual(GetValue(row, "kind"), "DEPOSIT") {
 			deposits = append(deposits, row)
 		}
@@ -3775,10 +3795,15 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	//         ]
 	//     }
 	//
-	var rows any = this.SafeList(response, "results", []any{})
+	var rows []any = SafeListTyped(response, "results")
 	var deposits []any = []any{}
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var row any = GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		if IsEqual(GetValue(row, "kind"), "WITHDRAWAL") {
 			deposits = append(deposits, row)
 		}
@@ -4629,10 +4654,15 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	// every row is one observation of a rate quoted for a whole funding period,
 	// not a settled payment: paradex recomputes it each second and accrues it
 	// into funding_index, so the series cannot be summed
-	var results any = this.SafeList(response, "results", []any{})
+	var results []any = SafeListTyped(response, "results")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(results); i++ {
-		var rate any = GetValue(results, i)
+	for i := 0; i < len(results); i++ {
+		var rate any = func() any {
+			if i >= 0 && i < len(results) {
+				return DerefScalar(results[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeInteger(rate, "created_at")
 		var datetime *string = this.Iso8601(timestamp)
 		rates = append(rates, map[string]any{

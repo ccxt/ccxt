@@ -1139,8 +1139,8 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var timestamp int64 = this.Milliseconds()
-	var orderbook any = this.ParseOrderBook(data, market["symbol"], timestamp, "b", "a")
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "u"))
+	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "b", "a")
+	orderbook["nonce"] = this.SafeInteger(data, "u")
 
 	ch <- orderbook
 	return nil
@@ -1683,7 +1683,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	if price != nil {
 		orderPrice = this.PriceToPrecision(symbol, price)
 	}
-	var fees any = this.SafeDict(this.Fees, "swap", map[string]any{})
+	var fees map[string]any = SafeMapTyped(this.Fees, "swap")
 	var taker *string = this.SafeString(fees, "taker", "0.0005")
 	var maker *string = this.SafeString(fees, "maker", "0.0002")
 	var limitFee string = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(market["precision"], "price"))), TRUNCATE, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)

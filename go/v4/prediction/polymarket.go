@@ -695,8 +695,8 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 
 		first := (<-this.GammaPublicGetPublicSearch(firstRequest))
 		ccxt.PanicOnError(first)
-		var firstEvents any = this.SafeList(first, "events", []any{})
-		var firstEventsLength int = ccxt.GetArrayLength(firstEvents)
+		var firstEvents []any = ccxt.SafeListTyped(first, "events")
+		var firstEventsLength int = len(firstEvents)
 		var pagination map[string]any = ccxt.SafeMapTyped(first, "pagination")
 		var totalResults *int64 = this.SafeInteger(pagination, "totalResults", firstEventsLength)
 		var totalPages any = ccxt.MathCeil(ccxt.Divide(totalResults, pageSize))
@@ -735,13 +735,23 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 		restResponses := (<-ccxt.PromiseAll(restPromises))
 		ccxt.PanicOnError(restResponses)
 		var allEvents []any = []any{}
-		for fi := 0; fi < ccxt.GetArrayLength(firstEvents); fi++ {
-			allEvents = append(allEvents, ccxt.GetValue(firstEvents, fi))
+		for fi := 0; fi < len(firstEvents); fi++ {
+			allEvents = append(allEvents, func() any {
+				if fi >= 0 && fi < len(firstEvents) {
+					return ccxt.DerefScalar(firstEvents[fi])
+				}
+				return nil
+			}())
 		}
 		for ri := 0; ri < ccxt.GetArrayLength(restResponses); ri++ {
-			var pageEvents any = this.SafeList(ccxt.GetValue(restResponses, ri), "events", []any{})
-			for ei := 0; ei < ccxt.GetArrayLength(pageEvents); ei++ {
-				allEvents = append(allEvents, ccxt.GetValue(pageEvents, ei))
+			var pageEvents []any = ccxt.SafeListTyped(ccxt.GetValue(restResponses, ri), "events")
+			for ei := 0; ei < len(pageEvents); ei++ {
+				allEvents = append(allEvents, func() any {
+					if ei >= 0 && ei < len(pageEvents) {
+						return ccxt.DerefScalar(pageEvents[ei])
+					}
+					return nil
+				}())
 			}
 		}
 		for ei := 0; ei < len(allEvents); ei++ {
@@ -958,7 +968,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 }
 func (this *Polymarket) ParseEventToMarkets(event any) any {
 	var eventSlug *string = this.SafeString(event, "slug", this.SafeString(event, "id"))
-	var rawMarkets any = this.SafeList(event, "markets", []any{})
+	var rawMarkets []any = ccxt.SafeListTyped(event, "markets")
 	var result []any = []any{}
 	//
 	// {
@@ -1046,8 +1056,13 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 	//    "feeType":null
 	// }
 	//
-	for mi := 0; mi < ccxt.GetArrayLength(rawMarkets); mi++ {
-		var market any = ccxt.GetValue(rawMarkets, mi)
+	for mi := 0; mi < len(rawMarkets); mi++ {
+		var market any = func() any {
+			if mi >= 0 && mi < len(rawMarkets) {
+				return ccxt.DerefScalar(rawMarkets[mi])
+			}
+			return nil
+		}()
 		var conditionId *string = this.SafeString(market, "conditionId")
 		var marketId *string = this.SafeString(market, "id")
 		var marketSlug *string = this.SafeString(market, "slug", conditionId)
@@ -1145,7 +1160,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 				"info":    market,
 			})
 		}
-		var baseId any = func() any {
+		var baseId *string = func() *string {
 			if conditionId != nil {
 				return conditionId
 			}
@@ -1648,20 +1663,30 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	var midpointData map[string]any = ccxt.SafeMapTyped(ticker, "midpoint")
 	var bookData map[string]any = ccxt.SafeMapTyped(ticker, "book")
 	var mid *float64 = this.SafeNumber(midpointData, "mid")
-	var bids any = this.SafeList(bookData, "bids", []any{})
-	var asks any = this.SafeList(bookData, "asks", []any{})
-	var bidsLength int = ccxt.GetArrayLength(bids)
-	var asksLength int = ccxt.GetArrayLength(asks)
+	var bids []any = ccxt.SafeListTyped(bookData, "bids")
+	var asks []any = ccxt.SafeListTyped(bookData, "asks")
+	var bidsLength int = len(bids)
+	var asksLength int = len(asks)
 	// the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
 	var bestBid any = func() any {
 		if bidsLength > 0 {
-			return ccxt.GetValue(bids, bidsLength-1)
+			return func() any {
+				if bidsLength-1 >= 0 && bidsLength-1 < len(bids) {
+					return ccxt.DerefScalar(bids[bidsLength-1])
+				}
+				return nil
+			}()
 		}
 		return nil
 	}()
 	var bestAsk any = func() any {
 		if asksLength > 0 {
-			return ccxt.GetValue(asks, asksLength-1)
+			return func() any {
+				if asksLength-1 >= 0 && asksLength-1 < len(asks) {
+					return ccxt.DerefScalar(asks[asksLength-1])
+				}
+				return nil
+			}()
 		}
 		return nil
 	}()
@@ -1760,7 +1785,7 @@ func (this *Polymarket) fetchOrderBookBody(ch chan any, outcome any, optionalArg
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var orderbook any = this.ParseOrderBook(response, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
+	var orderbook map[string]any = this.ParseOrderBook(response, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
 
 	ch <- this.SafePredictionOrderBook(orderbook, outcomeObj)
 	return nil
@@ -1855,13 +1880,18 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	var history any = this.SafeList(response, "history", []any{})
+	var history []any = ccxt.SafeListTyped(response, "history")
 	// ccxt.Client-side bucket aggregation: snap each tick to its candle boundary and
 	// build open/high/low/close/volume. Assumes history is sorted ascending by time.
 	var resolutionMs any = ccxt.Multiply(ccxt.Multiply(fidelityMin, 60), 1000)
 	var buckets map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(history); i++ {
-		var item any = ccxt.GetValue(history, i)
+	for i := 0; i < len(history); i++ {
+		var item any = func() any {
+			if i >= 0 && i < len(history) {
+				return ccxt.DerefScalar(history[i])
+			}
+			return nil
+		}()
 		var t *int64 = this.SafeInteger(item, "t")
 		var price *float64 = this.SafeNumber(item, "p")
 		if (t == nil) || (price == nil) {
@@ -2311,7 +2341,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 	var price *float64 = this.SafeNumber(trade, "price")
 	var amount *float64 = this.SafeNumber(trade, "size")
 	var rawSide *string = this.SafeStringLower(trade, "side")
-	var side any = func() any {
+	var side *string = func() *string {
 		if (rawSide != nil && *rawSide == "buy") || (rawSide != nil && *rawSide == "sell") {
 			return rawSide
 		}
@@ -2326,7 +2356,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 	}()
 	var outcome any = this.SafeOutcomeSymbol(nil, mkt)
 	var rawTakerOrMaker *string = this.SafeStringLower(trade, "trader_side")
-	var takerOrMaker any = func() any {
+	var takerOrMaker *string = func() *string {
 		if (rawTakerOrMaker != nil && *rawTakerOrMaker == "taker") || (rawTakerOrMaker != nil && *rawTakerOrMaker == "maker") {
 			return rawTakerOrMaker
 		}
@@ -3021,7 +3051,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	}
 	var exchangeV2 *string = this.SafeString(this.Options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B")
 	var negRiskExchangeV2 *string = this.SafeString(this.Options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59")
-	var exchangeAddress any = func() any {
+	var exchangeAddress *string = func() *string {
 		if negRisk != nil && *negRisk == true {
 			return negRiskExchangeV2
 		}
@@ -4222,16 +4252,26 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, outcome)
 	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
-	var rawBids any = this.SafeList(event, "bids", []any{})
-	var rawAsks any = this.SafeList(event, "asks", []any{})
+	var rawBids []any = ccxt.SafeListTyped(event, "bids")
+	var rawAsks []any = ccxt.SafeListTyped(event, "asks")
 	var bids []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawBids); i++ {
-		var b any = ccxt.GetValue(rawBids, i)
+	for i := 0; i < len(rawBids); i++ {
+		var b any = func() any {
+			if i >= 0 && i < len(rawBids) {
+				return ccxt.DerefScalar(rawBids[i])
+			}
+			return nil
+		}()
 		bids = append(bids, []any{this.SafeNumber(b, "price"), this.SafeNumber(b, "size")})
 	}
 	var asks []any = []any{}
-	for j := 0; j < ccxt.GetArrayLength(rawAsks); j++ {
-		var a any = ccxt.GetValue(rawAsks, j)
+	for j := 0; j < len(rawAsks); j++ {
+		var a any = func() any {
+			if j >= 0 && j < len(rawAsks) {
+				return ccxt.DerefScalar(rawAsks[j])
+			}
+			return nil
+		}()
 		asks = append(asks, []any{this.SafeNumber(a, "price"), this.SafeNumber(a, "size")})
 	}
 	var outcomeObj any = this.SafeOutcome(outcome)
@@ -4249,10 +4289,15 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 }
 func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
-	var changes any = this.SafeList(event, "price_changes", []any{})
+	var changes []any = ccxt.SafeListTyped(event, "price_changes")
 	var updated map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(changes); i++ {
-		var change any = ccxt.GetValue(changes, i)
+	for i := 0; i < len(changes); i++ {
+		var change any = func() any {
+			if i >= 0 && i < len(changes) {
+				return ccxt.DerefScalar(changes[i])
+			}
+			return nil
+		}()
 		var tokenId *string = this.SafeString(change, "asset_id")
 		var outcome any = this.TokenIdToSymbol(tokenId)
 		if (outcome == nil) || !(ccxt.InOp(this.Orderbooks, outcome)) {

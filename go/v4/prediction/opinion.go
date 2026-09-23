@@ -988,7 +988,7 @@ func (this *Opinion) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(result, "timestamp")
-	var orderbook any = this.ParseOrderBook(result, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
+	var orderbook map[string]any = this.ParseOrderBook(result, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
 
 	ch <- this.SafePredictionOrderBook(orderbook, outcomeObj)
 	return nil
@@ -1756,7 +1756,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		outcomeObj = (<-this.LoadOutcomeAsync(outcome))
 		ccxt.PanicOnError(outcomeObj)
-		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
+		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		request["marketId"] = this.SafeInteger(info, "marketId")
 	}
 
@@ -1773,7 +1773,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 			tradeMarket := (<-this.LoadTradeMarketAsync(marketId))
 			ccxt.PanicOnError(tradeMarket)
-			var info any = this.SafeDict(tradeMarket, "info", map[string]any{})
+			var info map[string]any = ccxt.SafeMapTyped(tradeMarket, "info")
 			var isYes bool = (this.SafeStringLower(trade, "outcomeSideEnum") != nil && *this.SafeStringLower(trade, "outcomeSideEnum") == "yes")
 			ccxt.AddElementToObject(trade, "tokenId", func() any {
 				if isYes {

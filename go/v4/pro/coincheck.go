@@ -82,12 +82,12 @@ func (this *Coincheck) watchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		retRes6012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6012)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = this.Market(symbol)
+	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
-		"channel": ccxt.Add(ccxt.GetValue(market, "id"), "-orderbook"),
+		"channel": ccxt.Add(market["id"], "-orderbook"),
 	}
 	var message map[string]any = this.Extend(request, params)
 
@@ -121,7 +121,7 @@ func (this *Coincheck) HandleOrderBook(client any, message any) {
 	var symbol any = this.Symbol(this.SafeString(message, 0))
 	var data any = this.SafeDict(message, 1, map[string]any{})
 	var timestamp *int64 = this.SafeTimestamp(data, "last_update_at")
-	var snapshot any = this.ParseOrderBook(data, symbol, timestamp)
+	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook(snapshot)
@@ -164,13 +164,13 @@ func (this *Coincheck) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 		retRes12412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes12412)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = this.Market(symbol)
+	symbol = market["symbol"]
+	var messageHash any = ccxt.Add("trade:", market["symbol"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
-		"channel": ccxt.Add(ccxt.GetValue(market, "id"), "-trades"),
+		"channel": ccxt.Add(market["id"], "-trades"),
 	}
 	var message map[string]any = this.Extend(request, params)
 

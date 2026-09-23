@@ -1246,7 +1246,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeDict(this.Options, "fetchTradingFee", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFee")
 	var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTradingFee")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = this.Omit(params, "method")
@@ -1981,7 +1981,7 @@ func (this *Latoken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes152512)
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var response any = nil

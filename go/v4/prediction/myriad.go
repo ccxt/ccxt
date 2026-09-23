@@ -3287,17 +3287,22 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var outcomeId any = func() any {
+	var outcomeId *string = func() *string {
 		if market != nil {
 			return this.SafeString(ccxt.GetValue(market, "info"), "outcomeId")
 		}
 		return nil
 	}()
-	var outcomes any = this.SafeList(raw, "outcomes", []any{})
+	var outcomes []any = ccxt.SafeListTyped(raw, "outcomes")
 	var price any = nil
 	var change any = nil
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
-		var o any = ccxt.GetValue(outcomes, i)
+	for i := 0; i < len(outcomes); i++ {
+		var o any = func() any {
+			if i >= 0 && i < len(outcomes) {
+				return ccxt.DerefScalar(outcomes[i])
+			}
+			return nil
+		}()
 		if ccxt.IsEqual(this.SafeString(o, "outcomeId", this.SafeString(o, "id")), outcomeId) {
 			price = ccxt.DerefScalar(this.SafeNumber(o, "price"))
 			change = ccxt.DerefScalar(this.SafeNumber(o, "priceChange24h"))
@@ -3472,10 +3477,15 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 	//         "externalSources": []
 	//     }
 	//
-	var outcomes any = this.SafeList(response, "outcomes", []any{})
+	var outcomes []any = ccxt.SafeListTyped(response, "outcomes")
 	var price any = nil
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
-		var o any = ccxt.GetValue(outcomes, i)
+	for i := 0; i < len(outcomes); i++ {
+		var o any = func() any {
+			if i >= 0 && i < len(outcomes) {
+				return ccxt.DerefScalar(outcomes[i])
+			}
+			return nil
+		}()
 		if ccxt.IsEqual(this.SafeString(o, "outcomeId", this.SafeString(o, "id")), outcomeId) {
 			price = ccxt.DerefScalar(this.SafeNumber(o, "price"))
 			break
@@ -3525,18 +3535,28 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *Myriad) ParseWeiOrderBook(response any, outcome any) any {
-	var rawBids any = this.SafeList(response, "bids", []any{})
-	var rawAsks any = this.SafeList(response, "asks", []any{})
+	var rawBids []any = ccxt.SafeListTyped(response, "bids")
+	var rawAsks []any = ccxt.SafeListTyped(response, "asks")
 	var bids []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawBids); i++ {
-		var row any = ccxt.GetValue(rawBids, i)
+	for i := 0; i < len(rawBids); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rawBids) {
+				return ccxt.DerefScalar(rawBids[i])
+			}
+			return nil
+		}()
 		var rowPrice *string = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
 		var rowAmount *string = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
 		bids = append(bids, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
 	}
 	var asks []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawAsks); i++ {
-		var row any = ccxt.GetValue(rawAsks, i)
+	for i := 0; i < len(rawAsks); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rawAsks) {
+				return ccxt.DerefScalar(rawAsks[i])
+			}
+			return nil
+		}()
 		var rowPrice *string = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
 		var rowAmount *string = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
 		asks = append(asks, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
@@ -3631,10 +3651,15 @@ func (this *Myriad) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	var outcomes any = this.SafeList(response, "outcomes", []any{})
+	var outcomes []any = ccxt.SafeListTyped(response, "outcomes")
 	var selectedOutcome any = nil
-	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
-		var oc any = ccxt.GetValue(outcomes, i)
+	for i := 0; i < len(outcomes); i++ {
+		var oc any = func() any {
+			if i >= 0 && i < len(outcomes) {
+				return ccxt.DerefScalar(outcomes[i])
+			}
+			return nil
+		}()
 		var currentId *string = this.SafeString(oc, "id", this.SafeString(oc, "outcomeId"))
 		var currentTitle *string = this.SafeString(oc, "title", this.SafeString(oc, "label"))
 		if (outcomeId != nil) && (currentId == outcomeId || (currentId != nil && outcomeId != nil && *currentId == *outcomeId)) {
@@ -3772,7 +3797,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var marketKeys []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
-		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
+		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var networkId *string = this.SafeString(info, "networkId")
 		var marketId *string = this.SafeString(info, "marketId")
 		var key any = ccxt.Add(ccxt.Add(networkId, ":"), marketId)
@@ -3795,7 +3820,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
 		var firstOutcome any = ccxt.GetValue(grouped, 0)
-		var info any = this.SafeDict(firstOutcome, "info", map[string]any{})
+		var info map[string]any = ccxt.SafeMapTyped(firstOutcome, "info")
 		promises = append(promises, this.MyriadPublicGetMarketsId(this.Extend(map[string]any{
 			"id":         this.SafeString(info, "marketId"),
 			"network_id": this.SafeString(info, "networkId"),
@@ -4137,10 +4162,15 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
  */
 func (this *Myriad) ParseEvent(rawEvent any) any {
 	var questionSlug *string = this.SafeString(rawEvent, "slug", this.SafeString(rawEvent, "id"))
-	var rawMarkets any = this.SafeList(rawEvent, "markets", []any{})
+	var rawMarkets []any = ccxt.SafeListTyped(rawEvent, "markets")
 	var marketsList []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
-		var rawMarket any = ccxt.GetValue(rawMarkets, i)
+	for i := 0; i < len(rawMarkets); i++ {
+		var rawMarket any = func() any {
+			if i >= 0 && i < len(rawMarkets) {
+				return ccxt.DerefScalar(rawMarkets[i])
+			}
+			return nil
+		}()
 		marketsList = append(marketsList, this.ParseMyriadMarket(rawMarket, questionSlug))
 	}
 	var endDate *string = this.SafeString(rawEvent, "expiresAt", this.SafeString(rawEvent, "endDate"))

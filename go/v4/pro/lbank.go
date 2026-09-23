@@ -269,7 +269,7 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 		var messageHash any = ccxt.Add("fetchOHLCV:"+*symbol+":", timeframeId)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	} else {
-		var rawOHLCV any = this.SafeDict(message, "kbar", map[string]any{})
+		var rawOHLCV map[string]any = ccxt.SafeMapTyped(message, "kbar")
 		var timeframeId *string = this.SafeString(rawOHLCV, "slot")
 		var datetime *string = this.SafeString(rawOHLCV, "t")
 		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
@@ -590,9 +590,14 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var rawTrade any = this.SafeValue(message, "trade")
-	var rawTrades any = this.SafeList(message, "trades", []any{rawTrade})
-	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
-		var trade any = this.ParseWsTrade(ccxt.GetValue(rawTrades, i), market)
+	var rawTrades []any = ccxt.SafeListTypedDefault(message, "trades", []any{rawTrade})
+	for i := 0; i < len(rawTrades); i++ {
+		var trade any = this.ParseWsTrade(func() any {
+			if i >= 0 && i < len(rawTrades) {
+				return ccxt.DerefScalar(rawTrades[i])
+			}
+			return nil
+		}(), market)
 		ccxt.AddElementToObject(trade, "symbol", symbol)
 		stored.(ccxt.Appender).Append(trade)
 	}
@@ -1095,7 +1100,7 @@ func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var snapshot any = this.ParseOrderBook(orderBook, symbol, timestamp, "bids", "asks")
+	var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "bids", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash any = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

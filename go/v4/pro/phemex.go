@@ -943,7 +943,7 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 	} else {
 		if ccxt.InOp(this.Orderbooks, symbol) {
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-			var changes any = this.SafeDict2(message, "book", "orderbook_p", map[string]any{})
+			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
 			var asks any = this.SafeList(changes, "asks", []any{})
 			var bids any = this.SafeList(changes, "bids", []any{})
 			this.CustomHandleDeltas(ccxt.GetValue(orderbook, "asks"), asks, market)

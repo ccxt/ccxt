@@ -4728,7 +4728,7 @@ func (this *Bitget) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 		}
 		var maxNotional *float64 = this.SafeNumberN(item, []any{"endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue"})
 		var marginCurrency *string = this.SafeString2(item, "coin", "baseCoin")
-		var currencyId any = func() any {
+		var currencyId *string = func() *string {
 			if marginCurrency != nil {
 				return marginCurrency
 			}
@@ -6276,7 +6276,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 			AddElementToObject(request, "limit", limit)
 		}
 	}
-	var options any = this.SafeDict(this.Options, "fetchTrades", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchTrades")
 	var response any = nil
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
@@ -13151,16 +13151,26 @@ func (this *Bitget) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var data any = this.SafeList2(interest, "openInterestList", "list", []any{})
+	var data []any = SafeList2Typed(interest, "openInterestList", "list")
 	var timestamp *int64 = this.SafeInteger(interest, "ts")
-	var marketId *string = this.SafeString(GetValue(data, 0), "symbol")
+	var marketId *string = this.SafeString(func() any {
+		if 0 >= 0 && 0 < len(data) {
+			return DerefScalar(data[0])
+		}
+		return nil
+	}(), "symbol")
 	return this.SafeOpenInterest(map[string]any{
-		"symbol":             this.SafeSymbol(marketId, market, nil, "contract"),
-		"openInterestAmount": this.SafeNumber2(GetValue(data, 0), "size", "openInterest"),
-		"openInterestValue":  nil,
-		"timestamp":          timestamp,
-		"datetime":           this.Iso8601(timestamp),
-		"info":               interest,
+		"symbol": this.SafeSymbol(marketId, market, nil, "contract"),
+		"openInterestAmount": this.SafeNumber2(func() any {
+			if 0 >= 0 && 0 < len(data) {
+				return DerefScalar(data[0])
+			}
+			return nil
+		}(), "size", "openInterest"),
+		"openInterestValue": nil,
+		"timestamp":         timestamp,
+		"datetime":          this.Iso8601(timestamp),
+		"info":              interest,
 	}, market)
 }
 
@@ -13299,7 +13309,7 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
 	}
 	var symbol *string = this.SafeString(params, "symbol")
 	params = this.Omit(params, "symbol")
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -14511,9 +14521,14 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var order any = this.SafeList2(data, "successList", "list", []any{})
+	var order []any = SafeList2Typed(data, "successList", "list")
 
-	ch <- this.ParseOrder(GetValue(order, 0), market)
+	ch <- this.ParseOrder(func() any {
+		if 0 >= 0 && 0 < len(order) {
+			return DerefScalar(order[0])
+		}
+		return nil
+	}(), market)
 	return nil
 }
 

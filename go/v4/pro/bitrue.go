@@ -483,7 +483,7 @@ func (this *Bitrue) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var snapshot any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
+	var snapshot map[string]any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

@@ -1223,7 +1223,7 @@ func (this *Toobit) ParseMarket(market any) any {
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "TRADING")
-	var filters any = this.SafeList(market, "filters", []any{})
+	var filters []any = SafeListTyped(market, "filters")
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 	var lotSizeFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
@@ -3790,7 +3790,7 @@ func (this *Toobit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes316812)
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length > 1 {

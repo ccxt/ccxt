@@ -3621,12 +3621,12 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 	var accountType *string = this.SafeString2(response, "accountType", "type")
 	var isFlex bool = (accountType != nil && *accountType == "multiCollateralMarginAccount")
 	var isCash bool = (accountType != nil && *accountType == "cashAccount")
-	var balances any = this.SafeDict2(response, "balances", "currencies", map[string]any{})
+	var balances map[string]any = SafeDict2Typed(response, "balances", "currencies")
 	var result map[string]any = map[string]any{}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
-		var balance any = GetValue(balances, currencyId)
+		var balance any = balances[currencyId]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code == nil {
 			continue

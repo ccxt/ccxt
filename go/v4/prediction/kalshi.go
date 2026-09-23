@@ -841,7 +841,7 @@ func (this *Kalshi) ParseMarket(raw any) any {
 		seriesTicker = ccxt.Join(seriesParts, "-")
 	}
 	// market symbol (no outcome suffix)
-	var subtitleOrTicker any = func() any {
+	var subtitleOrTicker *string = func() *string {
 		if subtitle != nil {
 			return subtitle
 		}
@@ -3342,10 +3342,15 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan any, optionalArgs ...a
 			}(),
 		}))
 		ccxt.PanicOnError(seriesResponse)
-		var seriesList any = this.SafeList(seriesResponse, "series", []any{})
-		var seriesListLength int = ccxt.GetArrayLength(seriesList)
+		var seriesList []any = ccxt.SafeListTyped(seriesResponse, "series")
+		var seriesListLength int = len(seriesList)
 		for si := 0; si < seriesListLength; si++ {
-			var st *string = this.SafeString(ccxt.GetValue(seriesList, si), "ticker")
+			var st *string = this.SafeString(func() any {
+				if si >= 0 && si < len(seriesList) {
+					return ccxt.DerefScalar(seriesList[si])
+				}
+				return nil
+			}(), "ticker")
 			if st != nil {
 				collected = append(collected, st)
 			}
@@ -3358,10 +3363,15 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan any, optionalArgs ...a
 			"category": category,
 		}))
 		ccxt.PanicOnError(seriesResponse)
-		var seriesList any = this.SafeList(seriesResponse, "series", []any{})
-		var seriesListLength int = ccxt.GetArrayLength(seriesList)
+		var seriesList []any = ccxt.SafeListTyped(seriesResponse, "series")
+		var seriesListLength int = len(seriesList)
 		for si := 0; si < seriesListLength; si++ {
-			var st *string = this.SafeString(ccxt.GetValue(seriesList, si), "ticker")
+			var st *string = this.SafeString(func() any {
+				if si >= 0 && si < len(seriesList) {
+					return ccxt.DerefScalar(seriesList[si])
+				}
+				return nil
+			}(), "ticker")
 			if st != nil {
 				collected = append(collected, st)
 			}

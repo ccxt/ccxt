@@ -1277,9 +1277,14 @@ func (this *Deepcoin) ParseBalance(response any) any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var balances any = this.SafeList(response, "data", []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	var balances []any = SafeListTyped(response, "data")
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var symbol *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account map[string]any = this.Account()
@@ -3025,7 +3030,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var request map[string]any = map[string]any{
 		"OrderSysID": id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		if GetValue(market, "spot") == true {

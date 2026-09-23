@@ -847,7 +847,7 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message any, channel any) {
 		}
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 		var timestamp *int64 = this.SafeInteger(entry, "t")
-		var snapshot any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
+		var snapshot map[string]any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
@@ -1595,7 +1595,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeDict(this.Options, "ws", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var listenKey *string = this.SafeString(options, "listenKey")
 	if listenKey == nil {
 

@@ -206,10 +206,15 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var eventsLength int = ccxt.GetArrayLength(events)
 		var queryMarkets []any = []any{}
 		for ei := 0; ei < eventsLength; ei++ {
-			var eventMarkets any = this.SafeList(ccxt.GetValue(events, ei), "markets", []any{})
-			var eventMarketsLength int = ccxt.GetArrayLength(eventMarkets)
+			var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
+			var eventMarketsLength int = len(eventMarkets)
 			for mi := 0; mi < eventMarketsLength; mi++ {
-				queryMarkets = append(queryMarkets, ccxt.GetValue(eventMarkets, mi))
+				queryMarkets = append(queryMarkets, func() any {
+					if mi >= 0 && mi < len(eventMarkets) {
+						return ccxt.DerefScalar(eventMarkets[mi])
+					}
+					return nil
+				}())
 			}
 		}
 
@@ -227,10 +232,15 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < rawTopicsLength; i++ {
 		var parsedEvent any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
 		parsedEvents = append(parsedEvents, parsedEvent)
-		var eventMarkets any = this.SafeList(parsedEvent, "markets", []any{})
-		var eventMarketsLength int = ccxt.GetArrayLength(eventMarkets)
+		var eventMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
+		var eventMarketsLength int = len(eventMarkets)
 		for mi := 0; mi < eventMarketsLength; mi++ {
-			flatMarkets = append(flatMarkets, ccxt.GetValue(eventMarkets, mi))
+			flatMarkets = append(flatMarkets, func() any {
+				if mi >= 0 && mi < len(eventMarkets) {
+					return ccxt.DerefScalar(eventMarkets[mi])
+				}
+				return nil
+			}())
 		}
 	}
 	this.SetEvents(parsedEvents)
@@ -317,10 +327,15 @@ func (this *Binance) fetchRawTopicsBody(ch chan any, maxTopics any, optionalArgs
 		//         "hasMore": true
 		//     }
 		//
-		var pageTopics any = this.SafeList(response, "marketTopics", []any{})
-		var pageTopicsLength int = ccxt.GetArrayLength(pageTopics)
+		var pageTopics []any = ccxt.SafeListTyped(response, "marketTopics")
+		var pageTopicsLength int = len(pageTopics)
 		for i := 0; i < pageTopicsLength; i++ {
-			collected = append(collected, ccxt.GetValue(pageTopics, i))
+			collected = append(collected, func() any {
+				if i >= 0 && i < len(pageTopics) {
+					return ccxt.DerefScalar(pageTopics[i])
+				}
+				return nil
+			}())
 		}
 		var hasMore *bool = this.SafeBool(response, "hasMore", false)
 		if (hasMore == nil || *hasMore != true) || (ccxt.IsLessThan(pageTopicsLength, reqLimit)) {
@@ -387,8 +402,8 @@ func (this *Binance) completeRawTopicsBody(ch chan any, rawTopics any) any {
 		var hasOutcomes bool = false
 		if rawMarketsLength > 0 {
 			var firstMarket map[string]any = ccxt.SafeMapTyped(rawMarkets, 0)
-			var firstOutcomes any = this.SafeList(firstMarket, "outcomes", []any{})
-			var firstOutcomesLength int = ccxt.GetArrayLength(firstOutcomes)
+			var firstOutcomes []any = ccxt.SafeListTyped(firstMarket, "outcomes")
+			var firstOutcomesLength int = len(firstOutcomes)
 			hasOutcomes = (firstOutcomesLength > 0)
 		}
 		if hasOutcomes {
@@ -517,10 +532,15 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < rawTopicsLength; i++ {
 		var parsedEvent any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
 		result = append(result, parsedEvent)
-		var parsedMarkets any = this.SafeList(parsedEvent, "markets", []any{})
-		var parsedMarketsLength int = ccxt.GetArrayLength(parsedMarkets)
+		var parsedMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
+		var parsedMarketsLength int = len(parsedMarkets)
 		for mi := 0; mi < parsedMarketsLength; mi++ {
-			var m any = ccxt.GetValue(parsedMarkets, mi)
+			var m any = func() any {
+				if mi >= 0 && mi < len(parsedMarkets) {
+					return ccxt.DerefScalar(parsedMarkets[mi])
+				}
+				return nil
+			}()
 			// prediction market rows are keyed by the unified 'market' handle
 			var handle *string = this.SafeString(m, "market")
 			if handle != nil {
@@ -678,12 +698,17 @@ func (this *Binance) ParseEvent(rawTopic any) any {
 	//         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
 	//     }
 	//
-	var rawMarkets any = this.SafeList(rawTopic, "markets", []any{})
+	var rawMarkets []any = ccxt.SafeListTyped(rawTopic, "markets")
 	var marketsList []any = []any{}
 	var anyActive bool = false
-	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var parsed any = this.ParseTopicMarket(ccxt.GetValue(rawMarkets, i), rawTopic)
+		var parsed any = this.ParseTopicMarket(func() any {
+			if i >= 0 && i < len(rawMarkets) {
+				return ccxt.DerefScalar(rawMarkets[i])
+			}
+			return nil
+		}(), rawTopic)
 		marketsList = append(marketsList, parsed)
 		if this.SafeBool(parsed, "active", false) != nil && *this.SafeBool(parsed, "active", false) {
 			anyActive = true
@@ -783,12 +808,17 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	}
 	var volume *float64 = this.SafeNumber(rawMarket, "tradeVolume")
 	var liquidity *float64 = this.SafeNumber(rawMarket, "liquidity")
-	var rawOutcomes any = this.SafeList(rawMarket, "outcomes", []any{})
+	var rawOutcomes []any = ccxt.SafeListTyped(rawMarket, "outcomes")
 	var outcomes []any = []any{}
 	var resolvedOutcomeRaw any = nil
-	var rawOutcomesLength int = ccxt.GetArrayLength(rawOutcomes)
+	var rawOutcomesLength int = len(rawOutcomes)
 	for oi := 0; oi < rawOutcomesLength; oi++ {
-		var rawOutcome any = ccxt.GetValue(rawOutcomes, oi)
+		var rawOutcome any = func() any {
+			if oi >= 0 && oi < len(rawOutcomes) {
+				return ccxt.DerefScalar(rawOutcomes[oi])
+			}
+			return nil
+		}()
 		var label *string = this.SafeStringUpper(rawOutcome, "name")
 		var tokenId *string = this.SafeString(rawOutcome, "tokenId")
 		var outcomeHandle any = ccxt.Add(ccxt.Add(marketSymbol, ":"), label)
@@ -1110,7 +1140,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var orderbook any = this.ParseOrderBook(response, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
+	var orderbook map[string]any = this.ParseOrderBook(response, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
 
 	ch <- this.SafePredictionOrderBook(orderbook, outcomeObj)
 	return nil
@@ -2067,7 +2097,7 @@ func (this *Binance) fetchQuoteBody(ch chan any, request any, optionalArgs ...an
 	return nil
 }
 func (this *Binance) PriceToPrecision(outcome any, price any) any {
-	var market any = this.Market(outcome)
+	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4
 	if (prec != nil) && (*prec > 0) {
@@ -2076,7 +2106,7 @@ func (this *Binance) PriceToPrecision(outcome any, price any) any {
 	return this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
 }
 func (this *Binance) AmountToPrecision(outcome any, amount any) any {
-	var market any = this.Market(outcome)
+	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.01)
 	var decimals int = 2
 	if (prec != nil) && (*prec > 0) {

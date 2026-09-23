@@ -1826,7 +1826,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 	PanicOnError(response)
 	var currencies map[string]any = SafeMapTyped(response, "currencies")
 	var exchangeRates map[string]any = SafeMapTyped(response, "exchangeRates")
-	var data any = this.SafeList(currencies, "data", []any{})
+	var data []any = SafeListTyped(currencies, "data")
 	var dataById map[string]any = this.IndexBy(data, "id")
 	var rates map[string]any = SafeMapTyped(this.SafeDict(exchangeRates, "data", map[string]any{}), "rates")
 	var baseIds []string = ObjectKeys(rates)
@@ -1842,8 +1842,13 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 		}()
 		// https://github.com/ccxt/ccxt/issues/6066
 		if typeVar == "crypto" {
-			for j := 0; j < GetArrayLength(data); j++ {
-				var quoteCurrency any = GetValue(data, j)
+			for j := 0; j < len(data); j++ {
+				var quoteCurrency any = func() any {
+					if j >= 0 && j < len(data) {
+						return DerefScalar(data[j])
+					}
+					return nil
+				}()
 				var quoteId *string = this.SafeString(quoteCurrency, "id")
 				var quote *string = this.SafeCurrencyCode(quoteId)
 				result = append(result, this.SafeMarketStructure(map[string]any{
@@ -3121,14 +3126,19 @@ func (this *Coinbase) ParseTicker(ticker any, optionalArgs ...any) any {
 func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var balances any = this.SafeList2(response, "data", "accounts", []any{})
+	var balances []any = SafeList2Typed(response, "data", "accounts")
 	var accounts any = this.SafeList(params, "type", GetValue(this.Options, "accounts"))
 	var v3Accounts any = this.SafeList(params, "type", GetValue(this.Options, "v3Accounts"))
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for b := 0; b < GetArrayLength(balances); b++ {
-		var balance any = GetValue(balances, b)
+	for b := 0; b < len(balances); b++ {
+		var balance any = func() any {
+			if b >= 0 && b < len(balances) {
+				return DerefScalar(balances[b])
+			}
+			return nil
+		}()
 		var typeVar *string = this.SafeString(balance, "type")
 		if this.InArray(typeVar, accounts) {
 			var value any = this.SafeDict(balance, "balance")

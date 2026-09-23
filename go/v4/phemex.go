@@ -1303,7 +1303,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	v2Productsv1ProductsVariable := (<-promiseAll([]any{v2ProductsPromise, v1ProductsPromise}))
 	v2Products := GetValue(v2Productsv1ProductsVariable, 0)
 	v1Products := GetValue(v2Productsv1ProductsVariable, 1)
-	var v1ProductsData any = this.SafeList(v1Products, "data", []any{})
+	var v1ProductsData []any = SafeListTyped(v1Products, "data")
 	//
 	//     {
 	//         "code":0,
@@ -1346,7 +1346,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var riskLimits any = this.SafeList(v2ProductsData, "riskLimits", []any{})
 	var riskLimitsV2 any = this.SafeList(v2ProductsData, "riskLimitsV2", []any{})
 	riskLimits = this.ArrayConcat(riskLimits, riskLimitsV2)
-	var currencies any = this.SafeList(v2ProductsData, "currencies", []any{})
+	var currencies []any = SafeListTyped(v2ProductsData, "currencies")
 	var riskLimitsById map[string]any = this.IndexBy(riskLimits, "symbol")
 	var v1ProductsById map[string]any = this.IndexBy(v1ProductsData, "symbol")
 	var currenciesByCode map[string]any = this.IndexBy(currencies, "currency")

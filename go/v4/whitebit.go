@@ -1906,7 +1906,7 @@ func (this *Whitebit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -2050,8 +2050,8 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var symbol any = GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			if GetValue(market, "contract") != true {
+			var market map[string]any = this.Market(symbol)
+			if market["contract"] != true {
 				onlyContractSymbols = false
 				break
 			}
@@ -3219,7 +3219,7 @@ func (this *Whitebit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.V4PrivatePostCollateralAccountBalance(params))
 		PanicOnError(response)
 	} else {
-		var options any = this.SafeDict(this.Options, "fetchBalance", map[string]any{})
+		var options map[string]any = SafeMapTyped(this.Options, "fetchBalance")
 		var defaultAccount *string = this.SafeString(options, "account")
 		var account *string = this.SafeString2(params, "account", "type", defaultAccount)
 		params = this.Omit(params, []any{"account", "type"})
@@ -3364,7 +3364,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes251512)
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
@@ -5671,11 +5671,16 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 				var errorsLength int = len(errorKeys)
 				if errorsLength > 0 {
 					var errorKey any = GetValue(errorKeys, 0)
-					var errorMessageArray any = this.SafeList(errorObject, errorKey, []any{})
-					var errorMessageLength int = GetArrayLength(errorMessageArray)
+					var errorMessageArray []any = SafeListTyped(errorObject, errorKey)
+					var errorMessageLength int = len(errorMessageArray)
 					errorInfo = func() any {
 						if errorMessageLength > 0 {
-							return GetValue(errorMessageArray, 0)
+							return func() any {
+								if 0 >= 0 && 0 < len(errorMessageArray) {
+									return DerefScalar(errorMessageArray[0])
+								}
+								return nil
+							}()
 						}
 						return body
 					}()
@@ -5694,11 +5699,16 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 			var errorInfo any = body
 			if errKeysLength > 0 {
 				var errorKey any = GetValue(errKeys, 0)
-				var errorMessageArray any = this.SafeList(errMsg, errorKey, []any{})
-				var errorMessageLength int = GetArrayLength(errorMessageArray)
+				var errorMessageArray []any = SafeListTyped(errMsg, errorKey)
+				var errorMessageLength int = len(errorMessageArray)
 				errorInfo = func() any {
 					if errorMessageLength > 0 {
-						return GetValue(errorMessageArray, 0)
+						return func() any {
+							if 0 >= 0 && 0 < len(errorMessageArray) {
+								return DerefScalar(errorMessageArray[0])
+							}
+							return nil
+						}()
 					}
 					return body
 				}()

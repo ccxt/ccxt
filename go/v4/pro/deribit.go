@@ -562,14 +562,19 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	var interval *string = this.SafeString(parts, 2)
 	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.SafeMarket(marketId)
-	var trades any = this.SafeList(params, "data", []any{})
+	var trades []any = ccxt.SafeListTyped(params, "data")
 	if ccxt.IsEqual(this.SafeDict(this.Trades, symbol), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
 	}
 	var stored any = ccxt.GetValue(this.Trades, symbol)
-	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-		var trade any = ccxt.GetValue(trades, i)
+	for i := 0; i < len(trades); i++ {
+		var trade any = func() any {
+			if i >= 0 && i < len(trades) {
+				return ccxt.DerefScalar(trades[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -1203,7 +1208,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 			panic(ccxt.ArgumentsRequired(this.Id + " watchMultipleWrapper() symbolsArray is required"))
 		}
 		var current any = ccxt.GetValue(symbolsArray, i)
-		var market any = nil
+		var market map[string]any = nil
 		if isOHLCV {
 			market = this.Market(ccxt.GetValue(current, 0))
 			var unifiedTf any = ccxt.GetValue(current, 1)

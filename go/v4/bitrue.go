@@ -1106,7 +1106,7 @@ func (this *Bitrue) ParseMarket(market any) any {
 	if settle != nil {
 		symbol = Add(symbol, Add(":", settle))
 	}
-	var filters any = this.SafeList(market, "filters", []any{})
+	var filters []any = SafeListTyped(market, "filters")
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var status *string = this.SafeString(market, "status")
 	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
@@ -1227,9 +1227,14 @@ func (this *Bitrue) ParseBalance(response any) any {
 		"info": response,
 	}
 	var timestamp *int64 = this.SafeInteger(response, "updateTime")
-	var balances any = this.SafeList2(response, "balances", "account", []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	var balances []any = SafeList2Typed(response, "balances", "account")
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString2(balance, "asset", "marginCoin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1396,8 +1401,8 @@ func (this *Bitrue) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger2(response, "time", "lastUpdateId")
-	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
+	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
+	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
 
 	ch <- orderbook
 	return nil
@@ -1840,10 +1845,10 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
-		var market any = this.Market(first)
-		if GetValue(market, "swap") == true {
+		var market map[string]any = this.Market(first)
+		if market["swap"] == true {
 			panic(NotSupported(this.Id + " fetchTickers does not support swap markets, please use fetchTicker instead"))
-		} else if GetValue(market, "spot") == true {
+		} else if market["spot"] == true {
 
 			response = (<-this.SpotV1PublicGetTicker24hr(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2345,7 +2350,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
 				var quoteAmount *string = Precise.StringMul(amountString, priceString)
-				var requestAmount any = func() any {
+				var requestAmount *string = func() *string {
 					if cost != nil {
 						return cost
 					}

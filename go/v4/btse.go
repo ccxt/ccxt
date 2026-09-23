@@ -1386,8 +1386,8 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
 			var requestedSymbol *string = this.SafeString(symbols, 0)
-			var market any = this.Market(requestedSymbol)
-			request["symbol"] = GetValue(market, "id")
+			var market map[string]any = this.Market(requestedSymbol)
+			request["symbol"] = market["id"]
 		}
 	}
 

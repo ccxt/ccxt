@@ -61,7 +61,7 @@ func (this *Derive) Describe() any {
 	})
 }
 func (this *Derive) RequestId(url any) any {
-	var options any = this.SafeDict(this.Options, "requestId", map[string]any{})
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue any = this.Sum(previousValue, 1)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
@@ -177,7 +177,7 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
-	var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
+	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 }
@@ -769,7 +769,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 				this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 			}
 			var cachedOrders any = this.Orders
-			var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+			var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 			var order any = func() any {
 				if orderId == nil {
 					return nil

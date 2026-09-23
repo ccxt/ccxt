@@ -298,7 +298,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var options any = this.SafeDict(this.Options, "watchOrderBook")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var defaultMethod *string = this.SafeString(options, "method", "orderbook/full")
 	var name any = ccxt.DerefScalar(this.SafeString2(params, "method", "defaultMethod", defaultMethod))
 	var depth *string = this.SafeString(params, "depth", "20")
@@ -346,7 +346,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 	//    }
 	//
 	var snapshot any = this.SafeDict(message, "snapshot")
-	var data any = this.SafeDict2(message, "snapshot", "update", map[string]any{})
+	var data map[string]any = ccxt.SafeDict2Typed(message, "snapshot", "update")
 	var typeVar string = func() string {
 		if !ccxt.IsEqual(snapshot, nil) && !ccxt.IsEqual(snapshot, nil) {
 			return "snapshot"
@@ -358,7 +358,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 		var symbol any = market["symbol"]
-		var item any = ccxt.GetValue(data, marketId)
+		var item any = data[marketId]
 		var messageHash any = ccxt.Add("orderbooks::", symbol)
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -369,7 +369,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
 		if typeVar == "snapshot" {
-			var parsedSnapshot any = this.ParseOrderBook(item, symbol, timestamp, "b", "a")
+			var parsedSnapshot map[string]any = this.ParseOrderBook(item, symbol, timestamp, "b", "a")
 			orderbook.(ccxt.OrderBookInterface).Reset(parsedSnapshot)
 		} else {
 			var asks any = this.SafeList(item, "a", []any{})
@@ -456,7 +456,7 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes35412)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var options any = this.SafeDict(this.Options, "watchTicker")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var speed *string = this.SafeString(params, "speed", "1s")
@@ -638,7 +638,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes51512)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var options any = this.SafeDict(this.Options, "watchBidsAsks")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBidsAsks")
 	var defaultMethod *string = this.SafeString(options, "method", "orderbook/top/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var speed *string = this.SafeString(params, "speed", "100ms")
@@ -811,7 +811,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict2(message, "snapshot", "update", map[string]any{})
+	var data map[string]any = ccxt.SafeDict2Typed(message, "snapshot", "update")
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
@@ -823,7 +823,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 			stored = ccxt.NewArrayCache(tradesLimit)
 			ccxt.AddElementToObject(this.Trades, symbol, stored)
 		}
-		var trades any = this.ParseWsTrades(ccxt.GetValue(data, marketId), market)
+		var trades any = this.ParseWsTrades(data[marketId], market)
 		for j := 0; j < ccxt.GetArrayLength(trades); j++ {
 			stored.(ccxt.Appender).Append(ccxt.GetValue(trades, j))
 		}
@@ -969,7 +969,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict2(message, "snapshot", "update", map[string]any{})
+	var data map[string]any = ccxt.SafeDict2Typed(message, "snapshot", "update")
 	var marketIds []string = ccxt.ObjectKeys(data)
 	var channel *string = this.SafeString(message, "ch", "")
 	var splitChannel []string = ccxt.Split(channel, "/")
@@ -989,7 +989,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
-		var ohlcvs any = this.ParseWsOHLCVs(ccxt.GetValue(data, marketId), market)
+		var ohlcvs any = this.ParseWsOHLCVs(data[marketId], market)
 		for j := 0; j < ccxt.GetArrayLength(ohlcvs); j++ {
 			stored.(ccxt.Appender).Append(ccxt.GetValue(ohlcvs, j))
 		}

@@ -453,7 +453,7 @@ func (this *Xt) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) an
 		ccxt.PanicOnError(retRes31412)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var options any = this.SafeDict(this.Options, "watchTicker")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var name any = ccxt.Add(*method+"@", market["id"])
@@ -491,7 +491,7 @@ func (this *Xt) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		ccxt.PanicOnError(retRes33712)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var options any = this.SafeDict(this.Options, "unWatchTicker")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "unWatchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var name any = ccxt.Add(*method+"@", market["id"])
@@ -531,7 +531,7 @@ func (this *Xt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes36112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes36112)
 	}
-	var options any = this.SafeDict(this.Options, "watchTickers")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
 	var market any = nil
@@ -579,7 +579,7 @@ func (this *Xt) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes39012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes39012)
 	}
-	var options any = this.SafeDict(this.Options, "unWatchTickers")
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "unWatchTickers")
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
 	if symbols != nil {

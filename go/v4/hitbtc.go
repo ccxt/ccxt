@@ -1496,7 +1496,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes130612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes130612)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3699,7 +3699,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		ch <- retRes296519
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("until", request, params)
 	request = GetValue(requestparamsVariable, 0)

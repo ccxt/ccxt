@@ -1198,8 +1198,8 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger2(data, "timestamp_ms", "timestamp")
 	var incrementalId *int64 = this.SafeInteger(data, "id")
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
-	var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
-	ccxt.AddElementToObject(snapshot, "nonce", incrementalId)
+	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
+	snapshot["nonce"] = incrementalId
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "orderbook"), symbol, map[string]any{
 		"incrementalId": incrementalId,

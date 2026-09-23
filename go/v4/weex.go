@@ -1262,12 +1262,12 @@ func (this *Weex) ParseMarket(market any) any {
 		amountPrecision = this.ParseNumber(amountPrecisionString)
 		pricePrecision = this.ParseNumber(pricePrecisionString)
 	}
-	var fees any = this.SafeDict(this.Fees, func() string {
+	var fees map[string]any = SafeMapTyped(this.Fees, func() string {
 		if isSpot {
 			return "spot"
 		}
 		return "contract"
-	}(), map[string]any{})
+	}())
 	if id == nil {
 		panic(ExchangeError(this.Id + " method() missing id"))
 	}
@@ -1299,7 +1299,7 @@ func (this *Weex) ParseMarket(market any) any {
 		"inverse":        isInverse,
 		"taker":          this.SafeNumber(market, "takerFeeRate"),
 		"maker":          this.SafeNumber(market, "makerFeeRate"),
-		"feeSide":        GetValue(fees, "feeSide"),
+		"feeSide":        fees["feeSide"],
 		"contractSize":   this.SafeNumber(market, "contractVal"),
 		"expiry":         nil,
 		"expiryDatetime": nil,
@@ -1328,9 +1328,9 @@ func (this *Weex) ParseMarket(market any) any {
 			},
 		},
 		"created":    nil,
-		"percentage": GetValue(fees, "percentage"),
-		"tierBased":  GetValue(fees, "tierBased"),
-		"tiers":      GetValue(fees, "tiers"),
+		"percentage": fees["percentage"],
+		"tierBased":  fees["tierBased"],
+		"tiers":      fees["tiers"],
 		"info":       market,
 	})
 }
@@ -1835,8 +1835,8 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//         "lastUpdateId": 14138610208
 	//     }
 	//
-	var orderbook any = this.ParseOrderBook(response, symbol)
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
+	var orderbook map[string]any = this.ParseOrderBook(response, symbol)
+	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
 
 	ch <- orderbook
 	return nil

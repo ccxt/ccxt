@@ -1636,7 +1636,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var matches []any = SafeListTyped(response, "matches")
-	var txs any = this.SafeList(response, "txs", []any{})
+	var txs []any = SafeListTyped(response, "txs")
 	var txsBySubmission map[string]any = this.IndexBy(txs, "submission_idx")
 	var trades []any = []any{}
 	for i := 0; i < len(matches); i++ {
@@ -2214,7 +2214,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteAsset map[string]any = SafeMapTyped(assetsByCode, quote)
 		var baseId *string = this.SafeString(baseAsset, "product_id", rawBaseId)
 		var quoteId *string = this.SafeString(quoteAsset, "product_id", rawQuoteId)
-		var settleId any = func() any {
+		var settleId *string = func() *string {
 			if contract {
 				return quoteId
 			}
@@ -3640,7 +3640,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		price = this.ParseX18(this.SafeString(order, "price_x18"))
 		status = DerefScalar(this.SafeString(order, "status", "open"))
 	} else {
-		var placeOrder any = this.SafeDict2(order, "place_order", "order", map[string]any{})
+		var placeOrder map[string]any = SafeDict2Typed(order, "place_order", "order")
 		var rawOrder map[string]any = SafeMapTyped(placeOrder, "order")
 		var marketId *string = this.SafeString(placeOrder, "product_id")
 		market = this.SafeMarket(marketId, market)

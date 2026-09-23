@@ -893,7 +893,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var symbol any = Add(Add(base, "/"), quote)
-		var filters any = this.SafeList(market, "filters", []any{})
+		var filters []any = SafeListTyped(market, "filters")
 		var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 		var status *string = this.SafeString(market, "spotTradingEnable")
 		var active bool = (status != nil && *status == "1")
@@ -963,7 +963,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"info":    market,
 		}
 		if func() bool { _, ok := filtersByType["PRICE_FILTER"]; return ok }() {
-			var filter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
+			var filter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 			AddElementToObject(entry["precision"], "price", this.SafeNumber(filter, "tickSize"))
 			// PRICE_FILTER reports zero values for maxPrice
 			// since they updated filter types in November 2018
@@ -973,10 +973,10 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				"min": this.SafeNumber(filter, "minPrice"),
 				"max": this.SafeNumber(filter, "maxPrice"),
 			})
-			AddElementToObject(entry["precision"], "price", GetValue(filter, "tickSize"))
+			AddElementToObject(entry["precision"], "price", filter["tickSize"])
 		}
 		if func() bool { _, ok := filtersByType["LOT_SIZE"]; return ok }() {
-			var filter any = this.SafeDict(filtersByType, "LOT_SIZE", map[string]any{})
+			var filter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 			AddElementToObject(entry["precision"], "amount", this.SafeNumber(filter, "stepSize"))
 			AddElementToObject(entry["limits"], "amount", map[string]any{
 				"min": this.SafeNumber(filter, "minQty"),
@@ -984,14 +984,14 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			})
 		}
 		if func() bool { _, ok := filtersByType["MARKET_LOT_SIZE"]; return ok }() {
-			var filter any = this.SafeDict(filtersByType, "MARKET_LOT_SIZE", map[string]any{})
+			var filter map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
 			AddElementToObject(entry["limits"], "market", map[string]any{
 				"min": this.SafeNumber(filter, "minQty"),
 				"max": this.SafeNumber(filter, "maxQty"),
 			})
 		}
 		if func() bool { _, ok := filtersByType["MIN_NOTIONAL"]; return ok }() {
-			var filter any = this.SafeDict(filtersByType, "MIN_NOTIONAL", map[string]any{})
+			var filter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
 			AddElementToObject(GetValue(entry["limits"], "cost"), "min", this.SafeNumber2(filter, "minNotional", "notional"))
 		}
 		result = append(result, entry)
@@ -1076,8 +1076,8 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	//     }
 	var data any = this.SafeDict(response, "data", response)
 	var timestamp *int64 = this.SafeInteger2(response, "T", "timestamp")
-	var orderbook any = this.ParseOrderBook(data, symbol, timestamp)
-	AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "lastUpdateId"))
+	var orderbook map[string]any = this.ParseOrderBook(data, symbol, timestamp)
+	orderbook["nonce"] = this.SafeInteger(data, "lastUpdateId")
 
 	ch <- orderbook
 	return nil
@@ -2100,7 +2100,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 		retRes182012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes182012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId")
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	// only supported for spot/margin api
@@ -2119,7 +2119,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 			uppercaseType = "STOP_LOSS_LIMIT"
 		}
 	}
-	var validOrderTypes any = this.SafeValue(GetValue(market, "info"), "orderTypes")
+	var validOrderTypes any = this.SafeValue(market["info"], "orderTypes")
 	if !this.InArray(uppercaseType, validOrderTypes) {
 		if initialUppercaseType != uppercaseType {
 			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeVar), " orders")))
@@ -2137,7 +2137,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 		"LIMIT_MAKER":       7,
 	}
 	var request map[string]any = map[string]any{
-		"symbol": Add(Add(GetValue(market, "baseId"), "_"), GetValue(market, "quoteId")),
+		"symbol": Add(Add(market["baseId"], "_"), market["quoteId"]),
 		"type":   this.SafeString(reverseOrderTypeMapping, uppercaseType),
 	}
 	if IsEqual(side, "buy") {
@@ -2173,7 +2173,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	//
 	if uppercaseType == "MARKET" {
 		if IsEqual(side, "buy") {
-			var precision any = GetValue(GetValue(market, "precision"), "price")
+			var precision any = GetValue(market["precision"], "price")
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice any = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
@@ -2204,7 +2204,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	} else if (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT") {
 		triggerPriceIsRequired = true
 		quantityIsRequired = true
-		if (GetValue(market, "linear") == true) || (GetValue(market, "inverse") == true) {
+		if (market["linear"] == true) || (market["inverse"] == true) {
 			priceIsRequired = true
 		}
 	} else if (uppercaseType == "STOP_LOSS_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
