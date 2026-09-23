@@ -1952,32 +1952,6 @@ function venueReturnCast (printer, node, method, javaType) {
     return '(' + javaType + ')';
 }
 
-// `this.omit (<Dict>, keys)`: Functions.omit answers a fresh LinkedHashMap for a map input,
-// null for null, and hands a List back only for a list input the TS type excludes
-function omitMapLocalType (printer, call, name) {
-    if (name !== 'omit' || call.arguments.length !== 2) {
-        return undefined;
-    }
-    const file = resolvedSignatureFile (printer, call);
-    if (file === undefined || !HELPER_SOURCE_FILE.test (file)) {
-        return undefined;
-    }
-    let type;
-    try {
-        type = printer.getChecker ().getTypeAtLocation (call.arguments[0]);
-    } catch (e) {
-        return undefined;
-    }
-    if (type?.isUnion?.()) {
-        const parts = type.types.filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
-        type = parts.length === 1 ? parts[0] : undefined;
-    }
-    if (typeof printer.isJavaMapStructureType !== 'function' || !printer.isJavaMapStructureType (type)) {
-        return undefined;
-    }
-    return { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')', noCastAssertions: true };
-}
-
 // `this.omitZero (<String>)` binds the hand-written `String omitZero (String)` overload
 function omitZeroStringLocalType (printer, call, name) {
     if (name !== 'omitZero' || call.arguments.length !== 1
@@ -2669,10 +2643,6 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     if (venue !== undefined) {
         return { type: venue };
     }
-    const omitMap = asserted ? undefined : omitMapLocalType (printer, initializer, name);
-    if (omitMap !== undefined) {
-        return omitMap;
-    }
     const omitZero = asserted ? undefined : omitZeroStringLocalType (printer, initializer, name);
     if (omitZero !== undefined) {
         return omitZero;
@@ -2791,8 +2761,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
             }
             if (javaType === JAVA_STRUCTURE_TYPE) {
                 return (STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name))
-                    || safeDictLocalType (printer, node, name) !== undefined
-                    || omitMapLocalType (printer, node, name) !== undefined;
+                    || safeDictLocalType (printer, node, name) !== undefined;
             }
             if (javaType === 'String') {
                 if (name === 'parse8601') {
@@ -5552,7 +5521,7 @@ export function installJavaLocalTypes (transpiler) {
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType
                 && !JAVA_STRING_RETURN_METHODS_CAST.has (call))
             || (javaType === JAVA_STRUCTURE_TYPE && (STRUCTURE_THIS_RETURN_TYPES[call] !== undefined
-                || call === 'omit' || SAFE_DICT_ACCESSORS.has (call)))
+                || SAFE_DICT_ACCESSORS.has (call)))
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'));
         // SS-01: the safeStringUpper/Lower family dropped out of this list — those calls
         // are declared `String` in the hand-written base now, so a write to a String local
