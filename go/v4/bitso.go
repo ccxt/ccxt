@@ -392,11 +392,11 @@ func (this *Bitso) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Bitso) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -932,7 +932,7 @@ func (this *Bitso) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "change_24":"-105.64"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "created_at"))
@@ -1037,7 +1037,7 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1157,7 +1157,7 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) any {
 	//          "maker_side": "sell"
 	//      }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "created_at"))
 	var marketId *string = this.SafeString(trade, "book")
@@ -1235,9 +1235,9 @@ func (this *Bitso) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any 
 func (this *Bitso) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1369,9 +1369,9 @@ func (this *Bitso) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit int64 = GetArgInt64(optionalArgs, 2, 25)
 	_ = limit
@@ -1431,7 +1431,7 @@ func (this *Bitso) CreateOrderAsync(symbol any, typeVar any, side any, amount an
 func (this *Bitso) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1528,7 +1528,7 @@ func (this *Bitso) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any {
 func (this *Bitso) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1629,7 +1629,7 @@ func (this *Bitso) ParseOrder(order any, optionalArgs ...any) any {
 	// canceledOrder
 	// yWTQGxDMZ0VimZgZ
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id any = nil
 	if IsString(order) {
@@ -1691,9 +1691,9 @@ func (this *Bitso) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit int64 = GetArgInt64(optionalArgs, 2, 25)
 	_ = limit
@@ -1795,7 +1795,7 @@ func (this *Bitso) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any
 func (this *Bitso) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1899,11 +1899,11 @@ func (this *Bitso) FetchDepositsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitso) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2401,10 +2401,10 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString2(transaction, "currency", "asset")
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var details map[string]any = SafeMapTyped(transaction, "details")
 	var datetime *string = this.SafeString(transaction, "created_at")
 	var withdrawalAddress *string = this.SafeString(details, "withdrawal_address")

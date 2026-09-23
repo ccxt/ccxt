@@ -262,7 +262,7 @@ func (this *Coinone) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//         "yesterday_target_volume": "220.09232233"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var last *string = this.SafeString(ticker, "last")
@@ -314,7 +314,7 @@ func (this *Coinone) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Coinone) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -387,7 +387,7 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//         "is_seller_maker": false
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var baseId *string = this.SafeStringUpper(trade, "target_currency")
 	var quoteId *string = this.SafeStringUpper(trade, "quote_currency")
@@ -395,7 +395,7 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	market = this.SafeMarket(symbol, market)
+	market = ccxt.MapTyped(this.SafeMarket(symbol, market))
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side any = nil
 	if isSellerMaker != nil {

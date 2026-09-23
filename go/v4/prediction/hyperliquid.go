@@ -832,7 +832,7 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 	//         "time": 1704290104840
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(raw, "time")
 	// the 2nd arg carries the outcome object (callers pass the resolved outcome)
@@ -1301,7 +1301,7 @@ func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...a
 	// `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
 	// enriched with the current mid price (markPx); hyperliquid does not return the position
 	// value / entry price / pnl for outcome tokens, so they are computed here
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var outcomeObj any = this.SafeOutcome(nil, market)
 	var totalStr *string = this.SafeString(position, "total")
@@ -1487,7 +1487,7 @@ func (this *Hyperliquid) CreateOrderAsync(outcome any, typeVar any, side any, am
 func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	price := ccxt.GetArg(optionalArgs, 0, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1689,7 +1689,7 @@ func (this *Hyperliquid) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan 
 func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1826,7 +1826,7 @@ func (this *Hyperliquid) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -1893,7 +1893,7 @@ func (this *Hyperliquid) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -1982,7 +1982,7 @@ func (this *Hyperliquid) FetchOrderAsync(id any, optionalArgs ...any) <-chan any
 func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2192,9 +2192,9 @@ func (this *Hyperliquid) FetchTradesAsync(outcome any, optionalArgs ...any) <-ch
 func (this *Hyperliquid) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2242,7 +2242,7 @@ func (this *Hyperliquid) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since

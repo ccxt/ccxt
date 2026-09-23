@@ -885,10 +885,10 @@ func (this *Hollaex) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "symbol": "bch-usdt"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(marketId, market, "-")
+	market = MapTyped(this.SafeMarket(marketId, market, "-"))
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.Parse8601(this.SafeString2(ticker, "time", "timestamp"))
 	var close *string = this.SafeString(ticker, "close")
@@ -935,9 +935,9 @@ func (this *Hollaex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -992,10 +992,10 @@ func (this *Hollaex) ParseTrade(trade any, optionalArgs ...any) any {
 	//      "fee_coin":"usdt"
 	//  }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = this.SafeMarket(marketId, market, "-")
+	market = MapTyped(this.SafeMarket(marketId, market, "-"))
 	var symbol any = GetValue(market, "symbol")
 	var datetime *string = this.SafeString(trade, "timestamp")
 	var timestamp *int64 = this.Parse8601(datetime)
@@ -1130,7 +1130,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1350,11 +1350,11 @@ func (this *Hollaex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hollaex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1387,11 +1387,11 @@ func (this *Hollaex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hollaex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1487,11 +1487,11 @@ func (this *Hollaex) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1585,7 +1585,7 @@ func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) any {
 	//          "updated_at":"2022-05-31T08:14:23.727Z"
 	//      }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
@@ -1647,7 +1647,7 @@ func (this *Hollaex) CreateOrderAsync(symbol any, typeVar any, side any, amount 
 func (this *Hollaex) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1777,7 +1777,7 @@ func (this *Hollaex) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1834,11 +1834,11 @@ func (this *Hollaex) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1891,7 +1891,7 @@ func (this *Hollaex) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	//         "created_at":"2021-05-12T02:43:05.446Z"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	var tag *string = nil
@@ -1902,7 +1902,7 @@ func (this *Hollaex) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	}
 	this.CheckAddress(address)
 	var currencyId *string = this.SafeString(depositAddress, "currency")
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var network *string = this.SafeString(depositAddress, "network")
 	return map[string]any{
 		"info":     depositAddress,
@@ -2018,11 +2018,11 @@ func (this *Hollaex) FetchDepositsAsync(optionalArgs ...any) <-chan any {
 func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2091,7 +2091,7 @@ func (this *Hollaex) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan an
 func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2158,11 +2158,11 @@ func (this *Hollaex) FetchWithdrawalsAsync(optionalArgs ...any) <-chan any {
 func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2244,7 +2244,7 @@ func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) any 
 	//         "fee_coin": "xht"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(transaction, "id")
 	var txid *string = this.SafeString(transaction, "transaction_id")
@@ -2266,7 +2266,7 @@ func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) any 
 		tagTo = tag
 	}
 	var currencyId *string = this.SafeString(transaction, "currency")
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var status any = this.SafeValue(transaction, "status")
 	var dismissed *bool = this.SafeBool(transaction, "dismissed")
 	var rejected *bool = this.SafeBool(transaction, "rejected")

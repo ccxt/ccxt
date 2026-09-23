@@ -506,11 +506,11 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 func (this *Delta) SafeMarket(optionalArgs ...any) any {
 	marketId := GetArg(optionalArgs, 0, nil)
 	_ = marketId
-	market := GetArg(optionalArgs, 1, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
-	delimiter := GetArg(optionalArgs, 2, nil)
+	var delimiter *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = delimiter
-	marketType := GetArg(optionalArgs, 3, nil)
+	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
 	var isOption bool = (marketId != nil) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")) || (StartsWith(marketId, "C-")) || (StartsWith(marketId, "P-")))
 	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
@@ -1277,11 +1277,11 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "turnover_symbol": "USDT"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.001)
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var last *string = this.SafeString(ticker, "close")
 	var quotes map[string]any = SafeMapTyped(ticker, "quotes")
@@ -1677,7 +1677,7 @@ func (this *Delta) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Delta) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1763,7 +1763,7 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "size":1
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(trade, "id")
 	var orderId *string = this.SafeString(trade, "order_id")
@@ -1836,9 +1836,9 @@ func (this *Delta) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any 
 func (this *Delta) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2181,10 +2181,10 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 	//         "realized_funding": "string"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "product_symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeIntegerProduct(position, "timestamp", 0.001)
 	var sizeString *string = this.SafeString(position, "size")
@@ -2386,7 +2386,7 @@ func (this *Delta) CreateOrderAsync(symbol any, typeVar any, side any, amount an
 func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2479,9 +2479,9 @@ func (this *Delta) EditOrderAsync(id any, symbol any, typeVar any, side any, opt
 func (this *Delta) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2545,7 +2545,7 @@ func (this *Delta) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Delta) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2620,7 +2620,7 @@ func (this *Delta) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Delta) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2667,7 +2667,7 @@ func (this *Delta) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2797,11 +2797,11 @@ func (this *Delta) FetchOrdersWithMethodAsync(method any, optionalArgs ...any) <
 func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2877,11 +2877,11 @@ func (this *Delta) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2971,11 +2971,11 @@ func (this *Delta) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3163,7 +3163,7 @@ func (this *Delta) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	//        "custodian": "fireblocks"
 	//    }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	var marketId *string = this.SafeString(depositAddress, "asset_symbol")
@@ -3384,7 +3384,7 @@ func (this *Delta) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//         "volume": 1226.3029999999485
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct(contract, "timestamp", 0.001)
 	var marketId *string = this.SafeString(contract, "symbol")
@@ -3537,10 +3537,10 @@ func (this *Delta) ParseMarginModification(data any, optionalArgs ...any) any {
 	//         "user_id": 30084879
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "product_symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	return map[string]any{
 		"info":       data,
 		"symbol":     GetValue(market, "symbol"),
@@ -3692,7 +3692,7 @@ func (this *Delta) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//         "volume": 0.15200000000000002
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct(interest, "timestamp", 0.001)
 	var marketId *string = this.SafeString(interest, "symbol")
@@ -3754,7 +3754,7 @@ func (this *Delta) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 	return nil
 }
 func (this *Delta) ParseLeverage(leverage any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "index_symbol")
 	var leverageValue *int64 = this.SafeInteger(leverage, "leverage")
@@ -3785,7 +3785,7 @@ func (this *Delta) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan an
 func (this *Delta) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3836,11 +3836,11 @@ func (this *Delta) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4134,7 +4134,7 @@ func (this *Delta) ParseGreeks(greeks any, optionalArgs ...any) any {
 	//         "volume": 0.005
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct(greeks, "timestamp", 0.001)
 	var marketId *string = this.SafeString(greeks, "symbol")
@@ -4481,10 +4481,10 @@ func (this *Delta) ParseOption(chain any, optionalArgs ...any) any {
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	market := GetArg(optionalArgs, 1, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
 	var marketId *string = this.SafeString(chain, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var quotes map[string]any = SafeMapTyped(chain, "quotes")
 	var timestamp *int64 = this.SafeIntegerProduct(chain, "timestamp", 0.001)
 	return map[string]any{
@@ -4876,7 +4876,7 @@ func (this *Delta) ParseADLRank(info any, optionalArgs ...any) any {
 	//         "user_id": 30084879
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "product_symbol")
 	var datetime *string = this.SafeString(info, "created_at")

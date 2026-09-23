@@ -700,7 +700,7 @@ func (this *Coinone) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Coinone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -928,7 +928,7 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "id": "1701073357818001"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var last *string = this.SafeString(ticker, "last")
@@ -985,10 +985,10 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	market = this.SafeMarket(nil, market)
+	market = MapTyped(this.SafeMarket(nil, market))
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side any = nil
 	if isSellerMaker != nil {
@@ -1056,9 +1056,9 @@ func (this *Coinone) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Coinone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1121,7 +1121,7 @@ func (this *Coinone) CreateOrderAsync(symbol any, typeVar any, side any, amount 
 func (this *Coinone) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1181,7 +1181,7 @@ func (this *Coinone) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Coinone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1279,7 +1279,7 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	//         "feeRate": "-0.0015"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(order, "orderId", "order_id")
 	var baseId *string = this.SafeString2(order, "baseCurrency", "target_currency")
@@ -1295,7 +1295,7 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
 		symbol = Add(Add(base, "/"), quote)
-		market = this.SafeMarket(symbol, market, "/")
+		market = MapTyped(this.SafeMarket(symbol, market, "/"))
 	}
 	var timestamp *int64 = this.SafeTimestamp2(order, "timestamp", "updatedAt")
 	if timestamp == nil {
@@ -1383,11 +1383,11 @@ func (this *Coinone) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	// The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
 	// For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1446,11 +1446,11 @@ func (this *Coinone) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Coinone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1510,7 +1510,7 @@ func (this *Coinone) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Coinone) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

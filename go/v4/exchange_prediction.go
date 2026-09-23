@@ -1769,7 +1769,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	// ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
 	// never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
 	// outcome-addressed row). prediction is always linear with a contract size of 1.
-	outcomeObj := GetArg(optionalArgs, 0, nil)
+	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var amount any = this.OmitZero(this.SafeString(outcomeOrder, "amount"))
 	var filled any = this.SafeString(outcomeOrder, "filled")
@@ -2194,11 +2194,11 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	return results
 }
 func (this *PredictionExchange) FilterByOutcomeSinceLimit(array any, optionalArgs ...any) any {
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var tail bool = GetArgBool(optionalArgs, 3, false)
 	_ = tail
@@ -2207,9 +2207,9 @@ func (this *PredictionExchange) FilterByOutcomeSinceLimit(array any, optionalArg
 func (this *PredictionExchange) FilterByOutcomesSinceLimit(array any, optionalArgs ...any) any {
 	outcomes := GetArg(optionalArgs, 0, nil)
 	_ = outcomes
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var tail bool = GetArgBool(optionalArgs, 3, false)
 	_ = tail

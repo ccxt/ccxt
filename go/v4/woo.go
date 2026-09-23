@@ -1169,9 +1169,9 @@ func (this *Woo) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Woo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1242,7 +1242,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "isMaker": 0
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var isFromFetchOrder bool = (InOp(trade, "id"))
 	var timestampString *string = this.SafeString2(trade, "executed_timestamp", "executedTimestamp")
@@ -1260,7 +1260,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var price *string = this.SafeString2(trade, "executed_price", "executedPrice")
 	var amount *string = this.SafeString2(trade, "executed_quantity", "executedQuantity")
@@ -1313,7 +1313,7 @@ func (this *Woo) ParseTokenAndFeeTemp(item any, feeTokenKeys any, feeAmountKeys 
 	return fee
 }
 func (this *Woo) ParseTradingFee(fee map[string]any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -1736,9 +1736,9 @@ func (this *Woo) createTrailingAmountOrderBody(ch chan any, symbol any, typeVar 
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	trailingAmount := GetArg(optionalArgs, 1, nil)
+	var trailingAmount *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingAmount
-	trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
+	var trailingTriggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = trailingTriggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1782,9 +1782,9 @@ func (this *Woo) createTrailingPercentOrderBody(ch chan any, symbol any, typeVar
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	trailingPercent := GetArg(optionalArgs, 1, nil)
+	var trailingPercent *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingPercent
-	trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
+	var trailingTriggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = trailingTriggerPrice
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1837,7 +1837,7 @@ func (this *Woo) CreateOrderAsync(symbol any, typeVar any, side any, amount any,
 func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2038,9 +2038,9 @@ func (this *Woo) EditOrderAsync(id any, symbol any, typeVar any, side any, optio
 func (this *Woo) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2144,7 +2144,7 @@ func (this *Woo) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Woo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2227,7 +2227,7 @@ func (this *Woo) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2338,7 +2338,7 @@ func (this *Woo) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Woo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2404,11 +2404,11 @@ func (this *Woo) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2488,11 +2488,11 @@ func (this *Woo) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2535,11 +2535,11 @@ func (this *Woo) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2646,7 +2646,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 	//         "positionSide": "BOTH"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = nil
 	var timestrampString *string = this.SafeString(order, "createdTime")
@@ -2668,7 +2668,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString2(order, "orderId", "algoOrderId")
 	var clientOrderId any = this.OmitZero(this.SafeString2(order, "clientOrderId", "clientAlgoOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity") // This is base amount
@@ -2768,7 +2768,7 @@ func (this *Woo) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Woo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2830,10 +2830,10 @@ func (this *Woo) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "nextFundingTime": 1786694400000
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
@@ -3039,7 +3039,7 @@ func (this *Woo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3119,11 +3119,11 @@ func (this *Woo) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Woo) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3184,11 +3184,11 @@ func (this *Woo) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3548,11 +3548,11 @@ func (this *Woo) GetAssetHistoryRowsAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3685,11 +3685,11 @@ func (this *Woo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//         "confirmedNumber": null
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var networkizedCode *string = this.SafeString(item, "token")
 	var code *string = this.SafeCurrencyCode(networkizedCode, currency)
-	currency = this.SafeCurrency(code, currency)
+	currency = MapTyped(this.SafeCurrency(code, currency))
 	var amount *float64 = this.SafeNumber(item, "amount")
 	var side *string = this.SafeString(item, "tokenSide")
 	var direction string = func() string {
@@ -3760,11 +3760,11 @@ func (this *Woo) FetchDepositsAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3797,11 +3797,11 @@ func (this *Woo) FetchWithdrawalsAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4005,11 +4005,11 @@ func (this *Woo) FetchTransfersAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4106,7 +4106,7 @@ func (this *Woo) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//            "id": 200
 	//        }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var code *string = this.SafeCurrencyCode(this.SafeString(transfer, "token"), currency)
 	var timestamp *int64 = this.SafeTimestamp2(transfer, "createdTime", "timestamp")
@@ -4266,7 +4266,7 @@ func (this *Woo) ParseMarginLoan(info any, optionalArgs ...any) any {
 	//         "success": true,
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	return map[string]any{
 		"id":        nil,
@@ -4398,7 +4398,7 @@ func (this *Woo) ParseIncome(income any, optionalArgs ...any) any {
 	//         "updatedTime": 1696060873286
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -4446,11 +4446,11 @@ func (this *Woo) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4737,9 +4737,9 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4920,10 +4920,10 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 	return nil
 }
 func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var marginMode *string = this.SafeStringLower(leverage, "marginMode")
 	var spotLeverage any = DerefScalar(this.SafeInteger(leverage, "leverage"))
 	if IsEqual(spotLeverage, 0) {
@@ -4975,7 +4975,7 @@ func (this *Woo) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any 
 func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -5288,10 +5288,10 @@ func (this *Woo) ParsePosition(position any, optionalArgs ...any) any {
 	//         "leverage": 10
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var contract *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(contract, market)
+	market = MapTyped(this.SafeMarket(contract, market))
 	var size *string = this.SafeString(position, "holding")
 	var side string
 	if Precise.StringGt(size, "0") {
@@ -5371,7 +5371,7 @@ func (this *Woo) FetchConvertQuoteAsync(fromCode any, toCode any, optionalArgs .
 func (this *Woo) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -5542,11 +5542,11 @@ func (this *Woo) FetchConvertTradeHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -5628,9 +5628,9 @@ func (this *Woo) ParseConversion(conversion any, optionalArgs ...any) any {
 	//         "createdTime": ""
 	//     }
 	//
-	fromCurrency := GetArg(optionalArgs, 0, nil)
+	var fromCurrency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = fromCurrency
-	toCurrency := GetArg(optionalArgs, 1, nil)
+	var toCurrency map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = toCurrency
 	var timestamp *int64 = this.SafeInteger2(conversion, "expireTimestamp", "createdTime")
 	var fromCurr *string = this.SafeString2(conversion, "sellToken", "buyAsset")
@@ -5835,7 +5835,7 @@ func (this *Woo) ParseADLRank(info any, optionalArgs ...any) any {
 	//         "leverage": 10
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")

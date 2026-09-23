@@ -340,7 +340,7 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 }
 func (this *Grvt) ParseWsTicker(message any, optionalArgs ...any) any {
 	// same dict as REST api
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseTicker(message, market)
 }
@@ -364,9 +364,9 @@ func (this *Grvt) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Grvt) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -397,7 +397,7 @@ func (this *Grvt) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <
 func (this *Grvt) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -474,7 +474,7 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 }
 func (this *Grvt) ParseWsTrade(trade any, optionalArgs ...any) any {
 	// same as REST api
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseTrade(trade, market)
 }
@@ -501,9 +501,9 @@ func (this *Grvt) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -539,7 +539,7 @@ func (this *Grvt) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalAr
 func (this *Grvt) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -621,7 +621,7 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 }
 func (this *Grvt) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	// same as REST api
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseOHLCV(ohlcv, market)
 }
@@ -645,7 +645,7 @@ func (this *Grvt) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Grvt) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -856,9 +856,9 @@ func (this *Grvt) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Grvt) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -942,7 +942,7 @@ func (this *Grvt) HandleMyTrade(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades")
 }
 func (this *Grvt) ParseWsMyTrade(trade any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseTrade(trade, market)
 }
@@ -968,9 +968,9 @@ func (this *Grvt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1054,7 +1054,7 @@ func (this *Grvt) HandlePosition(client any, message map[string]any) {
 }
 func (this *Grvt) ParseWsPosition(position any, optionalArgs ...any) any {
 	// same as REST api
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParsePosition(position, market)
 }
@@ -1078,9 +1078,9 @@ func (this *Grvt) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Grvt) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1194,7 +1194,7 @@ func (this *Grvt) HandleOrder(client any, message map[string]any) {
 }
 func (this *Grvt) ParseWsOrder(order any, optionalArgs ...any) any {
 	// same as REST api
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseOrder(order, market)
 }

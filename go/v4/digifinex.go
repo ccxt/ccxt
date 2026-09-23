@@ -1237,7 +1237,7 @@ func (this *Digifinex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-ch
 func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1872,7 +1872,7 @@ func (this *Digifinex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Digifinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -2130,7 +2130,7 @@ func (this *Digifinex) CreateOrderAsync(symbol any, typeVar any, side any, amoun
 func (this *Digifinex) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2305,7 +2305,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	return nil
 }
 func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2511,7 +2511,7 @@ func (this *Digifinex) CancelOrderAsync(id any, optionalArgs ...any) <-chan any 
 func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2857,11 +2857,11 @@ func (this *Digifinex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Digifinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2995,11 +2995,11 @@ func (this *Digifinex) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3134,7 +3134,7 @@ func (this *Digifinex) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Digifinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3263,11 +3263,11 @@ func (this *Digifinex) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3407,12 +3407,12 @@ func (this *Digifinex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//         "timestamp": 1650809432000
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString2(item, "type", "finance_type"))
 	var currencyId *string = this.SafeString2(item, "currency_mark", "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var amount *float64 = this.SafeNumber2(item, "num", "change")
 	var after *float64 = this.SafeNumber(item, "balance")
 	var timestamp *int64 = this.SafeTimestamp(item, "time")
@@ -3458,11 +3458,11 @@ func (this *Digifinex) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3647,11 +3647,11 @@ func (this *Digifinex) FetchTransactionsByTypeAsync(typeVar any, optionalArgs ..
 func (this *Digifinex) fetchTransactionsByTypeBody(ch chan any, typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3809,7 +3809,7 @@ func (this *Digifinex) ParseTransaction(transaction any, optionalArgs ...any) an
 	//         "finished_date": "2020-04-20 13:23:00"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString2(transaction, "id", "withdraw_id")
 	var address *string = this.SafeString(transaction, "address")
@@ -3888,7 +3888,7 @@ func (this *Digifinex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//         "timestamp": 1666505659000
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var fromAccount any = nil
 	var toAccount any = nil
@@ -4060,13 +4060,13 @@ func (this *Digifinex) FetchBorrowInterestAsync(optionalArgs ...any) <-chan any 
 func (this *Digifinex) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	symbol := GetArg(optionalArgs, 1, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 2, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 3, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 3, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
@@ -4123,7 +4123,7 @@ func (this *Digifinex) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	//         "leverage_ratio": 3
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	var amountString *string = this.SafeString(info, "amount")
@@ -4267,7 +4267,7 @@ func (this *Digifinex) ParseBorrowRate(info any, optionalArgs ...any) any {
 	//         "currency": "USDT"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(info, "currency")
 	return map[string]any{
@@ -4391,7 +4391,7 @@ func (this *Digifinex) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//         "next_funding_time": 1662739200000
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(contract, "instrument_id")
 	var timestamp *int64 = this.SafeInteger(contract, "funding_time")
@@ -4450,11 +4450,11 @@ func (this *Digifinex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan 
 func (this *Digifinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4577,7 +4577,7 @@ func (this *Digifinex) ParseTradingFee(fee map[string]any, optionalArgs ...any) 
 	//         "maker_fee_rate": "0.0003"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "instrument_id")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -4908,10 +4908,10 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 	//         "leverage_ratio": 5
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(position, "instrument_id", "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var marginMode any = DerefScalar(this.SafeString(position, "margin_mode"))
 	if !IsEqual(marginMode, nil) {
@@ -4980,7 +4980,7 @@ func (this *Digifinex) SetLeverageAsync(leverage any, optionalArgs ...any) <-cha
 func (this *Digifinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -5049,11 +5049,11 @@ func (this *Digifinex) FetchTransfersAsync(optionalArgs ...any) <-chan any {
 func (this *Digifinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -5251,14 +5251,14 @@ func (this *Digifinex) ParseMarketLeverageTiers(info any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tiers []any = []any{}
 	var brackets any = this.SafeValue(info, "open_max_limits", map[string]any{})
 	for i := 0; i < GetArrayLength(brackets); i++ {
 		var tier any = GetValue(brackets, i)
 		var marketId *string = this.SafeString(info, "instrument_id")
-		market = this.SafeMarket(marketId, market)
+		market = MapTyped(this.SafeMarket(marketId, market))
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "swap"),
@@ -5568,7 +5568,7 @@ func (this *Digifinex) ParseMarginModification(data any, optionalArgs ...any) an
 	//         "amount": "3.6834"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "instrument_id")
 	var rawType *int64 = this.SafeInteger(data, "type")
@@ -5611,11 +5611,11 @@ func (this *Digifinex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any 
 func (this *Digifinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -5667,7 +5667,7 @@ func (this *Digifinex) ParseIncome(income any, optionalArgs ...any) any {
 	//         "timestamp": 1698768009440
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(income, "instrument_id")
 	var currencyId *string = this.SafeString(income, "currency")
@@ -5701,7 +5701,7 @@ func (this *Digifinex) SetMarginModeAsync(marginMode any, optionalArgs ...any) <
 func (this *Digifinex) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

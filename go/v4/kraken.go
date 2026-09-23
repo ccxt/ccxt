@@ -1082,7 +1082,7 @@ func (this *Kraken) ParseCurrency(rawCurrency any) any {
 	})
 }
 func (this *Kraken) SafeCurrencyCode(currencyId any, optionalArgs ...any) *string {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	if IsEqual(currencyId, nil) {
 		return SafeStringPtr(currencyId)
@@ -1206,7 +1206,7 @@ func (this *Kraken) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Kraken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1270,7 +1270,7 @@ func (this *Kraken) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "o":"2571.56000"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var v []any = SafeListTypedDefault(ticker, "v", []any{})
@@ -1441,7 +1441,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1526,7 +1526,7 @@ func (this *Kraken) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//         ...
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(item, "id")
 	var direction string
@@ -1536,7 +1536,7 @@ func (this *Kraken) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var currencyId *string = this.SafeString(item, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var amount *string = this.SafeString(item, "amount")
 	if Precise.StringLt(amount, "0") {
 		direction = "out"
@@ -1589,11 +1589,11 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// https://www.kraken.com/features/api#get-ledgers-info
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1893,7 +1893,7 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	since := GetArg(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2603,7 +2603,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2801,9 +2801,9 @@ func (this *Kraken) EditOrderAsync(id any, symbol any, typeVar any, side any, op
 func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2973,9 +2973,9 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3122,11 +3122,11 @@ func (this *Kraken) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3429,11 +3429,11 @@ func (this *Kraken) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3536,11 +3536,11 @@ func (this *Kraken) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3702,7 +3702,7 @@ func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//         "refid": "AGBSO6T-UFMTTQ-I7KGS6"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(transaction, "refid")
 	var txid *string = this.SafeString(transaction, "txid")
@@ -3753,11 +3753,11 @@ func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 }
 func (this *Kraken) ParseTransactionsByType(typeVar any, transactions any, optionalArgs ...any) any {
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(transactions); i++ {
@@ -4172,11 +4172,11 @@ func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	//         "expiretm":"0"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	var tag *string = this.SafeString(depositAddress, "tag")
-	currency = this.SafeCurrency(nil, currency)
+	currency = MapTyped(this.SafeCurrency(nil, currency))
 	var code any = GetValue(currency, "code")
 	this.CheckAddress(address)
 	return map[string]any{
@@ -4342,7 +4342,7 @@ func (this *Kraken) ParsePosition(position any, optionalArgs ...any) any {
 	//                 "margin": "14.24900"
 	//             }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "pair")
 	var rawSide *string = this.SafeString(position, "type")

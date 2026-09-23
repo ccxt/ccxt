@@ -926,7 +926,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 	//         "type": "BID"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(order, "creation_timestamp")
 	var status any = this.ParseOrderStatus(this.SafeString(order, "state"))
@@ -944,7 +944,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 		side = "buy"
 	}
 	var marketId *string = this.SafeString(order, "pair")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var price *string = this.SafeString(order, "limit_price")
 	var amount *string = this.SafeString(order, "limit_volume")
 	var quoteFee *float64 = this.SafeNumber(order, "fee_counter")
@@ -1033,11 +1033,11 @@ func (this *Luno) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan
 func (this *Luno) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1081,11 +1081,11 @@ func (this *Luno) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Luno) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1115,11 +1115,11 @@ func (this *Luno) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Luno) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1149,11 +1149,11 @@ func (this *Luno) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Luno) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1173,7 +1173,7 @@ func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) any {
 	//     "rolling_24_hour_volume":"1.89510000",
 	//     "status":"ACTIVE"
 	// }
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var marketId *string = this.SafeString(ticker, "pair")
@@ -1323,7 +1323,7 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 	// For public trade data (is_buy === True) indicates 'buy' side but for private trade data
 	// is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
 	// Private trade data includes ID field which public trade data does not.
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderId *string = this.SafeString(trade, "order_id")
 	var id *string = this.SafeString(trade, "sequence")
@@ -1406,9 +1406,9 @@ func (this *Luno) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Luno) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1468,7 +1468,7 @@ func (this *Luno) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1543,11 +1543,11 @@ func (this *Luno) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Luno) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1668,7 +1668,7 @@ func (this *Luno) CreateOrderAsync(symbol any, typeVar any, side any, amount any
 func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1818,7 +1818,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	code := GetArg(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1907,14 +1907,14 @@ func (this *Luno) ParseLedgerComment(comment any) any {
 }
 func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) any {
 	// const details = this.safeValue (entry, 'details', {});
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(entry, "row_index")
 	var account_id *string = this.SafeString(entry, "account_id")
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 	var currencyId *string = this.SafeString(entry, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var available_delta *string = this.SafeString(entry, "available_delta")
 	var balance_delta *string = this.SafeString(entry, "balance_delta")
 	var after *string = this.SafeString(entry, "balance")
@@ -2096,7 +2096,7 @@ func (this *Luno) ParseDepositAddress(depositAddress any, optionalArgs ...any) a
 	//         "total_unconfirmed": "string"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeStringUpper(depositAddress, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -2164,7 +2164,7 @@ func (this *Luno) Sign(path any, optionalArgs ...any) any {
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))

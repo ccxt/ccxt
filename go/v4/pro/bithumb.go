@@ -391,7 +391,7 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//         "stream_type": "REALTIME"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var code *string = this.SafeString(ticker, "code")
 	if code != nil {
@@ -712,7 +712,7 @@ func (this *Bithumb) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bithumb) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -866,7 +866,7 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//         "stream_type": "REALTIME"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketCode *string = this.SafeString(trade, "code")
 	if marketCode != nil {
@@ -1135,7 +1135,7 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1240,7 +1240,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 	//        "stream_type": "REALTIME"
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "code")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")

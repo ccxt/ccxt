@@ -1669,7 +1669,7 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	//         }
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var midpointData map[string]any = ccxt.SafeMapTyped(ticker, "midpoint")
 	var bookData map[string]any = ccxt.SafeMapTyped(ticker, "book")
@@ -2079,7 +2079,7 @@ func (this *Polymarket) ParsePredictionOpenInterest(interest any, optionalArgs .
 	//
 	//     { "market": "0x7976b8...92", "value": 4925662.470476 }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var openInterest any = this.SafeOpenInterest(map[string]any{
 		"symbol":             this.SafeOutcomeSymbol(nil, market),
@@ -2170,9 +2170,9 @@ func (this *Polymarket) FetchTradesAsync(outcome any, optionalArgs ...any) <-cha
 func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2237,11 +2237,11 @@ func (this *Polymarket) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Polymarket) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2291,11 +2291,11 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	defer ccxt.ReturnPanicError(ch)
 	// the /data/trades endpoint has no order filter, so fetch the user's trades and keep
 	// the ones where this order was the taker or one of the matched makers
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2569,7 +2569,7 @@ func (this *Polymarket) fetchPositionBody(ch chan any, outcome any, optionalArgs
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Polymarket) ParsePredictionPosition(position any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(position, "asset")
 	var marketData any = this.SafeOutcome(tokenId, market)
@@ -2632,11 +2632,11 @@ func (this *Polymarket) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Polymarket) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2715,7 +2715,7 @@ func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) any
 	//     "success":true
 	// }
 	// fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(order, "id", "orderID")
 	var tokenId *string = this.SafeString(order, "asset_id")
@@ -3129,7 +3129,7 @@ func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan any, outcome an
 	return nil
 }
 func (this *Polymarket) PolymarketOrderRawAmounts(side any, size any, price any, tickSize any, optionalArgs ...any) any {
-	cost := ccxt.GetArg(optionalArgs, 0, nil)
+	var cost *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = cost
 	var configs map[string]any = map[string]any{
 		"0.1": map[string]any{
@@ -3417,7 +3417,7 @@ func (this *Polymarket) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4420,9 +4420,9 @@ func (this *Polymarket) WatchTradesAsync(outcome any, optionalArgs ...any) <-cha
 func (this *Polymarket) watchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params

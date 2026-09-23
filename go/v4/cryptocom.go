@@ -1340,11 +1340,11 @@ func (this *Cryptocom) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1448,9 +1448,9 @@ func (this *Cryptocom) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1795,7 +1795,7 @@ func (this *Cryptocom) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Cryptocom) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1852,7 +1852,7 @@ func (this *Cryptocom) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	return nil
 }
 func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1989,7 +1989,7 @@ func (this *Cryptocom) CreateOrderAsync(symbol any, typeVar any, side any, amoun
 func (this *Cryptocom) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2119,7 +2119,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	return nil
 }
 func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2287,7 +2287,7 @@ func (this *Cryptocom) editOrderBody(ch chan any, id any, symbol any, typeVar an
 	return nil
 }
 func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2328,7 +2328,7 @@ func (this *Cryptocom) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptocom) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2370,7 +2370,7 @@ func (this *Cryptocom) CancelOrderAsync(id any, optionalArgs ...any) <-chan any 
 func (this *Cryptocom) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2424,7 +2424,7 @@ func (this *Cryptocom) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan an
 func (this *Cryptocom) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2525,11 +2525,11 @@ func (this *Cryptocom) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptocom) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2611,11 +2611,11 @@ func (this *Cryptocom) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2914,11 +2914,11 @@ func (this *Cryptocom) FetchDepositsAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptocom) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2996,11 +2996,11 @@ func (this *Cryptocom) FetchWithdrawalsAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptocom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3161,11 +3161,11 @@ func (this *Cryptocom) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "create_time_ns": "1686941992887207066"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger2(trade, "t", "create_time")
 	var marketId *string = this.SafeString2(trade, "i", "instrument_name")
-	market = this.SafeMarket(marketId, market, "_")
+	market = MapTyped(this.SafeMarket(marketId, market, "_"))
 	var feeCurrency *string = this.SafeString(trade, "fee_instrument_name")
 	var feeCostString *string = this.SafeString(trade, "fees")
 	return this.SafeTrade(map[string]any{
@@ -3267,7 +3267,7 @@ func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) any {
 	//             "order_id" : "6142909896519488207"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var code *int64 = this.SafeInteger(order, "code")
 	if (code != nil) && (code == nil || *code != 0) {
@@ -3385,7 +3385,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) an
 	//         "create_time":1607063412000
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar string
 	var rawStatus *string = this.SafeString(transaction, "status")
@@ -3583,11 +3583,11 @@ func (this *Cryptocom) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptocom) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3670,12 +3670,12 @@ func (this *Cryptocom) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//         "instrument_name": "USD"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(item, "event_timestamp_ms")
 	var currencyId *string = this.SafeString(item, "instrument_name")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var amount *string = this.SafeString(item, "transaction_qty")
 	var direction string
 	if Precise.StringLt(amount, "0") {
@@ -3850,11 +3850,11 @@ func (this *Cryptocom) FetchSettlementHistoryAsync(optionalArgs ...any) <-chan a
 func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3914,7 +3914,7 @@ func (this *Cryptocom) ParseSettlement(settlement any, optionalArgs ...any) map[
 	//         "t": 1685087999500
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(settlement, "x")
 	var marketId *string = this.SafeString(settlement, "i")
@@ -3937,7 +3937,7 @@ func (this *Cryptocom) ParseSettlements(settlements []any, optionalArgs ...any) 
 	//         }
 	//     ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
@@ -4015,7 +4015,7 @@ func (this *Cryptocom) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//                     "t": 1687892400000
 	//                 },
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(contract, "t")
 	var fundingTimestamp any = nil
@@ -4065,11 +4065,11 @@ func (this *Cryptocom) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan 
 func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4312,10 +4312,10 @@ func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) any {
 	//         "type": "PERPETUAL_SWAP"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "instrument_name")
-	market = this.SafeMarket(marketId, market, nil, "contract")
+	market = MapTyped(this.SafeMarket(marketId, market, nil, "contract"))
 	var symbol *string = this.SafeSymbol(marketId, market, nil, "contract")
 	var timestamp *int64 = this.SafeInteger(position, "update_timestamp_ms")
 	var amount *string = this.SafeString(position, "quantity")
@@ -4594,7 +4594,7 @@ func (this *Cryptocom) ParseTradingFee(fee any, optionalArgs ...any) any {
 	//      "effective_taker_rate_bps": "6.9"
 	// }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId, market)

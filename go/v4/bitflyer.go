@@ -321,11 +321,11 @@ func (this *Bitflyer) SafeMarket(optionalArgs ...any) any {
 	// Bitflyer has a different type of conflict in markets, because
 	// some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
 	// Since they're the same we just need to return one
-	marketId := GetArg(optionalArgs, 0, nil)
+	var marketId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = marketId
-	market := GetArg(optionalArgs, 1, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
-	delimiter := GetArg(optionalArgs, 2, nil)
+	var delimiter *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
@@ -650,7 +650,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	return nil
 }
 func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "timestamp"))
@@ -740,7 +740,7 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 	//          "commission": 0,
 	//      },
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var side any = this.SafeStringLower(trade, "side")
 	if !IsEqual(side, nil) {
@@ -762,7 +762,7 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
 	var id *string = this.SafeString(trade, "id")
-	market = this.SafeMarket(nil, market)
+	market = MapTyped(this.SafeMarket(nil, market))
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
@@ -799,9 +799,9 @@ func (this *Bitflyer) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Bitflyer) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -906,7 +906,7 @@ func (this *Bitflyer) CreateOrderAsync(symbol any, typeVar any, side any, amount
 func (this *Bitflyer) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -952,7 +952,7 @@ func (this *Bitflyer) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Bitflyer) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -990,7 +990,7 @@ func (this *Bitflyer) ParseOrderStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Bitflyer) ParseOrder(order any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "child_order_date"))
 	var price *string = this.SafeString(order, "price")
@@ -1058,7 +1058,7 @@ func (this *Bitflyer) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit int64 = GetArgInt64(optionalArgs, 2, 100)
 	_ = limit
@@ -1107,9 +1107,9 @@ func (this *Bitflyer) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bitflyer) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit int64 = GetArgInt64(optionalArgs, 2, 100)
 	_ = limit
@@ -1144,9 +1144,9 @@ func (this *Bitflyer) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bitflyer) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit int64 = GetArgInt64(optionalArgs, 2, 100)
 	_ = limit
@@ -1180,7 +1180,7 @@ func (this *Bitflyer) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Bitflyer) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1218,11 +1218,11 @@ func (this *Bitflyer) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Bitflyer) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1388,11 +1388,11 @@ func (this *Bitflyer) FetchDepositsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitflyer) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1449,11 +1449,11 @@ func (this *Bitflyer) FetchWithdrawalsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1542,7 +1542,7 @@ func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) any
 	//         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString2(transaction, "id", "message_id")
 	var address *string = this.SafeString(transaction, "address")

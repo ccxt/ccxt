@@ -64,7 +64,7 @@ func (this *Luno) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -153,7 +153,7 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 	//       "order_id": "BXEEU4S2BWF5WRB"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = func() any {
 		if market == nil {
@@ -281,7 +281,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Luno) CustomParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
-	timestamp := ccxt.GetArg(optionalArgs, 0, nil)
+	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
 	var bidsKey string = ccxt.GetArgString(optionalArgs, 1, "bids")
 	_ = bidsKey

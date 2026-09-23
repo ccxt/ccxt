@@ -163,9 +163,9 @@ func (this *Cex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Cex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -231,7 +231,7 @@ func (this *Cex) ParseWsOldTrade(trade any, optionalArgs ...any) any {
 	//  update trade
 	//    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	if !ccxt.IsArray(trade) {
 		trade = ccxt.Split(trade, ":")
@@ -489,7 +489,7 @@ func (this *Cex) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//        "priceChangePercentage": "0.23",
 	//        "pair": ["BTC", "USDT"]
 	//    }
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var pair any = this.SafeList(ticker, "pair", []any{})
 	var baseId *string = this.SafeString(ticker, "symbol1")
@@ -589,7 +589,7 @@ func (this *Cex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -646,11 +646,11 @@ func (this *Cex) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Cex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -770,7 +770,7 @@ func (this *Cex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//     }
 	// Note symbol and symbol2 are inverse on sell and amount is in symbol currency.
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var side *string = this.SafeString(trade, "type")
 	var price *string = this.SafeString(trade, "price")
@@ -966,7 +966,7 @@ func (this *Cex) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 	//           "id": "59425993020"
 	//       }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var isTransaction bool = (this.SafeString(order, "d") != nil)
 	var remainsPrecision *string = this.SafeString(order, "remains")
@@ -997,7 +997,7 @@ func (this *Cex) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 	if (base != nil) && (quote != nil) {
 		symbol = *base + "/" + *quote
 	}
-	market = this.SafeMarket(symbol, market)
+	market = ccxt.MapTyped(this.SafeMarket(symbol, market))
 	var time *int64 = this.SafeInteger(order, "time")
 	var timestamp *int64 = time
 	if isTransaction {
@@ -1270,7 +1270,7 @@ func (this *Cex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1456,7 +1456,7 @@ func (this *Cex) FetchOrderWsAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Cex) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1507,11 +1507,11 @@ func (this *Cex) FetchOpenOrdersWsAsync(optionalArgs ...any) <-chan any {
 func (this *Cex) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1565,7 +1565,7 @@ func (this *Cex) CreateOrderWsAsync(symbol any, typeVar any, side any, amount an
 func (this *Cex) createOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	price := ccxt.GetArg(optionalArgs, 0, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1622,9 +1622,9 @@ func (this *Cex) EditOrderWsAsync(id any, symbol any, typeVar any, side any, opt
 func (this *Cex) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	amount := ccxt.GetArg(optionalArgs, 0, nil)
+	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := ccxt.GetArg(optionalArgs, 1, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1681,7 +1681,7 @@ func (this *Cex) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Cex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

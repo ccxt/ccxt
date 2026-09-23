@@ -732,7 +732,7 @@ func (this *Cex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Cex) ParseTicker(ticker any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "id")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -779,9 +779,9 @@ func (this *Cex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -841,11 +841,11 @@ func (this *Cex) ParseTrade(trade any, optionalArgs ...any) any {
 	//                    "amount": "0.00165962"
 	//                },
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var dateStr *string = this.SafeString(trade, "dateISO")
 	var timestamp *int64 = this.Parse8601(dateStr)
-	market = this.SafeMarket(nil, market)
+	market = MapTyped(this.SafeMarket(nil, market))
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -943,9 +943,9 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1259,11 +1259,11 @@ func (this *Cex) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-cha
 func (this *Cex) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1364,11 +1364,11 @@ func (this *Cex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Cex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1398,11 +1398,11 @@ func (this *Cex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Cex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1431,7 +1431,7 @@ func (this *Cex) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Cex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1530,7 +1530,7 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) any {
 	//                "expireTime": null,
 	//                "effectiveTime": null
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var currency1 *string = this.SafeString(order, "currency1")
 	var currency2 *string = this.SafeString(order, "currency2")
@@ -1538,7 +1538,7 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) any {
 	if (currency1 != nil) && (currency2 != nil) {
 		marketId = *currency1 + "-" + *currency2
 	}
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var fee map[string]any = map[string]any{}
@@ -1603,7 +1603,7 @@ func (this *Cex) CreateOrderAsync(symbol any, typeVar any, side any, amount any,
 func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1822,11 +1822,11 @@ func (this *Cex) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Cex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1876,7 +1876,7 @@ func (this *Cex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var amount *string = this.SafeString(item, "amount")
 	var direction string
@@ -1887,7 +1887,7 @@ func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		direction = "in"
 	}
 	var currencyId *string = this.SafeString(item, "currency")
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestampString *string = this.SafeString(item, "timestamp")
 	var timestamp *int64 = this.Parse8601(timestampString)
@@ -1938,11 +1938,11 @@ func (this *Cex) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan any {
 func (this *Cex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1994,7 +1994,7 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	return nil
 }
 func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var direction *string = this.SafeString(transaction, "direction")
@@ -2199,7 +2199,7 @@ func (this *Cex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "currency")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId, currency)
@@ -2276,11 +2276,11 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	return nil
 }
 func (this *Cex) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	var currencyId *string = this.SafeString(depositAddress, "currency")
-	currency = this.SafeCurrency(currencyId, currency)
+	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	this.CheckAddress(address)
 	return map[string]any{
 		"info":     depositAddress,

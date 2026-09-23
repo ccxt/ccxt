@@ -236,7 +236,7 @@ func (this *Bitrue) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -329,7 +329,7 @@ func (this *Bitrue) ParseWsOrder(order any, optionalArgs ...any) any {
 	//        "Y": "0"
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(order, "E")
 	var marketId *string = this.SafeStringUpper(order, "s")
@@ -547,7 +547,7 @@ func (this *Bitrue) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Bitrue) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -687,7 +687,7 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -882,7 +882,7 @@ func (this *Bitrue) HandleTicker(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 }
 func (this *Bitrue) ParseWsTicker(tick any, market any, optionalArgs ...any) any {
-	timestamp := ccxt.GetArg(optionalArgs, 0, nil)
+	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var rawVol *float64 = this.SafeNumber(tick, "vol")

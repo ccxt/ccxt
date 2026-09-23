@@ -850,7 +850,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -988,11 +988,11 @@ func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) any {
 	//           "lowest_52_week_date": "2017-12-08",
 	//                     "timestamp":  1542883543813  }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "trade_timestamp")
 	var marketId *string = this.SafeString2(ticker, "market", "code")
-	market = this.SafeMarket(marketId, market, "-")
+	market = MapTyped(this.SafeMarket(marketId, market, "-"))
 	var last *string = this.SafeString(ticker, "trade_price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
@@ -1204,7 +1204,7 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) any {
 	//             "side": "bid",
 	//         }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(trade, "sequential_id", "uuid")
 	var orderId any = nil
@@ -1223,7 +1223,7 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString2(trade, "trade_price", "price")
 	var amount *string = this.SafeString2(trade, "trade_volume", "volume")
 	var marketId *string = this.SafeString2(trade, "market", "code")
-	market = this.SafeMarket(marketId, market, "-")
+	market = MapTyped(this.SafeMarket(marketId, market, "-"))
 	var fee any = nil
 	var feeCost *string = this.SafeString(trade, Add(askOrBid, "_fee"))
 	if feeCost != nil {
@@ -1269,7 +1269,7 @@ func (this *Upbit) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any 
 func (this *Upbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
@@ -1485,7 +1485,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1558,7 +1558,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	return nil
 }
 func (this *Upbit) CalcOrderPrice(symbol any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1958,11 +1958,11 @@ func (this *Upbit) FetchDepositsAsync(optionalArgs ...any) <-chan any {
 func (this *Upbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2023,7 +2023,7 @@ func (this *Upbit) FetchDepositAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Upbit) fetchDepositBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2082,11 +2082,11 @@ func (this *Upbit) FetchWithdrawalsAsync(optionalArgs ...any) <-chan any {
 func (this *Upbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2148,7 +2148,7 @@ func (this *Upbit) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan any 
 func (this *Upbit) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2230,7 +2230,7 @@ func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//         "krw_amount": "80420.0"
 	//     }
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address any = nil // not present in the data structure received from the exchange
 	var tag any = nil     // not present in the data structure received from the exchange
@@ -2350,7 +2350,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 	//        new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',
 	//        new_order_identifier: '22'
 	//      }
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "uuid")
 	var side any = this.SafeStringLower(order, "side")
@@ -2378,7 +2378,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCost any = DerefScalar(this.SafeString(order, "paid_fee"))
 	var marketId *string = this.SafeString(order, "market")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var trades any = this.SafeList(order, "trades", []any{})
 	trades = this.ParseTrades(trades, market, nil, nil, map[string]any{
 		"order": id,
@@ -2459,11 +2459,11 @@ func (this *Upbit) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Upbit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2531,11 +2531,11 @@ func (this *Upbit) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Upbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2612,11 +2612,11 @@ func (this *Upbit) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Upbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params

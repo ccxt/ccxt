@@ -816,7 +816,7 @@ func (this *Zebpay) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -988,7 +988,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -1095,9 +1095,9 @@ func (this *Zebpay) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Zebpay) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1159,11 +1159,11 @@ func (this *Zebpay) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Zebpay) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1294,13 +1294,13 @@ func (this *Zebpay) ParseTrade(trade any, optionalArgs ...any) any {
 	//   }
 	//
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(trade, "id", "aggregateTradeId")
 	var orderId *string = this.SafeString2(trade, "id", "order")
 	var timestamp *int64 = this.SafeInteger2(trade, "timestamp", "tradeTime")
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = this.SafeMarket(marketId, market, "_")
+	market = MapTyped(this.SafeMarket(marketId, market, "_"))
 	var symbol any = GetValue(market, "symbol")
 	var side *string = this.SafeStringLower(trade, "side")
 	var priceString *string = this.SafeString(trade, "price")
@@ -1482,7 +1482,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	return nil
 }
 func (this *Zebpay) OrderRequest(symbol any, typeVar any, amount any, request any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1530,7 +1530,7 @@ func (this *Zebpay) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Zebpay) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1640,11 +1640,11 @@ func (this *Zebpay) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1732,7 +1732,7 @@ func (this *Zebpay) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Zebpay) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1802,10 +1802,10 @@ func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) any {
 	//          "trades": []
 	//      }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var typeVar *string = this.SafeString(order, "type")
 	var timestamp *float64 = this.SafeNumber(order, "timestamp")
@@ -1987,7 +1987,7 @@ func (this *Zebpay) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan a
 func (this *Zebpay) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2395,12 +2395,12 @@ func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) any {
 	//        "leverage":"1.0"
 	//    }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var leverage *float64 = this.SafeNumber(position, "leverage")
 	var datetime *string = this.SafeString(position, "datetime")
 	var marketId *string = this.SafeString(position, "symbol")
-	market = this.SafeMarket(marketId, market)
+	market = MapTyped(this.SafeMarket(marketId, market))
 	return map[string]any{
 		"info":                        position,
 		"symbol":                      marketId,
@@ -2442,7 +2442,7 @@ func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) any {
 	}
 }
 func (this *Zebpay) ParseTradingFee(fee any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -2474,11 +2474,11 @@ func (this *Zebpay) ParseTicker(ticker any, optionalArgs ...any) any {
 	//        }
 	//     ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger2(ticker, "timestamp", "ts")
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(marketId)
+	market = MapTyped(this.SafeMarket(marketId))
 	var close *string = this.SafeString(ticker, "close")
 	var last *string = this.SafeString(ticker, "last")
 	var percentage *string = this.SafeString(ticker, "percentage")
