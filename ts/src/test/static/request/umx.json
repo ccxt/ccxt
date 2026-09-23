@@ -8,6 +8,83 @@
     ],
     "options": {},
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "ohlcv since and explicit until",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=2&endTime=1789362000000&startTime=1789344000000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1789344000000,
+                    2,
+                    {
+                        "until": 1789362000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "ohlcv since, end time derived from limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=2&startTime=1789344000000&endTime=1789351200000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1789344000000,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "option ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT-25SEP26-2700-C&period=1h&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925-2700-C",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "future ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT-25SEP26&period=1d&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    "1d",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT-PERP&period=5m&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "5m",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.umx.com/api/v1/market/kline?symbol=ETH-USDT&period=1h&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "trades of a market that has never traded",

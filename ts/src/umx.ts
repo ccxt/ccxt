@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Endpoint, Int, List, Market, NullableDict, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Currencies, Currency, Dict, Endpoint, Int, List, Market, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ export default class umx extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
@@ -243,11 +243,145 @@ export default class umx extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            // vip 0 rates and the tier table from https://www.umx.com/guide/spot-fee-rate, the
+            // thresholds below are the 30 day volume in usdt, the venue grants the same tier for a
+            // high enough asset value too, which a single dimension tier table cannot express.
+            // contracts have a second tier group that only differs from vip 1 upwards, the table
+            // below is group 1. the venue publishes no option schedule, so options reuse it
             'fees': {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    // todo: fill in the default vip0 maker/taker once the published schedule is captured
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
+                },
+                'spot': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
+                    'tiers': {
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00067') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00018') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00015') ],
+                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00014') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00012') ],
+                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00008') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.00039') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00023') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00021') ],
+                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00021') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00018') ],
+                            [ this.parseNumber ('800000000'), this.parseNumber ('0.000175') ],
+                        ],
+                    },
+                },
+                'swap': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0005'),
+                    'tiers': {
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00016') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.00014') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00009') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.00007') ],
+                            [ this.parseNumber ('600000000'), this.parseNumber ('0.00005') ],
+                            [ this.parseNumber ('1200000000'), this.parseNumber ('0.00003') ],
+                            [ this.parseNumber ('2500000000'), this.parseNumber ('0.00001') ],
+                            [ this.parseNumber ('4000000000'), this.parseNumber ('0') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.00036') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00028') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00027') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.00024') ],
+                            [ this.parseNumber ('600000000'), this.parseNumber ('0.00022') ],
+                            [ this.parseNumber ('1200000000'), this.parseNumber ('0.00019') ],
+                            [ this.parseNumber ('2500000000'), this.parseNumber ('0.00017') ],
+                            [ this.parseNumber ('4000000000'), this.parseNumber ('0.00015') ],
+                        ],
+                    },
+                },
+                'future': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0005'),
+                    'tiers': {
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00016') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.00014') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00009') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.00007') ],
+                            [ this.parseNumber ('600000000'), this.parseNumber ('0.00005') ],
+                            [ this.parseNumber ('1200000000'), this.parseNumber ('0.00003') ],
+                            [ this.parseNumber ('2500000000'), this.parseNumber ('0.00001') ],
+                            [ this.parseNumber ('4000000000'), this.parseNumber ('0') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.00036') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00028') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00027') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.00024') ],
+                            [ this.parseNumber ('600000000'), this.parseNumber ('0.00022') ],
+                            [ this.parseNumber ('1200000000'), this.parseNumber ('0.00019') ],
+                            [ this.parseNumber ('2500000000'), this.parseNumber ('0.00017') ],
+                            [ this.parseNumber ('4000000000'), this.parseNumber ('0.00015') ],
+                        ],
+                    },
+                },
+                'option': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0005'),
+                    'tiers': {
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00016') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.00014') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00009') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.00007') ],
+                            [ this.parseNumber ('600000000'), this.parseNumber ('0.00005') ],
+                            [ this.parseNumber ('1200000000'), this.parseNumber ('0.00003') ],
+                            [ this.parseNumber ('2500000000'), this.parseNumber ('0.00001') ],
+                            [ this.parseNumber ('4000000000'), this.parseNumber ('0') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.00036') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00028') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00027') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.00024') ],
+                            [ this.parseNumber ('600000000'), this.parseNumber ('0.00022') ],
+                            [ this.parseNumber ('1200000000'), this.parseNumber ('0.00019') ],
+                            [ this.parseNumber ('2500000000'), this.parseNumber ('0.00017') ],
+                            [ this.parseNumber ('4000000000'), this.parseNumber ('0.00015') ],
+                        ],
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -305,7 +439,9 @@ export default class umx extends Exchange {
                     'fetchOpenOrders': undefined,
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
-                    'fetchOHLCV': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000, // the venue rejects a bigger limit with error 40008
+                    },
                 },
                 'spot': {
                     'extends': 'default',
@@ -754,6 +890,7 @@ export default class umx extends Exchange {
         // verified live as fillAmount / fillQty == the base price across ctVal from 1e-4 to 1e6
         const contractSize = (contract) ? this.parseNumber ('1') : undefined;
         const strike = (option) ? this.parseNumber (strikePrice) : undefined;
+        const fees = this.safeDict (this.fees, marketType, {});
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -773,8 +910,8 @@ export default class umx extends Exchange {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': undefined,
-            'maker': undefined,
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
             'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -981,6 +1118,103 @@ export default class umx extends Exchange {
             'markPrice': this.omitZero (this.safeString (ticker, 'markPrice')),
             'info': ticker,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, close price, and the volume of a market
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-kline-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} [timeframe] the length of time each candle represents, default is '1m'
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, the venue rejects more than 1000 and covers at most a 30 day range per call
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true fetches the candles in multiple calls
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        // the venue rejects a range wider than 30 days with error 40004, which caps how many
+        // candles one call can cover on the larger timeframes, 720 on 1h and 30 on 1d
+        const maxSpan = 2592000000;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            let maxEntriesPerRequest = this.parseToInt (maxSpan / duration);
+            if (maxEntriesPerRequest > 1000) {
+                maxEntriesPerRequest = 1000;
+            }
+            if (maxEntriesPerRequest < 1) {
+                maxEntriesPerRequest = 1;
+            }
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxEntriesPerRequest) as OHLCV[];
+        }
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const period = this.safeString (this.timeframes, timeframe, timeframe);
+        let request: Dict = {
+            'symbol': marketId,
+            'period': period,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+            if (!('endTime' in request)) {
+                // limit keeps the newest entries inside the requested range, so without an explicit
+                // end the venue answers with the tail of the history instead of the candles that
+                // follow since, which also makes the deterministic pagination walk forward
+                const count = (limit !== undefined) ? limit : 1000;
+                let span = count * duration;
+                if (span > maxSpan) {
+                    span = maxSpan;
+                }
+                request['endTime'] = this.sum (since, span);
+            }
+        }
+        const response = await this.publicGetV1MarketKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             [
+        //                 "1h",              // period
+        //                 "1790172000000",   // start time
+        //                 "1790173355584",   // close time
+        //                 "2716.11",         // open
+        //                 "2648.77",         // close
+        //                 "2723.28",         // high
+        //                 "2648.31",         // low
+        //                 "83.3433",         // filled quantity
+        //                 "223581.366604",   // filled amount
+        //                 "585",             // trade count
+        //                 "-67.34",          // price change
+        //                 "-0.0247"          // price change ratio
+        //             ]
+        //         ],
+        //         "ts": "1790173358552"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+        // the row is ordered open, close, high, low, which is not the usual ohlc layout
+        return [
+            this.safeInteger (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 5),
+            this.safeNumber (ohlcv, 6),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 7),
+        ];
     }
 
     /**
