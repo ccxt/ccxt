@@ -3608,9 +3608,9 @@ public class Bitget extends BitgetApi
 
     public Object handleProductTypeAndParams(Map<String, Object> market, Map<String, Object> parameters)
     {
-        Object subType = null;
+        String subType = null;
         List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("handleProductTypeAndParams", null, parameters);
-        subType = ((List<Object>) subTypeparametersVariable).get(0);
+        subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
         String defaultProductType = null;
         if ((!java.util.Objects.equals(subType, null)) && (java.util.Objects.equals(market, null)))
@@ -6110,9 +6110,9 @@ final Object finalMinNotional = minNotional;
             }
             Map<String, Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
             // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
@@ -6782,12 +6782,12 @@ final Object finalMinNotional = minNotional;
             }
             Map<String, Object> response = null;
             Object marginMode = null;
-            Object marketType = null;
+            String marketType = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchTradingFees", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchTradingFees", false)).join();
@@ -7326,7 +7326,7 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object marketType = null;
+            String marketType = null;
             Object marginMode = null;
             Map<String, Object> response = null;
             Object uta = null;
@@ -7334,7 +7334,7 @@ final Object finalMinNotional = minNotional;
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -8444,10 +8444,10 @@ final Object finalMinNotional = minNotional;
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object marketType = null;
+        String marketType = null;
         Object marginMode = null;
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
-        marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+        marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -10788,9 +10788,9 @@ final Object finalMinNotional = minNotional;
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchCanceledAndClosedOrders", parameters);
@@ -11333,9 +11333,9 @@ final Object finalMinNotional = minNotional;
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchLedger", false)).join();
@@ -11350,7 +11350,7 @@ final Object finalMinNotional = minNotional;
                 if (java.util.Objects.equals(uta, true))
                 {
                     // re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
-                    final Object finalMarketType = marketType;
+                    final String finalMarketType = marketType;
                     parameters = this.extend(parameters, new HashMap<String, Object>() {{
                         put( "uta", true );
                         put( "type", finalMarketType );
@@ -11369,7 +11369,7 @@ final Object finalMinNotional = minNotional;
                 {
                     cursorReceived = "endId";
                 }
-                final Object finalMarketType_2 = marketType;
+                final String finalMarketType_2 = marketType;
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "type", finalMarketType_2 );
                 }});
@@ -14060,16 +14060,16 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTransfers", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String fromAccount = this.safeString(parameters, "fromAccount", type);
             parameters = (Map<String, Object>) this.omit(parameters, "fromAccount");
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             type = this.safeString(accountsByType, fromAccount);
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            final Object finalType = type;
+            final String finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "fromType", finalType );
@@ -14763,9 +14763,9 @@ final Object finalMinNotional = minNotional;
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyLiquidations", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "spot"))
             {

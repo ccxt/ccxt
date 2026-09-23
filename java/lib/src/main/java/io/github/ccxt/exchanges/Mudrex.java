@@ -846,9 +846,9 @@ public class Mudrex extends MudrexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters, "swap");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String requested = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));

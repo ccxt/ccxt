@@ -3930,7 +3930,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, "swap", true, true, true);
-            Object subType = "linear";
+            String subType = "linear";
             Map<String, Object> firstMarket = null;
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -3938,7 +3938,7 @@ public class Deepcoin extends DeepcoinApi
                 firstMarket = (Map<String, Object>) this.market(firstSymbol);
             }
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             String instType = "SwapU";
             if (java.util.Objects.equals(subType, "inverse"))

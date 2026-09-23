@@ -3300,9 +3300,9 @@ public class Woo extends WooApi
             symbols = this.marketSymbols(symbols, "swap", true, true);
             if (java.util.Objects.equals(symbols, null))
             {
-                Object marketType = null;
+                String marketType = null;
                 List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters, "swap");
-                marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+                marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
                 if (!java.util.Objects.equals(marketType, "swap"))
                 {

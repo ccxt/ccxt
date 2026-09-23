@@ -3390,7 +3390,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean isMarkPrice = (java.util.Objects.equals(channelName, "markPrice"));
             Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
             Map<String, Object> firstMarket = null;
-            Object marketType = null;
+            String marketType = null;
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -3399,11 +3399,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String userDefaultType = this.safeString(this.options, "defaultType");
             String defaultMarket = (((Boolean.TRUE.equals(isMarkPrice) && !java.util.Objects.equals(userDefaultType, "option")))) ? "swap" : null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams(methodName, firstMarket, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
             Boolean isOptionMarkPrice = (Boolean.TRUE.equals(isMarkPrice) && java.util.Objects.equals(marketType, "option"));
@@ -5141,13 +5141,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // sites used to carry seven inline copies of this dance, and the
         // unguarded copies were the bug class behind the option keepalive and
         // stock keepalive fixes
-        Object type = null;
+        String type = null;
         List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
-        type = ((List<Object>) typeparametersVariable).get(0);
+        type = (String) ((List<Object>) typeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-        Object subType = null;
+        String subType = null;
         List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams(methodName, market, parameters);
-        subType = ((List<Object>) subTypeparametersVariable).get(0);
+        subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
         if (!java.util.Objects.equals(type, "option") && !java.util.Objects.equals(type, "stock"))
         {
@@ -5170,13 +5170,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Object getMarketType(Object method, Object market, Map<String, Object> parameters)
     {
-        Object type = null;
+        String type = null;
         List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(method, market, parameters);
-        type = ((List<Object>) typeparametersVariable).get(0);
+        type = (String) ((List<Object>) typeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-        Object subType = null;
+        String subType = null;
         List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams(method, market, parameters);
-        subType = ((List<Object>) subTypeparametersVariable).get(0);
+        subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
         if (Boolean.TRUE.equals(this.isLinear(type, subType)))
         {

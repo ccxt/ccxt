@@ -1483,9 +1483,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object userAddressResult = this.handlePublicAddress("watchBalance", (Map<String, Object>) (parameters));
             userAddress = this.safeString(userAddressResult, 0);
             parameters = (Map<String, Object>) this.safeDict(userAddressResult, 1, parameters);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object isUnifiedEnabled = null;
             Object unifiedResult = (this.isUnifiedEnabled("watchBalance", userAddress, false, parameters)).join();
@@ -1560,9 +1560,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object userAddressResult = this.handlePublicAddress("unWatchBalance", (Map<String, Object>) (parameters));
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("unWatchBalance", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object isUnifiedEnabled = null;
             Object unifiedResult = (this.isUnifiedEnabled("unWatchBalance", userAddress, false, parameters)).join();
