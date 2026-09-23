@@ -1,0 +1,31 @@
+{
+    "exchange": "umx",
+    "skipKeys": [
+        "accountName",
+        "pid",
+        "uid",
+        "cid"
+    ],
+    "options": {},
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.umx.com/api/v2/asset/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch server time",
+                "method": "fetchTime",
+                "url": "https://api.umx.com/api/v1/market/time",
+                "input": [],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}

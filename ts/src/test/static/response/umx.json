@@ -1,0 +1,28 @@
+{
+    "exchange": "umx",
+    "skipKeys": [
+        "accountName",
+        "pid",
+        "uid",
+        "cid"
+    ],
+    "options": {},
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetch server time",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "time": "1790163177386"
+                    },
+                    "ts": "1790163177386"
+                },
+                "parsedResponse": 1790163177386
+            }
+        ]
+  }
+}
