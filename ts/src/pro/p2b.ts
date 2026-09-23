@@ -110,10 +110,8 @@ export default class p2b extends p2bRest {
         ];
         const messageHash = 'kline::' + market['symbol'];
         const ohlcv = await this.subscribe ('kline.subscribe', messageHash, request, params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -225,12 +223,10 @@ export default class p2b extends p2bRest {
         };
         const query = this.extend (subscribe, params);
         const trades = await this.watchMultiple (url, messageHashes, query, messageHashes);
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -252,12 +248,10 @@ export default class p2b extends p2bRest {
         const name = 'depth.subscribe';
         const messageHash = 'orderbook::' + market['symbol'];
         const interval = this.safeString (params, 'interval', '0.001');
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const request = [
             market['id'],
-            limit,
+            limitResolved,
             interval,
         ];
         const orderbook = await this.subscribe (name, messageHash, request, params);

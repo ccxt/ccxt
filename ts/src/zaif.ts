@@ -865,15 +865,16 @@ export default class zaif extends Exchange {
                 url += 'tapi';
             }
             const nonce = this.customNonce ();
-            body = this.urlencode (this.extend ({
+            const bodyEncoded = this.urlencode (this.extend ({
                 'method': path,
                 'nonce': nonce,
             }, params));
-            headers = {
+            const headersSigned: NullableDict = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
+                'Sign': this.hmac (this.encode (bodyEncoded), this.encode (this.secret), sha512),
             };
+            return { 'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

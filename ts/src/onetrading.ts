@@ -1092,9 +1092,7 @@ export default class onetrading extends Exchange {
         const [ period, unit ] = periodUnit.split ('/');
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
-        if (limit === undefined) {
-            limit = 1500;
-        }
+        const limitResolved = (limit === undefined) ? 1500 : limit;
         const request: Dict = {
             'instrument_code': market['id'],
             // 'from': this.iso8601 (since),
@@ -1105,10 +1103,10 @@ export default class onetrading extends Exchange {
         if (since === undefined) {
             const now = this.milliseconds ();
             request['to'] = this.iso8601 (now);
-            request['from'] = this.iso8601 (now - limit * duration);
+            request['from'] = this.iso8601 (now - limitResolved * duration);
         } else {
             request['from'] = this.iso8601 (since);
-            request['to'] = this.iso8601 (this.sum (since, limit * duration));
+            request['to'] = this.iso8601 (this.sum (since, limitResolved * duration));
         }
         const response = await this.publicGetCandlesticksInstrumentCode (this.extend (request, params));
         //
@@ -1119,7 +1117,7 @@ export default class onetrading extends Exchange {
         //     ]
         //
         const ohlcv = this.safeList (response, 'candlesticks') as List;
-        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limitResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1434,7 +1432,6 @@ export default class onetrading extends Exchange {
             }
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['type'] = 'STOP';
-            params = this.omit (params, [ 'triggerPrice', 'trigger_price', 'stopPrice' ]);
         } else if (uppercaseType === 'STOP') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice param for ' + type + ' orders');
         }
@@ -1444,12 +1441,13 @@ export default class onetrading extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         }
+        const triggerKeys: string[] = (triggerPrice !== undefined) ? [ 'triggerPrice', 'trigger_price', 'stopPrice' ] : [];
+        const clientOrderIdKeys: string[] = (clientOrderId !== undefined) ? [ 'clientOrderId', 'client_id' ] : [];
+        const paramsOmitted: Dict = this.omit (params, this.arrayConcat (this.arrayConcat (triggerKeys, clientOrderIdKeys), [ 'timeInForce' ]));
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
-        params = this.omit (params, 'timeInForce');
         request['time_in_force'] = timeInForce;
-        const response = await this.privatePostAccountOrders (this.extend (request, params));
+        const response = await this.privatePostAccountOrders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1656,14 +1654,14 @@ export default class onetrading extends Exchange {
             request['from'] = this.iso8601 (since);
         }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['to'] = this.iso8601 (until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await this.privateGetAccountOrders (this.extend (request, params));
+        const response = await this.privateGetAccountOrders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "order_history": [
@@ -1861,14 +1859,14 @@ export default class onetrading extends Exchange {
             request['from'] = this.iso8601 (since);
         }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['to'] = this.iso8601 (until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await this.privateGetAccountTrades (this.extend (request, params));
+        const response = await this.privateGetAccountTrades (this.extend (request, paramsOmitted));
         //
         //     {
         //         "trade_history": [
@@ -1912,18 +1910,19 @@ export default class onetrading extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers = {
+            const headersSigned: NullableDict = {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + this.apiKey,
             };
+            const bodyJson = (method === 'POST') ? this.json (query) : body;
             if (method === 'POST') {
-                body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                headersSigned['Content-Type'] = 'application/json';
             } else {
                 if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }
+            return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
