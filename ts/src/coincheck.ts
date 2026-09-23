@@ -769,7 +769,6 @@ export default class coincheck extends Exchange {
                 request['amount'] = amount;
             } else {
                 const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
                 if (cost !== undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() : you should use "cost" parameter instead of "amount" argument to create market buy orders');
                 }
@@ -780,7 +779,7 @@ export default class coincheck extends Exchange {
             request['rate'] = price;
             request['amount'] = amount;
         }
-        const response = await this.privatePostExchangeOrders (this.extend (request, params));
+        const response = await this.privatePostExchangeOrders (this.extend (request, this.omit (params, 'cost')));
         const id = this.safeString (response, 'id');
         return this.safeOrder ({
             'id': id,
@@ -999,6 +998,8 @@ export default class coincheck extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
+        let headersSigned: NullableDict = undefined;
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
@@ -1015,19 +1016,21 @@ export default class coincheck extends Exchange {
                 }
             } else {
                 if (Object.keys (query).length > 0) {
-                    body = this.urlencode (this.keysort (query));
-                    queryString = body;
+                    bodySigned = this.urlencode (this.keysort (query));
+                    queryString = bodySigned;
                 }
             }
             const auth = nonce + url + queryString;
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

@@ -847,11 +847,9 @@ export default class coinmate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (limit === undefined) {
-            limit = 1000;
-        }
+        const limitResolved: Int = (limit === undefined) ? 1000 : limit;
         const request: Dict = {
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -862,7 +860,7 @@ export default class coinmate extends Exchange {
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseTrades (data, undefined, since, limit);
+        return this.parseTrades (data, undefined, since, limitResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1281,6 +1279,8 @@ export default class coinmate extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
+        let headersSigned: NullableDict = undefined;
         let url = (this.urls['api'] as Dict)['rest'] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length > 0) {
@@ -1291,17 +1291,19 @@ export default class coinmate extends Exchange {
             const nonce = this.nonce ().toString ();
             const auth = nonce + this.uid + this.apiKey;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            body = this.urlencode (this.extend ({
+            bodySigned = this.urlencode (this.extend ({
                 'clientId': this.uid,
                 'nonce': nonce,
                 'publicKey': this.apiKey,
                 'signature': signature.toUpperCase (),
             }, params));
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

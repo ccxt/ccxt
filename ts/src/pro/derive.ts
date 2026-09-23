@@ -84,11 +84,9 @@ export default class derive extends deriveRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (limit === undefined) {
-            limit = 10;
-        }
+        const limitResolved: Int = (limit === undefined) ? 10 : limit;
         const market = this.market (symbol);
-        const topic = 'orderbook.' + market['id'] + '.10.' + this.numberToString (limit);
+        const topic = 'orderbook.' + market['id'] + '.10.' + this.numberToString (limitResolved);
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -100,7 +98,7 @@ export default class derive extends deriveRest {
         const subscription: Dict = {
             'name': topic,
             'symbol': symbol,
-            'limit': limit,
+            'limit': limitResolved,
             'params': params,
         };
         const orderbook = await this.watchPublic (topic, request, subscription);
@@ -443,10 +441,8 @@ export default class derive extends deriveRest {
             'params': params,
         };
         const trades = await this.watchPublic (topic, request, subscription);
-        if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved: Int = this.newUpdates ? trades.getLimit (market['symbol'], limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -537,10 +533,9 @@ export default class derive extends deriveRest {
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchOrders', params);
         const topic = this.numberToString (subaccountId) + '.orders';
         let messageHash = topic;
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'method': 'subscribe',
@@ -556,10 +551,8 @@ export default class derive extends deriveRest {
         };
         const message = this.extend (request, paramsDeriveSubaccountId);
         const orders = await this.watchPrivate (messageHash, message, subscription);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = this.newUpdates ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -660,10 +653,9 @@ export default class derive extends deriveRest {
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchMyTrades', params);
         const topic = this.numberToString (subaccountId) + '.trades';
         let messageHash = topic;
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'method': 'subscribe',
@@ -679,10 +671,8 @@ export default class derive extends deriveRest {
         };
         const message = this.extend (request, paramsDeriveSubaccountId);
         const trades = await this.watchPrivate (messageHash, message, subscription);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved: Int = this.newUpdates ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrade (client: Client, message: Dict) {

@@ -719,9 +719,7 @@ export default class zebpay extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 100; // default is 200
-        }
+        const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -730,8 +728,8 @@ export default class zebpay extends Exchange {
         } else {
             request['interval'] = timeframe;
         }
-        if ((market['contract'] === true) && (limit !== undefined)) {
-            request['limit'] = limit;
+        if ((market['contract'] === true) && (limitResolved !== undefined)) {
+            request['limit'] = limitResolved;
         }
         if (since !== undefined) {
             if (market['spot'] === true) {
@@ -743,16 +741,16 @@ export default class zebpay extends Exchange {
         const until = this.safeInteger2 (params, 'until', 'endtime');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit (params, [ 'endtime', 'until' ]);
         }
+        const paramsOmitted = (until !== undefined) ? this.omit (params, [ 'endtime', 'until' ]) : params;
         let response = undefined;
         if (market['spot'] === true) {
             if (until === undefined || since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets');
             }
-            response = await this.publicSpotGetV2MarketKlines (this.extend (request, params));
+            response = await this.publicSpotGetV2MarketKlines (this.extend (request, paramsOmitted));
         } else {
-            response = await this.publicSwapPostV1MarketKlines (this.extend (request, params));
+            response = await this.publicSwapPostV1MarketKlines (this.extend (request, paramsOmitted));
         }
         //
         //             [
@@ -786,7 +784,7 @@ export default class zebpay extends Exchange {
         //             ]
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market, timeframe, since, limitResolved);
     }
 
     /**
@@ -1039,7 +1037,7 @@ export default class zebpay extends Exchange {
         const upperCaseType = type.toUpperCase ();
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        params = this.omit (params, [ 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ]);
+        let query: Dict = this.omit (params, [ 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ]);
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
         }
@@ -1049,11 +1047,11 @@ export default class zebpay extends Exchange {
         };
         let response = undefined;
         if (market['spot'] === true) {
-            [ request, params ] = this.orderRequest (symbol, type, amount, request, price, params);
-            response = await this.privateSpotPostV2ExOrders (this.extend (request, params));
+            [ request, query ] = this.orderRequest (symbol, type, amount, request, price, query);
+            response = await this.privateSpotPostV2ExOrders (this.extend (request, query));
         } else {
-            const marginAsset = this.safeString (params, 'marginAsset', 'INR');
-            const formType = this.safeStringUpper (params, 'formType', 'ORDER_FORM');
+            const marginAsset = this.safeString (query, 'marginAsset', 'INR');
+            const formType = this.safeStringUpper (query, 'formType', 'ORDER_FORM');
             request['formType'] = formType;
             request['amount'] = this.parseToNumeric (this.amountToPrecision (market['id'], amount));
             request['marginAsset'] = marginAsset;
@@ -1066,7 +1064,7 @@ export default class zebpay extends Exchange {
                 if (hasSL) {
                     request['stopLossPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
                 }
-                response = await this.privateSwapPostV1TradeOrderAddTPSL (this.extend (request, params));
+                response = await this.privateSwapPostV1TradeOrderAddTPSL (this.extend (request, query));
             } else {
                 request['type'] = upperCaseType;
                 if (type === 'limit') {
@@ -1075,7 +1073,7 @@ export default class zebpay extends Exchange {
                     }
                     request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
                 }
-                response = await this.privateSwapPostV1TradeOrder (this.extend (request, params));
+                response = await this.privateSwapPostV1TradeOrder (this.extend (request, query));
             }
         }
         //
@@ -1922,6 +1920,8 @@ export default class zebpay extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
+        let headersSigned: NullableDict = undefined;
         const paramsOmitted: Dict = this.omit (params, 'defaultType');
         const isV1 = path.indexOf ('v1/') > -1;
         const marketType = isV1 ? 'swap' : 'spot';
@@ -1939,8 +1939,8 @@ export default class zebpay extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             } else {
-                body = JSON.stringify (paramsOmitted);
-                headers = {
+                bodySigned = JSON.stringify (paramsOmitted);
+                headersSigned = {
                     'Referrer': 'ccxt',
                     'Content-Type': 'application/json',
                 };
@@ -1956,17 +1956,19 @@ export default class zebpay extends Exchange {
                 url += '?' + queryString;
             } else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                body = this.json (paramsOmitted);
-                signature = this.hmac (this.encode (body), this.encode (this.secret), sha256, 'hex');
+                bodySigned = this.json (paramsOmitted);
+                signature = this.hmac (this.encode (bodySigned), this.encode (this.secret), sha256, 'hex');
             }
-            headers = {
+            headersSigned = {
                 'Referrer': 'ccxt',
                 'X-AUTH-APIKEY': this.apiKey,
                 'X-AUTH-SIGNATURE': signature,
             };
-            headers['Content-Type'] = 'application/json';
+            headersSigned['Content-Type'] = 'application/json';
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
