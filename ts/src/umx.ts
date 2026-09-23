@@ -428,7 +428,6 @@ export default class umx extends Exchange {
                     'OPTIMISM': 'op',
                     'OP': 'op',
                     'MATIC': 'pol',
-                    'POL': 'pol',
                     'ROBINHOOD': 'robinhood',
                     'SEI': 'sei',
                     'SEIEVM': 'seievm',
@@ -2522,7 +2521,7 @@ export default class umx extends Exchange {
         return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
-    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         const currencyId = this.safeString (depositAddress, 'currency');
         const address = this.safeString (depositAddress, 'addressDeposit');
         this.checkAddress (address);
