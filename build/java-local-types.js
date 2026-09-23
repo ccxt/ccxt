@@ -3242,6 +3242,22 @@ const HANDLE_ELEMENT_TYPES = {
     'handleTriggerAndParams': { element0: 'Boolean' },
 };
 
+// callee name -> element 1 is the caller's params box: the base tier's tuple producers
+// declare `[T, Dict]` and return `asList(<slot0>, parameters)`. `handleTriggerPricesAndParams`
+// carries a String at index 1 and is deliberately absent.
+const HANDLE_ELEMENT_1_PARAMS = new Set ([
+    'handleOptionAndParams', 'handleOptionAndParams2', 'handleMarketTypeAndParams',
+    'handleSubTypeAndParams', 'handleMarginModeAndParams', 'handleUntilOption',
+    'handleWithdrawTagAndParams', 'handleMaxEntriesPerRequestAndParams',
+    'handleTriggerAndParams', 'handleTriggerDirectionAndParams', 'handlePostOnly',
+    'handleParamString', 'handleParamString2', 'handleParamInteger', 'handleParamInteger2',
+    'handleParamBool', 'handleParamBool2', 'handleNetworkCodeAndParams',
+]);
+
+// the element-1 type: a `Map` on every returning path except the list-valued `omit`
+// passthrough, so the read carries a checkcast that can throw (approved convention)
+const HANDLE_ELEMENT_1_TYPE = 'java.util.Map<String, Object>';
+
 // the hand-written base declaration: an exchange override (rare, but possible) prints its own
 // shape and must never classify. The base stage transpiles a copy of ts/src/base/Exchange.ts
 // with the overload signatures stripped (build/stripOverloads.ts ->
@@ -3420,10 +3436,36 @@ function handleValueProvablyTyped (printer, node, type, selfName) {
     return false;
 }
 
+// the element-1 type of a base tuple producer: the caller's params box, proven from the base
+// declaration the checked signature resolves to
+function handleElement1Type (printer, callNode) {
+    const name = String (callNode.expression.name.escapedText);
+    if (!HANDLE_ELEMENT_1_PARAMS.has (name)) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !HANDLE_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
+        return undefined;
+    }
+    return HANDLE_ELEMENT_1_TYPE;
+}
+
 // the audited element type of `this.handleX (...)`[index], or undefined
 function handleElementType (printer, callNode, index) {
-    if (!isThisCall (callNode) || index !== 0) {
-        // only element 0 is ever a named type; element 1 is the caller's params box
+    if (!isThisCall (callNode)) {
+        return undefined;
+    }
+    if (index === 1) {
+        // element 1 is the caller's params box; a list-valued box throws at the read, which
+        // the element-typing convention accepts
+        return handleElement1Type (printer, callNode);
+    }
+    if (index !== 0) {
         return undefined;
     }
     const name = String (callNode.expression.name.escapedText);
@@ -3499,6 +3541,16 @@ function handleTupleIsSafeToNarrow (printer, scope, skipNode, sourceName, expect
         const parent = n.parent;
         if (parent === undefined) {
             continue;
+        }
+        if (expected === HANDLE_ELEMENT_1_TYPE && ts.isCallExpression (parent)
+            && parent.arguments[0] === n && parent.arguments[1] !== undefined
+            && ts.isStringLiteral (parent.arguments[1])
+            && ts.isPropertyAccessExpression (parent.expression)
+            && parent.expression.expression.kind === ts.SyntaxKind.ThisKeyword
+            && String (parent.expression.name.escapedText) === 'omit') {
+            // `this.omit (x, 'k')` with x typed `Map<String, Object>` binds the Map overload,
+            // which drops the list-valued passthrough the Object overload performs
+            return false;
         }
         if (ts.isTypeOfExpression (parent)) {
             return false; // `typeof x` prints instanceof tests (inconvertible for String/Long/Boolean)
@@ -3717,6 +3769,40 @@ function handleTupleTargetType (printer, tupleTypes, element) {
     return undefined;
 }
 
+// the element type of a write to a parameter the printer declares natively: a `Dict` parameter
+// prints `java.util.Map<String, Object>` (fixed, and defaulted in the typed core). An async body
+// rebinds a reassigned parameter to an `Object` local (`Object x = x3;`) and keeps the box.
+function handleTupleElementParameterType (printer, index, element) {
+    if (index !== 1) {
+        return undefined; // only element 1 is the caller's params box
+    }
+    const key = element.expression ?? element;
+    let declaration;
+    try {
+        const symbol = printer.getChecker ().getSymbolAtLocation (key);
+        declaration = symbol?.valueDeclaration ?? symbol?.declarations?.[0];
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !ts.isParameter (declaration)) {
+        return undefined;
+    }
+    const method = declaration.parent;
+    if (method === undefined
+        || (typeof printer.isAsyncFunction === 'function' && printer.isAsyncFunction (method))) {
+        return undefined;
+    }
+    let type;
+    try {
+        type = declaration.initializer !== undefined
+            ? printer.javaOptionalParameterType (declaration)
+            : printer.javaNativeParameterType (declaration);
+    } catch (e) {
+        return undefined;
+    }
+    return type === HANDLE_ELEMENT_1_TYPE ? type : undefined;
+}
+
 // `[a, b] = this.handleX (...)` printed by printCustomBinaryExpressionIfAny: type the
 // holder and cast the element writes whose target declaration this section retyped
 function handleRetypeDestructuringAssignment (printer, tupleTypes, node, printed) {
@@ -3738,7 +3824,10 @@ function handleRetypeDestructuringAssignment (printer, tupleTypes, node, printed
     lines[0] = holder;
     for (let i = 0; i < elements.length; i++) {
         const element = elements[i];
-        const declared = handleTupleTargetType (printer, tupleTypes, element);
+        // the target's own declaration was retyped by this section, or the target is a
+        // parameter the printer declares `java.util.Map<String, Object>` (the typed core)
+        const declared = handleTupleTargetType (printer, tupleTypes, element)
+            ?? handleTupleElementParameterType (printer, i, element);
         if (declared === undefined) {
             continue;
         }
