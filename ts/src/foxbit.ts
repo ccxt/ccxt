@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status, Endpoint, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -98,7 +98,7 @@ export default class foxbit extends Exchange {
                     'https://docs.foxbit.com.br',
                 ],
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
@@ -379,7 +379,6 @@ export default class foxbit extends Exchange {
     }
 
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
-        const precision = this.safeInteger (rawCurrency, 'precision');
         const currencyId = this.safeString (rawCurrency, 'symbol');
         const name = this.safeString (rawCurrency, 'name');
         const code = this.safeCurrencyCode (currencyId);
@@ -405,7 +404,7 @@ export default class foxbit extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'active': true,
-                    'precision': precision,
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (network, 'precision'))),
                     'fee': this.safeNumber (networkWithdrawInfo, 'fee'),
                     'limits': {
                         'amount': {
@@ -434,7 +433,7 @@ export default class foxbit extends Exchange {
             'deposit': this.safeBool (depositInfo, 'enabled', false),
             'withdraw': this.safeBool (withdrawInfo, 'enabled', false),
             'fee': this.safeNumber (withdrawInfo, 'fee'),
-            'precision': precision,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision'))),
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -1704,9 +1703,9 @@ export default class foxbit extends Exchange {
             'tierBased': false,
             'feeSide': 'get',
             'precision': {
-                'price': this.safeInteger (quoteAssets, 'precision'),
-                'amount': this.safeInteger (baseAssets, 'precision'),
-                'cost': this.safeInteger (quoteAssets, 'precision'),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (quoteAssets, 'precision'))),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (baseAssets, 'precision'))),
+                'cost': this.parseNumber (this.parsePrecision (this.safeString (quoteAssets, 'precision'))),
             },
             'limits': {
                 'amount': {
