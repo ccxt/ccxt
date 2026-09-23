@@ -356,6 +356,10 @@ func MapTyped(v any) map[string]any {
 	return ccxt.MapTyped(v)
 }
 
+func SafeStringPtr(v any) *string {
+	return ccxt.SafeStringPtr(v)
+}
+
 func ListTyped(v any) []any {
 	return ccxt.ListTyped(v)
 }
