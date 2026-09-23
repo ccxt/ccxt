@@ -2043,6 +2043,8 @@ class NewTranspiler {
     setupTranspiler() {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
+        // a lambda body cannot capture a reassigned parameter: fail the transpile instead of copying it
+        (this.transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
         // narrows `Object x = this.safeString(...)` locals to `String` — see

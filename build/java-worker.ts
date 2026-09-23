@@ -38,6 +38,8 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         if (!programCache) programCache = Transpiler.createProgramCache ();
         cachedTranspiler = new Transpiler (transpilerConfig, programCache);
         cachedTranspiler.setVerboseMode (false);
+        // same strict effectively-final rule as the main thread's setupTranspiler()
+        (cachedTranspiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
         // same printer hook the main thread installs in setupTranspiler(); the
         // batch below prints through this very javaTranspiler instance
         patchJavaLocalTypes (cachedTranspiler);
