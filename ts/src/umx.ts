@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1372,13 +1372,13 @@ export default class umx extends Exchange {
     parseSettlement (settlement: Dict): Dict {
         const marketId = this.safeString (settlement, 'symbol');
         const timestamp = this.safeInteger (settlement, 'time');
-        // the settled instrument is delisted at once, so its id matches no loaded market and the
-        // unified symbol falls back to the exchange id. the requested market is deliberately kept
-        // out of the lookup, safeMarket () answers it for every id it does not know, which would
-        // label the whole family with the one symbol the caller happened to pass
+        // the settled instrument is delisted at once, so safeSymbol () would answer either the
+        // requested market, labelling the whole family with one symbol, or the bare exchange id.
+        // the id carries every part the unified symbol needs, so it is rebuilt from it instead
+        const market = this.createExpiredOptionMarket ((marketId as string));
         return {
             'info': settlement,
-            'symbol': this.safeSymbol (marketId),
+            'symbol': market['symbol'],
             'price': this.safeNumber (settlement, 'price'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1391,6 +1391,106 @@ export default class umx extends Exchange {
             result.push (this.parseSettlement (settlements[i]));
         }
         return result;
+    }
+
+    override createExpiredOptionMarket (symbol: string): MarketInterface {
+        // the venue delists an instrument as soon as it settles, so a settled instrument is in no
+        // markets map and its unified symbol has to be rebuilt from the parts its id already
+        // carries. dated futures settle through the same feed as options, so both shapes are
+        // handled here, told apart by the strike and side segments the option ids add. the base
+        // market () hands this method a unified symbol, parseSettlement () a market id
+        const parts = symbol.split ('-');
+        const isMarketId = (symbol.indexOf ('/') === -1);
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        let expiry: Str = undefined;
+        let strikePrice: Str = undefined;
+        let optionSide: Str = undefined;
+        if (isMarketId) {
+            // ETH-USDT-23SEP26-4100-C and ETH-USDT-26JUN26, the expiry is spelled ddMMMyy
+            baseId = this.safeString (parts, 0);
+            quoteId = this.safeString (parts, 1);
+            expiry = this.convertMarketIdExpireDate (this.safeString (parts, 2));
+            strikePrice = this.safeString (parts, 3);
+            optionSide = this.safeString (parts, 4);
+        } else {
+            // ETH/USDT:USDT-260923-4100-C and ETH/USDT:USDT-260626, the expiry is already yymmdd
+            const currencyPart = parts[0];
+            const settled = currencyPart.split (':');
+            const pair = settled[0];
+            const pairParts = pair.split ('/');
+            baseId = this.safeString (pairParts, 0);
+            quoteId = this.safeString (pairParts, 1);
+            expiry = this.safeString (parts, 1);
+            strikePrice = this.safeString (parts, 2);
+            optionSide = this.safeString (parts, 3);
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        // every instrument is quoted and settled in USDT, which parseMarket relies on as well
+        const settle = quote;
+        const option = (optionSide !== undefined);
+        const marketIdDate = this.convertExpireDateToMarketIdDate (expiry);
+        const datetime = this.convertExpireDate (expiry);
+        const timestamp = this.parse8601 (datetime);
+        let marketId = baseId + '-' + quoteId + '-' + marketIdDate;
+        let unifiedSymbol = base + '/' + quote + ':' + settle + '-' + expiry;
+        if (option) {
+            marketId = marketId + '-' + strikePrice + '-' + optionSide;
+            unifiedSymbol = unifiedSymbol + '-' + strikePrice + '-' + optionSide;
+        }
+        // the regex transpiler mangles the first ternary of a return statement, so every value the
+        // literal below needs is resolved into a named one first, the same way parseMarket does it
+        const marketType = (option) ? 'option' : 'future';
+        let optionType: Str = undefined;
+        if (option) {
+            optionType = (optionSide === 'C') ? 'call' : 'put';
+        }
+        const strike = (option) ? this.parseNumber (strikePrice) : undefined;
+        return {
+            'id': marketId,
+            'symbol': unifiedSymbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': quoteId,
+            'active': false,
+            'type': marketType,
+            'linear': true,
+            'inverse': false,
+            'spot': false,
+            'swap': false,
+            'future': !option,
+            'option': option,
+            'margin': false,
+            'contract': true,
+            'contractSize': this.parseNumber ('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': optionType,
+            'strike': strike,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        } as MarketInterface;
     }
 
     /**

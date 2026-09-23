@@ -130,7 +130,7 @@
                             "price": "1581.97",
                             "time": "1782460800000"
                         },
-                        "symbol": "ETH-USDT-26JUN26",
+                        "symbol": "ETH/USDT:USDT-260626",
                         "price": 1581.97,
                         "timestamp": 1782460800000,
                         "datetime": "2026-06-26T08:00:00.000Z"
@@ -181,7 +181,7 @@
                             "price": "2446.4",
                             "time": "1789632000000"
                         },
-                        "symbol": "ETH-USDT-17SEP26-2550-P",
+                        "symbol": "ETH/USDT:USDT-260917-2550-P",
                         "price": 2446.4,
                         "timestamp": 1789632000000,
                         "datetime": "2026-09-17T08:00:00.000Z"
@@ -193,7 +193,7 @@
                             "price": "2491.3",
                             "time": "1789718400000"
                         },
-                        "symbol": "ETH-USDT-18SEP26-2340-P",
+                        "symbol": "ETH/USDT:USDT-260918-2340-P",
                         "price": 2491.3,
                         "timestamp": 1789718400000,
                         "datetime": "2026-09-18T08:00:00.000Z"
@@ -205,7 +205,7 @@
                             "price": "2626",
                             "time": "1789804800000"
                         },
-                        "symbol": "ETH-USDT-19SEP26-2720-P",
+                        "symbol": "ETH/USDT:USDT-260919-2720-P",
                         "price": 2626,
                         "timestamp": 1789804800000,
                         "datetime": "2026-09-19T08:00:00.000Z"
@@ -247,7 +247,7 @@
                             "price": "2724.9",
                             "time": "1790064000000"
                         },
-                        "symbol": "ETH-USDT-22SEP26-2880-P",
+                        "symbol": "ETH/USDT:USDT-260922-2880-P",
                         "price": 2724.9,
                         "timestamp": 1790064000000,
                         "datetime": "2026-09-22T08:00:00.000Z"
@@ -259,7 +259,7 @@
                             "price": "2743.9",
                             "time": "1790150400000"
                         },
-                        "symbol": "ETH-USDT-23SEP26-2650-P",
+                        "symbol": "ETH/USDT:USDT-260923-2650-P",
                         "price": 2743.9,
                         "timestamp": 1790150400000,
                         "datetime": "2026-09-23T08:00:00.000Z"
@@ -299,7 +299,7 @@
                             "price": "2724.9",
                             "time": "1790064000000"
                         },
-                        "symbol": "ETH-USDT-22SEP26-2750-C",
+                        "symbol": "ETH/USDT:USDT-260922-2750-C",
                         "price": 2724.9,
                         "timestamp": 1790064000000,
                         "datetime": "2026-09-22T08:00:00.000Z"
@@ -311,7 +311,7 @@
                             "price": "2743.9",
                             "time": "1790150400000"
                         },
-                        "symbol": "ETH-USDT-23SEP26-2720-C",
+                        "symbol": "ETH/USDT:USDT-260923-2720-C",
                         "price": 2743.9,
                         "timestamp": 1790150400000,
                         "datetime": "2026-09-23T08:00:00.000Z"
