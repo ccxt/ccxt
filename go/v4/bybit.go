@@ -2971,8 +2971,8 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var markets []any = SafeListTyped(responseResult, "list")
 	var result []any = []any{}
-	var takerFee any = this.ParseNumber("0.001")
-	var makerFee any = this.ParseNumber("0.001")
+	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.001"))
+	var makerFee *float64 = Float64PtrTyped(this.ParseNumber("0.001"))
 	for i := 0; i < len(markets); i++ {
 		var market any = func() any {
 			if i >= 0 && i < len(markets) {
@@ -9385,7 +9385,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol a
 	var intervals map[string]any = SafeMapTyped(this.Options, "intervals")
 	var interval *string = this.SafeString(intervals, timeframe) // 5min,15min,30min,1h,4h,1d
 	if interval == nil {
-		panic(BadRequest(Add(Add(this.Id+" fetchOpenInterestHistory() cannot use the ", timeframe), " timeframe")))
+		panic(BadRequest(this.Id + " fetchOpenInterestHistory() cannot use the " + timeframe + " timeframe"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
@@ -9442,7 +9442,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol a
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.AddPaginationCursorToResult(response)
 	var id *string = this.SafeString(result, "symbol")
-	var safeMarketObj any = this.SafeMarket(id, market, nil, "contract")
+	var safeMarketObj map[string]any = MapTyped(this.SafeMarket(id, market, nil, "contract"))
 
 	ch <- this.ParseOpenInterestsHistory(data, safeMarketObj, since, limit)
 	return nil
@@ -9523,7 +9523,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var id *string = this.SafeString(result, "symbol")
-	var safeMarketObj any = this.SafeMarket(id, market, nil, "contract")
+	var safeMarketObj map[string]any = MapTyped(this.SafeMarket(id, market, nil, "contract"))
 	var data any = this.AddPaginationCursorToResult(response)
 
 	ch <- this.ParseOpenInterest(GetValue(data, 0), safeMarketObj)
@@ -11459,8 +11459,8 @@ func (this *Bybit) ParseLeverageTiers(response any, optionalArgs ...any) any {
 			var id *int64 = this.SafeInteger(GetValue(entry, j), "id")
 			AddElementToObject(GetValue(entry, j), "id", id)
 		}
-		var market any = this.SafeMarket(marketId, nil, nil, "contract")
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, "contract"))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(tiers, symbol, this.ParseMarketLeverageTiers(this.SortBy(entry, "id"), market))
 	}
 	return tiers
@@ -11486,9 +11486,9 @@ func (this *Bybit) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 		var tier any = GetValue(info, i)
 		var marketId *string = this.SafeString(info, "symbol")
 		market = MapTyped(this.SafeMarket(marketId))
-		var minNotional any = this.ParseNumber("0")
+		var minNotional *float64 = Float64PtrTyped(this.ParseNumber("0"))
 		if i != 0 {
-			minNotional = DerefScalar(this.SafeNumber(GetValue(info, i-1), "riskLimitValue"))
+			minNotional = this.SafeNumber(GetValue(info, i-1), "riskLimitValue")
 		}
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeInteger(tier, "id"),

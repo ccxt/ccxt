@@ -1401,12 +1401,12 @@ func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...
 	//        "volumeQuote": 6899673.0
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")
-	var marketResolved any = this.SafeMarket(marketId, market)
+	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	market = marketResolved
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(marketResolved, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{

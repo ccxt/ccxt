@@ -974,7 +974,7 @@ func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var data any = this.SafeList(message, "data", []any{})
 	var ticker any = this.SafeDict(data, 0, map[string]any{})
 	var parsedTicker any = this.ParseWsBidAsk(ticker, market)
@@ -1601,8 +1601,8 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval string = ccxt.Replace(channel, "candle", "")
 	// use a reverse lookup in a static map instead
 	var timeframe *string = this.FindTimeframe(interval)
@@ -1623,7 +1623,7 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		var messageHash any = ccxt.Add(*channel+":", ccxt.GetValue(market, "id"))
+		var messageHash any = ccxt.Add(*channel+":", market["id"])
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		// for multiOHLCV we need special object, as opposed to other "multi"
 		// methods, because ccxt.OHLCV response item does not contain symbol
@@ -1992,8 +1992,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 	var action *string = this.SafeString(message, "action")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var depths map[string]any = map[string]any{
 		"bbo-tbt":        1,
 		"books":          400,

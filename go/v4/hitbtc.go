@@ -925,8 +925,8 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var lotString *string = this.SafeString(market, "quantity_increment")
 		var stepString *string = this.SafeString(market, "tick_size")
-		var lot any = this.ParseNumber(lotString)
-		var step any = this.ParseNumber(stepString)
+		var lot *float64 = Float64PtrTyped(this.ParseNumber(lotString))
+		var step *float64 = Float64PtrTyped(this.ParseNumber(stepString))
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -1407,8 +1407,8 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = GetValue(keys, i).(string)
-		var market any = this.SafeMarket(marketId)
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		var entry map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		AddElementToObject(result, symbol, this.ParseTicker(entry, market))
 	}
@@ -4106,7 +4106,7 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	var markets []string = ObjectKeys(response)
 	for i := 0; i < len(markets); i++ {
 		var marketId string = GetValue(markets, i).(string)
-		var marketInner any = this.SafeMarket(marketId)
+		var marketInner map[string]any = MapTyped(this.SafeMarket(marketId))
 		var openInterest map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
 		results = append(results, this.ParseOpenInterest(openInterest, marketInner))
 	}
@@ -4333,7 +4333,7 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	//         "positions": null
 	//     }
 	//
-	var parsedAmount any = this.ParseNumber(amount)
+	var parsedAmount *float64 = Float64PtrTyped(this.ParseNumber(amount))
 
 	ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"amount": parsedAmount,

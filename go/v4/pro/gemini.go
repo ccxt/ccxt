@@ -263,10 +263,10 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeStringLower(message, "symbol")
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var trades any = this.SafeList(message, "trades")
 	if !ccxt.IsEqual(trades, nil) {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
@@ -287,8 +287,8 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp a
 		var storesForSymbols map[string]any = map[string]any{}
 		for i := 0; i < ccxt.GetArrayLength(trades); i++ {
 			var marketId any = ccxt.GetValue(ccxt.GetValue(trades, i), "symbol")
-			var market any = this.SafeMarket(ccxt.ToLower(marketId))
-			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+			var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToLower(marketId)))
+			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 			var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(trades, i), market))
 			trade["timestamp"] = timestamp
 			trade["datetime"] = this.Iso8601(timestamp)
@@ -400,7 +400,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var timeframeEndIndex int = strings.Index(timeframeId, "_")
 	timeframeId = ccxt.Slice(timeframeId, 0, timeframeEndIndex)
 	var marketId string = ccxt.ToLower(this.SafeString(message, "symbol", ""))
-	var market any = this.SafeMarket(marketId)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var timeframe *string = this.FindTimeframe(timeframeId)
@@ -627,7 +627,7 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 		if ccxt.Precise.StringEq(sizeString, "0") {
 			continue
 		}
-		var size any = this.ParseNumber(sizeString)
+		var size *float64 = ccxt.Float64PtrTyped(this.ParseNumber(sizeString))
 		if rawSide != nil && *rawSide == "bid" {
 			ccxt.AddElementToObject(currentBidAsk, "bid", price)
 			ccxt.AddElementToObject(currentBidAsk, "bidVolume", size)
