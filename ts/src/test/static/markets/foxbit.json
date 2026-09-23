@@ -29,8 +29,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "price": null,
-            "amount": null
+            "price": 1,
+            "amount": 1e-8
         },
         "limits": {
             "leverage": {
@@ -121,8 +121,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "price": null,
-            "amount": null
+            "price": 0.1,
+            "amount": 1e-8
         },
         "limits": {
             "leverage": {
@@ -213,8 +213,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "price": null,
-            "amount": null
+            "price": 0.0001,
+            "amount": 0.00001
         },
         "limits": {
             "leverage": {
@@ -305,8 +305,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "price": null,
-            "amount": null
+            "price": 0.01,
+            "amount": 1e-8
         },
         "limits": {
             "leverage": {
@@ -396,8 +396,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "price": null,
-            "amount": null
+            "price": 0.001,
+            "amount": 0.000001
         },
         "limits": {
             "leverage": {
