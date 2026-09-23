@@ -71,7 +71,7 @@ export default class kraken extends krakenRest {
     handleTicker(client: Client, message: Dict): void;
     handleTrades(client: Client, message: Dict): void;
     handleOHLCV(client: Client, message: Dict): void;
-    requestId(): any;
+    requestId(): number;
     /**
      * @method
      * @name kraken#watchTicker

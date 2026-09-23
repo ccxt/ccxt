@@ -193,7 +193,7 @@ export default class binance extends binanceRest {
             };
         };
     };
-    requestId(url: string): any;
+    requestId(url: string): number;
     isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): Str;
     getWsUrl(type: any, category: any): any;

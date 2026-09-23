@@ -4,10 +4,10 @@ import Client from '../base/ws/Client.js';
 export default class bydfi extends bydfiRest {
     describe(): any;
     ping(client: Client): {
-        id: any;
+        id: number;
         method: string;
     };
-    requestId(): any;
+    requestId(): number;
     watchPublic(messageHashes: string[], channels: Strings, params?: Dict, subscription?: Dict): Promise<any>;
     watchPrivate(messageHashes: string[], params?: Dict): Promise<any>;
     /**

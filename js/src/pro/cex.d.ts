@@ -3,7 +3,7 @@ import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, O
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
     describe(): any;
-    requestId(): any;
+    requestId(): string;
     /**
      * @method
      * @name cex#watchBalance

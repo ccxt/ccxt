@@ -17,7 +17,7 @@ export default class kalshi extends Exchange {
      * @param {int} [params.limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseBinaryMarketToOutcomes(raw: Dict): Market[];
     /**
      * @ignore
@@ -42,7 +42,7 @@ export default class kalshi extends Exchange {
      */
     fetchOutcomes(outcomeSymbols: string[]): Promise<any>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, params?: {}): {
+    calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, params?: Dict): {
         type: string;
         currency: string;
         rate: number;
@@ -58,7 +58,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    fetchTicker(outcome: Str, params?: {}): Promise<PredictionTicker>;
+    fetchTicker(outcome: Str, params?: Dict): Promise<PredictionTicker>;
     /**
      * @method
      * @name kalshi#fetchStatus
@@ -67,7 +67,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
      */
-    fetchStatus(params?: {}): Promise<any>;
+    fetchStatus(params?: Dict): Promise<any>;
     /**
      * @method
      * @name kalshi#fetchOpenInterest
@@ -77,7 +77,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    fetchOpenInterest(outcome: string, params?: {}): Promise<PredictionOpenInterest>;
+    fetchOpenInterest(outcome: string, params?: Dict): Promise<PredictionOpenInterest>;
     parsePredictionOpenInterest(interest: Dict, market?: Market): PredictionOpenInterest;
     /**
      * @ignore
@@ -98,7 +98,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    fetchTickers(outcomes?: Strings, params?: {}): Promise<PredictionTickers>;
+    fetchTickers(outcomes?: Strings, params?: Dict): Promise<PredictionTickers>;
     /**
      * @method
      * @name kalshi#fetchOrderBook
@@ -109,7 +109,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: Str, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @ignore
      * @method
@@ -134,7 +134,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(outcome: Str, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(outcome: Str, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @ignore
      * @method
@@ -156,7 +156,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    fetchTrades(outcome: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchTrades(outcome: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -178,7 +178,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -197,7 +197,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     /**
      * @ignore
      * @method
@@ -216,7 +216,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
+    fetchPositions(outcomes?: Strings, params?: Dict): Promise<PredictionPosition[]>;
     /**
      * @method
      * @name kalshi#fetchSettlements
@@ -228,7 +228,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of prediction settlement structures
      */
-    fetchSettlements(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionSettlement[]>;
+    fetchSettlements(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionSettlement[]>;
     /**
      * @ignore
      * @method
@@ -260,7 +260,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name kalshi#fetchOrders
@@ -272,7 +272,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name kalshi#fetchClosedOrders
@@ -284,7 +284,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchClosedOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchClosedOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name kalshi#fetchOrder
@@ -295,7 +295,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrder(id: Str, outcome?: Str, params?: {}): Promise<PredictionOrder>;
+    fetchOrder(id: Str, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -328,7 +328,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    createOrder(outcome: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
+    createOrder(outcome: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name kalshi#editOrder
@@ -343,7 +343,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    editOrder(id: string, outcome: string, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
+    editOrder(id: string, outcome: string, type: Str, side: Str, amount?: Num, price?: Num, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name kalshi#cancelOrder
@@ -354,7 +354,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    cancelOrder(id: Str, outcome?: Str, params?: {}): Promise<PredictionOrder>;
+    cancelOrder(id: Str, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name kalshi#cancelAllOrders
@@ -364,7 +364,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    cancelAllOrders(outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
+    cancelAllOrders(outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name kalshi#fetchEvents
@@ -391,7 +391,7 @@ export default class kalshi extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    fetchEventsByQuery(queries: string[], limit: Int, rest?: {}): Promise<any[]>;
+    fetchEventsByQuery(queries: string[], limit: Int, rest?: Dict): Promise<any[]>;
     /**
      * @ignore
      * @method
@@ -401,7 +401,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the events endpoint
      * @returns {object} the raw kalshi event object with nested markets
      */
-    fetchRawEventByTicker(ticker: string, params?: {}): Promise<any>;
+    fetchRawEventByTicker(ticker: string, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -410,7 +410,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] the fetchEvents params carrying tags / category / series_ticker
      * @returns {string[]} deduplicated series tickers
      */
-    resolveEventSeriesTickers(params?: {}): Promise<string[]>;
+    resolveEventSeriesTickers(params?: Dict): Promise<string[]>;
     /**
      * @ignore
      * @method
@@ -422,7 +422,7 @@ export default class kalshi extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    fetchSeriesEvents(seriesTickers: string[], status: Str, limit: Int, rest?: {}): Promise<any[]>;
+    fetchSeriesEvents(seriesTickers: string[], status: Str, limit: Int, rest?: Dict): Promise<any[]>;
     /**
      * @method
      * @name kalshi#fetchEvent
@@ -432,7 +432,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;
+    fetchEvent(id: string, params?: Dict): Promise<PredictionEvent>;
     /**
      * @ignore
      * @method
@@ -455,7 +455,7 @@ export default class kalshi extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
