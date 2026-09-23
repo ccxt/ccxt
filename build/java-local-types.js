@@ -3913,6 +3913,311 @@ export function patchJavaHandlerLocalTypes (printer) {
     printer._javaHandlerLocalTypesPatched = true;
 }
 
+// handle* tuple element-0 coercion: a consumer whose only reads are truthiness tests takes the
+// nullable Boolean box and, on its element-0 write, the same truthiness function the reads already
+// apply — exact for every box, because that function is idempotent.
+
+const HANDLE_COERCION_DEBUG = typeof process !== 'undefined' && process.env !== undefined
+    && process.env.CCXT_JAVA_HANDLE_COERCION_DEBUG === '1';
+
+// the truthiness spelling the site already prints for each kind of TS declaration, plus the Java
+// declaration the retype gives the local (always the nullable BOX: the initialiser may be null, and
+// a primitive would have to unbox it)
+const HANDLE_COERCION_KINDS = {
+    'boolean': { declaration: 'Boolean', wrapper: 'Boolean.TRUE.equals(' }, // TS type exactly `boolean`
+    'Boolean': { declaration: 'Boolean', wrapper: 'Helpers.isTrue(' },      // TS nullable `Bool` / bool|null union
+};
+
+// the TS-declared kind of the local, through the printer's OWN two predicates (the same ones that
+// pick the read spelling): exactly `boolean` (no alias, no any/nullish member) or the nullable
+// boolean union. `any`, a non-boolean alias member and every other type decline.
+function handleCoercionKind (printer, declaration) {
+    if (typeof printer.javaBooleanBoxType !== 'function' || typeof printer.javaTypeOfDeclaration !== 'function') {
+        return undefined; // an older printer: decline, never guess
+    }
+    let type;
+    try {
+        type = printer.javaTypeOfDeclaration (declaration);
+    } catch (e) {
+        return undefined;
+    }
+    if (type === undefined) {
+        return undefined;
+    }
+    if (printer.javaBooleanBoxType (type)) {
+        return 'boolean';
+    }
+    if (typeof printer.javaNullableBooleanDeclaration === 'function'
+        && printer.javaNullableBooleanDeclaration (declaration)) {
+        return 'Boolean';
+    }
+    return undefined;
+}
+
+// the initialiser must already print a value of the narrowed declaration on its own: a boolean
+// literal for either kind, null for the nullable kind
+function handleCoercionInitIsKind (initializer, kind) {
+    const node = unwrapParens (initializer);
+    if (node === undefined) {
+        return false;
+    }
+    if (node.kind === ts.SyntaxKind.TrueKeyword || node.kind === ts.SyntaxKind.FalseKeyword) {
+        return true;
+    }
+    return kind === 'Boolean' && node.kind === ts.SyntaxKind.NullKeyword;
+}
+
+// `if (x)` / `while (x)` / `do .. while (x)` / `x ? :` / `!x` / `x || y` / `x && y` inside a
+// condition — exactly the positions the printer wraps in the truthiness spelling. Every other
+// read (argument, comparison, arithmetic, receiver, `x as T`) resolves against the narrowed type.
+function handleCoercionIsTruthinessRead (node) {
+    const parent = node.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    switch (parent.kind) {
+        case ts.SyntaxKind.IfStatement:
+        case ts.SyntaxKind.WhileStatement:
+        case ts.SyntaxKind.DoStatement:
+            return parent.expression === node;
+        case ts.SyntaxKind.ConditionalExpression:
+            return parent.condition === node;
+        case ts.SyntaxKind.PrefixUnaryExpression:
+            return parent.operator === ts.SyntaxKind.ExclamationToken && parent.operand === node
+                && handleCoercionIsTruthinessRead (parent);
+        case ts.SyntaxKind.ParenthesizedExpression:
+            return parent.expression === node && handleCoercionIsTruthinessRead (parent);
+        case ts.SyntaxKind.BinaryExpression:
+            return parent.operatorToken !== undefined
+                && (parent.operatorToken.kind === ts.SyntaxKind.BarBarToken
+                    || parent.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken)
+                && handleCoercionIsTruthinessRead (parent);
+        default:
+            return false;
+    }
+}
+
+// `[ x, params ] = this.handle* (...)` with x at index 0, in this scope
+function handleCoercionElementWrite (scope, name, skipNode) {
+    const uses = identifierIndex (scope).get (name) ?? [];
+    for (const use of uses) {
+        if (use === skipNode) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent === undefined || parent.kind !== ts.SyntaxKind.ArrayLiteralExpression) {
+            continue;
+        }
+        if (parent.elements.indexOf (use) !== 0) {
+            continue;
+        }
+        const grand = parent.parent;
+        if (grand === undefined || !ts.isBinaryExpression (grand) || grand.left !== parent
+            || grand.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+            continue;
+        }
+        if (!isHandleDestructuringCallee (grand.right)) {
+            continue;
+        }
+        return grand;
+    }
+    return undefined;
+}
+
+// every other use of the local must be a truthiness read: a second write, a compound write, x++/--,
+// typeof, a spread, an argument position or a comparison all decline (a whole-function scan)
+function handleCoercionIsSafeToNarrow (printer, scope, declaration, name, elementWrite, isProFile) {
+    const uses = identifierIndex (scope).get (name) ?? [];
+    for (const use of uses) {
+        if (use === declaration.name) {
+            continue;
+        }
+        if (handleIsNotAUse (use)) {
+            continue;
+        }
+        if (elementWrite !== undefined && elementWrite.left.elements[0] === use) {
+            continue;
+        }
+        if (!handleCoercionIsTruthinessRead (use)) {
+            if (HANDLE_COERCION_DEBUG) {
+                console.error (`[java-handle-coercion] reject ${name} (read is not a truthiness test)`);
+            }
+            return false;
+        }
+        if (isProFile && feedsInheritedAsyncCall (printer, use, scope)) {
+            return false; // the pro-file inherited-async guard
+        }
+    }
+    return true;
+}
+
+// the coercion info for a local the declaration pass retyped, or undefined
+function handleCoercionInfo (printer, coerced, node) {
+    let declaration;
+    try {
+        const symbol = printer.getChecker ().getSymbolAtLocation (node);
+        declaration = symbol?.valueDeclaration ?? symbol?.declarations?.[0];
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined) {
+        return undefined;
+    }
+    if (coerced.has (declaration)) {
+        return coerced.get (declaration);
+    }
+    if (coerced.has (declaration.parent)) {
+        return coerced.get (declaration.parent);
+    }
+    return undefined;
+}
+
+// the `let x = false;` / `let x: Bool = undefined;` declaration the element write coerces
+function handleCoercionTargetDeclaration (printer, declaration) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const kind = handleCoercionKind (printer, declaration);
+    if (kind === undefined) {
+        return undefined;
+    }
+    if (!handleCoercionInitIsKind (declaration.initializer, kind)) {
+        return undefined;
+    }
+    const name = declaration.name.escapedText;
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const elementWrite = handleCoercionElementWrite (scope, name, declaration.name);
+    if (elementWrite === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    if (!handleCoercionIsSafeToNarrow (printer, scope, declaration, name, elementWrite, isProFile)) {
+        return undefined;
+    }
+    const spec = HANDLE_COERCION_KINDS[kind];
+    return { type: spec.declaration, wrapper: spec.wrapper };
+}
+
+// `<name> = ((java.util.List<Object>) <holder>).get(0);` -> `<name> = <F>(<read>)[;]`; the holder
+// line and every other element read stay exactly as printed
+function handleCoercionElementWriteLine (printer, coerced, node, printed) {
+    if (!isHandleDestructuringCallee (node.right)) {
+        return printed;
+    }
+    const elements = node.left.elements;
+    if (elements.length === 0) {
+        return printed;
+    }
+    const lines = printed.split ('\n');
+    if (lines.length !== elements.length + 1) {
+        return printed;
+    }
+    const printedNames = elements.map ((element) => printer.printNode (element, 0));
+    const holderName = printedNames.join ('') + 'Variable';
+    const readMarker = `((java.util.List<Object>) ${holderName}).get(`;
+    for (let i = 0; i < elements.length; i++) {
+        const element = elements[i];
+        if (i !== 0 || element?.kind !== ts.SyntaxKind.Identifier) {
+            continue; // element 1 is the caller's params box — no coercion can name it
+        }
+        const info = handleCoercionInfo (printer, coerced, element);
+        if (info === undefined) {
+            continue;
+        }
+        const line = lines[1 + i];
+        if (line === undefined) {
+            continue;
+        }
+        const stripped = line.replace (/^[ \t]*/, '');
+        const indent = line.slice (0, line.length - stripped.length);
+        const head = `${printedNames[i]} = `;
+        if (!stripped.startsWith (head)) {
+            continue;
+        }
+        const body = stripped.slice (head.length);
+        if (!body.startsWith (readMarker)) {
+            continue;
+        }
+        const rest = body.slice (readMarker.length);
+        if (rest !== `${i})` && rest !== `${i});`) {
+            continue;
+        }
+        const semi = body.endsWith (';') ? ';' : '';
+        const expression = semi === ';' ? body.slice (0, body.length - 1) : body;
+        lines[1 + i] = `${indent}${printedNames[i]} = ${info.wrapper}${expression})${semi}`;
+    }
+    return lines.join ('\n');
+}
+
+// install the coercion on a printer (idempotent): additive wrappers on printVariableDeclarationList
+// (the declaration retype), printCustomBinaryExpressionIfAny (the element-0 write) and
+// printCondition (keep the spelling the site already printed).
+export function patchJavaHandleTupleCoercionTypes (printer) {
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaHandleTupleCoercionPatched) {
+        return;
+    }
+    // declaration node -> {type, wrapper}, filled as declarations are printed; Java statements print
+    // in source order, so the element write always finds its declaration classified
+    const coerced = new WeakMap ();
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = original (node, identation);
+        const declarations = node?.declarations;
+        if (!declarations || declarations.length !== 1) {
+            return printed;
+        }
+        const declaration = declarations[0];
+        const info = handleCoercionTargetDeclaration (printer, declaration);
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed; // another slice's patcher already retyped it — leave it
+        }
+        coerced.set (declaration, info);
+        if (HANDLE_COERCION_DEBUG) {
+            console.error (`[java-handle-coercion] ${declaration.name.escapedText} -> ${info.type}`);
+        }
+        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ` + printed.slice (at + marker.length);
+    };
+    if (typeof printer.printCustomBinaryExpressionIfAny === 'function') {
+        const originalCustom = printer.printCustomBinaryExpressionIfAny.bind (printer);
+        printer.printCustomBinaryExpressionIfAny = function (node, identation) {
+            const printed = originalCustom (node, identation);
+            if (typeof printed !== 'string'
+                || node?.kind !== ts.SyntaxKind.BinaryExpression
+                || node.operatorToken?.kind !== ts.SyntaxKind.EqualsToken
+                || node.left?.kind !== ts.SyntaxKind.ArrayLiteralExpression) {
+                return printed;
+            }
+            return handleCoercionElementWriteLine (printer, coerced, node, printed);
+        };
+    }
+    // the reads: hold the spelling the site already printed (the additional declared-kind entry in
+    // the printer's own resolver would switch a `Boolean` local to `Boolean.TRUE.equals (x)`; the
+    // coerced value answers both spellings identically, this one keeps the diff to two lines)
+    if (typeof printer.printCondition === 'function') {
+        const originalCondition = printer.printCondition.bind (printer);
+        printer.printCondition = function (node, identation) {
+            if (node?.kind === ts.SyntaxKind.Identifier) {
+                const info = handleCoercionInfo (printer, coerced, node);
+                if (info !== undefined) {
+                    return printer.getIden (identation) + `${info.wrapper}${printer.printNode (node, 0)})`;
+                }
+            }
+            return originalCondition (node, identation);
+        };
+    }
+    printer._javaHandleTupleCoercionPatched = true;
+}
+
 // ===== install =====
 
 // ===== collection/dict helpers -> java.util.Map<String, Object> / java.util.List<Object> =====
@@ -4761,6 +5066,9 @@ export function installJavaLocalTypes (transpiler) {
     // (3) the tuple-returning handle* destructuring family (section 4): additive wrappers
     // on printVariableDeclarationList + printCustomBinaryExpressionIfAny
     patchJavaHandlerLocalTypes (printer);
+    // handle* tuple element-0 coercion: a consumer whose only reads are truthiness tests takes the
+    // nullable Boolean box and the same truthiness function on its element-0 write
+    patchJavaHandleTupleCoercionTypes (printer);
 
     // (5) collection/dict helper locals (JAVA-RE-5, additive slice): a second,
     // independent patch of the same printer hooks — it keeps its own candidate table
