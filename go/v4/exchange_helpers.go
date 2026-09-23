@@ -1877,6 +1877,10 @@ func GetArg(v []any, index int, def any) any {
 			return def
 		}
 	}
+	// a nil map box is an absent optional argument, like a nil slice
+	if res, ok := val.(map[string]any); ok && res == nil {
+		return def
+	}
 
 	// do we need this??
 	// if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
@@ -1907,6 +1911,9 @@ func goArgValue(args []any, index int) (any, bool) {
 		return nil, false
 	}
 	if res, isStrings := val.([]string); isStrings && res == nil {
+		return nil, false
+	}
+	if res, isMap := val.(map[string]any); isMap && res == nil {
 		return nil, false
 	}
 	return val, true
