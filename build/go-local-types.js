@@ -4993,6 +4993,149 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoElementReadJoins (goTranspiler);
     // the scalar-literal locals of the same shape
     installCcxtGoScalarLiteralLift (goTranspiler);
+    installCcxtGoElementReadUnbox (goTranspiler);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Container element reads: `var x map[string]any = MapTyped(GetValue(c, k))` / `ArrayTyped(...)`.
+// Answered through the printer's own container predicates, so admission and emission agree.
+
+function ccxtGoElementReadInitializer (declaration) {
+    let node = declaration?.initializer;
+    while ((node !== undefined) && ((node.kind === ts.SyntaxKind.ParenthesizedExpression)
+        || (node.kind === ts.SyntaxKind.AsExpression) || (node.kind === ts.SyntaxKind.NonNullExpression))) {
+        node = node.expression;
+    }
+    if ((node === undefined) || (node.kind !== ts.SyntaxKind.ElementAccessExpression) || (node.questionDotToken !== undefined)) {
+        return undefined;
+    }
+    return node;
+}
+
+function ccxtGoElementReadLocalType (goTranspiler, declaration, family) {
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || (declaration.name?.kind !== ts.SyntaxKind.Identifier)) {
+        return undefined;
+    }
+    if (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement) {
+        return undefined;
+    }
+    // ws caches, order-book sides and structs live only outside the REST tier
+    if ((ccxtGoElementReadInitializer (declaration) === undefined) || !ccxtGoSafeCollectionIsRestSource (declaration)) {
+        return undefined;
+    }
+    if ((typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function') || (typeof goTranspiler.goSafeDictUseReadsTheMap !== 'function')
+        || (typeof goTranspiler.goSafeListUseReadsTheList !== 'function') || (typeof goTranspiler.hasNodeWhere !== 'function')) {
+        return undefined;
+    }
+    const sourceName = declaration.name.escapedText;
+    const scope = goTranspiler.goEnclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const refersTo = (typeof goTranspiler.goIdentifierRefersToDeclaration === 'function')
+        ? (n) => goTranspiler.goIdentifierRefersToDeclaration (n, declaration) : () => true;
+    const skipUse = (n) => ((n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression) && (n.parent.name === n))
+        || ((n.parent?.kind === ts.SyntaxKind.PropertyAssignment) && (n.parent.name === n)) || !refersTo (n);
+    let uses = 0;
+    goTranspiler.hasNodeWhere (scope, (n) => {
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === sourceName) && (n !== declaration.name) && !skipUse (n)) {
+            uses += 1;
+        }
+        return false;
+    });
+    if (uses === 0) {
+        return undefined;
+    }
+    const dictLike = (family === 'map');
+    const printer = goTranspiler;
+    // a string or a list would read differently through the converted local
+    const checker = (typeof printer.checkerOrUndefined === 'function') ? printer.checkerOrUndefined () : undefined;
+    if (checker === undefined) {
+        return undefined;
+    }
+    const valueType = checker.getTypeAtLocation (declaration.name);
+    const parts = (valueType?.isUnion?. ()) ? valueType.types : [ valueType ];
+    const isList = (t) => checker.isArrayType (t) || checker.isTupleType (t);
+    const scalarFlags = ts.TypeFlags.StringLike | ts.TypeFlags.NumberLike | ts.TypeFlags.BooleanLike | ts.TypeFlags.BigIntLike;
+    if (!dictLike && !parts.every ((t) => isList (t) || ((t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0))) {
+        return undefined;
+    }
+    if (dictLike && parts.some ((t) => isList (t) || ((t.flags & scalarFlags) !== 0))) {
+        return undefined;
+    }
+    // the key must fit the container family, or the typed conversion would hide the value
+    const keyFits = (key) => {
+        if (key === undefined) {
+            return false;
+        }
+        if (dictLike) {
+            return ((key.kind === ts.SyntaxKind.StringLiteral) || (key.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral))
+                && !(/^[+-]?[0-9]+$/).test (key.text);
+        }
+        return (typeof printer.goIntIndexExpression === 'function') && printer.goIntIndexExpression (key);
+    };
+    const reads = (n) => {
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression) {
+            if (!keyFits (parent.argumentExpression)) {
+                return false;
+            }
+        } else if (parent?.kind === ts.SyntaxKind.CallExpression) {
+            const callee = (typeof printer.goPrintedCallee === 'function') ? printer.goPrintedCallee (printer.printNode (parent, 0)) : undefined;
+            if ((callee === undefined) || (/IsDictionary$/).test (callee)) {
+                return false; // a nil map is still a dictionary
+            }
+            if (((callee === 'GetValue') || /^(?:this\.)?Safe[A-Z]/.test (callee)) && !keyFits (parent.arguments[1])) {
+                return false;
+            }
+        } else if ((parent?.kind === ts.SyntaxKind.PropertyAccessExpression) && (parent.name?.escapedText === 'push')) {
+            return false; // a push appends to the local copy only
+        }
+        return dictLike ? printer.goSafeDictUseReadsTheMap (n) : printer.goSafeListUseReadsTheList (n);
+    };
+    return goTranspiler.goDeclaredLocalTypeIfSafe (declaration, dictLike ? CCXT_GO_SAFE_DICT_LOCAL_TYPE : CCXT_GO_SAFE_LIST_LOCAL_TYPE, reads, skipUse);
+}
+
+function installCcxtGoElementReadUnbox (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoElementReadUnboxInstalled) {
+        return;
+    }
+    if ((typeof goTranspiler.goSafeDictLocalUnbox !== 'function') || (typeof goTranspiler.goSafeListLocalUnbox !== 'function')
+        || (typeof goTranspiler.goSafeDictUnboxValue !== 'function') || (typeof goTranspiler.goSafeListUnboxValue !== 'function')) {
+        return;
+    }
+    const innerDictType = goTranspiler.goSafeDictLocalUnbox;
+    const innerListType = goTranspiler.goSafeListLocalUnbox;
+    const innerDictValue = goTranspiler.goSafeDictUnboxValue;
+    const innerListValue = goTranspiler.goSafeListUnboxValue;
+    const cache = new Map ();
+    const own = (printer, declaration, family) => {
+        const key = declaration;
+        if (!cache.has (key)) {
+            cache.set (key, {}); // in-progress guard: a recursive query answers untyped
+            cache.set (key, { map: ccxtGoElementReadLocalType (printer, declaration, 'map'), list: ccxtGoElementReadLocalType (printer, declaration, 'list') });
+        }
+        return cache.get (key)[family];
+    };
+    goTranspiler.goSafeDictLocalUnbox = function (declaration) {
+        return innerDictType.call (this, declaration) ?? own (this, declaration, 'map');
+    };
+    goTranspiler.goSafeListLocalUnbox = function (declaration) {
+        return innerListType.call (this, declaration) ?? own (this, declaration, 'list');
+    };
+    goTranspiler.goSafeDictUnboxValue = function (declaration, identation) {
+        if ((innerDictType.call (this, declaration) === undefined) && (own (this, declaration, 'map') !== undefined)) {
+            return 'MapTyped(' + this.printNode (declaration.initializer, identation).trimStart () + ')';
+        }
+        return innerDictValue.call (this, declaration, identation);
+    };
+    goTranspiler.goSafeListUnboxValue = function (declaration, identation) {
+        if ((innerListType.call (this, declaration) === undefined) && (own (this, declaration, 'list') !== undefined)) {
+            return 'ArrayTyped(' + this.printNode (declaration.initializer, identation).trimStart () + ')';
+        }
+        return innerListValue.call (this, declaration, identation);
+    };
+    goTranspiler.__ccxtGoElementReadUnboxInstalled = true;
 }
 
 // ---------------------------------------------------------------------------------------------
