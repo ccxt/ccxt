@@ -114,6 +114,77 @@ func SafeListTyped(m any, key any) []any {
 	return asSlice
 }
 
+// SafeDict2Typed mirrors SafeDict2's admit-set for a local declared map[string]any: the first
+// member key1/key2 holds that IsDictionary admits, the caller's default otherwise, handed back as a
+// plain map like MapTyped.
+func SafeDict2Typed(m any, key1 any, key2 any, optionalArgs ...any) map[string]any {
+	defaultValue := GetArg(optionalArgs, 0, nil)
+	value := SafeValue(m, key1, nil)
+	if IsDictionary(value) {
+		return MapTyped(value)
+	}
+	value = SafeValue(m, key2, nil)
+	if IsDictionary(value) {
+		return MapTyped(value)
+	}
+	return MapTyped(defaultValue)
+}
+
+// SafeList2Typed mirrors SafeList2's admit-set for a local declared []any: the first member
+// key1/key2 holds that is neither nil nor a non-array, the caller's default otherwise.
+func SafeList2Typed(m any, key1 any, key2 any, optionalArgs ...any) []any {
+	defaultValue := GetArg(optionalArgs, 0, nil)
+	value := SafeValue(m, key1, nil)
+	if !IsEqual(value, nil) && IsArray(value) {
+		return listValueToTypedSlice(value)
+	}
+	value = SafeValue(m, key2, nil)
+	if !IsEqual(value, nil) && IsArray(value) {
+		return listValueToTypedSlice(value)
+	}
+	return listValueToTypedSlice(defaultValue)
+}
+
+// SafeListTypedDefault mirrors SafeList's admit-set for a local declared []any: the member when
+// IsArray admits it, the caller's default otherwise, handed back as a typed slice exactly like
+// SafeListTyped. The printer emits it for a local whose default is a non-empty array literal.
+func SafeListTypedDefault(m any, key any, defaultValue any) []any {
+	value := SafeValue(m, key, defaultValue)
+	if IsEqual(value, nil) || !IsArray(value) {
+		value = defaultValue
+	}
+	return listValueToTypedSlice(value)
+}
+
+// listValueToTypedSlice converts the array kinds IsArray admits ([]any, *[]any, IOrderBookSide,
+// IArrayCache and every other slice reflect finds) into a []any of the same length and elements,
+// exactly as SafeListTyped does.
+func listValueToTypedSlice(value any) []any {
+	res := derefScalar(value)
+	if res == nil {
+		return nil
+	}
+	if asSlice, ok := res.([]any); ok {
+		return asSlice
+	}
+	if slicePtr, ok := res.(*[]any); ok {
+		if slicePtr == nil {
+			return nil
+		}
+		return *slicePtr
+	}
+	if obs, ok := res.(IOrderBookSide); ok {
+		asSlice, _ := castToSlice(obs.GetData())
+		return asSlice
+	}
+	if cache, ok := res.(IArrayCache); ok {
+		asSlice, _ := castToSlice(cache.ToArray())
+		return asSlice
+	}
+	asSlice, _ := castToSlice(res)
+	return asSlice
+}
+
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]any

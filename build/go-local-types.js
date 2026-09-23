@@ -1113,6 +1113,266 @@ function installCcxtGoCurrencyUnbox (goTranspiler) {
     goTranspiler.__ccxtGoCurrencyUnboxInstalled = true;
 }
 
+// Types `this.safeDict` / `this.safeList` / `this.safeDict2` / `this.safeList2` locals the printer's
+// own predicate leaves boxed: cast-wrapped initializers, kept defaults, the two-key accessors and
+// the list family's `this.Safe*` reads; nothing that writes or hands out the local is typed.
+const CCXT_GO_SAFE_DICT_LOCAL_TYPE = 'map[string]any';
+
+const CCXT_GO_SAFE_LIST_LOCAL_TYPE = '[]any';
+
+const CCXT_GO_SAFE_COLLECTION_FAMILIES = {
+    'safeDict': 'dict',
+    'safeList': 'list',
+    'safeDict2': 'dict2',
+    'safeList2': 'list2',
+};
+
+// the deref-aware readers the printer admits, plus Object.values
+const CCXT_GO_SAFE_DICT_READ_CALLEES = [ 'GetValue', 'InOp', 'ObjectKeys', 'ObjectValues', 'IsDictionary', 'this.IsDictionary', 'ccxt.GetValue', 'ccxt.InOp', 'ccxt.ObjectKeys', 'ccxt.ObjectValues', 'ccxt.IsDictionary' ];
+// the subset that answers the same for a nil map and for the untyped nil a 2-arg accessor boxes
+const CCXT_GO_SAFE_DICT_STRICT_CALLEES = [ 'GetValue', 'InOp', 'ccxt.GetValue', 'ccxt.InOp' ];
+const CCXT_GO_SAFE_LIST_READ_CALLEES = [ 'GetValue', 'GetArrayLength', 'ccxt.GetValue', 'ccxt.GetArrayLength' ];
+const CCXT_GO_SAFE_ACCESSOR_CALLEE = /^(?:ccxt\.)?(?:this\.)?Safe[A-Z]/;
+
+// the member names the reachable raw kinds answer directly (the ArrayCache arms of SafeValueN and
+// the IOrderBookSide.GetValue switches) and the int-like texts that index a slice: a key like that
+// reads a member the typed slice does not hold, so it cannot be typed
+const CCXT_GO_SAFE_ACCESSOR_MEMBER_KEYS = [ 'Data', 'Index', 'Depth', 'Length', 'Side', 'Hashmap', 'data', 'hashmap' ];
+
+// the accessor call's key when it can only name a member, or undefined when it could index
+function ccxtGoSafeAccessorMemberKey (call) {
+    const key = call.arguments[1];
+    if ((key === undefined) || (key.kind !== ts.SyntaxKind.StringLiteral)) {
+        return undefined;
+    }
+    if ((CCXT_GO_SAFE_ACCESSOR_MEMBER_KEYS.indexOf (key.text) >= 0) || ((/^[+-]?[0-9]+$/).test (key.text))) {
+        return undefined;
+    }
+    return key.text;
+}
+
+// the accessor call of a container local's initializer, or undefined for every other shape. The TS
+// cast and the non-null assertion around the call only drive the checker: the declaration print
+// drops them, so the local can be typed like the bare call.
+function ccxtGoSafeCollectionCall (initializer) {
+    let node = initializer;
+    while ((node !== undefined) && ((node.kind === ts.SyntaxKind.ParenthesizedExpression)
+        || (node.kind === ts.SyntaxKind.AsExpression)
+        || (node.kind === ts.SyntaxKind.NonNullExpression))) {
+        node = node.expression;
+    }
+    if ((node === undefined) || (node.kind !== ts.SyntaxKind.CallExpression)) {
+        return undefined;
+    }
+    const callee = node.expression;
+    if ((callee === undefined) || (callee.kind !== ts.SyntaxKind.PropertyAccessExpression)) {
+        return undefined;
+    }
+    if ((callee.expression === undefined) || (callee.expression.kind !== ts.SyntaxKind.ThisKeyword)) {
+        return undefined;
+    }
+    const method = callee.name === undefined ? '' : callee.name.text;
+    const family = CCXT_GO_SAFE_COLLECTION_FAMILIES[method];
+    return family === undefined ? undefined : { 'family': family, 'call': node };
+}
+
+// the arguments of a whole `this.safeDict(container, key[, default])` /
+// `this.safeDict2(container, key1, key2[, default])` call, or undefined for every other shape: the
+// default must print as a Go literal of the container type, a computed default keeps the box.
+function ccxtGoSafeCollectionArgs (initializer) {
+    const found = ccxtGoSafeCollectionCall (initializer);
+    if (found === undefined) {
+        return undefined;
+    }
+    const args = found.call.arguments;
+    const twoKeys = (found.family === 'dict2') || (found.family === 'list2');
+    const wanted = twoKeys ? 3 : 2;
+    if ((args.length !== wanted) && (args.length !== (wanted + 1))) {
+        return undefined;
+    }
+    const dictLike = (found.family === 'dict') || (found.family === 'dict2');
+    let fallback;
+    if (args.length === (wanted + 1)) {
+        fallback = args[wanted];
+        if (dictLike && (fallback.kind !== ts.SyntaxKind.ObjectLiteralExpression)) {
+            return undefined;
+        }
+        if (!dictLike && (fallback.kind !== ts.SyntaxKind.ArrayLiteralExpression)) {
+            return undefined;
+        }
+    }
+    return { 'family': found.family, 'call': found.call, 'args': args, 'fallback': fallback };
+}
+
+// one later use of the local: a read that answers for the typed container what it answered for the
+// box, never a use that hands the box out or writes it. `defaulted` is false for a 2-arg site,
+// whose absent case swaps an untyped nil for a nil container.
+function ccxtGoSafeCollectionUseReads (goTranspiler, node, family, defaulted) {
+    const parent = node.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    const dictLike = (family === 'dict') || (family === 'dict2');
+    if (parent.kind === ts.SyntaxKind.ElementAccessExpression) {
+        if (parent.expression !== node) {
+            return false; // the local is the key, not the container
+        }
+        const above = parent.parent;
+        if (above === undefined) {
+            return true;
+        }
+        if ((above.kind === ts.SyntaxKind.BinaryExpression) && (above.left === parent)) {
+            return false; // element write, the compound forms included
+        }
+        if ((above.kind === ts.SyntaxKind.PostfixUnaryExpression) || (above.kind === ts.SyntaxKind.PrefixUnaryExpression)) {
+            return false;
+        }
+        if (above.kind === ts.SyntaxKind.DeleteExpression) {
+            return false;
+        }
+        return true;
+    }
+    if (parent.kind === ts.SyntaxKind.BinaryExpression) {
+        return dictLike && (parent.operatorToken !== undefined) && (parent.operatorToken.kind === ts.SyntaxKind.InKeyword) && (parent.right === node);
+    }
+    if (parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
+        return !dictLike && (parent.expression === node) && (parent.name !== undefined) && (parent.name.text === 'length');
+    }
+    if (parent.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    if ((parent.expression === node) || (parent.arguments.indexOf (node) !== 0)) {
+        return false;
+    }
+    const callee = typeof goTranspiler.goPrintedCallee === 'function' ? goTranspiler.goPrintedCallee (goTranspiler.printNode (parent, 0)) : undefined;
+    if (callee === undefined) {
+        return false;
+    }
+    if (!dictLike) {
+        if (CCXT_GO_SAFE_LIST_READ_CALLEES.indexOf (callee) >= 0) {
+            return true;
+        }
+        return (ccxtGoSafeAccessorMemberKey (parent) !== undefined);
+    }
+    if (!defaulted) {
+        return (CCXT_GO_SAFE_DICT_STRICT_CALLEES.indexOf (callee) >= 0) || CCXT_GO_SAFE_ACCESSOR_CALLEE.test (callee);
+    }
+    return (CCXT_GO_SAFE_DICT_READ_CALLEES.indexOf (callee) >= 0) || CCXT_GO_SAFE_ACCESSOR_CALLEE.test (callee);
+}
+
+// the Go type of an extended container local, or undefined when the site keeps its box. The
+// printer's declaration print calls this only for a statement-level declaration.
+function ccxtGoSafeCollectionLocalType (goTranspiler, declaration, families) {
+    if ((declaration === undefined) || (declaration.kind !== ts.SyntaxKind.VariableDeclaration)) {
+        return undefined;
+    }
+    if ((declaration.name === undefined) || (declaration.name.kind !== ts.SyntaxKind.Identifier)) {
+        return undefined;
+    }
+    if ((declaration.parent === undefined) || (declaration.parent.parent === undefined) || (declaration.parent.parent.kind !== ts.SyntaxKind.VariableStatement)) {
+        return undefined;
+    }
+    const found = ccxtGoSafeCollectionArgs (declaration.initializer);
+    if ((found === undefined) || (families.indexOf (found.family) < 0)) {
+        return undefined;
+    }
+    if ((typeof goTranspiler.goEnclosingFunction !== 'function') || (typeof goTranspiler.goTypeNameIsShadowed !== 'function')
+        || (typeof goTranspiler.hasNodeWhere !== 'function') || (typeof goTranspiler.printNode !== 'function')) {
+        return undefined; // older printer without local typing: nothing to extend
+    }
+    const dictLike = (found.family === 'dict') || (found.family === 'dict2');
+    const goType = dictLike ? CCXT_GO_SAFE_DICT_LOCAL_TYPE : CCXT_GO_SAFE_LIST_LOCAL_TYPE;
+    const scope = goTranspiler.goEnclosingFunction (declaration);
+    if ((scope === undefined) || goTranspiler.goTypeNameIsShadowed (scope, goType)) {
+        return undefined;
+    }
+    const sourceName = declaration.name.text;
+    const defaulted = found.fallback !== undefined;
+    // a property name is never a reference, and the checker resolves every other binding of the
+    // same name: only the identifiers that really read this local have to be container reads
+    const refersToDeclaration = typeof goTranspiler.goIdentifierRefersToDeclaration === 'function' ? goTranspiler.goIdentifierRefersToDeclaration : undefined;
+    const unsafe = goTranspiler.hasNodeWhere (scope, (n) => {
+        if ((n.kind !== ts.SyntaxKind.Identifier) || (n.text !== sourceName) || (n === declaration.name)) {
+            return false;
+        }
+        if ((n.parent !== undefined) && (n.parent.kind === ts.SyntaxKind.PropertyAccessExpression) && (n.parent.name === n)) {
+            return false; // `other.fees`
+        }
+        if ((refersToDeclaration !== undefined) && !refersToDeclaration.call (goTranspiler, n, declaration)) {
+            return false; // another declaration of the same name in a nested scope
+        }
+        return !ccxtGoSafeCollectionUseReads (goTranspiler, n, found.family, defaulted);
+    });
+    return unsafe ? undefined : goType;
+}
+
+// the initializer a typed container local is declared with. An empty-literal default is dropped
+// exactly like the printer's own emission does (no admitted read observes it); a non-empty default
+// is passed to a default-aware reader so the local holds the value the box held.
+function ccxtGoSafeCollectionUnboxValue (goTranspiler, declaration, identation, families) {
+    const found = ccxtGoSafeCollectionArgs (declaration.initializer);
+    if ((found === undefined) || (families.indexOf (found.family) < 0)) {
+        return undefined;
+    }
+    const printed = found.args.map ((arg, index) => goTranspiler.printNode (arg, index === 0 ? identation : 0));
+    const empty = (found.fallback === undefined)
+        || (((found.family === 'dict') || (found.family === 'dict2')) ? (found.fallback.properties.length === 0) : (found.fallback.elements.length === 0));
+    if (found.family === 'dict') {
+        return empty ? 'SafeMapTyped(' + printed[0] + ', ' + printed[1] + ')' : 'MapTyped(' + goTranspiler.printNode (found.call, identation) + ')';
+    }
+    if (found.family === 'list') {
+        return empty ? 'SafeListTyped(' + printed[0] + ', ' + printed[1] + ')' : 'SafeListTypedDefault(' + printed[0] + ', ' + printed[1] + ', ' + printed[2] + ')';
+    }
+    const reader = found.family === 'dict2' ? 'SafeDict2Typed' : 'SafeList2Typed';
+    return reader + '(' + (empty ? printed.slice (0, 3) : printed.slice (0, 4)).join (', ') + ')';
+}
+
+// teach the printer's container-local typing the shapes its own predicate leaves out. Every hook
+// checks the shipped predicate first, so a site the printer already types is emitted byte for byte
+// as before.
+function installCcxtGoSafeCollectionUnbox (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoSafeCollectionUnboxInstalled) {
+        return;
+    }
+    if ((typeof goTranspiler.goSafeDictLocalUnbox !== 'function') || (typeof goTranspiler.goSafeListLocalUnbox !== 'function')
+        || (typeof goTranspiler.goSafeDictUnboxValue !== 'function') || (typeof goTranspiler.goSafeListUnboxValue !== 'function')) {
+        return; // older printer without the container unbox: nothing to extend
+    }
+    const shippedDictType = goTranspiler.goSafeDictLocalUnbox;
+    const shippedListType = goTranspiler.goSafeListLocalUnbox;
+    const shippedDictValue = goTranspiler.goSafeDictUnboxValue;
+    const shippedListValue = goTranspiler.goSafeListUnboxValue;
+    const dictFamilies = [ 'dict', 'dict2' ];
+    const listFamilies = [ 'list', 'list2' ];
+    goTranspiler.goSafeDictLocalUnbox = function (declaration) {
+        const known = shippedDictType.call (this, declaration);
+        if (known !== undefined) {
+            return known;
+        }
+        return ccxtGoSafeCollectionLocalType (this, declaration, dictFamilies);
+    };
+    goTranspiler.goSafeListLocalUnbox = function (declaration) {
+        const known = shippedListType.call (this, declaration);
+        if (known !== undefined) {
+            return known;
+        }
+        return ccxtGoSafeCollectionLocalType (this, declaration, listFamilies);
+    };
+    goTranspiler.goSafeDictUnboxValue = function (declaration, identation) {
+        if (ccxtGoSafeCollectionLocalType (this, declaration, dictFamilies) !== undefined) {
+            return ccxtGoSafeCollectionUnboxValue (this, declaration, identation, dictFamilies);
+        }
+        return shippedDictValue.call (this, declaration, identation);
+    };
+    goTranspiler.goSafeListUnboxValue = function (declaration, identation) {
+        if (ccxtGoSafeCollectionLocalType (this, declaration, listFamilies) !== undefined) {
+            return ccxtGoSafeCollectionUnboxValue (this, declaration, identation, listFamilies);
+        }
+        return shippedListValue.call (this, declaration, identation);
+    };
+    goTranspiler.__ccxtGoSafeCollectionUnboxInstalled = true;
+}
+
 
 // Fields of the hand-written `BaseExchange` (go/v4/exchange.go) whose Go type is a
 // native string-keyed map of `any`. `this.<field>["k"]` is then the same read as
@@ -3007,6 +3267,9 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoArithmeticUnbox (goTranspiler);
     // same for the currency dict the accessors box in `any`
     installCcxtGoCurrencyUnbox (goTranspiler);
+    // the container locals the printer's own predicate leaves out: cast-wrapped initializers,
+    // non-empty (kept) defaults, the two-key accessors and the Safe* read shapes of the list family
+    installCcxtGoSafeCollectionUnbox (goTranspiler);
 }
 
 // ------------------------- U01: nil-declared later-write join (string) -------------------------
