@@ -1,6 +1,6 @@
 ---
 name: announcement-video
-description: Produce a short social video (1920×1080 MP4, burned-in captions, original soundtrack) for a big CCXT release or a product announcement, using the Remotion project in docs/videos. Use on demand for launches and notable releases — not for routine releases. Covers pulling release data, choosing highlights, rendering, verifying frames, and drafting the post.
+description: Produce a short social video (1920×1080 MP4, burned-in captions, original soundtrack) for a big CCXT release or a product announcement, using the Remotion project in docs/videos. Use on demand for launches and notable releases — not for routine releases. Covers pulling release data, choosing highlights, assembling scenes from the shared kit, scoring per scene, rendering, verifying frames and audio, and drafting the post.
 ---
 
 # Announcement & release videos
@@ -91,6 +91,46 @@ Entry shape, one `visual` per card:
 - **Install screen** held ~4s: npm, pip, composer, dotnet and go commands at the release version.
 - Soundtrack and progress bar adapt to the number of cards.
 
+## Building blocks (`src/kit/`)
+
+Shared components, so a new announcement is assembly rather than a rewrite.
+`import {Scene, Headline, …} from "../kit"`.
+
+| Export | What it is |
+|---|---|
+| `timeline`, `TEMPOS`, `framesPerBeat` | beat-grid maths; `timeline()` **throws** on a table that cannot sit on the grid |
+| `Scene`, `CROSS` | crossfade wrapper — the transparent-background one, see GOTCHAS |
+| `Eyebrow`, `Headline`, `Chip`, `Bullets`, `Lines`, `useRise` | typography and the shared rise-and-settle |
+| `CodeBlock`, `codeWidth` | syntax-highlighted panel with language tabs, ligatures off, warns when a line will clip |
+| `ClipPanel`, `ShotSequence`, `Flipbook`, `Cursor` | screen recordings, cut-between-states, screenshot flipbooks, an animated pointer |
+| `Reveal` | keynote reveal: flash, punch, shockwave on one frame |
+| `FanGraph`, `CompareRows`, `Counter` | one-root-to-many diagram, a re-ranking comparison, an animated figure |
+
+**Read `docs/videos/GOTCHAS.md` before writing scene code.** It is the list of
+failures these components encode — crossfades that dip to black, `interpolate`
+ranges it refuses, rows that pass through each other when they swap, code lines
+that clip, captures that contain the real OS pointer. Every entry cost time to
+diagnose and looks like something else when you hit it.
+
+### Scoring per scene
+
+A single groove under the whole video drifts away from the edit. Build a section
+table that mirrors the scene table:
+
+```js
+import {sections, groove, reveal} from './arrange.mjs';
+const S = sections(BPM, [
+  {name: 'tease',  beats: 8, kick: 'none', perc: 'none', gain: 0.6},
+  {name: 'reveal', beats: 7, kick: 'none', perc: 'none', gain: 1.05},
+  {name: 'body',   beats: 9, kick: 'four', perc: 'full', gain: 1.0},
+]);
+groove(S, {kick, clap, hat});      // kick/clap/hats for every section in one pass
+reveal(4.73, {boom, crash, roll, riser});   // and nothing else leading into it
+```
+
+`S.cuts` must equal the cut times your scene table produces. Keep them in sync
+or the music and the picture drift apart the moment anything is retimed.
+
 ## Path B — announcement video
 
 Copy the structure of `src/mcp-launch/` (Video.tsx + timeline.ts + scenes/) into
@@ -134,9 +174,15 @@ npm run frames -- out/ccxt-v4.5.76.mp4          # 8-frame grid; --at 3,10.5 for 
 ffprobe -v error -show_entries format=duration:stream=codec_name -of compact out/ccxt-v4.5.76.mp4
 ```
 
+```bash
+node scripts/check-music.mjs public/music/<slug>.wav <cuts,csv> <names,csv>
+```
+
 Open the frame grid and check: no clipped or wrapped text, commands on one line, numbers correct,
-the final frame is the call to action, and an `aac` audio stream exists. You cannot watch or hear the
-render — say so when you hand it over, and name what you did check.
+the final frame is the call to action, and an `aac` audio stream exists. `check-music.mjs` prints
+per-section level and brightness — the arc should move, the quiet beat before a reveal should be
+visibly quiet, and under ~6 dB of range the whole thing is too flat to notice. You cannot watch or
+hear the render — say so when you hand it over, and name what you did check.
 
 Preview interactively with `npm run dev` (Remotion Studio).
 
@@ -151,11 +197,15 @@ Preview interactively with `npm run dev` (Remotion Studio).
 
 ```
 docs/videos/
+  GOTCHAS.md                 what goes wrong — read before writing scene code
   src/timeline.ts            FPS/size/sec helpers (120 BPM: 1 bar = 2s = 60 frames)
   src/theme.ts               colours + fonts        src/components/  Backdrop, CcxtMark, Captions
+  src/kit/                   shared scene building blocks (see the table above)
   src/mcp-launch/            reference announcement (scenes, timeline, data)
   src/release/               release template       src/releases/     per-release data + generated index
   scripts/release-data.mjs   notes -> release JSON  scripts/render-release.mjs  music + render + frames
-  scripts/synth.mjs          soundtrack voices      scripts/contact-sheet.mjs   frame grid
+  scripts/synth.mjs          soundtrack voices      scripts/arrange.mjs         per-scene arrangement
+  scripts/contact-sheet.mjs  frame grid             scripts/check-music.mjs     soundtrack arc check
+  scripts/remove-cursor.py   strip the OS pointer from screenshots (optional)
   out/                       renders + frame grids (gitignored)
 ```

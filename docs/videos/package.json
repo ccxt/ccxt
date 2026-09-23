@@ -32,9 +32,13 @@
     "mcp-launch:render": "npm run mcp-launch:music && remotion render McpLaunch out/ccxt-mcp-launch.mp4 --crf 18 && npm run frames -- out/ccxt-mcp-launch.mp4",
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "check:music": "node scripts/check-music.mjs"
   },
   "sideEffects": [
     "*.css"
-  ]
+  ],
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
 }
