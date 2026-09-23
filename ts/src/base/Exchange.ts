@@ -1249,16 +1249,15 @@ export class BaseExchange {
     async fetch (url: any, method = 'GET', headers: any = undefined, body: any = undefined) {
         // ##### PROXY & HEADERS #####
         let requestHeaders: any = this.extend (this.headers, headers);
-        let requestBody: any = body; // replaced below for multipart/form-data
         // proxy-url
-        const proxyUrl = this.checkProxyUrlSettings (url, method, requestHeaders, requestBody);
+        const proxyUrl = this.checkProxyUrlSettings (url, method, requestHeaders, body);
         if ((proxyUrl !== undefined) && isNode) {
             // in node-js we need to set header to *
             requestHeaders = this.extend ({ 'Origin': this.origin }, requestHeaders);
         }
         const requestUrl = (proxyUrl !== undefined) ? (proxyUrl + this.urlEncoderForProxyUrl (url)) : url;
         // proxy agents
-        const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (requestUrl, method, requestHeaders, requestBody);
+        const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (requestUrl, method, requestHeaders, body);
         let anyProxySet: Str = undefined;
         if ((httpProxy !== undefined) && (httpProxy !== '')) {
             anyProxySet = httpProxy;
@@ -1288,28 +1287,30 @@ export class BaseExchange {
         // set final headers
         requestHeaders = this.setHeaders (requestHeaders);
         // multipart/form-data
+        let multipartBody: Str = undefined;
         const headersKeys = Object.keys (requestHeaders);
         for (let i = 0; i < headersKeys.length; i++) {
             const key = headersKeys[i];
             if (key.toLowerCase () === 'content-type') {
                 let value = requestHeaders[key];
                 if (value === 'multipart/form-data') {
-                    const bodyKeys = Object.keys (requestBody);
+                    const bodyKeys = Object.keys (body);
                     const boundary = '--------------------------' + this.randomBytes (12);
                     const eol = '\r\n';
                     let newBody = '';
                     for (let j = 0; j < bodyKeys.length; j++) {
                         const bodyKey = bodyKeys[j];
-                        newBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + requestBody[bodyKey] + eol;
+                        newBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + body[bodyKey] + eol;
                     }
                     newBody += '--' + boundary + '--' + eol;
                     value += '; boundary=' + boundary;
                     requestHeaders[key] = value;
-                    requestBody = newBody;
+                    multipartBody = newBody;
                     break;
                 }
             }
         }
+        const requestBody: any = (multipartBody !== undefined) ? multipartBody : body;
         // log
         if (this.verbose) {
             this.log ('fetch Request:\n', this.id, method, requestUrl, '\nRequestHeaders:\n', requestHeaders, '\nRequestBody:\n', requestBody, '\n');

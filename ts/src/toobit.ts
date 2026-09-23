@@ -1841,13 +1841,13 @@ export default class toobit extends Exchange {
             'quantity': this.amountToPrecision (symbol, amount),
         };
         const [ reduceOnly, paramsReduceOnly ] = this.handleParamBool (params, 'reduceOnly');
-        let sideValue: Str = side;
         if (side === 'buy') {
-            sideValue = (reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
+            request['side'] = (reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
         } else if (side === 'sell') {
-            sideValue = (reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
+            request['side'] = (reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
+        } else {
+            request['side'] = side;
         }
-        request['side'] = sideValue;
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -3254,11 +3254,11 @@ export default class toobit extends Exchange {
                 }
             } else {
                 queryString = this.urlencode (queryExtended);
-                privateBody = body;
             }
+            const payloadBody = (isPost || isDelete) ? privateBody : body;
             let payload = queryString;
-            if (privateBody !== undefined) {
-                payload = privateBody + payload;
+            if (payloadBody !== undefined) {
+                payload = payloadBody + payload;
             }
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
             if (queryString !== '') {
@@ -3273,7 +3273,8 @@ export default class toobit extends Exchange {
                 'X-BB-API-PLATFORM': this.safeString (this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-            return { 'url': url, 'method': method, 'body': privateBody, 'headers': privateHeaders };
+            const requestBody = (isPost || isDelete) ? privateBody : body;
+            return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
