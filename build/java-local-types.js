@@ -4771,6 +4771,17 @@ function unwrapParensUp (node) {
     return current;
 }
 
+// climb through `(x)`, `x as T`, `<T>x` and `x!` wrappers, none of which change the printed operand position
+function unwrapKeyWrappersUp (node) {
+    let current = node;
+    while (current.parent !== undefined && (ts.isParenthesizedExpression (current.parent)
+        || ts.isAsExpression (current.parent) || ts.isTypeAssertionExpression (current.parent)
+        || ts.isNonNullExpression (current.parent))) {
+        current = current.parent;
+    }
+    return current;
+}
+
 // a String local as the left operand of `+` needs a provably non-null String on the
 // right; a List local used with `.join()` needs the List<String> receiver cast of
 // printJoinCall, which is inconvertible from List<Object>. Both print the same for an
@@ -4935,7 +4946,9 @@ function dataflowIsSafeToRetype (printer, declaration, varName, javaType, contex
                 return false;
             }
         }
-        if (ts.isElementAccessExpression (parent) && parent.parent !== undefined && ts.isDeleteExpression (parent.parent)) {
+        const keyHost = unwrapKeyWrappersUp (n);
+        if (ts.isElementAccessExpression (keyHost.parent) && keyHost.parent.parent !== undefined
+            && ts.isDeleteExpression (keyHost.parent.parent)) {
             // `delete x[k]` prints `((java.util.Map<String,Object>)x).remove((String)k)`:
             // inconvertible for every type this engine emits, in either operand position
             return false;
