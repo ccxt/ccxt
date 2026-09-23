@@ -790,7 +790,7 @@ func (this *Opinion) fetchTickerBody(ch chan any, outcome any, optionalArgs ...a
 
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var promises []any = []any{this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 		"token_id": tokenId,
 	}, params)), this.OpinionPublicGetTokenOrderbook(this.Extend(map[string]any{
@@ -903,7 +903,7 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var promises []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
-		var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+		var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 		promises = append(promises, this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 			"token_id": tokenId,
 		}, params)))
@@ -959,7 +959,7 @@ func (this *Opinion) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var request map[string]any = map[string]any{
 		"token_id": tokenId,
 	}
@@ -1023,7 +1023,7 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	}
 
 	var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 
 	response := (<-this.OpinionPublicGetTokenPriceHistory(this.Extend(map[string]any{
@@ -1298,7 +1298,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
-	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
+	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
 	var sideStr string = ccxt.ToUpper(side)
 	if price == nil {
