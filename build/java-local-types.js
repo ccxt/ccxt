@@ -444,6 +444,8 @@ export function isGuardedStringHelper (name) {
 // the named box on every path).
 const LOCAL_THIS_RETURN_TYPES = {
     'parse8601': { type: 'Long' },
+    // BaseExchange.parseNumber is declared Double and returns a Double or null on every path
+    'parseNumber': { type: 'Double' },
     'iso8601': { type: 'String' },
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
@@ -524,6 +526,9 @@ const STRUCTURE_THIS_RETURN_TYPES = {
     'safeCurrencyStructure': JAVA_STRUCTURE_TYPE,
     'market': JAVA_STRUCTURE_TYPE,
     'currency': JAVA_STRUCTURE_TYPE,
+    // account() returns a fresh HashMap; getMarketFromSymbols returns null or this.market (...)
+    'account': JAVA_STRUCTURE_TYPE,
+    'getMarketFromSymbols': JAVA_STRUCTURE_TYPE,
 };
 
 // ===== safeDict locals (JAVA-01) =====
