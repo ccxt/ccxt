@@ -9661,11 +9661,12 @@ export function patchJavaAwaitedAccumulatorTypes (transpiler) {
         }
         const iden = printer.getIden (identation);
         const printedName = printer.printNode (declarations[0].name, 0);
-        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = null;`;
+        // the declaration list prints without its statement's `;`
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = null`;
         const at = printed.lastIndexOf (marker);
-        if (at === -1) {
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== '') {
             return printed;
         }
-        return printed.slice (0, at) + `${iden}${type} ${printedName} = null;` + printed.slice (at + marker.length);
+        return printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
     };
 }
