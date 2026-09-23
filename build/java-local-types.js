@@ -10416,3 +10416,28 @@ function joinListElementType (printer, node) {
         return undefined;
     }
 }
+
+// ===== 16. default-valued `Strings` parameters answer their printed List<String> =====
+// A split core prints `symbols: Strings = undefined` as `List<String> symbols` (the async
+// body copy too; writes go through toStringListArg), so its counter reads join as String.
+export function installJavaStringListParamTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaOptionalParameterType !== 'function' || printer._javaStringListParamTypesPatched) {
+        return;
+    }
+    const upstream = printer.javaDeclaredLocalTypeResolver;
+    printer.javaDeclaredLocalTypeResolver = function (declaration) {
+        const own = (typeof upstream === 'function') ? upstream (declaration) : undefined;
+        if (own !== undefined || declaration === undefined || !ts.isParameter (declaration)) {
+            return own;
+        }
+        let type;
+        try {
+            type = printer.javaOptionalParameterType (declaration);
+        } catch (e) {
+            return undefined;
+        }
+        return type === 'java.util.List<String>' ? type : undefined;
+    };
+    printer._javaStringListParamTypesPatched = true;
+}

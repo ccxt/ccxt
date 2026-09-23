@@ -1542,7 +1542,7 @@ public class Whitebit extends WhitebitApi
                     Boolean symbolFound = false;
                     for (var j = 0; j < ((List<?>)symbols).size(); j++)
                     {
-                        if (java.util.Objects.equals((symbols == null || j < 0 || j >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(j)), symbol))
+                        if (java.util.Objects.equals((symbols == null || j < 0 || j >= symbols.size() ? null : symbols.get(j)), symbol))
                         {
                             symbolFound = true;
                             break;
@@ -2117,7 +2117,7 @@ public class Whitebit extends WhitebitApi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                     {

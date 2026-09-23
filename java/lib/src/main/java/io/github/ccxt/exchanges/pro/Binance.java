@@ -3333,9 +3333,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 List<Object> stockMessageHashes = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object stockTicker = this.getStockTickerFromSymbol((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                    Object stockTicker = this.getStockTickerFromSymbol((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                     ((List<Object>)stockStreams).add((stockTicker + "@quote"));
-                    ((List<Object>)stockMessageHashes).add(("stock:quote:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                    ((List<Object>)stockMessageHashes).add(("stock:quote:" + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                 }
                 Object stockResult = (this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters)).join();
                 if (this.newUpdates)
@@ -3457,7 +3457,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Map<String, Object> seenUnderlyings = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)messageHashes).add(((((unifiedPrefix + ":") + channelName) + "@") + symbol));
                     if (Helpers.isTrue(isUnsubscribe))

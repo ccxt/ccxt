@@ -611,7 +611,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 ((List<Object>)topics).add(((topic + ".") + marketId));
-                ((List<Object>)messageHashes).add(("ticker:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                ((List<Object>)messageHashes).add(("ticker:" + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
             }
             Object ticker = (this.watchTopics(url, messageHashes, topics, parameters)).join();
             if (this.newUpdates)
@@ -668,7 +668,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((List<Object>)topics).add(((topic + ".") + marketId));
                 ((List<Object>)subMessageHashes).add(("ticker:" + symbol));
                 ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + symbol));
@@ -918,7 +918,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 String topic = ("orderbook.1." + marketId);
                 ((List<Object>)topics).add(topic);
-                ((List<Object>)messageHashes).add(("bidask:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                ((List<Object>)messageHashes).add(("bidask:" + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
             }
             Object ticker = (this.watchTopics(url, messageHashes, topics, parameters)).join();
             if (this.newUpdates)

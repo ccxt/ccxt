@@ -278,7 +278,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String marketId = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)productIds).add(marketId);
@@ -349,7 +349,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String marketId = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)productIds).add(marketId);

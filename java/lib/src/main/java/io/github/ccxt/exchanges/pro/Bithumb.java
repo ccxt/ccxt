@@ -207,7 +207,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, symbolsLengthDefined); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object streamMarketId = null;
                 if (Boolean.TRUE.equals(isGenerationTwo))
