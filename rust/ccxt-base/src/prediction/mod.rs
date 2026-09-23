@@ -17,3 +17,5 @@ pub mod polymarket;
 pub mod polymarket_api;
 pub mod predictfun;
 pub mod predictfun_api;
+pub mod sxbet;
+pub mod sxbet_api;

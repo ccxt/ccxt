@@ -1294,6 +1294,7 @@ pub use crate::prediction::myriad_typed::Myriad;
 pub use crate::prediction::opinion_typed::Opinion;
 pub use crate::prediction::polymarket_typed::Polymarket;
 pub use crate::prediction::predictfun_typed::Predictfun;
+pub use crate::prediction::sxbet_typed::Sxbet;
 
 /// Construct a boxed typed wrapper by exchange id — the typed analog of
 /// picking an exchange at runtime. `config` is the same optional settings
@@ -1309,6 +1310,7 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "opinion" => Some(Box::new(Opinion::new(config))),
         "polymarket" => Some(Box::new(Polymarket::new(config))),
         "predictfun" => Some(Box::new(Predictfun::new(config))),
+        "sxbet" => Some(Box::new(Sxbet::new(config))),
         _ => None,
     }
 }

@@ -560,15 +560,22 @@ impl ExtendedCore {
         //         "seq": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if (self.balance.clone() == Value::Null) {
+            self.balance = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+        }
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut result: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), data.clone());
-            m
-        });
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
         let mut balance: Value = self.safe_dict_k(data.clone(), "balance", &[]);
         if (balance != Value::Null) {
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "collateralName", &[]);
@@ -577,7 +584,7 @@ impl ExtendedCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(balance.clone(), "availableForWithdrawal", &[]));
                 add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(balance.clone(), "balance", &[]));
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
             }
         }
         let mut spotBalances: Value = self.safe_list_k(data, "spotBalances", &[Value::from(vec![])]);
@@ -595,14 +602,14 @@ impl ExtendedCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(spotBalance.clone(), "availableToWithdraw", &[]));
                 add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(spotBalance, "balance", &[]));
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
         let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(timestamp)); }
-        { let __t = self.safe_balance(self.deep_extend(self.balance.clone(), &[result])); self.balance = __t; }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
+        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
 }
 
