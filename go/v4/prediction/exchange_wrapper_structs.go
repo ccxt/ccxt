@@ -861,3 +861,27 @@ func WithUnWatchWalletEventsParams(params map[string]any) UnWatchWalletEventsOpt
 		opts.Params = &params
 	}
 }
+
+type FetchRawMarketsPagedOptionsStruct struct {
+	UserLimit *int64
+}
+
+type FetchRawMarketsPagedOptions func(opts *FetchRawMarketsPagedOptionsStruct)
+
+func WithFetchRawMarketsPagedUserLimit(userLimit int64) FetchRawMarketsPagedOptions {
+	return func(opts *FetchRawMarketsPagedOptionsStruct) {
+		opts.UserLimit = &userLimit
+	}
+}
+
+type FetchSxbetBestOddsOptionsStruct struct {
+	Params *map[string]any
+}
+
+type FetchSxbetBestOddsOptions func(opts *FetchSxbetBestOddsOptionsStruct)
+
+func WithFetchSxbetBestOddsParams(params map[string]any) FetchSxbetBestOddsOptions {
+	return func(opts *FetchSxbetBestOddsOptionsStruct) {
+		opts.Params = &params
+	}
+}
