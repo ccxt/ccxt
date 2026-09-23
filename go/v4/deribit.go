@@ -3748,8 +3748,7 @@ func (this *Deribit) fetchVolatilityHistoryBody(ch chan any, code any, optionalA
 		"currency": currency["id"],
 	}
 
-	response := (<-this.PublicGetGetHistoricalVolatility(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetHistoricalVolatility(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4057,8 +4056,7 @@ func (this *Deribit) withdrawBody(ch chan any, code any, amount any, address any
 		request["tfa"] = Totp(this.Twofa)
 	}
 
-	response := (<-this.PrivateGetWithdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdraw(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTransaction(response, currency)
 	return nil
@@ -4180,8 +4178,7 @@ func (this *Deribit) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 		"end_timestamp":   time,
 	}
 
-	response := (<-this.PublicGetGetFundingRateValue(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetFundingRateValue(this.Extend(request, params))).Raw))
 
 	//
 	//   {

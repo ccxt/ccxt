@@ -842,8 +842,7 @@ func (this *Foxbit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		}(),
 	}
 
-	response := (<-this.V3PublicGetMarketsMarketOrderbook(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetMarketsMarketOrderbook(this.Extend(request, params))).Raw))
 	//  {
 	//    "sequence_id": 1234567890,
 	//    "timestamp": 1713187921336,
@@ -1276,8 +1275,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	params = MapTyped(this.Omit(params, []any{"timeInForce", "postOnly", "triggerPrice", "clientOrderId"}))
 
-	response := (<-this.V3PrivatePostOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostOrders(this.Extend(request, params))).Raw))
 
 	// {
 	//     "id": 1234567890,
@@ -1515,8 +1513,7 @@ func (this *Foxbit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"id": id,
 	}
 
-	response := (<-this.V3PrivateGetOrdersByOrderIdId(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetOrdersByOrderIdId(this.Extend(request, params))).Raw))
 
 	// {
 	//     "id": "1234567890",
@@ -1724,8 +1721,7 @@ func (this *Foxbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}
 
-	response := (<-this.V3PrivateGetDepositsAddress(this.Extend(request, paramsOmited))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetDepositsAddress(this.Extend(request, paramsOmited))).Raw))
 
 	// {
 	//     "currency_symbol": "btc",
@@ -2120,8 +2116,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}
 
-	response := (<-this.V3PrivatePostWithdrawals(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostWithdrawals(this.Extend(request, params))).Raw))
 
 	// {
 	//     "amount": "2",

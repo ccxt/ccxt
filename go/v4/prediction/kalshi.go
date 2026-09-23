@@ -2129,8 +2129,7 @@ func (this *Kalshi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.KalshiPrivateGetPortfolioBalance(params)).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivateGetPortfolioBalance(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -2844,8 +2843,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 		request["price"] = this.NumberToString(yesPrice)
 	}
 
-	response := (<-this.KalshiPrivatePostPortfolioEventsOrders(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivatePostPortfolioEventsOrders(this.Extend(request, params))).Raw))
 	// the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
 	// the known order details and resolve the status from the remaining count
 	var order any = this.ParsePredictionOrder(response, outcomeObj)

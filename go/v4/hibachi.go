@@ -536,8 +536,7 @@ func (this *Hibachi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeAccountInfo(this.Extend(request, params))).Raw))
 
 	//
 	// {
@@ -909,8 +908,7 @@ func (this *Hibachi) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetTradeOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeOrder(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -1857,8 +1855,7 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"accountId": this.GetAccountId(),
 	}
 
-	response := (<-this.PrivateGetTradeOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetTradeOrders(this.Extend(request, params))).Raw))
 
 	// [
 	//     {

@@ -767,8 +767,7 @@ func (this *Whitebit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	markets := (<-this.V4PublicGetMarkets()).Raw
-	PanicOnError(markets)
+	var markets []any = ListTyped(PanicOnError((<-this.V4PublicGetMarkets()).Raw))
 
 	//
 	//    [
@@ -1170,8 +1169,7 @@ func (this *Whitebit) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V4PublicGetFee(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V4PublicGetFee(params)).Raw))
 
 	//
 	//    {
@@ -2182,8 +2180,7 @@ func (this *Whitebit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		request["limit"] = limit // default = 100, maximum = 100
 	}
 
-	response := (<-this.V4PublicGetOrderbookMarket(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V4PublicGetOrderbookMarket(this.Extend(request, params))).Raw))
 	//
 	//      {
 	//          "timestamp": 1594391413,
@@ -2243,8 +2240,7 @@ func (this *Whitebit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"market": market["id"],
 	}
 
-	response := (<-this.V4PublicGetTradesMarket(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V4PublicGetTradesMarket(this.Extend(request, params))).Raw))
 
 	//
 	//      [
@@ -2893,8 +2889,7 @@ func (this *Whitebit) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"}))
 
-	response := (<-this.V4PrivatePostOrderModify(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostOrderModify(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrder(response)
 	return nil
@@ -2935,8 +2930,7 @@ func (this *Whitebit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"orderId": ParseInt(id),
 	}
 
-	response := (<-this.V4PrivatePostOrderCancel(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostOrderCancel(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -3016,8 +3010,7 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	request["type"] = requestType
 
-	response := (<-this.V4PrivatePostOrderCancelAll(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostOrderCancelAll(this.Extend(request, params))).Raw))
 
 	//
 	// []
@@ -3275,8 +3268,7 @@ func (this *Whitebit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = mathMin(limit, 100)
 	}
 
-	response := (<-this.V4PrivatePostOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -3346,8 +3338,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		request["limit"] = mathMin(limit, 100) // default 50 max 100
 	}
 
-	response := (<-this.V4PrivatePostTradeAccountOrderHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostTradeAccountOrderHistory(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "BTC_USDT": [
@@ -4050,8 +4041,7 @@ func (this *Whitebit) transferBody(ch chan any, code any, amount any, fromAccoun
 		"to":     toAccountId,
 	}
 
-	response := (<-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params))).Raw))
 
 	//
 	//    []
@@ -4128,8 +4118,7 @@ func (this *Whitebit) withdrawBody(ch chan any, code any, amount any, address an
 		request["provider"] = provider
 	}
 
-	response := (<-this.V4PrivatePostMainAccountWithdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostMainAccountWithdraw(this.Extend(request, params))).Raw))
 
 	//
 	// empty array with a success status
@@ -4462,8 +4451,7 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) 
 		request["market"] = GetValue(market, "id")
 	}
 
-	response := (<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -4947,8 +4935,7 @@ func (this *Whitebit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode an
 		"direction": "from",
 	}
 
-	response := (<-this.V4PrivatePostConvertEstimate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostConvertEstimate(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4999,8 +4986,7 @@ func (this *Whitebit) createConvertTradeBody(ch chan any, id any, fromCode any, 
 		"quoteId": id,
 	}
 
-	response := (<-this.V4PrivatePostConvertConfirm(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostConvertConfirm(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -5200,8 +5186,7 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol any, optional
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -5258,8 +5243,7 @@ func (this *Whitebit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.V4PrivatePostCollateralAccountPositionsOpen(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsOpen(params)).Raw))
 
 	//
 	//     [
@@ -5487,8 +5471,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		AddElementToObject(request, "limit", limit)
 	}
 
-	response := (<-this.V4PublicGetFundingHistoryMarket(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V4PublicGetFundingHistoryMarket(this.Extend(request, params))).Raw))
 
 	//
 	//     [

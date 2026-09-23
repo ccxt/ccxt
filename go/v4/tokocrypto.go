@@ -1614,8 +1614,7 @@ func (this *Tokocrypto) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.BinanceGetTickerBookTicker(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.BinanceGetTickerBookTicker(params)).Raw))
 
 	ch <- this.ParseTickers(response, symbols)
 	return nil
@@ -1815,8 +1814,7 @@ func (this *Tokocrypto) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marginMode *string = this.SafeStringLower(params, "marginMode", defaultMarginMode)
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PrivateGetOpenV1AccountSpot(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1AccountSpot(this.Extend(request, params))).Raw))
 
 	//
 	// spot
@@ -3055,8 +3053,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 		request["network"] = ToUpper(networkId)
 	}
 
-	response := (<-this.PrivatePostOpenV1Withdraws(this.Extend(request, query))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1Withdraws(this.Extend(request, query))).Raw))
 
 	//
 	//     {

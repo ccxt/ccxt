@@ -5522,8 +5522,7 @@ func (this *Coinex) transferBody(ch chan any, code any, amount any, fromAccount 
 		panic(BadRequest(this.Id + " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot"))
 	}
 
-	response := (<-this.V2PrivatePostAssetsTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsTransfer(this.Extend(request, params))).Raw))
 
 	//
 	//     {

@@ -2663,8 +2663,7 @@ func (this *Digifinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 		"order_id": Join(ids, ","),
 	}
 
-	response := (<-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4034,8 +4033,7 @@ func (this *Digifinex) withdrawBody(ch chan any, code any, amount any, address a
 		request["memo"] = tag
 	}
 
-	response := (<-this.PrivateSpotPostWithdrawNew(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotPostWithdrawNew(this.Extend(request, params))).Raw))
 
 	//
 	//     {

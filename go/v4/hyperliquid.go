@@ -5173,8 +5173,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan any, symbol any, amount 
 		request["vaultAddress"] = vaultAddress
 	}
 
-	response := (<-this.PrivatePostExchange(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
 
 	//
 	//     {
@@ -5279,8 +5278,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 			"signature": transferSig,
 		}
 
-		transferResponse := (<-this.PrivatePostExchange(transferRequest)).Raw
-		PanicOnError(transferResponse)
+		var transferResponse map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(transferRequest)).Raw))
 		//
 		// {'response': {'type': 'default'}, 'status': 'ok'}
 		//
@@ -5468,8 +5466,7 @@ func (this *Hyperliquid) withdrawBody(ch chan any, code any, amount any, address
 		"signature": sig,
 	}
 
-	response := (<-this.PrivatePostExchange(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
 
 	ch <- this.ParseTransaction(response)
 	return nil

@@ -2957,8 +2957,7 @@ func (this *Gate) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	response := (<-this.PublicSpotGetCurrencies(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicSpotGetCurrencies(params)).Raw))
 
 	//
 	//    [
@@ -3091,8 +3090,7 @@ func (this *Gate) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	request := GetValue(requestqueryVariable, 0)
 	query := GetValue(requestqueryVariable, 1)
 
-	response := (<-this.PublicFuturesGetSettleContractsContract(this.Extend(request, query))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicFuturesGetSettleContractsContract(this.Extend(request, query))).Raw))
 
 	//
 	//    [
@@ -3177,8 +3175,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	request := GetValue(requestqueryVariable, 0)
 	query := GetValue(requestqueryVariable, 1)
 
-	response := (<-this.PublicFuturesGetSettleContracts(this.Extend(request, query))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleContracts(this.Extend(request, query))).Raw))
 
 	//
 	//    [
@@ -3494,8 +3491,7 @@ func (this *Gate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		"currency_pair": market["id"],
 	}
 
-	response := (<-this.PrivateWalletGetFee(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWalletGetFee(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -3538,8 +3534,7 @@ func (this *Gate) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateWalletGetFee(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWalletGetFee(params)).Raw))
 
 	//
 	//    {
@@ -3726,8 +3721,7 @@ func (this *Gate) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateWalletGetWithdrawStatus(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateWalletGetWithdrawStatus(params)).Raw))
 
 	//
 	//    [
@@ -5612,8 +5606,7 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.PrivateWalletGetDeposits(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateWalletGetDeposits(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTransactions(response, currency)
 	return nil
@@ -5680,8 +5673,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.PrivateWalletGetWithdrawals(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateWalletGetWithdrawals(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTransactions(response, currency)
 	return nil
@@ -5736,8 +5728,7 @@ func (this *Gate) withdrawBody(ch chan any, code any, amount any, address any, o
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
 	}
 
-	response := (<-this.PrivateWithdrawalsPostWithdrawals(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWithdrawalsPostWithdrawals(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -7274,8 +7265,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "limit", limit)
 	}
 
-	response := (<-this.PrivateFuturesGetSettleOrdersTimerange(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateFuturesGetSettleOrdersTimerange(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -9605,8 +9595,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan any, symbol any, optional
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 	}
 
-	response := (<-this.PublicFuturesGetSettleContractStats(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleContractStats(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -9718,8 +9707,7 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicOptionsGetSettlements(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicOptionsGetSettlements(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -10876,8 +10864,7 @@ func (this *Gate) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any) 
 		"contract": market["id"],
 	}
 
-	response := (<-this.PublicOptionsGetContractsContract(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicOptionsGetContractsContract(this.Extend(request, params))).Raw))
 
 	//
 	//     {

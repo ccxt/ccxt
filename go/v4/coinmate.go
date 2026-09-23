@@ -630,8 +630,7 @@ func (this *Coinmate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostBalances(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostBalances(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil

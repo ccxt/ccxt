@@ -1497,8 +1497,7 @@ func (this *Mexc) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	response := (<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw))
 
 	//
 	// {
@@ -3286,8 +3285,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		"batchOrders": this.Json(ordersRequests),
 	}
 
-	response := (<-this.SpotPrivatePostBatchOrders(request)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotPrivatePostBatchOrders(request)).Raw))
 
 	//
 	// [
@@ -5832,8 +5830,7 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code any, opti
 	}
 	params = MapTyped(this.Omit(params, "network"))
 
-	response := (<-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, params))).Raw))
 	//
 	//    [
 	//        {
@@ -5910,8 +5907,7 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code any, optionalArgs .
 	}
 	params = MapTyped(this.Omit(params, "network"))
 
-	response := (<-this.SpotPrivatePostCapitalDepositAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivatePostCapitalDepositAddress(this.Extend(request, params))).Raw))
 
 	//     {
 	//        "coin": "EOS",
@@ -6029,8 +6025,7 @@ func (this *Mexc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, params))).Raw))
 
 	//
 	// [
@@ -6102,8 +6097,7 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))).Raw))
 
 	//
 	// [
@@ -6758,8 +6752,7 @@ func (this *Mexc) transferBody(ch chan any, code any, amount any, fromAccount an
 		request["symbol"] = market["id"]
 	}
 
-	response := (<-this.SpotPrivatePostCapitalTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivatePostCapitalTransfer(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
@@ -6931,8 +6924,7 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE"))
 		}
 
-		responseForInternal := (<-this.SpotPrivatePostCapitalTransferInternal(this.Extend(requestForInternal, params))).Raw
-		PanicOnError(responseForInternal)
+		var responseForInternal map[string]any = MapTyped(PanicOnError((<-this.SpotPrivatePostCapitalTransferInternal(this.Extend(requestForInternal, params))).Raw))
 
 		//
 		//     {
@@ -6960,8 +6952,7 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 		params = MapTyped(this.Omit(params, []any{"network", "netWork"}))
 	}
 
-	response := (<-this.SpotPrivatePostCapitalWithdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivatePostCapitalWithdraw(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -7082,8 +7073,7 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw))
 
 	//
 	//    [
@@ -7208,8 +7198,7 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw))
 
 	//
 	//    [
@@ -7576,8 +7565,7 @@ func (this *Mexc) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 	}
 	params = MapTyped(this.Omit(params, "direction"))
 
-	response := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params))).Raw))
 
 	//
 	// { success: true, code: '0' }
