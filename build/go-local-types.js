@@ -5025,6 +5025,26 @@ export function ccxtGoEndpointElement (goTranspiler, call) {
     return element;
 }
 
+// a typed endpoint local handed as arg 0 to this.parse*/this.safe*/Object.keys: those readers treat a
+// shape-mismatched body (typed view nil) and the raw box alike, reading members through safe accessors
+const CCXT_GO_ENDPOINT_PARSER_READ = /^(?:parse[A-Z]\w*|safe[A-Z]\w*|addPaginationCursorToResult|indexBy|groupBy)$/;
+
+function ccxtGoEndpointLocalParserRead (node) {
+    const parent = node.parent;
+    if ((parent?.kind !== ts.SyntaxKind.CallExpression) || (parent.arguments?.[0] !== node)) {
+        return false;
+    }
+    const callee = parent.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        return false;
+    }
+    const name = String (callee.name?.escapedText);
+    if (callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+        return CCXT_GO_ENDPOINT_PARSER_READ.test (name);
+    }
+    return (callee.expression?.kind === ts.SyntaxKind.Identifier) && (callee.expression.escapedText === 'Object') && (name === 'keys');
+}
+
 function ccxtGoParentPastParens (node) {
     let parent = node.parent;
     while (parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
@@ -5178,7 +5198,8 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
             return undefined;
         }
         const safe = goTranspiler.goDeclaredLocalTypeIfSafe (declaration, goType,
-            (n) => ccxtGoAsyncReceiveReadsTheValue (goTranspiler, n, goType));
+            (n) => ccxtGoAsyncReceiveReadsTheValue (goTranspiler, n, goType)
+                || ((endpoint !== undefined) && ccxtGoEndpointLocalParserRead (n)));
         if (safe === undefined) {
             return undefined;
         }
