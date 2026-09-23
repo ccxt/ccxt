@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ export default class umx extends Exchange {
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true, // private
                 'fetchDepositAddress': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
@@ -92,7 +92,7 @@ export default class umx extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfers': true,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -2210,6 +2210,212 @@ export default class umx extends Exchange {
             'success': 'ok',
             'pending': 'pending',
             'fail': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchDeposits
+     * @description fetch all deposits made to an account, the venue keeps ninety days of history
+     * @see https://www.umx.com/docs/coin-apis/funding-account/deposit/get-deposit-history
+     * @param {string} [code] unified currency code to narrow the answer to a single currency
+     * @param {int} [since] timestamp in ms of the earliest deposit to fetch
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest deposit to fetch
+     * @param {string} [params.chainType] the exchange specific chain name to narrow the answer to a single chain, e.g. "eth"
+     * @param {boolean} [params.paginate] default false, when true fetches the deposits in multiple calls, walking backwards from the newest entry
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            // the documented beginId and endId cursors are broken venue side, see fetchTransfers
+            return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params, 100) as Transaction[];
+        }
+        let currency: Currency = undefined;
+        let request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        const response = await this.privateGetV1AssetDepositRecord (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "accountName": "1000000000000000000",
+        //                 "pid": "1000000000000000000",
+        //                 "uid": "100000000000001",
+        //                 "cid": "100000000000002",
+        //                 "currency": "USDT",
+        //                 "chainType": "eth",
+        //                 "toAddress": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+        //                 "memo": "",
+        //                 "depositId": "2102362828770439168",
+        //                 "amount": "70",
+        //                 "status": "success",
+        //                 "depositFee": "",
+        //                 "fromAddress": "0x18e296053cbdf986196903e889b7dca7a73882f6",
+        //                 "hash": "0x557620d7e8bd149da77d8521f70d4fb651b0d670a62af00902276596cc182160",
+        //                 "createTime": "1790077333048",
+        //                 "updateTime": "1790078080000"
+        //             }
+        //         ],
+        //         "msg": "Success",
+        //         "ts": "1790198097764",
+        //         "traceId": "6da0afcf500a1c5b3693ae3fdc804a9c"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchWithdrawals
+     * @description fetch all withdrawals made from an account, the venue keeps ninety days of history
+     * @see https://www.umx.com/docs/coin-apis/funding-account/withdrawal/get-withdrawal-history
+     * @param {string} [code] unified currency code to narrow the answer to a single currency
+     * @param {int} [since] timestamp in ms of the earliest withdrawal to fetch
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest withdrawal to fetch
+     * @param {string} [params.chainType] the exchange specific chain name to narrow the answer to a single chain, e.g. "eth"
+     * @param {boolean} [params.paginate] default false, when true fetches the withdrawals in multiple calls, walking backwards from the newest entry
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            // the documented beginId and endId cursors are broken venue side, see fetchTransfers
+            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params, 100) as Transaction[];
+        }
+        let currency: Currency = undefined;
+        let request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        const response = await this.privateGetV1AssetWithdrawalRecord (this.extend (request, params));
+        //
+        // the account has made no withdrawal yet, so the row below is the venue's own docs
+        // sample, the live answer for an empty history is "data": []
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "accountName": "1957689788565745664",
+        //                 "address": "0xC7EBBBdc93293F61eF13053ED6B29F9247b9686c",
+        //                 "amount": "881.111676696292134",
+        //                 "chainType": "eth",
+        //                 "cid": "175558458900900",
+        //                 "createTime": "1755585008532",
+        //                 "currency": "USDT",
+        //                 "memo": "",
+        //                 "pid": "1957689788565745664",
+        //                 "status": "reviewing",
+        //                 "uid": "175558458892100",
+        //                 "txId": "0x35c******b360a174d"
+        //             }
+        //         ],
+        //         "msg": "Success",
+        //         "ts": "1790198100822"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits and fetchWithdrawals answer the rows the way the methods document them,
+        // the deposit rows carry depositId, hash, toAddress and fromAddress, the withdrawal rows
+        // carry withdrawalId, txId and address
+        //
+        const isDeposit = ('depositId' in transaction);
+        const transactionType = (isDeposit) ? 'deposit' : 'withdrawal';
+        const timestamp = this.safeInteger (transaction, 'createTime');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const networkId = this.safeString (transaction, 'chainType');
+        let tag = this.safeString (transaction, 'memo');
+        if (tag === '') {
+            tag = undefined;
+        }
+        const feeCost = this.safeNumber2 (transaction, 'depositFee', 'withdrawFee');
+        let fee: Fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'depositId', 'withdrawalId'),
+            'txid': this.safeString2 (transaction, 'hash', 'txId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': this.networkIdToCode (networkId),
+            'address': this.safeString2 (transaction, 'toAddress', 'address'),
+            'addressTo': this.safeString2 (transaction, 'toAddress', 'address'),
+            'addressFrom': this.safeString (transaction, 'fromAddress'),
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': transactionType,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': this.safeInteger (transaction, 'updateTime'),
+            'internal': false,
+            'comment': undefined,
+            'fee': fee,
+        } as Transaction;
+    }
+
+    parseTransactionStatus (status: Str): Str {
+        const statuses: Dict = {
+            'pending': 'pending',
+            'toBeVerified': 'pending',
+            // a credited deposit is tradable already and only waits out the withdrawal unlock
+            'credited': 'ok',
+            'success': 'ok',
+            'fail': 'failed',
+            // a refunded deposit went back to the sender, so it never arrived
+            'refunded': 'failed',
+            'reviewing': 'pending',
+            'verifying': 'pending',
+            'approving': 'pending',
+            'canceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }

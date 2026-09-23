@@ -8,6 +8,55 @@
     ],
     "options": {},
     "methods": {
+        "fetchWithdrawals": [
+            {
+                "description": "withdrawals of a single currency since with limit",
+                "method": "fetchWithdrawals",
+                "url": "https://api.umx.com/api/v1/asset/withdrawal/record?currency=USDT&beginTime=1790000000000",
+                "input": [
+                    "USDT",
+                    1790000000000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "all withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.umx.com/api/v1/asset/withdrawal/record",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "deposits since with limit",
+                "method": "fetchDeposits",
+                "url": "https://api.umx.com/api/v1/asset/deposit/record?beginTime=1790000000000",
+                "input": [
+                    null,
+                    1790000000000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "deposits of a single currency",
+                "method": "fetchDeposits",
+                "url": "https://api.umx.com/api/v1/asset/deposit/record?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "all deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.umx.com/api/v1/asset/deposit/record",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "transfers since with limit",

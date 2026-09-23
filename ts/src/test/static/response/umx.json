@@ -8,6 +8,80 @@
     ],
     "options": {},
     "methods": {
+        "fetchDeposits": [
+            {
+                "description": "all deposits",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "eth",
+                            "toAddress": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                            "memo": "",
+                            "depositId": "2102362828770439168",
+                            "amount": "70",
+                            "status": "success",
+                            "depositFee": "",
+                            "fromAddress": "0x18e296053cbdf986196903e889b7dca7a73882f6",
+                            "hash": "0x557620d7e8bd149da77d8521f70d4fb651b0d670a62af00902276596cc182160",
+                            "createTime": "1790077333048",
+                            "updateTime": "1790078080000"
+                        }
+                    ],
+                    "msg": "Success",
+                    "ts": "1790198910577",
+                    "traceId": "f15aef2ce80a60ef2de462ec959ae9b3"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "eth",
+                            "toAddress": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                            "memo": "",
+                            "depositId": "2102362828770439168",
+                            "amount": "70",
+                            "status": "success",
+                            "depositFee": "",
+                            "fromAddress": "0x18e296053cbdf986196903e889b7dca7a73882f6",
+                            "hash": "0x557620d7e8bd149da77d8521f70d4fb651b0d670a62af00902276596cc182160",
+                            "createTime": "1790077333048",
+                            "updateTime": "1790078080000"
+                        },
+                        "id": "2102362828770439168",
+                        "txid": "0x557620d7e8bd149da77d8521f70d4fb651b0d670a62af00902276596cc182160",
+                        "timestamp": 1790077333048,
+                        "datetime": "2026-09-22T11:42:13.048Z",
+                        "network": "eth",
+                        "address": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                        "addressTo": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                        "addressFrom": "0x18e296053cbdf986196903e889b7dca7a73882f6",
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 70,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": 1790078080000,
+                        "internal": false,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "all transfers",
