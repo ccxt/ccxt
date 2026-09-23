@@ -182,7 +182,7 @@ const RETYPE_COPY_LINE = /^(\s*)Object ([A-Za-z_$][A-Za-z0-9_$]*) = ([A-Za-z_$][
 // every one of these callees declares an `Object` parameter at the position the hoisted name can
 // occupy (BaseExchange.java/Helpers.java/Precise.java read at 5faa2c21), so a narrower static
 // argument type cannot move the overload; the receivers themselves are untouched.
-const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
+const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString|newMap)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
 // callees whose Java return type is String (BaseExchange.java:8623 symbol, :10911 safeSymbol,
 // :1080 numberToString, :1264 iso8601, :1101 safeString, :10697 safeCurrencyCode, :1232 capitalize,
 // Helpers.java:521 toString, :797 replace, Precise.stringMul/stringAdd/stringAbs): a write whose
@@ -410,7 +410,8 @@ function retypeCopyUseIsAudited (lines: string[], j: number, from: number, name:
     if (retypeUseIsAudited (lines[j], name, token)) return true;
     const code = retypeCodeOnly (lines[j]);
     let prefix = '';
-    for (let k = Math.max (from, j - 12); k < j; k++) prefix += retypeCodeOnly (lines[k]);
+    // a Helpers.newMap literal spans one line per property: look back over the whole literal
+    for (let k = Math.max (from, j - 400); k < j; k++) prefix += retypeCodeOnly (lines[k]);
     const re = new RegExp (`\\b${name}\\b`, 'g');
     let m: RegExpExecArray | null;
     while ((m = re.exec (code)) !== null) {
