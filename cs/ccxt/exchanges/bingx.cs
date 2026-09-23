@@ -2037,7 +2037,7 @@ public partial class bingx : Exchange
             }
         }
         return this.safeTrade(new Dictionary<string, object>() {
-            { "id", this.safeStringN(trade, new List<object>() {"id", "t", "fillId"}) },
+            { "id", this.safeStringN(trade, new List<object>() {"id", "t", "fillId", "tradeId"}) },
             { "info", trade },
             { "timestamp", time },
             { "datetime", this.iso8601(time) },

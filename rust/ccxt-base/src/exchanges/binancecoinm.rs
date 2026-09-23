@@ -172,8 +172,8 @@ impl crate::exchange_generated::ExchangeBase for BinancecoinmCore {
     {
         Box::pin(async move {
             match method {
-                "transfer_in" => self.transfer_in(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
-                "transfer_out" => self.transfer_out(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
+                "transfer_in" => self.transfer_in(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "transfer_out" => self.transfer_out(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
@@ -194,12 +194,12 @@ impl BinancecoinmCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("binancecoinm".to_string()));
-        m.insert("name".to_string(), Value::Str("Binance COIN-M".to_string()));
+        m.insert("id".to_string(), Value::Str("binancecoinm".into()));
+        m.insert("name".to_string(), Value::Str("Binance COIN-M".into()));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://binance-docs.github.io/apidocs/delivery/en/".to_string()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".to_string()), Value::Str("https://developers.binance.com/en".to_string())]));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c".into()));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://binance-docs.github.io/apidocs/delivery/en/".into()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".into()), Value::Str("https://developers.binance.com/en".into())]));
     m
 }));
         m.insert("has".to_string(), Value::Map({
@@ -217,10 +217,10 @@ impl BinancecoinmCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("inverse".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("inverse".into())]));
     m
 }));
-        m.insert("defaultSubType".to_string(), Value::Str("inverse".to_string()));
+        m.insert("defaultSubType".to_string(), Value::Str("inverse".into()));
         m.insert("leverageBrackets".to_string(), Value::Null);
     m
 }));
@@ -235,7 +235,7 @@ impl BinancecoinmCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.futures_transfer(code.clone(), amount.clone(), Value::Int(3), &[params.clone()]).await;
+        return self.futures_transfer(code, amount, Value::Int(3), &[params]).await;
 
     Value::Null
 }
@@ -245,7 +245,7 @@ impl BinancecoinmCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.futures_transfer(code.clone(), amount.clone(), Value::Int(4), &[params.clone()]).await;
+        return self.futures_transfer(code, amount, Value::Int(4), &[params]).await;
 
     Value::Null
 }

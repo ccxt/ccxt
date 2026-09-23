@@ -2099,7 +2099,7 @@ public partial class mexc : Exchange
                     { "cost", this.safeString(trade, "fee") },
                     { "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency")) },
                 };
-                bool isTaker = ((this.safeBool(trade, "taker") == true));
+                bool isTaker = ((this.safeBool2(trade, "isTaker", "taker") == true));
                 takerOrMaker = isTaker ? "taker" : "maker";
             } else
             {

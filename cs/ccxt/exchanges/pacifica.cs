@@ -2891,8 +2891,8 @@ public partial class pacifica : Exchange
         // }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        // return last state
-        List<object> sorted = this.sortBy(data, "created_at", true);
+        // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
+        List<object> sorted = this.sortBy(data, "history_id", true);
         int lastIdx = (sorted?.Count ?? 0);
         object lastInfo = new Dictionary<string, object>() {};
         if (lastIdx > 0)
@@ -3056,6 +3056,13 @@ public partial class pacifica : Exchange
         string? totalAmount = this.safeString2(order, "initial_amount", "a");
         string? filledAmount = this.safeString2(order, "filled_amount", "f");
         string? remaining = Precise.stringSub(totalAmount, filledAmount);
+        string? average = this.safeString2(order, "average_filled_price", "p");
+        string? eventType = this.safeString(order, "event_type");
+        bool isFillEvent = this.inArray(eventType, new List<object>() {"fulfill_market", "fulfill_limit"});
+        if (((average == null)) && isFillEvent)
+        {
+            average = this.safeString(order, "price"); // on a matching event price is the fill price
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString2(order, "order_id", "i") },
@@ -3074,7 +3081,7 @@ public partial class pacifica : Exchange
             { "triggerPrice", this.safeNumber2(order, "stop_price", "sp") },
             { "amount", totalAmount },
             { "cost", null },
-            { "average", this.safeString2(order, "average_filled_price", "p") },
+            { "average", average },
             { "filled", filledAmount },
             { "remaining", remaining },
             { "status", this.parseOrderStatus(status) },

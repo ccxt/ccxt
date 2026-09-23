@@ -701,6 +701,10 @@ class zaif(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
+        if since is not None:
+            request['since'] = self.parse_to_int(since / 1000)
+        if limit is not None:
+            request['count'] = min(limit, 1000)
         response = self.privatePostTradeHistory(self.extend(request, params))
         data = self.safe_dict(response, 'return', {})
         return self.parse_orders(data, market, since, limit)

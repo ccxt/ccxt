@@ -42,7 +42,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.82';
+const version = '4.5.83';
 
 //-----------------------------------------------------------------------------
 
@@ -240,6 +240,7 @@ import myriadPrediction from  './src/prediction/myriad.js'
 import opinionPrediction from  './src/prediction/opinion.js'
 import polymarketPrediction from  './src/prediction/polymarket.js'
 import predictfunPrediction from  './src/prediction/predictfun.js'
+import sxbetPrediction from  './src/prediction/sxbet.js'
 
 const exchanges = {
     'alpaca':                 alpaca,
@@ -442,6 +443,7 @@ const prediction = {
     'opinion':                opinionPrediction,
     'polymarket':             polymarketPrediction,
     'predictfun':             predictfunPrediction,
+    'sxbet':                  sxbetPrediction,
 };
 
 (prediction as any).exchanges = Object.keys (prediction);

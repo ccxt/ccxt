@@ -118,7 +118,7 @@ public class Foxbit extends FoxbitApi
                 put( "www", "https://app.foxbit.com.br" );
                 put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.foxbit.com.br")) );
             }} );
-            put( "precisionMode", DECIMAL_PLACES );
+            put( "precisionMode", TICK_SIZE );
             put( "exceptions", new HashMap<String, Object>() {{
                 put( "exact", new HashMap<String, Object>() {{
                     put( "400", BadRequest.class );
@@ -459,7 +459,6 @@ public class Foxbit extends FoxbitApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Long precision = this.safeInteger(rawCurrency, "precision");
         String currencyId = this.safeString(rawCurrency, "symbol");
         String name = this.safeString(rawCurrency, "name");
         String code = this.safeCurrencyCode(currencyId);
@@ -488,7 +487,7 @@ public class Foxbit extends FoxbitApi
     put( "deposit", isDepositEnabled );
     put( "withdraw", isWithdrawEnabled );
     put( "active", true );
-    put( "precision", precision );
+    put( "precision", null );
     put( "fee", Foxbit.this.safeNumber(networkWithdrawInfo, "fee") );
     put( "limits", new HashMap<String, Object>() {{
         put( "amount", new HashMap<String, Object>() {{
@@ -517,7 +516,7 @@ public class Foxbit extends FoxbitApi
             put( "deposit", Foxbit.this.safeBool(depositInfo, "enabled", false) );
             put( "withdraw", Foxbit.this.safeBool(withdrawInfo, "enabled", false) );
             put( "fee", Foxbit.this.safeNumber(withdrawInfo, "fee") );
-            put( "precision", precision );
+            put( "precision", Foxbit.this.parseNumber(Foxbit.this.parsePrecision(Foxbit.this.safeString(rawCurrency, "precision"))) );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -2463,9 +2462,8 @@ public class Foxbit extends FoxbitApi
             put( "tierBased", false );
             put( "feeSide", "get" );
             put( "precision", new HashMap<String, Object>() {{
-                put( "price", Foxbit.this.safeInteger(quoteAssets, "precision") );
-                put( "amount", Foxbit.this.safeInteger(baseAssets, "precision") );
-                put( "cost", Foxbit.this.safeInteger(quoteAssets, "precision") );
+                put( "price", Foxbit.this.safeNumber(market, "price_increment") );
+                put( "amount", Foxbit.this.safeNumber(market, "quantity_increment") );
             }} );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{

@@ -1779,7 +1779,7 @@ class mexc extends mexc$1["default"] {
                     'cost': this.safeString(trade, 'fee'),
                     'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency')),
                 };
-                const isTaker = (this.safeBool(trade, 'taker') === true);
+                const isTaker = (this.safeBool2(trade, 'isTaker', 'taker') === true);
                 takerOrMaker = isTaker ? 'taker' : 'maker';
             }
             else {

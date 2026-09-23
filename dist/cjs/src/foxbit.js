@@ -99,7 +99,7 @@ class foxbit extends foxbit$1["default"] {
                     'https://docs.foxbit.com.br',
                 ],
             },
-            'precisionMode': number.DECIMAL_PLACES,
+            'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
@@ -378,7 +378,6 @@ class foxbit extends foxbit$1["default"] {
         return this.parseCurrencies(data);
     }
     parseCurrency(rawCurrency) {
-        const precision = this.safeInteger(rawCurrency, 'precision');
         const currencyId = this.safeString(rawCurrency, 'symbol');
         const name = this.safeString(rawCurrency, 'name');
         const code = this.safeCurrencyCode(currencyId);
@@ -404,7 +403,7 @@ class foxbit extends foxbit$1["default"] {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'active': true,
-                    'precision': precision,
+                    'precision': undefined,
                     'fee': this.safeNumber(networkWithdrawInfo, 'fee'),
                     'limits': {
                         'amount': {
@@ -433,7 +432,7 @@ class foxbit extends foxbit$1["default"] {
             'deposit': this.safeBool(depositInfo, 'enabled', false),
             'withdraw': this.safeBool(withdrawInfo, 'enabled', false),
             'fee': this.safeNumber(withdrawInfo, 'fee'),
-            'precision': precision,
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision'))),
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -1679,9 +1678,8 @@ class foxbit extends foxbit$1["default"] {
             'tierBased': false,
             'feeSide': 'get',
             'precision': {
-                'price': this.safeInteger(quoteAssets, 'precision'),
-                'amount': this.safeInteger(baseAssets, 'precision'),
-                'cost': this.safeInteger(quoteAssets, 'precision'),
+                'price': this.safeNumber(market, 'price_increment'),
+                'amount': this.safeNumber(market, 'quantity_increment'),
             },
             'limits': {
                 'amount': {

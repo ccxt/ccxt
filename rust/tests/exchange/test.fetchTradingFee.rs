@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTradingFee(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchTradingFee".to_string());
+    let mut method: Value = Value::Str("fetchTradingFee".into());
     let mut fee: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_trading_fee", vec![symbol.clone()]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), fee.clone(), symbol.clone()]);
     testTradingFee(exchange.clone(), skippedProperties.clone(), method.clone(), symbol.clone(), fee.clone());

@@ -2496,8 +2496,8 @@ class pacifica extends pacifica$1["default"] {
         // }
         //
         const data = this.safeList(response, 'data', []);
-        // return last state
-        const sorted = this.sortBy(data, 'created_at', true);
+        // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
+        const sorted = this.sortBy(data, 'history_id', true);
         const lastIdx = sorted.length;
         let lastInfo = {};
         if (lastIdx > 0) {
@@ -2648,6 +2648,12 @@ class pacifica extends pacifica$1["default"] {
         const totalAmount = this.safeString2(order, 'initial_amount', 'a');
         const filledAmount = this.safeString2(order, 'filled_amount', 'f');
         const remaining = Precise["default"].stringSub(totalAmount, filledAmount);
+        let average = this.safeString2(order, 'average_filled_price', 'p');
+        const eventType = this.safeString(order, 'event_type');
+        const isFillEvent = this.inArray(eventType, ['fulfill_market', 'fulfill_limit']);
+        if ((average === undefined) && isFillEvent) {
+            average = this.safeString(order, 'price'); // on a matching event price is the fill price
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeString2(order, 'order_id', 'i'),
@@ -2666,7 +2672,7 @@ class pacifica extends pacifica$1["default"] {
             'triggerPrice': this.safeNumber2(order, 'stop_price', 'sp'),
             'amount': totalAmount,
             'cost': undefined,
-            'average': this.safeString2(order, 'average_filled_price', 'p'),
+            'average': average,
             'filled': filledAmount,
             'remaining': remaining,
             'status': this.parseOrderStatus(status),

@@ -2166,7 +2166,7 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	return this.SafeTrade(map[string]any{
-		"id":           this.SafeStringN(trade, []any{"id", "t", "fillId"}),
+		"id":           this.SafeStringN(trade, []any{"id", "t", "fillId", "tradeId"}),
 		"info":         trade,
 		"timestamp":    time,
 		"datetime":     this.Iso8601(time),

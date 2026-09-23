@@ -1006,6 +1006,14 @@ public class Zaif extends ZaifApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id"));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                ((Map<String, Object>)request).put("since", this.parseToInt(Helpers.divide(since, 1000)));
+            }
+            if (!java.util.Objects.equals(limit, null))
+            {
+                ((Map<String, Object>)request).put("count", Helpers.mathMin(limit, 1000));
+            }
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);

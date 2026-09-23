@@ -717,6 +717,12 @@ export default class zaif extends Exchange {
             market = this.market(symbol);
             request['currency_pair'] = market['id'];
         }
+        if (since !== undefined) {
+            request['since'] = this.parseToInt(since / 1000);
+        }
+        if (limit !== undefined) {
+            request['count'] = Math.min(limit, 1000);
+        }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
         const data = this.safeDict(response, 'return', {});
         return this.parseOrders(data, market, since, limit);

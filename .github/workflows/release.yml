@@ -146,6 +146,11 @@ jobs:
       - name: Git status
         run: git status
       - name: cleanup old tags
+        # Needed to list the releases: a tag backing a GitHub release must never be pruned,
+        # because GitHub turns the orphaned release into a draft and CHANGELOG.md, which is
+        # regenerated from the releases on every run, loses that entry.
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: npm run cleanup-old-tags --limit
       - name: Get App bot user ID
         if: github.ref == 'refs/heads/master'

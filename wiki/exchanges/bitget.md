@@ -12,8 +12,10 @@
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarketLeverageTiers](#fetchmarketleveragetiers)
 * [fetchDeposits](#fetchdeposits)
+* [fetchDeposit](#fetchdeposit)
 * [withdraw](#withdraw)
 * [fetchWithdrawals](#fetchwithdrawals)
+* [fetchWithdrawal](#fetchwithdrawal)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
@@ -255,6 +257,29 @@ bitget.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
+<a name="fetchDeposit" id="fetchdeposit"></a>
+
+### fetchDeposit{docsify-ignore}
+fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | deposit id |
+| code | <code>string</code> | No | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+
+
+```javascript
+bitget.fetchDeposit (id, code?, params?)
+```
+
+
 <a name="withdraw" id="withdraw"></a>
 
 ### withdraw{docsify-ignore}
@@ -313,6 +338,29 @@ fetch all withdrawals made from an account
 
 ```javascript
 bitget.fetchWithdrawals (code, since?, limit?, params?)
+```
+
+
+<a name="fetchWithdrawal" id="fetchwithdrawal"></a>
+
+### fetchWithdrawal{docsify-ignore}
+fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | withdrawal id |
+| code | <code>string</code> | No | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+
+
+```javascript
+bitget.fetchWithdrawal (id, code?, params?)
 ```
 
 

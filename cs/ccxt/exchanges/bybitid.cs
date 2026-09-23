@@ -23,6 +23,9 @@ public partial class bybitid : bybit
                 { "fees", "https://help.bybit.com/hc/en-us/articles/360039261154" },
                 { "referral", null },
             } },
+            { "httpExceptions", new Dictionary<string, object>() {
+                { "403", typeof(PermissionDenied) },
+            } },
         });
     }
 }

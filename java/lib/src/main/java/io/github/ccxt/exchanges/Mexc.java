@@ -2303,7 +2303,7 @@ public class Mexc extends MexcApi
                     put( "cost", Mexc.this.safeString(trade, "fee") );
                     put( "currency", Mexc.this.safeCurrencyCode(Mexc.this.safeString(trade, "feeCurrency")) );
                 }};
-                Boolean isTaker = (java.util.Objects.equals(this.safeBool(trade, "taker"), true));
+                Boolean isTaker = (java.util.Objects.equals(this.safeBool2(trade, "isTaker", "taker"), true));
                 takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
             } else
             {

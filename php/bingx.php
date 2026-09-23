@@ -1577,7 +1577,7 @@ class bingx extends Exchange {
             }
         }
         return $this->safe_trade(array(
-            'id' => $this->safe_string_n($trade, array( 'id', 't', 'fillId' )),
+            'id' => $this->safe_string_n($trade, array( 'id', 't', 'fillId', 'tradeId' )),
             'info' => $trade,
             'timestamp' => $time,
             'datetime' => $this->iso8601($time),

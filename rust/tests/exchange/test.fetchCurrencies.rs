@@ -10,57 +10,57 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchCurrencies".to_string());
+    let mut method: Value = Value::Str("fetchCurrencies".into());
     let mut currencies: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_currencies", vec![]).await;
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     let mut numInactiveCurrencies: Value = Value::Int(0);
-    let mut maxInactiveCurrenciesPercentage: Value = exchange.safe_integer(skippedProperties.clone(), Value::Str("maxInactiveCurrenciesPercentage".to_string()), &[Value::Int(50)]); // no more than X% currencies should be inactive
-    let mut requiredActiveCurrencies: Value = Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("USDT".to_string()), Value::Str("USDC".to_string())]);
-    let mut features: Value = get_value(&exchange, &Value::Str("features".to_string()));
-    let mut featuresSpot: Value = exchange.safe_dict(features.clone(), Value::Str("spot".to_string()), &[Value::Map({
+    let mut maxInactiveCurrenciesPercentage: Value = exchange.safe_integer(skippedProperties.clone(), Value::Str("maxInactiveCurrenciesPercentage".into()), &[Value::Int(50)]); // no more than X% currencies should be inactive
+    let mut requiredActiveCurrencies: Value = Value::from(vec![Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("USDT".into()), Value::Str("USDC".into())]);
+    let mut features: Value = get_value(&exchange, &Value::Str("features".into()));
+    let mut featuresSpot: Value = exchange.safe_dict(features.clone(), Value::Str("spot".into()), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
     })]);
-    let mut fetchCurrencies: Value = exchange.safe_dict(featuresSpot.clone(), Value::Str("fetchCurrencies".to_string()), &[Value::Map({
+    let mut fetchCurrencies: Value = exchange.safe_dict(featuresSpot.clone(), Value::Str("fetchCurrencies".into()), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
     })]);
-    let mut isFetchCurrenciesPrivate: Value = exchange.safe_value(fetchCurrencies.clone(), Value::Str("private".to_string()), &[Value::Bool(false)]);
+    let mut isFetchCurrenciesPrivate: Value = exchange.safe_value(fetchCurrencies.clone(), Value::Str("private".into()), &[Value::Bool(false)]);
     if !is_equal(&isFetchCurrenciesPrivate, &Value::Bool(true)) {
         let mut values: Value = object_values(&currencies);
         crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone()]);
-        let mut currenciesLength: Value = get_array_length(&values);
+        let mut currenciesLength: Value = Value::Int(values.len() as i64);
         // ensure exchange returns enough length of currencies
-        let mut skipAmount: Value = (Value::Bool(in_op(&skippedProperties, &Value::Str("amountOfCurrencies".to_string()))));
-        assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&skipAmount) || is_greater_than(&currenciesLength, &Value::Int(5))))));
+        let mut skipAmount: Value = (Value::Bool(in_op(&skippedProperties, &Value::Str("amountOfCurrencies".into()))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&skipAmount) || currenciesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(5).as_f64().unwrap_or(f64::NAN)))));
         // allow skipped exchanges
-        let mut skipActive: Value = (Value::Bool(in_op(&skippedProperties, &Value::Str("activeCurrenciesQuota".to_string()))));
-        let mut skipMajorCurrencyCheck: Value = (Value::Bool(in_op(&skippedProperties, &Value::Str("activeMajorCurrencies".to_string()))));
+        let mut skipActive: Value = (Value::Bool(in_op(&skippedProperties, &Value::Str("activeCurrenciesQuota".into()))));
+        let mut skipMajorCurrencyCheck: bool = in_op(&skippedProperties, &Value::Str("activeMajorCurrencies".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1485: bool = true;
-            while { if !__for_first_1485 { i = add(&i, &Value::Int(1)); } __for_first_1485 = false; is_less_than(&i, &currenciesLength) } {
-            let mut currency: Value = get_value(&values, &i);
+            let mut __for_first_1526: bool = true;
+            while { if !__for_first_1526 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1526 = false; i.as_f64().unwrap_or(f64::NAN) < currenciesLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut currency: Value = values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             testCurrency(exchange.clone(), skippedProperties.clone(), method.clone(), currency.clone());
             // detailed check for deposit/withdraw
-            let mut active: Value = exchange.safe_bool(currency.clone(), Value::Str("active".to_string()), &[]);
-            if is_equal(&active, &Value::Bool(false)) {
-                numInactiveCurrencies = add(&numInactiveCurrencies, &Value::Int(1));
+            let mut active: Value = exchange.safe_bool(currency.clone(), Value::Str("active".into()), &[]);
+            if (active.as_bool() == Some(false)) {
+                numInactiveCurrencies = (match (&(numInactiveCurrencies), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
             // ensure that major currencies are active and enabled for deposit and withdrawal
-            let mut code: Value = exchange.safe_string(currency.clone(), Value::Str("code".to_string()), &[]);
-            let mut withdraw: Value = exchange.safe_bool(currency.clone(), Value::Str("withdraw".to_string()), &[]);
-            let mut deposit: Value = exchange.safe_bool(currency.clone(), Value::Str("deposit".to_string()), &[]);
-            let mut isMicaCompliant: Value = exchange.safe_bool(get_value(&exchange, &Value::Str("options".to_string())), Value::Str("mica".to_string()), &[Value::Bool(false)]);
-            let mut skipUsdtForMica: Value = Value::Bool(is_true(&(is_equal(&isMicaCompliant, &Value::Bool(true)))) && is_true(&(is_equal(&code, &Value::Str("USDT".to_string())))));
-            if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !is_true(&skipMajorCurrencyCheck) && is_true(&(!is_equal(&skipUsdtForMica, &Value::Bool(true)))) {
-                assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&(is_equal(&withdraw, &Value::Bool(true)))) && is_true(&(is_equal(&deposit, &Value::Bool(true))))))));
+            let mut code: Value = exchange.safe_string(currency.clone(), Value::Str("code".into()), &[]);
+            let mut withdraw: Value = exchange.safe_bool(currency.clone(), Value::Str("withdraw".into()), &[]);
+            let mut deposit: Value = exchange.safe_bool(currency.clone(), Value::Str("deposit".into()), &[]);
+            let mut isMicaCompliant: Value = exchange.safe_bool(get_value(&exchange, &Value::Str("options".into())), Value::Str("mica".into()), &[Value::Bool(false)]);
+            let mut skipUsdtForMica: Value = Value::Bool((isMicaCompliant.as_bool() == Some(true)) && (code.as_str() == Some("USDT")));
+            if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !skipMajorCurrencyCheck && (skipUsdtForMica.as_bool() != Some(true)) {
+                assert!(ccxt::runtime::is_true(&(((withdraw.as_bool() == Some(true)) && (deposit.as_bool() == Some(true))))));
             }
         }
         }
         // check at least X% of currencies are active
-        let mut inactiveCurrenciesPercentage: Value = multiply(&(divide(&numInactiveCurrencies, &currenciesLength)), &Value::Int(100));
-        assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&skipActive) || is_true(&(is_less_than(&inactiveCurrenciesPercentage, &maxInactiveCurrenciesPercentage)))))));
+        let mut inactiveCurrenciesPercentage: Value = (match (&(((match ((numInactiveCurrencies).as_f64(), (currenciesLength).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&skipActive) || (inactiveCurrenciesPercentage.as_f64().unwrap_or(f64::NAN) < maxInactiveCurrenciesPercentage.as_f64().unwrap_or(f64::NAN))))));
         detectCurrencyConflicts(exchange, currencies);
     }
     return Value::Bool(true);
@@ -76,15 +76,15 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
     let mut keys: Value = object_keys(&currencyValues);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1486: bool = true;
-        while { if !__for_first_1486 { i = add(&i, &Value::Int(1)); } __for_first_1486 = false; is_less_than(&i, &get_array_length(&keys)) } {
-        let mut key: Value = get_value(&keys, &i);
+        let mut __for_first_1527: bool = true;
+        while { if !__for_first_1527 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1527 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let mut currency: Value = get_value(&currencyValues, &key);
-        let mut code: Value = get_value(&currency, &Value::Str("code".to_string()));
-        if !is_true(&(Value::Bool(in_op(&ids, &code)))) {
-            add_element_to_object(&mut ids, &code, get_value(&currency, &Value::Str("id".to_string())));
+        let mut code: Value = get_value(&currency, &Value::Str("code".into()));
+        if !(in_op(&ids, &code)) {
+            if let Value::Dict(__d) = &mut ids { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&code), get_value(&currency, &Value::Str("id".into()))); }
         }  else {
-            let mut isDifferent: Value = Value::Bool(!is_equal(&get_value(&ids, &code), &get_value(&currency, &Value::Str("id".to_string()))));
+            let mut isDifferent: Value = Value::Bool(!is_equal(&get_value(&ids, &code), &get_value(&currency, &Value::Str("id".into()))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&isDifferent)))));
         }
     }

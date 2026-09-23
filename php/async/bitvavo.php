@@ -1174,7 +1174,7 @@ class bitvavo extends Exchange {
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 1440, max 1440
+            $request['limit'] = min($limit, 1440); // default 1440, max 1440
         }
         return $this->extend($request, $params);
     }

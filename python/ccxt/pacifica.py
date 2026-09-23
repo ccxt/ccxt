@@ -2379,8 +2379,8 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_list(response, 'data', [])
-        # return last state
-        sorted = self.sort_by(data, 'created_at', True)
+        # return last state, history_id is the per-event sequence, created_at can tie within a millisecond
+        sorted = self.sort_by(data, 'history_id', True)
         lastIdx = len(sorted)
         lastInfo = {}
         if lastIdx > 0:
@@ -2528,6 +2528,11 @@ class pacifica(Exchange, ImplicitAPI):
         totalAmount = self.safe_string_2(order, 'initial_amount', 'a')
         filledAmount = self.safe_string_2(order, 'filled_amount', 'f')
         remaining = Precise.string_sub(totalAmount, filledAmount)
+        average = self.safe_string_2(order, 'average_filled_price', 'p')
+        eventType = self.safe_string(order, 'event_type')
+        isFillEvent = self.in_array(eventType, ['fulfill_market', 'fulfill_limit'])
+        if (average is None) and isFillEvent:
+            average = self.safe_string(order, 'price')  # on a matching event price is the fill price
         return self.safe_order({
             'info': order,
             'id': self.safe_string_2(order, 'order_id', 'i'),
@@ -2546,7 +2551,7 @@ class pacifica(Exchange, ImplicitAPI):
             'triggerPrice': self.safe_number_2(order, 'stop_price', 'sp'),
             'amount': totalAmount,
             'cost': None,
-            'average': self.safe_string_2(order, 'average_filled_price', 'p'),
+            'average': average,
             'filled': filledAmount,
             'remaining': remaining,
             'status': self.parse_order_status(status),

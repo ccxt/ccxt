@@ -1580,7 +1580,7 @@ class bingx extends bingx$1["default"] {
             }
         }
         return this.safeTrade({
-            'id': this.safeStringN(trade, ['id', 't', 'fillId']),
+            'id': this.safeStringN(trade, ['id', 't', 'fillId', 'tradeId']),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601(time),
