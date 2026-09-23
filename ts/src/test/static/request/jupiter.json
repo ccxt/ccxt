@@ -1,0 +1,19 @@
+{
+    "exchange": "jupiter",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "sol ticker",
+                "method": "fetchTicker",
+                "url": "https://lite-api.jup.ag/price/v3?ids=So11111111111111111111111111111111111111112",
+                "input": [
+                    "SOL/USDC"
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
