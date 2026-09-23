@@ -1623,7 +1623,7 @@ public class Bitfinex extends BitfinexApi
                 put( "datetime", Bitfinex.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
-            Object priceIndex = (((java.util.Objects.equals(Helpers.GetValue(fullRequest, "precision"), "R0")))) ? 1 : 0;
+            Integer priceIndex = (((java.util.Objects.equals(Helpers.GetValue(fullRequest, "precision"), "R0")))) ? 1 : 0;
             List<Object> orders = this.toArray(orderbook);
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -1948,10 +1948,10 @@ public class Bitfinex extends BitfinexApi
         Integer tradeLength = ((List<?>)tradeList).size();
         Boolean isPrivate = (Helpers.isGreaterThan(tradeLength, 5));
         String id = this.safeString(tradeList, 0);
-        Object amountIndex = ((Boolean.TRUE.equals(isPrivate))) ? 4 : 2;
+        Integer amountIndex = ((Boolean.TRUE.equals(isPrivate))) ? 4 : 2;
         String side = null;
         String amountString = this.safeString(tradeList, amountIndex);
-        Object priceIndex = ((Boolean.TRUE.equals(isPrivate))) ? 5 : 3;
+        Integer priceIndex = ((Boolean.TRUE.equals(isPrivate))) ? 5 : 3;
         String priceString = this.safeString(tradeList, priceIndex);
         if (java.util.Objects.equals(Helpers.GetValue(amountString, 0), "-"))
         {
@@ -1966,7 +1966,7 @@ public class Bitfinex extends BitfinexApi
         String type = null;
         Map<String, Object> fee = null;
         String symbol = this.safeSymbol(null, market);
-        Object timestampIndex = ((Boolean.TRUE.equals(isPrivate))) ? 2 : 1;
+        Integer timestampIndex = ((Boolean.TRUE.equals(isPrivate))) ? 2 : 1;
         Long timestamp = this.safeInteger(tradeList, timestampIndex);
         if (Boolean.TRUE.equals(isPrivate))
         {
@@ -2488,7 +2488,7 @@ public class Bitfinex extends BitfinexApi
      * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2585,7 +2585,7 @@ public class Bitfinex extends BitfinexApi
      * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -5095,7 +5095,7 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         Integer interestLength = Helpers.getArrayLength(interest);
-        Object openInterestIndex = ((((interestLength != null && interestLength == 23)))) ? 17 : 18;
+        Integer openInterestIndex = ((((interestLength != null && interestLength == 23)))) ? 17 : 18;
         Long timestamp = this.safeInteger(interest, 1);
         String marketId = this.safeString(interest, 0);
         return this.safeOpenInterest(new HashMap<String, Object>() {{
@@ -5453,15 +5453,15 @@ public class Bitfinex extends BitfinexApi
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type2, Object side2, Object amount2, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type2, String side2, Object amount2, Object price, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Object amount3 = amount2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Object amount = amount3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -5607,7 +5607,7 @@ public class Bitfinex extends BitfinexApi
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }

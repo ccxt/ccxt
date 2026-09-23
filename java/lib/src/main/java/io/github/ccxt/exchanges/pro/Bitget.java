@@ -3056,7 +3056,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     put( "uta", true );
                 }});
             }
-            Object instTypeLower = (((java.util.Objects.equals(instType, null)))) ? "" : ((String)instType).toLowerCase();
+            String instTypeLower = (((java.util.Objects.equals(instType, null)))) ? "" : ((String)instType).toLowerCase();
             String messageHash = ("balance:" + instTypeLower);
             return (this.watchPrivate(uta, messageHash, messageHash, (Map<String, Object>) (args), parameters)).join();
         }).thenApply(Balances::new);

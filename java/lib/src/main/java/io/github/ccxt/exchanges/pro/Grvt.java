@@ -789,7 +789,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             interval = ((List<Object>) intervalparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) intervalparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
-            Object extraPart = ((Boolean.TRUE.equals(isSnapshot))) ? (((String.valueOf(interval) + "-") + String.valueOf(limit))) : String.valueOf(interval);
+            String extraPart = ((Boolean.TRUE.equals(isSnapshot))) ? (((String.valueOf(interval) + "-") + String.valueOf(limit))) : String.valueOf(interval);
             List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -797,7 +797,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String marketId = (String) ((Map<String, Object>)market).get("id");
-                ((List<Object>)rawHashes).add(Helpers.add((marketId + "@"), extraPart));
+                ((List<Object>)rawHashes).add(((marketId + "@") + extraPart));
                 ((List<Object>)messageHashes).add(("orderbook::" + ((Map<String, Object>)market).get("symbol")));
             }
             final Object finalChannel = channel;

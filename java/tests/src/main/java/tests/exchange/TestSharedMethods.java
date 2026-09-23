@@ -440,7 +440,7 @@ public class TestSharedMethods extends BaseTest {
                 if (!java.util.Objects.equals(currentTs, null) && !java.util.Objects.equals(nextTs, null))
                 {
                     String ascendingOrDescending = ((Helpers.isTrue(ascending))) ? "ascending" : "descending";
-                    Object comparison = ((Helpers.isTrue(ascending))) ? (Helpers.isLessThanOrEqual(currentTs, nextTs)) : (Helpers.isGreaterThanOrEqual(currentTs, nextTs));
+                    Boolean comparison = ((Helpers.isTrue(ascending))) ? (Helpers.isLessThanOrEqual(currentTs, nextTs)) : (Helpers.isGreaterThanOrEqual(currentTs, nextTs));
                     Assert(comparison, ((Helpers.add((Helpers.add((((((((exchange.id + " ") + method) + " ") + stringValue(codeOrSymbol)) + " must return a ") + ascendingOrDescending) + " sorted array of items by timestamp, but "), String.valueOf(currentTs)) + " is opposite with its next "), String.valueOf(nextTs)) + " ") + exchange.json(items)));
                 }
             }

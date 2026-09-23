@@ -1181,7 +1181,7 @@ public class Coinone extends CoinoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price2, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price2, Map<String, Object> parameters)
     {
         final Object price3 = price2;
         return BaseExchange.supplyAsync(() -> {
@@ -1239,7 +1239,7 @@ public class Coinone extends CoinoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1803,7 +1803,7 @@ public class Coinone extends CoinoneApi
             }}, parameters));
             String payload = this.stringToBase64(json);
             body = payload;
-            Object secret = this.secret.toUpperCase();
+            String secret = this.secret.toUpperCase();
             String signature = (String) this.hmac(this.encode(payload), this.encode(secret), sha512());
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

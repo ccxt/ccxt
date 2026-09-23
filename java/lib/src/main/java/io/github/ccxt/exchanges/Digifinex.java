@@ -2233,7 +2233,7 @@ public class Digifinex extends DigifinexApi
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2308,7 +2308,7 @@ public class Digifinex extends DigifinexApi
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2495,11 +2495,11 @@ public class Digifinex extends DigifinexApi
             Object orderType = null;
             if (java.util.Objects.equals(side, "buy"))
             {
-                Object requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 4 : 1;
+                Integer requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 4 : 1;
                 ((Map<String, Object>)request).put("type", requestType);
             } else
             {
-                Object requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 3 : 2;
+                Integer requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 3 : 2;
                 ((Map<String, Object>)request).put("type", requestType);
             }
             if (Boolean.TRUE.equals(isLimitOrder))
@@ -2617,7 +2617,7 @@ public class Digifinex extends DigifinexApi
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(cost), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }

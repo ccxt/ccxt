@@ -1782,7 +1782,7 @@ final Object finalMarketSymbol = marketSymbol;
             Map<String, Object> response = (this.predictfunGetV1OrdersMatches(this.extend(request, query))).join();
             // the venue answers with the shape documented in fetchTrades below
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object wallet = signerAddress.toLowerCase();
+            String wallet = signerAddress.toLowerCase();
             // a settlement names one taker and several makers, and the wallet may sit on either side,
             // so the legs it signed are the ones to report - a self trade legitimately yields two rows
             List<Object> flattenTrades = new ArrayList<Object>(Arrays.asList());
@@ -2144,8 +2144,8 @@ final Object finalMarketSymbol = marketSymbol;
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
-        Object s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
+        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
+        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
         // assign before toLowerCase so the php regex matches, it only handles a bare identifier
@@ -2329,15 +2329,15 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type2, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+        final String type3 = type2;
+        final String side3 = side2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
+            String type = type3;
+            String side = side3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             (this.authenticate()).join();
@@ -2512,8 +2512,8 @@ final Object finalMarketSymbol = marketSymbol;
             // the venue answers with an id and a hash and nothing else - no price, size, side or
             // status - so the returned order is built from what was requested and signed, with only
             // the identifiers taken from the response
-            final Object finalType = type;
-            final Object finalSide = side;
+            final String finalType = type;
+            final String finalSide = side;
             return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", Predictfun.this.safeString2(result, "orderHash", "hash") );
                 put( "clientOrderId", null );
@@ -2563,7 +2563,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

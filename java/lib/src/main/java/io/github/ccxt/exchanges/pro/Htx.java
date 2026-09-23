@@ -2314,8 +2314,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 String symbol = this.safeString(parameters, "symbol");
                 String currency = this.safeString(parameters, "currency");
-                Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
-                Object currencyCode = (((!java.util.Objects.equals(currency, null)))) ? this.currency((String) (currency)) : null;
+                Map<String, Object> market = (Map<String, Object>) ((((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null);
+                Map<String, Object> currencyCode = (Map<String, Object>) ((((!java.util.Objects.equals(currency, null)))) ? this.currency((String) (currency)) : null);
                 marginMode = this.safeString(parameters, "margin", "cross");
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin")));
                 Object prefix = "accounts";
@@ -3297,7 +3297,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (!java.util.Objects.equals(data, null))
             {
                 String contractCode = this.safeString(message, "contract_code");
-                Object market = (((!java.util.Objects.equals(contractCode, null)))) ? this.safeMarket(contractCode) : null;
+                Map<String, Object> market = (Map<String, Object>) ((((!java.util.Objects.equals(contractCode, null)))) ? this.safeMarket(contractCode) : null);
                 if ((data instanceof List))
                 {
                     for (var i = 0; i < ((List<?>)data).size(); i++)

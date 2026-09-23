@@ -7322,7 +7322,7 @@ public Object describe()
         return this.safeTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object createCcxtTradeId(Long timestamp, Object side, String amount, String price, String takerOrMaker)
+    public Object createCcxtTradeId(Long timestamp, String side, String amount, String price, String takerOrMaker)
     {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
         String id = null;
@@ -7350,7 +7350,7 @@ public Object describe()
     }
     public Object createCcxtTradeId(Object... optionalArgs)
     {
-        return this.createCcxtTradeId(Helpers.getArgLong(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgString(optionalArgs, 2, null), Helpers.getArgString(optionalArgs, 3, null), Helpers.getArgString(optionalArgs, 4, null));
+        return this.createCcxtTradeId(Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null), Helpers.getArgString(optionalArgs, 2, null), Helpers.getArgString(optionalArgs, 3, null), Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object parsedFeeAndFees(Object container)
@@ -10189,7 +10189,7 @@ public Object describe()
         return this.unWatchFundingRate(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createTwapOrder(String symbol, Object side, Object amount, Object duration, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTwapOrder(String symbol, String side, Object amount, Object duration, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -10198,7 +10198,7 @@ public Object describe()
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createTwapOrder(String symbol, Object side, Object amount, Object duration, Object... optionalArgs)
+    public CompletableFuture<Order> createTwapOrder(String symbol, String side, Object amount, Object duration, Object... optionalArgs)
     {
         return this.createTwapOrder(symbol, side, amount, duration, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -10318,7 +10318,7 @@ public Object describe()
         return this.fetchPositionADLRank(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object setTakeProfitAndStopLossParams(String symbol, Object type, Object side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters)
+    public Object setTakeProfitAndStopLossParams(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters)
     {
         if ((java.util.Objects.equals(takeProfit, null)) && (java.util.Objects.equals(stopLoss, null)))
         {
@@ -10381,7 +10381,7 @@ public Object describe()
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"))));
         return parameters;
     }
-    public Object setTakeProfitAndStopLossParams(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object setTakeProfitAndStopLossParams(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.setTakeProfitAndStopLossParams(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null, Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -13160,9 +13160,9 @@ public Object describe()
             return null;
         }
         // parse YYMMDD to datetime string
-        Object year = (date == null ? null : ((String)date).substring(0, Math.min(2, ((String)date).length())));
-        Object month = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(4, ((String)date).length())));
-        Object day = (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())));
+        String year = (date == null ? null : ((String)date).substring(0, Math.min(2, ((String)date).length())));
+        String month = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(4, ((String)date).length())));
+        String day = (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())));
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
         String reconstructedDate = (((((("20" + year) + "-") + month) + "-") + day) + "T00:00:00.000Z");
@@ -13176,8 +13176,8 @@ public Object describe()
             return null;
         }
         // parse 240119 to 19JAN24
-        Object year = (date == null ? null : ((String)date).substring(0, Math.min(2, ((String)date).length())));
-        Object monthRaw = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(4, ((String)date).length())));
+        String year = (date == null ? null : ((String)date).substring(0, Math.min(2, ((String)date).length())));
+        String monthRaw = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(4, ((String)date).length())));
         String month = null;
         Object day = (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())));
         if (java.util.Objects.equals(monthRaw, "01"))
@@ -13217,7 +13217,7 @@ public Object describe()
         {
             month = "DEC";
         }
-        String reconstructedDate = Helpers.add((day + month), year);
+        String reconstructedDate = ((day + month) + year);
         return reconstructedDate;
     }
 
@@ -13247,11 +13247,11 @@ public Object describe()
         {
             date = ("0" + date);
         }
-        Object year = (date == null ? null : ((String)date).substring(0, Math.min(2, ((String)date).length())));
-        Object monthName = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(5, ((String)date).length())));
+        String year = (date == null ? null : ((String)date).substring(0, Math.min(2, ((String)date).length())));
+        String monthName = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(5, ((String)date).length())));
         String month = this.safeString(monthMappping, monthName);
         Object day = (date == null ? null : ((String)date).substring(Math.min(5, ((String)date).length()), Math.min(7, ((String)date).length())));
-        String reconstructedDate = Helpers.add((day + month), year);
+        String reconstructedDate = ((day + month) + year);
         return reconstructedDate;
     }
 

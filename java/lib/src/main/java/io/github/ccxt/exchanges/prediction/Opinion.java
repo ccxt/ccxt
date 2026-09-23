@@ -1349,12 +1349,12 @@ final Object finalTokenId = tokenId;
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type2, Object side, Object amount, Object price2, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type2, String side, Object amount, Object price2, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         final Object price3 = price2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
+            String type = type3;
             Object price = price3;
             (this.loadApiKey()).join();
             this.checkRequiredCredentials();
@@ -1387,7 +1387,7 @@ final Object finalTokenId = tokenId;
             Map<String, Object> amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
             String makerAmount = this.safeString(amounts, "makerAmount");
             String takerAmount = this.safeString(amounts, "takerAmount");
-            Object sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
+            Integer sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
             String salt = this.numberToString(this.milliseconds());
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly")));
@@ -1395,9 +1395,9 @@ final Object finalTokenId = tokenId;
             // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
             // against a differently-cased walletAddress with strict equality would pick the wrong
             // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
-            Object makerLower = maker.toLowerCase();
+            String makerLower = maker.toLowerCase();
             String walletAddressLower = ((String)this.walletAddress).toLowerCase();
-            Object signatureType = (((java.util.Objects.equals(makerLower, walletAddressLower)))) ? 0 : 2;
+            Integer signatureType = (((java.util.Objects.equals(makerLower, walletAddressLower)))) ? 0 : 2;
             Map<String, Object> order = new HashMap<String, Object>() {{
                 put( "salt", salt );
                 put( "maker", maker );
@@ -1463,7 +1463,7 @@ final Object finalTokenId = tokenId;
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2149,8 +2149,8 @@ final Object finalTokenId = tokenId;
         // assign before padStart so the PHP str_pad regex matches
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
-        Object s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
+        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
+        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         return new HashMap<String, Object>() {{
             put( "r", ("0x" + r) );
             put( "s", ("0x" + s) );
@@ -2464,7 +2464,7 @@ final Object finalTokenId = tokenId;
             if (Helpers.isEqual(this.safeInteger(info, "marketId"), marketId))
             {
                 List<Object> outcomes = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
-                Object index = (((Helpers.isEqual(outcomeSide, 2)))) ? 1 : 0;
+                Integer index = (((Helpers.isEqual(outcomeSide, 2)))) ? 1 : 0;
                 return this.safeDict(outcomes, index);
             }
         }
