@@ -4678,6 +4678,122 @@ function ccxtGoAsyncDeclaredShapeAgrees (goTranspiler, callee, goType) {
     return (goType === '[]any') ? !isMap : !isList;
 }
 
+// Go element of each generated implicit-API stub, read off the emitted `<id>_api.go` companion
+// of the abstract file that declares the method; a stub still returning `<-chan any` is absent.
+const CCXT_GO_ENDPOINT_SIG = /^func \(this \*\w+\) (\w+)\(args \.\.\.any\) <-chan (?:ccxt\.)?EndpointResult\[(.+)\] \{$/;
+const CCXT_GO_ENDPOINT_TABLES = new Map ();
+const CCXT_GO_ENDPOINT_DECLARED = { 'Dict': 'map[string]any', 'List': '[]any', 'string': 'string' };
+
+function ccxtGoEndpointTable (abstractFile) {
+    const m = /^(.*)[\\/]ts[\\/]src[\\/]abstract[\\/]((?:prediction[\\/])?)(\w+)\.ts$/.exec (abstractFile);
+    if (m === null) {
+        return undefined;
+    }
+    const goFile = path.join (m[1], 'go', 'v4', m[2], m[3] + '_api.go');
+    if (!CCXT_GO_ENDPOINT_TABLES.has (goFile)) {
+        const table = new Map ();
+        let text = '';
+        try {
+            text = fs.readFileSync (goFile, 'utf8');
+        } catch (e) {
+            text = '';
+        }
+        for (const line of text.split ('\n')) {
+            const sig = CCXT_GO_ENDPOINT_SIG.exec (line);
+            if (sig !== null) {
+                table.set (sig[1], sig[2]);
+            }
+        }
+        CCXT_GO_ENDPOINT_TABLES.set (goFile, table);
+    }
+    return CCXT_GO_ENDPOINT_TABLES.get (goFile);
+}
+
+// the channel element of `this.<endpoint>(...)`, or undefined for anything that is not a typed
+// stub. The Go signature decides; the declared Promise<T> of the same abstract method must agree.
+export function ccxtGoEndpointElement (goTranspiler, call) {
+    if ((call === undefined) || (call.kind !== ts.SyntaxKind.CallExpression)) {
+        return undefined;
+    }
+    const callee = call.expression;
+    if ((callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) || (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword)
+        || (typeof goTranspiler.getChecker !== 'function')) {
+        return undefined;
+    }
+    let declaration = undefined;
+    try {
+        declaration = goTranspiler.getChecker ().getSymbolAtLocation (callee.name)?.declarations?.[0];
+    } catch (e) {
+        return undefined;                       // no program behind the printer: keep the box
+    }
+    const fileName = declaration?.getSourceFile?. ()?.fileName;
+    if ((typeof fileName !== 'string') || !/[\\/]ts[\\/]src[\\/]abstract[\\/]/.test (fileName)) {
+        return undefined;
+    }
+    const name = String (callee.name.escapedText);
+    const goName = name.charAt (0).toUpperCase () + name.slice (1);
+    // a derived core embeds its parent's, whose companion holds the promoted stubs
+    let element = undefined;
+    for (let file = fileName, hops = 0; (element === undefined) && (file !== undefined) && (hops < 8); hops++) {
+        element = ccxtGoEndpointTable (file)?.get (goName);
+        let text = '';
+        try {
+            text = fs.readFileSync (file, 'utf8');
+        } catch (e) {
+            text = '';
+        }
+        const parent = /^import _(\w+) from '\.\.\/(\w+)\.js';$/m.exec (text);
+        file = (parent === null) ? undefined : path.join (path.dirname (file), parent[2] + '.ts');
+    }
+    if (element === undefined) {
+        return undefined;
+    }
+    const declared = /^Promise<\s*(\w+)\s*>$/.exec (declaration.type?.getText?. () ?? '');
+    if ((declared === null) || (CCXT_GO_ENDPOINT_DECLARED[declared[1]] !== element)) {
+        throw new Error ('go endpoint ' + name + ': stub element ' + element + ' disagrees with ' + fileName);
+    }
+    return element;
+}
+
+function ccxtGoParentPastParens (node) {
+    let parent = node.parent;
+    while (parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        parent = parent.parent;
+    }
+    return parent;
+}
+
+// A typed stub yields EndpointResult[T]: every receive reads `.Raw` (the value the boxed channel
+// carried), and an un-received call handed on as a value is re-boxed into `<-chan any`.
+function installCcxtGoEndpointConsumers (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoEndpointConsumersInstalled
+        || (typeof goTranspiler.printAwaitExpression !== 'function') || (typeof goTranspiler.printCallExpression !== 'function')) {
+        return;
+    }
+    const printAwait = goTranspiler.printAwaitExpression;
+    goTranspiler.printAwaitExpression = function (node, identation) {
+        const printed = printAwait.call (this, node, identation);
+        if (ccxtGoEndpointElement (this, node.expression) === undefined) {
+            return printed;
+        }
+        if (!printed.startsWith ('(<-') || !printed.endsWith (')')) {
+            // an unread carrier would reach PanicOnError as a struct and swallow the failure
+            throw new Error ('go endpoint receive printed as ' + printed.slice (0, 80));
+        }
+        return printed + '.Raw';
+    };
+    const printCall = goTranspiler.printCallExpression;
+    goTranspiler.printCallExpression = function (node, identation) {
+        const printed = printCall.call (this, node, identation);
+        if ((ccxtGoParentPastParens (node)?.kind === ts.SyntaxKind.AwaitExpression) || (ccxtGoEndpointElement (this, node) === undefined)) {
+            return printed;
+        }
+        const lead = /^\s*/.exec (printed)[0];
+        return lead + 'EndpointRaw(' + printed.slice (lead.length) + ')';
+    };
+    goTranspiler.__ccxtGoEndpointConsumersInstalled = true;
+}
+
 // The hook the printer consults for all three await shapes.  Fail closed: undefined keeps the
 // boxed `x := (<-...)` + `PanicOnError(x)` emission byte-for-byte.
 export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitializer) {
@@ -4701,15 +4817,23 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
         return undefined;                       // this.DerivedExchange.x() / ccxt.x(): keep the box
     }
     const method = callee.name?.escapedText;
-    // the table is keyed by the printed Go core name: `loadMarkets` prints `LoadMarketsAsync`
-    if ((typeof method !== 'string') || (printed[1] !== method.charAt (0).toUpperCase () + method.slice (1) + 'Async')) {
+    if (typeof method !== 'string') {
+        return undefined;
+    }
+    // cores print `loadMarkets` as `LoadMarketsAsync`; implicit-API stubs print without the suffix
+    const exported = method.charAt (0).toUpperCase () + method.slice (1);
+    const endpoint = (printed[1] === exported) ? ccxtGoEndpointElement (goTranspiler, call) : undefined;
+    if ((endpoint === undefined) && (printed[1] !== exported + 'Async')) {
         return undefined;                       // the printer's suffix logic disagrees: keep the box
     }
-    const goType = CCXT_GO_ASYNC_ELEM_TYPES[printed[1]];
+    const goType = (endpoint !== undefined) ? endpoint : CCXT_GO_ASYNC_ELEM_TYPES[printed[1]];
     if (goType === undefined) {
         return undefined;
     }
-    if (!ccxtGoAsyncDeclaredShapeAgrees (goTranspiler, callee, goType)) {
+    if ((endpoint !== undefined) && (ccxtGoAsyncReceiveDeclaration (awaitNode) === undefined)) {
+        return undefined;                       // a statement or a forwarded endpoint value stays boxed
+    }
+    if ((endpoint === undefined) && !ccxtGoAsyncDeclaredShapeAgrees (goTranspiler, callee, goType)) {
         return undefined;                       // a declared Promise<T> of the other shape: keep the box
     }
     const conv = CCXT_GO_ASYNC_UNBOX[goType];
@@ -4863,6 +4987,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoSafeCollectionUnbox (goTranspiler);
     // B1: name the async-receive locals whose element type the core's channel carries
     installCcxtGoAsyncReceiveUnbox (goTranspiler);
+    installCcxtGoEndpointConsumers (goTranspiler);
     installCcxtGoProducerDeclarations (goTranspiler);
     // destructured element read straight into a scalar local
     installCcxtGoElementReadJoins (goTranspiler);

@@ -2889,7 +2889,11 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 					if !ok {
 						break // result channel is closed
 					}
-					ch <- val.Interface() // pass the value to the output channel
+					out := val.Interface()
+					if boxed, isBoxed := out.(interface{ Boxed() any }); isBoxed {
+						out = boxed.Boxed()
+					}
+					ch <- out // pass the value to the output channel
 				}
 				close(ch) // close the output channel after all values are received
 			}()
@@ -2910,11 +2914,16 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 // receive can convert it in the same frame.
 func PanicOnError(msg any) any {
 	caller := getCallerName()
-	switch v := msg.(type) {
+	checked := msg
+	if boxed, ok := msg.(interface{ Boxed() any }); ok {
+		// typed endpoint results are checked on their untyped payload
+		checked = boxed.Boxed()
+	}
+	switch v := checked.(type) {
 	case string:
 		if strings.HasPrefix(v, "panic:") {
 			stack := debug.Stack()[:300]
-			panicMsg := fmt.Sprintf("panic:%v:%v\nStack trace:\n%s", caller, msg, stack)
+			panicMsg := fmt.Sprintf("panic:%v:%v\nStack trace:\n%s", caller, v, stack)
 			panic(panicMsg)
 		}
 	case []any:
@@ -2972,6 +2981,87 @@ func ReturnPanicError(ch chan any) {
 				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
 			}
 			ch <- panicMsg
+		}
+	}
+}
+
+// EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async
+// delivered (the response or a "panic:..." string), Value its typed view (zero on shape mismatch).
+type EndpointResult[T any] struct {
+	Value T
+	Raw   any
+}
+
+// Boxed returns the untyped response for reflective and forwarding consumers.
+func (r EndpointResult[T]) Boxed() any {
+	return r.Raw
+}
+
+func endpointValue[T any](raw any) T {
+	var out T
+	if s, ok := raw.(string); ok && strings.HasPrefix(s, "panic:") {
+		return out
+	}
+	switch p := any(&out).(type) {
+	case *map[string]any:
+		*p = MapTyped(raw)
+	case *[]any:
+		*p = ListTyped(raw)
+	case *string:
+		if s, ok := derefScalar(raw).(string); ok {
+			*p = s
+		}
+	default:
+		if v, ok := raw.(T); ok {
+			out = v
+		}
+	}
+	return out
+}
+
+// Fetch2Result relays the single Fetch2Async value unchanged in Raw, adding its typed view.
+func Fetch2Result[T any](this interface {
+	Fetch2Async(path any, optionalArgs ...any) <-chan any
+}, path any, optionalArgs ...any) <-chan EndpointResult[T] {
+	out := make(chan EndpointResult[T], 1)
+	in := this.Fetch2Async(path, optionalArgs...)
+	go func() {
+		defer close(out)
+		defer ReturnPanicErrorT(out)
+		raw, ok := <-in
+		if !ok {
+			return
+		}
+		out <- EndpointResult[T]{Value: endpointValue[T](raw), Raw: raw}
+	}()
+	return out
+}
+
+// EndpointRaw adapts a typed endpoint channel to the boxed channel PromiseAll and any-typed holders expect.
+func EndpointRaw[T any](in <-chan EndpointResult[T]) <-chan any {
+	out := make(chan any, 1)
+	go func() {
+		defer close(out)
+		if r, ok := <-in; ok {
+			out <- r.Raw
+		}
+	}()
+	return out
+}
+
+// ReturnPanicErrorT is ReturnPanicError for an EndpointResult channel; keep the two formatters in sync.
+func ReturnPanicErrorT[T any](ch chan EndpointResult[T]) {
+	if r := recover(); r != nil {
+		if r != "break" {
+			stack := debug.Stack()
+			strErr := ToString(r)
+			var panicMsg string
+			if !strings.HasPrefix(strErr, "panic:") {
+				panicMsg = fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
+			} else {
+				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
+			}
+			ch <- EndpointResult[T]{Raw: panicMsg}
 		}
 	}
 }
