@@ -5261,9 +5261,9 @@ public class Kucoin extends KucoinApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             parameters = (Map<String, Object>) this.omit(parameters, "test");
-            Object hf = null;
+            Boolean hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
-            hf = ((List<Object>) hfparametersVariable).get(0);
+            hf = (Boolean) ((List<Object>) hfparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hfparametersVariable).get(1);
             Boolean useSync = false;
             List<Object> useSyncparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "sync", false);
@@ -6347,9 +6347,9 @@ public class Kucoin extends KucoinApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "orderList", ordersRequests );
             }};
-            Object hf = null;
+            Boolean hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
-            hf = ((List<Object>) hfparametersVariable).get(0);
+            hf = (Boolean) ((List<Object>) hfparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hfparametersVariable).get(1);
             Boolean useSync = false;
             List<Object> useSyncparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrders", "sync", false);
@@ -6708,9 +6708,9 @@ public class Kucoin extends KucoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Object hf = null;
+            Boolean hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
-            hf = ((List<Object>) hfparametersVariable).get(0);
+            hf = (Boolean) ((List<Object>) hfparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hfparametersVariable).get(1);
             Boolean useSync = false;
             List<Object> useSyncparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "sync", false);
@@ -7147,9 +7147,9 @@ public class Kucoin extends KucoinApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            Object hf = null;
+            Boolean hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
-            hf = ((List<Object>) hfparametersVariable).get(0);
+            hf = (Boolean) ((List<Object>) hfparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hfparametersVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
@@ -7529,9 +7529,9 @@ public class Kucoin extends KucoinApi
             String lowercaseStatus = ((String)status).toLowerCase();
             Long until = this.safeInteger(parameters, "until");
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Object hf = null;
+            Boolean hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
-            hf = ((List<Object>) hfparametersVariable).get(0);
+            hf = (Boolean) ((List<Object>) hfparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hfparametersVariable).get(1);
             if ((java.util.Objects.equals(hf, true)) && (java.util.Objects.equals(symbol, null)))
             {
@@ -8276,9 +8276,9 @@ public class Kucoin extends KucoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Object hf = null;
+            Boolean hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
-            hf = ((List<Object>) hfparametersVariable).get(0);
+            hf = (Boolean) ((List<Object>) hfparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hfparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
@@ -9340,9 +9340,9 @@ public class Kucoin extends KucoinApi
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object hf = null;
+            Boolean hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
-            hf = ((List<Object>) hfparametersVariable).get(0);
+            hf = (Boolean) ((List<Object>) hfparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hfparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
@@ -11177,9 +11177,9 @@ public class Kucoin extends KucoinApi
             {
                 return (this.fetchContractBalance(parameters)).join();
             }
-            Object hf = null;
+            Boolean hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
-            hf = ((List<Object>) hfparametersVariable).get(0);
+            hf = (Boolean) ((List<Object>) hfparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hfparametersVariable).get(1);
             if ((java.util.Objects.equals(hf, true)) && (!java.util.Objects.equals(type, "main")))
             {
@@ -12318,9 +12318,9 @@ public class Kucoin extends KucoinApi
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
-            Object hf = null;
+            Boolean hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
-            hf = ((List<Object>) hfparametersVariable).get(0);
+            hf = (Boolean) ((List<Object>) hfparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hfparametersVariable).get(1);
             Object requestedType = null;
             if (Helpers.isTrue(uta))
