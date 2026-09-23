@@ -7,6 +7,140 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchWithdrawal": [
+            {
+                "description": "uta fetchWithdrawal by id with a currency code",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal-records?coin=USDT&endTime=1789921097016&limit=100&orderId=1477203433330230002&startTime=1787329097016",
+                "input": [
+                    "1477203433330230002",
+                    "USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchWithdrawal with an id the venue does not know returns a structure with empty fields",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal-records?endTime=1789921095379&limit=100&orderId=1477183242218870001&startTime=1787329095379",
+                "input": [
+                    "1477183242218870001",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchWithdrawal by id",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal-records?endTime=1789921093619&limit=100&orderId=1477203433330230002&startTime=1787329093619",
+                "input": [
+                    "1477203433330230002",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "classic fetchWithdrawal by id routes to the v2 spot endpoint and sends limit next to orderId",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?endTime=1789985404093&limit=100&orderId=1083832260799930369&startTime=1782209404093",
+                "input": [
+                    "1083832260799930369",
+                    null,
+                    {
+                        "uta": false
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "classic fetchWithdrawal by id with a currency code",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?coin=BTC&endTime=1789985404093&limit=100&orderId=1083832260799930369&startTime=1782209404093",
+                "input": [
+                    "1083832260799930369",
+                    "BTC",
+                    {
+                        "uta": false
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "uta fetchDeposit by id with a currency code",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v3/account/deposit-records?coin=USDT&endTime=1789921092250&limit=100&orderId=1477183242218870001&startTime=1787329092250",
+                "input": [
+                    "1477183242218870001",
+                    "USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchDeposit with an id the venue does not know returns a structure with empty fields",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v3/account/deposit-records?endTime=1789921090682&limit=100&orderId=1477203433330230002&startTime=1787329090682",
+                "input": [
+                    "1477203433330230002",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchDeposit by id",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v3/account/deposit-records?endTime=1789921089206&limit=100&orderId=1477183242218870001&startTime=1787329089206",
+                "input": [
+                    "1477183242218870001",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "classic fetchDeposit by id routes to the v2 spot endpoint and sends limit next to orderId",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-records?endTime=1789985404091&limit=100&orderId=1083832260799930368&startTime=1782209404091",
+                "input": [
+                    "1083832260799930368",
+                    null,
+                    {
+                        "uta": false
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "classic fetchDeposit by id with a currency code",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-records?coin=BTC&endTime=1789985404092&limit=100&orderId=1083832260799930368&startTime=1782209404092",
+                "input": [
+                    "1083832260799930368",
+                    "BTC",
+                    {
+                        "uta": false
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingIntervals": [
             {
                 "description": "fetchFundingIntervals with params",
