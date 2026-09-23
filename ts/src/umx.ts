@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Endpoint, Int, List, Market, NullableDict, OrderBook, Str, Strings, Ticker, Tickers, int } from './base/types.js';
+import type { Currencies, Currency, Dict, Endpoint, Int, List, Market, NullableDict, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ export default class umx extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfers': false,
@@ -134,33 +134,35 @@ export default class umx extends Exchange {
                 ],
                 'fees': 'https://www.umx.com/guide/spot-fee-rate',
             },
+            // every endpoint answers with the same json object envelope, { code, msg, data, ts },
+            // so each leaf is Endpoint<Dict> even when its data member is an array
             'api': {
                 'public': {
                     'get': {
                         'v1/market/time': { 'cost': 1 } as Endpoint<Dict>,
-                        'v2/public/symbols': { 'cost': 1 } as Endpoint<List>,
+                        'v2/public/symbols': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/market/depth': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/market/ticker/mini': { 'cost': 1 } as Endpoint<List>,
-                        'v1/market/ticker/24hr': { 'cost': 1 } as Endpoint<List>,
-                        'v1/market/trade': { 'cost': 1 } as Endpoint<List>,
-                        'v1/market/kline': { 'cost': 1 } as Endpoint<List>,
-                        'v1/market/markPriceKline': { 'cost': 1 } as Endpoint<List>,
-                        'v1/market/index': { 'cost': 1 } as Endpoint<List>,
-                        'v1/market/indexPriceKline': { 'cost': 1 } as Endpoint<List>,
+                        'v1/market/ticker/mini': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/market/ticker/24hr': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/market/trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/market/kline': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/market/markPriceKline': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/market/index': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/market/indexPriceKline': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/market/deliveryExercise/history': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/market/fundingRate': { 'cost': 1 } as Endpoint<List>,
+                        'v1/market/fundingRate': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/market/fundingRate/history': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/public/baseRates': { 'cost': 1 } as Endpoint<List>,
-                        'v1/public/spotMarginCollateral': { 'cost': 1 } as Endpoint<List>,
-                        'v1/public/haircut': { 'cost': 1 } as Endpoint<List>,
-                        'v1/public/flexible/product': { 'cost': 1 } as Endpoint<List>,
-                        'v1/public/flexible/rateHistory': { 'cost': 1 } as Endpoint<List>,
+                        'v1/public/baseRates': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/public/spotMarginCollateral': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/public/haircut': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/public/flexible/product': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/public/flexible/rateHistory': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         // account management
-                        'v1/users/apikeys': { 'cost': 1 } as Endpoint<List>,
+                        'v1/users/apikeys': { 'cost': 1 } as Endpoint<Dict>,
                         // trading
                         'v2/trade/openOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/trade/order/info': { 'cost': 1 } as Endpoint<Dict>,
@@ -170,7 +172,7 @@ export default class umx extends Exchange {
                         'v2/trade/openOrderComplex': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/history/orderComplexs': { 'cost': 1 } as Endpoint<Dict>,
                         // block spot rfq
-                        'v1/account/convert/exchangeInfo': { 'cost': 1 } as Endpoint<List>,
+                        'v1/account/convert/exchangeInfo': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/account/convert/orderStatus': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/account/convert/history/orders': { 'cost': 1 } as Endpoint<Dict>,
                         // trading account
@@ -184,17 +186,17 @@ export default class umx extends Exchange {
                         'v1/history/bill': { 'cost': 1 } as Endpoint<Dict>,
                         // funding account
                         'v1/asset/account/info': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/asset/balances': { 'cost': 1 } as Endpoint<List>,
+                        'v1/asset/balances': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/asset/bill': { 'cost': 1 } as Endpoint<Dict>,
-                        'v2/asset/currencies': { 'cost': 1 } as Endpoint<List>,
-                        'v2/asset/chains': { 'cost': 1 } as Endpoint<List>,
-                        'v2/asset/fiatChannels': { 'cost': 1 } as Endpoint<List>,
+                        'v2/asset/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/asset/chains': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/asset/fiatChannels': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/asset/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/asset/deposit/record': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/asset/withdrawal/address': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/asset/withdrawal/record': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/asset/transfer/history': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/asset/accountMembers': { 'cost': 1 } as Endpoint<List>,
+                        'v1/asset/accountMembers': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/asset/crossTransfer/history': { 'cost': 1 } as Endpoint<Dict>,
                         // earn
                         'v1/earn/flexible/records': { 'cost': 1 } as Endpoint<Dict>,
@@ -978,6 +980,78 @@ export default class umx extends Exchange {
             'indexPrice': this.omitZero (this.safeString (ticker, 'indexPrice')),
             'markPrice': this.omitZero (this.safeString (ticker, 'markPrice')),
             'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchTrades
+     * @description get the list of the most recent trades for a particular symbol
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-recent-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] the endpoint has no time filter, the parameter only drops the older entries of the returned page
+     * @param {int} [limit] the maximum amount of trades to fetch, the venue caps it at 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const request: Dict = {
+            'symbol': marketId,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV1MarketTrade (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "1962406371",
+        //                 "symbol": "ETH-USDT",
+        //                 "side": "buy",
+        //                 "price": "2715.42",
+        //                 "qty": "0.0035",
+        //                 "time": "1790171929955",
+        //                 "indexPrice": "2715.55",
+        //                 "markPrice": "0",
+        //                 "iv": null,
+        //                 "markIv": null
+        //             }
+        //         ],
+        //         "ts": "1790171930123"
+        //     }
+        //
+        // the venue returns the newest trades first and honours no start or end time,
+        // so since only filters the returned page, it cannot reach further back
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 'time');
+        // qty is denominated in the base currency on every instrument type
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'id'),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': this.safeString (trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'qty'),
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 

@@ -5,29 +5,29 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetV1MarketTime (params?: {}): Promise<Dict>;
-    publicGetV2PublicSymbols (params?: {}): Promise<List>;
+    publicGetV2PublicSymbols (params?: {}): Promise<Dict>;
     publicGetV1MarketDepth (params?: {}): Promise<Dict>;
-    publicGetV1MarketTickerMini (params?: {}): Promise<List>;
-    publicGetV1MarketTicker24hr (params?: {}): Promise<List>;
-    publicGetV1MarketTrade (params?: {}): Promise<List>;
-    publicGetV1MarketKline (params?: {}): Promise<List>;
-    publicGetV1MarketMarkPriceKline (params?: {}): Promise<List>;
-    publicGetV1MarketIndex (params?: {}): Promise<List>;
-    publicGetV1MarketIndexPriceKline (params?: {}): Promise<List>;
+    publicGetV1MarketTickerMini (params?: {}): Promise<Dict>;
+    publicGetV1MarketTicker24hr (params?: {}): Promise<Dict>;
+    publicGetV1MarketTrade (params?: {}): Promise<Dict>;
+    publicGetV1MarketKline (params?: {}): Promise<Dict>;
+    publicGetV1MarketMarkPriceKline (params?: {}): Promise<Dict>;
+    publicGetV1MarketIndex (params?: {}): Promise<Dict>;
+    publicGetV1MarketIndexPriceKline (params?: {}): Promise<Dict>;
     publicGetV1MarketDeliveryExerciseHistory (params?: {}): Promise<Dict>;
-    publicGetV1MarketFundingRate (params?: {}): Promise<List>;
+    publicGetV1MarketFundingRate (params?: {}): Promise<Dict>;
     publicGetV1MarketFundingRateHistory (params?: {}): Promise<Dict>;
-    publicGetV1PublicBaseRates (params?: {}): Promise<List>;
-    publicGetV1PublicSpotMarginCollateral (params?: {}): Promise<List>;
-    publicGetV1PublicHaircut (params?: {}): Promise<List>;
-    publicGetV1PublicFlexibleProduct (params?: {}): Promise<List>;
-    publicGetV1PublicFlexibleRateHistory (params?: {}): Promise<List>;
-    privateGetV1UsersApikeys (params?: {}): Promise<List>;
+    publicGetV1PublicBaseRates (params?: {}): Promise<Dict>;
+    publicGetV1PublicSpotMarginCollateral (params?: {}): Promise<Dict>;
+    publicGetV1PublicHaircut (params?: {}): Promise<Dict>;
+    publicGetV1PublicFlexibleProduct (params?: {}): Promise<Dict>;
+    publicGetV1PublicFlexibleRateHistory (params?: {}): Promise<Dict>;
+    privateGetV1UsersApikeys (params?: {}): Promise<Dict>;
     privateGetV2TradeOpenOrders (params?: {}): Promise<Dict>;
     privateGetV2TradeOrderInfo (params?: {}): Promise<Dict>;
     privateGetV2HistoryOrders (params?: {}): Promise<Dict>;
@@ -35,7 +35,7 @@ interface Exchange {
     privateGetV2HistoryTrades (params?: {}): Promise<Dict>;
     privateGetV2TradeOpenOrderComplex (params?: {}): Promise<Dict>;
     privateGetV2HistoryOrderComplexs (params?: {}): Promise<Dict>;
-    privateGetV1AccountConvertExchangeInfo (params?: {}): Promise<List>;
+    privateGetV1AccountConvertExchangeInfo (params?: {}): Promise<Dict>;
     privateGetV1AccountConvertOrderStatus (params?: {}): Promise<Dict>;
     privateGetV1AccountConvertHistoryOrders (params?: {}): Promise<Dict>;
     privateGetV2TradePositions (params?: {}): Promise<Dict>;
@@ -47,17 +47,17 @@ interface Exchange {
     privateGetV1AccountCollateralInfo (params?: {}): Promise<Dict>;
     privateGetV1HistoryBill (params?: {}): Promise<Dict>;
     privateGetV1AssetAccountInfo (params?: {}): Promise<Dict>;
-    privateGetV1AssetBalances (params?: {}): Promise<List>;
+    privateGetV1AssetBalances (params?: {}): Promise<Dict>;
     privateGetV1AssetBill (params?: {}): Promise<Dict>;
-    privateGetV2AssetCurrencies (params?: {}): Promise<List>;
-    privateGetV2AssetChains (params?: {}): Promise<List>;
-    privateGetV2AssetFiatChannels (params?: {}): Promise<List>;
+    privateGetV2AssetCurrencies (params?: {}): Promise<Dict>;
+    privateGetV2AssetChains (params?: {}): Promise<Dict>;
+    privateGetV2AssetFiatChannels (params?: {}): Promise<Dict>;
     privateGetV1AssetDepositAddress (params?: {}): Promise<Dict>;
     privateGetV1AssetDepositRecord (params?: {}): Promise<Dict>;
     privateGetV1AssetWithdrawalAddress (params?: {}): Promise<Dict>;
     privateGetV1AssetWithdrawalRecord (params?: {}): Promise<Dict>;
     privateGetV1AssetTransferHistory (params?: {}): Promise<Dict>;
-    privateGetV1AssetAccountMembers (params?: {}): Promise<List>;
+    privateGetV1AssetAccountMembers (params?: {}): Promise<Dict>;
     privateGetV1AssetCrossTransferHistory (params?: {}): Promise<Dict>;
     privateGetV1EarnFlexibleRecords (params?: {}): Promise<Dict>;
     privatePostV1AccountCreateSubaccount (params?: {}): Promise<Dict>;

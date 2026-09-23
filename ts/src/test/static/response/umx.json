@@ -8,6 +8,432 @@
     ],
     "options": {},
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "trades of a market that has never traded",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [],
+                    "ts": "1790172384608"
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "option trades",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT:USDT-260925-2700-C",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "id": "1563709",
+                            "symbol": "ETH-USDT-25SEP26-2700-C",
+                            "side": "sell",
+                            "price": "20.8",
+                            "qty": "1",
+                            "time": "1789095905622",
+                            "indexPrice": "2444.8",
+                            "markPrice": "25.8",
+                            "markIv": "0.5341",
+                            "iv": "0.4943"
+                        },
+                        {
+                            "id": "1563695",
+                            "symbol": "ETH-USDT-25SEP26-2700-C",
+                            "side": "buy",
+                            "price": "31",
+                            "qty": "1",
+                            "time": "1789095792958",
+                            "indexPrice": "2447.1",
+                            "markPrice": "26.3",
+                            "markIv": "0.5341",
+                            "iv": "0.5687"
+                        }
+                    ],
+                    "ts": "1790172382170"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1563695",
+                        "info": {
+                            "id": "1563695",
+                            "symbol": "ETH-USDT-25SEP26-2700-C",
+                            "side": "buy",
+                            "price": "31",
+                            "qty": "1",
+                            "time": "1789095792958",
+                            "indexPrice": "2447.1",
+                            "markPrice": "26.3",
+                            "markIv": "0.5341",
+                            "iv": "0.5687"
+                        },
+                        "timestamp": 1789095792958,
+                        "datetime": "2026-09-11T03:03:12.958Z",
+                        "symbol": "ETH/USDT:USDT-260925-2700-C",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 31,
+                        "amount": 1,
+                        "cost": 31,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "1563709",
+                        "info": {
+                            "id": "1563709",
+                            "symbol": "ETH-USDT-25SEP26-2700-C",
+                            "side": "sell",
+                            "price": "20.8",
+                            "qty": "1",
+                            "time": "1789095905622",
+                            "indexPrice": "2444.8",
+                            "markPrice": "25.8",
+                            "markIv": "0.5341",
+                            "iv": "0.4943"
+                        },
+                        "timestamp": 1789095905622,
+                        "datetime": "2026-09-11T03:05:05.622Z",
+                        "symbol": "ETH/USDT:USDT-260925-2700-C",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 20.8,
+                        "amount": 1,
+                        "cost": 20.8,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "future trades",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "id": "760907007",
+                            "symbol": "ETH-USDT-25SEP26",
+                            "side": "sell",
+                            "price": "2716.83",
+                            "qty": "0.009",
+                            "time": "1790172366484",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        },
+                        {
+                            "id": "760907006",
+                            "symbol": "ETH-USDT-25SEP26",
+                            "side": "sell",
+                            "price": "2716.83",
+                            "qty": "0.001",
+                            "time": "1790172365331",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        }
+                    ],
+                    "ts": "1790172379713"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "760907006",
+                        "info": {
+                            "id": "760907006",
+                            "symbol": "ETH-USDT-25SEP26",
+                            "side": "sell",
+                            "price": "2716.83",
+                            "qty": "0.001",
+                            "time": "1790172365331",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        },
+                        "timestamp": 1790172365331,
+                        "datetime": "2026-09-23T14:06:05.331Z",
+                        "symbol": "ETH/USDT:USDT-260925",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2716.83,
+                        "amount": 0.001,
+                        "cost": 2.71683,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "760907007",
+                        "info": {
+                            "id": "760907007",
+                            "symbol": "ETH-USDT-25SEP26",
+                            "side": "sell",
+                            "price": "2716.83",
+                            "qty": "0.009",
+                            "time": "1790172366484",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        },
+                        "timestamp": 1790172366484,
+                        "datetime": "2026-09-23T14:06:06.484Z",
+                        "symbol": "ETH/USDT:USDT-260925",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2716.83,
+                        "amount": 0.009,
+                        "cost": 24.45147,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "swap trades",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "id": "12455370147",
+                            "symbol": "ETH-USDT-PERP",
+                            "side": "sell",
+                            "price": "2713.39",
+                            "qty": "0.012",
+                            "time": "1790172374273",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        },
+                        {
+                            "id": "12455367709",
+                            "symbol": "ETH-USDT-PERP",
+                            "side": "sell",
+                            "price": "2713.32",
+                            "qty": "0.008",
+                            "time": "1790172368086",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        }
+                    ],
+                    "ts": "1790172376923"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "12455367709",
+                        "info": {
+                            "id": "12455367709",
+                            "symbol": "ETH-USDT-PERP",
+                            "side": "sell",
+                            "price": "2713.32",
+                            "qty": "0.008",
+                            "time": "1790172368086",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        },
+                        "timestamp": 1790172368086,
+                        "datetime": "2026-09-23T14:06:08.086Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2713.32,
+                        "amount": 0.008,
+                        "cost": 21.70656,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "12455370147",
+                        "info": {
+                            "id": "12455370147",
+                            "symbol": "ETH-USDT-PERP",
+                            "side": "sell",
+                            "price": "2713.39",
+                            "qty": "0.012",
+                            "time": "1790172374273",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        },
+                        "timestamp": 1790172374273,
+                        "datetime": "2026-09-23T14:06:14.273Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2713.39,
+                        "amount": 0.012,
+                        "cost": 32.56068,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "id": "1962435023",
+                            "symbol": "ETH-USDT",
+                            "side": "buy",
+                            "price": "2714.59",
+                            "qty": "0.0029",
+                            "time": "1790172366081",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        },
+                        {
+                            "id": "1962434835",
+                            "symbol": "ETH-USDT",
+                            "side": "buy",
+                            "price": "2714.77",
+                            "qty": "0.0038",
+                            "time": "1790172364078",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        }
+                    ],
+                    "ts": "1790172369636"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1962434835",
+                        "info": {
+                            "id": "1962434835",
+                            "symbol": "ETH-USDT",
+                            "side": "buy",
+                            "price": "2714.77",
+                            "qty": "0.0038",
+                            "time": "1790172364078",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        },
+                        "timestamp": 1790172364078,
+                        "datetime": "2026-09-23T14:06:04.078Z",
+                        "symbol": "ETH/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 2714.77,
+                        "amount": 0.0038,
+                        "cost": 10.316126,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "1962435023",
+                        "info": {
+                            "id": "1962435023",
+                            "symbol": "ETH-USDT",
+                            "side": "buy",
+                            "price": "2714.59",
+                            "qty": "0.0029",
+                            "time": "1790172366081",
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "markIv": null,
+                            "iv": null
+                        },
+                        "timestamp": 1790172366081,
+                        "datetime": "2026-09-23T14:06:06.081Z",
+                        "symbol": "ETH/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 2714.59,
+                        "amount": 0.0029,
+                        "cost": 7.872311,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "ticker of a market that has never traded",

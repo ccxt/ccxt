@@ -8,6 +8,63 @@
     ],
     "options": {},
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "trades of a market that has never traded",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT-27SEP26-2560-C&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "option trades",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT-25SEP26-2700-C&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925-2700-C",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "future trades",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT-25SEP26&limit=2",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap trades",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "spot trades",
+                "method": "fetchTrades",
+                "url": "https://api.umx.com/api/v1/market/trade?symbol=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "ticker of a market that has never traded",
@@ -150,6 +207,6 @@
                 "output": null
             }
         ]
-  },
+    },
     "outputType": "both"
 }
