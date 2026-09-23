@@ -171,7 +171,6 @@ export default class modetrade extends modetradeRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        market['symbol'];
         const topic = market['id'] + '@' + name;
         const request: Dict = {
             'event': 'subscribe',

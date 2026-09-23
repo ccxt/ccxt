@@ -2017,7 +2017,7 @@ export default class gate extends Exchange {
                 throw new BadRequest (this.id + ' getMarginMode() does not support trigger orders for cross margin');
             }
         }
-        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (paramsOmitted, 'getMarginMode', 'unifiedAccount');
+        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (paramsOmitted, 'getMarginMode', 'unifiedAccount', false);
         if (isUnifiedAccount) {
             marginMode = 'unified';
         }
@@ -3192,7 +3192,7 @@ export default class gate extends Exchange {
         await this.loadUnifiedStatus ();
         const symbol = this.safeString (params, 'symbol');
         const paramsOmitted: Dict = this.omit (params, 'symbol');
-        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (paramsOmitted, 'fetchBalance', 'unifiedAccount');
+        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (paramsOmitted, 'fetchBalance', 'unifiedAccount', false);
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsUnifiedAccount);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const [ marginMode, requestQuery ] = this.getMarginMode (false, requestParams);
@@ -4145,7 +4145,7 @@ export default class gate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, paramsPaginate);
         }
@@ -4185,7 +4185,7 @@ export default class gate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, paramsPaginate);
         }
@@ -4882,7 +4882,7 @@ export default class gate extends Exchange {
         const market = this.market (symbol);
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('editOrder', market, params);
         let account = this.convertTypeToAccount (marketType);
-        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (paramsMarketType, 'editOrder', 'unifiedAccount');
+        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (paramsMarketType, 'editOrder', 'unifiedAccount', false);
         if (isUnifiedAccount) {
             account = 'unified';
         }
@@ -6871,7 +6871,7 @@ export default class gate extends Exchange {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
-        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (params, 'repayCrossMargin', 'unifiedAccount');
+        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (params, 'repayCrossMargin', 'unifiedAccount', false);
         let response: NullableDict;
         if (isUnifiedAccount) {
             request['type'] = 'repay';
@@ -6969,7 +6969,7 @@ export default class gate extends Exchange {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
-        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (params, 'borrowCrossMargin', 'unifiedAccount');
+        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (params, 'borrowCrossMargin', 'unifiedAccount', false);
         let response: Dict;
         if (isUnifiedAccount) {
             request['type'] = 'borrow';
@@ -7070,7 +7070,7 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadUnifiedStatus ();
-        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'unifiedAccount');
+        const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'unifiedAccount', false);
         const request: Dict = {};
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('to', request, paramsUnifiedAccount);
         let currency: Currency = undefined;

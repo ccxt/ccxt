@@ -345,7 +345,6 @@ export default class woo extends wooRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        market['symbol'];
         const topic = market['id'] + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
@@ -1505,7 +1504,6 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        market['symbol'];
         const topic = market['id'] + '@estfundingrate';
         const request: Dict = {
             'event': 'subscribe',

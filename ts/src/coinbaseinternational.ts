@@ -554,7 +554,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         const maxEntriesPerRequest = 100;
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
@@ -2164,7 +2164,7 @@ export default class coinbaseinternational extends Exchange {
             await this.loadMarkets ();
         }
         const [ portfolio, paramsPortfolio ] = await this.handlePortfolioAndParams ('fetchOpenOrders', params);
-        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsPortfolio, 'fetchOpenOrders', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsPortfolio, 'fetchOpenOrders', 'paginate', false);
         const maxEntriesPerRequest = 100;
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';

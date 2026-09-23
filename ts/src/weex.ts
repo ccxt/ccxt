@@ -1412,7 +1412,7 @@ export default class weex extends Exchange {
         if (market['contract'] !== true) {
             throw new NotSupported (this.id + ' fetchMarkPrice() supports contract markets only');
         }
-        const [ priceType, paramsPriceType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        const [ priceType, paramsPriceType ] = this.handleOptionAndParams (params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
         const request: Dict = {
             'symbol': market['id'],
             'priceType': priceType,

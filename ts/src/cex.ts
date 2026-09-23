@@ -959,7 +959,7 @@ export default class cex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
-        const [ accountName, paramsAccount ]: [ Str, Dict ] = this.handleParamString (params, 'account', ''); // default is empty string
+        const [ accountName, paramsAccount ] = this.handleParamString (params, 'account', ''); // default is empty string
         const [ method, paramsMethod ] = this.handleParamString (paramsAccount, 'method', 'privatePostGetMyWalletBalance');
         let accountBalance: NullableDict = undefined;
         if (method === 'privatePostGetMyAccountStatusV3') {

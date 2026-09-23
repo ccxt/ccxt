@@ -768,7 +768,6 @@ export default class cryptocom extends cryptocomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const subMessageHash = 'candlestick' + '.' + interval + '.' + market['id'];
         const messageHash = 'unsubscribe:ohlcv:' + market['symbol'] + ':' + timeframe;

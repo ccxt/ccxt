@@ -3453,7 +3453,7 @@ export default class pacifica extends Exchange {
     }
 
     handleOriginAndSingleAddress (methodName: string, params: Dict): [Str, Dict] {
-        const [ address, paramsAccount ]: [ Str, Dict ] = this.handleParamString2 (params, 'account', 'address', undefined); // this is for get endpoints that accept account or address
+        const [ address, paramsAccount ] = this.handleParamString2 (params, 'account', 'address', undefined); // this is for get endpoints that accept account or address
         if (address !== undefined) {
             return [ address, paramsAccount ];
         }
