@@ -4349,10 +4349,10 @@ func (this *Binance) Market(symbol any) map[string]any {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
 	// defaultType has legacy support on binance
-	var defaultType any = DerefScalar(this.SafeString(this.Options, "defaultType"))
+	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var defaultSubType *string = this.SafeString(this.Options, "defaultSubType")
-	var isLegacyLinear bool = IsEqual(defaultType, "future")
-	var isLegacyInverse bool = IsEqual(defaultType, "delivery")
+	var isLegacyLinear bool = (defaultType != nil && *defaultType == "future")
+	var isLegacyInverse bool = (defaultType != nil && *defaultType == "delivery")
 	var isLegacy bool = isLegacyLinear || isLegacyInverse
 	if IsString(symbol) {
 		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
@@ -4376,10 +4376,10 @@ func (this *Binance) Market(symbol any) map[string]any {
 			var markets any = GetValue(this.Markets_by_id, symbol)
 			// begin diff
 			if isLegacyLinear {
-				defaultType = "linear"
+				defaultType = SafeStringPtr("linear")
 			} else if isLegacyInverse {
-				defaultType = "inverse"
-			} else if IsEqual(defaultType, nil) {
+				defaultType = SafeStringPtr("inverse")
+			} else if defaultType == nil {
 				defaultType = defaultSubType
 			}
 			// end diff
@@ -4391,7 +4391,7 @@ func (this *Binance) Market(symbol any) map[string]any {
 			}
 			return MapTyped(GetValue(markets, 0))
 		} else if (GetIndexOf(symbol, "/") > -1) && (GetIndexOf(symbol, ":") < 0) {
-			if (!IsEqual(defaultType, nil)) && (!IsEqual(defaultType, "spot")) {
+			if (defaultType != nil) && (defaultType == nil || *defaultType != "spot") {
 				// support legacy symbols
 				basequoteVariable := Split(symbol, "/")
 				base := GetValue(basequoteVariable, 0)
@@ -5308,19 +5308,19 @@ func (this *Binance) ParseMarket(market any) any {
 	var optionBase *string = this.SafeString(optionParts, 0)
 	var lowercaseId *string = this.SafeStringLower(market, "symbol")
 	var baseId *string = this.SafeString(market, "baseAsset", optionBase)
-	var quoteId any = DerefScalar(this.SafeString(market, "quoteAsset"))
+	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var stock bool = false
 	if InOp(market, "tradability") {
-		quoteId = "USDC"
+		quoteId = SafeStringPtr("USDC")
 		stock = true
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var contractType *string = this.SafeString(market, "contractType")
 	var contract bool = (InOp(market, "contractType"))
-	var expiry any = DerefScalar(this.SafeInteger2(market, "deliveryDate", "expiryDate"))
+	var expiry *int64 = this.SafeInteger2(market, "deliveryDate", "expiryDate")
 	var settleId any = DerefScalar(this.SafeString(market, "marginAsset"))
-	if (contractType != nil && *contractType == "PERPETUAL") || (IsEqual(expiry, 4133404800000)) {
+	if (contractType != nil && *contractType == "PERPETUAL") || (expiry != nil && *expiry == 4133404800000) {
 		expiry = nil
 		swap = true
 	} else if underlying != nil {
@@ -5332,7 +5332,7 @@ func (this *Binance) ParseMarket(market any) any {
 			}
 			return settleId
 		}()
-	} else if !IsEqual(expiry, nil) {
+	} else if expiry != nil {
 		future = true
 	}
 	var settle *string = this.SafeCurrencyCode(settleId)
@@ -5704,7 +5704,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var defaultType *string = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
-	var typeVar any = DerefScalar(this.SafeString(params, "type", defaultType))
+	var typeVar *string = this.SafeString(params, "type", defaultType)
 	var subType any = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchBalance", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
@@ -5721,18 +5721,18 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	query = this.Omit(query, "type")
 	var response any = nil
 	var request map[string]any = map[string]any{}
-	if (isPortfolioMargin == true) || (IsEqual(typeVar, "papi")) {
+	if (isPortfolioMargin == true) || (typeVar != nil && *typeVar == "papi") {
 		if this.IsLinear(typeVar, subType) {
-			typeVar = "linear"
+			typeVar = SafeStringPtr("linear")
 		} else if this.IsInverse(typeVar, subType) {
-			typeVar = "inverse"
+			typeVar = SafeStringPtr("inverse")
 		}
 		isPortfolioMargin = true
 
 		response = (<-this.PapiGetBalance(this.Extend(request, query))).Raw
 		PanicOnError(response)
 	} else if this.IsLinear(typeVar, subType) {
-		typeVar = "linear"
+		typeVar = SafeStringPtr("linear")
 		var useV2 any = nil
 		var useV2paramsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "useV2", false)
 		useV2 = GetValue(useV2paramsVariable, 0)
@@ -5748,7 +5748,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			PanicOnError(response)
 		}
 	} else if this.IsInverse(typeVar, subType) {
-		typeVar = "inverse"
+		typeVar = SafeStringPtr("inverse")
 
 		response = (<-this.DapiPrivateGetAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
@@ -5777,15 +5777,15 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.SapiGetMarginIsolatedAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
-	} else if (IsEqual(typeVar, "margin")) || (IsEqual(marginMode, "cross")) {
+	} else if (typeVar != nil && *typeVar == "margin") || (IsEqual(marginMode, "cross")) {
 
 		response = (<-this.SapiGetMarginAccount(this.Extend(request, query))).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "savings") {
+	} else if typeVar != nil && *typeVar == "savings" {
 
 		response = (<-this.SapiGetLendingUnionAccount(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "funding") {
+	} else if typeVar != nil && *typeVar == "funding" {
 
 		response = (<-this.SapiPostAssetGetFundingAsset(this.Extend(request, query)))
 		PanicOnError(response)
@@ -7471,11 +7471,16 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 			request["endTime"] = until
 		}
 	}
-	var method any = DerefScalar(this.SafeString(this.Options, "fetchTradesMethod"))
-	method = DerefScalar(this.SafeString2(params, "fetchTradesMethod", "method", method))
+	var method *string = this.SafeString(this.Options, "fetchTradesMethod")
+	method = this.SafeString2(params, "fetchTradesMethod", "method", method)
 	if limit != nil {
 		var isFutureOrSwap bool = (GetValue(market, "swap") == true) || (GetValue(market, "future") == true)
-		var isHistoricalEndpoint bool = (!IsEqual(method, nil)) && (GetIndexOf(method, "GetHistoricalTrades") >= 0)
+		var isHistoricalEndpoint bool = (method != nil) && (func() int {
+			if method == nil {
+				return -1
+			}
+			return strings.Index(*method, "GetHistoricalTrades")
+		}() >= 0)
 		var maxLimitForContractHistorical int = func() int {
 			if isHistoricalEndpoint {
 				return 500
@@ -7490,59 +7495,59 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		}() // default = 500, maximum = 1000
 	}
 	params = MapTyped(this.Omit(params, []any{"until", "fetchTradesMethod"}))
-	if IsEqual(method, nil) {
+	if method == nil {
 		if GetValue(market, "option") == true {
-			method = "eapiPublicGetTrades"
+			method = SafeStringPtr("eapiPublicGetTrades")
 		} else if GetValue(market, "linear") == true {
-			method = "fapiPublicGetAggTrades"
+			method = SafeStringPtr("fapiPublicGetAggTrades")
 		} else if GetValue(market, "inverse") == true {
-			method = "dapiPublicGetAggTrades"
+			method = SafeStringPtr("dapiPublicGetAggTrades")
 		} else {
-			method = "publicGetAggTrades"
+			method = SafeStringPtr("publicGetAggTrades")
 		}
 	}
 	var response any = nil
-	if IsEqual(method, "publicGetAggTrades") {
+	if method != nil && *method == "publicGetAggTrades" {
 
 		response = (<-this.PublicGetAggTrades(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsEqual(method, "publicGetTrades") {
+	} else if method != nil && *method == "publicGetTrades" {
 
 		response = (<-this.PublicGetTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "publicGetHistoricalTrades") {
+	} else if method != nil && *method == "publicGetHistoricalTrades" {
 
 		response = (<-this.PublicGetHistoricalTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "fapiPublicGetAggTrades") {
+	} else if method != nil && *method == "fapiPublicGetAggTrades" {
 
 		response = (<-this.FapiPublicGetAggTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "fapiPublicGetTrades") {
+	} else if method != nil && *method == "fapiPublicGetTrades" {
 
 		response = (<-this.FapiPublicGetTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "fapiPublicGetHistoricalTrades") {
+	} else if method != nil && *method == "fapiPublicGetHistoricalTrades" {
 
 		response = (<-this.FapiPublicGetHistoricalTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "dapiPublicGetAggTrades") {
+	} else if method != nil && *method == "dapiPublicGetAggTrades" {
 
 		response = (<-this.DapiPublicGetAggTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "dapiPublicGetTrades") {
+	} else if method != nil && *method == "dapiPublicGetTrades" {
 
 		response = (<-this.DapiPublicGetTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "dapiPublicGetHistoricalTrades") {
+	} else if method != nil && *method == "dapiPublicGetHistoricalTrades" {
 
 		response = (<-this.DapiPublicGetHistoricalTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "eapiPublicGetTrades") {
+	} else if method != nil && *method == "eapiPublicGetTrades" {
 
 		response = (<-this.EapiPublicGetTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "eapiPublicGetHistoricalTrades") {
+	} else if method != nil && *method == "eapiPublicGetHistoricalTrades" {
 
 		response = (<-this.EapiPublicGetHistoricalTrades(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -8820,12 +8825,12 @@ func (this *Binance) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower2(order, "type", "orderType")
 	var side *string = this.SafeStringLower(order, "side")
 	var fills []any = SafeList2Typed(order, "fills", "trades", []any{})
-	var timeInForce any = DerefScalar(this.SafeString(order, "timeInForce"))
-	if IsEqual(timeInForce, "GTX") {
+	var timeInForce *string = this.SafeString(order, "timeInForce")
+	if timeInForce != nil && *timeInForce == "GTX" {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-		timeInForce = "PO"
+		timeInForce = SafeStringPtr("PO")
 	}
-	var postOnly bool = (typeVar != nil && *typeVar == "limit_maker") || (IsEqual(timeInForce, "PO"))
+	var postOnly bool = (typeVar != nil && *typeVar == "limit_maker") || (timeInForce != nil && *timeInForce == "PO")
 	var stopPriceString *string = this.SafeString2(order, "stopPrice", "triggerPrice")
 	var triggerPrice any = this.ParseNumber(this.OmitZero(stopPriceString))
 	var feeCost *float64 = this.SafeNumber(order, "fee")
@@ -12173,15 +12178,26 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) any 
 	_ = currency
 	var id *string = this.SafeString2(transaction, "id", "orderNo")
 	var address *string = this.SafeString(transaction, "address")
-	var tag any = DerefScalar(this.SafeString(transaction, "addressTag")) // set but unused
-	if !IsEqual(tag, nil) {
+	var tag *string = this.SafeString(transaction, "addressTag") // set but unused
+	if tag != nil {
 		if GetLength(tag) < 1 {
 			tag = nil
 		}
 	}
-	var txid any = DerefScalar(this.SafeString(transaction, "txId"))
-	if (!IsEqual(txid, nil)) && (GetIndexOf(txid, "Internal transfer ") >= 0) {
-		txid = Slice(txid, 18, nil)
+	var txid *string = this.SafeString(transaction, "txId")
+	if (txid != nil) && (func() int {
+		if txid == nil {
+			return -1
+		}
+		return strings.Index(*txid, "Internal transfer ")
+	}() >= 0) {
+		txid = SafeStringPtr(func() string {
+			if txid == nil {
+				return ""
+			}
+			str := *txid
+			return str[18:]
+		}())
 	}
 	var currencyId *string = this.SafeString2(transaction, "coin", "fiatCurrency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -12191,16 +12207,16 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) any 
 		timestamp = this.Parse8601(this.SafeString(transaction, "applyTime"))
 	}
 	var updated *int64 = this.SafeInteger2(transaction, "successTime", "updateTime")
-	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
-	if IsEqual(typeVar, nil) {
+	var typeVar *string = this.SafeString(transaction, "type")
+	if typeVar == nil {
 		var txType *string = this.SafeString(transaction, "transactionType")
 		if txType != nil {
-			typeVar = func() string {
+			typeVar = SafeStringPtr(func() string {
 				if txType != nil && *txType == "0" {
 					return "deposit"
 				}
 				return "withdrawal"
-			}()
+			}())
 		}
 		var legalMoneyCurrenciesById map[string]any = SafeMapTyped(this.Options, "legalMoneyCurrenciesById")
 		code = this.SafeString(legalMoneyCurrenciesById, code, code)
@@ -12689,7 +12705,7 @@ func (this *Binance) ParseDepositAddress(response any, optionalArgs ...any) any 
 	// deposit-address endpoint provides only network url (not network ID/CODE)
 	// so we should map the url to network (their data is inside currencies)
 	var networkCode any = this.GetNetworkCodeByNetworkUrl(code, url)
-	var tag any = DerefScalar(this.SafeString(response, "tag", ""))
+	var tag *string = this.SafeString(response, "tag", "")
 	if GetLength(tag) == 0 {
 		tag = nil
 	}
@@ -13964,8 +13980,8 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 	var maintenanceMarginPercentage any = this.ParseNumber(maintenanceMarginPercentageString)
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedProfit")
 	var unrealizedPnl any = this.ParseNumber(unrealizedPnlString)
-	var timestamp any = DerefScalar(this.SafeInteger(position, "updateTime"))
-	if IsEqual(timestamp, 0) {
+	var timestamp *int64 = this.SafeInteger(position, "updateTime")
+	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
 	}
 	var isolated any = this.SafeBool(position, "isolated")
@@ -14048,7 +14064,7 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 		rounder := NewPrecise("5e-" + pricePrecisionPlusOneString)
 		var rounderString string = ToString(rounder)
 		var liquidationPriceRoundedString *string = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
-		var truncatedLiquidationPrice any = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
+		var truncatedLiquidationPrice *string = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
 		if (truncatedLiquidationPrice != nil) && (GetValue(truncatedLiquidationPrice, 0) == "-") {
 			// user cannot be liquidated
 			// since he has more collateral than the size of the position
@@ -14201,14 +14217,14 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liquidationPrice"))
 	var liquidationPrice any = this.ParseNumber(liquidationPriceString)
 	var collateralString any = nil
-	var marginMode any = DerefScalar(this.SafeString(position, "marginType"))
-	if IsEqual(marginMode, nil) && (isolatedMarginString != nil) {
-		marginMode = func() string {
+	var marginMode *string = this.SafeString(position, "marginType")
+	if (marginMode == nil) && (isolatedMarginString != nil) {
+		marginMode = SafeStringPtr(func() string {
 			if Precise.StringEq(isolatedMarginString, "0") {
 				return "cross"
 			}
 			return "isolated"
-		}()
+		}())
 	}
 	var side any = nil
 	if Precise.StringGt(notionalString, "0") {
@@ -14222,7 +14238,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var contractSizeString *string = this.NumberToString(contractSize)
 	// as oppose to notionalValue
 	var linear bool = (InOp(position, "notional"))
-	if IsEqual(marginMode, "cross") {
+	if marginMode != nil && *marginMode == "cross" {
 		// calculate collateral
 		var precision map[string]any = SafeMapTyped(market, "precision")
 		var basePrecisionValue *string = this.SafeString(precision, "base")
@@ -14274,8 +14290,8 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	}()
 	var collateral any = this.ParseNumber(collateralString)
 	var markPrice any = this.ParseNumber(this.OmitZero(this.SafeString(position, "markPrice")))
-	var timestamp any = DerefScalar(this.SafeInteger(position, "updateTime"))
-	if IsEqual(timestamp, 0) {
+	var timestamp *int64 = this.SafeInteger(position, "updateTime")
+	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
 	}
 	var maintenanceMarginPercentage any = this.ParseNumber(maintenanceMarginPercentageString)
@@ -16557,9 +16573,9 @@ func (this *Binance) modifyMarginHelperBody(ch chan any, symbol any, amount any,
 	// used to modify isolated positions
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var defaultType any = DerefScalar(this.SafeString(this.Options, "defaultType", "future"))
-	if IsEqual(defaultType, "spot") {
-		defaultType = "future"
+	var defaultType *string = this.SafeString(this.Options, "defaultType", "future")
+	if defaultType != nil && *defaultType == "spot" {
+		defaultType = SafeStringPtr("future")
 	}
 	var typeVar *string = this.SafeString(params, "type", defaultType)
 	if (typeVar != nil && *typeVar == "margin") || (typeVar != nil && *typeVar == "spot") {

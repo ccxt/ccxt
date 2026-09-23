@@ -815,13 +815,13 @@ func (this *Woofipro) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var status any = DerefScalar(this.SafeString(data, "status"))
-	if IsEqual(status, nil) {
-		status = "error"
-	} else if IsEqual(status, "0") {
-		status = "ok"
+	var status *string = this.SafeString(data, "status")
+	if status == nil {
+		status = SafeStringPtr("error")
+	} else if status != nil && *status == "0" {
+		status = SafeStringPtr("ok")
 	} else {
-		status = "maintenance"
+		status = SafeStringPtr("maintenance")
 	}
 
 	ch <- map[string]any{
@@ -2319,15 +2319,15 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
 	var orderType *string = this.SafeStringLower2(order, "order_type", "type")
-	var status any = DerefScalar(this.SafeString2(order, "status", "algoStatus"))
+	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
-		status = func() string {
+		status = SafeStringPtr(func() string {
 			if success != nil && *success {
 				return "NEW"
 			}
 			return "REJECTED"
-		}()
+		}())
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var filled *string = this.SafeStringN(order, []any{"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"})
@@ -2391,8 +2391,8 @@ func (this *Woofipro) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Woofipro) ParseOrderStatus(status any) *string {
-	if !IsEqual(status, nil) {
+func (this *Woofipro) ParseOrderStatus(status *string) *string {
+	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"NEW":             "open",
 			"FILLED":          "closed",
@@ -3743,9 +3743,9 @@ func (this *Woofipro) ParseTransaction(transaction any, optionalArgs ...any) any
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var code *string = this.SafeString(transaction, "token")
-	var movementDirection any = this.SafeStringLower(transaction, "token_side")
-	if IsEqual(movementDirection, "withdraw") {
-		movementDirection = "withdrawal"
+	var movementDirection *string = this.SafeStringLower(transaction, "token_side")
+	if movementDirection != nil && *movementDirection == "withdraw" {
+		movementDirection = SafeStringPtr("withdrawal")
 	}
 	var fee any = this.ParseTokenAndFeeTemp(transaction, "fee_token", "fee_amount")
 	var addressTo *string = this.SafeString(transaction, "target_address")

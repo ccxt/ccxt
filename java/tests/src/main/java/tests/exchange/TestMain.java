@@ -2032,9 +2032,9 @@ public class TestMain extends BaseTest
             // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
             // typed core hits constantly (its Num fields are real doubles, so an unset
             // cost arrives as 0.0 rather than as a string). Test for undefined instead.
-            Object newOutputString = (((!java.util.Objects.equals(sanitizedNewOutput, null)))) ? String.valueOf(sanitizedNewOutput) : "undefined";
-            Object storedOutputString = (((!java.util.Objects.equals(sanitizedStoredOutput, null)))) ? String.valueOf(sanitizedStoredOutput) : "undefined";
-            String messageError = Helpers.add((Helpers.add("output value mismatch:", newOutputString) + " != "), storedOutputString);
+            String newOutputString = (((!java.util.Objects.equals(sanitizedNewOutput, null)))) ? String.valueOf(sanitizedNewOutput) : "undefined";
+            String storedOutputString = (((!java.util.Objects.equals(sanitizedStoredOutput, null)))) ? String.valueOf(sanitizedStoredOutput) : "undefined";
+            String messageError = ((("output value mismatch:" + newOutputString) + " != ") + storedOutputString);
             if (Helpers.isTrue(strictTypeCheck) && (!java.util.Objects.equals(this.lang, "C#")))
             {
                 // upon building the request we want strict type check to make sure all the types are correct

@@ -828,11 +828,11 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining *string = this.SafeString(order, "amount_outstanding")
 	var price *string = this.SafeString(order, "price")
 	// status is set by fetchOrder method only
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	// fetchOrders do not return status, use heuristic
-	if IsEqual(status, nil) {
+	if status == nil {
 		if Precise.StringEquals(remaining, "0") {
-			status = "closed"
+			status = SafeStringPtr("closed")
 		}
 	}
 	var trades any = nil // todo: this.parseTrades (order['trades']);

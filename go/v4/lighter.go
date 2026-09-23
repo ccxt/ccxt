@@ -3635,11 +3635,11 @@ func (this *Lighter) ParseTransaction(transaction any, optionalArgs ...any) any 
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
-	if IsEqual(typeVar, nil) {
-		typeVar = "deposit"
+	var typeVar *string = this.SafeString(transaction, "type")
+	if typeVar == nil {
+		typeVar = SafeStringPtr("deposit")
 	} else {
-		typeVar = "withdrawal"
+		typeVar = SafeStringPtr("withdrawal")
 	}
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var status *string = this.SafeString(transaction, "status")

@@ -1690,7 +1690,7 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId)
 	}
 	var timestamp *int64 = this.SafeTimestamp2(trade, "date", "timestamp")
-	var side any = DerefScalar(this.SafeString2(trade, "type", "side"))
+	var side *string = this.SafeString2(trade, "type", "side")
 	var typeVar any = nil
 	var takerOrMaker any = nil
 	if GetValue(market, "type") == "swap" {
@@ -1713,25 +1713,25 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 		} else {
 			takerOrMaker = nil
 		}
-		if (IsEqual(side, "1")) || (direction != nil && *direction == "1") {
+		if (side != nil && *side == "1") || (direction != nil && *direction == "1") {
 			// side = 'open long';
-			side = "buy"
-		} else if (IsEqual(side, "2")) || (direction != nil && *direction == "2") {
+			side = SafeStringPtr("buy")
+		} else if (side != nil && *side == "2") || (direction != nil && *direction == "2") {
 			// side = 'open short';
-			side = "sell"
-		} else if (IsEqual(side, "3")) || (direction != nil && *direction == "3") {
+			side = SafeStringPtr("sell")
+		} else if (side != nil && *side == "3") || (direction != nil && *direction == "3") {
 			// side = 'close long';
-			side = "sell"
-		} else if (IsEqual(side, "4")) || (direction != nil && *direction == "4") {
+			side = SafeStringPtr("sell")
+		} else if (side != nil && *side == "4") || (direction != nil && *direction == "4") {
 			// side = 'close short';
-			side = "buy"
+			side = SafeStringPtr("buy")
 		}
 	} else {
-		if IsEqual(side, nil) {
+		if side == nil {
 			panic(ExchangeError(this.Id + " parseTrade() returned no side"))
 		}
 		var parts []string = Split(side, "_")
-		side = DerefScalar(this.SafeString(parts, 0))
+		side = this.SafeString(parts, 0)
 		typeVar = DerefScalar(this.SafeString(parts, 1))
 		if IsEqual(typeVar, nil) {
 			typeVar = "limit"
@@ -4907,23 +4907,23 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(position, "instrument_id", "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
-	var marginMode any = DerefScalar(this.SafeString(position, "margin_mode"))
-	if !IsEqual(marginMode, nil) {
-		marginMode = func() string {
-			if IsEqual(marginMode, "crossed") {
+	var marginMode *string = this.SafeString(position, "margin_mode")
+	if marginMode != nil {
+		marginMode = SafeStringPtr(func() string {
+			if marginMode != nil && *marginMode == "crossed" {
 				return "cross"
 			}
 			return "isolated"
-		}()
+		}())
 	} else {
-		marginMode = "crossed"
+		marginMode = SafeStringPtr("crossed")
 	}
 	var timestamp *int64 = this.SafeInteger(position, "timestamp")
-	var side any = DerefScalar(this.SafeString(position, "side"))
-	if IsEqual(side, "go_long") {
-		side = "long"
-	} else if IsEqual(side, "go_short") {
-		side = "short"
+	var side *string = this.SafeString(position, "side")
+	if side != nil && *side == "go_long" {
+		side = SafeStringPtr("long")
+	} else if side != nil && *side == "go_short" {
+		side = SafeStringPtr("short")
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -4997,18 +4997,18 @@ func (this *Digifinex) setLeverageBody(ch chan any, leverage any, optionalArgs .
 		"leverage":      leverage,
 	}
 	var defaultMarginMode *string = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
-	var marginMode any = this.SafeStringLower2(params, "marginMode", "defaultMarginMode", defaultMarginMode)
-	if !IsEqual(marginMode, nil) {
-		marginMode = func() string {
-			if IsEqual(marginMode, "cross") {
+	var marginMode *string = this.SafeStringLower2(params, "marginMode", "defaultMarginMode", defaultMarginMode)
+	if marginMode != nil {
+		marginMode = SafeStringPtr(func() string {
+			if marginMode != nil && *marginMode == "cross" {
 				return "crossed"
 			}
 			return "isolated"
-		}()
+		}())
 		request["margin_mode"] = marginMode
 		params = MapTyped(this.Omit(params, []any{"marginMode", "defaultMarginMode"}))
 	}
-	if IsEqual(marginMode, "isolated") {
+	if marginMode != nil && *marginMode == "isolated" {
 		var side *string = this.SafeString(params, "side")
 		if side != nil {
 			request["side"] = side

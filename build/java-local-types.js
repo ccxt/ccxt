@@ -2424,7 +2424,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     // awaited generated api calls: `(this.<endpoint>(...)).join()` has the T of the
     // endpoint's on-disk `CompletableFuture<T>` — cast-free
     if (initializer.kind === ts.SyntaxKind.AwaitExpression) {
-        const awaited = awaitedThisCallType (initializer) ?? awaitedCoreCallType (initializer);
+        const awaited = awaitedThisCallType (initializer) ?? awaitedCoreCallType (initializer) ?? awaitedVenueCallType (printer, initializer);
         if (awaited !== undefined) {
             // the api stubs are reached through `this.` only; a generated core can be called
             // through `super.` too — both print `(<receiver>.<m>(...)).join()`
@@ -2589,7 +2589,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 && isProvablyStringExpression (printer, node.left, selfName, undefined);
         case ts.SyntaxKind.AwaitExpression:
             // `x = await this.<endpoint>(...)` — same T as the declaration's callee
-            return (awaitedThisCallType (node) ?? awaitedCoreCallType (node)) === javaType;
+            return (awaitedThisCallType (node) ?? awaitedCoreCallType (node) ?? awaitedVenueCallType (printer, node)) === javaType;
         case ts.SyntaxKind.ElementAccessExpression:
             // `x = this.trades[key]` / `this.orderbooks[key]` — a ws map read
             return isWsType (javaType) && wsMapReadType (node) === javaType;
@@ -3347,6 +3347,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
                 } else {
                     ok = isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
                 }
+                ok = ok || info?.writeOk?.(parent.right) === true;
                 if (!ok) {
                     return false;
                 }
@@ -5402,6 +5403,10 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaSafeListLocalTypes (transpiler);
     // (8) null-initialised locals whose every write awaits one typed api endpoint
     patchJavaAwaitedAccumulatorTypes (transpiler);
+    // (9) null accumulators joined over every provable write (section 13)
+    patchJavaJoinedAccumulatorTypes (transpiler);
+    // (10) ternary locals whose arms print one Java type (section 14)
+    patchJavaTernaryLocalTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -9129,6 +9134,51 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'withdrawWs': [0],
 };
 
+// Fixed OrderType/OrderSide parameters of the base Exchange / PredictionExchange declarations: the
+// ast printer declares them `String` (JAVA_NATIVE_PARAMETER_TYPES), so the typed surface and the
+// uncast-argument sites treat them like the SS-05 positions.
+let _javaOrderStringPositions;
+function javaOrderStringPositions () {
+    if (_javaOrderStringPositions !== undefined) {
+        return _javaOrderStringPositions;
+    }
+    const table = {};
+    const root = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src', 'base');
+    for (const file of [ 'Exchange.ts', 'PredictionExchange.ts' ]) {
+        const full = path.join (root, file);
+        if (!fs.existsSync (full)) {
+            continue;
+        }
+        const sf = ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, true);
+        const visit = (node) => {
+            if (ts.isMethodDeclaration (node) && node.name !== undefined && ts.isIdentifier (node.name)) {
+                node.parameters.forEach ((p, i) => {
+                    const t = p.type;
+                    if (p.initializer === undefined && p.questionToken === undefined && p.dotDotDotToken === undefined
+                        && t !== undefined && ts.isTypeReferenceNode (t) && ts.isIdentifier (t.typeName)
+                        && (t.typeName.text === 'OrderType' || t.typeName.text === 'OrderSide')) {
+                        const list = table[node.name.text] ?? (table[node.name.text] = []);
+                        if (!list.includes (i)) {
+                            list.push (i);
+                        }
+                    }
+                });
+            }
+            ts.forEachChild (node, visit);
+        };
+        visit (sf);
+    }
+    _javaOrderStringPositions = table;
+    return table;
+}
+
+// every fixed position of `name` the printed signatures declare `String`
+export function javaStringParamPositions (name) {
+    const ss05 = JAVA_STRING_PARAM_POSITIONS[name] ?? [];
+    const order = javaOrderStringPositions ()[name] ?? [];
+    return order.length === 0 ? ss05 : Array.from (new Set ([ ...ss05, ...order ])).sort ((a, b) => a - b);
+}
+
 // the printed signature type of a parameter: the SS-05 positions are `String`, every other
 // printed parameter is the printer's DEFAULT_PARAMETER_TYPE (`Object`). A parameter with a
 // default / question token is NOT printed in the signature at all — the method takes
@@ -9693,5 +9743,402 @@ export function patchJavaAwaitedAccumulatorTypes (transpiler) {
             return printed;
         }
         return printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
+    };
+}
+
+// ===== 12. venue-local async returns (r10-j2b) =====
+// A non-base `async m (...): Promise<T>` whose EVERY ts/src declaration of that name carries the
+// same scalar/Dict T: the core is retyped CompletableFuture<T> (javaTranspiler typeCoreReturns)
+// and `await this.m (...)` locals read the same table, so both sides share this one predicate.
+const JAVA_VENUE_TS_ROOT = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src');
+const JAVA_VENUE_RETURN_MAP = {
+    'Dict': 'Map<String, Object>', 'string': 'String', 'Str': 'String', 'boolean': 'Boolean', 'Bool': 'Boolean',
+    'Int': 'Long', 'int': 'Long', 'Num': 'Double', 'number': 'Double',
+};
+let javaVenueReturnTable;
+
+function javaVenueScan (file, re, onMatch) {
+    let content;
+    try {
+        content = fs.readFileSync (file, 'utf8');
+    } catch (e) {
+        return;
+    }
+    for (const line of content.split ('\n')) {
+        const m = re.exec (line);
+        if (m !== null) {
+            onMatch (m, line);
+        }
+    }
+}
+
+// name -> Java return spelling as the core prints it (`Map<String, Object>`, `Long`, ...)
+export function javaVenueAsyncReturnTable () {
+    if (javaVenueReturnTable !== undefined) {
+        return javaVenueReturnTable;
+    }
+    const baseNames = new Set ();
+    for (const f of [ 'Exchange.ts', 'PredictionExchange.ts' ]) {
+        javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, 'base', f), /^ {4}(?:async )?(\w+)\s*[(<=:]/, (m) => baseNames.add (m[1]));
+    }
+    const seen = new Map ();
+    for (const dir of [ '', 'pro', 'prediction' ]) {
+        let files = [];
+        try {
+            files = fs.readdirSync (path.join (JAVA_VENUE_TS_ROOT, dir)).filter ((f) => f.endsWith ('.ts'));
+        } catch (e) {
+            continue;
+        }
+        for (const f of files) {
+            javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )?(\w+) \(/, (m, line) => {
+                const full = /^ {4}(async )?\w+ \(.*\)\s*(?::\s*(.+?))?\s*\{\s*$/.exec (line);
+                const promise = full === null ? undefined : /^Promise<(\w+)>$/.exec (full[2] ?? '');
+                const spelling = (full !== null && full[1] !== undefined && promise) ? JAVA_VENUE_RETURN_MAP[promise[1]] : undefined;
+                const set = seen.get (m[2]) ?? new Set ();
+                set.add (spelling ?? '?');
+                seen.set (m[2], set);
+            });
+        }
+    }
+    javaVenueReturnTable = new Map ();
+    for (const [ name, set ] of seen) {
+        if (!baseNames.has (name) && set.size === 1 && !set.has ('?')) {
+            javaVenueReturnTable.set (name, [ ...set ][0]);
+        }
+    }
+    return javaVenueReturnTable;
+}
+
+// the local type of `await this.m (...)` for a table method declared outside ts/src/base
+function awaitedVenueCallType (printer, node) {
+    if (node?.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const call = unwrapParens (node.expression);
+    if (call?.kind !== ts.SyntaxKind.CallExpression || !isThisOrSuperCall (call)) {
+        return undefined;
+    }
+    const spelling = javaVenueAsyncReturnTable ().get (String (call.expression.name.escapedText));
+    if (spelling === undefined) {
+        return undefined;
+    }
+    let file;
+    try {
+        file = printer.getChecker ().getResolvedSignature (call)?.declaration?.getSourceFile ().fileName;
+    } catch (e) {
+        return undefined;
+    }
+    if (file === undefined || BASE_SOURCE_FILE.test (file)) {
+        return undefined;
+    }
+    return spelling === 'Map<String, Object>' ? JAVA_STRUCTURE_TYPE : spelling;
+}
+
+// ===== 13. null accumulators joined over every provable later write (r10-j2b) =====
+// `Object x = null;` whose non-null writes are all one Map/List box: safeList*/safeDict* (proven
+// defaults, checkcast on the write), array/object literals, collection helpers, typed awaits.
+// The classifier and the write printer below both call accumulatorWriteInfo.
+function accumulatorWriteInfo (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (value.kind === ts.SyntaxKind.AwaitExpression) {
+        const t = awaitedThisCallType (value) ?? awaitedCoreCallType (value) ?? awaitedVenueCallType (printer, value);
+        return t === undefined ? undefined : { type: t, cast: '' };
+    }
+    const literal = collectionLiteralInfo (value);
+    if (literal !== undefined) {
+        return { type: literal.type, cast: '' };
+    }
+    if (!isThisCall (value)) {
+        return undefined;
+    }
+    const name = String (value.expression.name.escapedText);
+    if (JAVA_SAFE_LIST_NAMES.has (name)) {
+        return (resolvesToBaseOrStrippedAccessor (printer, value, name) && safeListInitializerIsList (printer, value)
+            && safeListDefaultIsList (printer, value, name)) ? { type: JAVA_ARRAY_TYPE, cast: JAVA_SAFE_LIST_CAST } : undefined;
+    }
+    if (SAFE_DICT_ACCESSORS.has (name)) {
+        return safeDictLocalType (printer, value, name) !== undefined
+            ? { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')' } : undefined;
+    }
+    const collection = collectionCallInfo (printer, value);
+    if (collection !== undefined) {
+        return { type: collection.type, cast: collection.cast ? '(' + collection.type + ')' : '' };
+    }
+    return undefined;
+}
+
+function joinedAccumulatorTypeOf (printer, declaration) {
+    if (!isNullishInitializer (declaration.initializer)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = dataflowIndex (printer, scope);
+    const name = dataflowCanonicalName (printer, declaration.name);
+    const declarations = index.declarations.get (name);
+    if (declarations === undefined || declarations.length !== 1 || declarations[0] !== declaration
+        || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || (index.bindingCounts.get (String (declaration.name.escapedText)) ?? 0) !== 1) {
+        return undefined;
+    }
+    let type;
+    for (const n of (index.identifiers.get (name) ?? [])) {
+        if (n === declaration.name || dataflowNotAUse (n)) {
+            continue;
+        }
+        if (enclosingFunction (n) !== scope || isClassThrowArgument (n)) {
+            return undefined;
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (parent !== undefined && (ts.isReturnStatement (parent)
+            || (ts.isConditionalExpression (parent) && parent.condition !== host))) {
+            return undefined; // returns / ternary arms move javac's inferred types
+        }
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host
+            && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            if (isNullishInitializer (parent.right)) {
+                continue;
+            }
+            const written = accumulatorWriteInfo (printer, parent.right);
+            if (written === undefined || (type !== undefined && written.type !== type)) {
+                return undefined;
+            }
+            type = written.type;
+        }
+    }
+    if (type === undefined || !AWAITED_ACCUMULATOR_TYPES.has (type) || dataflowTypeTokenCollides (index, type)) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const writeOk = (right) => accumulatorWriteInfo (printer, right)?.type === type;
+    if (!isSafeToNarrow (printer, declaration, String (declaration.name.escapedText), type, isProFile, { noCastAssertions: true, writeOk })) {
+        return undefined;
+    }
+    return type;
+}
+
+export function patchJavaJoinedAccumulatorTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaJoinedAccumulatorPatched) {
+        return;
+    }
+    printer._javaJoinedAccumulatorPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declarations = node?.declarations;
+        if (declarations === undefined || declarations.length !== 1
+            || declarations[0].name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        let type;
+        try {
+            type = joinedAccumulatorTypeOf (printer, declarations[0]);
+        } catch (e) {
+            return printed;
+        }
+        if (type === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declarations[0].name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = null`;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== '') {
+            return printed;
+        }
+        typed.set (declarations[0], type);
+        return printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
+    };
+    // the Object-declared accessor writes take the checkcast accumulatorWriteInfo names
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration;
+        } catch (e) {
+            return printed;
+        }
+        const type = declaration === undefined ? undefined : typed.get (declaration);
+        if (type === undefined) {
+            return printed;
+        }
+        const info = accumulatorWriteInfo (printer, node.right);
+        if (info === undefined || info.cast === '' || info.type !== type) {
+            return printed;
+        }
+        const marker = `${printer.printNode (node.left, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at === -1 || printed.startsWith (info.cast, at + marker.length)) {
+            return printed;
+        }
+        const head = at + marker.length;
+        return printed.slice (0, head) + info.cast + ' ' + printed.slice (head);
+    };
+}
+
+// ===== 14. ternary locals: `Object x = c ? a : b` whose arms print one Java type =====
+// Arms are typed from proofs other sections already own (literals, String-declared base
+// calls, String receiver methods, Map producers); a Map arm declared Object gets the
+// structure family's checkcast on the whole conditional. Uses pass literalIsSafeToRetype.
+const TERNARY_STRING_RECEIVER_METHODS = new Set ([
+    'toUpperCase', 'toLowerCase', 'trim', 'padStart', 'padEnd', 'replace', 'replaceAll', 'slice',
+]);
+
+// `recv.<m>(...)` on a checker-proven string receiver: every print (the ((String)recv) forms,
+// Helpers.slice/replace/padStart/padEnd and the native substring/replace/String.format
+// rewrites) is statically String
+function ternaryStringReceiverCall (printer, node) {
+    if (!ts.isCallExpression (node) || !ts.isPropertyAccessExpression (node.expression)) {
+        return false;
+    }
+    const callee = node.expression;
+    const name = String (callee.name.escapedText);
+    const entry = RECEIVER_METHOD_LOCAL_ENTRIES[name];
+    if (!TERNARY_STRING_RECEIVER_METHODS.has (name) || entry === undefined
+        || !entry.args.includes (node.arguments.length)) {
+        return false;
+    }
+    const receiver = callee.expression;
+    if (receiver.kind === ts.SyntaxKind.ThisKeyword || receiver.kind === ts.SyntaxKind.SuperKeyword) {
+        return false;
+    }
+    try {
+        const type = printer.getChecker ().getTypeAtLocation (receiver);
+        return (type.flags & ts.TypeFlags.StringLike) !== 0 && (type.flags & ts.TypeFlags.Union) === 0;
+    } catch (e) {
+        return false;
+    }
+}
+
+// { type, cast } for one arm, LITERAL_NULLISH for null/undefined, or undefined
+function ternaryArmType (printer, node, depth = 0) {
+    const arm = unwrapParens (node);
+    if (arm === undefined || depth > 4) {
+        return undefined;
+    }
+    if (ts.isConditionalExpression (arm)) {
+        return ternaryUnifyArms (ternaryArmType (printer, arm.whenTrue, depth + 1),
+            ternaryArmType (printer, arm.whenFalse, depth + 1));
+    }
+    const literal = literalTypeOfValue (printer, arm);
+    if (literal !== undefined) {
+        return literal.nullish === true ? LITERAL_NULLISH : { type: literal.type, cast: false };
+    }
+    if (ternaryStringReceiverCall (printer, arm)) {
+        return { type: LITERAL_STRING_TYPE, cast: false };
+    }
+    if (ts.isBinaryExpression (arm) && arm.operatorToken.kind === ts.SyntaxKind.PlusToken
+        && printedJavaIsString (printer, arm.left)) {
+        return { type: LITERAL_STRING_TYPE, cast: false };
+    }
+    if (ts.isCallExpression (arm) && ts.isPropertyAccessExpression (arm.expression)) {
+        const callee = arm.expression;
+        const name = String (callee.name.escapedText);
+        if (ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Precise') {
+            return PRECISE_STRING_STATICS.has (name) ? { type: LITERAL_STRING_TYPE, cast: false } : undefined;
+        }
+        if (callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        if (STRUCTURE_THIS_RETURN_TYPES[name] !== undefined) {
+            return resolvesToMethodNamed (printer, arm, name) ? { type: LITERAL_MAP_TYPE, cast: true } : undefined;
+        }
+        if (safeDictLocalType (printer, arm, name) !== undefined) {
+            return { type: LITERAL_MAP_TYPE, cast: true };
+        }
+        // String-declared base calls only; safeCurrencyCode is Object-declared in Java
+        if (name !== 'safeCurrencyCode' && dataflowThisCallType (printer, arm) === LITERAL_STRING_TYPE) {
+            return { type: LITERAL_STRING_TYPE, cast: false };
+        }
+    }
+    return undefined;
+}
+
+function ternaryUnifyArms (a, b) {
+    if (a === undefined || b === undefined) {
+        return undefined;
+    }
+    if (a.nullish === true) {
+        return b;
+    }
+    if (b.nullish === true) {
+        return a;
+    }
+    return a.type === b.type ? { type: a.type, cast: a.cast || b.cast } : undefined;
+}
+
+// the ONE predicate the declaration rewrite uses: { type, cast } or undefined
+function ternaryLocalTypeOf (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
+        return undefined;
+    }
+    const initializer = unwrapParens (declaration.initializer);
+    if (initializer === undefined
+        || !(ts.isConditionalExpression (initializer) || ternaryStringReceiverCall (printer, initializer))) {
+        return undefined;
+    }
+    const value = ternaryArmType (printer, initializer);
+    if (value === undefined || value.nullish === true || !LITERAL_TYPED_TYPES.has (value.type)) {
+        return undefined;
+    }
+    if (LITERAL_NUMERIC_TYPES.has (value.type) && integerLocalHasBoxedEquality (declaration)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    if (!literalIsSafeToRetype (printer, scope, declaration, declaration.name.escapedText, { type: value.type }, isProFile)) {
+        return undefined;
+    }
+    return value;
+}
+
+export function patchJavaTernaryLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaTernaryLocalsPatched) {
+        return;
+    }
+    printer._javaTernaryLocalsPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || declaration.initializer === undefined || node.declarations.length !== 1) {
+            return printed;
+        }
+        let info;
+        try {
+            info = ternaryLocalTypeOf (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        const value = printed.slice (at + marker.length);
+        const typed = info.cast ? `(${info.type}) (${value})` : value;
+        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${typed}`;
     };
 }

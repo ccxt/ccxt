@@ -2388,14 +2388,14 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = Precise.StringMul(timestamp, "1000")
 	}
 	// the exchange returns the side of the taker
-	var side any = DerefScalar(this.SafeString2(trade, "side", "type"))
+	var side *string = this.SafeString2(trade, "side", "type")
 	var feeInfo any = nil
 	var order *string = nil
 	if takerOrMaker != nil && *takerOrMaker == "maker" {
-		if IsEqual(side, "sell") {
-			side = "buy"
-		} else if IsEqual(side, "buy") {
-			side = "sell"
+		if side != nil && *side == "sell" {
+			side = SafeStringPtr("buy")
+		} else if side != nil && *side == "buy" {
+			side = SafeStringPtr("sell")
 		}
 		order = this.SafeString(trade, "makerOrderId")
 		feeInfo = this.SafeDict(trade, "feeMaker", map[string]any{})

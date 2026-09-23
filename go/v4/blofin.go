@@ -1895,20 +1895,20 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) any {
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "updateTime")
 	var lastTradeTimestamp *int64 = this.SafeInteger(order, "fillTime")
 	var side *string = this.SafeString(order, "side")
-	var typeVar any = DerefScalar(this.SafeString(order, "orderType"))
+	var typeVar *string = this.SafeString(order, "orderType")
 	var postOnly any = nil
 	var timeInForce any = nil
-	if IsEqual(typeVar, "post_only") {
+	if typeVar != nil && *typeVar == "post_only" {
 		postOnly = true
-		typeVar = "limit"
-	} else if IsEqual(typeVar, "fok") {
+		typeVar = SafeStringPtr("limit")
+	} else if typeVar != nil && *typeVar == "fok" {
 		timeInForce = "FOK"
-		typeVar = "limit"
-	} else if IsEqual(typeVar, "ioc") {
+		typeVar = SafeStringPtr("limit")
+	} else if typeVar != nil && *typeVar == "ioc" {
 		timeInForce = "IOC"
-		typeVar = "limit"
-	} else if IsEqual(typeVar, "conditional") {
-		typeVar = "trigger"
+		typeVar = SafeStringPtr("limit")
+	} else if typeVar != nil && *typeVar == "conditional" {
+		typeVar = SafeStringPtr("trigger")
 	}
 	var marketId *string = this.SafeString(order, "instId")
 	market = MapTyped(this.SafeMarket(marketId, market))
@@ -1936,8 +1936,8 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) any {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var clientOrderId any = DerefScalar(this.SafeString(order, "clientOrderId"))
-	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
+	var clientOrderId *string = this.SafeString(order, "clientOrderId")
+	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil // fix empty clientOrderId string
 	}
 	var stopLossTriggerPrice *float64 = this.SafeNumber(order, "slTriggerPrice")
@@ -3321,15 +3321,15 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var pos *string = this.SafeString(position, "positions")
 	var contractsAbs *string = Precise.StringAbs(pos)
-	var side any = DerefScalar(this.SafeString(position, "positionSide"))
-	var hedged bool = !IsEqual(side, "net")
+	var side *string = this.SafeString(position, "positionSide")
+	var hedged bool = (side == nil || *side != "net")
 	var contracts any = this.ParseNumber(contractsAbs)
 	if pos != nil {
-		if IsEqual(side, "net") {
+		if side != nil && *side == "net" {
 			if Precise.StringGt(pos, "0") {
-				side = "long"
+				side = SafeStringPtr("long")
 			} else if Precise.StringLt(pos, "0") {
-				side = "short"
+				side = SafeStringPtr("short")
 			} else {
 				side = nil
 			}

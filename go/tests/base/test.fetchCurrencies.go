@@ -74,13 +74,13 @@ func DetectCurrencyConflicts(exchange ccxt.ICoreExchange, currencyValues any) an
 	var keys []string = ObjectKeys(currencyValues)
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var currency any = GetValue(currencyValues, key)
-		var code any = GetValue(currency, "code")
+		var currency map[string]any = MapTyped(GetValue(currencyValues, key))
+		var code any = currency["code"]
 		if !(InOp(ids, code)) {
-			AddElementToObject(ids, code, GetValue(currency, "id"))
+			AddElementToObject(ids, code, currency["id"])
 		} else {
-			var isDifferent bool = !IsEqual(GetValue(ids, code), GetValue(currency, "id"))
-			Assert(!isDifferent, Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchCurrencies() has different ids for the same code: "), code), " "), GetValue(ids, code)), " "), GetValue(currency, "id")))
+			var isDifferent bool = !IsEqual(GetValue(ids, code), currency["id"])
+			Assert(!isDifferent, Add(Add(Add(Add(Add(Add(exchange.GetId(), " fetchCurrencies() has different ids for the same code: "), code), " "), GetValue(ids, code)), " "), currency["id"]))
 		}
 	}
 	return true

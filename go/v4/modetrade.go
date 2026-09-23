@@ -772,13 +772,13 @@ func (this *Modetrade) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var status any = DerefScalar(this.SafeString(data, "status"))
-	if IsEqual(status, nil) {
-		status = "error"
-	} else if IsEqual(status, "0") {
-		status = "ok"
+	var status *string = this.SafeString(data, "status")
+	if status == nil {
+		status = SafeStringPtr("error")
+	} else if status != nil && *status == "0" {
+		status = SafeStringPtr("ok")
 	} else {
-		status = "maintenance"
+		status = SafeStringPtr("maintenance")
 	}
 
 	ch <- map[string]any{
@@ -1930,15 +1930,15 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
 	var orderType *string = this.SafeStringLower2(order, "order_type", "type")
-	var status any = DerefScalar(this.SafeString2(order, "status", "algoStatus"))
+	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
-		status = func() string {
+		status = SafeStringPtr(func() string {
 			if success != nil && *success {
 				return "NEW"
 			}
 			return "REJECTED"
-		}()
+		}())
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var filled any = this.OmitZero(this.SafeString2(order, "executed", "totalExecutedQuantity"))
@@ -2005,8 +2005,8 @@ func (this *Modetrade) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Modetrade) ParseOrderStatus(status any) *string {
-	if !IsEqual(status, nil) {
+func (this *Modetrade) ParseOrderStatus(status *string) *string {
+	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"NEW":             "open",
 			"FILLED":          "closed",
@@ -2018,7 +2018,7 @@ func (this *Modetrade) ParseOrderStatus(status any) *string {
 			"INCOMPLETE":      "open",
 			"COMPLETED":       "closed",
 		}
-		if IsEqual(status, nil) {
+		if status == nil {
 			return nil
 		}
 		return this.SafeString(statuses, status, status)
@@ -3396,9 +3396,9 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) an
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "token")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	var movementDirection any = this.SafeStringLower(transaction, "side")
-	if IsEqual(movementDirection, "withdraw") {
-		movementDirection = "withdrawal"
+	var movementDirection *string = this.SafeStringLower(transaction, "side")
+	if movementDirection != nil && *movementDirection == "withdraw" {
+		movementDirection = SafeStringPtr("withdrawal")
 	}
 	var feeCost any = this.ParseNumber(this.SafeString(transaction, "fee"))
 	var fee any = nil

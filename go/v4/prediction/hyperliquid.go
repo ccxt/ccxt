@@ -1155,12 +1155,12 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	}
 	var balances []any = ccxt.SafeListTyped(response, "balances")
 	for i := 0; i < len(balances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return ccxt.DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var coin *string = this.SafeString(balance, "coin")
 		var total *string = this.SafeString(balance, "total")
 		var used *string = this.SafeString(balance, "hold")

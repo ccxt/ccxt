@@ -767,11 +767,11 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
+        final String type3 = type2;
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
+            String type = type3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -781,7 +781,7 @@ public class Zaif extends ZaifApi
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalSide = side;
+            final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_pair", ((Map<String, Object>)market).get("id") );
                 put( "action", (((java.util.Objects.equals(finalSide, "buy")))) ? "bid" : "ask" );
@@ -810,7 +810,7 @@ public class Zaif extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }

@@ -891,7 +891,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					var totalAmount any = "0"
 					var trades any = ccxt.GetValue(previousOrder, "trades")
 					for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-						var tradeEntry any = ccxt.GetValue(trades, i)
+						var tradeEntry map[string]any = ccxt.MapTyped(ccxt.GetValue(trades, i))
 						totalCost = ccxt.DerefScalar(this.SafeString(tradeEntry, "cost", "0"))
 						totalAmount = ccxt.DerefScalar(this.SafeString(tradeEntry, "amount", "0"))
 					}

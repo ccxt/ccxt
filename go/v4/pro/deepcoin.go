@@ -1000,7 +1000,7 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 		"asks": []any{},
 	}
 	for i := 0; i < ccxt.GetArrayLength(entries); i++ {
-		var entry any = ccxt.GetValue(entries, i)
+		var entry map[string]any = ccxt.MapTyped(ccxt.GetValue(entries, i))
 		var entryData map[string]any = ccxt.SafeMapTyped(entry, "d")
 		var side *string = this.SafeString(entryData, "D")
 		var price *float64 = this.SafeNumber(entryData, "P")

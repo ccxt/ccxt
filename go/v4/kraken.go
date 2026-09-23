@@ -2556,17 +2556,17 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 			stopLossPrice = triggerPrice
 		}
 	}
-	var typeParsed any = this.ParseOrderType(rawType)
+	var typeParsed *string = this.ParseOrderType(rawType)
 	// unlike from endpoints which provide eg: "take-profit-limit"
 	// for "space-delimited" orders we dont have market/limit suffixes, their format is
 	// eg: `stop loss > limit 123`, so we need to parse them manually
 	if this.InArray(typeParsed, []any{"stop loss", "take profit"}) {
-		typeParsed = func() string {
+		typeParsed = SafeStringPtr(func() string {
 			if IsEqual(price, nil) {
 				return "market"
 			}
 			return "limit"
-		}()
+		}())
 	}
 	var amendId *string = this.SafeString(order, "amend_id")
 	if amendId != nil {
@@ -3709,13 +3709,13 @@ func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var address *string = this.SafeString(transaction, "info")
 	var amount *float64 = this.SafeNumber(transaction, "amount")
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var statusProp *string = this.SafeString(transaction, "status-prop")
 	var isOnHoldDeposit bool = (statusProp != nil && *statusProp == "on-hold")
 	var isCancellationRequest bool = (statusProp != nil && *statusProp == "cancel-pending")
 	var isOnHoldWithdrawal bool = (statusProp != nil && *statusProp == "onhold")
 	if isOnHoldDeposit || isCancellationRequest || isOnHoldWithdrawal {
-		status = "pending"
+		status = SafeStringPtr("pending")
 	}
 	var typeVar *string = this.SafeString(transaction, "type") // injected from the outside
 	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))

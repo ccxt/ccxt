@@ -1663,14 +1663,14 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 	if ccxt.EvalTruthy(this.HandleError(client, message)) {
 		return
 	}
-	var channel any = ccxt.DerefScalar(this.SafeString2(message, "ch", "method"))
-	if !ccxt.IsEqual(channel, nil) {
+	var channel *string = this.SafeString2(message, "ch", "method")
+	if channel != nil {
 		var splitChannel []string = ccxt.Split(channel, "/")
-		channel = ccxt.DerefScalar(this.SafeString(splitChannel, 0))
-		if ccxt.IsEqual(channel, "orderbook") {
+		channel = this.SafeString(splitChannel, 0)
+		if channel != nil && *channel == "orderbook" {
 			var channel2 *string = this.SafeString(splitChannel, 1)
 			if channel2 != nil && *channel2 == "top" {
-				channel = "orderbook/top"
+				channel = ccxt.SafeStringPtr("orderbook/top")
 			}
 		}
 		var methods map[string]any = map[string]any{
@@ -1689,7 +1689,7 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 			"futures_balance": this.HandleBalance,
 		}
 		var method any = func() any {
-			if ccxt.IsEqual(channel, nil) {
+			if channel == nil {
 				return nil
 			}
 			return this.SafeValue(methods, channel)

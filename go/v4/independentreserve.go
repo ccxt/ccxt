@@ -772,18 +772,38 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 		base = GetValue(market, "base")
 		quote = GetValue(market, "quote")
 	}
-	var orderType any = DerefScalar(this.SafeString2(order, "Type", "OrderType"))
+	var orderType *string = this.SafeString2(order, "Type", "OrderType")
 	var side any = nil
-	if !IsEqual(orderType, nil) {
-		if GetIndexOf(orderType, "Bid") >= 0 {
+	if orderType != nil {
+		if func() int {
+			if orderType == nil {
+				return -1
+			}
+			return strings.Index(*orderType, "Bid")
+		}() >= 0 {
 			side = "buy"
-		} else if GetIndexOf(orderType, "Offer") >= 0 {
+		} else if func() int {
+			if orderType == nil {
+				return -1
+			}
+			return strings.Index(*orderType, "Offer")
+		}() >= 0 {
 			side = "sell"
 		}
-		if GetIndexOf(orderType, "Market") >= 0 {
-			orderType = "market"
-		} else if GetIndexOf(orderType, "Limit") >= 0 {
-			orderType = "limit"
+		if func() int {
+			if orderType == nil {
+				return -1
+			}
+			return strings.Index(*orderType, "Market")
+		}() >= 0 {
+			orderType = SafeStringPtr("market")
+		} else if func() int {
+			if orderType == nil {
+				return -1
+			}
+			return strings.Index(*orderType, "Limit")
+		}() >= 0 {
+			orderType = SafeStringPtr("limit")
 		}
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "CreatedTimestampUtc"))
@@ -1050,12 +1070,22 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
 		marketId = *baseId + "/" + *quoteId
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, "/")
-	var side any = DerefScalar(this.SafeString(trade, "OrderType"))
-	if !IsEqual(side, nil) {
-		if GetIndexOf(side, "Bid") >= 0 {
-			side = "buy"
-		} else if GetIndexOf(side, "Offer") >= 0 {
-			side = "sell"
+	var side *string = this.SafeString(trade, "OrderType")
+	if side != nil {
+		if func() int {
+			if side == nil {
+				return -1
+			}
+			return strings.Index(*side, "Bid")
+		}() >= 0 {
+			side = SafeStringPtr("buy")
+		} else if func() int {
+			if side == nil {
+				return -1
+			}
+			return strings.Index(*side, "Offer")
+		}() >= 0 {
+			side = SafeStringPtr("sell")
 		}
 	}
 	return this.SafeTrade(map[string]any{

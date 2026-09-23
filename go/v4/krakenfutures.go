@@ -1122,10 +1122,10 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		ch <- retRes91519
 		return nil
 	}
-	var priceType any = DerefScalar(this.SafeString(params, "price", "trade"))
-	if IsEqual(priceType, "index") {
-		priceType = "spot" // the venue's name for index-price candles
-	} else if (!IsEqual(priceType, "trade")) && (!IsEqual(priceType, "mark")) && (!IsEqual(priceType, "spot")) {
+	var priceType *string = this.SafeString(params, "price", "trade")
+	if priceType != nil && *priceType == "index" {
+		priceType = SafeStringPtr("spot") // the venue's name for index-price candles
+	} else if (priceType == nil || *priceType != "trade") && (priceType == nil || *priceType != "mark") && (priceType == nil || *priceType != "spot") {
 		panic(NotSupported(this.Id + " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\""))
 	}
 	var request map[string]any = map[string]any{
@@ -2869,7 +2869,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	// This may be incorrectly marked as "open" if only execution report is given,
 	// but will be fixed below
-	var status any = this.ParseOrderStatus(statusId)
+	var status *string = this.ParseOrderStatus(statusId)
 	var isClosed bool = this.InArray(status, []any{"canceled", "rejected", "closed"})
 	var marketId *string = this.SafeString2(details, "symbol", "tradeable")
 	market = this.SafeMarket(marketId, market)
@@ -2893,7 +2893,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		average = Precise.StringDiv(vwapSum, filled2)
 		if (amount != nil) && (!isClosed) && isPrior && Precise.StringGe(filled2, amount) {
-			status = "closed"
+			status = SafeStringPtr("closed")
 			isClosed = true
 		}
 		if isPrior {
@@ -3702,18 +3702,18 @@ func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) any
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var markPriceString *string = this.SafeString(ticker, "markPrice")
 	var fundingRateString *string = this.SafeString(ticker, "fundingRate")
-	var fundingRateResult any = Precise.StringDiv(fundingRateString, markPriceString)
+	var fundingRateResult *string = Precise.StringDiv(fundingRateString, markPriceString)
 	var nextFundingRateString *string = this.SafeString(ticker, "fundingRatePrediction")
-	var nextFundingRateResult any = Precise.StringDiv(nextFundingRateString, markPriceString)
+	var nextFundingRateResult *string = Precise.StringDiv(nextFundingRateString, markPriceString)
 	if Precise.StringGt(fundingRateResult, "0.25") {
-		fundingRateResult = "0.25"
+		fundingRateResult = SafeStringPtr("0.25")
 	} else if Precise.StringLt(fundingRateResult, "-0.25") {
-		fundingRateResult = "-0.25"
+		fundingRateResult = SafeStringPtr("-0.25")
 	}
 	if Precise.StringGt(nextFundingRateResult, "0.25") {
-		nextFundingRateResult = "0.25"
+		nextFundingRateResult = SafeStringPtr("0.25")
 	} else if Precise.StringLt(nextFundingRateResult, "-0.25") {
-		nextFundingRateResult = "-0.25"
+		nextFundingRateResult = SafeStringPtr("-0.25")
 	}
 	return map[string]any{
 		"info":                     ticker,
@@ -4049,7 +4049,7 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
 		datetime = this.SafeString(position, "fillTime")
 		timestamp = this.Parse8601(datetime)
 	}
-	var side any = DerefScalar(this.SafeString(position, "side"))
+	var side *string = this.SafeString(position, "side")
 	var entryPrice *string = this.SafeString(position, "price")
 	var contracts *string = this.SafeString(position, "size")
 	if isHistory {
@@ -4068,9 +4068,9 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
 			contracts = Precise.StringAbs(signedSize) // a reversal closes the whole old position
 		}
 		if Precise.StringGt(signedSize, "0") {
-			side = "long"
+			side = SafeStringPtr("long")
 		} else if Precise.StringLt(signedSize, "0") {
-			side = "short"
+			side = SafeStringPtr("short")
 		}
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")

@@ -830,7 +830,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 }
                 Object cachedOrders = this.orders;
                 Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-                Object order = (((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId);
+                Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId));
                 if (!java.util.Objects.equals(order, null))
                 {
                     Object fee = this.safeValue(order, "fee");
@@ -1040,8 +1040,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             String id = this.safeString(message, "id");
             Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-            Object subscription = (((java.util.Objects.equals(id, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
-            if (((Map<?, ?>)subscription).containsKey("method"))
+            Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(id, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}}));
+            if (subscription.containsKey("method"))
             {
                 if (java.util.Objects.equals(((Map<String, Object>)subscription).get("method"), "public/login"))
                 {

@@ -262,20 +262,20 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> subscribeMultiple(Object name2, Object isPrivate, Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribeMultiple(Object name2, Object isPrivate, List<String> symbols2, Map<String, Object> parameters)
     {
         final Object name3 = name2;
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object name = name3;
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            symbols = this.marketSymbols(symbols, null, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
@@ -312,7 +312,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      */
     public CompletableFuture<Object> subscribeMultiple(Object name, Object isPrivate, Object... optionalArgs)
     {
-        return this.subscribeMultiple(name, isPrivate, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.subscribeMultiple(name, isPrivate, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -327,13 +327,13 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> unSubscribeMultiple(Object topic, Object name2, Object isPrivate, Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribeMultiple(Object topic, Object name2, Object isPrivate, List<String> symbols2, Map<String, Object> parameters)
     {
         final Object name3 = name2;
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object name = name3;
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (Boolean.TRUE.equals(this.safeBool(this.options, "unSubscriptionPending", false)))
             {
                 throw new ExchangeError((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
@@ -346,7 +346,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             List<Object> watchMessageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> unWatchMessageHashes = new ArrayList<Object>(Arrays.asList());
-            symbols = this.marketSymbols(symbols, null, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
@@ -367,7 +367,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
             }
-            final Object finalSymbols = symbols;
+            final List<String> finalSymbols = symbols;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHashes", unWatchMessageHashes );
                 put( "subMessageHashes", watchMessageHashes );
@@ -397,7 +397,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      */
     public CompletableFuture<Object> unSubscribeMultiple(Object topic, Object name, Object isPrivate, Object... optionalArgs)
     {
-        return this.unSubscribeMultiple(topic, name, isPrivate, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.unSubscribeMultiple(topic, name, isPrivate, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object createWSAuth(Object name, Object productIds)
@@ -516,18 +516,18 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             if (java.util.Objects.equals(symbols, null))
             {
-                symbols = this.symbols;
+                symbols = Helpers.toStringListArg(this.symbols);
             }
             Object name = "ticker_batch";
             Object ticker = (this.subscribeMultiple(name, false, symbols, parameters)).join();
@@ -553,7 +553,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -565,18 +565,18 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTickers(Object symbols2, Object parameters)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols2, Object parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             if (java.util.Objects.equals(symbols, null))
             {
-                symbols = this.symbols;
+                symbols = Helpers.toStringListArg(this.symbols);
             }
             return (this.unSubscribeMultiple("ticker", "ticker_batch", false, symbols)).join();
         });
@@ -593,9 +593,9 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
      */
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
-        return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+        return this.unWatchTickers(Helpers.getArgStringList(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<Object> unWatchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
         return this.unWatchTickers(symbols, (Object) (parameters));
     }

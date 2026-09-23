@@ -674,7 +674,7 @@ public class Alpaca extends AlpacaApi
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
-            Object localTime = (timestamp == null ? null : ((String)timestamp).substring(0, Math.min(23, ((String)timestamp).length())));
+            String localTime = (timestamp == null ? null : ((String)timestamp).substring(0, Math.min(23, ((String)timestamp).length())));
             if (java.util.Objects.equals(timestamp, null))
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
@@ -907,7 +907,7 @@ public class Alpaca extends AlpacaApi
                 put( "loc", loc );
             }};
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
-            Object symbolTrades = null;
+            List<Object> symbolTrades = null;
             if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocTrades"))
             {
                 if (!java.util.Objects.equals(since, null))
@@ -936,7 +936,7 @@ public class Alpaca extends AlpacaApi
                 //    }
                 //
                 Map<String, Object> trades = (Map<String, Object>) this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
-                symbolTrades = this.safeList(trades, marketId, new ArrayList<Object>(Arrays.asList()));
+                symbolTrades = (List<Object>) this.safeList(trades, marketId, new ArrayList<Object>(Arrays.asList()));
             } else if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocLatestTrades"))
             {
                 Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters))).join();
@@ -1124,7 +1124,7 @@ public class Alpaca extends AlpacaApi
                 put( "loc", loc );
             }};
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
-            Object ohlcvs = null;
+            List<Object> ohlcvs = null;
             if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocBars"))
             {
                 if (!java.util.Objects.equals(limit, null))
@@ -1173,7 +1173,7 @@ public class Alpaca extends AlpacaApi
                 //     }
                 //
                 Object bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
-                ohlcvs = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
+                ohlcvs = (List<Object>) this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
                 if (Boolean.TRUE.equals(paginate))
                 {
                     // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
@@ -1194,7 +1194,7 @@ public class Alpaca extends AlpacaApi
                         {
                             break;
                         }
-                        ohlcvs = this.arrayConcat(ohlcvs, page);
+                        ohlcvs = (List<Object>) this.arrayConcat(ohlcvs, page);
                         pageToken = this.safeString(response, "next_page_token");
                     }
                 }
@@ -1324,12 +1324,12 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters2)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1339,9 +1339,9 @@ public class Alpaca extends AlpacaApi
             {
                 // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
                 Object allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
-                symbols = allSymbols;
+                symbols = Helpers.toStringListArg(allSymbols);
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             String loc = this.safeString(parameters, "loc", "us");
             Object ids = this.marketIds(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1455,7 +1455,7 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public String generateClientOrderId(Map<String, Object> parameters)
@@ -1482,7 +1482,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1494,7 +1494,7 @@ public class Alpaca extends AlpacaApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), "market", (String) (side), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -1509,7 +1509,7 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Object... optionalArgs)
     {
         return this.createMarketOrderWithCost(symbol, side, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -1536,7 +1536,7 @@ public class Alpaca extends AlpacaApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -1577,7 +1577,7 @@ public class Alpaca extends AlpacaApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), "market", "sell", (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -1612,7 +1612,7 @@ public class Alpaca extends AlpacaApi
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -1725,7 +1725,7 @@ public class Alpaca extends AlpacaApi
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2086,7 +2086,7 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol2, Object type, Object side, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol2, String type, String side, Object amount2, Object price2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
         final Object amount3 = amount2;
@@ -2156,7 +2156,7 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }

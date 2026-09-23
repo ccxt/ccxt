@@ -963,7 +963,7 @@ public class Myriad extends MyriadApi
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public CompletableFuture<Object> fetchTradeQuote(String outcome, String side, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTradeQuote(String outcome, String side, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1012,7 +1012,7 @@ public class Myriad extends MyriadApi
             return this.parseTradeQuote((Map<String, Object>) (this.extend(response, new HashMap<String, Object>() {{
                 put( "action", finalSideStr );
             }})), ((Object)outcomeObj));
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -1027,7 +1027,7 @@ public class Myriad extends MyriadApi
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public CompletableFuture<Object> fetchTradeQuote(String outcome, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> fetchTradeQuote(String outcome, String side, Object amount, Object... optionalArgs)
     {
         return this.fetchTradeQuote(outcome, side, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -1201,7 +1201,7 @@ public class Myriad extends MyriadApi
      * @param {string} [params.expiration] unix-seconds expiration for a GTD order
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1242,7 +1242,7 @@ public class Myriad extends MyriadApi
      * @param {string} [params.expiration] unix-seconds expiration for a GTD order
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -1303,8 +1303,8 @@ public class Myriad extends MyriadApi
             Object parsed = this.parsePredictionOrder((Map<String, Object>) (wrapper), outcomeObj);
             // the POST /orders response is minimal (hash + status), so backfill the known request values
             // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-            Object sideStr = (((java.util.Objects.equals(side, null)))) ? null : ((String)((String)side)).toLowerCase();
-            Object typeStr = (((java.util.Objects.equals(type, null)))) ? "limit" : ((String)type).toLowerCase();
+            String sideStr = (((java.util.Objects.equals(side, null)))) ? null : ((String)((String)side)).toLowerCase();
+            String typeStr = (((java.util.Objects.equals(type, null)))) ? "limit" : ((String)type).toLowerCase();
             if (java.util.Objects.equals(this.safeString(parsed, "side"), null))
             {
                 Helpers.addElementToObject(parsed, "side", sideStr);
@@ -1364,9 +1364,9 @@ public class Myriad extends MyriadApi
         String marketId = this.safeString(info, "marketId");
         Long outcomeId = this.safeInteger(info, "outcomeId", 0);
         Object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
-        Object typeStr = (((java.util.Objects.equals(type, null)))) ? "limit" : ((String)type).toLowerCase();
+        String typeStr = (((java.util.Objects.equals(type, null)))) ? "limit" : ((String)type).toLowerCase();
         String sideStr = ((String)((String)side)).toLowerCase();
-        Object sideInt = (((java.util.Objects.equals(sideStr, "buy")))) ? 0 : 1;
+        Integer sideInt = (((java.util.Objects.equals(sideStr, "buy")))) ? 0 : 1;
         Boolean isMarket = (java.util.Objects.equals(typeStr, "market"));
         String defaultTif = ((Boolean.TRUE.equals(isMarket))) ? "FOK" : "GTC";
         String timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
@@ -1375,7 +1375,7 @@ public class Myriad extends MyriadApi
         {
             if (Boolean.TRUE.equals(isMarket))
             {
-                priceValue = (((Helpers.isEqual(sideInt, 0)))) ? 1 : 0;
+                priceValue = ((((sideInt != null && sideInt == 0)))) ? 1 : 0;
             } else
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price for limit orders")) ;
@@ -1400,7 +1400,7 @@ public class Myriad extends MyriadApi
         String nonce = this.safeString(parameters, "nonce", this.numberToString(this.milliseconds()));
         String expiration = this.safeString(parameters, "expiration", "0");
         String minFillAmount = this.safeString(parameters, "minFillAmount", "0");
-        final Object finalSideInt = sideInt;
+        final Integer finalSideInt = sideInt;
         final String finalPriceWei = priceWei;
         Map<String, Object> order = new HashMap<String, Object>() {{
             put( "trader", trader );
@@ -1569,7 +1569,7 @@ public class Myriad extends MyriadApi
             // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
             // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
             // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-            Object sideLower = (((!java.util.Objects.equals(side, null)))) ? ((String)((String)side)).toLowerCase() : null;
+            String sideLower = (((!java.util.Objects.equals(side, null)))) ? ((String)((String)side)).toLowerCase() : null;
             Boolean isCostDenominated = (Boolean) this.safeBool(parameters, "costDenominated", false);
             if ((java.util.Objects.equals(sideLower, "buy")) && (!java.util.Objects.equals(isCostDenominated, true)))
             {
@@ -1595,7 +1595,7 @@ public class Myriad extends MyriadApi
             String gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
             Object sideStr = sideLower;
             Object quoteParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt")));
-            Object quote = this.safeDict(parameters, "quote");
+            Map<String, Object> quote = (Map<String, Object>) this.safeDict(parameters, "quote");
             if (java.util.Objects.equals(quote, null))
             {
                 quote = (this.fetchTradeQuote((String) (outcome), (String) (sideStr), amount, quoteParams)).join();
@@ -1670,7 +1670,7 @@ public class Myriad extends MyriadApi
                 put( "enableAmm", true );
                 put( "costDenominated", true );
             }});
-            return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(request))).join();
+            return (this.createOrder((Object)(outcome), "market", "buy", (Object)(cost), (Object)(null), (Object)(request))).join();
         }).thenApply(PredictionOrder::new);
 
     }
@@ -1719,8 +1719,8 @@ public class Myriad extends MyriadApi
         Object signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1(), null);
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
-        Object s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
+        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
+        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         Object v = this.sum(27, Helpers.GetValue(signature, "v"));
         String sigHex = ((("0x" + r) + s) + this.intToBase16(v));
         return sigHex.toLowerCase();
@@ -5381,7 +5381,7 @@ final Object finalNetworkId = networkId;
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
         String deltaStr = this.safeString(data, "delta", "0");
-        Object firstChar = (deltaStr == null ? null : ((String)deltaStr).substring(0, Math.min(1, ((String)deltaStr).length())));
+        String firstChar = (deltaStr == null ? null : ((String)deltaStr).substring(0, Math.min(1, ((String)deltaStr).length())));
         if (java.util.Objects.equals(firstChar, "+"))
         {
             deltaStr = (deltaStr == null ? null : ((String)deltaStr).substring(Math.min(1, ((String)deltaStr).length())));

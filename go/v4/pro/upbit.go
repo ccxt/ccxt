@@ -387,12 +387,12 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	var data []any = ccxt.SafeListTyped(message, "orderbook_units")
 	for i := 0; i < len(data); i++ {
-		var entry any = func() any {
+		var entry map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}()
+		}())
 		var ask_price *float64 = this.SafeFloat(entry, "ask_price")
 		var ask_size *float64 = this.SafeFloat(entry, "ask_size")
 		var bid_price *float64 = this.SafeFloat(entry, "bid_price")
@@ -688,11 +688,11 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "uuid")
-	var side any = this.SafeStringLower(order, "ask_bid")
-	if ccxt.IsEqual(side, "bid") {
-		side = "buy"
+	var side *string = this.SafeStringLower(order, "ask_bid")
+	if side != nil && *side == "bid" {
+		side = ccxt.SafeStringPtr("buy")
 	} else {
-		side = "sell"
+		side = ccxt.SafeStringPtr("sell")
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "order_timestamp"))
 	var status *string = this.ParseWsOrderStatus(this.SafeString(order, "state"))
@@ -735,11 +735,11 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	// see: parseWsOrder
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var side any = this.SafeStringLower(trade, "ask_bid")
-	if ccxt.IsEqual(side, "bid") {
-		side = "buy"
+	var side *string = this.SafeStringLower(trade, "ask_bid")
+	if side != nil && *side == "bid" {
+		side = ccxt.SafeStringPtr("buy")
 	} else {
-		side = "sell"
+		side = ccxt.SafeStringPtr("sell")
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "trade_timestamp"))
 	var marketId *string = this.SafeString(trade, "code")
@@ -883,12 +883,12 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
 	for i := 0; i < len(data); i++ {
-		var balance any = func() any {
+		var balance map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var available *string = this.SafeString(balance, "balance")

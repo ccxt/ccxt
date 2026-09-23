@@ -1162,20 +1162,20 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "created_at"))
 	var marketId *string = this.SafeString(trade, "book")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
-	var side any = DerefScalar(this.SafeString(trade, "side"))
+	var side *string = this.SafeString(trade, "side")
 	var makerSide *string = this.SafeString(trade, "maker_side")
 	var takerOrMaker any = nil
-	if !IsEqual(side, nil) {
-		if IsEqual(side, makerSide) {
+	if side != nil {
+		if side == makerSide || (side != nil && makerSide != nil && *side == *makerSide) {
 			takerOrMaker = "maker"
 		} else {
 			takerOrMaker = "taker"
 		}
 	} else {
 		if makerSide != nil && *makerSide == "buy" {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		} else {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		}
 	}
 	var amount *string = this.SafeString2(trade, "amount", "major")

@@ -4464,16 +4464,16 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeStringN(trade, []any{"execPrice", "orderPrice", "price"})
 	var costString *string = this.SafeString(trade, "execValue")
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"time", "execTime", "tradeTime"})
-	var side any = this.SafeStringLower(trade, "side")
-	if IsEqual(side, nil) {
+	var side *string = this.SafeStringLower(trade, "side")
+	if side == nil {
 		var isBuyer *int64 = this.SafeInteger(trade, "isBuyer")
 		if isBuyer != nil {
-			side = func() string {
+			side = SafeStringPtr(func() string {
 				if isBuyer == nil || *isBuyer != 0 {
 					return "buy"
 				}
 				return "sell"
-			}()
+			}())
 		}
 	}
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
@@ -4486,16 +4486,16 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	} else {
-		var lastLiquidityInd any = this.SafeString(trade, "lastLiquidityInd")
-		if IsEqual(lastLiquidityInd, "UNKNOWN") {
+		var lastLiquidityInd *string = this.SafeString(trade, "lastLiquidityInd")
+		if lastLiquidityInd != nil && *lastLiquidityInd == "UNKNOWN" {
 			lastLiquidityInd = nil
 		}
-		if !IsEqual(lastLiquidityInd, nil) {
-			if (IsEqual(lastLiquidityInd, "TAKER")) || (IsEqual(lastLiquidityInd, "MAKER")) {
+		if lastLiquidityInd != nil {
+			if (lastLiquidityInd != nil && *lastLiquidityInd == "TAKER") || (lastLiquidityInd != nil && *lastLiquidityInd == "MAKER") {
 				takerOrMaker = ToLower(lastLiquidityInd)
 			} else {
 				takerOrMaker = func() string {
-					if IsEqual(lastLiquidityInd, "AddedLiquidity") {
+					if lastLiquidityInd != nil && *lastLiquidityInd == "AddedLiquidity" {
 						return "maker"
 					}
 					return "taker"
@@ -4503,8 +4503,8 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 		}
 	}
-	var orderType any = this.SafeStringLower(trade, "orderType")
-	if IsEqual(orderType, "unknown") {
+	var orderType *string = this.SafeStringLower(trade, "orderType")
+	if orderType != nil && *orderType == "unknown" {
 		orderType = nil
 	}
 	var feeCostString *string = this.SafeString(trade, "execFee")
@@ -4514,13 +4514,13 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 		var feeCurrencyCode any = nil
 		if GetValue(market, "spot") == true {
 			if Precise.StringGt(feeCostString, "0") {
-				if IsEqual(side, "buy") {
+				if side != nil && *side == "buy" {
 					feeCurrencyCode = GetValue(market, "base")
 				} else {
 					feeCurrencyCode = GetValue(market, "quote")
 				}
 			} else {
-				if IsEqual(side, "buy") {
+				if side != nil && *side == "buy" {
 					feeCurrencyCode = GetValue(market, "quote")
 				} else {
 					feeCurrencyCode = GetValue(market, "base")
@@ -5306,8 +5306,8 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 			"currency": feeCoinId,
 		}
 	}
-	var clientOrderId any = DerefScalar(this.SafeString(order, "orderLinkId"))
-	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
+	var clientOrderId *string = this.SafeString(order, "orderLinkId")
+	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil
 	}
 	var avgPrice any = this.OmitZero(this.SafeString(order, "avgPrice"))
@@ -8926,34 +8926,34 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 	var contract *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(contract, market, nil, "contract")
 	var size *string = Precise.StringAbs(this.SafeString2(position, "size", "qty"))
-	var side any = DerefScalar(this.SafeString(position, "side"))
+	var side *string = this.SafeString(position, "side")
 	var positionIdx *string = this.SafeString(position, "positionIdx")
 	var hedged any = nil
 	if positionIdx != nil {
 		hedged = (positionIdx == nil || *positionIdx != "0")
 	}
 	if (hedged != nil) && (hedged == true) {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if positionIdx != nil && *positionIdx == "1" {
 				return "long"
 			}
 			return "short"
-		}()
-	} else if !IsEqual(side, nil) {
-		if IsEqual(side, "Buy") {
-			side = func() string {
+		}())
+	} else if side != nil {
+		if side != nil && *side == "Buy" {
+			side = SafeStringPtr(func() string {
 				if isHistory {
 					return "short"
 				}
 				return "long"
-			}()
-		} else if IsEqual(side, "Sell") {
-			side = func() string {
+			}())
+		} else if side != nil && *side == "Sell" {
+			side = SafeStringPtr(func() string {
 				if isHistory {
 					return "long"
 				}
 				return "short"
-			}()
+			}())
 		} else {
 			side = nil
 		}

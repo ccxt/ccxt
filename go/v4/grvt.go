@@ -2705,27 +2705,27 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		"post_only":   false,
 		"reduce_only": isReduceOnly,
 	}
-	var timeInForce any = this.SafeStringUpper(params, "timeInForce", "GOOD_TILL_TIME")
+	var timeInForce *string = this.SafeStringUpper(params, "timeInForce", "GOOD_TILL_TIME")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, params)
 	if postOnly {
 		orderRequest["post_only"] = true
 	}
-	if IsEqual(timeInForce, nil) {
-		timeInForce = "GOOD_TILL_TIME"
+	if timeInForce == nil {
+		timeInForce = SafeStringPtr("GOOD_TILL_TIME")
 	} else {
 		var tifMap map[string]any = map[string]any{
 			"GTC": "GOOD_TILL_TIME",
 			"FOK": "FILL_OR_KILL",
 			"IOC": "IMMEDIATE_OR_CANCEL",
 		}
-		timeInForce = DerefScalar(this.SafeString(tifMap, timeInForce, timeInForce))
+		timeInForce = this.SafeString(tifMap, timeInForce, timeInForce)
 	}
 	orderRequest["time_in_force"] = timeInForce
 	if !isMarketOrder {
 		if postOnly {
-			timeInForce = "POST_ONLY"
-		} else if IsEqual(timeInForce, "ioc") {
-			timeInForce = "IMMEDIATE_OR_CANCEL"
+			timeInForce = SafeStringPtr("POST_ONLY")
+		} else if timeInForce != nil && *timeInForce == "ioc" {
+			timeInForce = SafeStringPtr("IMMEDIATE_OR_CANCEL")
 		}
 	}
 	params = MapTyped(this.Omit(params, []any{"reduceOnly", "postOnly", "timeInForce"}))

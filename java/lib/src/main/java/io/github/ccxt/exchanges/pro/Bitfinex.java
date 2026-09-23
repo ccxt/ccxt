@@ -736,9 +736,9 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Boolean isPublic = Helpers.isLessThanOrEqual(numFields, 8);
         Object marketId = ((Helpers.isTrue((!Boolean.TRUE.equals(isPublic))))) ? this.safeString(trade, 1) : null;
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object createdKey = ((Boolean.TRUE.equals(isPublic))) ? 1 : 2;
-        Object priceKey = ((Boolean.TRUE.equals(isPublic))) ? 3 : 5;
-        Object amountKey = ((Boolean.TRUE.equals(isPublic))) ? 2 : 4;
+        Integer createdKey = ((Boolean.TRUE.equals(isPublic))) ? 1 : 2;
+        Integer priceKey = ((Boolean.TRUE.equals(isPublic))) ? 3 : 5;
+        Integer amountKey = ((Boolean.TRUE.equals(isPublic))) ? 2 : 4;
         marketId = ((Map<String, Object>)market).get("id");
         String type = this.safeString(trade, 6);
         if (!java.util.Objects.equals(type, null))
@@ -992,7 +992,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                     Object delta = Helpers.GetValue(deltas, i);
                     Object delta2 = Helpers.GetValue(delta, 2);
                     Object size = (((Helpers.isLessThan(delta2, 0)))) ? Helpers.opNeg(delta2) : delta2;
-                    Object side = (((Helpers.isLessThan(delta2, 0)))) ? "asks" : "bids";
+                    String side = (((Helpers.isLessThan(delta2, 0)))) ? "asks" : "bids";
                     Object bookside = Helpers.GetValue(orderbook, side);
                     String idString = this.safeString(delta, 0);
                     Double price = this.safeFloat(delta, 1);
@@ -1012,7 +1012,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                     Double counter = this.safeNumber(delta, 1);
                     Double price = this.safeNumber(delta, 0);
                     Object size = (((Helpers.isLessThan(amount, 0)))) ? Helpers.opNeg(amount) : amount;
-                    Object side = (((Helpers.isLessThan(amount, 0)))) ? "asks" : "bids";
+                    String side = (((Helpers.isLessThan(amount, 0)))) ? "asks" : "bids";
                     Object bookside = Helpers.GetValue(orderbook, side);
                     Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size, counter))});
                 }
@@ -1029,7 +1029,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 String price = this.safeString(deltas, 1);
                 Object deltas2 = Helpers.GetValue(deltas, 2);
                 Object size = (((Helpers.isLessThan(deltas2, 0)))) ? Helpers.opNeg(deltas2) : deltas2;
-                Object side = (((Helpers.isLessThan(deltas2, 0)))) ? "asks" : "bids";
+                String side = (((Helpers.isLessThan(deltas2, 0)))) ? "asks" : "bids";
                 Object bookside = Helpers.GetValue(orderbookItem, side);
                 // price = 0 means that you have to remove the order from your book
                 Object amount = ((Precise.stringGt(price, "0"))) ? size : "0";
@@ -1041,7 +1041,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 String counter = this.safeString(deltas, 1);
                 String price = this.safeString(deltas, 0);
                 Object size = ((Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
-                Object side = ((Precise.stringLt(amount, "0"))) ? "asks" : "bids";
+                String side = ((Precise.stringLt(amount, "0"))) ? "asks" : "bids";
                 Object bookside = Helpers.GetValue(orderbookItem, side);
                 Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)))});
             }
@@ -1069,7 +1069,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Object asks = ((Map<String, Object>)book).get("asks");
         String prec = this.safeString(subscription, "prec", "P0");
         Boolean isRaw = (java.util.Objects.equals(prec, "R0"));
-        Object idToCheck = ((Boolean.TRUE.equals(isRaw))) ? 2 : 0;
+        Integer idToCheck = ((Boolean.TRUE.equals(isRaw))) ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (var i = 0; Helpers.isLessThan(i, depth); i++)
         {

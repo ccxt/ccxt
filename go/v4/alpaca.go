@@ -766,11 +766,11 @@ func (this *Alpaca) ParseMarket(asset any) any {
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
-	var quote any = DerefScalar(this.SafeCurrencyCode(quoteId))
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	// Us equity markets do not include quote in symbol.
 	// We can safely coerce us_equity quote to USD
 	if (quote == nil) && (assetClass != nil && *assetClass == "us_equity") {
-		quote = "USD"
+		quote = SafeStringPtr("USD")
 	}
 	var symbol any = Add(Add(base, "/"), quote)
 	var status *string = this.SafeString(asset, "status")
@@ -779,7 +779,7 @@ func (this *Alpaca) ParseMarket(asset any) any {
 	var amount *float64 = this.SafeNumber(asset, "min_trade_increment")
 	var price *float64 = this.SafeNumber(asset, "price_increment")
 	var minCost *float64 = nil
-	if (assetClass != nil && *assetClass == "crypto") && (IsEqual(quote, "USD")) {
+	if (assetClass != nil && *assetClass == "crypto") && (quote != nil && *quote == "USD") {
 		// alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
 		// USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
 		minCost = this.SafeNumber(this.Options, "minCostUSD", this.ParseNumber("10"))
@@ -2010,11 +2010,16 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 			"currency": "USD",
 		}
 	}
-	var orderType any = DerefScalar(this.SafeString(order, "order_type"))
-	if !IsEqual(orderType, nil) {
-		if GetIndexOf(orderType, "limit") >= 0 {
+	var orderType *string = this.SafeString(order, "order_type")
+	if orderType != nil {
+		if func() int {
+			if orderType == nil {
+				return -1
+			}
+			return strings.Index(*orderType, "limit")
+		}() >= 0 {
 			// might be limit or stop-limit
-			orderType = "limit"
+			orderType = SafeStringPtr("limit")
 		}
 	}
 	var datetime *string = this.SafeString(order, "submitted_at")
@@ -2194,11 +2199,11 @@ func (this *Alpaca) ParseTrade(trade any, optionalArgs ...any) any {
 	var datetime *string = this.SafeString2(trade, "t", "transaction_time")
 	var timestamp *int64 = this.Parse8601(datetime)
 	var alpacaSide *string = this.SafeString(trade, "tks")
-	var side any = DerefScalar(this.SafeString(trade, "side"))
+	var side *string = this.SafeString(trade, "side")
 	if alpacaSide != nil && *alpacaSide == "B" {
-		side = "buy"
+		side = SafeStringPtr("buy")
 	} else if alpacaSide != nil && *alpacaSide == "S" {
-		side = "sell"
+		side = SafeStringPtr("sell")
 	}
 	var priceString *string = this.SafeString2(trade, "p", "price")
 	var amountString *string = this.SafeString2(trade, "s", "qty")

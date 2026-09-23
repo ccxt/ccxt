@@ -3584,8 +3584,8 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 			return "COIN-FUTURES"
 		}()
 	}
-	var productType any = DerefScalar(this.SafeString2(params, "productType", "category", defaultProductType))
-	if (IsEqual(productType, nil)) && (market != nil) {
+	var productType *string = this.SafeString2(params, "productType", "category", defaultProductType)
+	if (productType == nil) && (market != nil) {
 		var settle any = GetValue(market, "settle")
 		if GetValue(market, "spot") == true {
 			var marginMode any = nil
@@ -3593,25 +3593,25 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = MapTyped(GetValue(marginModeparamsVariable, 1))
 			if marginMode != nil {
-				productType = "MARGIN"
+				productType = SafeStringPtr("MARGIN")
 			} else {
-				productType = "SPOT"
+				productType = SafeStringPtr("SPOT")
 			}
 		} else if IsEqual(settle, "USDT") {
-			productType = "USDT-FUTURES"
+			productType = SafeStringPtr("USDT-FUTURES")
 		} else if IsEqual(settle, "USDC") {
-			productType = "USDC-FUTURES"
+			productType = SafeStringPtr("USDC-FUTURES")
 		} else if IsEqual(settle, "SUSDT") {
-			productType = "SUSDT-FUTURES"
+			productType = SafeStringPtr("SUSDT-FUTURES")
 		} else if IsEqual(settle, "SUSDC") {
-			productType = "SUSDC-FUTURES"
+			productType = SafeStringPtr("SUSDC-FUTURES")
 		} else if (IsEqual(settle, "SBTC")) || (IsEqual(settle, "SETH")) || (IsEqual(settle, "SEOS")) {
-			productType = "SCOIN-FUTURES"
+			productType = SafeStringPtr("SCOIN-FUTURES")
 		} else {
-			productType = "COIN-FUTURES"
+			productType = SafeStringPtr("COIN-FUTURES")
 		}
 	}
-	if IsEqual(productType, nil) {
+	if productType == nil {
 		panic(ArgumentsRequired(this.Id + " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\""))
 	}
 	params = MapTyped(this.Omit(params, []any{"productType", "category"}))
@@ -7657,10 +7657,10 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var postOnly any = nil
-	var timeInForce any = this.SafeStringUpper2(order, "force", "timeInForce")
-	if IsEqual(timeInForce, "POST_ONLY") {
+	var timeInForce *string = this.SafeStringUpper2(order, "force", "timeInForce")
+	if timeInForce != nil && *timeInForce == "POST_ONLY" {
 		postOnly = true
-		timeInForce = "PO"
+		timeInForce = SafeStringPtr("PO")
 	}
 	var reduceOnly any = nil
 	var reduceOnlyRaw *string = this.SafeString(order, "reduceOnly")
@@ -7694,18 +7694,18 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 		size = this.SafeString2(order, "size", "qty")
 		filled = this.SafeString2(order, "baseVolume", "cumExecQty")
 	}
-	var side any = DerefScalar(this.SafeString(order, "side"))
+	var side *string = this.SafeString(order, "side")
 	var posMode *string = this.SafeString(order, "posMode")
 	if (posMode != nil && *posMode == "hedge_mode") && (reduceOnly == true) {
-		side = func() string {
-			if IsEqual(side, "buy") {
+		side = SafeStringPtr(func() string {
+			if side != nil && *side == "buy" {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var orderType *string = this.SafeString(order, "orderType")
-	var isBuyMarket bool = (IsEqual(side, "buy")) && (orderType != nil && *orderType == "market")
+	var isBuyMarket bool = (side != nil && *side == "buy") && (orderType != nil && *orderType == "market")
 	if (GetValue(market, "spot") == true) && isBuyMarket {
 		// as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
 		size = this.SafeString(order, "baseVolume")
@@ -11912,15 +11912,15 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	market = MapTyped(this.SafeMarket(marketId, market, nil, "contract"))
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeIntegerN(position, []any{"cTime", "ctime", "createdTime"})
-	var marginMode any = DerefScalar(this.SafeString(position, "marginMode"))
+	var marginMode *string = this.SafeString(position, "marginMode")
 	var collateral *string = nil
 	var initialMargin *string = nil
 	var unrealizedPnl *string = this.SafeString2(position, "unrealizedPL", "unrealisedPnl")
 	var rawCollateral *string = this.SafeString2(position, "marginSize", "positionBalance")
-	if IsEqual(marginMode, "isolated") {
+	if marginMode != nil && *marginMode == "isolated" {
 		collateral = Precise.StringAdd(rawCollateral, unrealizedPnl)
-	} else if IsEqual(marginMode, "crossed") {
-		marginMode = "cross"
+	} else if marginMode != nil && *marginMode == "crossed" {
+		marginMode = SafeStringPtr("cross")
 		initialMargin = rawCollateral
 	}
 	var holdMode *string = this.SafeString2(position, "posMode", "holdMode")
@@ -11951,7 +11951,7 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	var liquidationPrice any = this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidationPrice")))
 	var calcTakerFeeRate string = "0.0006"
 	var calcTakerFeeMult string = "0.9994"
-	if (IsEqual(liquidationPrice, nil)) && (IsEqual(marginMode, "isolated")) && Precise.StringGt(baseAmount, "0") {
+	if (IsEqual(liquidationPrice, nil)) && (marginMode != nil && *marginMode == "isolated") && Precise.StringGt(baseAmount, "0") {
 		var signedMargin *string = Precise.StringDiv(rawCollateral, baseAmount)
 		var signedMmp *string = maintenanceMarginPercentage
 		if side != nil && *side == "short" {

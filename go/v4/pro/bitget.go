@@ -841,11 +841,11 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
-	var interval any = ccxt.DerefScalar(this.SafeString(arg, "interval"))
+	var interval *string = this.SafeString(arg, "interval")
 	var isUta any = nil
-	if ccxt.IsEqual(interval, nil) {
+	if interval == nil {
 		isUta = false
-		interval = ccxt.Replace(channel, "candle", "")
+		interval = ccxt.SafeStringPtr(ccxt.Replace(channel, "candle", ""))
 	} else {
 		isUta = true
 	}
@@ -2993,12 +2993,12 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 		if instType != nil && *instType == "uta" {
 			var coins []any = ccxt.SafeListTyped(rawBalance, "coin")
 			for j := 0; j < len(coins); j++ {
-				var entry any = func() any {
+				var entry map[string]any = ccxt.MapTyped(func() any {
 					if j >= 0 && j < len(coins) {
 						return ccxt.DerefScalar(coins[j])
 					}
 					return nil
-				}()
+				}())
 				var currencyId *string = this.SafeString(entry, "coin")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()
@@ -3584,11 +3584,11 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	}()
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
-	var interval any = ccxt.DerefScalar(this.SafeString(arg, "interval"))
+	var interval *string = this.SafeString(arg, "interval")
 	var isUta any = nil
-	if ccxt.IsEqual(interval, nil) {
+	if interval == nil {
 		isUta = false
-		interval = ccxt.Replace(channel, "candle", "")
+		interval = ccxt.SafeStringPtr(ccxt.Replace(channel, "candle", ""))
 	} else {
 		isUta = true
 	}
@@ -3637,7 +3637,7 @@ func (this *Bitget) HandleUnSubscriptionStatus(client any, message any) any {
 		argsList = []any{this.SafeDict(message, "arg", map[string]any{})}
 	}
 	for i := 0; i < ccxt.GetArrayLength(argsList); i++ {
-		var arg any = ccxt.GetValue(argsList, i)
+		var arg map[string]any = ccxt.MapTyped(ccxt.GetValue(argsList, i))
 		var channel *string = this.SafeString2(arg, "channel", "topic", "")
 		if func() int {
 			if channel == nil {

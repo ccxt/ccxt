@@ -930,7 +930,7 @@ func (this *Paradex) ParseMarket(market any) any {
 	var settleId *string = this.SafeString(market, "settlement_currency")
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-	var expiry any = DerefScalar(this.SafeInteger(market, "expiry_at"))
+	var expiry *int64 = this.SafeInteger(market, "expiry_at")
 	var optionType *string = this.SafeString(market, "option_type")
 	var strikePrice *string = this.SafeString(market, "strike_price")
 	var takerFee any = this.ParseNumber("0.0003")
@@ -943,7 +943,7 @@ func (this *Paradex) ParseMarket(market any) any {
 			return "P"
 		}()
 		var deliveryValue any = func() any {
-			if IsEqual(expiry, 0) {
+			if expiry != nil && *expiry == 0 {
 				return ""
 			}
 			return this.Yymmdd(expiry) + "-"
@@ -954,7 +954,7 @@ func (this *Paradex) ParseMarket(market any) any {
 		expiry = nil
 	}
 	var expireDatetime *string = func() *string {
-		if IsEqual(expiry, 0) {
+		if expiry != nil && *expiry == 0 {
 			return nil
 		}
 		return this.Iso8601(expiry)
@@ -2174,12 +2174,12 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "size")
 	var orderType *string = this.SafeString(order, "type")
 	var cancelReason *string = this.SafeString(order, "cancel_reason")
-	var status any = DerefScalar(this.SafeString(order, "status"))
+	var status *string = this.SafeString(order, "status")
 	if cancelReason != nil {
 		if (cancelReason != nil && *cancelReason == "NOT_ENOUGH_MARGIN") || (cancelReason != nil && *cancelReason == "ORDER_EXCEEDS_POSITION_LIMIT") {
-			status = "rejected"
+			status = SafeStringPtr("rejected")
 		} else {
-			status = "canceled"
+			status = SafeStringPtr("canceled")
 		}
 	}
 	var side *string = this.SafeStringLower(order, "side")
@@ -2231,8 +2231,8 @@ func (this *Paradex) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Paradex) ParseOrderStatus(status any) *string {
-	if !IsEqual(status, nil) {
+func (this *Paradex) ParseOrderStatus(status *string) *string {
+	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"NEW":         "open",
 			"UNTRIGGERED": "open",
@@ -3900,13 +3900,13 @@ func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transaction, "created_at")
 	var updated *int64 = this.SafeInteger(transaction, "last_updated_at")
-	var typeVar any = DerefScalar(this.SafeString(transaction, "kind"))
-	typeVar = func() string {
-		if IsEqual(typeVar, "DEPOSIT") {
+	var typeVar *string = this.SafeString(transaction, "kind")
+	typeVar = SafeStringPtr(func() string {
+		if typeVar != nil && *typeVar == "DEPOSIT" {
 			return "deposit"
 		}
 		return "withdrawal"
-	}()
+	}())
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	return map[string]any{

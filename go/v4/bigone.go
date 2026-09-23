@@ -1325,31 +1325,31 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "asset_pair_name")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var side any = DerefScalar(this.SafeString(trade, "side"))
+	var side *string = this.SafeString(trade, "side")
 	var takerSide *string = this.SafeString(trade, "taker_side")
 	var takerOrMaker any = nil
-	if (takerSide != nil) && (!IsEqual(side, nil)) && (!IsEqual(side, "SELF_TRADING")) {
+	if (takerSide != nil) && (side != nil) && (side == nil || *side != "SELF_TRADING") {
 		takerOrMaker = func() string {
-			if IsEqual(takerSide, side) {
+			if takerSide == side || (takerSide != nil && side != nil && *takerSide == *side) {
 				return "taker"
 			}
 			return "maker"
 		}()
 	}
-	if IsEqual(side, nil) {
+	if side == nil {
 		// taker side is not related to buy/sell side
 		// the following code is probably a mistake
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if takerSide != nil && *takerSide == "ASK" {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	} else {
-		if IsEqual(side, "BID") {
-			side = "buy"
-		} else if IsEqual(side, "ASK") {
-			side = "sell"
+		if side != nil && *side == "BID" {
+			side = SafeStringPtr("buy")
+		} else if side != nil && *side == "ASK" {
+			side = SafeStringPtr("sell")
 		}
 	}
 	var makerOrderId *string = this.SafeString(trade, "maker_order_id")
@@ -1378,7 +1378,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	var makerCurrencyCode any = nil
 	var takerCurrencyCode any = nil
 	if takerOrMaker != nil {
-		if IsEqual(side, "buy") {
+		if side != nil && *side == "buy" {
 			if IsEqual(takerOrMaker, "maker") {
 				makerCurrencyCode = GetValue(market, "base")
 				takerCurrencyCode = GetValue(market, "quote")
@@ -1395,7 +1395,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 				takerCurrencyCode = GetValue(market, "quote")
 			}
 		}
-	} else if IsEqual(side, "SELF_TRADING") {
+	} else if side != nil && *side == "SELF_TRADING" {
 		if takerSide != nil && *takerSide == "BID" {
 			makerCurrencyCode = GetValue(market, "quote")
 			takerCurrencyCode = GetValue(market, "base")
@@ -1721,13 +1721,13 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "asset_pair_name")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
-	var side any = DerefScalar(this.SafeString(order, "side"))
-	if IsEqual(side, "BID") {
-		side = "buy"
+	var side *string = this.SafeString(order, "side")
+	if side != nil && *side == "BID" {
+		side = SafeStringPtr("buy")
 	} else {
-		side = "sell"
+		side = SafeStringPtr("sell")
 	}
-	var triggerPrice any = DerefScalar(this.SafeString(order, "stop_price"))
+	var triggerPrice *string = this.SafeString(order, "stop_price")
 	if Precise.StringEq(triggerPrice, "0") {
 		triggerPrice = nil
 	}
@@ -1741,7 +1741,7 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = nil
 	var filled *string = nil
 	var cost *string = nil
-	if (typeVar != nil && *typeVar == "market") && IsEqual(side, "buy") {
+	if (typeVar != nil && *typeVar == "market") && (side != nil && *side == "buy") {
 		cost = this.SafeString(order, "filled_amount")
 	} else {
 		amount = this.SafeString(order, "amount")

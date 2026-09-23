@@ -103,13 +103,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> subscribe(Object name2, Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(Object name2, List<String> symbols2, Map<String, Object> parameters)
     {
         final Object name3 = name2;
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object name = name3;
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -120,7 +120,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Object productIds = null;
             if (java.util.Objects.equals(symbols, null))
             {
-                symbols = this.getActiveSymbols();
+                symbols = Helpers.toStringListArg(this.getActiveSymbols());
             }
             Integer symbolsLength = ((List<?>)symbols).size();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -181,7 +181,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      */
     public CompletableFuture<Object> subscribe(Object name, Object... optionalArgs)
     {
-        return this.subscribe(name, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.subscribe(name, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -194,13 +194,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public CompletableFuture<Object> subscribeMultiple(Object name2, Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribeMultiple(Object name2, List<String> symbols2, Map<String, Object> parameters)
     {
         final Object name3 = name2;
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object name = name3;
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -208,10 +208,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             this.checkRequiredCredentials();
             if (this.isEmpty(symbols))
             {
-                symbols = this.symbols;
+                symbols = Helpers.toStringListArg(this.symbols);
             } else
             {
-                symbols = this.marketSymbols(symbols);
+                symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             }
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
@@ -257,7 +257,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      */
     public CompletableFuture<Object> subscribeMultiple(Object name, Object... optionalArgs)
     {
-        return this.subscribeMultiple(name, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.subscribeMultiple(name, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -301,11 +301,11 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    public CompletableFuture<FundingRates> watchFundingRates(Object symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> watchFundingRates(List<String> symbols2, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(symbols, null))
             {
                 throw new ArgumentsRequired((this.id + " watchFundingRates() requires an array of symbols")) ;
@@ -337,7 +337,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      */
     public CompletableFuture<FundingRates> watchFundingRates(Object... optionalArgs)
     {
-        return this.watchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -408,7 +408,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object symbols, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -444,7 +444,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleInstrument(Client client, Map<String, Object> message)

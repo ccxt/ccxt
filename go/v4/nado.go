@@ -2994,12 +2994,12 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "base_filled")
 	var costString *string = this.SafeString(trade, "quote_filled")
 	var rawOrderAmount *string = this.SafeString(order, "amount")
-	var side any = DerefScalar(this.SafeString(trade, "trade_type"))
-	if (IsEqual(side, nil)) && (rawOrderAmount != nil) {
+	var side *string = this.SafeString(trade, "trade_type")
+	if (side == nil) && (rawOrderAmount != nil) {
 		if Precise.StringLt(rawOrderAmount, "0") {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		} else {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		}
 	}
 	var price any = DerefScalar(this.SafeString(trade, "price"))
@@ -3267,13 +3267,13 @@ func (this *Nado) ParseBalance(response any) any {
 			return nil
 		}())
 		var currencyId *string = this.SafeString(rawBalance, "product_id")
-		var code any = DerefScalar(this.SafeCurrencyCode(currencyId))
-		if IsEqual(code, "0") {
-			code = "USDT0"
-		} else if IsEqual(code, currencyId) {
+		var code *string = this.SafeCurrencyCode(currencyId)
+		if code != nil && *code == "0" {
+			code = SafeStringPtr("USDT0")
+		} else if code == currencyId || (code != nil && currencyId != nil && *code == *currencyId) {
 			var market map[string]any = MapTyped(this.SafeMarket(currencyId, nil, nil, "spot"))
 			if IsEqual(this.SafeBool(market, "spot"), true) {
-				code = DerefScalar(this.SafeString(market, "base", code))
+				code = this.SafeString(market, "base", code)
 			}
 		}
 		var balance map[string]any = SafeMapTyped(rawBalance, "balance")
@@ -3282,7 +3282,7 @@ func (this *Nado) ParseBalance(response any) any {
 		account["total"] = amount
 		// the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
 		account["free"] = amount
-		if !IsEqual(code, nil) {
+		if code != nil {
 			AddElementToObject(result, code, account)
 		}
 	}

@@ -1755,10 +1755,10 @@ func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var marketId *string = this.SafeString(order, "product_id")
 	market = MapTyped(this.SafeMarket(marketId, market, "-"))
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var doneReason *string = this.SafeString(order, "done_reason")
-	if (IsEqual(status, "closed")) && (doneReason != nil && *doneReason == "canceled") {
-		status = "canceled"
+	if (status != nil && *status == "closed") && (doneReason != nil && *doneReason == "canceled") {
+		status = SafeStringPtr("canceled")
 	}
 	var price *string = this.SafeString(order, "price")
 	var filled *string = this.SafeString(order, "filled_size")
@@ -2723,7 +2723,7 @@ func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
-	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
+	var typeVar *string = this.SafeString(transaction, "type")
 	var address *string = this.SafeString(details, "crypto_address")
 	address = this.SafeString(transaction, "crypto_address", address)
 	var fee map[string]any = map[string]any{
@@ -2731,8 +2731,8 @@ func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...
 		"cost":     nil,
 		"rate":     nil,
 	}
-	if IsEqual(typeVar, "withdraw") {
-		typeVar = "withdrawal"
+	if typeVar != nil && *typeVar == "withdraw" {
+		typeVar = SafeStringPtr("withdrawal")
 		address = this.SafeString(details, "sent_to_address", address)
 		var feeCost *float64 = this.SafeNumber(details, "fee")
 		if feeCost != nil {

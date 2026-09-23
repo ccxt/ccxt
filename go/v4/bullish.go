@@ -2608,11 +2608,11 @@ func (this *Bullish) ParseOrder(order any, optionalArgs ...any) any {
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "quantityFilled")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
-	if IsEqual(status, "closed") {
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
+	if status != nil && *status == "closed" {
 		var statusReason *string = this.SafeString(order, "statusReason")
 		if statusReason != nil && *statusReason == "User cancelled" {
-			status = "canceled"
+			status = SafeStringPtr("canceled")
 		}
 	}
 	var timeInForce *string = this.SafeString(order, "timeInForce")

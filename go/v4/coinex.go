@@ -2807,12 +2807,12 @@ func (this *Coinex) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "market")
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
-	var orderType any = this.SafeStringLower(order, "market_type", defaultType)
-	if IsEqual(orderType, "futures") {
-		orderType = "swap"
+	var orderType *string = this.SafeStringLower(order, "market_type", defaultType)
+	if orderType != nil && *orderType == "futures" {
+		orderType = SafeStringPtr("swap")
 	}
 	var marketType string = func() string {
-		if IsEqual(orderType, "swap") {
+		if orderType != nil && *orderType == "swap" {
 			return "swap"
 		}
 		return "spot"
@@ -2823,14 +2823,14 @@ func (this *Coinex) ParseOrder(order any, optionalArgs ...any) any {
 	if feeCurrency == nil {
 		feeCurrency = GetValue(market, "quote")
 	}
-	var side any = DerefScalar(this.SafeString(order, "side"))
-	if IsEqual(side, "long") {
-		side = "buy"
-	} else if IsEqual(side, "short") {
-		side = "sell"
+	var side *string = this.SafeString(order, "side")
+	if side != nil && *side == "long" {
+		side = SafeStringPtr("buy")
+	} else if side != nil && *side == "short" {
+		side = SafeStringPtr("sell")
 	}
-	var clientOrderId any = DerefScalar(this.SafeString(order, "client_id"))
-	if IsEqual(clientOrderId, "") {
+	var clientOrderId *string = this.SafeString(order, "client_id")
+	if clientOrderId != nil && *clientOrderId == "" {
 		clientOrderId = nil
 	}
 	return this.SafeOrder(map[string]any{
@@ -5411,20 +5411,20 @@ func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(transaction, "to_address")
-	var tag any = DerefScalar(this.SafeString(transaction, "memo"))
-	if !IsEqual(tag, nil) {
+	var tag *string = this.SafeString(transaction, "memo")
+	if tag != nil {
 		if GetLength(tag) < 1 {
 			tag = nil
 		}
 	}
-	var remark any = DerefScalar(this.SafeString(transaction, "remark"))
-	if !IsEqual(remark, nil) {
+	var remark *string = this.SafeString(transaction, "remark")
+	if remark != nil {
 		if GetLength(remark) < 1 {
 			remark = nil
 		}
 	}
-	var txid any = DerefScalar(this.SafeString(transaction, "tx_id"))
-	if !IsEqual(txid, nil) {
+	var txid *string = this.SafeString(transaction, "tx_id")
+	if txid != nil {
 		if GetLength(txid) < 1 {
 			txid = nil
 		}
@@ -5439,7 +5439,7 @@ func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
 		return "deposit"
 	}()
 	var networkId *string = this.SafeString(transaction, "chain")
-	var feeCost any = DerefScalar(this.SafeString(transaction, "tx_fee"))
+	var feeCost *string = this.SafeString(transaction, "tx_fee")
 	var transferMethod *string = this.SafeStringLower2(transaction, "withdraw_method", "deposit_method")
 	var internal bool = (transferMethod != nil && *transferMethod == "local")
 	var amount *float64 = this.SafeNumber(transaction, "actual_amount")
@@ -5447,7 +5447,7 @@ func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
 		amount = this.SafeNumber(transaction, "amount")
 	}
 	if typeVar == "deposit" {
-		feeCost = "0"
+		feeCost = SafeStringPtr("0")
 	}
 	var feeCurrencyId *string = this.SafeString2(transaction, "fee_asset", "fee_ccy") // https://github.com/ccxt/ccxt/issues/25153
 	var fee map[string]any = map[string]any{

@@ -946,13 +946,13 @@ func (this *Woo) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var status any = DerefScalar(this.SafeString(data, "status"))
-	if IsEqual(status, nil) {
-		status = "error"
-	} else if IsEqual(status, "0") {
-		status = "ok"
+	var status *string = this.SafeString(data, "status")
+	if status == nil {
+		status = SafeStringPtr("error")
+	} else if status != nil && *status == "0" {
+		status = SafeStringPtr("ok")
 	} else {
-		status = "maintenance"
+		status = SafeStringPtr("maintenance")
 	}
 
 	ch <- map[string]any{
@@ -3873,9 +3873,9 @@ func (this *Woo) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var networkizedCode *string = this.SafeString(transaction, "token")
 	var currencyDefined any = this.GetCurrencyFromChaincode(networkizedCode, currency)
 	var code any = GetValue(currencyDefined, "code")
-	var movementDirection any = this.SafeStringLowerN(transaction, []any{"token_side", "tokenSide", "type"})
-	if IsEqual(movementDirection, "withdraw") {
-		movementDirection = "withdrawal"
+	var movementDirection *string = this.SafeStringLowerN(transaction, []any{"token_side", "tokenSide", "type"})
+	if movementDirection != nil && *movementDirection == "withdraw" {
+		movementDirection = SafeStringPtr("withdrawal")
 	}
 	var fee any = this.ParseTokenAndFeeTemp(transaction, []any{"fee_token", "feeToken"}, []any{"fee_amount", "feeAmount"})
 	var addressTo *string = this.SafeStringN(transaction, []any{"target_address", "targetAddress", "addressTo"})
@@ -4916,12 +4916,12 @@ func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(leverage, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var marginMode *string = this.SafeStringLower(leverage, "marginMode")
-	var spotLeverage any = DerefScalar(this.SafeInteger(leverage, "leverage"))
-	if IsEqual(spotLeverage, 0) {
+	var spotLeverage *int64 = this.SafeInteger(leverage, "leverage")
+	if spotLeverage != nil && *spotLeverage == 0 {
 		spotLeverage = nil
 	}
-	var longLeverage any = spotLeverage
-	var shortLeverage any = spotLeverage
+	var longLeverage *int64 = spotLeverage
+	var shortLeverage *int64 = spotLeverage
 	var details []any = SafeListTypedDefault(leverage, "details", []any{})
 	for i := 0; i < len(details); i++ {
 		var position map[string]any = SafeMapTyped(details, i)

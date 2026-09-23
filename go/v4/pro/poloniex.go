@@ -1196,9 +1196,9 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				var totalAmount any = "0"
 				var previousOrderTrades any = ccxt.GetValue(previousOrder, "trades")
 				for j := 0; j < ccxt.GetArrayLength(previousOrderTrades); j++ {
-					var previousOrderTrade any = ccxt.GetValue(previousOrderTrades, j)
-					var cost *string = this.NumberToString(ccxt.GetValue(previousOrderTrade, "cost"))
-					var amount *string = this.NumberToString(ccxt.GetValue(previousOrderTrade, "amount"))
+					var previousOrderTrade map[string]any = ccxt.MapTyped(ccxt.GetValue(previousOrderTrades, j))
+					var cost *string = this.NumberToString(previousOrderTrade["cost"])
+					var amount *string = this.NumberToString(previousOrderTrade["amount"])
 					totalCost = ccxt.Precise.StringAdd(totalCost, cost)
 					totalAmount = ccxt.Precise.StringAdd(totalAmount, amount)
 				}
@@ -1440,12 +1440,12 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 	var snapshot bool = (typeVar != nil && *typeVar == "snapshot")
 	var update bool = (typeVar != nil && *typeVar == "update")
 	for i := 0; i < len(data); i++ {
-		var item any = func() any {
+		var item map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}()
+		}())
 		var marketId *string = this.SafeString(item, "symbol")
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 		var symbol any = market["symbol"]

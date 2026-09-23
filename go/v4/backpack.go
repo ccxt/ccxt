@@ -1637,7 +1637,7 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "quantity")
 	var isBuyerMaker *bool = this.SafeBool(trade, "isBuyerMaker")
-	var side any = this.ParseOrderSide(this.SafeString(trade, "side"))
+	var side *string = this.ParseOrderSide(this.SafeString(trade, "side"))
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
@@ -1649,12 +1649,12 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	} else if isBuyerMaker != nil {
 		takerOrMaker = "taker"
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var orderId *string = this.SafeString(trade, "orderId")
 	var fee any = nil

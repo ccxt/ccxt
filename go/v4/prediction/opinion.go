@@ -846,8 +846,8 @@ func (this *Opinion) ParsePredictionTicker(ticker any, optionalArgs ...any) any 
 	var bestBid map[string]any = ccxt.SafeMapTyped(bids, 0)
 	var bestAsk map[string]any = ccxt.SafeMapTyped(asks, 0)
 	var last *float64 = this.SafeNumber(priceResult, "price")
-	var timestamp any = ccxt.DerefScalar(this.SafeInteger(priceResult, "timestamp"))
-	if ccxt.IsEqual(timestamp, 0) {
+	var timestamp *int64 = this.SafeInteger(priceResult, "timestamp")
+	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil // the venue reports timestamp 0 for outcomes that have not traded yet
 	}
 	return this.SafePredictionTicker(map[string]any{
@@ -1051,12 +1051,12 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	var candles []any = []any{}
 	var historyLength int = len(history)
 	for i := 0; i < historyLength; i++ {
-		var point any = func() any {
+		var point map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(history) {
 				return ccxt.DerefScalar(history[i])
 			}
 			return nil
-		}()
+		}())
 		var price *float64 = this.SafeNumber(point, "p")
 		var timestamp *int64 = this.SafeTimestamp(point, "t")
 		if (price != nil) && (timestamp != nil) {
@@ -1925,12 +1925,12 @@ func (this *Opinion) ParseBalance(response any) any {
 	var balances []any = ccxt.SafeListTyped(data, "balances")
 	var balancesLength int = len(balances)
 	for i := 0; i < balancesLength; i++ {
-		var balance any = func() any {
+		var balance map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return ccxt.DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var code *string = this.SafeString(balance, "symbol", "USDT")
 		ccxt.AddElementToObject(result, code, map[string]any{
 			"free":  this.SafeNumber(balance, "availableBalance"),
@@ -2361,7 +2361,7 @@ func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId any, outcomeSide any)
 	var marketKeys []string = ccxt.ObjectKeys(this.Markets)
 	var marketKeysLength int = len(marketKeys)
 	for i := 0; i < marketKeysLength; i++ {
-		var market any = ccxt.GetValue(this.Markets, ccxt.GetValue(marketKeys, i))
+		var market map[string]any = ccxt.MapTyped(ccxt.GetValue(this.Markets, ccxt.GetValue(marketKeys, i)))
 		var info map[string]any = ccxt.SafeMapTyped(market, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes any = this.SafeList(market, "outcomes", []any{})

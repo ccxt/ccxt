@@ -1398,7 +1398,7 @@ func (this *Myriad) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	ccxt.PanicOnError((<-this.LoadOutcomesAsync(orderOutcomes)))
 	var result []any = []any{}
 	for i := 0; i < ordersLength; i++ {
-		var o any = ccxt.GetValue(orders, i)
+		var o map[string]any = ccxt.MapTyped(ccxt.GetValue(orders, i))
 		var outcome *string = this.SafeString(o, "outcome")
 		var typeVar *string = this.SafeString(o, "type")
 		var side *string = this.SafeString(o, "side")
@@ -3277,12 +3277,12 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	var price any = nil
 	var change any = nil
 	for i := 0; i < len(outcomes); i++ {
-		var o any = func() any {
+		var o map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(outcomes) {
 				return ccxt.DerefScalar(outcomes[i])
 			}
 			return nil
-		}()
+		}())
 		if ccxt.IsEqual(this.SafeString(o, "outcomeId", this.SafeString(o, "id")), outcomeId) {
 			price = ccxt.DerefScalar(this.SafeNumber(o, "price"))
 			change = ccxt.DerefScalar(this.SafeNumber(o, "priceChange24h"))
@@ -3459,12 +3459,12 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 	var outcomes []any = ccxt.SafeListTyped(response, "outcomes")
 	var price any = nil
 	for i := 0; i < len(outcomes); i++ {
-		var o any = func() any {
+		var o map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(outcomes) {
 				return ccxt.DerefScalar(outcomes[i])
 			}
 			return nil
-		}()
+		}())
 		if ccxt.IsEqual(this.SafeString(o, "outcomeId", this.SafeString(o, "id")), outcomeId) {
 			price = ccxt.DerefScalar(this.SafeNumber(o, "price"))
 			break
@@ -3796,7 +3796,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
-		var firstOutcome any = ccxt.GetValue(grouped, 0)
+		var firstOutcome map[string]any = ccxt.MapTyped(ccxt.GetValue(grouped, 0))
 		var info map[string]any = ccxt.SafeMapTyped(firstOutcome, "info")
 		promises = append(promises, ccxt.EndpointRaw(this.MyriadPublicGetMarketsId(this.Extend(map[string]any{
 			"id":         this.SafeString(info, "marketId"),
@@ -4442,12 +4442,12 @@ func (this *Myriad) HandleOrderBook(client any, data any) {
 	var changesLength int = len(changes)
 	var updated map[string]any = map[string]any{}
 	for i := 0; i < changesLength; i++ {
-		var change any = func() any {
+		var change map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(changes) {
 				return ccxt.DerefScalar(changes[i])
 			}
 			return nil
-		}()
+		}())
 		var outcomeId *string = this.SafeString(change, "outcome")
 		var sym any = this.MarketOutcomeToSymbol(networkId, marketId, outcomeId)
 		if sym == nil {
@@ -4823,13 +4823,43 @@ func (this *Myriad) watchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	var result []any = []any{}
 	var ohlcvcLength int = len(ohlcvc)
 	for i := 0; i < ohlcvcLength; i++ {
-		var candle any = func() any {
+		var candle []any = ccxt.ArrayTyped(func() any {
 			if i >= 0 && i < len(ohlcvc) {
 				return ccxt.DerefScalar(ohlcvc[i])
 			}
 			return nil
-		}()
-		result = append(result, []any{ccxt.GetValue(candle, 0), ccxt.GetValue(candle, 1), ccxt.GetValue(candle, 2), ccxt.GetValue(candle, 3), ccxt.GetValue(candle, 4), ccxt.GetValue(candle, 5)})
+		}())
+		result = append(result, []any{func() any {
+			if 0 >= 0 && 0 < len(candle) {
+				return ccxt.DerefScalar(candle[0])
+			}
+			return nil
+		}(), func() any {
+			if 1 >= 0 && 1 < len(candle) {
+				return ccxt.DerefScalar(candle[1])
+			}
+			return nil
+		}(), func() any {
+			if 2 >= 0 && 2 < len(candle) {
+				return ccxt.DerefScalar(candle[2])
+			}
+			return nil
+		}(), func() any {
+			if 3 >= 0 && 3 < len(candle) {
+				return ccxt.DerefScalar(candle[3])
+			}
+			return nil
+		}(), func() any {
+			if 4 >= 0 && 4 < len(candle) {
+				return ccxt.DerefScalar(candle[4])
+			}
+			return nil
+		}(), func() any {
+			if 5 >= 0 && 5 < len(candle) {
+				return ccxt.DerefScalar(candle[5])
+			}
+			return nil
+		}()})
 	}
 
 	ch <- this.FilterBySinceLimit(result, since, limit, 0, true)
@@ -5069,7 +5099,7 @@ func (this *Myriad) seedPositionBalancesBody(ch chan any, trader any) any {
 	var balances map[string]any = map[string]any{}
 	var positionsLength int = ccxt.GetArrayLength(positions)
 	for i := 0; i < positionsLength; i++ {
-		var p any = ccxt.GetValue(positions, i)
+		var p map[string]any = ccxt.MapTyped(ccxt.GetValue(positions, i))
 		var id *string = this.SafeString(p, "id")
 		if id != nil {
 			ccxt.AddElementToObject(balances, id, this.NumberToString(this.SafeNumber(p, "contracts", 0)))
@@ -5091,10 +5121,22 @@ func (this *Myriad) HandlePosition(client any, data any) {
 	var ts *int64 = this.SafeInteger(data, "ts")
 	// the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance)
 	// apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
-	var deltaStr any = ccxt.DerefScalar(this.SafeString(data, "delta", "0"))
-	var firstChar string = ccxt.Slice(deltaStr, 0, 1)
+	var deltaStr *string = this.SafeString(data, "delta", "0")
+	var firstChar string = func() string {
+		if deltaStr == nil {
+			return ""
+		}
+		str := *deltaStr
+		return str[0:min(1, len(str))]
+	}()
 	if firstChar == "+" {
-		deltaStr = ccxt.Slice(deltaStr, 1, nil)
+		deltaStr = ccxt.SafeStringPtr(func() string {
+			if deltaStr == nil {
+				return ""
+			}
+			str := *deltaStr
+			return str[1:]
+		}())
 	}
 	var deltaShares *string = ccxt.Precise.StringDiv(deltaStr, "1000000000000000000")
 	var contracts any = nil

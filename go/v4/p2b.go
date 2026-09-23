@@ -818,11 +818,11 @@ func (this *P2b) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct2(trade, "time", "deal_time", 1000)
-	var takerOrMaker any = DerefScalar(this.SafeString(trade, "role"))
-	if IsEqual(takerOrMaker, "1") {
-		takerOrMaker = "maker"
-	} else if IsEqual(takerOrMaker, "2") {
-		takerOrMaker = "taker"
+	var takerOrMaker *string = this.SafeString(trade, "role")
+	if takerOrMaker != nil && *takerOrMaker == "1" {
+		takerOrMaker = SafeStringPtr("maker")
+	} else if takerOrMaker != nil && *takerOrMaker == "2" {
+		takerOrMaker = SafeStringPtr("taker")
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,

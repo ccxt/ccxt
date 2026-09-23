@@ -1280,7 +1280,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 			}
 			AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "info"), entry, feeInfo)
-			var networkId any = DerefScalar(this.SafeString(splitEntry, 1))
+			var networkId *string = this.SafeString(splitEntry, 1)
 			var withdraw map[string]any = SafeMapTyped(feeInfo, "withdraw")
 			var deposit map[string]any = SafeMapTyped(feeInfo, "deposit")
 			var withdrawFee *float64 = this.SafeNumber(withdraw, "fixed")
@@ -1303,9 +1303,9 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 					return nil
 				}(),
 			}
-			if !IsEqual(networkId, nil) {
+			if networkId != nil {
 				var networkLength int = GetLength(networkId)
-				networkId = Slice(networkId, 1, networkLength-1)
+				networkId = SafeStringPtr(Slice(networkId, 1, networkLength-1))
 				var networkCode any = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
 					AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
@@ -3448,9 +3448,9 @@ func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var side *string = this.SafeString(order, "side")
 	var filled *string = this.SafeString(order, "dealStock")
-	var remaining any = DerefScalar(this.SafeString(order, "left"))
-	var clientOrderId any = DerefScalar(this.SafeString(order, "clientOrderId"))
-	if IsEqual(clientOrderId, "") {
+	var remaining *string = this.SafeString(order, "left")
+	var clientOrderId *string = this.SafeString(order, "clientOrderId")
+	if clientOrderId != nil && *clientOrderId == "" {
 		clientOrderId = nil
 	}
 	var price *string = this.SafeString(order, "price")

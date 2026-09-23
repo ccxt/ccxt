@@ -103,7 +103,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<String, Object> parameters)
+public CompletableFuture<Order> closePosition(Object symbol, String side, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -114,7 +114,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
-        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<List<Position>> closeAllPositions(Map<String, Object> parameters)
@@ -190,7 +190,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.fetchPositionHistory(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<List<Position>> fetchPositionsHistory(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -201,10 +201,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
     {
-        return this.fetchPositionsHistory(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.fetchPositionsHistory(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<List<Position>> fetchPositionsRisk(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositionsRisk(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -215,7 +215,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<List<Position>> fetchPositionsRisk(Object... optionalArgs)
     {
-        return this.fetchPositionsRisk(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositionsRisk(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<List<Position>> fetchPositionsForSymbol(Object symbol, Map<String, Object> parameters)
@@ -288,7 +288,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.watchTradesForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Tickers> fetchBidsAsks(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -299,7 +299,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
     {
-        return this.fetchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Ticker> fetchMarkPrice(String symbol2, Map<String, Object> parameters)
@@ -333,7 +333,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.fetchMarkPrice(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Tickers> fetchMarkPrices(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -344,10 +344,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<Tickers> fetchMarkPrices(Object... optionalArgs)
     {
-        return this.fetchMarkPrices(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchMarkPrices(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Tickers> watchBidsAsks(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -358,7 +358,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
-        return this.watchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchBidsAsks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Ticker> watchMarkPrice(String symbol, Map<String, Object> parameters)
@@ -375,7 +375,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.watchMarkPrice(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Tickers> watchMarkPrices(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -386,7 +386,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<Tickers> watchMarkPrices(Object... optionalArgs)
     {
-        return this.watchMarkPrices(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchMarkPrices(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<OrderBook> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> parameters)
@@ -478,7 +478,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrderWs(symbol, (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrderWs(symbol, "limit", "buy", (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -487,16 +487,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.createLimitBuyOrderWs(symbol, amount, price, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createLimitOrderWs(String symbol, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createLimitOrderWs(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrderWs(symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrderWs(symbol, "limit", (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createLimitOrderWs(String symbol, Object side, Object amount, Object price, Object... optionalArgs)
+    public CompletableFuture<Order> createLimitOrderWs(String symbol, String side, Object amount, Object price, Object... optionalArgs)
     {
         return this.createLimitOrderWs(symbol, side, amount, price, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -506,7 +506,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrderWs(symbol, (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrderWs(symbol, "limit", "sell", (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -520,7 +520,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrderWs(symbol, (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrderWs(symbol, "market", "buy", (Object)(amount), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -529,7 +529,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.createMarketBuyOrderWs(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createMarketOrderWithCostWs(String symbol, Object side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCostWs(String symbol, String side, Object cost, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -546,27 +546,27 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
              */
             if ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCostWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCostWs"), false)) || ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCostWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCostWs"), false)) && (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCostWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCostWs"), false))))
             {
-                return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
+                return (this.createOrderWs(symbol, "market", (String) (side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createMarketOrderWithCostWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createMarketOrderWithCostWs(String symbol, Object side, Object cost, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketOrderWithCostWs(String symbol, String side, Object cost, Object... optionalArgs)
     {
         return this.createMarketOrderWithCostWs(symbol, side, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createMarketOrderWs(String symbol, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWs(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrderWs(symbol, "market", (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createMarketOrderWs(String symbol, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketOrderWs(String symbol, String side, Object amount, Object... optionalArgs)
     {
         return this.createMarketOrderWs(symbol, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -576,7 +576,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrderWs(symbol, (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrderWs(symbol, "market", "sell", (Object)(amount), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -585,7 +585,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.createMarketSellOrderWs(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossWs(String symbol, Object type, Object side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossWs(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -612,21 +612,21 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
              * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
              * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
              */
-            parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
+            parameters = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLossWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLossWs"), false))
             {
-                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderWithTakeProfitAndStopLossWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null, Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -635,7 +635,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -654,7 +654,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.createOrdersWs(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createPostOnlyOrderWs(String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createPostOnlyOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -666,16 +666,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "postOnly", true );
             }});
-            return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createPostOnlyOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createPostOnlyOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createPostOnlyOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createReduceOnlyOrderWs(String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createReduceOnlyOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -687,16 +687,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "reduceOnly", true );
             }});
-            return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createReduceOnlyOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createReduceOnlyOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createReduceOnlyOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createStopLimitOrderWs(String symbol, Object side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createStopLimitOrderWs(String symbol, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -708,16 +708,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
             }});
-            return (this.createOrderWs(symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
+            return (this.createOrderWs(symbol, "limit", (String) (side), (Object)(amount), (Object)(price), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createStopLimitOrderWs(String symbol, Object side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
+    public CompletableFuture<Order> createStopLimitOrderWs(String symbol, String side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
     {
         return this.createStopLimitOrderWs(symbol, side, amount, price, triggerPrice, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createStopLossOrderWs(String symbol, Object type, Object side, Object amount, Object price, Object stopLossPrice2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createStopLossOrderWs(String symbol, String type, String side, Object amount, Object price, Object stopLossPrice2, Map<String, Object> parameters2)
     {
         final Object stopLossPrice3 = stopLossPrice2;
         final Map<String, Object> parameters3 = parameters2;
@@ -747,18 +747,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }});
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrderWs"), false))
             {
-                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createStopLossOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createStopLossOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createStopLossOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createStopLossOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createStopMarketOrderWs(String symbol, Object side, Object amount, Object triggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createStopMarketOrderWs(String symbol, String side, Object amount, Object triggerPrice, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -770,16 +770,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
             }});
-            return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(amount), (Object)(null), (Object)(query))).join();
+            return (this.createOrderWs(symbol, "market", (String) (side), (Object)(amount), (Object)(null), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createStopMarketOrderWs(String symbol, Object side, Object amount, Object triggerPrice, Object... optionalArgs)
+    public CompletableFuture<Order> createStopMarketOrderWs(String symbol, String side, Object amount, Object triggerPrice, Object... optionalArgs)
     {
         return this.createStopMarketOrderWs(symbol, side, amount, triggerPrice, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createStopOrderWs(String symbol, Object type, Object side, Object amount, Object price, Object triggerPrice2, Map<String, Object> parameters)
+    public CompletableFuture<Order> createStopOrderWs(String symbol, String type, String side, Object amount, Object price, Object triggerPrice2, Map<String, Object> parameters)
     {
         final Object triggerPrice3 = triggerPrice2;
         return BaseExchange.supplyAsync(() -> {
@@ -796,16 +796,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", finalTriggerPrice );
             }});
-            return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createStopOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createStopOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createStopOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createTakeProfitOrderWs(String symbol, Object type, Object side, Object amount, Object price, Object takeProfitPrice2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createTakeProfitOrderWs(String symbol, String type, String side, Object amount, Object price, Object takeProfitPrice2, Map<String, Object> parameters2)
     {
         final Object takeProfitPrice3 = takeProfitPrice2;
         final Map<String, Object> parameters3 = parameters2;
@@ -835,18 +835,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }});
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrderWs"), false))
             {
-                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createTakeProfitOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createTakeProfitOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createTakeProfitOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createTakeProfitOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createTrailingAmountOrderWs(String symbol, Object type, Object side, Object amount, Object price, Object trailingAmount2, Object trailingTriggerPrice2, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingAmountOrderWs(String symbol, String type, String side, Object amount, Object price, Object trailingAmount2, Object trailingTriggerPrice2, Map<String, Object> parameters)
     {
         final Object trailingAmount3 = trailingAmount2;
         final Object trailingTriggerPrice3 = trailingTriggerPrice2;
@@ -878,18 +878,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrderWs"), false))
             {
-                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createTrailingAmountOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createTrailingAmountOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createTrailingAmountOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createTrailingAmountOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null, Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createTrailingPercentOrderWs(String symbol, Object type, Object side, Object amount, Object price, Object trailingPercent2, Object trailingTriggerPrice2, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingPercentOrderWs(String symbol, String type, String side, Object amount, Object price, Object trailingPercent2, Object trailingTriggerPrice2, Map<String, Object> parameters)
     {
         final Object trailingPercent3 = trailingPercent2;
         final Object trailingTriggerPrice3 = trailingTriggerPrice2;
@@ -921,18 +921,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrderWs"), false))
             {
-                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createTrailingPercentOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createTrailingPercentOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createTrailingPercentOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createTrailingPercentOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null, Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createTriggerOrderWs(String symbol, Object type, Object side, Object amount, Object price, Object triggerPrice2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createTriggerOrderWs(String symbol, String type, String side, Object amount, Object price, Object triggerPrice2, Map<String, Object> parameters2)
     {
         final Object triggerPrice3 = triggerPrice2;
         final Map<String, Object> parameters3 = parameters2;
@@ -962,28 +962,28 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }});
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrderWs"), false))
             {
-                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createTriggerOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createTriggerOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createTriggerOrderWs(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createTriggerOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             (this.cancelOrderWs(id, (Object)(symbol))).join();
-            return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrderWs(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -1096,7 +1096,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.fetchPositionWs(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<List<Position>> fetchPositionsWs(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositionsWs(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1107,7 +1107,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<List<Position>> fetchPositionsWs(Object... optionalArgs)
     {
-        return this.fetchPositionsWs(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositionsWs(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Ticker> fetchTickerWs(String symbol2, Map<String, Object> parameters)
@@ -1141,7 +1141,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.fetchTickerWs(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Tickers> fetchTickersWs(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickersWs(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1152,7 +1152,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<Tickers> fetchTickersWs(Object... optionalArgs)
     {
-        return this.fetchTickersWs(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickersWs(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<List<Trade>> fetchTradesWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -1299,7 +1299,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.editLimitOrder(id, symbol, (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.editLimitOrder(id, symbol, "buy", (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -1313,7 +1313,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.editLimitOrder(id, symbol, (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.editLimitOrder(id, symbol, "sell", (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -1322,36 +1322,36 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.editLimitSellOrder(id, symbol, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> editLimitOrder(String id, String symbol, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.editOrder(id, symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.editOrder(id, symbol, "limit", (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> editLimitOrder(String id, String symbol, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Object amount, Object... optionalArgs)
     {
         return this.editLimitOrder(id, symbol, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             (this.cancelOrder((Object)(id), (Object)(symbol))).join();
-            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1359,11 +1359,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "clientOrderId", clientOrderId );
             }});
-            return (this.editOrder("", symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(extendedParams))).join();
+            return (this.editOrder("", symbol, (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(extendedParams))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Object... optionalArgs)
     {
         return this.editOrderWithClientOrderId(clientOrderId, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
@@ -1382,7 +1382,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.fetchPosition(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<List<Position>> watchPositions(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1393,10 +1393,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<List<Position>> watchPositionForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> watchPositionForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1407,10 +1407,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<List<Position>> watchPositionForSymbols(Object... optionalArgs)
     {
-        return this.watchPositionForSymbols(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.watchPositionForSymbols(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1421,7 +1421,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Ticker> fetchTicker(String symbol2, Map<String, Object> parameters)
@@ -1469,7 +1469,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Tickers> fetchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1480,10 +1480,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Tickers> watchTickers(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1494,7 +1494,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
     }
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
-        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
@@ -1577,7 +1577,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.fetchUnifiedOrder(order, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1586,12 +1586,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createTrailingAmountOrder(String symbol, Object type, Object side, Object amount, Object price, Object trailingAmount2, Object trailingTriggerPrice2, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingAmountOrder(String symbol, String type, String side, Object amount, Object price, Object trailingAmount2, Object trailingTriggerPrice2, Map<String, Object> parameters)
     {
         final Object trailingAmount3 = trailingAmount2;
         final Object trailingTriggerPrice3 = trailingTriggerPrice2;
@@ -1623,18 +1623,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrder"), false))
             {
-                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createTrailingAmountOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createTrailingAmountOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createTrailingAmountOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createTrailingAmountOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null, Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, Object type, Object side, Object amount, Object price, Object trailingPercent2, Object trailingTriggerPrice2, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Object amount, Object price, Object trailingPercent2, Object trailingTriggerPrice2, Map<String, Object> parameters)
     {
         final Object trailingPercent3 = trailingPercent2;
         final Object trailingTriggerPrice3 = trailingTriggerPrice2;
@@ -1666,18 +1666,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrder"), false))
             {
-                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createTrailingPercentOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createTrailingPercentOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null, Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1694,13 +1694,13 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
              */
             if ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), false))))
             {
-                return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
+                return (this.createOrder((Object)(symbol), "market", (String) (side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createMarketOrderWithCost() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Object... optionalArgs)
     {
         return this.createMarketOrderWithCost(symbol, side, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -1721,7 +1721,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
              */
             if ((java.util.Objects.equals(((Map<String, Object>)this.options).get("createMarketBuyOrderRequiresPrice"), true)) || (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), false)))
             {
-                return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
+                return (this.createOrder((Object)(symbol), "market", "buy", (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
         }).thenApply(Order::new);
@@ -1748,7 +1748,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
              */
             if ((java.util.Objects.equals(((Map<String, Object>)this.options).get("createMarketSellOrderRequiresPrice"), true)) || (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), false)))
             {
-                return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
+                return (this.createOrder((Object)(symbol), "market", "sell", (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
         }).thenApply(Order::new);
@@ -1759,7 +1759,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.createMarketSellOrderWithCost(symbol, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createTriggerOrder(String symbol, Object type, Object side, Object amount, Object price, Object triggerPrice2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createTriggerOrder(String symbol, String type, String side, Object amount, Object price, Object triggerPrice2, Map<String, Object> parameters2)
     {
         final Object triggerPrice3 = triggerPrice2;
         final Map<String, Object> parameters3 = parameters2;
@@ -1789,18 +1789,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }});
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrder"), false))
             {
-                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createTriggerOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createTriggerOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createTriggerOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createTriggerOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createStopLossOrder(String symbol, Object type, Object side, Object amount, Object price, Object stopLossPrice2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createStopLossOrder(String symbol, String type, String side, Object amount, Object price, Object stopLossPrice2, Map<String, Object> parameters2)
     {
         final Object stopLossPrice3 = stopLossPrice2;
         final Map<String, Object> parameters3 = parameters2;
@@ -1830,18 +1830,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }});
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrder"), false))
             {
-                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createStopLossOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createStopLossOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createStopLossOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createStopLossOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createTakeProfitOrder(String symbol, Object type, Object side, Object amount, Object price, Object takeProfitPrice2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createTakeProfitOrder(String symbol, String type, String side, Object amount, Object price, Object takeProfitPrice2, Map<String, Object> parameters2)
     {
         final Object takeProfitPrice3 = takeProfitPrice2;
         final Map<String, Object> parameters3 = parameters2;
@@ -1871,18 +1871,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             }});
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrder"), false))
             {
-                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createTakeProfitOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createTakeProfitOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createTakeProfitOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createTakeProfitOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLoss(String symbol, Object type, Object side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters2)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
@@ -1909,16 +1909,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
              * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
              * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
              */
-            parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
+            parameters = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
             if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLoss"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLoss"), false))
             {
-                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+                return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLoss(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null, Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
@@ -2189,30 +2189,30 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createLimitOrder(String symbol, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createLimitOrder(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "limit", (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createLimitOrder(String symbol, Object side, Object amount, Object price, Object... optionalArgs)
+    public CompletableFuture<Order> createLimitOrder(String symbol, String side, Object amount, Object price, Object... optionalArgs)
     {
         return this.createLimitOrder(symbol, side, amount, price, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createMarketOrder(String symbol, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrder(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "market", (String) (side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createMarketOrder(String symbol, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketOrder(String symbol, String side, Object amount, Object... optionalArgs)
     {
         return this.createMarketOrder(symbol, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2222,7 +2222,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "limit", "buy", (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -2236,7 +2236,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "limit", "sell", (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -2250,7 +2250,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "market", "buy", (Object)(amount), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -2264,7 +2264,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
+            return (this.createOrder((Object)(symbol), "market", "sell", (Object)(amount), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -2273,7 +2273,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
         return this.createMarketSellOrder(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createPostOnlyOrder(String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createPostOnlyOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2285,16 +2285,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "postOnly", true );
             }});
-            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
+            return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createPostOnlyOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createPostOnlyOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createPostOnlyOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createReduceOnlyOrder(String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createReduceOnlyOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2306,16 +2306,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "reduceOnly", true );
             }});
-            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
+            return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createReduceOnlyOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createReduceOnlyOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createReduceOnlyOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createStopOrder(String symbol, Object type, Object side, Object amount, Object price, Object triggerPrice2, Map<String, Object> parameters)
+    public CompletableFuture<Order> createStopOrder(String symbol, String type, String side, Object amount, Object price, Object triggerPrice2, Map<String, Object> parameters)
     {
         final Object triggerPrice3 = triggerPrice2;
         return BaseExchange.supplyAsync(() -> {
@@ -2332,16 +2332,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", finalTriggerPrice );
             }});
-            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
+            return (this.createOrder((Object)(symbol), (String) (type), (String) (side), (Object)(amount), (Object)(price), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createStopOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createStopOrder(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createStopOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createStopLimitOrder(String symbol, Object side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createStopLimitOrder(String symbol, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2353,16 +2353,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
             }});
-            return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
+            return (this.createOrder((Object)(symbol), "limit", (String) (side), (Object)(amount), (Object)(price), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createStopLimitOrder(String symbol, Object side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
+    public CompletableFuture<Order> createStopLimitOrder(String symbol, String side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
     {
         return this.createStopLimitOrder(symbol, side, amount, price, triggerPrice, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Order> createStopMarketOrder(String symbol, Object side, Object amount, Object triggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createStopMarketOrder(String symbol, String side, Object amount, Object triggerPrice, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2374,11 +2374,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object side, Map<St
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
             }});
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(amount), (Object)(null), (Object)(query))).join();
+            return (this.createOrder((Object)(symbol), "market", (String) (side), (Object)(amount), (Object)(null), (Object)(query))).join();
         }).thenApply(Order::new);
 
     }
-    public CompletableFuture<Order> createStopMarketOrder(String symbol, Object side, Object amount, Object triggerPrice, Object... optionalArgs)
+    public CompletableFuture<Order> createStopMarketOrder(String symbol, String side, Object amount, Object triggerPrice, Object... optionalArgs)
     {
         return this.createStopMarketOrder(symbol, side, amount, triggerPrice, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }

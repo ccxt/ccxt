@@ -2060,12 +2060,18 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 	var symbolBase []string = Split(symbol, "/")
 	var marketIdBase []string = Split(symbol, "_")
 	var base any = nil
-	var expiry any = DerefScalar(this.SafeString(optionParts, 1))
+	var expiry *string = this.SafeString(optionParts, 1)
 	if GetIndexOf(symbol, "/") > -1 {
 		base = DerefScalar(this.SafeString(symbolBase, 0))
 	} else {
 		base = DerefScalar(this.SafeString(marketIdBase, 0))
-		expiry = Slice(expiry, 2, 8) // convert 20230728 to 230728
+		expiry = SafeStringPtr(func() string {
+			if expiry == nil {
+				return ""
+			}
+			str := *expiry
+			return str[2:min(8, len(str))]
+		}()) // convert 20230728 to 230728
 	}
 	var strike *string = this.SafeString(optionParts, 2)
 	var optionType *string = this.SafeString(optionParts, 3)
@@ -2532,10 +2538,10 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId any) map[s
 	var minPrice *string = Precise.StringMul(minMultiplier, markPrice)
 	var maxPrice *string = Precise.StringMul(maxMultiplier, markPrice)
 	var isLinear bool = (quote == settle || (quote != nil && settle != nil && *quote == *settle))
-	var contractSize any = DerefScalar(this.SafeString(market, "quanto_multiplier"))
+	var contractSize *string = this.SafeString(market, "quanto_multiplier")
 	// exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
-	if IsEqual(contractSize, "0") {
-		contractSize = "1" // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
+	if contractSize != nil && *contractSize == "0" {
+		contractSize = SafeStringPtr("1") // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
 	}
 	var status *string = this.SafeString(market, "status", "trading") // or "suspend"
 	return map[string]any{
@@ -2678,8 +2684,8 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 			var maxMultiplier *string = Precise.StringAdd("1", priceDeviate)
 			var minPrice *string = Precise.StringMul(minMultiplier, markPrice)
 			var maxPrice *string = Precise.StringMul(maxMultiplier, markPrice)
-			var createdTs any = this.SafeTimestamp(market, "create_time")
-			if IsEqual(createdTs, 0) {
+			var createdTs *int64 = this.SafeTimestamp(market, "create_time")
+			if createdTs != nil && *createdTs == 0 {
 				createdTs = nil
 			}
 			result = append(result, map[string]any{
@@ -2889,21 +2895,21 @@ func (this *Gate) GetMarginMode(trigger any, params any) any {
 	 * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
 	 */
 	var defaultMarginMode *string = this.SafeStringLower2(this.Options, "defaultMarginMode", "marginMode", "spot") // 'margin' is isolated margin on gate's api
-	var marginMode any = this.SafeStringLower2(params, "marginMode", "account", defaultMarginMode)
+	var marginMode *string = this.SafeStringLower2(params, "marginMode", "account", defaultMarginMode)
 	params = this.Omit(params, []any{"marginMode", "account"})
-	if IsEqual(marginMode, "cross") {
-		marginMode = "cross_margin"
-	} else if IsEqual(marginMode, "isolated") {
-		marginMode = "margin"
-	} else if IsEqual(marginMode, "") {
-		marginMode = "spot"
+	if marginMode != nil && *marginMode == "cross" {
+		marginMode = SafeStringPtr("cross_margin")
+	} else if marginMode != nil && *marginMode == "isolated" {
+		marginMode = SafeStringPtr("margin")
+	} else if marginMode != nil && *marginMode == "" {
+		marginMode = SafeStringPtr("spot")
 	}
 	if trigger == true {
-		if IsEqual(marginMode, "spot") {
+		if marginMode != nil && *marginMode == "spot" {
 			// gate spot trigger orders use the term normal instead of spot
-			marginMode = "normal"
+			marginMode = SafeStringPtr("normal")
 		}
-		if IsEqual(marginMode, "cross_margin") {
+		if marginMode != nil && *marginMode == "cross_margin" {
 			panic(BadRequest(this.Id + " getMarginMode() does not support trigger orders for cross margin"))
 		}
 	}
@@ -2912,7 +2918,7 @@ func (this *Gate) GetMarginMode(trigger any, params any) any {
 	isUnifiedAccount = GetValueBool(isUnifiedAccountparamsVariable, 0, false)
 	params = GetValue(isUnifiedAccountparamsVariable, 1)
 	if isUnifiedAccount {
-		marginMode = "unified"
+		marginMode = SafeStringPtr("unified")
 	}
 	return []any{marginMode, params}
 }
@@ -4243,13 +4249,13 @@ func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) any {
 	var bidVolume *string = this.SafeString2(ticker, "B", "bid1_size")
 	var askVolume *string = this.SafeString2(ticker, "A", "ask1_size")
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
-	var baseVolume any = DerefScalar(this.SafeString2(ticker, "base_volume", "volume_24h_base"))
-	if IsEqual(baseVolume, "nan") {
-		baseVolume = "0"
+	var baseVolume *string = this.SafeString2(ticker, "base_volume", "volume_24h_base")
+	if baseVolume != nil && *baseVolume == "nan" {
+		baseVolume = SafeStringPtr("0")
 	}
-	var quoteVolume any = DerefScalar(this.SafeString2(ticker, "quote_volume", "volume_24h_quote"))
-	if IsEqual(quoteVolume, "nan") {
-		quoteVolume = "0"
+	var quoteVolume *string = this.SafeString2(ticker, "quote_volume", "volume_24h_quote")
+	if quoteVolume != nil && *quoteVolume == "nan" {
+		quoteVolume = SafeStringPtr("0")
 	}
 	var percentage *string = this.SafeString(ticker, "change_percentage")
 	return this.SafeTicker(map[string]any{
@@ -5471,10 +5477,16 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString2(trade, "id", "trade_id")
 	var timestamp any = nil
-	var msString any = DerefScalar(this.SafeString(trade, "create_time_ms"))
-	if !IsEqual(msString, nil) {
+	var msString *string = this.SafeString(trade, "create_time_ms")
+	if msString != nil {
 		msString = Precise.StringMul(msString, "1000")
-		msString = Slice(msString, 0, 13)
+		msString = SafeStringPtr(func() string {
+			if msString == nil {
+				return ""
+			}
+			str := *msString
+			return str[0:min(13, len(str))]
+		}())
 		timestamp = this.ParseToInt(msString)
 	} else {
 		timestamp = this.SafeTimestamp2(trade, "time", "create_time")
@@ -6833,43 +6845,43 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) any {
 	var put map[string]any = SafeDict2Typed(order, "put", "initial")
 	var trigger map[string]any = SafeMapTyped(order, "trigger")
 	var contract *string = this.SafeString(put, "contract")
-	var typeVar any = DerefScalar(this.SafeString(put, "type"))
-	var timeInForce any = this.SafeStringUpper2(put, "time_in_force", "tif")
+	var typeVar *string = this.SafeString(put, "type")
+	var timeInForce *string = this.SafeStringUpper2(put, "time_in_force", "tif")
 	var amount *string = this.SafeString2(put, "amount", "size")
-	var side any = DerefScalar(this.SafeString(put, "side"))
-	var price any = DerefScalar(this.SafeString(put, "price"))
+	var side *string = this.SafeString(put, "side")
+	var price *string = this.SafeString(put, "price")
 	contract = this.SafeString(order, "contract", contract)
-	typeVar = DerefScalar(this.SafeString(order, "type", typeVar))
+	typeVar = this.SafeString(order, "type", typeVar)
 	timeInForce = this.SafeStringUpper2(order, "time_in_force", "tif", timeInForce)
-	if IsEqual(timeInForce, "POC") {
-		timeInForce = "PO"
+	if timeInForce != nil && *timeInForce == "POC" {
+		timeInForce = SafeStringPtr("PO")
 	}
-	var postOnly bool = (IsEqual(timeInForce, "PO"))
+	var postOnly bool = (timeInForce != nil && *timeInForce == "PO")
 	amount = this.SafeString2(order, "amount", "size", amount)
-	side = DerefScalar(this.SafeString(order, "side", side))
-	price = DerefScalar(this.SafeString(order, "price", price))
+	side = this.SafeString(order, "side", side)
+	price = this.SafeString(order, "price", price)
 	var remainingString *string = this.SafeString(order, "left")
-	var cost any = DerefScalar(this.SafeString(order, "filled_total"))
+	var cost *string = this.SafeString(order, "filled_total")
 	var triggerPrice *float64 = this.SafeNumber(trigger, "price")
 	var average any = DerefScalar(this.SafeNumber2(order, "avg_deal_price", "fill_price"))
 	if (triggerPrice != nil) && (triggerPrice == nil || *triggerPrice != 0) {
 		remainingString = amount
-		cost = "0"
+		cost = SafeStringPtr("0")
 	}
 	if (contract != nil) && (contract == nil || *contract != "") {
-		var isMarketOrder bool = Precise.StringEquals(price, "0") && (IsEqual(timeInForce, "IOC"))
-		typeVar = func() string {
+		var isMarketOrder bool = Precise.StringEquals(price, "0") && (timeInForce != nil && *timeInForce == "IOC")
+		typeVar = SafeStringPtr(func() string {
 			if isMarketOrder {
 				return "market"
 			}
 			return "limit"
-		}()
-		side = func() string {
+		}())
+		side = SafeStringPtr(func() string {
 			if Precise.StringGt(amount, "0") {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 	}
 	var rawStatus *string = this.SafeStringN(order, []any{"finish_as", "status", "open"})
 	var timestampStr *string = this.SafeString(order, "create_time_ms")
@@ -6945,7 +6957,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) any {
 	if (account != nil && *account == "spot") || (account != nil && *account == "unified") {
 		var averageString *string = this.SafeString(order, "avg_deal_price")
 		average = this.ParseNumber(averageString)
-		if (IsEqual(typeVar, "market")) && (IsEqual(side, "buy")) {
+		if (typeVar != nil && *typeVar == "market") && (side != nil && *side == "buy") {
 			remaining = Precise.StringDiv(remainingString, averageString)
 			price = nil // arrives as 0
 			cost = amount
@@ -8160,13 +8172,13 @@ func (this *Gate) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	query := GetValue(requestqueryVariable, 1)
 	var defaultMarginMode *string = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
 	var crossLeverageLimit *string = this.SafeString(query, "cross_leverage_limit")
-	var marginMode any = this.SafeString(query, "marginMode", defaultMarginMode)
+	var marginMode *string = this.SafeString(query, "marginMode", defaultMarginMode)
 	var stringifiedMargin *string = this.NumberToString(leverage)
 	if crossLeverageLimit != nil {
-		marginMode = "cross"
+		marginMode = SafeStringPtr("cross")
 		stringifiedMargin = crossLeverageLimit
 	}
-	if IsEqual(marginMode, "cross") || IsEqual(marginMode, "cross_margin") {
+	if (marginMode != nil && *marginMode == "cross") || (marginMode != nil && *marginMode == "cross_margin") {
 		AddElementToObject(request, "cross_leverage_limit", stringifiedMargin)
 		AddElementToObject(request, "leverage", "0")
 	} else {
@@ -8295,12 +8307,12 @@ func (this *Gate) ParsePosition(position any, optionalArgs ...any) any {
 	var contract *string = this.SafeString(position, "contract")
 	market = MapTyped(this.SafeMarket(contract, market, "_", "contract"))
 	var size *string = this.SafeString2(position, "size", "accum_size")
-	var side any = DerefScalar(this.SafeString(position, "side"))
-	if IsEqual(side, nil) {
+	var side *string = this.SafeString(position, "side")
+	if side == nil {
 		if Precise.StringGt(size, "0") {
-			side = "long"
+			side = SafeStringPtr("long")
 		} else if Precise.StringLt(size, "0") {
-			side = "short"
+			side = SafeStringPtr("short")
 		}
 	}
 	var notional *string = this.SafeString(position, "value")
@@ -8327,8 +8339,8 @@ func (this *Gate) ParsePosition(position any, optionalArgs ...any) any {
 	if (marginBalance != nil) && (unrealisedPnl != nil) {
 		collateral = Precise.StringAdd(marginBalance, unrealisedPnl)
 	}
-	var timestamp any = this.SafeTimestamp2(position, "open_time", "first_open_time")
-	if IsEqual(timestamp, 0) {
+	var timestamp *int64 = this.SafeTimestamp2(position, "open_time", "first_open_time")
+	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
 	}
 	return this.SafePosition(map[string]any{

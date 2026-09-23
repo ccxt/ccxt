@@ -2517,8 +2517,8 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(order, "creation_timestamp")
 	var lastUpdate *int64 = this.SafeInteger(order, "last_update_timestamp")
 	var id *string = this.SafeString(order, "order_id")
-	var priceString any = DerefScalar(this.SafeString(order, "price"))
-	if IsEqual(priceString, "market_price") {
+	var priceString *string = this.SafeString(order, "price")
+	if priceString != nil && *priceString == "market_price" {
 		priceString = nil
 	}
 	var averageString *string = this.SafeString(order, "average_price")
@@ -3544,13 +3544,13 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
 	market = MapTyped(this.SafeMarket(contract, market))
-	var side any = DerefScalar(this.SafeString(position, "direction"))
-	side = func() string {
-		if IsEqual(side, "buy") {
+	var side *string = this.SafeString(position, "direction")
+	side = SafeStringPtr(func() string {
+		if side != nil && *side == "buy" {
 			return "long"
 		}
 		return "short"
-	}()
+	}())
 	var unrealizedPnl *string = this.SafeString(position, "floating_profit_loss")
 	var initialMarginString *string = this.SafeString(position, "initial_margin")
 	var notionalString *string = this.SafeString(position, "size_currency")

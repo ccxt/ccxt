@@ -935,15 +935,15 @@ func (this *Phemex) ParseSwapMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseCurrency", contractUnderlyingAssets)
 	var quoteId *string = this.SafeString(market, "quoteCurrency")
 	var settleId *string = this.SafeString(market, "settleCurrency")
-	var base any = DerefScalar(this.SafeCurrencyCode(baseId))
-	base = Replace(base, " ", "") // replace space for junction codes, eg. `1000 SHIB`
+	var base *string = this.SafeCurrencyCode(baseId)
+	base = SafeStringPtr(Replace(base, " ", "")) // replace space for junction codes, eg. `1000 SHIB`
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var inverse bool = false
 	if settleId != quoteId && (settleId == nil || quoteId == nil || *settleId != *quoteId) {
 		inverse = true
 		// some unhandled cases
-		if !(InOp(market, "baseCurrency")) && IsEqual(base, quote) {
+		if !(InOp(market, "baseCurrency")) && (base == quote || (base != nil && quote != nil && *base == *quote)) {
 			base = settle
 		}
 	}
@@ -2842,8 +2842,8 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "orderID")
-	var clientOrderId any = DerefScalar(this.SafeString(order, "clOrdID"))
-	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
+	var clientOrderId *string = this.SafeString(order, "clOrdID")
+	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil
 	}
 	var marketId *string = this.SafeString(order, "symbol")
@@ -3006,8 +3006,8 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(order, "orderID", "orderId")
-	var clientOrderId any = DerefScalar(this.SafeString2(order, "clOrdID", "clOrdId"))
-	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
+	var clientOrderId *string = this.SafeString2(order, "clOrdID", "clOrdId")
+	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil
 	}
 	var marketId *string = this.SafeString(order, "symbol")
@@ -3028,8 +3028,8 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) any {
 		timestamp = this.SafeInteger(order, "createdAt")
 	}
 	var cost *float64 = this.SafeNumber2(order, "cumValue", "cumValueRv")
-	var lastTradeTimestamp any = this.SafeIntegerProduct(order, "transactTimeNs", 0.000001)
-	if IsEqual(lastTradeTimestamp, 0) {
+	var lastTradeTimestamp *int64 = this.SafeIntegerProduct(order, "transactTimeNs", 0.000001)
+	if lastTradeTimestamp != nil && *lastTradeTimestamp == 0 {
 		lastTradeTimestamp = nil
 	}
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
@@ -3164,10 +3164,10 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	params = this.Omit(params, []any{"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"})
 	if GetValue(market, "spot") == true {
-		var qtyType any = DerefScalar(this.SafeString(params, "qtyType", "ByBase"))
+		var qtyType *string = this.SafeString(params, "qtyType", "ByBase")
 		if (IsEqual(typeVar, "Market")) || (IsEqual(typeVar, "Stop")) || (IsEqual(typeVar, "MarketIfTouched")) {
 			if price != nil {
-				qtyType = "ByQuote"
+				qtyType = SafeStringPtr("ByQuote")
 			}
 		}
 		if triggerPrice != nil {
@@ -3179,7 +3179,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			request["trigger"] = "ByLastPrice"
 		}
 		request["qtyType"] = qtyType
-		if IsEqual(qtyType, "ByQuote") {
+		if qtyType != nil && *qtyType == "ByQuote" {
 			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 			params = this.Omit(params, "cost")
 			if IsEqual(GetValue(this.Options, "createOrderByQuoteRequiresPrice"), true) {
@@ -3189,7 +3189,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 					var quoteAmount *string = Precise.StringMul(amountString, priceString)
 					cost = this.ParseNumber(quoteAmount)
 				} else if IsEqual(cost, nil) {
-					panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() ", qtyType), " requires a price argument or a cost parameter")))
+					panic(ArgumentsRequired(this.Id + " createOrder() " + *qtyType + " requires a price argument or a cost parameter"))
 				}
 			}
 			cost = func() any {
@@ -3207,8 +3207,8 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	} else if GetValue(market, "swap") == true {
 		var hedged *bool = this.SafeBool(params, "hedged", false)
 		params = this.Omit(params, "hedged")
-		var posSide any = this.SafeStringLower(params, "posSide")
-		if IsEqual(posSide, nil) {
+		var posSide *string = this.SafeStringLower(params, "posSide")
+		if posSide == nil {
 			if hedged != nil && *hedged == true {
 				var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 				if reduceOnly != nil && *reduceOnly == true {
@@ -3220,17 +3220,17 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 					}()
 					params = this.Omit(params, "reduceOnly")
 				}
-				posSide = func() string {
+				posSide = SafeStringPtr(func() string {
 					if IsEqual(side, "buy") {
 						return "Long"
 					}
 					return "Short"
-				}()
+				}())
 			} else {
-				posSide = "Merged"
+				posSide = SafeStringPtr("Merged")
 			}
 		}
-		posSide = this.Capitalize(posSide)
+		posSide = SafeStringPtr(this.Capitalize(posSide))
 		request["posSide"] = posSide
 		if isStableSettled {
 			request["orderQtyRq"] = this.AmountToPrecision(symbol, amount)
@@ -4513,14 +4513,14 @@ func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var code any = GetValue(currency, "code")
 	var networkId *string = this.SafeString(transaction, "chainName")
 	var timestamp *int64 = this.SafeIntegerN(transaction, []any{"createdAt", "submitedAt", "submittedAt"})
-	var typeVar any = this.SafeStringLower(transaction, "type")
+	var typeVar *string = this.SafeStringLower(transaction, "type")
 	var feeCost any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "feeEv"), this.SafeInteger(currency, "valueScale")))
 	if IsEqual(feeCost, nil) {
 		feeCost = DerefScalar(this.SafeNumber(transaction, "feeRv"))
 	}
 	var fee any = nil
 	if !IsEqual(feeCost, nil) {
-		typeVar = "withdrawal"
+		typeVar = SafeStringPtr("withdrawal")
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": code,

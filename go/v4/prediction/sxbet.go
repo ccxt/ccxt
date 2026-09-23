@@ -2041,18 +2041,18 @@ func (this *Sxbet) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var usdcDecimals string = "1000000"
 	var balancesLength int = len(balances)
 	for i := 0; i < balancesLength; i++ {
-		var row any = func() any {
+		var row map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return ccxt.DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var tokenAddress *string = this.SafeStringLower(row, "tokenAddress", "")
 		// every sxbet market is denominated in the active base token, surfaced under 'USDC'
 		// rows of any other token keep their contract address for the code
-		var code any = ccxt.DerefScalar(this.SafeString(row, "tokenAddress", ""))
+		var code *string = this.SafeString(row, "tokenAddress", "")
 		if tokenAddress == usdcAddress || (tokenAddress != nil && usdcAddress != nil && *tokenAddress == *usdcAddress) {
-			code = "USDC"
+			code = ccxt.SafeStringPtr("USDC")
 		}
 		var free *string = ccxt.Precise.StringDiv(this.SafeString(row, "availableAmount", "0"), usdcDecimals, 6)
 		var used *string = ccxt.Precise.StringDiv(this.SafeString(row, "escrowedAmount", "0"), usdcDecimals, 6)
@@ -3300,7 +3300,7 @@ func (this *Sxbet) HandleTicker(client any, rows any) {
 	var watchedSyms []string = ccxt.ObjectKeys(watchedTickers)
 	var rowsLength int = ccxt.GetArrayLength(rows)
 	for i := 0; i < rowsLength; i++ {
-		var entry any = ccxt.GetValue(rows, i)
+		var entry map[string]any = ccxt.MapTyped(ccxt.GetValue(rows, i))
 		var marketHash *string = this.SafeString(entry, "marketHash")
 		if marketHash == nil {
 			continue

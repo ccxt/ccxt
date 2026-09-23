@@ -2157,7 +2157,7 @@ func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	currency = MapTyped(this.SafeCurrency(nil, currency))
-	var direction any = this.SafeString(entry, "direction")
+	var direction *string = this.SafeString(entry, "direction")
 	var before *string = this.SafeString(entry, "before")
 	var after *string = this.SafeString(entry, "after")
 	var amount *string = this.SafeString(entry, "amount")
@@ -2169,12 +2169,12 @@ func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 		}
 	}
 	if (before != nil) && (after != nil) {
-		if IsEqual(direction, nil) {
+		if direction == nil {
 			if Precise.StringGt(before, after) {
-				direction = "out"
+				direction = SafeStringPtr("out")
 			}
 			if Precise.StringGt(after, before) {
-				direction = "in"
+				direction = SafeStringPtr("in")
 			}
 		}
 	}
@@ -2210,7 +2210,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 	if length != 0 {
 		for i := 0; i < length; i++ {
 			var key string = keys[i]
-			var network any = GetValue(networks, key)
+			var network map[string]any = MapTyped(GetValue(networks, key))
 			var deposit *bool = this.SafeBool(network, "deposit")
 			var currencyDeposit *bool = this.SafeBool(currency, "deposit")
 			if (currencyDeposit == nil) || (deposit != nil && *deposit == true) {
@@ -2617,9 +2617,9 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 		order = map[string]any{}
 	}
 	var amount any = this.OmitZero(this.SafeString(order, "amount"))
-	var remaining any = this.SafeString(order, "remaining")
+	var remaining *string = this.SafeString(order, "remaining")
 	var filled any = this.SafeString(order, "filled")
-	var cost any = this.SafeString(order, "cost")
+	var cost *string = this.SafeString(order, "cost")
 	var average any = this.OmitZero(this.SafeString(order, "average"))
 	var price any = this.OmitZero(this.SafeString(order, "price"))
 	var lastTradeTimeTimestamp any = this.SafeInteger(order, "lastTradeTimestamp")
@@ -2627,7 +2627,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeString(order, "side")
 	var status *string = this.SafeString(order, "status")
 	var parseFilled bool = (IsEqual(filled, nil))
-	var parseCost bool = (IsEqual(cost, nil))
+	var parseCost bool = (cost == nil)
 	var parseLastTradeTimeTimestamp bool = (IsEqual(lastTradeTimeTimestamp, nil))
 	var fee any = this.SafeValue(order, "fee")
 	var parseFee bool = (IsEqual(fee, nil))
@@ -2676,10 +2676,10 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 				filled = "0"
 			}
 			if parseCost {
-				cost = "0"
+				cost = SafeStringPtr("0")
 			}
 			for i := 0; i < GetArrayLength(trades); i++ {
-				var trade any = GetValue(trades, i)
+				var trade map[string]any = MapTyped(GetValue(trades, i))
 				var tradeAmount *string = this.SafeString(trade, "amount")
 				if parseFilled && (tradeAmount != nil) {
 					filled = Precise.StringAdd(filled, tradeAmount)
@@ -2750,24 +2750,24 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	}
 	if amount == nil {
 		// ensure amount = filled + remaining
-		if !IsEqual(filled, nil) && !IsEqual(remaining, nil) {
+		if !IsEqual(filled, nil) && (remaining != nil) {
 			amount = Precise.StringAdd(filled, remaining)
 		} else if status != nil && *status == "closed" {
 			amount = filled
 		}
 	}
 	if IsEqual(filled, nil) {
-		if (amount != nil) && !IsEqual(remaining, nil) {
+		if (amount != nil) && (remaining != nil) {
 			filled = Precise.StringSub(amount, remaining)
 		} else if (status != nil && *status == "closed") && (amount != nil) {
 			filled = amount
 		}
 	}
-	if IsEqual(remaining, nil) {
+	if remaining == nil {
 		if (amount != nil) && !IsEqual(filled, nil) {
 			remaining = Precise.StringSub(amount, filled)
 		} else if status != nil && *status == "closed" {
-			remaining = "0"
+			remaining = SafeStringPtr("0")
 		}
 	}
 	// ensure that the average field is calculated correctly
@@ -2779,7 +2779,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	// linear
 	// price = cost / (filled * contract size)
 	if average == nil {
-		if (!IsEqual(filled, nil)) && (!IsEqual(cost, nil)) && Precise.StringGt(filled, "0") {
+		if (!IsEqual(filled, nil)) && (cost != nil) && Precise.StringGt(filled, "0") {
 			var filledTimesContractSize *string = Precise.StringMul(filled, contractSize)
 			if inverse != nil && *inverse == true {
 				average = Precise.StringDiv(filledTimesContractSize, cost)
@@ -2794,7 +2794,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	//
 	// linear
 	// cost = filled * contract size * price
-	var costPriceExists bool = (average != nil) || (price != nil)
+	var costPriceExists bool = (average != nil) || (!IsEqual(price, nil))
 	if parseCost && (!IsEqual(filled, nil)) && costPriceExists {
 		var multiplyPrice any = nil
 		if average == nil {
@@ -2812,7 +2812,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	}
 	// support for market orders
 	var orderType any = this.SafeValue(order, "type")
-	var emptyPrice bool = (price == nil) || Precise.StringEquals(price, "0")
+	var emptyPrice bool = (IsEqual(price, nil)) || Precise.StringEquals(price, "0")
 	if emptyPrice && (orderType == "market") {
 		price = average
 	}
@@ -2834,20 +2834,20 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 		AddElementToObject(entry, "fees", entryFees)
 		AddElementToObject(entry, "fee", tradeFee)
 	}
-	var timeInForce any = this.SafeString(order, "timeInForce")
+	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly any = this.SafeValue(order, "postOnly")
 	// timeInForceHandling
-	if IsEqual(timeInForce, nil) {
+	if timeInForce == nil {
 		if !isTriggerOrSLTpOrder && (this.SafeString(order, "type") != nil && *this.SafeString(order, "type") == "market") {
-			timeInForce = "IOC"
+			timeInForce = SafeStringPtr("IOC")
 		}
 		// allow postOnly override
 		if postOnly == true {
-			timeInForce = "PO"
+			timeInForce = SafeStringPtr("PO")
 		}
 	} else if IsEqual(postOnly, nil) {
 		// timeInForce is not undefined here
-		postOnly = IsEqual(timeInForce, "PO")
+		postOnly = (timeInForce != nil && *timeInForce == "PO")
 	}
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "lastUpdateTimestamp")
@@ -3245,7 +3245,7 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) any {
 	//
 	var reduced map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(fees); i++ {
-		var fee any = GetValue(fees, i)
+		var fee map[string]any = MapTyped(GetValue(fees, i))
 		var code *string = this.SafeString(fee, "currency")
 		var feeCurrencyCode any = func() any {
 			if code != nil {
@@ -5010,9 +5010,9 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	var options map[string]any = SafeMapTyped(this.Options, "buildOHLCVC")
 	var skipZeroPrices *bool = this.SafeBool(options, "skipZeroPrices", true)
 	for i := 0; IsLessThan(i, oldest); i++ {
-		var trade any = GetValue(trades, i)
-		var ts any = GetValue(trade, "timestamp")
-		var price any = GetValue(trade, "price")
+		var trade map[string]any = MapTyped(GetValue(trades, i))
+		var ts any = trade["timestamp"]
+		var price any = trade["price"]
 		if (IsEqual(ts, nil)) || (IsEqual(price, nil)) {
 			continue
 		}
@@ -5037,7 +5037,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		var isFirstCandle bool = (candle == OpNeg(1))
 		if isFirstCandle || IsGreaterThanOrEqual(openingTime, this.Sum(GetValue(GetValue(ohlcvs, candle), i_timestamp), ms)) {
 			// moved to a new timeframe -> create a new candle from opening trade
-			ohlcvs = append(ohlcvs, []any{openingTime, price, price, price, price, GetValue(trade, "amount"), 1})
+			ohlcvs = append(ohlcvs, []any{openingTime, price, price, price, price, trade["amount"], 1})
 		} else {
 			// still processing the same timeframe -> update opening trade
 			var prevHigh any = GetValue(GetValue(ohlcvs, candle), i_high)
@@ -5057,7 +5057,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 			AddElementToObject(GetValue(ohlcvs, candle), i_high, mathMax(prevHighValue, price))
 			AddElementToObject(GetValue(ohlcvs, candle), i_low, mathMin(prevLowValue, price))
 			AddElementToObject(GetValue(ohlcvs, candle), i_close, price)
-			AddElementToObject(GetValue(ohlcvs, candle), i_volume, this.Sum(GetValue(GetValue(ohlcvs, candle), i_volume), GetValue(trade, "amount")))
+			AddElementToObject(GetValue(ohlcvs, candle), i_volume, this.Sum(GetValue(GetValue(ohlcvs, candle), i_volume), trade["amount"]))
 			AddElementToObject(GetValue(ohlcvs, candle), i_count, this.Sum(GetValue(GetValue(ohlcvs, candle), i_count), 1))
 		}
 	}
@@ -6568,7 +6568,7 @@ func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ..
 	if IsEqual(code, nil) {
 		panic(ArgumentsRequired(this.Id + " currencyToPrecision() requires a code argument"))
 	}
-	var currency any = GetValue(this.Currencies, code)
+	var currency map[string]any = MapTyped(GetValue(this.Currencies, code))
 	var precision any = this.SafeValue(currency, "precision")
 	if networkCode != nil {
 		var networks map[string]any = SafeMapTyped(currency, "networks")
@@ -7029,9 +7029,9 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalAr
 	_ = exchangeSpecificKey
 	var allowEmpty bool = GetArgBool(optionalArgs, 1, false)
 	_ = allowEmpty
-	var triggerDirection any = this.SafeString(params, "triggerDirection")
+	var triggerDirection *string = this.SafeString(params, "triggerDirection")
 	var exchangeSpecificDefined bool = (exchangeSpecificKey != nil) && (InOp(params, exchangeSpecificKey))
-	if !IsEqual(triggerDirection, nil) {
+	if triggerDirection != nil {
 		params = this.Omit(params, "triggerDirection")
 	}
 	// throw exception if:
@@ -7041,10 +7041,10 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalAr
 		panic(ArgumentsRequired(this.Id + " createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\""))
 	}
 	// if old format was provided, overwrite to new
-	if IsEqual(triggerDirection, "up") || IsEqual(triggerDirection, "above") {
-		triggerDirection = "ascending"
-	} else if IsEqual(triggerDirection, "down") || IsEqual(triggerDirection, "below") {
-		triggerDirection = "descending"
+	if (triggerDirection != nil && *triggerDirection == "up") || (triggerDirection != nil && *triggerDirection == "above") {
+		triggerDirection = SafeStringPtr("ascending")
+	} else if (triggerDirection != nil && *triggerDirection == "down") || (triggerDirection != nil && *triggerDirection == "below") {
+		triggerDirection = SafeStringPtr("descending")
 	}
 	return []any{triggerDirection, params}
 }

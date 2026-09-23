@@ -879,7 +879,7 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	if ccxt.IsEqual(orderbook, nil) {
 		// const limit = [ 5, 10, 20, 50, 100 ]
 		var subscriptionHash *string = dataType
-		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+		var subscription map[string]any = ccxt.MapTyped(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash))
 		// see handleOHLCV — subscription.limit may be missing for non-orderbook callers
 		// default to a reasonable depth instead of throwing NPE in the Java port.
 		var limit *int64 = this.SafeInteger(subscription, "limit", 100)
@@ -1036,7 +1036,7 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 	var unifiedTimeframe any = this.FindTimeframe(rawTimeframe, timeframes)
 	if ccxt.IsEqual(this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), rawTimeframe), nil) {
 		var subscriptionHash *string = dataType
-		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+		var subscription map[string]any = ccxt.MapTyped(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash))
 		// subscription.limit is only set when watchOHLCV registers the subscription
 		// when handleMessage routes a non-ccxt.OHLCV-originated subscription here (or the
 		// subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -1680,15 +1680,15 @@ func (this *Bingx) ParseWsPosition(position any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(position, "s")
 	var contracts *string = this.SafeString(position, "pa")
 	var contractsAbs *string = ccxt.Precise.StringAbs(contracts)
-	var positionSide any = this.SafeStringLower(position, "ps")
+	var positionSide *string = this.SafeStringLower(position, "ps")
 	var hedged bool = true
-	if ccxt.IsEqual(positionSide, "both") {
+	if positionSide != nil && *positionSide == "both" {
 		hedged = false
 		if !ccxt.Precise.StringEq(contracts, "0") {
 			if ccxt.Precise.StringLt(contracts, "0") {
-				positionSide = "short"
+				positionSide = ccxt.SafeStringPtr("short")
 			} else {
-				positionSide = "long"
+				positionSide = ccxt.SafeStringPtr("long")
 			}
 		}
 	}
