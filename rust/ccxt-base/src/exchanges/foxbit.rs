@@ -241,7 +241,7 @@ impl FoxbitCore {
         m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.foxbit.com.br".into())]));
     m
 }));
-        m.insert("precisionMode".to_string(), Value::Int(crate::runtime::DECIMAL_PLACES));
+        m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("exceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
@@ -699,7 +699,6 @@ impl FoxbitCore {
 }
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
-        let mut precision: Value = self.safe_integer_k(rawCurrency.clone(), "precision", &[]);
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "symbol", &[]);
         let mut name: Value = self.safe_string_k(rawCurrency.clone(), "name", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -732,7 +731,7 @@ impl FoxbitCore {
         m.insert("deposit".to_string(), isDepositEnabled);
         m.insert("withdraw".to_string(), isWithdrawEnabled);
         m.insert("active".to_string(), Value::Bool(true));
-        m.insert("precision".to_string(), precision.clone());
+        m.insert("precision".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(networkWithdrawInfo, "fee", &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -765,14 +764,14 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId);
         m.insert("code".to_string(), code);
-        m.insert("info".to_string(), rawCurrency);
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("name".to_string(), name);
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("type".to_string(), type_var);
         m.insert("deposit".to_string(), self.safe_bool_k(depositInfo.clone(), "enabled", &[Value::Bool(false)]));
         m.insert("withdraw".to_string(), self.safe_bool_k(withdrawInfo.clone(), "enabled", &[Value::Bool(false)]));
         m.insert("fee".to_string(), self.safe_number_k(withdrawInfo.clone(), "fee", &[]));
-        m.insert("precision".to_string(), precision);
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency, "precision", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -2269,9 +2268,9 @@ impl FoxbitCore {
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut baseAssets: Value = self.safe_dict_k(market.clone(), "base", &[]);
-        let mut baseId: Value = self.safe_string_k(baseAssets.clone(), "symbol", &[]);
+        let mut baseId: Value = self.safe_string_k(baseAssets, "symbol", &[]);
         let mut quoteAssets: Value = self.safe_dict_k(market.clone(), "quote", &[]);
-        let mut quoteId: Value = self.safe_string_k(quoteAssets.clone(), "symbol", &[]);
+        let mut quoteId: Value = self.safe_string_k(quoteAssets, "symbol", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
@@ -2308,9 +2307,8 @@ impl FoxbitCore {
         m.insert("feeSide".to_string(), Value::Str("get".into()));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("price".to_string(), self.safe_integer_k(quoteAssets.clone(), "precision", &[]));
-        m.insert("amount".to_string(), self.safe_integer_k(baseAssets, "precision", &[]));
-        m.insert("cost".to_string(), self.safe_integer_k(quoteAssets, "precision", &[]));
+        m.insert("price".to_string(), self.safe_number_k(market.clone(), "price_increment", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(market.clone(), "quantity_increment", &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
