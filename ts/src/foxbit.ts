@@ -404,7 +404,7 @@ export default class foxbit extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'active': true,
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (network, 'precision'))),
+                    'precision': undefined,
                     'fee': this.safeNumber (networkWithdrawInfo, 'fee'),
                     'limits': {
                         'amount': {
@@ -1703,9 +1703,8 @@ export default class foxbit extends Exchange {
             'tierBased': false,
             'feeSide': 'get',
             'precision': {
-                'price': this.parseNumber (this.parsePrecision (this.safeString (quoteAssets, 'precision'))),
-                'amount': this.parseNumber (this.parsePrecision (this.safeString (baseAssets, 'precision'))),
-                'cost': this.parseNumber (this.parsePrecision (this.safeString (quoteAssets, 'precision'))),
+                'price': this.safeNumber (quoteAssets, 'price_increment'),
+                'amount': this.safeNumber (baseAssets, 'quantity_increment'),
             },
             'limits': {
                 'amount': {
