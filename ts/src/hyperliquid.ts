@@ -1134,8 +1134,8 @@ export default class hyperliquid extends Exchange {
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         const shouldRefresh = (this.safeString2 (params, 'user', 'address') !== undefined) && this.safeBool (params, 'enableUnifiedMargin') === undefined;
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchBalance', params);
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsPublicAddress);
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchBalance', paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsPublicAddress);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBalance', paramsMarketType);
         const [ isUnifiedEnabled, paramsValue ] = await this.isUnifiedEnabled ('fetchBalance', userAddress, shouldRefresh, paramsMarginMode);
         const dex = this.safeString (paramsValue, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
@@ -1288,7 +1288,7 @@ export default class hyperliquid extends Exchange {
         let response: List = [];
         const type = this.safeString (params, 'type');
         const paramsOmitted: Dict = this.omit (params, 'type');
-        const [ hip3Option, paramsHip3 ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsOmitted, 'fetchTickers', 'hip3', false);
+        const [ hip3Option, paramsHip3 ] = this.handleOptionAndParams (paramsOmitted, 'fetchTickers', 'hip3', false);
         let hip3 = hip3Option;
         if (symbolsNormalized !== undefined) {
             // infer from first symbol
@@ -1947,7 +1947,7 @@ export default class hyperliquid extends Exchange {
      */
     async isUnifiedEnabled (method: string, address: Str = undefined, shouldRefresh: boolean = false, params: Dict = {}): Promise<[Bool, Dict]> {
         let publicAddress: Str = undefined;
-        let paramsPublicAddress: Dict = undefined;
+        let paramsPublicAddress: Dict = {};
         if (address === undefined) {
             [ publicAddress, paramsPublicAddress ] = this.handlePublicAddress ('isUnifiedEnabled', params);
         }
@@ -2553,7 +2553,7 @@ export default class hyperliquid extends Exchange {
         }
         const market = this.market (symbol);
         let vaultAddress: Str = undefined;
-        let params2: Dict = undefined;
+        let params2 = undefined;
         [ vaultAddress, params2 ] = this.handleOptionAndParams (params, 'cancelTwapOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const action: Dict = {
@@ -3130,7 +3130,7 @@ export default class hyperliquid extends Exchange {
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchOpenOrders', params);
-        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
+        const [ method, paramsMethod ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3332,7 +3332,7 @@ export default class hyperliquid extends Exchange {
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         let userAddress: Str = undefined;
-        let params2: Dict = undefined;
+        let params2 = undefined;
         [ userAddress, params2 ] = this.handlePublicAddress ('fetchOrder', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -4519,7 +4519,7 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         let userAddress: Str = undefined;
-        let params2: Dict = undefined;
+        let params2 = undefined;
         [ userAddress, params2 ] = this.handlePublicAddress ('fetchLedger', params);
         const request: Dict = {
             'type': 'userNonFundingLedgerUpdates',
@@ -4619,7 +4619,7 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         let userAddress: Str = undefined;
-        let params2: Dict = undefined;
+        let params2 = undefined;
         [ userAddress, params2 ] = this.handlePublicAddress ('fetchDepositsWithdrawals', params);
         const request: Dict = {
             'type': 'userNonFundingLedgerUpdates',
@@ -4693,7 +4693,7 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         let userAddress: Str = undefined;
-        let params2: Dict = undefined;
+        let params2 = undefined;
         [ userAddress, params2 ] = this.handlePublicAddress ('fetchDepositsWithdrawals', params);
         const request: Dict = {
             'type': 'userNonFundingLedgerUpdates',
@@ -4980,7 +4980,7 @@ export default class hyperliquid extends Exchange {
     }
 
     handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
-        const [ userAux, paramsUser ]: [ Str, Dict ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
+        const [ userAux, paramsUser ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         const [ user, paramsAddress ] = this.handleOptionAndParams (paramsUser, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
             return [ user, paramsAddress ];
@@ -5089,7 +5089,7 @@ export default class hyperliquid extends Exchange {
     parseCreateEditOrderArgs (id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): [Dict, Dict] {
         const market = this.market (symbol);
         let vaultAddress: Str = undefined;
-        let params2: Dict = undefined;
+        let params2 = undefined;
         [ vaultAddress, params2 ] = this.handleOptionAndParams2 (params, 'createOrder', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const symbolValue: string = market['symbol'];

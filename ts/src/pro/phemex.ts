@@ -324,7 +324,7 @@ export default class phemex extends phemexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString (paramsMarketType, 'settle') === 'USDT';
         let messageHash = ':balance';
         messageHash = usePerpetualApi ? 'perpetual' + messageHash : type + messageHash;
@@ -826,7 +826,7 @@ export default class phemex extends phemexRest {
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
         const settleRequest: Dict = isUsdtMarket ? { 'settle': 'USDT' } : {};
-        const [ type, paramsType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchMyTrades', market, this.extend (params, settleRequest));
+        const [ type, paramsType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, this.extend (params, settleRequest));
         if (symbolResolved === undefined) {
             const settle = this.safeString (paramsType, 'settle');
             messageHash = (settle === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
@@ -990,7 +990,7 @@ export default class phemex extends phemexRest {
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
         const settleRequest: Dict = isUsdtMarket ? { 'settle': 'USDT' } : {};
-        const [ type, paramsType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchOrders', market, this.extend (params, settleRequest));
+        const [ type, paramsType ] = this.handleMarketTypeAndParams ('watchOrders', market, this.extend (params, settleRequest));
         const isUSDTSettled = this.safeString (paramsType, 'settle') === 'USDT';
         if (symbolResolved === undefined) {
             messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);

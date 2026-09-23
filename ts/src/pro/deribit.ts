@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Bool, Market, List } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -399,7 +399,7 @@ export default class deribit extends deribitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const [ interval, paramsInterval ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
         if (interval === 'raw') {
             await this.authenticate ();
         }
@@ -569,14 +569,14 @@ export default class deribit extends deribitRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        const [ interval, paramsInterval ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
         if (interval === 'raw') {
             await this.authenticate ();
         }
         // for more info on useDepthEndpoint, see comment in .options
-        const [ useDepthEndpoint, paramsUseDepthEndpoint ]: [ Bool, Dict ] = this.handleOptionAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
-        const [ depth, paramsDepth ]: [ Str, Dict ] = this.handleOptionAndParams (paramsUseDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
-        const [ group, paramsGroup ]: [ Str, Dict ] = this.handleOptionAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+        const [ useDepthEndpoint, paramsUseDepthEndpoint ] = this.handleOptionAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        const [ depth, paramsDepth ] = this.handleOptionAndParams (paramsUseDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+        const [ group, paramsGroup ] = this.handleOptionAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
         const descriptor = (useDepthEndpoint) ? (group + '.' + depth + '.' + interval) : interval;
         const paramsResolved: Dict = (useDepthEndpoint) ? paramsGroup : paramsUseDepthEndpoint;
         const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, paramsResolved);

@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -712,7 +712,7 @@ export default class bydfi extends Exchange {
             const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
-        const [ contractType, paramsContractType ]: [ string, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'contractType', 'FUTURE');
+        const [ contractType, paramsContractType ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'contractType', 'FUTURE');
         const request: Dict = {
             'contractType': contractType,
         };
@@ -849,7 +849,9 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
@@ -862,7 +864,7 @@ export default class bydfi extends Exchange {
         let startTime = since;
         const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
         let until: Int = undefined;
-        let paramsUntil: Dict = undefined;
+        let paramsUntil = undefined;
         [ until, paramsUntil ] = this.handleOptionAndParams (paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
@@ -1133,7 +1135,7 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -1705,7 +1707,7 @@ export default class bydfi extends Exchange {
             const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
-        const [ contractType, paramsContractType ]: [ string, Dict ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'contractType', 'FUTURE');
+        const [ contractType, paramsContractType ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'contractType', 'FUTURE');
         const request: Dict = {
             'contractType': contractType,
         };
@@ -1770,7 +1772,7 @@ export default class bydfi extends Exchange {
 
     handleSinceAndUntil (methodName: string, since: Int = undefined, params: Dict = {}): Dict {
         let until: Int = undefined;
-        let paramsUntil: Dict = undefined;
+        let paramsUntil = undefined;
         [ until, paramsUntil ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
@@ -1874,7 +1876,7 @@ export default class bydfi extends Exchange {
         const isTakeProfitOrder = (rawType === 'TAKE_PROFIT') || (rawType === 'TAKE_PROFIT_MARKET');
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseOrderTimeInForce (rawTimeInForce);
-        let postOnly: Bool = undefined;
+        let postOnly = false;
         if (timeInForce === 'PO') {
             postOnly = true;
         }
@@ -2166,7 +2168,7 @@ export default class bydfi extends Exchange {
         const buyOrSell = this.safeString (position, 'side');
         const rawPositionSide = this.safeStringLower (position, 'positionSide');
         let positionSide = this.parsePositionSide (buyOrSell);
-        let hedged: Bool = undefined;
+        let hedged = false;
         let isFetchPositionsHistory = false;
         if (rawPositionSide !== undefined) {
             isFetchPositionsHistory = true;
@@ -2481,8 +2483,8 @@ export default class bydfi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ wallet, paramsWallet ]: [ string, Dict ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'wallet', 'W001');
-        const [ contractType, paramsContractType ]: [ string, Dict ] = this.handleOptionAndParams (paramsWallet, 'fetchPositionMode', 'contractType', 'FUTURE');
+        const [ wallet, paramsWallet ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'wallet', 'W001');
+        const [ contractType, paramsContractType ] = this.handleOptionAndParams (paramsWallet, 'fetchPositionMode', 'contractType', 'FUTURE');
         let settleCoin: Str = 'USDT';
         let query: Dict = paramsContractType;
         if (symbol === undefined) {
@@ -2538,8 +2540,8 @@ export default class bydfi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const [ wallet, paramsWallet ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchBalance', 'wallet');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ wallet, paramsWallet ] = this.handleOptionAndParams (paramsMarketType, 'fetchBalance', 'wallet');
         const request: Dict = {};
         let response: Dict;
         if (wallet === undefined) {
@@ -2695,7 +2697,7 @@ export default class bydfi extends Exchange {
         const request: Dict = {
             'asset': currency['id'],
         };
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        const [ until, paramsUntil ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         // exchange requires endTime, and startTime but allows any value
         const sinceResolved = (since === undefined) ? 1 : since;
         request['startTime'] = sinceResolved;
@@ -2828,7 +2830,7 @@ export default class bydfi extends Exchange {
             'asset': currency['id'],
         };
         let until: Int = undefined;
-        let paramsUntil: Dict = undefined;
+        let paramsUntil = undefined;
         [ until, paramsUntil ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days

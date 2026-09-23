@@ -401,7 +401,7 @@ export default class lighter extends Exchange {
         if (signer !== undefined) {
             return signer;
         }
-        const [ libraryPath ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath');
+        const [ libraryPath ] = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath');
         const lighterPrivateKeyIsSet = (privateKey !== undefined) && (privateKey !== '');
         if (lighterPrivateKeyIsSet && (libraryPath !== undefined) && (apiKeyIndex !== undefined) && (accountIndex !== undefined)) {
             // load lighter library, and create lighter client
@@ -898,7 +898,7 @@ export default class lighter extends Exchange {
             return nonceInOptions;
         }
         // avoid skipNonce for l1 operations
-        const [ skipNonce ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchNonce', 'skipNonce', true);
+        const [ skipNonce ] = this.handleOptionAndParams (params, 'fetchNonce', 'skipNonce', true);
         if (skipNonce) {
             return this.milliseconds ();
         }
@@ -913,7 +913,7 @@ export default class lighter extends Exchange {
         const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         paramsAccountIndex['accountIndex'] = accountIndex;
         const market = this.market (symbol);
-        const [ groupingType, paramsGroupingType ]: [ Int, Dict ] = this.handleOptionAndParams (paramsAccountIndex, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        const [ groupingType, paramsGroupingType ] = this.handleOptionAndParams (paramsAccountIndex, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, paramsGroupingType);
         const totalOrderRequests = orderRequests.length;
         let apiKeyIndex: Int = undefined;
@@ -2486,7 +2486,7 @@ export default class lighter extends Exchange {
         }
         const [ apiKeyIndex, paramsApiKeyIndex ] = this.handleApiKeyIndex (params, 'transfer', 'apiKeyIndex', 'api_key_index');
         const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (paramsApiKeyIndex, 'transfer', 'accountIndex', 'account_index');
-        const [ toAccountIndex, paramsToAccountIndex ]: [ Int, Dict ] = this.handleOptionAndParams2 (paramsAccountIndex, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex);
+        const [ toAccountIndex, paramsToAccountIndex ] = this.handleOptionAndParams2 (paramsAccountIndex, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex);
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex);
@@ -2540,7 +2540,9 @@ export default class lighter extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 50) as TransferEntry[];
         }
@@ -2643,11 +2645,13 @@ export default class lighter extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
-        const [ address, paramsAddress ]: [ Str, Dict ] = this.handleOptionAndParams2 (paramsPaginate, 'fetchDeposits', 'address', 'l1_address');
+        const [ address, paramsAddress ] = this.handleOptionAndParams2 (paramsPaginate, 'fetchDeposits', 'address', 'l1_address');
         if (address === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
         }
@@ -2705,7 +2709,9 @@ export default class lighter extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
@@ -2884,7 +2890,9 @@ export default class lighter extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'next_cursor', 'cursor', undefined, 50) as Trade[];
         }
@@ -2901,7 +2909,7 @@ export default class lighter extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100);
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams2 (paramsApiKeyIndex, 'fetchMyTrades', 'until', 'from');
+        const [ until, paramsUntil ] = this.handleOptionAndParams2 (paramsApiKeyIndex, 'fetchMyTrades', 'until', 'from');
         if (until !== undefined) {
             request['from'] = until;
         }
@@ -3037,7 +3045,7 @@ export default class lighter extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleOptionAndParams2 (params, 'setLeverage', 'marginMode', 'margin_mode');
+        const [ marginMode, paramsMarginMode ] = this.handleOptionAndParams2 (params, 'setLeverage', 'marginMode', 'margin_mode');
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires an marginMode parameter');
         }
@@ -3060,7 +3068,7 @@ export default class lighter extends Exchange {
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an marginMode parameter');
         }
-        const [ leverage, paramsLeverage ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage');
+        const [ leverage, paramsLeverage ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage');
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an leverage parameter');
         }

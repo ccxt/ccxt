@@ -6,7 +6,7 @@ import Exchange from './abstract/bingx.js';
 import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, SubType, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, Bool, DepositWithdrawFees, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
+import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
 import type { Liquidation, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -1376,7 +1376,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict;
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         if (limit !== undefined) {
             const maxLimit = (marketType === 'spot') ? 500 : 1000;
             request['limit'] = Math.min (limit, maxLimit);
@@ -1623,7 +1623,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict;
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         if (limit !== undefined) {
             if (marketType === 'spot') {
                 request['limit'] = Math.min (limit, 1000); // api maximum 1000
@@ -1867,7 +1867,9 @@ export default class bingx extends Exchange {
         if (market['inverse'] === true) {
             throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for inverse swap markets');
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
@@ -1944,7 +1946,9 @@ export default class bingx extends Exchange {
         if (isInverse) {
             throw new NotSupported (this.id + ' fetchFundingHistory() is not supported for inverse swap markets');
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsSubType, 'fetchFundingHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (paramsSubType, 'fetchFundingHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingHistory', symbol, since, limit, '24h', paramsPaginate) as FundingHistory[];
         }
@@ -2201,8 +2205,8 @@ export default class bingx extends Exchange {
                 market = this.market (firstSymbol);
             }
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
         let response: Dict;
         if (type === 'spot') {
             response = await this.spotV1PublicGetTicker24hr (paramsSubType);
@@ -2261,7 +2265,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchMarkPrice', market, params, 'linear');
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMarkPrice', market, params, 'linear');
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -2328,7 +2332,7 @@ export default class bingx extends Exchange {
                 market = this.market (firstSymbol);
             }
         }
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchMarkPrices', market, params, 'linear');
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMarkPrices', market, params, 'linear');
         let response: Dict;
         if (subType === 'inverse') {
             response = await this.cswapV1PublicGetMarketPremiumIndex (paramsSubType);
@@ -2489,8 +2493,8 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         let response: Dict;
-        const [ standard, paramsStandard ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'fetchBalance', 'standard', false);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchBalance', undefined, paramsStandard);
+        const [ standard, paramsStandard ] = this.handleOptionAndParams (params, 'fetchBalance', 'standard', false);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBalance', undefined, paramsStandard);
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsSubType);
         if (standard) {
             response = await this.contractV1PrivateGetBalance (marketTypeQuery);
@@ -3187,7 +3191,7 @@ export default class bingx extends Exchange {
         } else if (timeInForce === 'GTC') {
             request['timeInForce'] = 'GTC';
         }
-        let paramsOrder: Dict = undefined;
+        let paramsOrder = undefined;
         if (isSpot) {
             paramsOrder = this.omit (paramsPostOnly, [ 'cost', 'quoteOrderQty' ]);
             if (cost !== undefined) {
@@ -3950,7 +3954,7 @@ export default class bingx extends Exchange {
         const positionSide = this.safeString2 (orderData, 'positionSide', 'ps');
         const marketType = (positionSide === undefined) ? 'spot' : 'swap';
         const marketId = this.safeString2 (orderData, 'symbol', 's');
-        const marketResolved = (marketResolved === undefined) ? this.safeMarket (marketId, undefined, undefined, marketType) : marketResolved;
+        const marketResolved = (market === undefined) ? this.safeMarket (marketId, undefined, undefined, marketType) : market;
         const side = this.safeStringLower2 (orderData, 'side', 'S');
         const timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
         const lastTradeTimestamp = this.safeInteger2 (orderData, 'updateTime', 'T');
@@ -4256,8 +4260,8 @@ export default class bingx extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, paramsMarketType ]: [ string, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('cancelAllOrders', market, paramsMarketType);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('cancelAllOrders', market, paramsMarketType);
         let response: Dict;
         if (marketType === 'spot') {
             response = await this.spotV1PrivatePostTradeCancelOpenOrders (this.extend (request, paramsSubType));
@@ -4515,8 +4519,8 @@ export default class bingx extends Exchange {
             'timeOut': (isActive) ? (this.parseToInt ((timeout as number) / 1000)) : 0,
         };
         let response: Dict;
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('cancelAllOrdersAfter', undefined, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrdersAfter', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('cancelAllOrdersAfter', undefined, paramsMarketType);
         if ((type === 'swap') && (subType === 'inverse')) {
             throw new NotSupported (this.id + ' cancelAllOrdersAfter() is not supported for inverse swap markets');
         }
@@ -4742,7 +4746,7 @@ export default class bingx extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' fetchOrders() is only supported for swap markets');
         }
@@ -5257,7 +5261,7 @@ export default class bingx extends Exchange {
         }
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('transfer', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('transfer', undefined, params);
         let fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         let toId = this.safeString (accountsByType, toAccount, toAccount);
         if (fromId === 'swap') {
@@ -5347,7 +5351,7 @@ export default class bingx extends Exchange {
             request['toAccount'] = toId;
         }
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, paramsPaginate, maxLimit);
         }
@@ -5774,7 +5778,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
             'marginType': marginModeValue,
         };
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('setMarginMode', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('setMarginMode', market, params);
         if (subType === 'inverse') {
             return await this.cswapV1PrivatePostTradeMarginType (this.extend (request, paramsSubType));
         } else {
@@ -6054,7 +6058,7 @@ export default class bingx extends Exchange {
         const request: Dict = {};
         let fills: Trade[];
         let response: Dict;
-        let paramsTrades: Dict = undefined;
+        let paramsTrades = undefined;
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
         if (subType === 'inverse') {
             paramsTrades = paramsSubType;
@@ -6345,7 +6349,7 @@ export default class bingx extends Exchange {
         if (limit !== undefined) {
             requestUntil['limit'] = Math.min (limit, 100); // api maximum 100
         }
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, paramsUntil);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, paramsUntil);
         let response: Dict;
         let liquidations: NullableList = undefined;
         if (subType === 'inverse') {
@@ -6550,8 +6554,8 @@ export default class bingx extends Exchange {
         }
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         const recvWindow = this.safeInteger (params, 'recvWindow', defaultRecvWindow);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('closeAllPositions', undefined, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('closeAllPositions', undefined, paramsMarketType);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('closeAllPositions', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('closeAllPositions', undefined, paramsMarketType);
         if (marketType === 'margin') {
             throw new BadRequest (this.id + ' closePositions () cannot be used for ' + marketType + ' markets');
         }
@@ -6613,7 +6617,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
             market = this.market (symbol);
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
         if ((subType === 'inverse') || ((market !== undefined) && (market['inverse'] === true))) {
             throw new NotSupported (this.id + ' fetchPositionMode() is not supported for inverse swap markets');
         }
@@ -6652,7 +6656,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
             market = this.market (symbol);
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
         if ((subType === 'inverse') || ((market !== undefined) && (market['inverse'] === true))) {
             throw new NotSupported (this.id + ' setPositionMode() is not supported for inverse swap markets');
         }
@@ -6838,7 +6842,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict;
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
         if (subType === 'inverse') {
             response = await this.cswapV1PrivateGetTradeMarginType (this.extend (request, paramsSubType));
             //

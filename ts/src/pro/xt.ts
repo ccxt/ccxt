@@ -199,7 +199,7 @@ export default class xt extends xtRest {
      */
     async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: Strings = undefined, params: Dict = {}) {
         const privateAccess = access === 'private';
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
         const subscribe: Dict = {
@@ -254,7 +254,7 @@ export default class xt extends xtRest {
      */
     async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: Strings = undefined, params = {}, subscriptionParams = {}): Promise<any> {
         const privateAccess = access === 'private';
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
         const unsubscribe: Dict = {

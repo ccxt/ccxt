@@ -1934,7 +1934,9 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, paramsPaginate, 'page', 500) as Order[];
         }
@@ -2631,7 +2633,9 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500) as Trade[];
         }
@@ -3622,7 +3626,9 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500) as FundingHistory[];
         }
@@ -3843,7 +3849,9 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'page', 25) as FundingRateHistory[];
         }

@@ -818,7 +818,9 @@ export default class btse extends Exchange {
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const maxLimit = 300;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
@@ -963,7 +965,7 @@ export default class btse extends Exchange {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports contract markets only');
         }
         let period = undefined;
-        let paramsPeriod: Dict = undefined;
+        let paramsPeriod = undefined;
         [ period, paramsPeriod ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'period');
         if (period === undefined) {
             period = '7D';
@@ -1043,7 +1045,7 @@ export default class btse extends Exchange {
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'spot');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'spot');
         let response = undefined;
         if (marketType === 'spot') {
             const walletResponse = await this.privateGetPublicApiWalletV1UserAssets (paramsMarketType);
@@ -1655,9 +1657,9 @@ export default class btse extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let paramsUntil: Dict = undefined;
+        let paramsUntil = undefined;
         [ request, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsUntil, 'spot');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsUntil, 'spot');
         let response = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
@@ -2362,7 +2364,7 @@ export default class btse extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrder', market, paramsOmitted, 'spot');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, paramsOmitted, 'spot');
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetSpotApiV4TradeOrder (this.extend (request, paramsMarketType));
@@ -3564,7 +3566,7 @@ export default class btse extends Exchange {
         const request: Dict = {
             'symbol': this.futuresRequestId (market),
         };
-        const [ orderType, paramsOrderType ]: [ string, Dict ] = this.handleOptionAndParams (params, 'closePosition', 'type', 'market');
+        const [ orderType, paramsOrderType ] = this.handleOptionAndParams (params, 'closePosition', 'type', 'market');
         const typeUpper = orderType.toUpperCase ();
         request['orderType'] = typeUpper;
         if (typeUpper === 'LIMIT') {
@@ -3758,7 +3760,7 @@ export default class btse extends Exchange {
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let requestBody: Str = undefined;
-        let requestHeaders: Dict = undefined;
+        let requestHeaders = undefined;
         const baseUrl = this.urls['api'][api];
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));

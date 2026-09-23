@@ -835,7 +835,7 @@ export default class deribit extends Exchange {
         const instrumentsResponses: List = [];
         const result: List = [];
         const parsedMarkets: Dict = {};
-        const [ fetchAllMarkets, paramsFetchAllMarkets ]: [ Bool, Dict ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
+        const [ fetchAllMarkets, paramsFetchAllMarkets ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
         if (fetchAllMarkets) {
             const instrumentsResponse = await this.publicGetGetInstruments (paramsFetchAllMarkets);
             instrumentsResponses.push (instrumentsResponse);
@@ -1496,7 +1496,9 @@ export default class deribit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 5000) as OHLCV[];
         }
@@ -1508,10 +1510,11 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
         // at max, it provides 5000 bars, but we set generous default here
-        const limitResolved: Int = (since === undefined && limit === undefined) ? 1000 : limit;
+        const windowLimit = (limit === undefined) ? 1000 : limit;
+        const limitResolved = (since === undefined) ? windowLimit : limit;
         const sinceResolved: Int = (since === undefined) ? undefined : Math.max (since - 1, 0);
         if (since === undefined) {
-            request['start_timestamp'] = now - (limitResolved - 1) * duration * 1000;
+            request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000;
             request['end_timestamp'] = now;
         } else {
             request['start_timestamp'] = sinceResolved;
@@ -3316,7 +3319,9 @@ export default class deribit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         const maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
         const eachItemDuration = '1h';
         if (paginate) {
@@ -3435,7 +3440,9 @@ export default class deribit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', undefined) as Liquidation[];
         }

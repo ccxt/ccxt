@@ -1352,18 +1352,18 @@ export default class hashkey extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ string, Dict ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (paramsMarketType, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (paramsMarketType, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const [ accountId, paramsAccountId ]: [ Str, Dict ] = this.handleOptionAndParams (paramsUntil, methodName, 'accountId');
+        const [ accountId, paramsAccountId ] = this.handleOptionAndParams (paramsUntil, methodName, 'accountId');
         let response: Dict | List | undefined = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
@@ -1564,7 +1564,9 @@ export default class hashkey extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, methodName, 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, methodName, 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000) as OHLCV[];
         }
@@ -1580,7 +1582,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (paramsPaginate, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (paramsPaginate, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -1996,7 +1998,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2047,7 +2049,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2383,7 +2385,7 @@ export default class hashkey extends Exchange {
         if (since === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a since argument');
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an until argument');
         }
@@ -2397,11 +2399,11 @@ export default class hashkey extends Exchange {
             request['limit'] = limit;
         }
         request['endTime'] = until;
-        const [ flowType, paramsFlowType ]: [ Str, Dict ] = this.handleOptionAndParams (paramsUntil, methodName, 'flowType');
+        const [ flowType, paramsFlowType ] = this.handleOptionAndParams (paramsUntil, methodName, 'flowType');
         if (flowType !== undefined) {
             request['flowType'] = this.encodeFlowType (flowType);
         }
-        const [ accountType, paramsAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (paramsFlowType, methodName, 'accountType');
+        const [ accountType, paramsAccountType ] = this.handleOptionAndParams (paramsFlowType, methodName, 'accountType');
         if (accountType !== undefined) {
             request['accountType'] = this.encodeAccountType (accountType);
         }
@@ -2722,7 +2724,7 @@ export default class hashkey extends Exchange {
         if (amount !== undefined) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        const [ cost, paramsCost ]: [ Str, Dict ] = this.handleParamString (params, 'cost');
+        const [ cost, paramsCost ] = this.handleParamString (params, 'cost');
         if (cost !== undefined) {
             request['quantity'] = this.costToPrecision (symbol, cost);
         }
@@ -2730,11 +2732,13 @@ export default class hashkey extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const isMarketOrder = typeValue === 'MARKET';
-        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (isMarketOrder, typeValue === 'LIMIT_MAKER', paramsCost);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, typeValue === 'LIMIT_MAKER', paramsCost);
         if (postOnly && (typeValue === 'LIMIT')) {
             request['type'] = 'LIMIT_MAKER';
         }
-        const [ clientOrderId, paramsClientOrderId ]: [ Str, Dict ] = this.handleParamString (paramsPostOnly, 'clientOrderId');
+        let clientOrderId: Str = undefined;
+        let paramsClientOrderId: Dict = {};
+        [ clientOrderId, paramsClientOrderId ] = this.handleParamString (paramsPostOnly, 'clientOrderId');
         if (clientOrderId !== undefined) {
             paramsClientOrderId['newClientOrderId'] = clientOrderId;
         }
@@ -3316,7 +3320,7 @@ export default class hashkey extends Exchange {
         let market: Market = undefined;
         const request: Dict = {};
         let response: NullableDict = undefined;
-        const [ accountId, paramsAccountId ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMethodName, methodNameOption, 'accountId');
+        const [ accountId, paramsAccountId ] = this.handleOptionAndParams (paramsMethodName, methodNameOption, 'accountId');
         if (accountId !== undefined) {
             request['subAccountId'] = accountId;
             response = await this.privateGetApiV1SpotSubAccountOpenOrders (this.extend (request, paramsAccountId));
@@ -3399,7 +3403,7 @@ export default class hashkey extends Exchange {
             request['limit'] = limit;
         }
         let response: NullableDict = undefined;
-        const [ accountId, paramsAccountId ]: [ Str, Dict ] = this.handleOptionAndParams (paramsTrigger, methodNameOption, 'accountId');
+        const [ accountId, paramsAccountId ] = this.handleOptionAndParams (paramsTrigger, methodNameOption, 'accountId');
         if (accountId !== undefined) {
             request['subAccountId'] = accountId;
             response = await this.privateGetApiV1FuturesSubAccountOpenOrders (this.extend (request, paramsAccountId));

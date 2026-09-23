@@ -389,7 +389,7 @@ export default class lbank extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     override async fetchTime (params: Dict = {}): Promise<Int> {
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response: Dict;
         if (type === 'swap') {
             response = await this.contractPublicGetCfdOpenApiV1PubGetTime (paramsMarketType);
@@ -856,15 +856,15 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        const symbolsNormalized = (symbols !== undefined) ? this.marketSymbols (symbols) : symbols;
-        if (symbols !== undefined) {
+        const symbolsNormalized = this.marketSymbols (symbols);
+        if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 0) {
                 market = this.market (symbolsNormalized[0]);
             }
         }
         const request: Dict = {};
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response: Dict;
         if (type === 'swap') {
             request['productGroup'] = 'SwapU';
@@ -942,7 +942,7 @@ export default class lbank extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         let response: Dict;
         if (type === 'swap') {
             request['depth'] = limitResolved;

@@ -664,7 +664,7 @@ export default class cex extends Exchange {
         if (since !== undefined) {
             request['fromDateISO'] = this.iso8601 (since);
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleParamInteger2 (params, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request['toDateISO'] = this.iso8601 (until);
         }
@@ -780,7 +780,7 @@ export default class cex extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        const [ dataType, paramsDataType ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'dataType');
+        const [ dataType, paramsDataType ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'dataType');
         if (dataType === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
         }
@@ -796,7 +796,7 @@ export default class cex extends Exchange {
         if (since !== undefined) {
             request['fromISO'] = this.iso8601 (since);
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleParamInteger2 (paramsDataType, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (paramsDataType, 'until', 'till');
         if (until !== undefined) {
             request['toISO'] = this.iso8601 (until);
         } else if (since === undefined) {
@@ -959,8 +959,8 @@ export default class cex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
-        const [ accountName, paramsAccount ]: [ Str, Dict ] = this.handleParamString (params, 'account', ''); // default is empty string
-        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleParamString (paramsAccount, 'method', 'privatePostGetMyWalletBalance');
+        const [ accountName, paramsAccount ] = this.handleParamString (params, 'account', ''); // default is empty string
+        const [ method, paramsMethod ] = this.handleParamString (paramsAccount, 'method', 'privatePostGetMyWalletBalance');
         let accountBalance: NullableDict = undefined;
         if (method === 'privatePostGetMyAccountStatusV3') {
             const response = await this.privatePostGetMyAccountStatusV3 (paramsMethod);
@@ -1055,7 +1055,7 @@ export default class cex extends Exchange {
             // exchange requires a `since` parameter for closed orders, so set default to allowed 365
             request['serverCreateTimestampFrom'] = this.milliseconds () - 364 * 24 * 60 * 60 * 1000;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleParamInteger2 (params, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request['serverCreateTimestampTo'] = until;
         }
@@ -1287,7 +1287,7 @@ export default class cex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
-        const [ accountId, paramsAccountId ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
+        const [ accountId, paramsAccountId ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
@@ -1308,12 +1308,12 @@ export default class cex extends Exchange {
             'timestamp': this.milliseconds (),
             'amountCcy1': this.amountToPrecision (symbol, amount),
         };
-        const [ timeInForce, paramsTimeInForce ]: [ Str, Dict ] = this.handleOptionAndParams (paramsAccountId, 'createOrder', 'timeInForce', 'GTC');
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionAndParams (paramsAccountId, 'createOrder', 'timeInForce', 'GTC');
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['timeInForce'] = timeInForce;
         }
-        const [ triggerPrice, paramsTriggerPrice ]: [ Str, Dict ] = this.handleParamString (paramsTimeInForce, 'triggerPrice');
+        const [ triggerPrice, paramsTriggerPrice ] = this.handleParamString (paramsTimeInForce, 'triggerPrice');
         if (triggerPrice !== undefined) {
             request['type'] = 'Stop Limit';
             request['stopPrice'] = triggerPrice;
@@ -1460,7 +1460,7 @@ export default class cex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleParamInteger2 (params, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request['dateTo'] = until;
         }
@@ -1553,7 +1553,7 @@ export default class cex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleParamInteger2 (params, 'until', 'till');
+        const [ until, paramsUntil ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request['dateTo'] = until;
         }
@@ -1760,7 +1760,7 @@ export default class cex extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
-        const [ accountId, paramsAccountId ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
+        const [ accountId, paramsAccountId ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }

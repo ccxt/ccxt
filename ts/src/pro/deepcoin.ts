@@ -729,7 +729,7 @@ export default class deepcoin extends deepcoinRest {
         // tick was rejected accepted the next coarser level
         const symbol = this.safeString (market, 'symbol');
         let aggregation: Str = undefined;
-        let paramsAggregation: Dict = undefined;
+        let paramsAggregation = undefined;
         [ aggregation, paramsAggregation ] = this.handleOptionAndParams (params, methodName, 'aggregation');
         if (aggregation === undefined) {
             const precision = this.safeDict (market, 'precision', {});

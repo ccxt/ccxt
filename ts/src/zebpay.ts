@@ -240,7 +240,7 @@ export default class zebpay extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     override async fetchStatus (params: Dict = {}): Promise<Status> {
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         const isSpot = (type === 'spot');
         let response = undefined;
         let data: NullableDict = {};
@@ -282,7 +282,7 @@ export default class zebpay extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
      */
     override async fetchTime (params: Dict = {}): Promise<Int> {
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const isSpot = (type === 'spot');
         let response = undefined;
         let data: NullableDict = {};
@@ -534,7 +534,7 @@ export default class zebpay extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         let response = undefined;
         if (type === 'spot') {
             response = await this.publicSpotGetV2ExTradefees (paramsMarketType);
@@ -669,7 +669,7 @@ export default class zebpay extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets');
         }
@@ -851,7 +851,7 @@ export default class zebpay extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         let response = undefined;
         if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchMyTrades() does not support spot markets');
@@ -876,7 +876,7 @@ export default class zebpay extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchOrderTrades() does not support ' + type + ' markets');
         }
@@ -981,7 +981,7 @@ export default class zebpay extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const isSpot = (type === 'spot');
         let response = undefined;
         if (isSpot) {
@@ -1165,7 +1165,7 @@ export default class zebpay extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + type + ' markets');
         }

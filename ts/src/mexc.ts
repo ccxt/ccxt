@@ -6,7 +6,7 @@ import Exchange from './abstract/mexc.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ExchangeNotAvailable, RequestTimeout, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1854,7 +1854,7 @@ export default class mexc extends Exchange {
         }
         const market = this.market (symbol);
         const maxLimit = (market['spot'] === true) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }
@@ -2419,7 +2419,7 @@ export default class mexc extends Exchange {
                 throw new BadRequest (this.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
             }
         }
-        const [ postOnly, paramsPostOnly ]: [ Bool, Dict ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', paramsWithoutClientOrderId);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', paramsWithoutClientOrderId);
         if (postOnly === true) {
             request['type'] = 'LIMIT_MAKER';
         }
@@ -2541,7 +2541,7 @@ export default class mexc extends Exchange {
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (type === 'market', type === 2, params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 2, params);
         let orderType: any = undefined;
         if (postOnly === true) {
             orderType = 2;
@@ -3100,7 +3100,7 @@ export default class mexc extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol !== undefined) {
                 request['symbol'] = this.safeString (market, 'id');
@@ -3249,7 +3249,7 @@ export default class mexc extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', paramsMarketType);
         let data: Dict;
         if (marketType === 'spot') {
@@ -3401,7 +3401,7 @@ export default class mexc extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {};
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 await this.spotPrivateDeleteOrderAll (paramsMarketType);
@@ -4023,7 +4023,7 @@ export default class mexc extends Exchange {
         }
         let marketType: Str = undefined;
         const request: Dict = {};
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const marginMode = this.safeString (paramsMarketType, 'marginMode');
         const isMargin = this.safeBool (paramsMarketType, 'margin', false);
@@ -4164,7 +4164,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -5488,7 +5488,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5497,7 +5497,7 @@ export default class mexc extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const [ fromAccountType, paramsFromAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchTransfers', 'fromAccountType');
+        const [ fromAccountType, paramsFromAccountType ] = this.handleOptionAndParams (paramsMarketType, 'fetchTransfers', 'fromAccountType');
         const accountTypes: Dict = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
@@ -5510,7 +5510,7 @@ export default class mexc extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"');
         }
-        const [ toAccountType, paramsToAccountType ]: [ Str, Dict ] = this.handleOptionAndParams (paramsFromAccountType, 'fetchTransfers', 'toAccountType');
+        const [ toAccountType, paramsToAccountType ] = this.handleOptionAndParams (paramsFromAccountType, 'fetchTransfers', 'toAccountType');
         if (toAccountType !== undefined) {
             request['toAccountType'] = this.safeString (accountTypes, toAccountType, toAccountType);
         } else {
@@ -5759,7 +5759,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const [ tagResolved, paramsWithdrawTag ]: [ Str, Dict ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagResolved, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         const internal = this.safeBool (paramsWithdrawTag, 'internal', false);
         if (internal === true) {
             const paramsInternal: Dict = this.omit (paramsWithdrawTag, 'internal');
@@ -6141,7 +6141,7 @@ export default class mexc extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
         let marginMode: Str = undefined;
-        let paramsMarginMode: Dict = undefined;
+        let paramsMarginMode = undefined;
         [ marginMode, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if ((defaultType === 'margin') || (isMargin === true)) {
             marginMode = 'isolated';
@@ -6281,7 +6281,7 @@ export default class mexc extends Exchange {
         let requestBody: Str = body;
         const section = this.safeString (api, 0);
         const access = this.safeString (api, 1);
-        const [ pathValue, paramsValue ]: [ any, Dict ] = this.resolvePath (path, params);
+        const [ pathValue, paramsValue ] = this.resolvePath (path, params);
         let url: Str = undefined;
         if (section === 'spot' || section === 'broker') {
             if (section === 'broker') {

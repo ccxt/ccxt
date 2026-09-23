@@ -910,7 +910,9 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 2000) as OHLCV[];
         }
@@ -926,12 +928,12 @@ export default class krakenfutures extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const paramsOmitted: Dict = this.omit (paramsPaginate, 'price');
-        const limitDefaulted = ((since !== undefined) && (limit === undefined)) ? 2000 : limit;
-        const limitResolved = (limitDefaulted !== undefined) ? Math.min (limitDefaulted, 2000) : undefined;
+        const windowLimit = (limit === undefined) ? 2000 : Math.min (limit, 2000);
+        const limitResolved = ((since !== undefined) || (limit !== undefined)) ? windowLimit : undefined;
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = this.parseToInt (since / 1000);
-            const toTimestamp = this.sum (request['from'], limitResolved * duration - 1);
+            const toTimestamp = this.sum (request['from'], windowLimit * duration - 1);
             const currentTimestamp = this.seconds ();
             request['to'] = Math.min (toTimestamp, currentTimestamp);
         } else if (limitResolved !== undefined) {
@@ -999,7 +1001,9 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
@@ -1007,7 +1011,7 @@ export default class krakenfutures extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsPaginate, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
+        const [ method, paramsMethod ] = this.handleOptionAndParams (paramsPaginate, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
         let rawTrades: Dict[] = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
@@ -1275,7 +1279,7 @@ export default class krakenfutures extends Exchange {
         const symbolValue: Str = market['symbol'];
         let typeValue: Str = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
-        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (typeValue === 'market', typeValue === 'post', params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (typeValue === 'market', typeValue === 'post', params);
         if (postOnly) {
             typeValue = 'post';
         } else if (timeInForce === 'ioc') {
@@ -3833,7 +3837,7 @@ export default class krakenfutures extends Exchange {
         }
         const url = this.urls['api'][api] + query;
         const requestBody = (path === 'batchorder') ? postData : body;
-        let privateHeaders: Dict = undefined;
+        let privateHeaders = undefined;
         if (api === 'private' || access === 'private') {
             this.checkRequiredCredentials ();
             let auth = postData + '/api/';

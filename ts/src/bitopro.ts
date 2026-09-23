@@ -1914,12 +1914,13 @@ export default class bitopro extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const requestHeaders: Dict = (headers === undefined) ? {} : headers;
         const isSignedBody = (api === 'private') && ((method === 'POST') || (method === 'PUT'));
-        const requestBody: Str = isSignedBody ? this.json (params) : body;
+        const signedBody: string = this.json (params);
+        const requestBody: Str = isSignedBody ? signedBody : body;
         requestHeaders['X-BITOPRO-API'] = 'ccxt';
         if (api === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'POST' || method === 'PUT') {
-                const payload = this.stringToBase64 (requestBody);
+                const payload = this.stringToBase64 (signedBody);
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
                 requestHeaders['X-BITOPRO-APIKEY'] = this.apiKey;
                 requestHeaders['X-BITOPRO-PAYLOAD'] = payload;

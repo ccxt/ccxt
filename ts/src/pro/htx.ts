@@ -1594,7 +1594,7 @@ export default class htx extends htxRest {
         }
         let type: Str = undefined;
         let subType: SubType = undefined;
-        let paramsSubType: Dict = undefined;
+        let paramsSubType: Dict = {};
         if (market !== undefined) {
             type = market['type'];
             subType = (market['linear'] === true) ? 'linear' : 'inverse';

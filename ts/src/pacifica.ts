@@ -1081,7 +1081,7 @@ export default class pacifica extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ aggLevel, paramsAggLevel ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
+        const [ aggLevel, paramsAggLevel ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
         const request: Dict = {
             'symbol': market['id'],
             'agg_level': aggLevel,
@@ -1240,7 +1240,7 @@ export default class pacifica extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit) as OHLCV[];
         }
@@ -1381,7 +1381,7 @@ export default class pacifica extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
         const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchMyTrades', paramsPaginate);
         const defaultLimit = 100;  // Default max limit
         if (paginate) {
@@ -2106,7 +2106,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const market = this.market (symbol);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         const defaultLimit = 100;  // Default max limit
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'next_cursor', 'cursor', undefined, defaultLimit) as FundingRateHistory[];
@@ -2370,7 +2370,7 @@ export default class pacifica extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
         const defaultLimit = 100; // max default 100
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, paramsPaginate, 'next_cursor', 'cursor', undefined, defaultLimit) as Order[];
@@ -3036,10 +3036,10 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString (interest, 'symbol');
-        const marketResolved: Market = (marketId !== undefined) ? this.safeMarket (marketId, market) : market;
+        const marketResolved = (marketId !== undefined) ? this.safeMarket (marketId, market) : market;
         let symbol: Str = undefined;
         if (marketId !== undefined) {
-            symbol = marketResolved['symbol'];
+            symbol = this.safeString (marketResolved, 'symbol');
         }
         let interestValue: Str = undefined;
         const markPrice = this.safeString (interest, 'mark');
@@ -3076,7 +3076,7 @@ export default class pacifica extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
         const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchLedger', paramsPaginate);
         const defaultLimit = 100; // Default max limit
         if (paginate) {
@@ -3184,7 +3184,7 @@ export default class pacifica extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
         const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchFundingHistory', paramsPaginate);
         const request: Dict = {
             'account': userAddress,
@@ -3339,7 +3339,7 @@ export default class pacifica extends Exchange {
      */
     override async createSubAccount (name: string, params: Dict = {}) {
         const finalHeaders: Dict = { };
-        const [ agentAddress, paramsAgentAddress ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'createSubAccount', 'agentAddress');
+        const [ agentAddress, paramsAgentAddress ] = this.handleOptionAndParams (params, 'createSubAccount', 'agentAddress');
         const [ originAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('createSubAccount', paramsAgentAddress);
         if (originAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires "originAddress" in params or "walletAddress" in requiredCredentials');
@@ -3347,16 +3347,16 @@ export default class pacifica extends Exchange {
         if (agentAddress !== undefined) {
             finalHeaders['agent_wallet'] = agentAddress;
         }
-        const [ subAccountAddress, paramsSubAccountAddress ]: [ Str, Dict ] = this.handleOptionAndParams (paramsOriginAndSingleAddress, 'createSubAccount', 'subAccountAddress');
-        const [ subAccountPrivateKey, paramsSubAccountPrivateKey ]: [ Str, Dict ] = this.handleOptionAndParams (paramsSubAccountAddress, 'createSubAccount', 'subAccountPrivateKey');
+        const [ subAccountAddress, paramsSubAccountAddress ] = this.handleOptionAndParams (paramsOriginAndSingleAddress, 'createSubAccount', 'subAccountAddress');
+        const [ subAccountPrivateKey, paramsSubAccountPrivateKey ] = this.handleOptionAndParams (paramsSubAccountAddress, 'createSubAccount', 'subAccountPrivateKey');
         if (subAccountAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountAddress"!');
         }
         if (subAccountPrivateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        const [ timestamp, paramsTimestamp ]: [ Int, Dict ] = this.handleParamInteger (paramsSubAccountPrivateKey, 'timestamp', this.milliseconds ());
-        const [ expiryWindow, paramsExpiryWindow ]: [ Int, Dict ] = this.handleOptionAndParams2 (paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
+        const [ timestamp, paramsTimestamp ] = this.handleParamInteger (paramsSubAccountPrivateKey, 'timestamp', this.milliseconds ());
+        const [ expiryWindow, paramsExpiryWindow ] = this.handleOptionAndParams2 (paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader: Dict = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3453,7 +3453,7 @@ export default class pacifica extends Exchange {
     }
 
     handleOriginAndSingleAddress (methodName: string, params: Dict): [Str, Dict] {
-        const [ address, paramsAccount ]: [ Str, Dict ] = this.handleParamString2 (params, 'account', 'address', undefined); // this is for get endpoints that accept account or address
+        const [ address, paramsAccount ] = this.handleParamString2 (params, 'account', 'address', undefined); // this is for get endpoints that accept account or address
         if (address !== undefined) {
             return [ address, paramsAccount ];
         }
@@ -3601,7 +3601,7 @@ export default class pacifica extends Exchange {
                 }
             }
         }
-        const [ expiryWindow, paramsExpiryWindow ]: [ Int, Dict ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
+        const [ expiryWindow, paramsExpiryWindow ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
         const timestamp = this.safeInteger (paramsExpiryWindow, 'timestamp', this.milliseconds ());
         const signatureHeader: Dict = {
             'timestamp': timestamp,
@@ -3610,7 +3610,7 @@ export default class pacifica extends Exchange {
         };
         const signature = this.signMessage (signatureHeader, sigPayload, this.privateKey);
         const finalHeaders: Dict = { };
-        const [ agentAddress, paramsAgentAddress ]: [ Str, Dict ] = this.handleOptionAndParams (paramsExpiryWindow, 'postActionRequest', 'agentAddress');
+        const [ agentAddress, paramsAgentAddress ] = this.handleOptionAndParams (paramsExpiryWindow, 'postActionRequest', 'agentAddress');
         const [ originAddress ] = this.handleOriginAndSingleAddress ('postActionRequest', paramsAgentAddress);
         if (originAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');

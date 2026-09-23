@@ -664,7 +664,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         const maxLimit = 300;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             const paramsExtended = this.extend (paramsPaginate, { 'calculateUntil': true });
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxLimit) as OHLCV[];
@@ -753,7 +753,7 @@ export default class deepcoin extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
@@ -1010,7 +1010,7 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, paramsPaginate, 'code', undefined, 1, 50) as Transaction[];
         }
@@ -1057,7 +1057,7 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, paramsPaginate, 'code', undefined, 1, 50) as Transaction[];
         }
@@ -1399,7 +1399,7 @@ export default class deepcoin extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
-        const [ userIdOption, paramsUserId ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'transfer', 'userId');
+        const [ userIdOption, paramsUserId ] = this.handleOptionAndParams (params, 'transfer', 'userId');
         const userId = (userIdOption !== undefined && userIdOption !== '') ? userIdOption : this.safeString (paramsUserId, 'uid');
         if (userId === undefined) {
             throw new ArgumentsRequired (this.id + ' transfer() requires a userId parameter');
@@ -1632,7 +1632,7 @@ export default class deepcoin extends Exchange {
         } else if (!isMarketOrder) {
             throw new BadRequest (this.id + ' createOrder() requires a price argument for limit orders');
         }
-        let paramsRequest: Dict = undefined;
+        let paramsRequest = undefined;
         if (market['spot'] === true) {
             const cost = this.safeString (paramsOrderType, 'cost');
             if (cost !== undefined) {
@@ -1762,7 +1762,7 @@ export default class deepcoin extends Exchange {
     }
 
     handleTypePostOnlyAndTimeInForce (type: Str, params: Dict): [Str, Dict] {
-        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         const typePostOnly: Str = (postOnly) ? 'post_only' : type;
         const timeInForce = this.handleTimeInForce (paramsPostOnly);
         const paramsOmitted: Dict = this.omit (paramsPostOnly, 'timeInForce');
@@ -1940,7 +1940,9 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
@@ -2268,7 +2270,7 @@ export default class deepcoin extends Exchange {
         const marginMode = this.safeString (params, 'marginMode');
         const encodedMarginMode = (marginMode === 'isolated') ? 0 : 1;
         const paramsOmitted = (marginMode !== undefined) ? this.omit (params, 'marginMode') : params;
-        const [ merged, paramsMerged ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsOmitted, 'cancelAllOrders', 'merged', true);
+        const [ merged, paramsMerged ] = this.handleOptionAndParams (paramsOmitted, 'cancelAllOrders', 'merged', true);
         const isMergedMode = merged ? 1 : 0;
         const request: Dict = {
             'InstrumentID': market['id'],
@@ -2941,7 +2943,9 @@ export default class deepcoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }

@@ -1416,7 +1416,7 @@ export default class coinsph extends Exchange {
         let orderType: Str = this.safeString (paramsOmitted, 'type', type);
         orderType = this.encodeOrderType (orderType);
         const paramsType: Dict = this.omit (paramsOmitted, 'type');
-        let paramsQuote: Dict = undefined;
+        let paramsQuote = undefined;
         const orderSide = this.encodeOrderSide (side);
         const request: Dict = {
             'symbol': market['id'],

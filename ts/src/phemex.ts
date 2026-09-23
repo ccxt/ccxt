@@ -1662,8 +1662,8 @@ export default class phemex extends Exchange {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
         const query = this.omit (paramsSubType, 'type');
         let response: Dict;
         if (type === 'spot') {
@@ -3429,7 +3429,7 @@ export default class phemex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request: Dict = {};
         const limitResolved = (limit !== undefined) ? Math.min (200, limit) : limit;
         if (limitResolved !== undefined) {
@@ -5058,7 +5058,9 @@ export default class phemex extends Exchange {
         if (market['swap'] !== true) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100) as FundingRateHistory[];
         }

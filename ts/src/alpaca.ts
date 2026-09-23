@@ -810,7 +810,7 @@ export default class alpaca extends Exchange {
         const loc: Str = this.safeString (params, 'loc', 'us');
         const method: Str = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         let paginate = false;
-        let query: Dict = undefined;
+        let query = undefined;
         [ paginate, query ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         let paginationCalls = 10;
         [ paginationCalls, query ] = this.handleOptionAndParams (query, 'fetchOHLCV', 'paginationCalls', 10);
@@ -972,8 +972,8 @@ export default class alpaca extends Exchange {
         }
         // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
         // symbol iteration order differs per language
-        const symbolsSorted: Strings = (symbols === undefined) ? this.sort (this.symbols) : symbols;
-        const symbolsNormalized: Strings = this.marketSymbols (symbolsSorted);
+        const symbolsSorted: string[] = (symbols === undefined) ? this.sort (this.symbols) : symbols;
+        const symbolsNormalized: string[] = this.marketSymbols (symbolsSorted);
         const loc = this.safeString (params, 'loc', 'us');
         const ids = this.marketIds (symbolsNormalized);
         const request = {
@@ -1193,7 +1193,7 @@ export default class alpaca extends Exchange {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
         const paramsCost = (cost !== undefined) ? this.omit (params, 'cost') : params;
-        const [ defaultTIF, paramsTimeInForce ]: [ Str, Dict ] = this.handleOptionAndParams (paramsCost, 'createOrder', 'timeInForce');
+        const [ defaultTIF, paramsTimeInForce ] = this.handleOptionAndParams (paramsCost, 'createOrder', 'timeInForce');
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request['time_in_force'] = (defaultTIF !== undefined) ? defaultTIF.toLowerCase () : defaultTIF;
         const paramsOmitted = this.omit (paramsTimeInForce, [ 'timeInForce', 'triggerPrice' ]);
@@ -1474,7 +1474,7 @@ export default class alpaca extends Exchange {
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        const [ timeInForce, paramsTimeInForce ]: [ Str, Dict ] = this.handleOptionAndParams (paramsTrigger, 'editOrder', 'timeInForce', 'gtc');
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionAndParams (paramsTrigger, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request['time_in_force'] = timeInForce.toLowerCase ();

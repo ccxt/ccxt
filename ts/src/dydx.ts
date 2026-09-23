@@ -862,7 +862,7 @@ export default class dydx extends Exchange {
     }
 
     handlePublicAddress (methodName: Str, params: Dict): [Str, Dict] {
-        const [ userAux, paramsUser ]: [ Str, Dict ] = this.handleOptionAndParams (params, methodName, 'user');
+        const [ userAux, paramsUser ] = this.handleOptionAndParams (params, methodName, 'user');
         const [ user, paramsAddress ] = this.handleOptionAndParams (paramsUser, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
             return [ user, paramsAddress ];
@@ -996,7 +996,7 @@ export default class dydx extends Exchange {
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchOrders', params);
-        const [ subAccountNumber, paramsSubAccountNumber ]: [ Str, Dict ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchOrders', 'subAccountNumber', '0');
+        const [ subAccountNumber, paramsSubAccountNumber ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchOrders', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1169,7 +1169,7 @@ export default class dydx extends Exchange {
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchPositions', params);
-        const [ subAccountNumber, paramsSubAccountNumber ]: [ Str, Dict ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchPositions', 'subAccountNumber', '0');
+        const [ subAccountNumber, paramsSubAccountNumber ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchPositions', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2277,7 +2277,7 @@ export default class dydx extends Exchange {
         const methodName = this.safeString (params, 'methodName');
         const paramsOmitted = this.omit (params, 'methodName');
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress (methodName, paramsOmitted);
-        const [ subAccountNumber, paramsSubAccountNumber ]: [ Str, Dict ] = this.handleOptionAndParams (paramsPublicAddress, methodName, 'subAccountNumber', '0');
+        const [ subAccountNumber, paramsSubAccountNumber ] = this.handleOptionAndParams (paramsPublicAddress, methodName, 'subAccountNumber', '0');
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
@@ -2397,7 +2397,7 @@ export default class dydx extends Exchange {
             await this.loadMarkets ();
         }
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchBalance', params);
-        const [ subaccountNumber, paramsSubaccountNumber ]: [ Int, Dict ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchBalance', 'subaccountNumber', 0);
+        const [ subaccountNumber, paramsSubaccountNumber ] = this.handleOptionAndParams (paramsPublicAddress, 'fetchBalance', 'subaccountNumber', 0);
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,

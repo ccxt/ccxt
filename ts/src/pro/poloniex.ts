@@ -163,7 +163,8 @@ export default class poloniex extends poloniexRest {
             const ids = this.marketIds (symbols);
             marketIds = (ids === undefined) ? [] : ids;
         }
-        const symbolsHash: string = (this.isEmpty (symbols)) ? messageHash : messageHash + '::' + symbols.join (',');
+        const symbolsSuffix = (symbols === undefined) ? '' : symbols.join (',');
+        const symbolsHash: string = (this.isEmpty (symbols)) ? messageHash : messageHash + '::' + symbolsSuffix;
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
         }

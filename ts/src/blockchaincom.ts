@@ -1279,7 +1279,7 @@ export default class blockchaincom extends Exchange {
         const privateHeaders: Dict = {
             'X-API-Token': this.secret,
         };
-        const requestHeaders: NullableDict = isPrivate ? privateHeaders : headers;
+        const requestHeaders = isPrivate ? privateHeaders : headers;
         const isPrivatePost = isPrivate && (method !== 'GET');
         const requestBody: Str = isPrivatePost ? this.json (query) : body;
         if (api === 'public') {
@@ -1293,7 +1293,7 @@ export default class blockchaincom extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             } else {
-                requestHeaders['Content-Type'] = 'application/json';
+                privateHeaders['Content-Type'] = 'application/json';
             }
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };

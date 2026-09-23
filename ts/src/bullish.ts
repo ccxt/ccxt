@@ -973,7 +973,9 @@ export default class bullish extends Exchange {
             await this.loadMarkets ();
         }
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             const paramsPagination: Dict = this.handlePaginationParams ('fetchTrades', since, paramsPaginate);
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, paramsPagination, maxLimit) as Trade[];
@@ -1036,7 +1038,9 @@ export default class bullish extends Exchange {
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
         } else {
-            const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+            let paginate = false;
+            let paramsPaginate: Dict = {};
+            [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
             if (paginate) {
                 const paramsPagination: Dict = this.handlePaginationParams ('fetchMyTrades', since, paramsPaginate);
                 return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPagination, 100) as Trade[];
@@ -1308,7 +1312,7 @@ export default class bullish extends Exchange {
     }
 
     override async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}) {
-        const [ maxRetries, paramsMaxRetries ]: [ Int, Dict ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        const [ maxRetries, paramsMaxRetries ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
@@ -1358,7 +1362,9 @@ export default class bullish extends Exchange {
         }
         const market = this.market (symbol);
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }
@@ -1432,7 +1438,9 @@ export default class bullish extends Exchange {
             await this.loadMarkets ();
         }
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             const paramsPagination: Dict = this.handlePaginationParams ('fetchFundingRateHistory', since, paramsPaginate);
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPagination, maxLimit) as FundingRateHistory[];
@@ -1517,7 +1525,7 @@ export default class bullish extends Exchange {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
         let method = 'privateGetV2HistoryOrders';
-        let paramsMethod: Dict = undefined;
+        let paramsMethod = undefined;
         [ method, paramsMethod ] = this.handleOptionAndParams (paramsSinceAndUntil, 'fetchOrders', 'method', method);
         let response: Dict | List = [];
         if (method === 'privateGetV2Orders') {
@@ -1772,9 +1780,9 @@ export default class bullish extends Exchange {
             'tradingAccountId': tradingAccountId,
         };
         const isMarketOrder = ((type === 'market') || type === 'MARKET');
-        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (isMarketOrder, type === 'POST_ONLY', params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, type === 'POST_ONLY', params);
         let orderType: string = (postOnly) ? 'POST_ONLY' : type;
-        const [ timeInForce, paramsTimeInForce ]: [ string, Dict ] = this.handleOptionAndParams (paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionAndParams (paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
         paramsTimeInForce['timeInForce'] = timeInForce.toUpperCase ();
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -2250,7 +2258,7 @@ export default class bullish extends Exchange {
 
     async loadAccount (params: Dict = {}): Promise<string> {
         let tradingAccountId: Str = undefined;
-        let paramsTradingAccountId: Dict = undefined;
+        let paramsTradingAccountId = undefined;
         [ tradingAccountId, paramsTradingAccountId ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (paramsTradingAccountId);
@@ -2639,7 +2647,9 @@ export default class bullish extends Exchange {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
         if (paginate) {
             const paramsPagination: Dict = this.handlePaginationParams ('fetchTransfers', since, paramsPaginate);
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, paramsPagination, maxLimit) as TransferEntry[];

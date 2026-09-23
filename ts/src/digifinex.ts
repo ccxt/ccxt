@@ -884,7 +884,7 @@ export default class digifinex extends Exchange {
             await this.loadMarkets ();
         }
         let marketType: Str = undefined;
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', paramsMarketType);
         let response = undefined;
@@ -1038,7 +1038,7 @@ export default class digifinex extends Exchange {
         if (first !== undefined) {
             market = this.market (first);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {};
         let response = undefined;
         if (type === 'swap') {
@@ -1849,8 +1849,8 @@ export default class digifinex extends Exchange {
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
-        const [ marketTypeRaw, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('createOrderRequest', market, params);
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('createOrderRequest', paramsMarketType);
+        const [ marketTypeRaw, paramsMarketType ] = this.handleMarketTypeAndParams ('createOrderRequest', market, params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrderRequest', paramsMarketType);
         const marketType = (marginMode !== undefined) ? 'margin' : marketTypeRaw;
         const request: Dict = {};
         const swap = (marketType === 'swap');
@@ -1860,7 +1860,7 @@ export default class digifinex extends Exchange {
         request[marketIdRequest] = market['id'];
         let postOnly = this.isPostOnly (isMarketOrder, false, paramsMarginMode);
         let postOnlyParsed: Int = undefined;
-        let paramsRequest: Dict = undefined;
+        let paramsRequest = undefined;
         if (swap) {
             const reduceOnly = this.safeBool (paramsMarginMode, 'reduceOnly', false);
             const timeInForce = this.safeString (paramsMarginMode, 'timeInForce');
@@ -1902,7 +1902,7 @@ export default class digifinex extends Exchange {
             request['type'] = side + suffix;
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             let quantity: Str = undefined;
-            const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
+            const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionAndParams (paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             const isMarketBuy = isMarketOrder && (side === 'buy');
             const keysToOmit = isMarketBuy ? [ 'cost', 'postOnly' ] : [ 'postOnly' ];
             paramsRequest = this.omit (paramsRequiresPrice, keysToOmit);
@@ -1980,7 +1980,7 @@ export default class digifinex extends Exchange {
         }
         const idValue: string = id.toString ();
         let marketType: Str = undefined;
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const request: Dict = {
             'order_id': idValue,
@@ -2275,7 +2275,7 @@ export default class digifinex extends Exchange {
             market = this.market (symbol);
         }
         let marketType: Str = undefined;
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', paramsMarketType);
         const request: Dict = {};
@@ -2381,7 +2381,7 @@ export default class digifinex extends Exchange {
             market = this.market (symbol);
         }
         let marketType: Str = undefined;
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', paramsMarketType);
         const request: Dict = {};
@@ -2488,7 +2488,7 @@ export default class digifinex extends Exchange {
             market = this.market (symbol);
         }
         let marketType: Str = undefined;
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', paramsMarketType);
         const request: Dict = {
@@ -2590,7 +2590,7 @@ export default class digifinex extends Exchange {
             market = this.market (symbol);
         }
         let marketType: Str = undefined;
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMyTrades', paramsMarketType);
         if (marketType === 'swap') {
@@ -2744,7 +2744,7 @@ export default class digifinex extends Exchange {
         }
         const request: Dict = {};
         let marketType: Str = undefined;
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLedger', paramsMarketType);
         if (marketType === 'swap') {
@@ -3641,7 +3641,7 @@ export default class digifinex extends Exchange {
             }
             market = this.market (symbol);
         }
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPositions', paramsMarketType);
         if (marginMode !== undefined) {
@@ -3738,7 +3738,7 @@ export default class digifinex extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {};
         let marketType: Str = undefined;
-        let paramsMarketType: Dict = undefined;
+        let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPosition', paramsMarketType);
         if (marginMode !== undefined) {
@@ -4167,7 +4167,7 @@ export default class digifinex extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
         let marginMode: Str = undefined;
-        let paramsMarginMode: Dict = undefined;
+        let paramsMarginMode = undefined;
         [ marginMode, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {

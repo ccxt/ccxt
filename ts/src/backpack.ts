@@ -992,11 +992,12 @@ export default class backpack extends Exchange {
             request['endTime'] = this.parseToInt (until / 1000); // convert milliseconds to seconds
         }
         const defaultLimit = 100;
-        const limitResolved = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
+        const limitResolved: Int = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
         if (since === undefined) {
             const duration = this.parseTimeframe (timeframe);
             const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt (until / 1000) : this.seconds ();
-            const startTime = endTime - (limitResolved * duration);
+            const windowLimit = (limit === undefined) ? defaultLimit : limit;
+            const startTime = endTime - (windowLimit * duration);
             request['startTime'] = startTime;
         } else {
             request['startTime'] = this.parseToInt (since / 1000); // convert milliseconds to seconds
@@ -1472,7 +1473,7 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchDeposits', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchDeposits', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -1507,7 +1508,7 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'until');
         if (until !== undefined) {
             request['to'] = until;
         }

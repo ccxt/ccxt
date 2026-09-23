@@ -831,7 +831,7 @@ export default class gate extends gateRest {
         const market = this.market (symbolsNormalized[0]);
         const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbolsNormalized);
-        const [ channelName, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsCallerMethodName, callerMethodNameOption, 'method');
+        const [ channelName, paramsMethod ] = this.handleOptionAndParams (paramsCallerMethodName, callerMethodNameOption, 'method');
         const url = this.getUrlByMarket (market);
         const channel = messageType + '.' + channelName;
         if (callerMethodNameOption === undefined) {
@@ -1137,8 +1137,8 @@ export default class gate extends gateRest {
             market = this.market (symbol);
             marketId = market['id'];
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType);
         const messageType = this.getSupportedMapping (type, {
             'spot': 'spot',
             'margin': 'spot',
@@ -1227,8 +1227,8 @@ export default class gate extends gateRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchBalance', undefined, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchBalance', undefined, paramsMarketType);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
         const requiresUid = (type !== 'spot');

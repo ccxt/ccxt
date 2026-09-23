@@ -6623,7 +6623,7 @@ export class BaseExchange {
                     if ((marketType === undefined) && (market === undefined)) {
                         throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
                     }
-                    const marketTypeResolved: Str = (marketType === undefined) ? market['type'] : marketType;
+                    const marketTypeResolved: string = (marketType === undefined) ? this.safeString (market, 'type', '') : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
                         if (currentMarket[marketTypeResolved] === true) {
@@ -8288,7 +8288,7 @@ export class BaseExchange {
     }
 
     handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params: Dict = {}): [Int, any] {
-        const [ newMaxEntriesPerRequest, paramsMaxEntriesPerRequest ]: [ Int, Dict ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
+        const [ newMaxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
         const maxEntriesPerRequestOption = (newMaxEntriesPerRequest !== undefined) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
         const maxEntriesPerRequestResolved = (maxEntriesPerRequestOption === undefined) ? 1000 : maxEntriesPerRequestOption; // default to 1000
         return [ maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest ];
@@ -8299,7 +8299,7 @@ export class BaseExchange {
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
         const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
-        const [ paginationDirection, paramsPaginationDirection ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMaxRetries, method, 'paginationDirection', 'backward');
+        const [ paginationDirection, paramsPaginationDirection ] = this.handleOptionAndParams (paramsMaxRetries, method, 'paginationDirection', 'backward');
         let paginationTimestamp: Int = undefined;
         const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionAndParams (paramsPaginationDirection, method, 'removeRepeated', removeRepeated);
         let calls = 0;

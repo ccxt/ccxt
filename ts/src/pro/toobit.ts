@@ -554,7 +554,7 @@ export default class toobit extends toobitRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
-        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'channel', 'depth');
+        const [ channel, paramsChannel ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'channel', 'depth');
         const messageHashes: List = [];
         const subParams: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -693,7 +693,7 @@ export default class toobit extends toobitRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const isSpot = (marketType === 'spot');
         const type = isSpot ? 'spot' : 'contract';
         const spotSubHash = 'spot:balance';

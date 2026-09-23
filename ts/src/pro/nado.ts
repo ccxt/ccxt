@@ -557,7 +557,7 @@ export default class nado extends nadoRest {
             messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }
-        const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchOrders', 'subaccount', 'default');
+        const [ subaccount, paramsSubaccount ] = this.handleOptionAndParams (params, 'watchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'order_update',
@@ -593,7 +593,7 @@ export default class nado extends nadoRest {
             messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }
-        const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'unWatchOrders', 'subaccount', 'default');
+        const [ subaccount, paramsSubaccount ] = this.handleOptionAndParams (params, 'unWatchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'order_update',
@@ -630,7 +630,7 @@ export default class nado extends nadoRest {
             messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }
-        const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchMyTrades', 'subaccount', 'default');
+        const [ subaccount, paramsSubaccount ] = this.handleOptionAndParams (params, 'watchMyTrades', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'fill',
@@ -666,7 +666,7 @@ export default class nado extends nadoRest {
             messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }
-        const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'unWatchMyTrades', 'subaccount', 'default');
+        const [ subaccount, paramsSubaccount ] = this.handleOptionAndParams (params, 'unWatchMyTrades', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'fill',
@@ -704,7 +704,7 @@ export default class nado extends nadoRest {
                 productId = this.parseToInt (market['id']);
             }
         }
-        const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchPositions', 'subaccount', 'default');
+        const [ subaccount, paramsSubaccount ] = this.handleOptionAndParams (params, 'watchPositions', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'position_change',
@@ -743,7 +743,7 @@ export default class nado extends nadoRest {
                 productId = this.parseToInt (market['id']);
             }
         }
-        const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'unWatchPositions', 'subaccount', 'default');
+        const [ subaccount, paramsSubaccount ] = this.handleOptionAndParams (params, 'unWatchPositions', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'position_change',
@@ -1067,8 +1067,8 @@ export default class nado extends nadoRest {
             }
             return authenticated;
         }
-        const [ recvWindow, paramsRecvWindow ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'authenticate', 'recvWindow', 5000);
-        const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (paramsRecvWindow, 'authenticate', 'subaccount', 'default');
+        const [ recvWindow, paramsRecvWindow ] = this.handleOptionAndParams (params, 'authenticate', 'recvWindow', 5000);
+        const [ subaccount, paramsSubaccount ] = this.handleOptionAndParams (paramsRecvWindow, 'authenticate', 'subaccount', 'default');
         const id = this.requestId ();
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const expiration = this.sum (this.milliseconds (), recvWindow);

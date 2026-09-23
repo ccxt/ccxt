@@ -1291,7 +1291,7 @@ export default class htx extends Exchange {
         // the former statuspage endpoints (status*.huobigroup.com) were
         // decommissioned after the huobi -> htx rebrand and no longer resolve,
         // so this method uses the live native endpoints instead
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let status = undefined;
         let eta = undefined;
         let response = undefined;
@@ -1313,7 +1313,7 @@ export default class htx extends Exchange {
             status = (marketStatus === 1) ? 'ok' : 'maintenance';
             eta = this.safeInteger (data, 'haltEndTime');
         } else {
-            const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('fetchStatus', undefined, paramsMarketType);
+            const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchStatus', undefined, paramsMarketType);
             response = await this.contractPublicGetHeartbeat (paramsSubType);
             //
             //     {
@@ -1543,7 +1543,7 @@ export default class htx extends Exchange {
         if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
-        const [ types, paramsTypes ]: [ NullableDict, Dict ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
+        const [ types, paramsTypes ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets: List = [];
         let promises: List = [];
         const keys = Object.keys (types);
@@ -2131,8 +2131,8 @@ export default class htx extends Exchange {
             market = this.market (first);
         }
         const isSubTypeRequested = ('subType' in params) || ('business_type' in params);
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
         const request: Dict = {};
         const isSpot = (type === 'spot');
         const future = (type === 'future');
@@ -2237,8 +2237,8 @@ export default class htx extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbolsNormalized);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, paramsSubType);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, paramsSubType);
         let response = undefined;
         if (((type === 'swap') || (type === 'future')) && (subType === 'linear')) {
             response = await this.contractPublicGetLinearSwapExMarketTrade (paramsMarketType);
@@ -2628,7 +2628,7 @@ export default class htx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' fetchOrderTrades() is only supported for spot markets');
         }
@@ -2678,7 +2678,9 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
@@ -2686,8 +2688,8 @@ export default class htx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsPaginate);
-        let paramsUntil: Dict = undefined;
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsPaginate);
+        let paramsUntil = undefined;
         let request: Dict = {
             // spot -----------------------------------------------------------
             // 'symbol': market['id'],
@@ -2985,7 +2987,9 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000) as OHLCV[];
         }
@@ -3000,11 +3004,11 @@ export default class htx extends Exchange {
         };
         const priceType = this.safeString2 (paramsPaginate, 'priceType', 'price');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'priceType', 'price' ]);
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleParamInteger (paramsOmitted, 'until');
+        const [ until, paramsUntil ] = this.handleParamInteger (paramsOmitted, 'until');
         const untilSeconds = (until !== undefined) ? this.parseToInt (until / 1000) : undefined;
         const isContract = (market['contract'] === true);
-        const contractLimit: Int = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
-        const rangeLimit: Int = isContract ? contractLimit : limit;
+        const contractLimit: number = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
+        const rangeLimit = isContract ? contractLimit : limit;
         if (isContract) {
             if (limit !== undefined) {
                 request['size'] = Math.min (limit, 2000); // when using limit: from & to are ignored
@@ -3015,12 +3019,12 @@ export default class htx extends Exchange {
                 let calcualtedEnd: Int = undefined;
                 if (since === undefined) {
                     const now = this.seconds ();
-                    request['from'] = now - duration * (rangeLimit - 1);
+                    request['from'] = now - duration * (contractLimit - 1);
                     calcualtedEnd = now;
                 } else {
                     const start = this.parseToInt (since / 1000);
                     request['from'] = start;
-                    calcualtedEnd = this.sum (start, duration * (rangeLimit - 1));
+                    calcualtedEnd = this.sum (start, duration * (contractLimit - 1));
                 }
                 request['to'] = (untilSeconds !== undefined) ? untilSeconds : calcualtedEnd;
             }
@@ -3075,7 +3079,7 @@ export default class htx extends Exchange {
             }
         } else {
             request['symbol'] = market['id'];
-            const [ useHistorical, paramsHistorical ]: [ Bool, Dict ] = this.handleOptionAndParams (paramsUntil, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
+            const [ useHistorical, paramsHistorical ] = this.handleOptionAndParams (paramsUntil, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!useHistorical) {
                 if (limit !== undefined) {
                     request['size'] = Math.min (limit, 2000); // max 2000
@@ -3385,21 +3389,21 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ isUnifiedAccount, paramsUnified ]: [ Bool, Dict ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'unified', 'uta', false);
+        const [ isUnifiedAccount, paramsUnified ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'unified', 'uta', false);
         if (isUnifiedAccount) {
             throw new NotSupported (this.id + ' fetchBalance() unified account has been deprecated on htx');
         }
-        const [ type, paramsType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsUnified);
-        const [ subTypeOption, paramsSubType ]: [ SubType, Dict ] = this.handleOptionAndParams2 (paramsType, 'fetchBalance', 'defaultSubType', 'subType');
+        const [ type, paramsType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsUnified);
+        const [ subTypeOption, paramsSubType ] = this.handleOptionAndParams2 (paramsType, 'fetchBalance', 'defaultSubType', 'subType');
         const subType: SubType = (subTypeOption === undefined) ? 'linear' : subTypeOption;
-        const [ isMultiAssetMode, paramsMultiAsset ]: [ Bool, Dict ] = this.handleOptionAndParams (paramsSubType, 'fetchBalance', 'multiAssetMode', false);
+        const [ isMultiAssetMode, paramsMultiAsset ] = this.handleOptionAndParams (paramsSubType, 'fetchBalance', 'multiAssetMode', false);
         const request: Dict = {};
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
         const inverse = (subType === 'inverse');
         const linear = (subType === 'linear');
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchBalance', paramsMultiAsset);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBalance', paramsMultiAsset);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
@@ -3661,7 +3665,7 @@ export default class htx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const request: Dict = {
             // spot -----------------------------------------------------------
             // 'order-id': 'id',
@@ -3729,7 +3733,7 @@ export default class htx extends Exchange {
                         throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
                     }
                     request['contract_code'] = this.safeString (market, 'id');
-                    const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchOrder', paramsClientOrderId);
+                    const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchOrder', paramsClientOrderId);
                     request['margin_mode'] = (marginMode === undefined) ? 'cross' : marginMode;
                     response = await this.contractPrivateGetV5TradeOrder (this.extend (request, paramsMarginMode));
                 }
@@ -3966,7 +3970,7 @@ export default class htx extends Exchange {
         }
         const market = this.market (symbol);
         let request: Dict = {};
-        let paramsUntil: Dict = undefined;
+        let paramsUntil = undefined;
         let response = undefined;
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
@@ -3983,7 +3987,7 @@ export default class htx extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchContractOrders', paramsUntil);
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchContractOrders', paramsUntil);
             request['margin_mode'] = (marginMode === undefined) ? 'cross' : marginMode;
             request['contract_code'] = market['id'];
             if (isAlgo === true) {
@@ -4168,7 +4172,7 @@ export default class htx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const contract = (marketType === 'swap') || (marketType === 'future');
         if (contract && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders');
@@ -4202,7 +4206,9 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchCanceledOrders', symbol, since, limit, paramsPaginate, 100) as Order[];
         }
@@ -4210,7 +4216,7 @@ export default class htx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, paramsPaginate);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, paramsPaginate);
         if (marketType === 'spot') {
             return await this.fetchSpotOrdersByStates ('partial-canceled,canceled', symbol, since, limit, paramsMarketType);
         } else {
@@ -4259,7 +4265,9 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, paramsPaginate, 100) as Order[];
         }
@@ -4267,7 +4275,7 @@ export default class htx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, paramsPaginate);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, paramsPaginate);
         if (marketType === 'spot') {
             return await this.fetchClosedSpotOrders (symbol, since, limit, paramsMarketType);
         } else {
@@ -4302,8 +4310,8 @@ export default class htx extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {};
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, paramsMarketType, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, paramsMarketType, 'linear');
         const isLinear = (subType === 'linear');
         let response = undefined;
         if (marketType === 'spot') {
@@ -5064,7 +5072,7 @@ export default class htx extends Exchange {
         }
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('createOrder', params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', params);
         const accountId = await this.fetchAccountIdByType (market['type'], marginMode, symbol);
         const request: Dict = {
             // spot -----------------------------------------------------------
@@ -5200,14 +5208,14 @@ export default class htx extends Exchange {
         };
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         let orderType: Str = (postOnly === true) ? 'post_only' : type;
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('createOrder', market, paramsPostOnly);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('createOrder', market, paramsPostOnly);
         let query: Dict = paramsSubType;
         const isLinear = (subType === 'linear');
         const reduceOnly = this.safeBool2 (query, 'reduceOnly', 'reduce_only', false);
         const hedged = this.safeBool (query, 'hedged', false);
         const timeInForce = this.safeStringLower2 (query, 'timeInForce', 'time_in_force', 'gtc');
         if (isLinear) {
-            const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('createOrder', query, 'cross');
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', query, 'cross');
             query = paramsMarginMode;
             request['margin_mode'] = marginMode;
             request['side'] = side;
@@ -5742,8 +5750,8 @@ export default class htx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('cancelOrder', market, paramsMarketType);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('cancelOrder', market, paramsMarketType);
         const isLinear = (subType === 'linear');
         const request: Dict = {
             // spot -----------------------------------------------------------
@@ -5920,7 +5928,7 @@ export default class htx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const request: Dict = {
             // spot -----------------------------------------------------------
             // 'order-ids': ids.join (','), // max 50
@@ -6195,7 +6203,7 @@ export default class htx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const request: Dict = {
             // spot -----------------------------------------------------------
             // 'account-id': account['id'],
@@ -6729,7 +6737,7 @@ export default class htx extends Exchange {
         if (tagValue !== undefined) {
             request['addr-tag'] = tagValue; // only for XRP?
         }
-        const [ networkCode, paramsNetwork ]: [ Str, Dict ] = this.handleNetworkCodeAndParams (paramsTag);
+        const [ networkCode, paramsNetwork ] = this.handleNetworkCodeAndParams (paramsTag);
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
@@ -6872,7 +6880,7 @@ export default class htx extends Exchange {
             'currency': currency['id'],
             'amount': parseFloat (transferAmount),
         };
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('transfer', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('transfer', undefined, params);
         let fromAccountId = this.convertTypeToAccount (fromAccount);
         let toAccountId = this.convertTypeToAccount (toAccount);
         const toCross = toAccountId === 'cross';
@@ -7107,7 +7115,9 @@ export default class htx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
         }
@@ -7364,7 +7374,7 @@ export default class htx extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const defaultSubType: SubType = 'linear';
-        const [ subTypeOption, paramsSubType ]: [ SubType, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
+        const [ subTypeOption, paramsSubType ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
         let subType: SubType = subTypeOption;
         if (symbolsNormalized !== undefined) {
             const firstSymbol = this.safeString (symbolsNormalized, 0);
@@ -7422,7 +7432,7 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ marginModeOption, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
+        const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
         const marginMode: Str = (marginModeOption === undefined) ? 'cross' : marginModeOption;
         const request: Dict = {};
         if (since !== undefined) {
@@ -7538,7 +7548,7 @@ export default class htx extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let signedHeaders: Dict = undefined;
+        let signedHeaders = undefined;
         let signedBody: Str = undefined;
         const pathString: string = path;
         let url = '/';
@@ -7751,7 +7761,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         const initialRequest: Dict = {
             'type': '30,31',
         };
@@ -7766,7 +7776,7 @@ export default class htx extends Exchange {
         let response = undefined;
         if (marketType === 'swap') {
             if (market['linear'] === true) {
-                const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchFundingHistory', paramsUntil);
+                const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchFundingHistory', paramsUntil);
                 request['margin_mode'] = (marginMode === undefined) ? 'cross' : marginMode;
                 request['contract_code'] = market['id'];
                 if (limit !== undefined) {
@@ -8111,8 +8121,8 @@ export default class htx extends Exchange {
                 market = this.market (first);
             }
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
-        const [ marketTypeOption, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchPositions', market, paramsSubType);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
+        const [ marketTypeOption, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPositions', market, paramsSubType);
         const marketType: Str = (marketTypeOption === 'spot') ? 'future' : marketTypeOption;
         let response = undefined;
         if (subType === 'linear') {
@@ -8239,7 +8249,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ marginModeOption, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('fetchPosition', params);
+        const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchPosition', params);
         const marginMode: Str = (marginModeOption === undefined) ? 'cross' : marginModeOption;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, paramsMarginMode);
         const request: Dict = {};
@@ -8474,7 +8484,9 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, paramsPaginate, 500) as LedgerEntry[];
         }
@@ -8755,8 +8767,8 @@ export default class htx extends Exchange {
             }
         }
         const request: Dict = {};
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchOpenInterests', market, params, 'linear');
-        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOpenInterests', market, paramsSubType);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOpenInterests', market, params, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenInterests', market, paramsSubType);
         let response = undefined;
         if (marketType === 'future') {
             response = await this.contractPublicGetApiV1ContractOpenInterest (this.extend (request, paramsMarketType));
@@ -9716,7 +9728,7 @@ export default class htx extends Exchange {
         }
         let response = undefined;
         if (market['linear'] === true) {
-            const [ marginMode, paramsMarginMode ]: [ Str, Dict ] = this.handleMarginModeAndParams ('closePosition', paramsOmitted, 'cross');
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('closePosition', paramsOmitted, 'cross');
             request['margin_mode'] = marginMode;
             response = await this.contractPrivatePostV5TradePosition (this.extend (request, paramsMarginMode));
             //
@@ -9819,8 +9831,8 @@ export default class htx extends Exchange {
                 market = this.market (first);
             }
         }
-        const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params, 'linear');
-        const [ marketTypeOption, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchPositionsADLRank', market, paramsSubType);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params, 'linear');
+        const [ marketTypeOption, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchPositionsADLRank', market, paramsSubType);
         const marketType: Str = (marketTypeOption === 'spot') ? 'future' : marketTypeOption;
         let response = undefined;
         if (subType === 'linear') {

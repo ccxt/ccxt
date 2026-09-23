@@ -1127,8 +1127,8 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const symbolsNormalized = (symbols !== undefined) ? this.marketSymbols (symbols) : symbols;
-        if (symbols !== undefined) {
+        const symbolsNormalized = this.marketSymbols (symbols);
+        if (symbolsNormalized !== undefined) {
             const marketIds: List = [];
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
@@ -1216,7 +1216,9 @@ export default class kraken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 720) as OHLCV[];
         }
@@ -2285,7 +2287,7 @@ export default class kraken extends Exchange {
             request['timeinforce'] = timeInForce;
         }
         const isMarket = (type === 'market');
-        const [ postOnly, paramsPostOnly ]: [ Bool, Dict ] = this.handlePostOnly (isMarket, false, paramsOmitted2);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarket, false, paramsOmitted2);
         if (postOnly === true) {
             const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
             request['oflags'] = extendedPostFlags;
@@ -3185,7 +3187,7 @@ export default class kraken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             paramsPaginate['cursor'] = true;
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, paramsPaginate, 'next_cursor', 'cursor') as Transaction[];

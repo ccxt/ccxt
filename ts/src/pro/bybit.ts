@@ -195,7 +195,7 @@ export default class bybit extends bybitRest {
             isUsdcSettled = market['settle'] === 'USDC';
             type = market['type'];
         } else {
-            const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (methodValue, undefined, params);
+            const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams (methodValue, undefined, params);
             type = marketType;
             let defaultSettle = this.safeString (this.options, 'defaultSettle');
             defaultSettle = this.safeString2 (paramsMarketType, 'settle', 'defaultSettle', defaultSettle);
@@ -1327,7 +1327,7 @@ export default class bybit extends bybitRest {
             'usdc': 'user.openapi.perp.trade',
         };
         let topic: Str = this.safeString (topicByMarket, this.getPrivateType (url));
-        const [ executionFast, paramsExecutionFast ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
+        const [ executionFast, paramsExecutionFast ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
         }
@@ -1366,7 +1366,7 @@ export default class bybit extends bybitRest {
             'usdc': 'user.openapi.perp.trade',
         };
         let topic: Str = this.safeString (topicByMarket, this.getPrivateType (url));
-        const [ executionFast, paramsExecutionFast ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
+        const [ executionFast, paramsExecutionFast ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
         }
@@ -1537,8 +1537,8 @@ export default class bybit extends bybitRest {
         }
         const method = 'watchPositions';
         let messageHash = '';
-        const symbolsNormalized: Strings = ((symbols !== undefined) && !this.isEmpty (symbols)) ? this.marketSymbols (symbols) : symbols;
-        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
+        const symbolsNormalized = ((symbols !== undefined) && !this.isEmpty (symbols)) ? this.marketSymbols (symbols) : symbols;
+        if ((symbolsNormalized !== undefined) && !this.isEmpty (symbolsNormalized)) {
             messageHash = '::' + symbolsNormalized.join (',');
         }
         const firstSymbol = this.safeString (symbolsNormalized, 0);
@@ -1727,7 +1727,7 @@ export default class bybit extends bybitRest {
         const symbolValue: string = market['symbol'];
         const url = await this.getUrlByMarketType (symbolValue, false, 'watchLiquidations', params);
         const paramsValue: Dict = this.cleanParams (params);
-        const [ method, paramsMethod ]: [ Str, Dict ] = this.handleOptionAndParams (paramsValue, 'watchLiquidations', 'method', 'allLiquidation');
+        const [ method, paramsMethod ] = this.handleOptionAndParams (paramsValue, 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbolValue;
         const topic = method + '.' + market['id'];
         const newLiquidation = await this.watchTopics (url, [ messageHash ], [ topic ], paramsMethod);
@@ -2062,8 +2062,8 @@ export default class bybit extends bybitRest {
         }
         const method = 'watchBalance';
         let messageHash = 'balances';
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const [ subType, paramsSubType ]: [ Str, Dict ] = this.handleSubTypeAndParams ('watchBalance', undefined, paramsMarketType);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchBalance', undefined, paramsMarketType);
         const unified = await this.isUnifiedEnabled ();
         const isUnifiedMargin = this.safeBool (unified, 0, false);
         const isUnifiedAccount = this.safeBool (unified, 1, false);

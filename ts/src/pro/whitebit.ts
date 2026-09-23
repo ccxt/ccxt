@@ -739,7 +739,7 @@ export default class whitebit extends whitebitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let messageHash = 'wallet:';
         let method: Str = undefined;
         if (type === 'spot') {

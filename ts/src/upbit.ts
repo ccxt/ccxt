@@ -1461,7 +1461,7 @@ export default class upbit extends Exchange {
         if (postOnly && (selfTradePrevention !== undefined)) {
             throw new ExchangeError (this.id + ' editOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
-        const paramsOmitted = this.omit (paramsOmitted, 'clientOrderId');
+        const paramsOmitted = this.omit (params, 'clientOrderId');
         if (id !== undefined) {
             request['prev_order_uuid'] = id;
         } else if (prevClientOrderId !== undefined) {
@@ -2436,7 +2436,7 @@ export default class upbit extends Exchange {
         }
         const hasBody = (api === 'private') && (method !== 'GET') && (method !== 'DELETE');
         const requestBody = hasBody ? this.json (params) : body;
-        let privateHeaders: Dict = undefined;
+        let privateHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             privateHeaders = {};

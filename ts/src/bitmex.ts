@@ -1187,7 +1187,7 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        let query: Dict = undefined;
+        let query = undefined;
         [ paginate, query ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, query, 100) as Order[];
@@ -1274,7 +1274,7 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        let query: Dict = undefined;
+        let query = undefined;
         [ paginate, query ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, query, 100) as Trade[];
@@ -1786,7 +1786,7 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        let query: Dict = undefined;
+        let query = undefined;
         [ paginate, query ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, query) as OHLCV[];
@@ -2108,7 +2108,7 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        let query: Dict = undefined;
+        let query = undefined;
         [ paginate, query ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, query) as Trade[];
@@ -3287,7 +3287,9 @@ export default class bitmex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLiquidations', symbol, since, limit, paramsPaginate) as Liquidation[];
         }

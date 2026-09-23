@@ -129,7 +129,7 @@ export default class kraken extends krakenRest {
             request['params']['limit_price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
         }
         const isMarket = (type === 'market');
-        const [ postOnly, paramsPostOnly ]: [ boolean, Dict ] = this.handlePostOnly (isMarket, false, params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarket, false, params);
         if (postOnly === true) {
             request['params']['post_only'] = true;
         }

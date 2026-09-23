@@ -1577,7 +1577,7 @@ export default class hibachi extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -1677,7 +1677,7 @@ export default class hibachi extends Exchange {
         if (since !== undefined) {
             request['fromMs'] = since;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['toMs'] = until;
         }
@@ -2247,7 +2247,7 @@ export default class hibachi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt (until / 1000);
         }

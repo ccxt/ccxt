@@ -124,7 +124,7 @@ export default class bydfi extends bydfiRest {
         const client = this.client (url);
         const privateSubscription = this.safeValue (client.subscriptions, subHash);
         const subscription: Dict = {};
-        let paramsLogin: Dict = undefined;
+        let paramsLogin = undefined;
         if (privateSubscription === undefined) {
             const id = this.requestId ();
             const timestamp = this.milliseconds ().toString ();

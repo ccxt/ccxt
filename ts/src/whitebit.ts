@@ -2272,7 +2272,7 @@ export default class whitebit extends Exchange {
         const requestType: List = [];
         let requestParams: Dict = paramsMarketType;
         if (marketType === 'spot') {
-            const [ isMargin, paramsIsMargin ]: [ boolean, Dict ] = this.handleOptionAndParams (paramsMarketType, 'cancelAllOrders', 'isMargin', false);
+            const [ isMargin, paramsIsMargin ] = this.handleOptionAndParams (paramsMarketType, 'cancelAllOrders', 'isMargin', false);
             requestParams = paramsIsMargin;
             if (isMargin) {
                 requestType.push ('margin');
@@ -4205,7 +4205,9 @@ export default class whitebit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const maxLimit = 100;
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit) as FundingRateHistory[];
         }
@@ -4269,7 +4271,7 @@ export default class whitebit extends Exchange {
             }
         }
         let privateBody: Str = undefined;
-        let privateHeaders: Dict = undefined;
+        let privateHeaders: Dict = {};
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

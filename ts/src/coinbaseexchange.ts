@@ -1130,7 +1130,9 @@ export default class coinbaseexchange extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, 100) as Trade[];
         }
@@ -1269,7 +1271,7 @@ export default class coinbaseexchange extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 300) as OHLCV[];
         }
@@ -1286,16 +1288,16 @@ export default class coinbaseexchange extends Exchange {
         const until = this.safeValue2 (paramsPaginate, 'until', 'end');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        const cappedLimit: Int = (limit === undefined) ? 300 : Math.min (300, limit);
-        const limitResolved: Int = (since !== undefined) ? cappedLimit : limit;
+        const cappedLimit: number = (limit === undefined) ? 300 : Math.min (300, limit);
+        const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
             if (until === undefined) {
                 const parsedTimeframeMilliseconds = (parsedTimeframe as number) * 1000;
                 if (this.isRoundNumber (since % parsedTimeframeMilliseconds)) {
-                    request['end'] = this.iso8601 (this.sum ((limitResolved - 1) * parsedTimeframeMilliseconds, since));
+                    request['end'] = this.iso8601 (this.sum ((cappedLimit - 1) * parsedTimeframeMilliseconds, since));
                 } else {
-                    request['end'] = this.iso8601 (this.sum (limitResolved * parsedTimeframeMilliseconds, since));
+                    request['end'] = this.iso8601 (this.sum (cappedLimit * parsedTimeframeMilliseconds, since));
                 }
             } else {
                 request['end'] = this.iso8601 (until);
@@ -1507,7 +1509,9 @@ export default class coinbaseexchange extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, paramsPaginate, 100) as Order[];
         }

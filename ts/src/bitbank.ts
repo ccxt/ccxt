@@ -610,9 +610,10 @@ export default class bitbank extends Exchange {
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
-        const limitResolved = ((since === undefined) && (limit === undefined)) ? 1000 : limit;
+        const windowLimit = (limit === undefined) ? 1000 : limit;
+        const limitResolved = (since === undefined) ? windowLimit : limit;
         const duration = this.parseTimeframe (timeframe);
-        const sinceResolved = (since === undefined) ? this.milliseconds () - duration * 1000 * limitResolved : since;
+        const sinceResolved = (since === undefined) ? this.milliseconds () - duration * 1000 * windowLimit : since;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

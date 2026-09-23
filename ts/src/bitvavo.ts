@@ -823,7 +823,9 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
@@ -1154,7 +1156,9 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1440) as OHLCV[];
         }
@@ -1555,13 +1559,13 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        const [ operatorId, paramsOperatorId ]: [ Str, Dict ] = this.handleOptionAndParams (paramsCost, 'createOrder', 'operatorId');
+        const [ operatorId, paramsOperatorId ] = this.handleOptionAndParams (paramsCost, 'createOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        const [ selfTradePrevention, paramsSelfTradePrevention ]: [ Str, Dict ] = this.handleOptionAndParams (paramsOperatorId, 'createOrder', 'selfTradePrevention');
+        const [ selfTradePrevention, paramsSelfTradePrevention ] = this.handleOptionAndParams (paramsOperatorId, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_BOTH') {
                 request['selfTradePrevention'] = 'cancelBoth';
@@ -1672,7 +1676,7 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        const [ operatorId ]: [ Str, Dict ] = this.handleOptionAndParams (paramsOmitted, 'editOrder', 'operatorId');
+        const [ operatorId ] = this.handleOptionAndParams (paramsOmitted, 'editOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
@@ -1718,7 +1722,7 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        const [ operatorId, paramsOperatorId ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'cancelOrder', 'operatorId');
+        const [ operatorId, paramsOperatorId ] = this.handleOptionAndParams (params, 'cancelOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
@@ -1771,7 +1775,7 @@ export default class bitvavo extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const [ operatorId, paramsOperatorId ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'operatorId');
+        const [ operatorId, paramsOperatorId ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
@@ -1808,7 +1812,7 @@ export default class bitvavo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ codGroupId, paramsCodGroupId ]: [ Int, Dict ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'codGroupId', 1);
+        const [ codGroupId, paramsCodGroupId ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'codGroupId', 1);
         const request: Dict = {
             'codGroupId': codGroupId,
             'expiryAfterSeconds': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,
@@ -1926,7 +1930,9 @@ export default class bitvavo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
@@ -2197,7 +2203,9 @@ export default class bitvavo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }

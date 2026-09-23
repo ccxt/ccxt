@@ -1952,7 +1952,9 @@ export default class bitstamp extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
-        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let paginate = false;
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
@@ -2424,12 +2426,12 @@ export default class bitstamp extends Exchange {
             const parsedTransaction = this.parseTransaction (item, currency);
             let direction: Str = undefined;
             const hasTransactionCurrency = !('amount' in item) && ('currency' in parsedTransaction) && (parsedTransaction['currency'] !== undefined);
-            const currencyResolved: Currency = hasTransactionCurrency ? this.currency (this.safeString (parsedTransaction, 'currency')) : currency;
+            const currencyResolved = hasTransactionCurrency ? this.currency (this.safeString (parsedTransaction, 'currency')) : currency;
             if ('amount' in item) {
                 const amount = this.safeString (item, 'amount');
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
-                const amount = this.safeString (item, currencyResolved['id']);
+                const amount = this.safeString (item, this.safeString (currencyResolved, 'id'));
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
             }
             return this.safeLedgerEntry ({

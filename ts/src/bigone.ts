@@ -889,7 +889,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         if (type === 'spot') {
             const request: Dict = {
                 'asset_pair_name': market['id'],
@@ -937,7 +937,7 @@ export default class bigone extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const isSpot = type === 'spot';
         const request: Dict = {};
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
@@ -1610,7 +1610,7 @@ export default class bigone extends Exchange {
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly: Bool = undefined;
-        let query: Dict = undefined;
+        let query = undefined;
         [ postOnly, query ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
         const triggerPrice = this.safeStringN (query, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
