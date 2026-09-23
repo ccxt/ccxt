@@ -3344,6 +3344,12 @@ export default class lighter extends Exchange {
         } else {
             url = this.implodeHostname (this.urls['api'][api]) + '/api/' + this.version + '/' + path;
         }
+        let authHeaders: NullableDict = undefined;
+        if (api === 'private') {
+            authHeaders = {
+                'Authorization': this.createAuth (params),
+            };
+        }
         if (Object.keys (params).length > 0) {
             if (method === 'POST') {
                 const multipartHeaders: Dict = {
@@ -3354,9 +3360,6 @@ export default class lighter extends Exchange {
             url += '?' + this.rawencode (params);
         }
         if (api === 'private') {
-            const authHeaders: Dict = {
-                'Authorization': this.createAuth (params),
-            };
             return { 'url': url, 'method': method, 'body': body, 'headers': authHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

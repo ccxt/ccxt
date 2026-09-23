@@ -4554,7 +4554,7 @@ export default class hashkey extends Exchange {
             }
             headersSigned['INPUT-SOURCE'] = this.safeString (this.options, 'broker', '10000700011');
             headersSigned['broker_sign'] = signature;
-            const bodyResolved = (bodySigned !== undefined) ? bodySigned : body;
+            const bodyResolved = (method === 'GET') ? body : bodySigned;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
         } else {
             query = this.urlencode (params);
