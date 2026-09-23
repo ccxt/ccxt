@@ -333,7 +333,7 @@
                 ]
             },
             {
-                "description": "a single-symbol watch returns only that symbol's new updates",
+                "description": "a single-symbol watch returns its own update, not another symbol's order from the same frame",
                 "input": [
                     "ETH/USDT:USDT"
                 ],
@@ -349,43 +349,6 @@
                         "arg": {
                             "channel": "orders"
                         }
-                    },
-                    {
-                        "action": "update",
-                        "arg": {
-                            "channel": "orders"
-                        },
-                        "data": [
-                            {
-                                "orderId": "1000000001",
-                                "clientOrderId": "",
-                                "instId": "BTC-USDT",
-                                "marginMode": "isolated",
-                                "positionSide": "net",
-                                "side": "buy",
-                                "orderType": "limit",
-                                "price": "60000.000000000000000000",
-                                "size": "1.000000000000000000",
-                                "reduceOnly": "false",
-                                "leverage": "3",
-                                "state": "live",
-                                "filledSize": "0.000000000000000000",
-                                "filled_amount": "0.000000000000000000",
-                                "averagePrice": "0.000000000000000000",
-                                "fee": "0.000000000000000000",
-                                "pnl": "0.000000000000000000",
-                                "createTime": "1758000000000",
-                                "updateTime": "1758000000000",
-                                "orderCategory": "normal",
-                                "tpTriggerPrice": null,
-                                "tpOrderPrice": null,
-                                "slTriggerPrice": null,
-                                "slOrderPrice": null,
-                                "cancelSource": "",
-                                "instType": "SWAP",
-                                "brokerId": ""
-                            }
-                        ]
                     },
                     {
                         "action": "update",
@@ -421,7 +384,15 @@
                                 "cancelSource": "",
                                 "instType": "SWAP",
                                 "brokerId": ""
-                            },
+                            }
+                        ]
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "channel": "orders"
+                        },
+                        "data": [
                             {
                                 "orderId": "1000000003",
                                 "clientOrderId": "",
@@ -442,6 +413,35 @@
                                 "pnl": "0.000000000000000000",
                                 "createTime": "1758000001500",
                                 "updateTime": "1758000001600",
+                                "orderCategory": "normal",
+                                "tpTriggerPrice": null,
+                                "tpOrderPrice": null,
+                                "slTriggerPrice": null,
+                                "slOrderPrice": null,
+                                "cancelSource": "",
+                                "instType": "SWAP",
+                                "brokerId": ""
+                            },
+                            {
+                                "orderId": "1000000001",
+                                "clientOrderId": "",
+                                "instId": "BTC-USDT",
+                                "marginMode": "isolated",
+                                "positionSide": "net",
+                                "side": "buy",
+                                "orderType": "limit",
+                                "price": "60000.000000000000000000",
+                                "size": "1.000000000000000000",
+                                "reduceOnly": "false",
+                                "leverage": "3",
+                                "state": "live",
+                                "filledSize": "0.000000000000000000",
+                                "filled_amount": "0.000000000000000000",
+                                "averagePrice": "0.000000000000000000",
+                                "fee": "0.000000000000000000",
+                                "pnl": "0.000000000000000000",
+                                "createTime": "1758000000000",
+                                "updateTime": "1758000000000",
                                 "orderCategory": "normal",
                                 "tpTriggerPrice": null,
                                 "tpOrderPrice": null,
@@ -522,7 +522,9 @@
                             ],
                             "stopPrice": null,
                             "triggerPrice": null
-                        },
+                        }
+                    ],
+                    [
                         {
                             "info": {
                                 "orderId": "1000000003",
@@ -584,6 +586,370 @@
                             "fees": [
                                 {
                                     "cost": 0.017943,
+                                    "currency": "USDT"
+                                }
+                            ],
+                            "stopPrice": null,
+                            "triggerPrice": null
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchOrdersForSymbols": [
+            {
+                "description": "updates for an unrequested symbol do not bring back already-returned orders",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://openapi.blofin.com/ws/private",
+                "messages": [
+                    {
+                        "event": "login",
+                        "code": "0",
+                        "msg": ""
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "orders"
+                        }
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "channel": "orders"
+                        },
+                        "data": [
+                            {
+                                "orderId": "1000000001",
+                                "clientOrderId": "",
+                                "instId": "BTC-USDT",
+                                "marginMode": "isolated",
+                                "positionSide": "net",
+                                "side": "buy",
+                                "orderType": "limit",
+                                "price": "60000.000000000000000000",
+                                "size": "1.000000000000000000",
+                                "reduceOnly": "false",
+                                "leverage": "3",
+                                "state": "live",
+                                "filledSize": "0.000000000000000000",
+                                "filled_amount": "0.000000000000000000",
+                                "averagePrice": "0.000000000000000000",
+                                "fee": "0.000000000000000000",
+                                "pnl": "0.000000000000000000",
+                                "createTime": "1758000000000",
+                                "updateTime": "1758000000000",
+                                "orderCategory": "normal",
+                                "tpTriggerPrice": null,
+                                "tpOrderPrice": null,
+                                "slTriggerPrice": null,
+                                "slOrderPrice": null,
+                                "cancelSource": "",
+                                "instType": "SWAP",
+                                "brokerId": ""
+                            },
+                            {
+                                "orderId": "1000000002",
+                                "clientOrderId": "",
+                                "instId": "ETH-USDT",
+                                "marginMode": "isolated",
+                                "positionSide": "net",
+                                "side": "sell",
+                                "orderType": "limit",
+                                "price": "3000.000000000000000000",
+                                "size": "2.000000000000000000",
+                                "reduceOnly": "false",
+                                "leverage": "3",
+                                "state": "live",
+                                "filledSize": "0.000000000000000000",
+                                "filled_amount": "0.000000000000000000",
+                                "averagePrice": "0.000000000000000000",
+                                "fee": "0.000000000000000000",
+                                "pnl": "0.000000000000000000",
+                                "createTime": "1758000001000",
+                                "updateTime": "1758000001000",
+                                "orderCategory": "normal",
+                                "tpTriggerPrice": null,
+                                "tpOrderPrice": null,
+                                "slTriggerPrice": null,
+                                "slOrderPrice": null,
+                                "cancelSource": "",
+                                "instType": "SWAP",
+                                "brokerId": ""
+                            }
+                        ]
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "channel": "orders"
+                        },
+                        "data": [
+                            {
+                                "orderId": "1000000005",
+                                "clientOrderId": "",
+                                "instId": "ADA-USDT",
+                                "marginMode": "isolated",
+                                "positionSide": "net",
+                                "side": "buy",
+                                "orderType": "limit",
+                                "price": "0.700000000000000000",
+                                "size": "10.000000000000000000",
+                                "reduceOnly": "false",
+                                "leverage": "3",
+                                "state": "live",
+                                "filledSize": "0.000000000000000000",
+                                "filled_amount": "0.000000000000000000",
+                                "averagePrice": "0.000000000000000000",
+                                "fee": "0.000000000000000000",
+                                "pnl": "0.000000000000000000",
+                                "createTime": "1758000002500",
+                                "updateTime": "1758000002500",
+                                "orderCategory": "normal",
+                                "tpTriggerPrice": null,
+                                "tpOrderPrice": null,
+                                "slTriggerPrice": null,
+                                "slOrderPrice": null,
+                                "cancelSource": "",
+                                "instType": "SWAP",
+                                "brokerId": ""
+                            },
+                            {
+                                "orderId": "1000000004",
+                                "clientOrderId": "",
+                                "instId": "BTC-USDT",
+                                "marginMode": "isolated",
+                                "positionSide": "net",
+                                "side": "buy",
+                                "orderType": "limit",
+                                "price": "61000.000000000000000000",
+                                "size": "1.000000000000000000",
+                                "reduceOnly": "false",
+                                "leverage": "3",
+                                "state": "live",
+                                "filledSize": "0.000000000000000000",
+                                "filled_amount": "0.000000000000000000",
+                                "averagePrice": "0.000000000000000000",
+                                "fee": "0.000000000000000000",
+                                "pnl": "0.000000000000000000",
+                                "createTime": "1758000002000",
+                                "updateTime": "1758000002000",
+                                "orderCategory": "normal",
+                                "tpTriggerPrice": null,
+                                "tpOrderPrice": null,
+                                "slTriggerPrice": null,
+                                "slOrderPrice": null,
+                                "cancelSource": "",
+                                "instType": "SWAP",
+                                "brokerId": ""
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "orderId": "1000000001",
+                                "clientOrderId": "",
+                                "instId": "BTC-USDT",
+                                "marginMode": "isolated",
+                                "positionSide": "net",
+                                "side": "buy",
+                                "orderType": "limit",
+                                "price": "60000.000000000000000000",
+                                "size": "1.000000000000000000",
+                                "reduceOnly": "false",
+                                "leverage": "3",
+                                "state": "live",
+                                "filledSize": "0.000000000000000000",
+                                "filled_amount": "0.000000000000000000",
+                                "averagePrice": "0.000000000000000000",
+                                "fee": "0.000000000000000000",
+                                "pnl": "0.000000000000000000",
+                                "createTime": "1758000000000",
+                                "updateTime": "1758000000000",
+                                "orderCategory": "normal",
+                                "tpTriggerPrice": null,
+                                "tpOrderPrice": null,
+                                "slTriggerPrice": null,
+                                "slOrderPrice": null,
+                                "cancelSource": "",
+                                "instType": "SWAP",
+                                "brokerId": ""
+                            },
+                            "id": "1000000001",
+                            "clientOrderId": null,
+                            "timestamp": 1758000000000,
+                            "datetime": "2025-09-16T05:20:00.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1758000000000,
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "buy",
+                            "price": 60000,
+                            "stopLossTriggerPrice": null,
+                            "takeProfitTriggerPrice": null,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null,
+                            "average": null,
+                            "cost": 0,
+                            "amount": 1,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": "open",
+                            "fee": {
+                                "cost": 0,
+                                "currency": "USDT"
+                            },
+                            "trades": [],
+                            "reduceOnly": false,
+                            "fees": [
+                                {
+                                    "cost": 0,
+                                    "currency": "USDT"
+                                }
+                            ],
+                            "stopPrice": null,
+                            "triggerPrice": null
+                        },
+                        {
+                            "info": {
+                                "orderId": "1000000002",
+                                "clientOrderId": "",
+                                "instId": "ETH-USDT",
+                                "marginMode": "isolated",
+                                "positionSide": "net",
+                                "side": "sell",
+                                "orderType": "limit",
+                                "price": "3000.000000000000000000",
+                                "size": "2.000000000000000000",
+                                "reduceOnly": "false",
+                                "leverage": "3",
+                                "state": "live",
+                                "filledSize": "0.000000000000000000",
+                                "filled_amount": "0.000000000000000000",
+                                "averagePrice": "0.000000000000000000",
+                                "fee": "0.000000000000000000",
+                                "pnl": "0.000000000000000000",
+                                "createTime": "1758000001000",
+                                "updateTime": "1758000001000",
+                                "orderCategory": "normal",
+                                "tpTriggerPrice": null,
+                                "tpOrderPrice": null,
+                                "slTriggerPrice": null,
+                                "slOrderPrice": null,
+                                "cancelSource": "",
+                                "instType": "SWAP",
+                                "brokerId": ""
+                            },
+                            "id": "1000000002",
+                            "clientOrderId": null,
+                            "timestamp": 1758000001000,
+                            "datetime": "2025-09-16T05:20:01.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1758000001000,
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "sell",
+                            "price": 3000,
+                            "stopLossTriggerPrice": null,
+                            "takeProfitTriggerPrice": null,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null,
+                            "average": null,
+                            "cost": 0,
+                            "amount": 2,
+                            "filled": 0,
+                            "remaining": 2,
+                            "status": "open",
+                            "fee": {
+                                "cost": 0,
+                                "currency": "USDT"
+                            },
+                            "trades": [],
+                            "reduceOnly": false,
+                            "fees": [
+                                {
+                                    "cost": 0,
+                                    "currency": "USDT"
+                                }
+                            ],
+                            "stopPrice": null,
+                            "triggerPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "orderId": "1000000004",
+                                "clientOrderId": "",
+                                "instId": "BTC-USDT",
+                                "marginMode": "isolated",
+                                "positionSide": "net",
+                                "side": "buy",
+                                "orderType": "limit",
+                                "price": "61000.000000000000000000",
+                                "size": "1.000000000000000000",
+                                "reduceOnly": "false",
+                                "leverage": "3",
+                                "state": "live",
+                                "filledSize": "0.000000000000000000",
+                                "filled_amount": "0.000000000000000000",
+                                "averagePrice": "0.000000000000000000",
+                                "fee": "0.000000000000000000",
+                                "pnl": "0.000000000000000000",
+                                "createTime": "1758000002000",
+                                "updateTime": "1758000002000",
+                                "orderCategory": "normal",
+                                "tpTriggerPrice": null,
+                                "tpOrderPrice": null,
+                                "slTriggerPrice": null,
+                                "slOrderPrice": null,
+                                "cancelSource": "",
+                                "instType": "SWAP",
+                                "brokerId": ""
+                            },
+                            "id": "1000000004",
+                            "clientOrderId": null,
+                            "timestamp": 1758000002000,
+                            "datetime": "2025-09-16T05:20:02.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1758000002000,
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "buy",
+                            "price": 61000,
+                            "stopLossTriggerPrice": null,
+                            "takeProfitTriggerPrice": null,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null,
+                            "average": null,
+                            "cost": 0,
+                            "amount": 1,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": "open",
+                            "fee": {
+                                "cost": 0,
+                                "currency": "USDT"
+                            },
+                            "trades": [],
+                            "reduceOnly": false,
+                            "fees": [
+                                {
+                                    "cost": 0,
                                     "currency": "USDT"
                                 }
                             ],
