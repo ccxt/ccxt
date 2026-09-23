@@ -622,10 +622,8 @@ export default class btcbox extends Exchange {
             await this.loadMarkets ();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market (symbol);
+        const symbolResolved: string = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market (symbolResolved);
         const request: Dict = {
             'id': id,
             'coin': market['baseId'],
@@ -725,10 +723,8 @@ export default class btcbox extends Exchange {
             await this.loadMarkets ();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market (symbol);
+        const symbolResolved: string = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market (symbolResolved);
         const request = this.extend ({
             'id': id,
             'coin': market['baseId'],
@@ -754,10 +750,8 @@ export default class btcbox extends Exchange {
             await this.loadMarkets ();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market (symbol);
+        const symbolResolved: string = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market (symbolResolved);
         const request: Dict = {
             'type': type, // 'open' or 'all'
             'coin': market['baseId'],
@@ -838,10 +832,11 @@ export default class btcbox extends Exchange {
             const request = this.urlencode (query);
             const secret = this.hash (this.encode (this.secret), md5);
             query['signature'] = this.hmac (this.encode (request), this.encode (secret), sha256);
-            body = this.urlencode (query);
-            headers = {
+            const signedBody: Str = this.urlencode (query);
+            const signedHeaders: Dict = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

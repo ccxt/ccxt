@@ -642,24 +642,26 @@ export default class paymium extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             let auth = nonce + url;
-            headers = {
+            const signedHeaders: Dict = {
                 'Api-Key': this.apiKey,
                 'Api-Nonce': nonce,
             };
+            const hasQuery = Object.keys (query).length > 0;
+            const signedBody: Str = (method === 'POST' && hasQuery) ? this.json (query) : body;
             if (method === 'POST') {
-                if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    auth += body;
-                    headers['Content-Type'] = 'application/json';
+                if (hasQuery) {
+                    auth += signedBody;
+                    signedHeaders['Content-Type'] = 'application/json';
                 }
             } else {
-                if (Object.keys (query).length > 0) {
+                if (hasQuery) {
                     const queryString = this.urlencode (query);
                     auth += queryString;
                     url += '?' + queryString;
                 }
             }
-            headers['Api-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            signedHeaders['Api-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

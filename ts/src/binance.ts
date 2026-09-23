@@ -4112,12 +4112,13 @@ export default class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         let type = this.safeString (params, 'type', defaultType);
         let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+        let paramsSubType: Dict = undefined;
+        [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, paramsSubType ] = this.handleOptionAndParams2 (paramsSubType, 'fetchBalance', 'papi', 'portfolioMargin', false);
         let marginMode: Str = undefined;
         let query: NullableDict = undefined;
-        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', paramsSubType);
         query = this.omit (query, 'type');
         let response: NullableDict = undefined;
         const request: Dict = {};
@@ -4132,18 +4133,18 @@ export default class binance extends Exchange {
         } else if (this.isLinear (type, subType)) {
             type = 'linear';
             let useV2: Bool = undefined;
-            [ useV2, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'useV2', false);
-            params = this.extend (request, query);
+            [ useV2, paramsSubType ] = this.handleOptionAndParams (paramsSubType, 'fetchBalance', 'useV2', false);
+            paramsSubType = this.extend (request, query);
             if (!useV2) {
-                response = await this.fapiPrivateV3GetAccount (params);
+                response = await this.fapiPrivateV3GetAccount (paramsSubType);
             } else {
-                response = await this.fapiPrivateV2GetAccount (params);
+                response = await this.fapiPrivateV2GetAccount (paramsSubType);
             }
         } else if (this.isInverse (type, subType)) {
             type = 'inverse';
             response = await this.dapiPrivateGetAccount (this.extend (request, query));
         } else if (marginMode === 'isolated') {
-            const paramSymbols = this.safeList (params, 'symbols');
+            const paramSymbols = this.safeList (paramsSubType, 'symbols');
             query = this.omit (query, 'symbols');
             if (paramSymbols !== undefined) {
                 let symbols = '';
@@ -4388,13 +4389,13 @@ export default class binance extends Exchange {
             response = await this.eapiPublicGetDepth (this.extend (request, params));
         } else if (market['linear'] === true) {
             const rpi = this.safeBool (params, 'rpi', false);
-            params = this.omit (params, 'rpi');
+            const paramsOmitted: Dict = this.omit (params, 'rpi');
             if (rpi === true) {
                 // rpi limit only supports 1000
                 request['limit'] = 1000;
-                response = await this.fapiPublicGetRpiDepth (this.extend (request, params));
+                response = await this.fapiPublicGetRpiDepth (this.extend (request, paramsOmitted));
             } else {
-                response = await this.fapiPublicGetDepth (this.extend (request, params));
+                response = await this.fapiPublicGetDepth (this.extend (request, paramsOmitted));
             }
         } else if (market['inverse'] === true) {
             response = await this.dapiPublicGetDepth (this.extend (request, params));
@@ -4703,11 +4704,11 @@ export default class binance extends Exchange {
                 response = await this.sapiGetEquityMarketQuote (this.extend (request, params));
             } else {
                 const rolling = this.safeBool (params, 'rolling', false);
-                params = this.omit (params, 'rolling');
+                const paramsOmitted: Dict = this.omit (params, 'rolling');
                 if (rolling === true) {
-                    response = await this.publicGetTicker (this.extend (request, params));
+                    response = await this.publicGetTicker (this.extend (request, paramsOmitted));
                 } else {
-                    response = await this.publicGetTicker24hr (this.extend (request, params));
+                    response = await this.publicGetTicker24hr (this.extend (request, paramsOmitted));
                 }
             }
         }
@@ -4905,42 +4906,43 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        this.checkNoStockSymbols (symbols, 'fetchTickers');
-        const market = this.getMarketFromSymbols (symbols);
+        let symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
+        this.checkNoStockSymbols (symbolsNormalized, 'fetchTickers');
+        const market = this.getMarketFromSymbols (symbolsNormalized);
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let paramsMarketType: Dict = undefined;
+        [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
+        [ subType, paramsMarketType ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
         let response: NullableDict = undefined;
         if (this.isLinear (type, subType)) {
-            response = await this.fapiPublicGetTicker24hr (params);
+            response = await this.fapiPublicGetTicker24hr (paramsMarketType);
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPublicGetTicker24hr (params);
+            response = await this.dapiPublicGetTicker24hr (paramsMarketType);
         } else if (type === 'spot') {
-            const rolling = this.safeBool (params, 'rolling', false);
-            params = this.omit (params, 'rolling');
+            const rolling = this.safeBool (paramsMarketType, 'rolling', false);
+            paramsMarketType = this.omit (paramsMarketType, 'rolling');
             if (rolling === true) {
-                symbols = this.marketSymbols (symbols);
+                symbolsNormalized = this.marketSymbols (symbolsNormalized);
                 const request: Dict = {
-                    'symbols': this.json (this.marketIds (symbols)),
+                    'symbols': this.json (this.marketIds (symbolsNormalized)),
                 };
-                response = await this.publicGetTicker (this.extend (request, params));
+                response = await this.publicGetTicker (this.extend (request, paramsMarketType));
                 // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return this.parseTickersForRolling (response, symbols);
+                return this.parseTickersForRolling (response, symbolsNormalized);
             } else {
                 const request: Dict = {};
-                if (symbols !== undefined) {
-                    request['symbols'] = this.json (this.marketIds (symbols));
+                if (symbolsNormalized !== undefined) {
+                    request['symbols'] = this.json (this.marketIds (symbolsNormalized));
                 }
-                response = await this.publicGetTicker24hr (this.extend (request, params));
+                response = await this.publicGetTicker24hr (this.extend (request, paramsMarketType));
             }
         } else if (type === 'option') {
-            response = await this.eapiPublicGetTicker (params);
+            response = await this.eapiPublicGetTicker (paramsMarketType);
         } else {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets yet');
         }
-        return this.parseTickers (response, symbols);
+        return this.parseTickers (response, symbolsNormalized);
     }
 
     parseTickersForRolling (response: any, symbols: any) {
@@ -5133,13 +5135,11 @@ export default class binance extends Exchange {
         const price = this.safeString (paramsPaginate, 'price');
         const until = this.safeInteger (paramsPaginate, 'until');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'price', 'until' ]);
-        if (since !== undefined && until !== undefined && limit === undefined) {
-            limit = maxLimit;
-        }
-        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
+        const limitRequested: Int = (since !== undefined && until !== undefined && limit === undefined) ? maxLimit : limit;
+        const limitValue: Int = (limitRequested === undefined) ? defaultLimit : Math.min (limitRequested, maxLimit);
         const request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitValue,
         };
         const marketId = market['id'];
         if (marketId === undefined) {
@@ -5162,7 +5162,7 @@ export default class binance extends Exchange {
             if (market['inverse'] === true) {
                 if (since > 0) {
                     const duration = this.parseTimeframe (timeframe);
-                    const endTime = this.sum (since, limit * duration * 1000 - 1);
+                    const endTime = this.sum (since, limitValue * duration * 1000 - 1);
                     const now = this.milliseconds ();
                     request['endTime'] = Math.min (now, endTime);
                 }
@@ -5225,7 +5225,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        const candles = this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
+        const candles = this.parseOHLCVs (this.toArray (response), market, timeframe, since, limitValue);
         return candles;
     }
 
@@ -5887,11 +5887,9 @@ export default class binance extends Exchange {
             request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-        if (this.safeString (params, 'timeInForce') === 'PO') {
-            params = this.omit (params, [ 'timeInForce' ]);
-        }
-        params = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
-        return this.extend (request, params);
+        const paramsTimeInForce: Dict = (this.safeString (params, 'timeInForce') === 'PO') ? this.omit (params, [ 'timeInForce' ]) : params;
+        const paramsOmitted: Dict = this.omit (paramsTimeInForce, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     editContractOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
@@ -7082,23 +7080,24 @@ export default class binance extends Exchange {
             'side': upperCaseSide,
         };
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
+        let paramsPapi: Dict = undefined;
+        [ isPortfolioMargin, paramsPapi ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        [ marginMode, paramsPapi ] = this.handleMarginModeAndParams ('createOrder', paramsPapi);
+        const reduceOnly = this.safeBool (paramsPapi, 'reduceOnly', false);
         if (reduceOnly === true) {
             if (marketType === 'margin' || ((market['contract'] !== true) && (marginMode !== undefined))) {
-                params = this.omit (params, 'reduceOnly');
+                paramsPapi = this.omit (paramsPapi, 'reduceOnly');
                 request['sideEffectType'] = 'AUTO_REPAY';
             }
         }
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const trailingDelta = this.safeString (params, 'trailingDelta');
-        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice');
-        const trailingPercent = this.safeStringN (params, [ 'trailingPercent', 'callbackRate', 'trailingDelta' ]);
-        const priceMatch = this.safeString (params, 'priceMatch');
+        const triggerPrice = this.safeString2 (paramsPapi, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (paramsPapi, 'stopLossPrice', triggerPrice); // fallback to stopLoss
+        const takeProfitPrice = this.safeString (paramsPapi, 'takeProfitPrice');
+        const trailingDelta = this.safeString (paramsPapi, 'trailingDelta');
+        const trailingTriggerPrice = this.safeString2 (paramsPapi, 'trailingTriggerPrice', 'activationPrice');
+        const trailingPercent = this.safeStringN (paramsPapi, [ 'trailingPercent', 'callbackRate', 'trailingDelta' ]);
+        const priceMatch = this.safeString (paramsPapi, 'priceMatch');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
@@ -7118,8 +7117,8 @@ export default class binance extends Exchange {
                 }
             } else {
                 if ((uppercaseType !== 'STOP_LOSS') && (uppercaseType !== 'TAKE_PROFIT') && (uppercaseType !== 'STOP_LOSS_LIMIT') && (uppercaseType !== 'TAKE_PROFIT_LIMIT')) {
-                    const stopLossOrTakeProfit = this.safeString (params, 'stopLossOrTakeProfit');
-                    params = this.omit (params, 'stopLossOrTakeProfit');
+                    const stopLossOrTakeProfit = this.safeString (paramsPapi, 'stopLossOrTakeProfit');
+                    paramsPapi = this.omit (paramsPapi, 'stopLossOrTakeProfit');
                     if ((stopLossOrTakeProfit !== 'stopLoss') && (stopLossOrTakeProfit !== 'takeProfit')) {
                         throw new InvalidOrder (this.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
                     }
@@ -7201,7 +7200,7 @@ export default class binance extends Exchange {
         }
         let postOnly: Bool = undefined;
         if (!isPortfolioMargin) {
-            postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+            postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', paramsPapi);
             if ((market['spot'] === true) || marketType === 'margin') {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if (postOnly) {
@@ -7212,7 +7211,7 @@ export default class binance extends Exchange {
                 }
             }
         } else {
-            postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+            postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', paramsPapi);
             if (postOnly) {
                 if (market['contract'] !== true) {
                     uppercaseType = 'LIMIT_MAKER';
@@ -7234,7 +7233,7 @@ export default class binance extends Exchange {
         }
         request[typeRequest] = uppercaseType;
         // additional required fields depending on the order type
-        const closePosition = this.safeBool (params, 'closePosition', false);
+        const closePosition = this.safeBool (paramsPapi, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let triggerPriceIsRequired = false;
@@ -7263,7 +7262,7 @@ export default class binance extends Exchange {
             if (stock === true) {
                 if (upperCaseSide === 'BUY') {
                     const precision = this.safeNumber (market['precision'], 'price');
-                    const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
+                    const quoteOrderQtyNew = this.safeString2 (paramsPapi, 'quoteOrderQty', 'cost');
                     let notional: Str = undefined;
                     if (quoteOrderQtyNew !== undefined) {
                         notional = quoteOrderQtyNew;
@@ -7293,7 +7292,7 @@ export default class binance extends Exchange {
             } else if (market['spot'] === true) {
                 const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true) as Bool;
                 if (quoteOrderQty === true) {
-                    const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
+                    const quoteOrderQtyNew = this.safeString2 (paramsPapi, 'quoteOrderQty', 'cost');
                     const precision = this.safeNumber (market['precision'], 'price');
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
@@ -7313,7 +7312,7 @@ export default class binance extends Exchange {
             }
         } else if (uppercaseType === 'LIMIT') {
             if (stock === true) {
-                const tradingSession = this.safeString (params, 'tradingSession', '24H');
+                const tradingSession = this.safeString (paramsPapi, 'tradingSession', '24H');
                 request['tradingSession'] = tradingSession;
             }
             priceIsRequired = true;
@@ -7390,27 +7389,28 @@ export default class binance extends Exchange {
                 }
             }
         }
-        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
+        if (timeInForceIsRequired && (this.safeString (paramsPapi, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.handleOption ('createOrder', 'timeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && (market['contract'] === true) && postOnly) {
             request['timeInForce'] = 'GTX';
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-        if (this.safeString (params, 'timeInForce') === 'PO') {
-            params = this.omit (params, 'timeInForce');
+        if (this.safeString (paramsPapi, 'timeInForce') === 'PO') {
+            paramsPapi = this.omit (paramsPapi, 'timeInForce');
         }
-        const hedged = this.safeBool (params, 'hedged', false);
+        const hedged = this.safeBool (paramsPapi, 'hedged', false);
         if ((market['spot'] !== true) && (market['option'] !== true) && (hedged === true)) {
+            let positionSide: string = side;
             if (reduceOnly === true) {
-                params = this.omit (params, 'reduceOnly');
-                side = (side === 'buy') ? 'sell' : 'buy';
+                paramsPapi = this.omit (paramsPapi, 'reduceOnly');
+                positionSide = (side === 'buy') ? 'sell' : 'buy';
             }
-            request['positionSide'] = (side === 'buy') ? 'LONG' : 'SHORT';
+            request['positionSide'] = (positionSide === 'buy') ? 'LONG' : 'SHORT';
         }
         // unified stp
         let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
+        [ selfTradePrevention, paramsPapi ] = this.handleOptionAndParams (paramsPapi, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             const warnOnStpForInverse = this.handleOption ('createOrder', 'warnOnSTPForInverse');
             if ((market['inverse'] === true) && (warnOnStpForInverse === true)) {
@@ -7419,13 +7419,13 @@ export default class binance extends Exchange {
             request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase (); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
-        const icebergAmount = this.safeNumber (params, 'icebergAmount');
+        const icebergAmount = this.safeNumber (paramsPapi, 'icebergAmount');
         if (icebergAmount !== undefined) {
             if (market['spot'] === true) {
                 request['icebergQty'] = this.amountToPrecision (symbol, icebergAmount);
             }
         }
-        const requestParams = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ]);
+        const requestParams = this.omit (paramsPapi, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ]);
         return this.extend (request, requestParams);
     }
 
@@ -7529,7 +7529,8 @@ export default class binance extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         let stock = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'stock', false);
+        let paramsStock: Dict = undefined;
+        [ stock, paramsStock ] = this.handleOptionAndParams (params, 'fetchOrder', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
@@ -7540,19 +7541,19 @@ export default class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
+        [ type, paramsStock ] = this.handleMarketTypeAndParams ('fetchOrder', market, paramsStock, 'spot');
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
+        [ subType, paramsStock ] = this.handleSubTypeAndParams ('fetchOrder', market, paramsStock);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        [ marginMode, paramsStock ] = this.handleMarginModeAndParams ('fetchOrder', paramsStock);
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrder', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        [ isPortfolioMargin, paramsStock ] = this.handleOptionAndParams2 (paramsStock, 'fetchOrder', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBoolN (paramsStock, [ 'stop', 'trigger', 'conditional' ]);
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
         const isLinearSwapConditional = isLinearType && (market !== undefined) && (market['swap'] === true) && (isConditional === true) && (isPortfolioMargin !== true);
-        const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'clientAlgoId' ]);
+        const clientOrderId = this.safeStringN (paramsStock, [ 'origClientOrderId', 'clientOrderId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
             if (isOptionType) {
                 request['clientOrderId'] = clientOrderId;
@@ -7566,39 +7567,39 @@ export default class binance extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOrderId', 'origClientOrderId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ]);
+        paramsStock = this.omit (paramsStock, [ 'clientOrderId', 'origClientOrderId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ]);
         let response: NullableDict = undefined;
         if (isOptionType) {
-            response = await this.eapiPrivateGetOrder (this.extend (request, params));
+            response = await this.eapiPrivateGetOrder (this.extend (request, paramsStock));
         } else if (isLinearType) {
             if (isPortfolioMargin) {
-                response = await this.papiGetUmOrder (this.extend (request, params));
+                response = await this.papiGetUmOrder (this.extend (request, paramsStock));
             } else {
                 if (isConditional === true) {
-                    response = await this.fapiPrivateGetAlgoOrder (this.extend (request, params));
+                    response = await this.fapiPrivateGetAlgoOrder (this.extend (request, paramsStock));
                 } else {
-                    response = await this.fapiPrivateGetOrder (this.extend (request, params));
+                    response = await this.fapiPrivateGetOrder (this.extend (request, paramsStock));
                 }
             }
         } else if (isInverseType) {
             if (isPortfolioMargin) {
-                response = await this.papiGetCmOrder (this.extend (request, params));
+                response = await this.papiGetCmOrder (this.extend (request, paramsStock));
             } else {
-                response = await this.dapiPrivateGetOrder (this.extend (request, params));
+                response = await this.dapiPrivateGetOrder (this.extend (request, paramsStock));
             }
         } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
-                response = await this.papiGetMarginOrder (this.extend (request, params));
+                response = await this.papiGetMarginOrder (this.extend (request, paramsStock));
             } else {
                 if (marginMode === 'isolated') {
                     request['isIsolated'] = true;
                 }
-                response = await this.sapiGetMarginOrder (this.extend (request, params));
+                response = await this.sapiGetMarginOrder (this.extend (request, paramsStock));
             }
         } else if (stock === true) {
-            response = await this.sapiGetEquityOrderDetail (this.extend (request, params));
+            response = await this.sapiGetEquityOrderDetail (this.extend (request, paramsStock));
         } else {
-            response = await this.privateGetOrder (this.extend (request, params));
+            response = await this.privateGetOrder (this.extend (request, paramsStock));
         }
         if (response === undefined) {
             throw new NullResponse (this.id + ' parseOrder() returned empty response');
@@ -7638,14 +7639,15 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        let paramsPaginate: Dict = undefined;
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
         const request: Dict = {};
         let market: Market = undefined;
         let stock = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'stock', false);
+        [ stock, paramsPaginate ] = this.handleOptionAndParams (paramsPaginate, 'fetchOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
@@ -7654,28 +7656,29 @@ export default class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params, 'spot');
+        [ type, paramsPaginate ] = this.handleMarketTypeAndParams ('fetchOrders', market, paramsPaginate, 'spot');
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
+        [ subType, paramsPaginate ] = this.handleSubTypeAndParams ('fetchOrders', market, paramsPaginate);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
+        [ marginMode, paramsPaginate ] = this.handleMarginModeAndParams ('fetchOrders', paramsPaginate);
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        [ isPortfolioMargin, paramsPaginate ] = this.handleOptionAndParams2 (paramsPaginate, 'fetchOrders', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBoolN (paramsPaginate, [ 'stop', 'trigger', 'conditional' ]);
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
-        let until = this.safeIntegerN (params, [ 'until', 'till', 'endTime' ]);
-        params = this.omit (params, [ 'stop', 'trigger', 'conditional', 'until', 'till', 'endTime' ]);
+        let until = this.safeIntegerN (paramsPaginate, [ 'until', 'till', 'endTime' ]);
+        paramsPaginate = this.omit (paramsPaginate, [ 'stop', 'trigger', 'conditional', 'until', 'till', 'endTime' ]);
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        if (limit !== undefined) {
+        // max 100
+        const limitResolved: Int = (limit !== undefined && stock === true) ? Math.min (limit, 100) : limit;
+        if (limitResolved !== undefined) {
             if (stock === true) {
-                limit = Math.min (limit, 100); // max 100
-                request['size'] = limit;
+                request['size'] = limitResolved;
             } else {
-                request['limit'] = limit;
+                request['limit'] = limitResolved;
             }
         }
         if (until !== undefined) {
@@ -7693,43 +7696,43 @@ export default class binance extends Exchange {
         }
         let response: NullableDict = undefined;
         if (isOptionType) {
-            response = await this.eapiPrivateGetHistoryOrders (this.extend (request, params));
+            response = await this.eapiPrivateGetHistoryOrders (this.extend (request, paramsPaginate));
         } else if (isLinearType) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiGetUmConditionalAllOrders (this.extend (request, params));
+                    response = await this.papiGetUmConditionalAllOrders (this.extend (request, paramsPaginate));
                 } else {
-                    response = await this.papiGetUmAllOrders (this.extend (request, params));
+                    response = await this.papiGetUmAllOrders (this.extend (request, paramsPaginate));
                 }
             } else {
                 if (isConditional === true) {
-                    response = await this.fapiPrivateGetAllAlgoOrders (this.extend (request, params));
+                    response = await this.fapiPrivateGetAllAlgoOrders (this.extend (request, paramsPaginate));
                 } else {
-                    response = await this.fapiPrivateGetAllOrders (this.extend (request, params));
+                    response = await this.fapiPrivateGetAllOrders (this.extend (request, paramsPaginate));
                 }
             }
         } else if (isInverseType) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiGetCmConditionalAllOrders (this.extend (request, params));
+                    response = await this.papiGetCmConditionalAllOrders (this.extend (request, paramsPaginate));
                 } else {
-                    response = await this.papiGetCmAllOrders (this.extend (request, params));
+                    response = await this.papiGetCmAllOrders (this.extend (request, paramsPaginate));
                 }
             } else {
-                response = await this.dapiPrivateGetAllOrders (this.extend (request, params));
+                response = await this.dapiPrivateGetAllOrders (this.extend (request, paramsPaginate));
             }
         } else {
             if (isPortfolioMargin) {
-                response = await this.papiGetMarginAllOrders (this.extend (request, params));
+                response = await this.papiGetMarginAllOrders (this.extend (request, paramsPaginate));
             } else if (type === 'margin' || marginMode !== undefined) {
                 if (marginMode === 'isolated') {
                     request['isIsolated'] = true;
                 }
-                response = await this.sapiGetMarginAllOrders (this.extend (request, params));
+                response = await this.sapiGetMarginAllOrders (this.extend (request, paramsPaginate));
             } else if (stock === true) {
-                response = await this.sapiGetEquityOrderHistory (this.extend (request, params));
+                response = await this.sapiGetEquityOrderHistory (this.extend (request, paramsPaginate));
             } else {
-                response = await this.privateGetAllOrders (this.extend (request, params));
+                response = await this.privateGetAllOrders (this.extend (request, paramsPaginate));
             }
         }
         //
@@ -7940,9 +7943,9 @@ export default class binance extends Exchange {
         //
         if (stock === true) {
             const result = this.safeList (response, 'rows', []);
-            return this.parseOrders (result, market, since, limit);
+            return this.parseOrders (result, market, since, limitResolved);
         }
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (response, market, since, limitResolved);
     }
 
     /**
@@ -7979,12 +7982,13 @@ export default class binance extends Exchange {
         let type: Str = undefined;
         const request: Dict = {};
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        let paramsMarginMode: Dict = undefined;
+        [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        [ isPortfolioMargin, paramsMarginMode ] = this.handleOptionAndParams2 (paramsMarginMode, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBoolN (paramsMarginMode, [ 'stop', 'trigger', 'conditional' ]);
         let stock = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'stock', false);
+        [ stock, paramsMarginMode ] = this.handleOptionAndParams (paramsMarginMode, 'fetchOpenOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
@@ -7998,10 +8002,10 @@ export default class binance extends Exchange {
                 throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = false to suppress this warning message.');
             }
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params, 'spot');
+        [ type, paramsMarginMode ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, paramsMarginMode, 'spot');
         let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
-        params = this.omit (params, [ 'stop', 'trigger', 'conditional' ]);
+        [ subType, paramsMarginMode ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, paramsMarginMode);
+        paramsMarginMode = this.omit (paramsMarginMode, [ 'stop', 'trigger', 'conditional' ]);
         let response: NullableDict = undefined;
         if (type === 'option') {
             if (since !== undefined) {
@@ -8010,38 +8014,38 @@ export default class binance extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await this.eapiPrivateGetOpenOrders (this.extend (request, params));
+            response = await this.eapiPrivateGetOpenOrders (this.extend (request, paramsMarginMode));
         } else if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiGetUmConditionalOpenOrders (this.extend (request, params));
+                    response = await this.papiGetUmConditionalOpenOrders (this.extend (request, paramsMarginMode));
                 } else {
-                    response = await this.papiGetUmOpenOrders (this.extend (request, params));
+                    response = await this.papiGetUmOpenOrders (this.extend (request, paramsMarginMode));
                 }
             } else {
                 if (isConditional === true) {
-                    response = await this.fapiPrivateGetOpenAlgoOrders (this.extend (request, params));
+                    response = await this.fapiPrivateGetOpenAlgoOrders (this.extend (request, paramsMarginMode));
                 } else {
-                    response = await this.fapiPrivateGetOpenOrders (this.extend (request, params));
+                    response = await this.fapiPrivateGetOpenOrders (this.extend (request, paramsMarginMode));
                 }
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiGetCmConditionalOpenOrders (this.extend (request, params));
+                    response = await this.papiGetCmConditionalOpenOrders (this.extend (request, paramsMarginMode));
                 } else {
-                    response = await this.papiGetCmOpenOrders (this.extend (request, params));
+                    response = await this.papiGetCmOpenOrders (this.extend (request, paramsMarginMode));
                 }
             } else {
                 if (isConditional === true) {
-                    response = await this.dapiPrivateGetOpenAlgoOrders (this.extend (request, params));
+                    response = await this.dapiPrivateGetOpenAlgoOrders (this.extend (request, paramsMarginMode));
                 } else {
-                    response = await this.dapiPrivateGetOpenOrders (this.extend (request, params));
+                    response = await this.dapiPrivateGetOpenOrders (this.extend (request, paramsMarginMode));
                 }
             }
         } else if (type === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
-                response = await this.papiGetMarginOpenOrders (this.extend (request, params));
+                response = await this.papiGetMarginOpenOrders (this.extend (request, paramsMarginMode));
             } else {
                 if (marginMode === 'isolated') {
                     request['isIsolated'] = true;
@@ -8049,12 +8053,12 @@ export default class binance extends Exchange {
                         throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for isolated markets');
                     }
                 }
-                response = await this.sapiGetMarginOpenOrders (this.extend (request, params));
+                response = await this.sapiGetMarginOpenOrders (this.extend (request, paramsMarginMode));
             }
         } else if (stock === true) {
-            response = await this.sapiGetEquityOrderOpenOrders (this.extend (request, params));
+            response = await this.sapiGetEquityOrderOpenOrders (this.extend (request, paramsMarginMode));
         } else {
-            response = await this.privateGetOpenOrders (this.extend (request, params));
+            response = await this.privateGetOpenOrders (this.extend (request, paramsMarginMode));
         }
         return this.parseOrders (response, market, since, limit);
     }
@@ -8302,7 +8306,8 @@ export default class binance extends Exchange {
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
         let stock = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'stock', false);
+        let paramsStock: Dict = undefined;
+        [ stock, paramsStock ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
@@ -8310,10 +8315,10 @@ export default class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         if (stock === true) {
-            params['stock'] = true;
-            params['orderStatus'] = 'FILLED';
+            paramsStock['stock'] = true;
+            paramsStock['orderStatus'] = 'FILLED';
         }
-        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const orders = await this.fetchOrders (symbol, since, undefined, paramsStock);
         const filteredOrders = this.filterBy (orders, 'status', 'closed');
         return this.filterBySinceLimit (filteredOrders, since, limit);
     }
@@ -8345,7 +8350,8 @@ export default class binance extends Exchange {
     override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
         let stock = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'stock', false);
+        let paramsStock: Dict = undefined;
+        [ stock, paramsStock ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
@@ -8353,10 +8359,10 @@ export default class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
         }
         if (stock === true) {
-            params['stock'] = true;
-            params['orderStatus'] = 'CANCELED';
+            paramsStock['stock'] = true;
+            paramsStock['orderStatus'] = 'CANCELED';
         }
-        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const orders = await this.fetchOrders (symbol, since, undefined, paramsStock);
         const filteredOrders = this.filterBy (orders, 'status', 'canceled');
         return this.filterBySinceLimit (filteredOrders, since, limit) as Order[];
     }
@@ -8388,7 +8394,8 @@ export default class binance extends Exchange {
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
         let stock = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'stock', false);
+        let paramsStock: Dict = undefined;
+        [ stock, paramsStock ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
@@ -8396,10 +8403,10 @@ export default class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
         }
         if (stock === true) {
-            params['stock'] = true;
-            params['orderStatus'] = 'FILLED,CANCELED';
+            paramsStock['stock'] = true;
+            paramsStock['orderStatus'] = 'FILLED,CANCELED';
         }
-        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const orders = await this.fetchOrders (symbol, since, undefined, paramsStock);
         const canceledOrders = this.filterBy (orders, 'status', 'canceled');
         const closedOrders = this.filterBy (orders, 'status', 'closed');
         const filteredOrders = this.arrayConcat (canceledOrders, closedOrders);
@@ -8438,7 +8445,8 @@ export default class binance extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         let stock = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'stock', false);
+        let paramsStock: Dict = undefined;
+        [ stock, paramsStock ] = this.handleOptionAndParams (params, 'cancelOrder', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
@@ -8449,19 +8457,19 @@ export default class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params, 'spot');
+        [ type, paramsStock ] = this.handleMarketTypeAndParams ('cancelOrder', market, paramsStock, 'spot');
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
+        [ subType, paramsStock ] = this.handleSubTypeAndParams ('cancelOrder', market, paramsStock);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        [ marginMode, paramsStock ] = this.handleMarginModeAndParams ('cancelOrder', paramsStock);
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        [ isPortfolioMargin, paramsStock ] = this.handleOptionAndParams2 (paramsStock, 'cancelOrder', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBoolN (paramsStock, [ 'stop', 'trigger', 'conditional' ]);
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
         const isSwapConditional = (market !== undefined) && (market['swap'] === true) && (isConditional === true) && (isPortfolioMargin !== true);
-        const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ]);
+        const clientOrderId = this.safeStringN (paramsStock, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
             if (isOptionType) {
                 request['clientOrderId'] = clientOrderId;
@@ -8483,51 +8491,51 @@ export default class binance extends Exchange {
                 request['orderId'] = id;
             }
         }
-        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ]);
+        paramsStock = this.omit (paramsStock, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ]);
         let response: NullableDict = undefined;
         if (isOptionType) {
-            response = await this.eapiPrivateDeleteOrder (this.extend (request, params));
+            response = await this.eapiPrivateDeleteOrder (this.extend (request, paramsStock));
         } else if (isLinearType) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiDeleteUmConditionalOrder (this.extend (request, params));
+                    response = await this.papiDeleteUmConditionalOrder (this.extend (request, paramsStock));
                 } else {
-                    response = await this.papiDeleteUmOrder (this.extend (request, params));
+                    response = await this.papiDeleteUmOrder (this.extend (request, paramsStock));
                 }
             } else {
                 if (isConditional === true) {
-                    response = await this.fapiPrivateDeleteAlgoOrder (this.extend (request, params));
+                    response = await this.fapiPrivateDeleteAlgoOrder (this.extend (request, paramsStock));
                 } else {
-                    response = await this.fapiPrivateDeleteOrder (this.extend (request, params));
+                    response = await this.fapiPrivateDeleteOrder (this.extend (request, paramsStock));
                 }
             }
         } else if (isInverseType) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiDeleteCmConditionalOrder (this.extend (request, params));
+                    response = await this.papiDeleteCmConditionalOrder (this.extend (request, paramsStock));
                 } else {
-                    response = await this.papiDeleteCmOrder (this.extend (request, params));
+                    response = await this.papiDeleteCmOrder (this.extend (request, paramsStock));
                 }
             } else {
                 if (isConditional === true) {
-                    response = await this.dapiPrivateDeleteAlgoOrder (this.extend (request, params));
+                    response = await this.dapiPrivateDeleteAlgoOrder (this.extend (request, paramsStock));
                 } else {
-                    response = await this.dapiPrivateDeleteOrder (this.extend (request, params));
+                    response = await this.dapiPrivateDeleteOrder (this.extend (request, paramsStock));
                 }
             }
         } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
-                response = await this.papiDeleteMarginOrder (this.extend (request, params));
+                response = await this.papiDeleteMarginOrder (this.extend (request, paramsStock));
             } else {
                 if (marginMode === 'isolated') {
                     request['isIsolated'] = true;
                 }
-                response = await this.sapiDeleteMarginOrder (this.extend (request, params));
+                response = await this.sapiDeleteMarginOrder (this.extend (request, paramsStock));
             }
         } else if (stock === true) {
-            response = await this.sapiPostEquityOrderCancel (this.extend (request, params));
+            response = await this.sapiPostEquityOrderCancel (this.extend (request, paramsStock));
         } else {
-            response = await this.privateDeleteOrder (this.extend (request, params));
+            response = await this.privateDeleteOrder (this.extend (request, paramsStock));
         }
         if (response === undefined) {
             throw new NullResponse (this.id + ' parseOrder() returned empty response');
@@ -8566,7 +8574,8 @@ export default class binance extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         let stock = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'stock', false);
+        let paramsStock: Dict = undefined;
+        [ stock, paramsStock ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
@@ -8577,21 +8586,21 @@ export default class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        [ isPortfolioMargin, paramsStock ] = this.handleOptionAndParams2 (paramsStock, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBoolN (paramsStock, [ 'stop', 'trigger', 'conditional' ]);
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params, 'spot');
+        [ type, paramsStock ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, paramsStock, 'spot');
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        [ subType, paramsStock ] = this.handleSubTypeAndParams ('cancelAllOrders', market, paramsStock);
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
         const isInverseType = this.isInverse (type, subType);
-        params = this.omit (params, [ 'stop', 'trigger', 'conditional' ]);
+        paramsStock = this.omit (paramsStock, [ 'stop', 'trigger', 'conditional' ]);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        [ marginMode, paramsStock ] = this.handleMarginModeAndParams ('cancelAllOrders', paramsStock);
         let response: NullableDict = undefined;
         if (isOptionType) {
-            response = await this.eapiPrivateDeleteAllOpenOrders (this.extend (request, params));
+            response = await this.eapiPrivateDeleteAllOpenOrders (this.extend (request, paramsStock));
             //
             //    {
             //        "code": 0,
@@ -8601,7 +8610,7 @@ export default class binance extends Exchange {
         } else if (isLinearType) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiDeleteUmConditionalAllOpenOrders (this.extend (request, params));
+                    response = await this.papiDeleteUmConditionalAllOpenOrders (this.extend (request, paramsStock));
                     //
                     //    {
                     //        "code": "200",
@@ -8609,7 +8618,7 @@ export default class binance extends Exchange {
                     //    }
                     //
                 } else {
-                    response = await this.papiDeleteUmAllOpenOrders (this.extend (request, params));
+                    response = await this.papiDeleteUmAllOpenOrders (this.extend (request, paramsStock));
                     //
                     //    {
                     //        "code": 200,
@@ -8619,7 +8628,7 @@ export default class binance extends Exchange {
                 }
             } else {
                 if (isConditional === true) {
-                    response = await this.fapiPrivateDeleteAlgoOpenOrders (this.extend (request, params));
+                    response = await this.fapiPrivateDeleteAlgoOpenOrders (this.extend (request, paramsStock));
                     //
                     //     {
                     //         "code": 200,
@@ -8627,7 +8636,7 @@ export default class binance extends Exchange {
                     //     }
                     //
                 } else {
-                    response = await this.fapiPrivateDeleteAllOpenOrders (this.extend (request, params));
+                    response = await this.fapiPrivateDeleteAllOpenOrders (this.extend (request, paramsStock));
                     //
                     //    {
                     //        "code": 200,
@@ -8639,7 +8648,7 @@ export default class binance extends Exchange {
         } else if (isInverseType) {
             if (isPortfolioMargin) {
                 if (isConditional === true) {
-                    response = await this.papiDeleteCmConditionalAllOpenOrders (this.extend (request, params));
+                    response = await this.papiDeleteCmConditionalAllOpenOrders (this.extend (request, paramsStock));
                     //
                     //    {
                     //        "code": "200",
@@ -8647,7 +8656,7 @@ export default class binance extends Exchange {
                     //    }
                     //
                 } else {
-                    response = await this.papiDeleteCmAllOpenOrders (this.extend (request, params));
+                    response = await this.papiDeleteCmAllOpenOrders (this.extend (request, paramsStock));
                     //
                     //    {
                     //        "code": 200,
@@ -8656,7 +8665,7 @@ export default class binance extends Exchange {
                     //
                 }
             } else {
-                response = await this.dapiPrivateDeleteAllOpenOrders (this.extend (request, params));
+                response = await this.dapiPrivateDeleteAllOpenOrders (this.extend (request, paramsStock));
                 //
                 //    {
                 //        "code": 200,
@@ -8666,12 +8675,12 @@ export default class binance extends Exchange {
             }
         } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
-                response = await this.papiDeleteMarginAllOpenOrders (this.extend (request, params));
+                response = await this.papiDeleteMarginAllOpenOrders (this.extend (request, paramsStock));
             } else {
                 if (marginMode === 'isolated') {
                     request['isIsolated'] = true;
                 }
-                response = await this.sapiDeleteMarginOpenOrders (this.extend (request, params));
+                response = await this.sapiDeleteMarginOpenOrders (this.extend (request, paramsStock));
                 //
                 //    [
                 //        {
@@ -8696,14 +8705,14 @@ export default class binance extends Exchange {
                 //
             }
         } else if (stock === true) {
-            response = await this.sapiPostEquityOrderCancelAll (this.extend (request, params));
+            response = await this.sapiPostEquityOrderCancelAll (this.extend (request, paramsStock));
             //
             //     {
             //         "success": true
             //     }
             //
         } else {
-            response = await this.privateDeleteOpenOrders (this.extend (request, params));
+            response = await this.privateDeleteOpenOrders (this.extend (request, paramsStock));
             //
             //    [
             //        {
@@ -8768,17 +8777,17 @@ export default class binance extends Exchange {
             // 'orderidlist': ids,
         };
         const origClientOrderIdList = this.safeList2 (params, 'origClientOrderIdList', 'clientOrderIds');
+        const paramsOmitted: Dict = (origClientOrderIdList !== undefined) ? this.omit (params, [ 'clientOrderIds' ]) : params;
         if (origClientOrderIdList !== undefined) {
-            params = this.omit (params, [ 'clientOrderIds' ]);
             request['origClientOrderIdList'] = origClientOrderIdList;
         } else {
             request['orderidlist'] = ids;
         }
         let response: NullableDict = undefined;
         if (market['linear'] === true) {
-            response = await this.fapiPrivateDeleteBatchOrders (this.extend (request, params));
+            response = await this.fapiPrivateDeleteBatchOrders (this.extend (request, paramsOmitted));
         } else if (market['inverse'] === true) {
-            response = await this.dapiPrivateDeleteBatchOrders (this.extend (request, params));
+            response = await this.dapiPrivateDeleteBatchOrders (this.extend (request, paramsOmitted));
         }
         //
         //    [
@@ -8879,26 +8888,27 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let paramsPaginate: Dict = undefined;
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
         const request: Dict = {};
         let market: Market = undefined;
         let type: Str = undefined;
         let marginMode: Str = undefined;
         let stock = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'stock', false);
+        [ stock, paramsPaginate ] = this.handleOptionAndParams (paramsPaginate, 'fetchMyTrades', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
             request['symbol'] = market['id'];
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        [ type, paramsPaginate ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsPaginate);
         if ((stock !== true) && (type !== 'option') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        let endTime = this.safeInteger2 (params, 'until', 'endTime');
+        let endTime = this.safeInteger2 (paramsPaginate, 'until', 'endTime');
         if (since !== undefined) {
             const startTime = since;
             request['startTime'] = startTime;
@@ -8917,26 +8927,26 @@ export default class binance extends Exchange {
         }
         if (endTime !== undefined) {
             request['endTime'] = endTime;
-            params = this.omit (params, [ 'endTime', 'until' ]);
+            paramsPaginate = this.omit (paramsPaginate, [ 'endTime', 'until' ]);
         }
-        if (limit !== undefined) {
-            if ((type === 'option') || (this.safeBool (market, 'contract') === true)) {
-                limit = Math.min (limit, 1000); // above 1000, returns error
-            }
+        const isContractLimit = (type === 'option') || (this.safeBool (market, 'contract') === true);
+        // above 1000, returns error
+        const limitContract: Int = (limit !== undefined && isContractLimit) ? Math.min (limit, 1000) : limit;
+        const limitResolved: Int = (limitContract !== undefined && stock === true) ? Math.min (limitContract, 100) : limitContract;
+        if (limitResolved !== undefined) {
             if (stock === true) {
-                limit = Math.min (limit, 100); // max 100
-                request['size'] = limit;
+                request['size'] = limitResolved;
             } else {
-                request['limit'] = limit;
+                request['limit'] = limitResolved;
             }
         }
         let response: NullableDict | NullableList = undefined;
         if (type === 'option') {
-            response = await this.eapiPrivateGetUserTrades (this.extend (request, params));
+            response = await this.eapiPrivateGetUserTrades (this.extend (request, paramsPaginate));
         } else {
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            [ marginMode, paramsPaginate ] = this.handleMarginModeAndParams ('fetchMyTrades', paramsPaginate);
             let isPortfolioMargin: Bool = undefined;
-            [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
+            [ isPortfolioMargin, paramsPaginate ] = this.handleOptionAndParams2 (paramsPaginate, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if (stock === true) {
                 if (endTime === undefined) {
                     endTime = this.milliseconds ();
@@ -8946,29 +8956,29 @@ export default class binance extends Exchange {
                     const oneWeek = 7 * 24 * 60 * 60 * 1000;
                     request['startTime'] = endTime - oneWeek;
                 }
-                response = await this.sapiGetEquityTradeHistory (this.extend (request, params));
+                response = await this.sapiGetEquityTradeHistory (this.extend (request, paramsPaginate));
             } else if (type === 'spot' || type === 'margin') {
                 if (isPortfolioMargin) {
-                    response = await this.papiGetMarginMyTrades (this.extend (request, params));
+                    response = await this.papiGetMarginMyTrades (this.extend (request, paramsPaginate));
                 } else if ((type === 'margin') || (marginMode !== undefined)) {
                     if (marginMode === 'isolated') {
                         request['isIsolated'] = true;
                     }
-                    response = await this.sapiGetMarginMyTrades (this.extend (request, params));
+                    response = await this.sapiGetMarginMyTrades (this.extend (request, paramsPaginate));
                 } else {
-                    response = await this.privateGetMyTrades (this.extend (request, params));
+                    response = await this.privateGetMyTrades (this.extend (request, paramsPaginate));
                 }
             } else if (this.safeBool (market, 'linear') === true) {
                 if (isPortfolioMargin) {
-                    response = await this.papiGetUmUserTrades (this.extend (request, params));
+                    response = await this.papiGetUmUserTrades (this.extend (request, paramsPaginate));
                 } else {
-                    response = await this.fapiPrivateGetUserTrades (this.extend (request, params));
+                    response = await this.fapiPrivateGetUserTrades (this.extend (request, paramsPaginate));
                 }
             } else if (this.safeBool (market, 'inverse') === true) {
                 if (isPortfolioMargin) {
-                    response = await this.papiGetCmUserTrades (this.extend (request, params));
+                    response = await this.papiGetCmUserTrades (this.extend (request, paramsPaginate));
                 } else {
-                    response = await this.dapiPrivateGetUserTrades (this.extend (request, params));
+                    response = await this.dapiPrivateGetUserTrades (this.extend (request, paramsPaginate));
                 }
             }
         }
@@ -9132,7 +9142,7 @@ export default class binance extends Exchange {
                 responseList = this.toArray (response);
             }
         }
-        return this.parseTrades (responseList, market, since, limit);
+        return this.parseTrades (responseList, market, since, limitResolved);
     }
 
     /**
@@ -9424,17 +9434,18 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        let paramsPaginate: Dict = undefined;
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, paramsPaginate);
         }
         const legalMoney = this.safeDict (this.options, 'legalMoney', {});
-        const fiatOnly = this.safeBool (params, 'fiat', false);
-        params = this.omit (params, 'fiatOnly');
+        const fiatOnly = this.safeBool (paramsPaginate, 'fiat', false);
+        paramsPaginate = this.omit (paramsPaginate, 'fiatOnly');
         const request: Dict = {};
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsPaginate = this.omit (paramsPaginate, 'until');
             request['endTime'] = until;
         }
         let response: NullableDict | NullableList = undefined;
@@ -9447,7 +9458,7 @@ export default class binance extends Exchange {
             if (since !== undefined) {
                 request['beginTime'] = since;
             }
-            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
+            const raw = await this.sapiGetFiatOrders (this.extend (request, paramsPaginate));
             response = this.safeList (raw, 'data', []);
             //     {
             //       "code": "000000",
@@ -9492,7 +9503,7 @@ export default class binance extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
+            response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, paramsPaginate));
             //     [
             //       {
             //         "id": "69e53ad305124b96b43668ceab158a18",
@@ -9883,13 +9894,13 @@ export default class binance extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         request['type'] = this.safeString (params, 'type');
-        params = this.omit (params, 'type');
+        let paramsOmitted: Dict = this.omit (params, 'type');
         if (request['type'] === undefined) {
-            const symbol = this.safeString (params, 'symbol');
+            const symbol = this.safeString (paramsOmitted, 'symbol');
             let market: Market = undefined;
             if (symbol !== undefined) {
                 market = this.market (symbol);
-                params = this.omit (params, 'symbol');
+                paramsOmitted = this.omit (paramsOmitted, 'symbol');
             }
             let fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
             let toId = this.convertTypeToAccount (toAccount).toUpperCase ();
@@ -9954,7 +9965,7 @@ export default class binance extends Exchange {
                 request['type'] = fromId + '_' + toId;
             }
         }
-        const response = await this.sapiPostAssetTransfer (this.extend (request, params));
+        const response = await this.sapiPostAssetTransfer (this.extend (request, paramsOmitted));
         //
         //     {
         //         "tranId":13526853623
@@ -9982,11 +9993,11 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         const internal = this.safeBool (params, 'internal');
-        params = this.omit (params, 'internal');
+        let paramsOmitted: Dict = this.omit (params, 'internal');
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        [ paginate, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'fetchTransfers', 'paginate');
         if (paginate && (internal !== true)) {
-            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, paramsOmitted);
         }
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -9996,10 +10007,10 @@ export default class binance extends Exchange {
         let limitKey = 'limit';
         if (internal !== true) {
             const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
-            const fromAccount = this.safeString (params, 'fromAccount', defaultType);
+            const fromAccount = this.safeString (paramsOmitted, 'fromAccount', defaultType);
             const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
-            const toAccount = this.safeString (params, 'toAccount', defaultTo);
-            let type = this.safeString (params, 'type');
+            const toAccount = this.safeString (paramsOmitted, 'toAccount', defaultTo);
+            let type = this.safeString (paramsOmitted, 'type');
             const accountsByType = this.safeDict (this.options, 'accountsByType', {});
             const fromId = this.safeString (accountsByType, fromAccount);
             const toId = this.safeString (accountsByType, toAccount);
@@ -10023,14 +10034,14 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsOmitted, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsOmitted = this.omit (paramsOmitted, 'until');
             request['endTime'] = until;
         }
         let response: NullableDict = undefined;
         if (internal === true) {
-            response = await this.sapiGetPayTransactions (this.extend (request, params));
+            response = await this.sapiGetPayTransactions (this.extend (request, paramsOmitted));
             //
             // {
             //     "code": "000000",
@@ -10089,7 +10100,7 @@ export default class binance extends Exchange {
             // }
             //
         } else {
-            response = await this.sapiGetAssetTransfer (this.extend (request, params));
+            response = await this.sapiGetAssetTransfer (this.extend (request, paramsOmitted));
             //
             //     {
             //         "total": 3,
@@ -10878,7 +10889,6 @@ export default class binance extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
             request['symbol'] = market['id'];
         }
         const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, paramsPaginate, 'linear');
@@ -11568,9 +11578,10 @@ export default class binance extends Exchange {
             const type = this.safeString (params, 'type', defaultType);
             const query = this.omit (params, 'type');
             let subType: SubType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
+            let paramsSubType: Dict = undefined;
+            [ subType, paramsSubType ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
             let isPortfolioMargin: Bool = undefined;
-            [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
+            [ isPortfolioMargin, paramsSubType ] = this.handleOptionAndParams2 (paramsSubType, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
             let response: NullableDict | NullableList = undefined;
             if (this.isLinear (type, subType)) {
                 if (isPortfolioMargin) {
@@ -11916,7 +11927,8 @@ export default class binance extends Exchange {
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         let defaultMethod: Str = undefined;
-        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method'); // check if there is a key in options|params
+        let paramsMethod: Dict = undefined;
+        [ defaultMethod, paramsMethod ] = this.handleOptionAndParams (params, 'fetchPositions', 'method'); // check if there is a key in options|params
         if (defaultMethod === undefined) {
             // check if .options['fetchPositions'] dict exist at all
             const options = this.safeDict (this.options, 'fetchPositions');
@@ -11929,11 +11941,11 @@ export default class binance extends Exchange {
             }
         }
         if (defaultMethod === 'positionRisk') {
-            return await this.fetchPositionsRisk (symbols, params);
+            return await this.fetchPositionsRisk (symbols, paramsMethod);
         } else if (defaultMethod === 'account') {
-            return await this.fetchAccountPositions (symbols, params);
+            return await this.fetchAccountPositions (symbols, paramsMethod);
         } else if (defaultMethod === 'option') {
-            return await this.fetchOptionPositions (symbols, params);
+            return await this.fetchOptionPositions (symbols, paramsMethod);
         } else {
             throw new NotSupported (this.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"');
         }
@@ -11969,22 +11981,22 @@ export default class binance extends Exchange {
         await this.loadLeverageBrackets (false, params);
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let paramsOmitted: Dict = this.omit (params, 'type');
         let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
+        [ subType, paramsOmitted ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, paramsOmitted, 'linear');
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, paramsOmitted ] = this.handleOptionAndParams2 (paramsOmitted, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
         let response: NullableDict = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiV2GetUmAccount (params);
+                response = await this.papiV2GetUmAccount (paramsOmitted);
             } else {
                 let useV2: Bool = undefined;
-                [ useV2, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'useV2', false);
+                [ useV2, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'fetchAccountPositions', 'useV2', false);
                 if (!useV2) {
-                    response = await this.fapiPrivateV3GetAccount (params);
+                    response = await this.fapiPrivateV3GetAccount (paramsOmitted);
                 } else {
-                    response = await this.fapiPrivateV2GetAccount (params);
+                    response = await this.fapiPrivateV2GetAccount (paramsOmitted);
                 }
                 //
                 //    {
@@ -12055,15 +12067,15 @@ export default class binance extends Exchange {
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiGetCmAccount (params);
+                response = await this.papiGetCmAccount (paramsOmitted);
             } else {
-                response = await this.dapiPrivateGetAccount (params);
+                response = await this.dapiPrivateGetAccount (paramsOmitted);
             }
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
         let filterClosed: Bool = undefined;
-        [ filterClosed, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'filterClosed', false);
+        [ filterClosed, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'fetchAccountPositions', 'filterClosed', false);
         const result = this.parseAccountPositions (response, filterClosed);
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
@@ -12101,22 +12113,23 @@ export default class binance extends Exchange {
         defaultType = this.safeString (this.options, 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
         let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
+        let paramsSubType: Dict = undefined;
+        [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
-        params = this.omit (params, 'type');
+        [ isPortfolioMargin, paramsSubType ] = this.handleOptionAndParams2 (paramsSubType, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
+        paramsSubType = this.omit (paramsSubType, 'type');
         let response: NullableDict | NullableList = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiGetUmPositionRisk (this.extend (request, params));
+                response = await this.papiGetUmPositionRisk (this.extend (request, paramsSubType));
             } else {
                 let useV2: Bool = undefined;
-                [ useV2, params ] = this.handleOptionAndParams (params, 'fetchPositionsRisk', 'useV2', false);
-                params = this.extend (request, params);
+                [ useV2, paramsSubType ] = this.handleOptionAndParams (paramsSubType, 'fetchPositionsRisk', 'useV2', false);
+                paramsSubType = this.extend (request, paramsSubType);
                 if (!useV2) {
-                    response = await this.fapiPrivateV3GetPositionRisk (params);
+                    response = await this.fapiPrivateV3GetPositionRisk (paramsSubType);
                 } else {
-                    response = await this.fapiPrivateV2GetPositionRisk (params);
+                    response = await this.fapiPrivateV2GetPositionRisk (paramsSubType);
                 }
                 //
                 // [
@@ -12147,9 +12160,9 @@ export default class binance extends Exchange {
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiGetCmPositionRisk (this.extend (request, params));
+                response = await this.papiGetCmPositionRisk (this.extend (request, paramsSubType));
             } else {
-                response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
+                response = await this.dapiPrivateGetPositionRisk (this.extend (request, paramsSubType));
             }
         } else {
             throw new NotSupported (this.id + ' fetchPositionsRisk() supports linear and inverse contracts only');
@@ -12390,11 +12403,11 @@ export default class binance extends Exchange {
         //
         // { "code": 200, "msg": "success" }
         //
-        marginMode = marginMode.toUpperCase ();
-        if (marginMode === 'CROSS') {
-            marginMode = 'CROSSED';
+        let marginModeValue: string = marginMode.toUpperCase ();
+        if (marginModeValue === 'CROSS') {
+            marginModeValue = 'CROSSED';
         }
-        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSSED')) {
+        if ((marginModeValue !== 'ISOLATED') && (marginModeValue !== 'CROSSED')) {
             throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
         }
         if (this.markets === undefined) {
@@ -12403,7 +12416,7 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': marginModeValue,
         };
         let response: Dict | undefined = undefined;
         try {
@@ -12595,8 +12608,8 @@ export default class binance extends Exchange {
             throw new NotSupported (this.id + ' fetchSettlementHistory() supports option markets only');
         }
         const request: Dict = {};
+        const symbolResolved: Str = (symbol !== undefined) ? this.safeString (market, 'symbol') : symbol;
         if (symbol !== undefined) {
-            symbol = this.safeString (market, 'symbol');
             request['underlying'] = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
         }
         if (since !== undefined) {
@@ -12619,7 +12632,7 @@ export default class binance extends Exchange {
         //
         const settlements = this.parseSettlements (response, market);
         const sorted = this.sortBy (settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
     }
 
     /**
@@ -12645,8 +12658,8 @@ export default class binance extends Exchange {
         const request: Dict = {};
         if (symbol !== undefined) {
             request['symbol'] = this.safeString (market, 'id');
-            symbol = this.safeString (market, 'symbol');
         }
+        const symbolResolved: Str = (symbol !== undefined) ? this.safeString (market, 'symbol') : symbol;
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -12676,7 +12689,7 @@ export default class binance extends Exchange {
         //
         const settlements = this.parseSettlements (response, market);
         const sorted = this.sortBy (settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
     }
 
     parseSettlement (settlement: any, market: any) {
@@ -12827,9 +12840,10 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        let paramsPaginate: Dict = undefined;
+        [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, undefined, false) as LedgerEntry[];
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, paramsPaginate, undefined, false) as LedgerEntry[];
         }
         let type: Str = undefined;
         let subType: SubType = undefined;
@@ -12838,21 +12852,21 @@ export default class binance extends Exchange {
             currency = this.currency (code);
         }
         const request: Dict = {};
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
+        [ type, paramsPaginate ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, paramsPaginate);
+        [ subType, paramsPaginate ] = this.handleSubTypeAndParams ('fetchLedger', undefined, paramsPaginate);
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
+            paramsPaginate = this.omit (paramsPaginate, 'until');
             request['endTime'] = until;
         }
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLedger', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, paramsPaginate ] = this.handleOptionAndParams2 (paramsPaginate, 'fetchLedger', 'papi', 'portfolioMargin', false);
         let response: NullableDict = undefined;
         if (type === 'option') {
             this.checkRequiredArgument ('fetchLedger', code, 'code');
@@ -12860,18 +12874,18 @@ export default class binance extends Exchange {
                 throw new ExchangeError (this.id + ' fetchLedger() could not resolve currency');
             }
             request['currency'] = currency['id'];
-            response = await this.eapiPrivateGetBill (this.extend (request, params));
+            response = await this.eapiPrivateGetBill (this.extend (request, paramsPaginate));
         } else if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiGetUmIncome (this.extend (request, params));
+                response = await this.papiGetUmIncome (this.extend (request, paramsPaginate));
             } else {
-                response = await this.fapiPrivateGetIncome (this.extend (request, params));
+                response = await this.fapiPrivateGetIncome (this.extend (request, paramsPaginate));
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiGetCmIncome (this.extend (request, params));
+                response = await this.papiGetCmIncome (this.extend (request, paramsPaginate));
             } else {
-                response = await this.dapiPrivateGetIncome (this.extend (request, params));
+                response = await this.dapiPrivateGetIncome (this.extend (request, paramsPaginate));
             }
         } else {
             throw new NotSupported (this.id + ' fetchLedger() supports contract wallets only');
@@ -13034,9 +13048,11 @@ export default class binance extends Exchange {
         }
         let url = this.urls['api'][api];
         url += '/' + path;
+        let signedHeaders: NullableDict = undefined;
+        let signedBody: Str = undefined;
         if (path === 'historicalTrades') {
             if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
-                headers = {
+                signedHeaders = {
                     'X-MBX-APIKEY': this.apiKey,
                 };
             } else {
@@ -13047,12 +13063,12 @@ export default class binance extends Exchange {
         if (userDataStream) {
             if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
-                headers = {
+                signedHeaders = {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
                 if (method !== 'GET') {
-                    body = this.urlencode (params);
+                    signedBody = this.urlencode (params);
                 }
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
@@ -13150,21 +13166,23 @@ export default class binance extends Exchange {
                 signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             }
             query += '&' + 'signature=' + signature;
-            headers = {
+            signedHeaders = {
                 'X-MBX-APIKEY': this.apiKey,
             };
             if ((method === 'GET') || (method === 'DELETE')) {
                 url += '?' + query;
             } else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                signedBody = query;
+                signedHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (signedHeaders !== undefined) ? signedHeaders : headers;
+        const bodyResolved: Str = (signedBody !== undefined) ? signedBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     getExceptionsByUrl (url: Str, exactOrBroad: string) {
@@ -13214,9 +13232,9 @@ export default class binance extends Exchange {
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
+        let parsedMessage: NullableDict = undefined;
         if (success !== true) {
             const messageNew = this.safeString (response, 'msg');
-            let parsedMessage: NullableDict = undefined;
             if (messageNew !== undefined) {
                 try {
                     parsedMessage = JSON.parse (messageNew);
@@ -13224,12 +13242,10 @@ export default class binance extends Exchange {
                     // do nothing
                     parsedMessage = undefined;
                 }
-                if (parsedMessage !== undefined) {
-                    response = parsedMessage;
-                }
             }
         }
-        const message = this.safeString (response, 'msg');
+        const responseParsed = (parsedMessage !== undefined) ? parsedMessage : response;
+        const message = this.safeString (responseParsed, 'msg');
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), message, this.id + ' ' + message);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
@@ -13237,7 +13253,7 @@ export default class binance extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
         }
         // checks against error codes
-        const error = this.safeString (response, 'code');
+        const error = this.safeString (responseParsed, 'code');
         if (error !== undefined) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
@@ -13266,11 +13282,11 @@ export default class binance extends Exchange {
         if (success !== true) {
             throw new ExchangeError (this.id + ' ' + body);
         }
-        if (Array.isArray (response)) {
+        if (Array.isArray (responseParsed)) {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
-            const arrayLength = response.length;
+            const arrayLength = responseParsed.length;
             if (arrayLength === 1) { // when there's a single error we can throw, otherwise we have a partial success
-                const element = response[0];
+                const element = responseParsed[0];
                 const errorCode = this.safeString (element, 'code');
                 if (errorCode !== undefined) {
                     this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), errorCode, this.id + ' ' + body);
@@ -13547,20 +13563,19 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (limit === undefined) {
-            limit = 93;
-        } else if (limit > 93) {
+        const limitResolved: Int = (limit === undefined) ? 93 : limit;
+        if (limit !== undefined && limit > 93) {
             // Binance API says the limit is 100, but "Illegal characters found in a parameter." is returned when limit is > 93
             throw new BadRequest (this.id + ' fetchBorrowRateHistory() limit parameter cannot exceed 92');
         }
         const currency = this.currency (code);
         const request: Dict = {
             'asset': currency['id'],
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (since !== undefined) {
             request['startTime'] = since;
-            const endTime = this.sum (since, limit * 86400000) - 1; // required when startTime is further than 93 days in the past
+            const endTime = this.sum (since, limitResolved * 86400000) - 1; // required when startTime is further than 93 days in the past
             const now = this.milliseconds ();
             request['endTime'] = Math.min (endTime, now); // cannot have an endTime later than current time
         }
@@ -13575,7 +13590,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseBorrowRateHistory (response, code, since, limit);
+        return this.parseBorrowRateHistory (response, code, since, limitResolved);
     }
 
     override parseBorrowRate (info: any, currency: Currency = undefined) {
@@ -13857,12 +13872,13 @@ export default class binance extends Exchange {
         };
         let response: NullableDict = undefined;
         let isPortfolioMargin: Bool = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
+        let paramsPapi: Dict = undefined;
+        [ isPortfolioMargin, paramsPapi ] = this.handleOptionAndParams2 (params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
         if (isPortfolioMargin) {
             let method: Str = undefined;
-            [ method, params ] = this.handleOptionAndParams2 (params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
+            [ method, paramsPapi ] = this.handleOptionAndParams2 (paramsPapi, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
             if (method === 'papiPostMarginRepayDebt') {
-                response = await this.papiPostMarginRepayDebt (this.extend (request, params));
+                response = await this.papiPostMarginRepayDebt (this.extend (request, paramsPapi));
                 //
                 //     {
                 //         "asset": "USDC",
@@ -13873,7 +13889,7 @@ export default class binance extends Exchange {
                 //     }
                 //
             } else {
-                response = await this.papiPostRepayLoan (this.extend (request, params));
+                response = await this.papiPostRepayLoan (this.extend (request, paramsPapi));
                 //
                 //     {
                 //         "tranId": 108988250265,
@@ -13884,7 +13900,7 @@ export default class binance extends Exchange {
         } else {
             request['isIsolated'] = 'FALSE';
             request['type'] = 'REPAY';
-            response = await this.sapiPostMarginBorrowRepay (this.extend (request, params));
+            response = await this.sapiPostMarginBorrowRepay (this.extend (request, paramsPapi));
             //
             //     {
             //         "tranId": 108988250265,
@@ -14079,11 +14095,10 @@ export default class binance extends Exchange {
         if ((endTime !== undefined) && (endTime !== 0)) {
             request['endTime'] = endTime;
         } else if ((since !== undefined) && (since !== 0)) {
-            if (limit === undefined) {
-                limit = 30; // Exchange default
-            }
+            // exchange default
+            const limitDefault: Int = (limit === undefined) ? 30 : limit;
             const duration = this.parseTimeframe (timeframe);
-            request['endTime'] = this.sum (since, duration * limit * 1000);
+            request['endTime'] = this.sum (since, duration * limitDefault * 1000);
         }
         let response: NullableDict = undefined;
         if (market['inverse'] === true) {
@@ -14170,15 +14185,15 @@ export default class binance extends Exchange {
         //     ]
         //
         if (market['option'] === true) {
-            symbol = market['symbol'];
+            const symbolValue: string = market['symbol'];
             const result = this.parseOpenInterestsHistory (response, market);
             for (let i = 0; i < result.length; i++) {
                 const item = result[i];
-                if (item['symbol'] === symbol) {
+                if (item['symbol'] === symbolValue) {
                     return item;
                 }
             }
-            throw new NullResponse (this.id + ' fetchOpenInterest() could not find open interest for ' + symbol);
+            throw new NullResponse (this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);
         } else {
             return this.parseOpenInterest (response, market);
         }
@@ -14651,10 +14666,10 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const symbolsNormalized: Strings = (symbols !== undefined) ? this.marketSymbols (symbols) : symbols;
         let market: Market = undefined;
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
-            market = this.market (symbols[0]);
+        if (symbolsNormalized !== undefined) {
+            market = this.market (symbolsNormalized[0]);
         }
         const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
         let response: NullableDict = undefined;
@@ -14728,7 +14743,7 @@ export default class binance extends Exchange {
         if (Array.isArray (response)) {
             assets = response;
         }
-        return this.parseMarginModes (assets, symbols, 'symbol', 'swap');
+        return this.parseMarginModes (assets, symbolsNormalized, 'symbol', 'swap');
     }
 
     /**
@@ -15402,10 +15417,10 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const symbolsNormalized: Strings = (symbols !== undefined) ? this.marketSymbols (symbols) : symbols;
         let market: Market = undefined;
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
-            market = this.market (symbols[0]);
+        if (symbolsNormalized !== undefined) {
+            market = this.market (symbolsNormalized[0]);
         }
         const type = 'swap';
         const [ subType, paramsSubType ]: [ SubType, Dict ] = this.handleSubTypeAndParams ('fetchFundingIntervals', market, params, 'linear');
@@ -15428,7 +15443,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseFundingRates (response, symbols);
+        return this.parseFundingRates (response, symbolsNormalized);
     }
 
     /**
@@ -15450,11 +15465,9 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (timeframe === undefined) {
-            timeframe = '1d';
-        }
+        const period: string = (timeframe === undefined) ? '1d' : timeframe;
         const request: Dict = {
-            'period': timeframe,
+            'period': period,
         };
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
