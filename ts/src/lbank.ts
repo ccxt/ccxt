@@ -856,11 +856,11 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
+        const symbolsNormalized = (symbols !== undefined) ? this.marketSymbols (symbols) : symbols;
         if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
-            const symbolsLength = symbols.length;
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 0) {
-                market = this.market (symbols[0]);
+                market = this.market (symbolsNormalized[0]);
             }
         }
         const request: Dict = {};
@@ -919,7 +919,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseTickers (data, symbols);
+        return this.parseTickers (data, symbolsNormalized);
     }
 
     /**
@@ -938,19 +938,17 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 60;
-        }
+        const limitResolved = (limit === undefined) ? 60 : limit;
         const request: Dict = {
             'symbol': market['id'],
         };
         const [ type, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         let response: Dict;
         if (type === 'swap') {
-            request['depth'] = limit;
+            request['depth'] = limitResolved;
             response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder (this.extend (request, paramsMarketType));
         } else {
-            request['size'] = limit;
+            request['size'] = limitResolved;
             response = await this.spotPublicGetDepth (this.extend (request, paramsMarketType));
         }
         //
@@ -1210,17 +1208,11 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 100;
-        } else {
-            limit = Math.min (limit, 2000);
-        }
-        if (since === undefined) {
-            const duration = this.parseTimeframe (timeframe);
-            since = this.milliseconds () - (duration * 1000 * limit);
-        }
-        const parsedSince = this.parseToInt (since / 1000);
-        const parsedLimit = Math.min (limit + 1, 2000); // max 2000;
+        const limitResolved = (limit === undefined) ? 100 : Math.min (limit, 2000);
+        const duration = this.parseTimeframe (timeframe);
+        const sinceResolved = (since === undefined) ? (this.milliseconds () - (duration * 1000 * limitResolved)) : since;
+        const parsedSince = this.parseToInt (sinceResolved / 1000);
+        const parsedLimit = Math.min (limitResolved + 1, 2000); // max 2000;
         const request: Dict = {
             'symbol': market['id'],
             'type': this.safeString (this.timeframes, timeframe, timeframe),
@@ -1250,7 +1242,7 @@ export default class lbank extends Exchange {
         //   ]
         // ]
         //
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, sinceResolved, limitResolved);
     }
 
     override parseBalance (response: any): Balances {
@@ -1669,7 +1661,7 @@ export default class lbank extends Exchange {
         const clientOrderId = this.safeString2 (params, 'custom_id', 'clientOrderId');
         const postOnly = this.safeBool (params, 'postOnly', false);
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        params = this.omit (params, [ 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ]);
+        let paramsRequest: Dict = this.omit (params, [ 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ]);
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -1698,9 +1690,9 @@ export default class lbank extends Exchange {
                 request['type'] = side + '_' + 'market';
                 let quoteAmount: Str = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
+                [ createMarketBuyOrderRequiresPrice, paramsRequest ] = this.handleOptionAndParams (paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber (paramsRequest, 'cost');
+                paramsRequest = this.omit (paramsRequest, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice) {
@@ -1724,13 +1716,13 @@ export default class lbank extends Exchange {
         }
         const options = this.safeDict (this.options, 'createOrder', {});
         const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementCreateOrder');
-        const method = this.safeString (params, 'method', defaultMethod);
-        params = this.omit (params, 'method');
+        const method = this.safeString (paramsRequest, 'method', defaultMethod);
+        const paramsOmitted: Dict = this.omit (paramsRequest, 'method');
         let response: Dict;
         if (method === 'spotPrivatePostCreateOrder') {
-            response = await this.spotPrivatePostCreateOrder (this.extend (request, params));
+            response = await this.spotPrivatePostCreateOrder (this.extend (request, paramsOmitted));
         } else {
-            response = await this.spotPrivatePostSupplementCreateOrder (this.extend (request, params));
+            response = await this.spotPrivatePostSupplementCreateOrder (this.extend (request, paramsOmitted));
         }
         //
         //      {
@@ -2104,13 +2096,11 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const request: Dict = {
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': limit,
+            'page_length': limitResolved,
             // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         };
         const response = await this.spotPrivatePostSupplementOrdersInfoHistory (this.extend (request, params));
@@ -2143,7 +2133,7 @@ export default class lbank extends Exchange {
         //
         const result = this.safeDict (response, 'data', {});
         const orders = this.safeList (result, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders (orders, market, since, limitResolved);
     }
 
     /**
@@ -2165,13 +2155,11 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const request: Dict = {
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': limit,
+            'page_length': limitResolved,
         };
         const response = await this.spotPrivatePostSupplementOrdersInfoNoDeal (this.extend (request, params));
         //
@@ -2203,7 +2191,7 @@ export default class lbank extends Exchange {
         //
         const result = this.safeDict (response, 'data', {});
         const orders = this.safeList (result, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders (orders, market, since, limitResolved);
     }
 
     /**
@@ -2338,11 +2326,11 @@ export default class lbank extends Exchange {
             'assetCode': currency['id'],
         };
         const network = this.getNetworkCodeForCurrency (code, params);
+        const paramsOmitted: Dict = (network !== undefined) ? this.omit (params, 'network') : params;
         if (network !== undefined) {
             request['netWork'] = network; // ... yes, really lol
-            params = this.omit (params, 'network');
         }
-        const response = await this.spotPrivatePostGetDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivatePostGetDepositAddress (this.extend (request, paramsOmitted));
         //
         //      {
         //          "result":true,
@@ -2380,11 +2368,11 @@ export default class lbank extends Exchange {
         const networks = this.safeDict (this.options, 'networks');
         let network = this.safeStringUpper (params, 'network');
         network = this.safeString (networks, network, network);
+        const paramsOmitted: Dict = (network !== undefined) ? this.omit (params, 'network') : params;
         if (network !== undefined) {
             request['networkName'] = network;
-            params = this.omit (params, 'network');
         }
-        const response = await this.spotPrivatePostSupplementGetDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementGetDepositAddress (this.extend (request, paramsOmitted));
         //
         //      {
         //          "result":true,
@@ -2711,11 +2699,11 @@ export default class lbank extends Exchange {
             const options = this.safeDict (this.options, 'fetchTransactionFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
             const method = this.safeString (params, 'method', defaultMethod);
-            params = this.omit (params, 'method');
+            const paramsOmitted: Dict = this.omit (params, 'method');
             if (method === 'fetchPublicTransactionFees') {
-                result = await this.fetchPublicTransactionFees (params);
+                result = await this.fetchPublicTransactionFees (paramsOmitted);
             } else {
-                result = await this.fetchPrivateTransactionFees (params);
+                result = await this.fetchPrivateTransactionFees (paramsOmitted);
             }
         } else {
             result = await this.fetchPublicTransactionFees (params);
@@ -2875,11 +2863,11 @@ export default class lbank extends Exchange {
             const options = this.safeDict (this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
             const method = this.safeString (params, 'method', defaultMethod);
-            params = this.omit (params, 'method');
+            const paramsOmitted: Dict = this.omit (params, 'method');
             if (method === 'fetchPublicDepositWithdrawFees') {
-                response = await this.fetchPublicDepositWithdrawFees (codes, params);
+                response = await this.fetchPublicDepositWithdrawFees (codes, paramsOmitted);
             } else {
-                response = await this.fetchPrivateDepositWithdrawFees (codes, params);
+                response = await this.fetchPrivateDepositWithdrawFees (codes, paramsOmitted);
             }
         } else {
             response = await this.fetchPublicDepositWithdrawFees (codes, params);
@@ -3132,13 +3120,14 @@ export default class lbank extends Exchange {
                 sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret), sha256);
             }
             query['sign'] = sign;
-            body = this.urlencode (this.keysort (query));
-            headers = {
+            const bodySigned = this.urlencode (this.keysort (query));
+            const headersSigned: NullableDict = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'timestamp': timestamp,
                 'signature_method': signatureMethod,
                 'echostr': echostr,
             };
+            return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
