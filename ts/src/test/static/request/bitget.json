@@ -983,7 +983,7 @@
                 "input": [
                     "BTC/USDT",
                     null,
-                    "3"
+                    3
                 ]
             },
             {
@@ -992,8 +992,8 @@
                 "url": "https://api.bitget.com/api/v2/mix/order/fills?limit=3&productType=USDT-FUTURES&startTime=1699457638000&symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT",
-                    "1699457638000",
-                    "3"
+                    1699457638000,
+                    3
                 ]
             },
             {
@@ -1003,7 +1003,7 @@
                 "input": [
                     "BTC/USDT",
                     null,
-                    "3",
+                    3,
                     {
                         "marginMode": "cross"
                     }
@@ -1016,7 +1016,7 @@
                 "input": [
                     "BTC/USDT",
                     null,
-                    "3",
+                    3,
                     {
                         "marginMode": "isolated"
                     }

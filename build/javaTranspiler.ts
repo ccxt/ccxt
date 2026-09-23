@@ -3261,7 +3261,8 @@ class NewTranspiler {
         // the untyped base accepts 0 args, so a zero-arg call is already unambiguous
         // and we shouldn't touch it.
         typedRestMethods.delete('loadMarkets');
-        const pattern = /\((this|super)\.(\w+)\(/g;
+        // super calls stay typed: an ancestor's varargs front forwards to `this.X`, which would re-enter the caller
+        const pattern = /\((this)\.(\w+)\(/g;
         let result = '';
         let lastIdx = 0;
         let match;
