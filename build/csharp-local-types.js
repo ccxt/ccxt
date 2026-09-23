@@ -4928,6 +4928,260 @@ function wsCacheMemberReadType (csharp, initializer) {
     return wsCacheMemberElementBox (csharp, initializer.getSourceFile?.(), member);
 }
 
+// ===== SPEC-A: ws cache BUCKET reads (`this.<member>[k1]`) =====
+//
+// `const stored = this.safeValue (this.ohlcvs[symbol], timeframe)` prints
+// `object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);`: the receiver is a
+// level-1 read of a ws cache member, which wsCacheMemberReadType rejects (:4921 wants a bare
+// `this.<member>`), so the declaration keeps `object` although the slot's box is the one the
+// wsOhlcvsBucketReadType family already names for the same value. Two arguments only -- the
+// 3-argument spelling carries a caller default (pro/ndax passes `[]`), and an absent slot would
+// then hand back a fresh box the cast throws on. The box is proven over the whole file, one level
+// deeper than the member census: every `this.<member>[k1][k2] = rhs` write stores an
+// ArrayCache-family constructor (or a read-back of the same slot / a null), and every level-1
+// write is dictionary-shaped, so the value at `[k1][k2]` is that cache. Anything unproven leaves
+// the member `object`.
+const wsCacheBucketBoxes = new WeakMap ();
+
+// a read of the same SLOT (`this.<member>[k1][k2]`, `this.safeValue (this.<member>[k1], k2)`) --
+// neutral: it stores back whatever the slot already holds
+function wsCacheBucketSlotRead (node, member) {
+    if (node?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberElementAccess (node.expression, member)) {
+        return true;
+    }
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        return false;
+    }
+    const name = callee.name?.escapedText;
+    if (name !== 'safeValue' && name !== 'getValue' && name !== 'safeDict') {
+        return false;
+    }
+    return wsCacheBucketMember (node.arguments?.[0]) === member;
+}
+
+// the boxes a value written into a BUCKET proves: wsCacheWriteBoxTypes' arms one level deeper.
+// A read-back of the same slot is neutral, and the Identifier arm recurses through THIS function,
+// so the `let stored = this.safeValue (this.<member>[k1], k2); … stored = new ArrayCacheByTimestamp
+// (…)` spelling every venue uses proves that constructor (the read adds no information).
+function wsCacheBucketWriteBoxTypes (csharp, node, member, depth) {
+    if (node === undefined || depth > 4) {
+        return undefined;
+    }
+    if (wsCacheBucketSlotRead (node, member)) {
+        return new Set (); // a read-back of the same slot adds no information
+    }
+    if (node.kind === ts.SyntaxKind.ParenthesizedExpression || node.kind === ts.SyntaxKind.AsExpression
+            || node.kind === ts.SyntaxKind.TypeAssertionExpression || node.kind === ts.SyntaxKind.NonNullExpression) {
+        return wsCacheBucketWriteBoxTypes (csharp, node.expression, member, depth);
+    }
+    if (node.kind === ts.SyntaxKind.ConditionalExpression) {
+        // `(c) ? undefined : this.safeValue (this.<member>[k1], k2)` -- both arms must fit the box
+        const whenTrue = wsCacheBucketWriteBoxTypes (csharp, node.whenTrue, member, depth + 1);
+        const whenFalse = wsCacheBucketWriteBoxTypes (csharp, node.whenFalse, member, depth + 1);
+        if (whenTrue === undefined || whenFalse === undefined) {
+            return undefined;
+        }
+        whenFalse.forEach ((box) => whenTrue.add (box));
+        return whenTrue;
+    }
+    if (node.kind === ts.SyntaxKind.Identifier) {
+        const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
+        if (scope === undefined) {
+            return undefined;
+        }
+        const index = indexScope (csharp, scope);
+        const declarations = index.declarations.get (node.escapedText) ?? [];
+        let declaration;
+        if (declarations.length === 1 && !index.parameterNames.has (node.escapedText) && !index.blockedNames.has (node.escapedText)) {
+            declaration = declarations[0];
+        } else {
+            const referred = declarations.filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, node) === true);
+            if (referred.length !== 1) {
+                return undefined;
+            }
+            declaration = referred[0];
+        }
+        const boxes = new Set ();
+        let assigned = 0;
+        let unproven = false;
+        const own = (n) => {
+            assigned += 1;
+            const done = wsCacheBucketWriteBoxTypes (csharp, n, member, depth + 1);
+            if (done === undefined) {
+                unproven = true;
+            } else {
+                done.forEach ((box) => boxes.add (box));
+            }
+        };
+        const visit = (n) => {
+            if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken?.kind === ts.SyntaxKind.EqualsToken
+                    && n.left?.kind === ts.SyntaxKind.Identifier && n.left.escapedText === declaration.name.escapedText
+                    && useRefersToDeclaration (csharp, scope, declaration, n.left) !== false) {
+                own (n.right); // a write to this very binding (an ambiguous use counts: conservative)
+            } else if (n === declaration) {
+                if (n.initializer === undefined) {
+                    assigned += 1;
+                } else {
+                    own (n.initializer);
+                }
+            }
+            ts.forEachChild (n, visit);
+        };
+        ts.forEachChild (scope, visit);
+        if (unproven || assigned === 0) {
+            return (unproven) ? undefined : new Set ();
+        }
+        return boxes;
+    }
+    return wsCacheWriteBoxTypes (csharp, node, member, depth);
+}
+
+// the level-1 write shapes that keep the bucket a DICTIONARY: the parent rule's arms (a `{}`
+// literal, `this.safeDict (…)`, `this.createSafeDictionary ()`, a null, a read of the same map),
+// plus the 3-argument `this.safeValue (this.<member>, k, {})`, whose default is that same empty
+// dictionary. A level-1 value that is a cache would make the level-2 read a list index read.
+function wsCacheBucketDictWrite (csharp, node, member) {
+    const own = wsCacheWriteBoxTypes (csharp, node, member, 0);
+    if (own !== undefined) {
+        return own.size === 0 || (own.size === 1 && own.has ('dict'));
+    }
+    if (node?.kind === ts.SyntaxKind.CallExpression) {
+        const callee = node.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && (callee.name?.escapedText === 'safeValue' || callee.name?.escapedText === 'safeDict')) {
+            const fallback = node.arguments?.[node.arguments.length - 1];
+            return fallback?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+        }
+    }
+    return false;
+}
+
+// the member a level-1 read reads: `this.<member>[k]`, `this.safeValue (this.<member>, k)`,
+// `this.safeDict (this.<member>, k)` (two or three arguments), behind any `(…)` / `as T` wrap
+function wsCacheBucketMember (node) {
+    let value = node;
+    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression || value?.kind === ts.SyntaxKind.AsExpression
+            || value?.kind === ts.SyntaxKind.TypeAssertionExpression || value?.kind === ts.SyntaxKind.NonNullExpression) {
+        value = value.expression;
+    }
+    if (value?.kind === ts.SyntaxKind.ElementAccessExpression) {
+        const receiver = value.expression;
+        if (receiver?.kind === ts.SyntaxKind.PropertyAccessExpression && receiver.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && CSHARP_LOCAL_WS_CACHE_MEMBERS.includes (receiver.name?.escapedText)) {
+            return receiver.name.escapedText;
+        }
+        return undefined;
+    }
+    if (value?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = value.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || (callee.name?.escapedText !== 'safeValue' && callee.name?.escapedText !== 'safeDict') || (value.arguments?.length ?? 0) < 2) {
+        return undefined;
+    }
+    const receiver = value.arguments[0];
+    if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || !CSHARP_LOCAL_WS_CACHE_MEMBERS.includes (receiver.name?.escapedText)) {
+        return undefined;
+    }
+    return receiver.name.escapedText;
+}
+
+// the proven box of `this.<member>[k1][k2]` in this file, cached per (printer, file, member)
+function wsCacheBucketBox (csharp, sourceFile, member) {
+    if (sourceFile === undefined) {
+        return undefined;
+    }
+    let byFile = wsCacheBucketBoxes.get (csharp);
+    if (byFile === undefined) {
+        byFile = new WeakMap ();
+        wsCacheBucketBoxes.set (csharp, byFile);
+    }
+    let table = byFile.get (sourceFile);
+    if (table === undefined) {
+        table = new Map ();
+        byFile.set (sourceFile, table);
+    }
+    if (table.has (member)) {
+        return table.get (member);
+    }
+    const box = wsCacheBucketBoxUncached (csharp, sourceFile, member);
+    table.set (member, box);
+    return box;
+}
+
+function wsCacheBucketBoxUncached (csharp, sourceFile, member) {
+    const slotWrites = [];
+    const bucketWrites = [];
+    const fieldWrites = [];
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken?.kind === ts.SyntaxKind.EqualsToken) {
+            const left = n.left;
+            if (left?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberElementAccess (left.expression, member)) {
+                slotWrites.push (n.right); // `this.<member>[k1][k2] = …`
+            } else if (thisMemberElementAccess (left, member)) {
+                bucketWrites.push (n.right); // `this.<member>[k1] = …`
+            } else if (thisMemberAccess (left, member)) {
+                fieldWrites.push (n.right); // `this.<member> = …`
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (sourceFile, visit);
+    if (slotWrites.length === 0 || bucketWrites.length === 0) {
+        return undefined; // the file proves neither the slot's box nor the bucket's shape
+    }
+    for (const rhs of bucketWrites) {
+        if (!wsCacheBucketDictWrite (csharp, rhs, member)) {
+            return undefined;
+        }
+    }
+    for (const rhs of fieldWrites) {
+        if (!wsCacheBucketDictWrite (csharp, rhs, member)) {
+            return undefined;
+        }
+    }
+    const boxes = new Set ();
+    for (const rhs of slotWrites) {
+        const own = wsCacheBucketWriteBoxTypes (csharp, rhs, member, 0);
+        if (own === undefined) {
+            return undefined; // an unprovable writer: the whole member stays object
+        }
+        own.forEach ((box) => boxes.add (box));
+    }
+    if (boxes.size === 0) {
+        return undefined;
+    }
+    return wsCacheCtorSetType (boxes);
+}
+
+// `object <name> = this.safeValue (<bucket>, <key>)` -> the slot's proven box
+function wsCacheBucketReadType (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    if (callee.name?.escapedText !== 'safeValue' || initializer.arguments?.length !== 2) {
+        return undefined;
+    }
+    if (!wsCacheElementSourceOk (initializer)) {
+        return undefined; // the cast goes through Exchange.GetValue: generated trees only
+    }
+    const member = wsCacheBucketMember (initializer.arguments[0]);
+    if (member === undefined) {
+        return undefined;
+    }
+    return wsCacheBucketBox (csharp, initializer.getSourceFile?.(), member);
+}
+
 // `object method = this.safeValue (methods, key)` — the handler TABLE of a ws `handleMessage`
 // (`const methods = { 'channel': this.handleChannel, … }`). Every entry value is a
 // same-file method reference, and C# 10 gives each method group its natural delegate type,
@@ -10284,7 +10538,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `this.trades[key]` / `this.ohlcvs[symmetric-read]` — the ws member cache element reads
         // (see CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES): getValue's own C# type is `object`, so the
         // proven element box is named behind the exact cast back
-        const wsCacheElement = (elementType === undefined) ? (wsCacheElementReadType (declaration.initializer) ?? wsOhlcvsBucketReadType (declaration.initializer)) : undefined;
+        const wsCacheElement = (elementType === undefined) ? (wsCacheElementReadType (declaration.initializer) ?? wsOhlcvsBucketReadType (declaration.initializer) ?? wsCacheBucketReadType (csharp, declaration.initializer)) : undefined;
         // the ws order book subscriber core (`const orderbook = await this.watch (...)` +
         // `return orderbook.limit ()`): the resolve proof is wsOrderBookWatchType above
         const wsOrderBookType = wsOrderBookWatchType (declaration);
