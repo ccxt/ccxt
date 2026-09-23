@@ -5332,7 +5332,9 @@ export function installJavaLocalTypes (transpiler) {
             if (end === -1) {
                 return printed;
             }
-            return printed.slice (0, at + 'return '.length) + venueCast + ' (' + tail.slice (0, end) + ')' + tail.slice (end);
+            // numeric boxes (sum/subtract may hand back Integer or Double) convert, not checkcast
+            const open = venueType === 'Long' ? 'Helpers.toLongOrNull(' : venueCast + ' (';
+            return printed.slice (0, at + 'return '.length) + open + tail.slice (0, end) + ')' + tail.slice (end);
         }
         if (!JAVA_LIST_RETURN_METHODS.has (methodName)
             && !JAVA_STRING_RETURN_METHODS_CAST.has (methodName)) {
