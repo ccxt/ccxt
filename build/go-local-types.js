@@ -5026,8 +5026,8 @@ export function ccxtGoEndpointElement (goTranspiler, call) {
     return element;
 }
 
-// a typed endpoint local handed as arg 0 to this.parse*/this.safe*/Object.keys: those readers treat a
-// shape-mismatched body (typed view nil) and the raw box alike, reading members through safe accessors
+// a typed endpoint local handed as arg 0 to this.parse*/this.safe*/Object.keys: those readers only read
+// members through safe accessors, so an absent/empty body (typed view nil) reads as the raw box did
 const CCXT_GO_ENDPOINT_PARSER_READ = /^(?:parse[A-Z]\w*|safe[A-Z]\w*|addPaginationCursorToResult|indexBy|groupBy)$/;
 
 function ccxtGoEndpointLocalParserRead (node) {
