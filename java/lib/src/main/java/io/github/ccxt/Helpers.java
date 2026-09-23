@@ -875,6 +875,23 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         throw new ClassCastException("ccxt: expected a dictionary, got " + value.getClass().getName());
     }
 
+    /** a value passed to a typed `List<String>` core parameter: the getArgStringList check */
+    @SuppressWarnings("unchecked")
+    public static List<String> toStringListArg(Object value) {
+        if (value == null || value instanceof List) {
+            return (List<String>) value;
+        }
+        throw new ClassCastException("ccxt: expected a list of strings, got " + value.getClass().getName());
+    }
+
+    /** the `List<String>` slot reader: omitted -> def, explicit null -> null */
+    public static List<String> getArgStringList(Object[] v, int index, List<String> def) {
+        if (v == null || v.length <= index) {
+            return def;
+        }
+        return toStringListArg(v[index]);
+    }
+
     /** the `String` slot reader: omitted -> def, explicit null -> null, non-String -> its string form */
     public static String getArgString(Object[] v, int index, String def) {
         if (v == null || v.length <= index) {
