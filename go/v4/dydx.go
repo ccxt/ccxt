@@ -1215,16 +1215,16 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var userAddress any = nil
 	var subAccountNumber any = nil
 	userAddressparamsVariable := this.HandlePublicAddress("fetchOrders", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var subAccountNumberparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
-	params = GetValue(subAccountNumberparamsVariable, 1)
+	params = MapTyped(GetValue(subAccountNumberparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -1461,16 +1461,16 @@ func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var userAddress any = nil
 	var subAccountNumber any = nil
 	userAddressparamsVariable := this.HandlePublicAddress("fetchPositions", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var subAccountNumberparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
-	params = GetValue(subAccountNumberparamsVariable, 1)
+	params = MapTyped(GetValue(subAccountNumberparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -1636,7 +1636,7 @@ func (this *Dydx) Pow(n any, m any) any {
 func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -1654,7 +1654,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var subaccountId any = 0
 	var subaccountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "subAccountId", subaccountId)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice any = this.SafeValue(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
@@ -1723,7 +1723,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var goodTillBlockTimeInSeconds any = 2592000
 	var goodTillBlockTimeInSecondsparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
-	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
+	params = MapTyped(GetValue(goodTillBlockTimeInSecondsparamsVariable, 1)) // default is 30 days
 	if IsEqual(orderFlag, 0) {
 		if IsEqual(goodTillBlock, nil) {
 			// short term order
@@ -1774,7 +1774,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		"typeUrl": "/dydxprotocol.clob.MsgPlaceOrder",
 		"value":   orderPayload,
 	}
-	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"})
+	params = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"}))
 	var walletAddress any = this.GetWalletAddress()
 	var clobPairId *int64 = this.SafeInteger(marketInfo, "clobPairId", 0)
 	var subaccountIdValue any = func() any {
@@ -1957,10 +1957,10 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-	params = this.Omit(params, []any{"trigger", "stop"})
+	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 	if (isTrigger == nil || *isTrigger != true) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
@@ -1981,7 +1981,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var goodTillBlockTimeInSeconds any = 2592000
 	var goodTillBlockTimeInSecondsparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
-	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
+	params = MapTyped(GetValue(goodTillBlockTimeInSecondsparamsVariable, 1)) // default is 30 days
 	var goodTillBlockTime any = nil
 	var defaultOrderFlags int = func() int {
 		if isTrigger != nil && *isTrigger == true {
@@ -1993,8 +1993,8 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var subAccountId any = 0
 	var subAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "subAccountId", subAccountId)
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
-	params = GetValue(subAccountIdparamsVariable, 1)
-	params = this.Omit(params, []any{"clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId"})
+	params = MapTyped(GetValue(subAccountIdparamsVariable, 1))
+	params = MapTyped(this.Omit(params, []any{"clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId"}))
 	if (orderFlags == nil || *orderFlags != 0) && (orderFlags == nil || *orderFlags != 64) && (orderFlags == nil || *orderFlags != 32) {
 		panic(InvalidOrder(this.Id + " invalid orderFlags, allowed values are (0, 64, 32)."))
 	}
@@ -2085,7 +2085,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2099,7 +2099,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var subAccountId any = 0
 	var subAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "subAccountId", subAccountId)
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
-	params = GetValue(subAccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subAccountIdparamsVariable, 1))
 	var goodTillBlock any = DerefScalar(this.SafeInteger(params, "goodTillBlock"))
 	if IsEqual(goodTillBlock, nil) {
 
@@ -2107,7 +2107,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		PanicOnError(latestBlockHeight)
 		goodTillBlock = Add(latestBlockHeight, 20)
 	}
-	params = this.Omit(params, []any{"clientOrderIds", "goodTillBlock", "subaccountId"})
+	params = MapTyped(this.Omit(params, []any{"clientOrderIds", "goodTillBlock", "subaccountId"}))
 	var credentials any = this.RetrieveCredentials()
 
 	account := (<-this.FetchDydxAccountAsync())
@@ -2897,18 +2897,18 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan any, optionalArgs ...any) 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName *string = this.SafeString(params, "methodName")
-	params = this.Omit(params, "methodName")
+	params = MapTyped(this.Omit(params, "methodName"))
 	var userAddress any = nil
 	var subAccountNumber any = nil
 	userAddressparamsVariable := this.HandlePublicAddress(methodName, params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var subAccountNumberparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
-	params = GetValue(subAccountNumberparamsVariable, 1)
+	params = MapTyped(GetValue(subAccountNumberparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"address":          userAddress,
 		"subaccountNumber": subAccountNumber,
@@ -2960,12 +2960,12 @@ func (this *Dydx) FetchAccountsAsync(optionalArgs ...any) <-chan any {
 func (this *Dydx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandlePublicAddress("fetchAccounts", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"address": userAddress,
 	}
@@ -3054,7 +3054,7 @@ func (this *Dydx) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3063,11 +3063,11 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandlePublicAddress("fetchBalance", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var subaccountNumber any = nil
 	var subaccountNumberparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "subaccountNumber", 0)
 	subaccountNumber = GetValue(subaccountNumberparamsVariable, 0)
-	params = GetValue(subaccountNumberparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountNumberparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"address":          userAddress,
 		"subaccountNumber": subaccountNumber,

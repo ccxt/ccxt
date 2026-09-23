@@ -256,7 +256,7 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan any, optionalArgs ...any) an
 	defer ccxt.ReturnPanicError(ch)
 	var extra map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = extra
-	userLimit := ccxt.GetArg(optionalArgs, 1, nil)
+	var userLimit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = userLimit
 	var pageSize *int64 = this.SafeInteger(this.Options, "marketsPageSize", 100)
 	var maxPages *int64 = this.SafeInteger(this.Options, "maxMarketsPages", 50)
@@ -941,7 +941,7 @@ func (this *Sxbet) ApproveAsync(optionalArgs ...any) <-chan any {
 func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var amount *float64 = this.SafeNumber(params, "amount")
@@ -982,7 +982,7 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 	var spender any = nil
 	var spenderparamsVariable []any = this.HandleOptionAndParams2(params, "approve", "spender", "transferToProxySpender", executorAddress)
 	spender = ccxt.GetValue(spenderparamsVariable, 0)
-	params = ccxt.GetValue(spenderparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(spenderparamsVariable, 1))
 	if spender == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender"))
 	}
@@ -1098,7 +1098,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 
@@ -1168,7 +1168,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	var timeInForce any = nil
 	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce", defaultTif)
 	timeInForce = ccxt.GetValue(timeInForceparamsVariable, 0)
-	params = ccxt.GetValue(timeInForceparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsVariable, 1))
 	// an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
 	// that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
 	// contradicting the immediate-fill semantics the type promises

@@ -199,7 +199,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	_ = isPrivate
 	method := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = method
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var accessibility string = func() string {
 		if isPrivate == true {
@@ -222,7 +222,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	} else {
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(method, nil, params)
 		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-		params = ccxt.GetValue(typeVarparamsVariable, 1)
+		params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 		var defaultSettle *string = this.SafeString(this.Options, "defaultSettle")
 		defaultSettle = this.SafeString2(params, "settle", "defaultSettle", defaultSettle)
 		isUsdcSettled = (defaultSettle != nil && *defaultSettle == "USDC")
@@ -245,7 +245,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 			var subType any = nil
 			var subTypeparamsVariable []any = this.HandleSubTypeAndParams(method, market, params, "linear")
 			subType = ccxt.GetValue(subTypeparamsVariable, 0)
-			params = ccxt.GetValue(subTypeparamsVariable, 1)
+			params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), subType)
 		} else {
 			// option
@@ -363,9 +363,9 @@ func (this *Bybit) EditOrderWsAsync(id any, symbol any, typeVar any, side any, o
 func (this *Bybit) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	amount := ccxt.GetArg(optionalArgs, 0, nil)
+	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := ccxt.GetArg(optionalArgs, 1, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -415,7 +415,7 @@ func (this *Bybit) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Bybit) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1722,7 +1722,7 @@ func (this *Bybit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var method string = "watchMyTrades"
 	var messageHash any = "myTrades"
@@ -1748,7 +1748,7 @@ func (this *Bybit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var executionFast bool = false
 	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValueBool(executionFastparamsVariable, 0, false)
-	params = ccxt.GetValue(executionFastparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(executionFastparamsVariable, 1))
 	if executionFast {
 		topic = "execution.fast"
 	}
@@ -1783,9 +1783,9 @@ func (this *Bybit) UnWatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var method string = "watchMyTrades"
 	var messageHash string = "unsubscribe:myTrades"
@@ -1811,7 +1811,7 @@ func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var executionFast bool = false
 	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValueBool(executionFastparamsVariable, 0, false)
-	params = ccxt.GetValue(executionFastparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(executionFastparamsVariable, 1))
 	if executionFast {
 		topic = "execution.fast"
 	}
@@ -2461,7 +2461,7 @@ func (this *Bybit) UnWatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bybit) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2654,7 +2654,7 @@ func (this *Bybit) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2665,11 +2665,11 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var subType any = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("watchBalance", nil, params)
 	subType = ccxt.GetValue(subTypeparamsVariable, 0)
-	params = ccxt.GetValue(subTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
 
 	var unified []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	var isUnifiedMargin *bool = this.SafeBool(unified, 0, false)

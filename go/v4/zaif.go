@@ -925,7 +925,7 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -977,11 +977,11 @@ func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, o
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 

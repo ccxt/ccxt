@@ -426,9 +426,9 @@ func (this *Bitmex) WatchLiquidationsAsync(symbol any, optionalArgs ...any) <-ch
 func (this *Bitmex) watchLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1546,16 +1546,16 @@ func (this *Bitmex) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...a
 func (this *Bitmex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var table any = nil
 	if limit == nil {
 		table = this.SafeString(this.Options, "watchOrderBookLevel", "orderBookL2")
-	} else if ccxt.IsEqual(limit, 25) {
+	} else if limit != nil && *limit == 25 {
 		table = "orderBookL2_25"
-	} else if ccxt.IsEqual(limit, 10) {
+	} else if limit != nil && *limit == 10 {
 		table = "orderBookL10"
 	} else {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)"))

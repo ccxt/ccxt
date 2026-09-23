@@ -1856,11 +1856,11 @@ func (this *Bittrade) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bittrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1889,11 +1889,11 @@ func (this *Bittrade) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bittrade) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1917,11 +1917,11 @@ func (this *Bittrade) FetchOpenOrdersV1Async(optionalArgs ...any) <-chan any {
 func (this *Bittrade) fetchOpenOrdersV1Body(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1953,11 +1953,11 @@ func (this *Bittrade) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bittrade) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2200,7 +2200,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2222,15 +2222,15 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 	} else {
 		request["client-order-id"] = clientOrderId
 	}
-	params = this.Omit(params, []any{"clientOrderId", "client-order-id"})
+	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client-order-id"}))
 	if (IsEqual(typeVar, "market")) && (IsEqual(side, "buy")) {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 		var cost *float64 = this.SafeNumber(params, "cost")
-		params = this.Omit(params, "cost")
+		params = MapTyped(this.Omit(params, "cost"))
 		if cost != nil {
 			quoteAmount = this.AmountToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
@@ -2569,12 +2569,12 @@ func (this *Bittrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if (limit == nil) || IsGreaterThan(limit, 100) {
-		limit = 100
+	if (limit == nil) || (limit != nil && *limit > 100) {
+		limit = Int64PtrTyped(100)
 	}
 	if this.Markets == nil {
 
@@ -2625,12 +2625,12 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if (limit == nil) || IsGreaterThan(limit, 100) {
-		limit = 100
+	if (limit == nil) || (limit != nil && *limit > 100) {
+		limit = Int64PtrTyped(100)
 	}
 	if this.Markets == nil {
 
@@ -2782,11 +2782,11 @@ func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address an
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2811,7 +2811,7 @@ func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address an
 		} else {
 			request["chain"] = Add(network, currency["id"])
 		}
-		params = this.Omit(params, "network")
+		params = MapTyped(this.Omit(params, "network"))
 	}
 
 	response := (<-this.PrivatePostDwWithdrawApiCreate(this.Extend(request, params))).Raw

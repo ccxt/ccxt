@@ -895,7 +895,7 @@ func (this *Foxbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -909,7 +909,7 @@ func (this *Foxbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	if limit != nil {
 		request["page_size"] = limit
-		if IsGreaterThan(limit, 200) {
+		if *limit > 200 {
 			request["page_size"] = 200
 		}
 	}
@@ -954,7 +954,7 @@ func (this *Foxbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -973,7 +973,7 @@ func (this *Foxbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	if limit != nil {
 		request["limit"] = limit
-		if IsGreaterThan(limit, 500) {
+		if *limit > 500 {
 			request["limit"] = 500
 		}
 	}
@@ -1165,7 +1165,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1186,7 +1186,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 	}
 	if limit != nil {
 		request["page_size"] = limit
-		if IsGreaterThan(limit, 100) {
+		if *limit > 100 {
 			request["page_size"] = 100
 		}
 	}
@@ -1569,7 +1569,7 @@ func (this *Foxbit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1588,7 +1588,7 @@ func (this *Foxbit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if limit != nil {
 		request["page_size"] = limit
-		if IsGreaterThan(limit, 100) {
+		if *limit > 100 {
 			request["page_size"] = 100
 		}
 	}
@@ -1646,7 +1646,7 @@ func (this *Foxbit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1666,7 +1666,7 @@ func (this *Foxbit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	if limit != nil {
 		request["page_size"] = limit
-		if IsGreaterThan(limit, 100) {
+		if *limit > 100 {
 			request["page_size"] = 100
 		}
 	}
@@ -1767,7 +1767,7 @@ func (this *Foxbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1782,7 +1782,7 @@ func (this *Foxbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if limit != nil {
 		request["page_size"] = limit
-		if IsGreaterThan(limit, 100) {
+		if *limit > 100 {
 			request["page_size"] = 100
 		}
 	}
@@ -1836,7 +1836,7 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1851,7 +1851,7 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if limit != nil {
 		request["page_size"] = limit
-		if IsGreaterThan(limit, 100) {
+		if *limit > 100 {
 			request["page_size"] = 100
 		}
 	}
@@ -1917,11 +1917,11 @@ func (this *Foxbit) FetchTransactionsAsync(optionalArgs ...any) <-chan any {
 func (this *Foxbit) fetchTransactionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2097,11 +2097,11 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2118,7 +2118,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}
@@ -2160,7 +2160,7 @@ func (this *Foxbit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2174,7 +2174,7 @@ func (this *Foxbit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	if limit != nil {
 		request["page_size"] = limit
-		if IsGreaterThan(limit, 100) {
+		if *limit > 100 {
 			request["page_size"] = 100
 		}
 	}

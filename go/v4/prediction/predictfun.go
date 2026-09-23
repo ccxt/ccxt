@@ -1149,9 +1149,9 @@ func (this *Predictfun) TitleForMarketSymbol(topicSlug any, title any, optionalA
 	// btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
 	// returning the slug makes slugToMarketSymbol collapse the two halves into one part.
 	// inside a multi-market topic the title is what keeps the handles apart, so it stays
-	marketCount := ccxt.GetArg(optionalArgs, 0, nil)
+	var marketCount *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = marketCount
-	if (ccxt.IsEqual(marketCount, 1)) && (!ccxt.IsEqual(topicSlug, nil)) {
+	if (marketCount != nil && *marketCount == 1) && (!ccxt.IsEqual(topicSlug, nil)) {
 		return topicSlug
 	}
 	return this.StripPriceFormatting(title)
@@ -2227,7 +2227,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar any, s
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
@@ -2264,7 +2264,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar any, s
 	var warnOnMarketOrderWithoutPrice bool = true
 	var warnOnMarketOrderWithoutPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "warnOnMarketOrderWithoutPrice", true)
 	warnOnMarketOrderWithoutPrice = ccxt.GetValueBool(warnOnMarketOrderWithoutPriceparamsVariable, 0, false)
-	params = ccxt.GetValue(warnOnMarketOrderWithoutPriceparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(warnOnMarketOrderWithoutPriceparamsVariable, 1))
 	if price == nil {
 		// a priceless limit order already threw above, so this is a market order
 		if warnOnMarketOrderWithoutPrice {
@@ -2329,7 +2329,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar any, s
 	var taker any = "0x0000000000000000000000000000000000000000"
 	var takerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "taker", taker)
 	taker = ccxt.GetValue(takerparamsVariable, 0)
-	params = ccxt.GetValue(takerparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(takerparamsVariable, 1))
 	var contractOrder map[string]any = map[string]any{
 		"salt":        salt,
 		"maker":       this.WalletAddress,
@@ -2362,7 +2362,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar any, s
 	var postOnly any = ccxt.DerefScalar(this.SafeBool(params, "isPostOnly", false))
 	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarket, postOnly, params)
 	postOnly = ccxt.GetValue(postOnlyparamsVariable, 0)
-	params = ccxt.GetValue(postOnlyparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(postOnlyparamsVariable, 1))
 	if ccxt.EvalTruthy(postOnly) {
 		data["isPostOnly"] = postOnly
 	}
@@ -2377,7 +2377,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome any, typeVar any, s
 	}
 	// every param the method consumes itself has to come out, otherwise it survives into the
 	// extend below and is posted as a top level key next to 'data'
-	params = this.Omit(params, []any{"isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker"})
+	params = ccxt.MapTyped(this.Omit(params, []any{"isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker"}))
 	// the JWT authorises the order, the api key only authorises the request
 	var request map[string]any = map[string]any{
 		"data": data,
@@ -2690,7 +2690,7 @@ func (this *Predictfun) CancelOrderAsync(id any, optionalArgs ...any) <-chan any
 func (this *Predictfun) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2894,11 +2894,11 @@ func (this *Predictfun) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Predictfun) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2934,11 +2934,11 @@ func (this *Predictfun) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	defer ccxt.ReturnPanicError(ch)
 	// the venue's status filter is an enum of OPEN and FILLED only - expired and cancelled
 	// orders cannot be asked for, so a closed order here means one that filled
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3733,7 +3733,7 @@ func (this *Predictfun) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -3787,7 +3787,7 @@ func (this *Predictfun) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit

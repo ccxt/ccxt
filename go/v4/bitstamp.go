@@ -1992,9 +1992,9 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2011,7 +2011,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var until *int64 = this.SafeInteger(params, "until")
 	var untilIsDefined bool = (until != nil)
 	if limit == nil {
-		limit = 1000
+		limit = Int64PtrTyped(1000)
 		if since == nil {
 			request["limit"] = limit
 			if untilIsDefined {
@@ -2837,16 +2837,16 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes195719 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
@@ -2869,7 +2869,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("until_timestamp", request, params, 0.001)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
@@ -3004,7 +3004,7 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -3683,11 +3683,11 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 	// Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))

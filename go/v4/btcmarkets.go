@@ -1797,11 +1797,11 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code any, amount any, address 
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))

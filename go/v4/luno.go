@@ -875,7 +875,7 @@ func (this *Luno) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -888,7 +888,7 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 	var response any = nil
-	if (limit != nil) && IsLessThanOrEqual(limit, 100) {
+	if (limit != nil) && (*limit <= 100) {
 
 		response = (<-this.PublicGetOrderbookTop(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -1771,11 +1771,11 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// by default without entry number or limit number, return most recent entry
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	entry := GetArg(optionalArgs, 1, nil)
 	_ = entry
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1783,7 +1783,7 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any
 		entry = OpNeg(1)
 	}
 	if limit == nil {
-		limit = 1
+		limit = Int64PtrTyped(1)
 	}
 	var since any = nil
 	var request map[string]any = map[string]any{

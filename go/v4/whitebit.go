@@ -2028,7 +2028,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2051,11 +2051,11 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "method", method)
 	method = GetValue(methodparamsVariable, 0)
-	params = GetValue(methodparamsVariable, 1)
+	params = MapTyped(GetValue(methodparamsVariable, 1))
 	if method == nil {
 		// if the user did not specify a method, choose it based on market type and symbols
 		if onlyContractSymbols || (IsEqual(marketType, "swap")) {
@@ -2471,7 +2471,7 @@ func (this *Whitebit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -2984,7 +2984,7 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2999,13 +2999,13 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var requestType []any = []any{}
 	if IsEqual(typeVar, "spot") {
 		var isMargin any = nil
 		var isMarginparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "isMargin", false)
 		isMargin = GetValue(isMarginparamsVariable, 0)
-		params = GetValue(isMarginparamsVariable, 1)
+		params = MapTyped(GetValue(isMarginparamsVariable, 1))
 		if isMargin == true {
 			requestType = append(requestType, "margin")
 		} else {
@@ -3048,9 +3048,9 @@ func (this *Whitebit) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Whitebit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -3179,7 +3179,7 @@ func (this *Whitebit) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Whitebit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3188,7 +3188,7 @@ func (this *Whitebit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
 	if IsEqual(marketType, "swap") {
 
@@ -3198,7 +3198,7 @@ func (this *Whitebit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var options map[string]any = SafeMapTyped(this.Options, "fetchBalance")
 		var defaultAccount *string = this.SafeString(options, "account")
 		var account *string = this.SafeString2(params, "account", "type", defaultAccount)
-		params = this.Omit(params, []any{"account", "type"})
+		params = MapTyped(this.Omit(params, []any{"account", "type"}))
 		if (account != nil && *account == "main") || (account != nil && *account == "funding") {
 
 			response = (<-this.V4PrivatePostMainAccountBalance(params)).Raw
@@ -3612,9 +3612,9 @@ func (this *Whitebit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3631,8 +3631,8 @@ func (this *Whitebit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	if since != nil {
 		request["startDate"] = this.ParseToInt(Divide(since, 1000))
 	}
-	if (limit == nil) || IsGreaterThan(limit, 100) {
-		limit = 100
+	if (limit == nil) || (limit != nil && *limit > 100) {
+		limit = Int64PtrTyped(100)
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -3686,9 +3686,9 @@ func (this *Whitebit) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3705,8 +3705,8 @@ func (this *Whitebit) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	if since != nil {
 		request["startDate"] = this.ParseToInt(Divide(since, 1000))
 	}
-	if (limit == nil) || IsGreaterThan(limit, 100) {
-		limit = 100
+	if (limit == nil) || (limit != nil && *limit > 100) {
+		limit = Int64PtrTyped(100)
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -4725,11 +4725,11 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4750,7 +4750,7 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endDate", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountFundingHistory(this.Extend(request, params))).Raw))
 	//
@@ -5041,11 +5041,11 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -5064,7 +5064,7 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params, 0.001)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostConvertHistory(this.Extend(request, params))).Raw))
 	//
@@ -5184,7 +5184,7 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol any, optional
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -5202,7 +5202,7 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol any, optional
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endDate", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(request, params))).Raw
 	PanicOnError(response)
@@ -5453,11 +5453,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
@@ -5466,7 +5466,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes422319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))
@@ -5487,7 +5487,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("until_timestamp", request, params, 0.001)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}

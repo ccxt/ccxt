@@ -279,7 +279,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -307,9 +307,9 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		var createMarketBuyOrderRequiresPrice bool = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = ccxt.GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-		params = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = ccxt.MapTyped(ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 		var cost *float64 = this.SafeNumber(params, "cost")
-		params = this.Omit(params, "cost")
+		params = ccxt.MapTyped(this.Omit(params, "cost"))
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
@@ -359,7 +359,7 @@ func (this *Poloniex) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any
 func (this *Poloniex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -705,7 +705,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -715,7 +715,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var name any = ccxt.DerefScalar(this.SafeString(watchOrderBookOptions, "name", "book_lv2"))
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
-	params = ccxt.GetValue(nameparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(nameparamsVariable, 1))
 
 	orderbook := (<-this.SubscribeAsync(name, name, false, []any{symbol}, params))
 	ccxt.PanicOnError(orderbook)

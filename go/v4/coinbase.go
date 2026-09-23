@@ -759,7 +759,7 @@ func (this *Coinbase) FetchAccountsV2Async(optionalArgs ...any) <-chan any {
 func (this *Coinbase) fetchAccountsV2Body(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -768,7 +768,7 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan any, optionalArgs ...any) any 
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchAccounts", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes60019 := (<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, params, "next_starting_after", "starting_after", nil, 100))
@@ -849,7 +849,7 @@ func (this *Coinbase) FetchAccountsV3Async(optionalArgs ...any) <-chan any {
 func (this *Coinbase) fetchAccountsV3Body(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -858,7 +858,7 @@ func (this *Coinbase) fetchAccountsV3Body(ch chan any, optionalArgs ...any) any 
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchAccounts", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes67119 := (<-this.FetchPaginatedCallCursorAsync("fetchAccounts", nil, nil, nil, params, "cursor", "cursor", nil, 250))
@@ -1147,7 +1147,7 @@ func (this *Coinbase) fetchMySellsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1191,7 +1191,7 @@ func (this *Coinbase) fetchMyBuysBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1217,11 +1217,11 @@ func (this *Coinbase) FetchTransactionsWithMethodAsync(method any, optionalArgs 
 func (this *Coinbase) fetchTransactionsWithMethodBody(ch chan any, method any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1279,12 +1279,12 @@ func (this *Coinbase) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var currencyType any = nil
 	var currencyTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "currencyType")
 	currencyType = GetValue(currencyTypeparamsVariable, 0)
-	params = GetValue(currencyTypeparamsVariable, 1)
+	params = MapTyped(GetValue(currencyTypeparamsVariable, 1))
 	if IsEqual(currencyType, "crypto") {
 
 		var results []any = ListTyped(PanicOnError((<-this.FetchTransactionsWithMethodAsync("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params))))
@@ -1326,12 +1326,12 @@ func (this *Coinbase) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var currencyType any = nil
 	var currencyTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "currencyType")
 	currencyType = GetValue(currencyTypeparamsVariable, 0)
-	params = GetValue(currencyTypeparamsVariable, 1)
+	params = MapTyped(GetValue(currencyTypeparamsVariable, 1))
 	if IsEqual(currencyType, "crypto") {
 
 		var results []any = ListTyped(PanicOnError((<-this.FetchTransactionsWithMethodAsync("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params))))
@@ -1900,12 +1900,12 @@ func (this *Coinbase) FetchMarketsV3Async(optionalArgs ...any) <-chan any {
 func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
-	params = GetValue(usePrivateparamsVariable, 1)
+	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	var spotUnresolvedPromises []any = []any{}
 	if usePrivate {
 		spotUnresolvedPromises = append(spotUnresolvedPromises, EndpointRaw(this.V3PrivateGetBrokerageProducts(params)))
@@ -2734,7 +2734,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2748,7 +2748,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", this.GetMarketFromSymbols(symbols), params, "default")
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	if (marketType != nil) && (!IsEqual(marketType, "default")) {
 		request["product_type"] = func() string {
 			if IsEqual(marketType, "swap") {
@@ -2761,7 +2761,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
-	params = GetValue(usePrivateparamsVariable, 1)
+	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
 
 		response = (<-this.V3PrivateGetBrokerageProducts(this.Extend(request, params))).Raw
@@ -2919,7 +2919,7 @@ func (this *Coinbase) FetchTickerV3Async(symbol any, optionalArgs ...any) <-chan
 func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2933,7 +2933,7 @@ func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ..
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTicker", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
-	params = GetValue(usePrivateparamsVariable, 1)
+	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	var response any = nil
 	if usePrivate {
 
@@ -3192,7 +3192,7 @@ func (this *Coinbase) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Coinbase) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3201,11 +3201,11 @@ func (this *Coinbase) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var isV3 *bool = this.SafeBool(params, "v3", false)
-	params = this.Omit(params, []any{"v3"})
+	params = MapTyped(this.Omit(params, []any{"v3"}))
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var method *string = this.SafeString(this.Options, "fetchBalance", "v3PrivateGetBrokerageAccounts")
 	if IsEqual(marketType, "future") {
 
@@ -3319,11 +3319,11 @@ func (this *Coinbase) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3863,7 +3863,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3878,7 +3878,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	if reduceOnly != nil && *reduceOnly == true {
-		params = this.Omit(params, "reduceOnly")
+		params = MapTyped(this.Omit(params, "reduceOnly"))
 		AddElementToObject(params, "amount", amount)
 
 		retRes310419 := (<-this.ClosePositionAsync(symbol, side, params))
@@ -4011,9 +4011,9 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 			var createMarketBuyOrderRequiresPrice bool = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+			params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 			var cost *float64 = this.SafeNumber(params, "cost")
-			params = this.Omit(params, "cost")
+			params = MapTyped(this.Omit(params, "cost"))
 			if cost != nil {
 				total = this.CostToPrecision(symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {
@@ -4049,11 +4049,11 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 			AddElementToObject(request, "margin_type", "CROSS")
 		}
 	}
-	params = this.Omit(params, []any{"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"})
+	params = MapTyped(this.Omit(params, []any{"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"}))
 	var preview *bool = this.SafeBool2(params, "preview", "test", false)
 	var response any = nil
 	if preview != nil && *preview == true {
-		params = this.Omit(params, []any{"preview", "test"})
+		params = MapTyped(this.Omit(params, []any{"preview", "test"}))
 		request = this.Omit(request, "client_order_id")
 
 		response = (<-this.V3PrivatePostBrokerageOrdersPreview(this.Extend(request, params))).Raw
@@ -4310,7 +4310,7 @@ func (this *Coinbase) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Coinbase) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4564,7 +4564,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, 100)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4573,7 +4573,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes367619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 1000))))
@@ -4596,7 +4596,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
-		params = this.Omit(params, []any{"until"})
+		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["end_date"] = this.Iso8601(until)
 	}
 
@@ -4666,7 +4666,7 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan any, status any, optionalA
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4685,7 +4685,7 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan any, status any, optionalA
 		request["product_id"] = GetValue(market, "id")
 	}
 	if limit == nil {
-		limit = 100
+		limit = Int64PtrTyped(100)
 	}
 	request["limit"] = limit
 	if since != nil {
@@ -4779,7 +4779,7 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4788,7 +4788,7 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes384919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))))
@@ -4829,7 +4829,7 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4838,7 +4838,7 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes387419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nil, 1000))))
@@ -4912,11 +4912,11 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4932,7 +4932,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes391919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit-1))
@@ -4946,7 +4946,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"granularity": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end")
-	params = this.Omit(params, []any{"until"})
+	params = MapTyped(this.Omit(params, []any{"until"}))
 	var duration any = this.ParseTimeframe(timeframe)
 	var requestedDuration any = Multiply(limit, duration)
 	var sinceString any = nil
@@ -4967,7 +4967,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
-	params = GetValue(usePrivateparamsVariable, 1)
+	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
 
 		response = (<-this.V3PrivateGetBrokerageProductsProductIdCandles(this.Extend(request, params))).Raw
@@ -5035,11 +5035,11 @@ func (this *Coinbase) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -5058,7 +5058,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["end"] = this.NumberToString(this.ParseToInt(Divide(until, 1000)))
 	} else if since != nil {
@@ -5068,7 +5068,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
-	params = GetValue(usePrivateparamsVariable, 1)
+	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
 
 		response = (<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params))).Raw
@@ -5127,7 +5127,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -5136,7 +5136,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes407519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nil, 250))))
@@ -5159,7 +5159,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
-		params = this.Omit(params, []any{"until"})
+		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["end_sequence_timestamp"] = this.Iso8601(until)
 	}
 
@@ -5221,7 +5221,7 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -5238,7 +5238,7 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
-	params = GetValue(usePrivateparamsVariable, 1)
+	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
 
 		response = (<-this.V3PrivateGetBrokerageProductBook(this.Extend(request, params))).Raw
@@ -5360,11 +5360,11 @@ func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address an
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -5378,7 +5378,7 @@ func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address an
 		"currency": currency["id"],
 	}
 	var accountId any = DerefScalar(this.SafeString2(params, "account_id", "accountId"))
-	params = this.Omit(params, []any{"account_id", "accountId"})
+	params = MapTyped(this.Omit(params, []any{"account_id", "accountId"}))
 	if IsEqual(accountId, nil) {
 		if IsEqual(code, nil) {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument"))
@@ -6227,7 +6227,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -6241,7 +6241,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
 	if IsEqual(typeVar, "future") {
 
@@ -6251,7 +6251,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		var portfolio any = nil
 		var portfolioparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "portfolio")
 		portfolio = GetValue(portfolioparamsVariable, 0)
-		params = GetValue(portfolioparamsVariable, 1)
+		params = MapTyped(GetValue(portfolioparamsVariable, 1))
 		if portfolio == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()"))
 		}
@@ -6288,7 +6288,7 @@ func (this *Coinbase) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -6311,7 +6311,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 		var portfolio any = nil
 		var portfolioparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "portfolio")
 		portfolio = GetValue(portfolioparamsVariable, 0)
-		params = GetValue(portfolioparamsVariable, 1)
+		params = MapTyped(GetValue(portfolioparamsVariable, 1))
 		if portfolio == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()"))
 		}
@@ -6494,7 +6494,7 @@ func (this *Coinbase) FetchTradingFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -6503,7 +6503,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var productType string = func() string {
 		if isSpot {

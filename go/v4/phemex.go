@@ -1530,7 +1530,7 @@ func (this *Phemex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Phemex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1549,7 +1549,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		response = (<-this.V2GetMdV2Orderbook(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		if (limit != nil) && (IsLessThanOrEqual(limit, 30)) {
+		if (limit != nil) && (*limit <= 30) {
 
 			response = (<-this.V1GetMdOrderbook(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -1998,7 +1998,7 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2012,11 +2012,11 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var subType any = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchTickers", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var query any = this.Omit(params, "type")
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
@@ -2553,7 +2553,7 @@ func (this *Phemex) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2562,9 +2562,9 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var code *string = this.SafeString(params, "code")
-	params = this.Omit(params, []any{"code"})
+	params = MapTyped(this.Omit(params, []any{"code"}))
 	var response any = nil
 	var request map[string]any = map[string]any{}
 	if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "swap")) {
@@ -2574,7 +2574,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var settle any = nil
 		var settleparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "settle", "USDT")
 		settle = GetValue(settleparamsVariable, 0)
-		params = GetValue(settleparamsVariable, 1)
+		params = MapTyped(GetValue(settleparamsVariable, 1))
 		if (code != nil) || (settle != nil) {
 			var coin any = nil
 			if code != nil {
@@ -4055,9 +4055,9 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4070,10 +4070,10 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		limit = mathMin(200, limit)
+		limit = Int64PtrTyped(mathMin(200, limit))
 		request["limit"] = limit
 	}
 	var isUSDTSettled bool = (!IsEqual(typeVar, "spot")) && ((symbol == nil) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USDT"))
@@ -4578,7 +4578,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4587,7 +4587,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var subType any = nil
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
-	params = this.Omit(params, []any{"currency", "code"})
+	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
 	var settle any = nil
 	var market any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
@@ -4598,11 +4598,11 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		var settleparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "settle", code)
 		settle = GetValue(settleparamsVariable, 0)
-		params = GetValue(settleparamsVariable, 1)
+		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositions", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isUSDTSettled bool = (IsEqual(settle, "USDT"))
 	if isUSDTSettled {
 		code = "USDT"
@@ -4625,7 +4625,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		var method any = nil
 		var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "method", "privateGetGAccountsAccountPositions")
 		method = GetValue(methodparamsVariable, 0)
-		params = GetValue(methodparamsVariable, 1)
+		params = MapTyped(GetValue(methodparamsVariable, 1))
 		if IsEqual(method, "privateGetGAccountsAccountPositions") {
 
 			response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw
@@ -5017,7 +5017,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -5033,7 +5033,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		if IsGreaterThan(limit, 200) {
+		if *limit > 200 {
 			panic(BadRequest(this.Id + " fetchFundingHistory() limit argument cannot exceed 200"))
 		}
 		request["limit"] = limit
@@ -6019,7 +6019,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
@@ -6036,7 +6036,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes506919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
@@ -6061,7 +6061,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if isUsdtSettled {
 
@@ -6131,11 +6131,11 @@ func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any,
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -6145,7 +6145,7 @@ func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any,
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var networkId any = nil
 	if networkCode != nil {
 		networkId = this.NetworkCodeToId(networkCode, code)
@@ -6449,7 +6449,7 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -6467,7 +6467,7 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetsConvert(this.Extend(request, params))).Raw))
 	//
@@ -6599,7 +6599,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -6608,7 +6608,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var subType any = nil
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
-	params = this.Omit(params, []any{"currency", "code"})
+	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
 	var settle any = nil
 	var market any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
@@ -6619,11 +6619,11 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	} else {
 		var settleparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsADLRank", "settle", code)
 		settle = GetValue(settleparamsVariable, 0)
-		params = GetValue(settleparamsVariable, 1)
+		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositionsADLRank", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isUSDTSettled bool = (IsEqual(settle, "USDT"))
 	if isUSDTSettled {
 		code = "USDT"
@@ -6646,7 +6646,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		var method any = nil
 		var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions")
 		method = GetValue(methodparamsVariable, 0)
-		params = GetValue(methodparamsVariable, 1)
+		params = MapTyped(GetValue(methodparamsVariable, 1))
 		if IsEqual(method, "privateGetGAccountsAccountPositions") {
 
 			response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw

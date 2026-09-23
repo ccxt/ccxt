@@ -1460,9 +1460,9 @@ func (this *Bitvavo) EditOrderWsAsync(id any, symbol any, typeVar any, side any,
 func (this *Bitvavo) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	amount := ccxt.GetArg(optionalArgs, 0, nil)
+	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := ccxt.GetArg(optionalArgs, 1, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1498,7 +1498,7 @@ func (this *Bitvavo) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any 
 func (this *Bitvavo) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1535,7 +1535,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1547,7 +1547,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	var operatorId any = nil
 	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "operatorId")
 	operatorId = ccxt.GetValue(operatorIdparamsVariable, 0)
-	params = ccxt.GetValue(operatorIdparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(operatorIdparamsVariable, 1))
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -1647,11 +1647,11 @@ func (this *Bitvavo) FetchOrdersWsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitvavo) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1763,11 +1763,11 @@ func (this *Bitvavo) FetchMyTradesWsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitvavo) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1840,11 +1840,11 @@ func (this *Bitvavo) withdrawWsBody(ch chan any, code any, amount any, address a
 	defer ccxt.ReturnPanicError(ch)
 	tag := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = ccxt.GetValue(tagparamsVariable, 0)
-	params = ccxt.GetValue(tagparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -1897,11 +1897,11 @@ func (this *Bitvavo) FetchWithdrawalsWsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	code := ccxt.GetArg(optionalArgs, 0, nil)
+	var code *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1967,9 +1967,9 @@ func (this *Bitvavo) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...a
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2006,11 +2006,11 @@ func (this *Bitvavo) FetchDepositsWsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitvavo) fetchDepositsWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	code := ccxt.GetArg(optionalArgs, 0, nil)
+	var code *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

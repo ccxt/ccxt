@@ -1667,7 +1667,7 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1676,7 +1676,7 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes122819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "next", "cursor", nil, 100))))
@@ -1695,7 +1695,7 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(request, params))).Raw))
 	//
@@ -2995,7 +2995,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.AuthenticateRestAsync()))
@@ -3006,7 +3006,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes225419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next", "cursor", nil, 50))))
@@ -3027,7 +3027,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Raw))
 	//
@@ -3242,7 +3242,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.AuthenticateRestAsync()))
@@ -3253,7 +3253,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes243919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next", "cursor", nil, 100))))
@@ -3274,7 +3274,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
 	//
@@ -3489,7 +3489,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.AuthenticateRestAsync()))
@@ -3509,7 +3509,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLiquidations(this.Extend(request, params))).Raw))
 	//
@@ -3578,7 +3578,7 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.AuthenticateRestAsync()))
@@ -3589,7 +3589,7 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes269419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "next", "cursor", nil, 100))))
@@ -3605,7 +3605,7 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
 	//
@@ -3674,7 +3674,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.AuthenticateRestAsync()))
@@ -3685,7 +3685,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes275819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "next", "cursor", nil, 100))))
@@ -3701,7 +3701,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
 	//
@@ -3770,7 +3770,7 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.AuthenticateRestAsync()))
@@ -3781,7 +3781,7 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes282219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "next", "cursor", nil, 100))))
@@ -3801,7 +3801,7 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
 	//
@@ -4024,7 +4024,7 @@ func (this *Paradex) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredArgument("setMarginMode", symbol, "symbol")
 
@@ -4037,7 +4037,7 @@ func (this *Paradex) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 	var leverage any = 1
 	var leverageparamsVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage", leverage)
 	leverage = GetValue(leverageparamsVariable, 0)
-	params = GetValue(leverageparamsVariable, 1)
+	params = MapTyped(GetValue(leverageparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"market":      market["id"],
 		"leverage":    leverage,
@@ -4141,7 +4141,7 @@ func (this *Paradex) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredArgument("setLeverage", symbol, "symbol")
 
@@ -4154,7 +4154,7 @@ func (this *Paradex) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("setLeverage", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"market":      market["id"],
 		"leverage":    leverage,
@@ -4398,7 +4398,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
@@ -4412,7 +4412,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes332419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next", "cursor", nil, 100))))
@@ -4433,7 +4433,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingPayments(this.Extend(request, params))).Raw))
 	//

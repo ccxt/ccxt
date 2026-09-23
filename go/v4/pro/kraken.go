@@ -125,7 +125,7 @@ func (this *Kraken) Describe() any {
 func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request any, amount any, optionalArgs ...any) any {
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var isLimitOrder bool = ccxt.EndsWith(typeVar, "limit") // supporting limit, stop-loss-limit, take-profit-limit, etc
 	if isLimitOrder {
@@ -138,7 +138,7 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 	var postOnly any = nil
 	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarket, false, params)
 	postOnly = ccxt.GetValue(postOnlyparamsVariable, 0)
-	params = ccxt.GetValue(postOnlyparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(postOnlyparamsVariable, 1))
 	if postOnly == true {
 		ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "post_only", true)
 	}
@@ -210,7 +210,7 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 		if timeInForce != nil {
 			ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "time_in_force", timeInForce)
 		}
-		params = this.Omit(params, []any{"reduceOnly", "timeInForce"})
+		params = ccxt.MapTyped(this.Omit(params, []any{"reduceOnly", "timeInForce"}))
 		if isStopLossPriceOrder || isTakeProfitPriceOrder || isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder {
 			ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "triggers", map[string]any{})
 		}
@@ -230,7 +230,7 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 				ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(request, "params"), "conditional"), "order_type", "take-profit-limit")
 				ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(request, "params"), "conditional"), "limit_price", this.ParseToNumeric(this.PriceToPrecision(symbol, presetTakeProfitLimit)))
 			}
-			params = this.Omit(params, []any{"stopLoss", "takeProfit"})
+			params = ccxt.MapTyped(this.Omit(params, []any{"stopLoss", "takeProfit"}))
 		} else if isStopLossPriceOrder || isTakeProfitPriceOrder {
 			if isStopLossPriceOrder {
 				ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(request, "params"), "triggers"), "price", this.ParseToNumeric(this.PriceToPrecision(symbol, stopLossPrice)))
@@ -295,7 +295,7 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 			}
 		}
 	}
-	params = this.Omit(params, []any{"clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"})
+	params = ccxt.MapTyped(this.Omit(params, []any{"clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"}))
 	return []any{request, params}
 }
 
@@ -320,9 +320,9 @@ func (this *Kraken) CreateOrderWsAsync(symbol any, typeVar any, side any, amount
 func (this *Kraken) createOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	price := ccxt.GetArg(optionalArgs, 0, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -346,7 +346,7 @@ func (this *Kraken) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 	}
 	requestparamsVariable := this.OrderRequestWs("createOrderWs", symbol, typeVar, request, amount, price, params)
 	request = ccxt.GetValue(requestparamsVariable, 0)
-	params = ccxt.GetValue(requestparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(requestparamsVariable, 1))
 
 	retRes30015 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
 	ccxt.PanicOnError(retRes30015)
@@ -410,9 +410,9 @@ func (this *Kraken) editOrderWsBody(ch chan any, id any, symbol any, typeVar any
 	defer ccxt.ReturnPanicError(ch)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = amount
-	price := ccxt.GetArg(optionalArgs, 1, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -433,7 +433,7 @@ func (this *Kraken) editOrderWsBody(ch chan any, id any, symbol any, typeVar any
 	}
 	requestparamsVariable := this.OrderRequestWs("editOrderWs", symbol, typeVar, request, amount, price, params)
 	request = ccxt.GetValue(requestparamsVariable, 0)
-	params = ccxt.GetValue(requestparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(requestparamsVariable, 1))
 
 	retRes36615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
 	ccxt.PanicOnError(retRes36615)
@@ -1512,11 +1512,11 @@ func (this *Kraken) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Kraken) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1670,11 +1670,11 @@ func (this *Kraken) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Kraken) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

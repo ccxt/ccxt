@@ -1119,21 +1119,21 @@ func (this *Aster) Describe() any {
 	})
 }
 func (this *Aster) IsInverse(typeVar any, optionalArgs ...any) bool {
-	subType := GetArg(optionalArgs, 0, nil)
+	var subType *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subType
 	if subType == nil {
 		return (IsEqual(typeVar, "delivery"))
 	} else {
-		return (IsEqual(subType, "inverse"))
+		return (subType != nil && *subType == "inverse")
 	}
 }
 func (this *Aster) IsLinear(typeVar any, optionalArgs ...any) bool {
-	subType := GetArg(optionalArgs, 0, nil)
+	var subType *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subType
 	if subType == nil {
 		return (IsEqual(typeVar, "future")) || (IsEqual(typeVar, "swap"))
 	} else {
-		return (IsEqual(subType, "linear"))
+		return (subType != nil && *subType == "linear")
 	}
 }
 
@@ -1475,12 +1475,12 @@ func (this *Aster) FetchTimeAsync(optionalArgs ...any) <-chan any {
 func (this *Aster) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
 	if IsEqual(marketType, "swap") {
 
@@ -1557,7 +1557,7 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1573,12 +1573,12 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
 	var price *string = this.SafeString(params, "price")
 	var isMark bool = (price != nil && *price == "mark")
 	var isIndex bool = (price != nil && *price == "index")
-	params = this.Omit(params, "price")
+	params = MapTyped(this.Omit(params, "price"))
 	var response any = nil
 	if isMark {
 		AddElementToObject(request, "symbol", market["id"])
@@ -1826,7 +1826,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
@@ -1839,7 +1839,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
@@ -1848,7 +1848,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if IsEqual(marketType, "swap") {
 
@@ -2148,7 +2148,7 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2159,7 +2159,7 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
 	if IsEqual(marketType, "swap") {
 
@@ -2224,7 +2224,7 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2235,7 +2235,7 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
 	if IsEqual(marketType, "swap") {
 
@@ -2328,7 +2328,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2339,7 +2339,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
 	if IsEqual(marketType, "swap") {
 
@@ -2598,7 +2598,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2618,7 +2618,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.FapiPublicGetV3FundingRate(this.Extend(request, params))).Raw
 	PanicOnError(response)
@@ -2674,14 +2674,14 @@ func (this *Aster) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Aster) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
 	var data any = nil
 	if IsEqual(marketType, "swap") {
@@ -3227,7 +3227,7 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
@@ -3246,7 +3246,7 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if GetValue(market, "swap") == true {
 
@@ -3320,7 +3320,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
@@ -3341,11 +3341,11 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var subType any = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOpenOrders", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var response any = nil
 	if this.IsLinear(marketType, subType) {
 
@@ -3562,7 +3562,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -3718,7 +3718,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var tif any = nil
 		var tifparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce")
 		tif = GetValue(tifparamsVariable, 0)
-		params = GetValue(tifparamsVariable, 1)
+		params = MapTyped(GetValue(tifparamsVariable, 1))
 		request["timeInForce"] = tif
 	}
 	var requestParams any = this.Omit(params, []any{"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"})
@@ -4147,7 +4147,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	typeVar := GetArg(optionalArgs, 1, nil)
+	var typeVar *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = typeVar
 	var since *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = since
@@ -4168,7 +4168,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 	}
 	if typeVar != nil {
 		request["type"] = func() int {
-			if IsEqual(typeVar, "add") {
+			if typeVar != nil && *typeVar == "add" {
 				return 1
 			}
 			return 2
@@ -4400,7 +4400,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
@@ -4414,7 +4414,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
@@ -4833,12 +4833,12 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var defaultMethod any = nil
 	var defaultMethodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "method")
 	defaultMethod = GetValue(defaultMethodparamsVariable, 0)
-	params = GetValue(defaultMethodparamsVariable, 1)
+	params = MapTyped(GetValue(defaultMethodparamsVariable, 1))
 	if IsEqual(defaultMethod, nil) {
 		var options any = this.SafeDict(this.Options, "fetchPositions")
 		if IsEqual(options, nil) {
@@ -5125,7 +5125,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbols != nil {
 		if !IsArray(symbols) {
@@ -5142,7 +5142,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 	var filterClosed any = nil
 	var filterClosedparamsVariable []any = this.HandleOptionAndParams(params, "fetchAccountPositions", "filterClosed", false)
 	filterClosed = GetValue(filterClosedparamsVariable, 0)
-	params = GetValue(filterClosedparamsVariable, 1)
+	params = MapTyped(GetValue(filterClosedparamsVariable, 1))
 	var result any = this.ParseAccountPositions(response, filterClosed)
 	symbols = this.MarketSymbols(symbols)
 
@@ -5303,11 +5303,11 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
@@ -5336,7 +5336,7 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 		panic(ArgumentsRequired(this.Id + " withdraw require fee parameter"))
 	}
 	request["fee"] = fee
-	params = this.Omit(params, []any{"chainId", "network", "fee"})
+	params = MapTyped(this.Omit(params, []any{"chainId", "network", "fee"}))
 	request["amount"] = this.CurrencyToPrecision(code, amount, network)
 	request["userSignature"] = this.SignWithdrawPayload(request, network)
 

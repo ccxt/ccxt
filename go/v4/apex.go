@@ -1008,11 +1008,11 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1024,13 +1024,13 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		"symbol":   this.SafeString(market, "id2"),
 	}
 	if limit == nil {
-		limit = 200 // default is 200 when requested with `since`
+		limit = Int64PtrTyped(200) // default is 200 when requested with `since`
 	}
-	limit = mathMin(limit, 200)                 // fix maxcap
+	limit = Int64PtrTyped(mathMin(limit, 200))  // fix maxcap
 	AddElementToObject(request, "limit", limit) // max 200, default 200
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params, 0.001)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
 		AddElementToObject(request, "start", MathFloor(Divide(since, 1000)))
 	}
@@ -1079,7 +1079,7 @@ func (this *Apex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1092,7 +1092,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": this.SafeString(market, "id2"),
 	}
 	if limit == nil {
-		limit = 100 // default is 200 when requested with `since`
+		limit = Int64PtrTyped(100) // default is 200 when requested with `since`
 	}
 	request["limit"] = limit // max 100, default 100
 
@@ -1155,7 +1155,7 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1168,7 +1168,7 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		"symbol": this.SafeString(market, "id2"),
 	}
 	if limit == nil {
-		limit = 500 // default is 50
+		limit = Int64PtrTyped(500) // default is 50
 	}
 	request["limit"] = limit
 

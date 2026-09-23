@@ -2298,7 +2298,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2307,7 +2307,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes178919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params))
@@ -2332,14 +2332,14 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
-		params = this.Omit(params, []any{"until"})
+		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["endTime"] = this.Iso8601(until)
 	}
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var useOpenTimestamp any = nil
 	var useOpenTimestampparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "useOpenTimestamp", true)
 	useOpenTimestamp = GetValue(useOpenTimestampparamsVariable, 0)
-	params = GetValue(useOpenTimestampparamsVariable, 1)
+	params = MapTyped(GetValue(useOpenTimestampparamsVariable, 1))
 	// if since is not set, they will return candles starting from 2017-01-01
 	if since != nil {
 		var timestamp any = since
@@ -2659,7 +2659,7 @@ func (this *Bitmex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2668,7 +2668,7 @@ func (this *Bitmex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes211019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
@@ -2690,7 +2690,7 @@ func (this *Bitmex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "endTime")
 	if until != nil {
-		params = this.Omit(params, []any{"until"})
+		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["endTime"] = this.Iso8601(until)
 	}
 
@@ -3540,11 +3540,11 @@ func (this *Bitmex) withdrawBody(ch chan any, code any, amount any, address any,
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -3555,7 +3555,7 @@ func (this *Bitmex) withdrawBody(ch chan any, code any, amount any, address any,
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   qty,
@@ -3900,7 +3900,7 @@ func (this *Bitmex) FetchDepositAddressAsync(code any, optionalArgs ...any) <-ch
 func (this *Bitmex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3909,12 +3909,12 @@ func (this *Bitmex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires params[\"network\"]"))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
-	params = this.Omit(params, "network")
+	params = MapTyped(this.Omit(params, "network"))
 	var parsedNetwork any = this.NetworkCodeToId(networkCode, currency["code"])
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
@@ -4201,7 +4201,7 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4210,7 +4210,7 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes328819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLiquidations", symbol, since, limit, params))))
@@ -4229,7 +4229,7 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetLiquidation(this.Extend(request, params))).Raw))
 
@@ -4583,9 +4583,9 @@ func (this *Bitmex) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

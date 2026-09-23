@@ -143,7 +143,7 @@ func (this *Hyperliquid) CreateOrderWsAsync(symbol any, typeVar any, side any, a
 func (this *Hyperliquid) createOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	price := ccxt.GetArg(optionalArgs, 0, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -199,7 +199,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan any, id any, symbol any, typeVa
 	defer ccxt.ReturnPanicError(ch)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = amount
-	price := ccxt.GetArg(optionalArgs, 1, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -250,7 +250,7 @@ func (this *Hyperliquid) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-cha
 func (this *Hyperliquid) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -308,7 +308,7 @@ func (this *Hyperliquid) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan 
 func (this *Hyperliquid) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

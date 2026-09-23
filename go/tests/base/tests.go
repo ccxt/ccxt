@@ -2054,7 +2054,7 @@ func (this *testMainClass) CountSignificantKeys(exchange ccxt.ICoreExchange, tar
 func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExchange, skipKeys any, newOutput any, storedOutput any, optionalArgs ...any) any {
 	var strictTypeCheck bool = GetArgBool(optionalArgs, 0, true)
 	_ = strictTypeCheck
-	assertingKey := GetArg(optionalArgs, 1, nil)
+	var assertingKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = assertingKey
 	if EvalTruthy(IsNullValue(newOutput)) && EvalTruthy(IsNullValue(storedOutput)) {
 		return true
@@ -2271,7 +2271,7 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 func (this *testMainClass) AssertNewAndStoredOutput(exchange ccxt.ICoreExchange, skipKeys any, newOutput any, storedOutput any, optionalArgs ...any) any {
 	var strictTypeCheck bool = GetArgBool(optionalArgs, 0, true)
 	_ = strictTypeCheck
-	assertingKey := GetArg(optionalArgs, 1, nil)
+	var assertingKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = assertingKey
 	var res any = true
 
@@ -3107,7 +3107,7 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan any, excha
 func (this *testMainClass) GetNumberOfTestsFromExchange(exchange ccxt.ICoreExchange, exchangeData any, optionalArgs ...any) any {
 	var testName *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = testName
-	if !IsEqual(testName, nil) {
+	if testName != nil {
 		return 1
 	}
 	var sum any = 0
@@ -3170,9 +3170,9 @@ func (this *testMainClass) RunStaticRequestTestsAsync(optionalArgs ...any) <-cha
 func (this *testMainClass) runStaticRequestTestsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	targetExchange := GetArg(optionalArgs, 0, nil)
+	var targetExchange *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = targetExchange
-	testName := GetArg(optionalArgs, 1, nil)
+	var testName *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = testName
 
 	PanicOnError((<-this.RunStaticTestsAsync("request", targetExchange, testName)))

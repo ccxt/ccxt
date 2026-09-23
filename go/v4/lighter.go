@@ -498,7 +498,7 @@ func (this *Lighter) LoadAccountAsync(chainId any, privateKey any, apiKeyIndex a
 func (this *Lighter) loadAccountBody(ch chan any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.InitAuthObject(accountIndex, apiKeyIndex)
 	var cachedAuths map[string]any = SafeMapTyped(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex)
@@ -511,7 +511,7 @@ func (this *Lighter) loadAccountBody(ch chan any, chainId any, privateKey any, a
 	var libraryPath any = nil
 	var libraryPathparamsVariable []any = this.HandleOptionAndParams(params, "loadAccount", "libraryPath")
 	libraryPath = GetValue(libraryPathparamsVariable, 0)
-	params = GetValue(libraryPathparamsVariable, 1)
+	params = MapTyped(GetValue(libraryPathparamsVariable, 1))
 	var lighterPrivateKeyIsSet bool = (!IsEqual(privateKey, nil)) && (!IsEqual(privateKey, ""))
 	if lighterPrivateKeyIsSet && (libraryPath != nil) && (!IsEqual(apiKeyIndex, nil)) && (!IsEqual(accountIndex, nil)) {
 		// load lighter library, and create lighter client
@@ -1175,7 +1175,7 @@ func (this *Lighter) FetchNonceAsync(accountIndex any, apiKeyIndex any, optional
 func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if (IsEqual(accountIndex, nil)) || (IsEqual(apiKeyIndex, nil)) {
 		panic(ArgumentsRequired(this.Id + " fetchNonce() requires accountIndex and apiKeyIndex."))
@@ -1195,7 +1195,7 @@ func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex a
 	var skipNonce bool = true
 	var skipNonceparamsVariable []any = this.HandleOptionAndParams(params, "fetchNonce", "skipNonce", true)
 	skipNonce = GetValueBool(skipNonceparamsVariable, 0, false)
-	params = GetValue(skipNonceparamsVariable, 1)
+	params = MapTyped(GetValue(skipNonceparamsVariable, 1))
 	if skipNonce {
 
 		ch <- this.Milliseconds()
@@ -1309,7 +1309,7 @@ func (this *Lighter) CreateOrderAsync(symbol any, typeVar any, side any, amount 
 func (this *Lighter) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2152,7 +2152,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3976,9 +3976,9 @@ func (this *Lighter) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan 
 func (this *Lighter) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
@@ -3986,7 +3986,7 @@ func (this *Lighter) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleOptionAndParams2(params, "setLeverage", "marginMode", "margin_mode")
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if marginMode == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires an marginMode parameter"))
 	}
@@ -4017,9 +4017,9 @@ func (this *Lighter) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-c
 func (this *Lighter) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(marginMode, nil) {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires an marginMode parameter"))
@@ -4027,7 +4027,7 @@ func (this *Lighter) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 	var leverage any = nil
 	var leverageparamsVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage")
 	leverage = GetValue(leverageparamsVariable, 0)
-	params = GetValue(leverageparamsVariable, 1)
+	params = MapTyped(GetValue(leverageparamsVariable, 1))
 	if IsEqual(leverage, nil) {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires an leverage parameter"))
 	}
@@ -4180,7 +4180,7 @@ func (this *Lighter) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Lighter) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4264,7 +4264,7 @@ func (this *Lighter) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Lighter) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

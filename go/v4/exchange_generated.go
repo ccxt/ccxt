@@ -1004,9 +1004,9 @@ func (this *BaseExchange) WatchLiquidationsAsync(symbol any, optionalArgs ...any
 func (this *BaseExchange) watchLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1043,9 +1043,9 @@ func (this *BaseExchange) WatchMyLiquidationsAsync(symbol any, optionalArgs ...a
 func (this *BaseExchange) watchMyLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2008,9 +2008,9 @@ func (this *BaseExchange) FeatureValue(symbol any, optionalArgs ...any) any {
 	 * @param {object} [defaultValue] return default value if no result found
 	 * @returns {object} returns feature value
 	 */
-	methodName := GetArg(optionalArgs, 0, nil)
+	var methodName *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = methodName
-	paramName := GetArg(optionalArgs, 1, nil)
+	var paramName *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = paramName
 	defaultValue := GetArg(optionalArgs, 2, nil)
 	_ = defaultValue
@@ -3930,7 +3930,7 @@ func (this *BaseExchange) FilterByKey(objects any, key any, optionalArgs ...any)
 	return result
 }
 func (this *BaseExchange) FilterBySymbol(objects any, optionalArgs ...any) any {
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	return this.FilterByKey(objects, "symbol", symbol)
 }
@@ -4043,7 +4043,7 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	 * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
 	 * @returns {string|undefined} exchange-specific network id
 	 */
-	currencyCode := GetArg(optionalArgs, 0, nil)
+	var currencyCode *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = currencyCode
 	if IsEqual(networkCode, nil) {
 		return nil
@@ -4099,7 +4099,7 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) any {
 	 */
 	var networkId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = networkId
-	currencyCode := GetArg(optionalArgs, 1, nil)
+	var currencyCode *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyCode
 	if networkId == nil {
 		return nil
@@ -4462,9 +4462,9 @@ func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs .
 func (this *BaseExchange) ParseTrades(trades any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4473,9 +4473,9 @@ func (this *BaseExchange) ParseTrades(trades any, optionalArgs ...any) any {
 func (this *BaseExchange) ParseWsTrades(trades any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4689,7 +4689,7 @@ func (this *BaseExchange) HandleParamBool(params any, paramName any, optionalArg
 	return []any{value, params}
 }
 func (this *BaseExchange) HandleParamBool2(params any, paramName1 any, paramName2 any, optionalArgs ...any) []any {
-	defaultValue := GetArg(optionalArgs, 0, nil)
+	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *bool = this.SafeBool2(params, paramName1, paramName2, defaultValue)
 	if value != nil {
@@ -4707,7 +4707,7 @@ func (this *BaseExchange) HandleParamBool2(params any, paramName1 any, paramName
  * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
  */
 func (this *BaseExchange) HandleRequestNetwork(params any, request any, exchangeSpecificKey any, optionalArgs ...any) any {
-	currencyCode := GetArg(optionalArgs, 0, nil)
+	var currencyCode *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = currencyCode
 	var isRequired bool = GetArgBool(optionalArgs, 1, false)
 	_ = isRequired
@@ -7026,7 +7026,7 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalAr
 	 * @method
 	 * @returns {[string, object]} the trigger-direction value and omited params
 	 */
-	exchangeSpecificKey := GetArg(optionalArgs, 0, nil)
+	var exchangeSpecificKey *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = exchangeSpecificKey
 	var allowEmpty bool = GetArgBool(optionalArgs, 1, false)
 	_ = allowEmpty
@@ -7312,9 +7312,9 @@ func (this *BaseExchange) fetchMarkOHLCVBody(ch chan any, symbol any, optionalAr
 	 */
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -7352,9 +7352,9 @@ func (this *BaseExchange) fetchIndexOHLCVBody(ch chan any, symbol any, optionalA
 	 */
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -7392,9 +7392,9 @@ func (this *BaseExchange) fetchPremiumIndexOHLCVBody(ch chan any, symbol any, op
 	 */
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -7734,12 +7734,12 @@ func (this *BaseExchange) CreateOHLCVObject(symbol any, timeframe any, data any)
 func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, optionalArgs ...any) any {
 	maxEntriesPerRequest := GetArg(optionalArgs, 0, nil)
 	_ = maxEntriesPerRequest
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var newMaxEntriesPerRequest any = nil
 	var newMaxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, method, "maxEntriesPerRequest")
 	newMaxEntriesPerRequest = GetValue(newMaxEntriesPerRequestparamsVariable, 0)
-	params = GetValue(newMaxEntriesPerRequestparamsVariable, 1)
+	params = MapTyped(GetValue(newMaxEntriesPerRequestparamsVariable, 1))
 	if (!IsEqual(newMaxEntriesPerRequest, nil)) && (!IsEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)) {
 		maxEntriesPerRequest = newMaxEntriesPerRequest
 	}
@@ -7916,12 +7916,12 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan any, method any, opt
 	_ = limit
 	timeframe := GetArg(optionalArgs, 3, nil)
 	_ = timeframe
-	params := GetArg(optionalArgs, 4, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
 	var maxRetries any = 3
 	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
-	params = GetValue(maxRetriesparamsVariable, 1)
+	params = MapTyped(GetValue(maxRetriesparamsVariable, 1))
 	var errors any = 0
 	for IsLessThanOrEqual(errors, maxRetries) {
 
@@ -7981,7 +7981,7 @@ func (this *BaseExchange) FetchPaginatedCallDeterministicAsync(method any, optio
 func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, method any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -9126,9 +9126,9 @@ func (this *Exchange) fetchPositionHistoryBody(ch chan any, symbol any, optional
 	 * @param {object} params extra parameters specific to the exchange api endpoint
 	 * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
 	 */
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -9531,7 +9531,7 @@ func (this *Exchange) CreateMarketOrderWsAsync(symbol any, side any, amount any,
 func (this *Exchange) createMarketOrderWsBody(ch chan any, symbol any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -9587,11 +9587,11 @@ func (this *Exchange) createOrderWithTakeProfitAndStopLossWsBody(ch chan any, sy
 	 * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	takeProfit := GetArg(optionalArgs, 1, nil)
+	var takeProfit *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = takeProfit
-	stopLoss := GetArg(optionalArgs, 2, nil)
+	var stopLoss *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = stopLoss
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -9639,7 +9639,7 @@ func (this *Exchange) CreatePostOnlyOrderWsAsync(symbol any, typeVar any, side a
 func (this *Exchange) createPostOnlyOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -9663,7 +9663,7 @@ func (this *Exchange) CreateReduceOnlyOrderWsAsync(symbol any, typeVar any, side
 func (this *Exchange) createReduceOnlyOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -9722,7 +9722,7 @@ func (this *Exchange) createStopLossOrderWsBody(ch chan any, symbol any, typeVar
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var stopLossPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = stopLossPrice
@@ -9773,7 +9773,7 @@ func (this *Exchange) CreateStopOrderWsAsync(symbol any, typeVar any, side any, 
 func (this *Exchange) createStopOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var triggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = triggerPrice
@@ -9815,7 +9815,7 @@ func (this *Exchange) createTakeProfitOrderWsBody(ch chan any, symbol any, typeV
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var takeProfitPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = takeProfitPrice
@@ -9858,7 +9858,7 @@ func (this *Exchange) createTrailingAmountOrderWsBody(ch chan any, symbol any, t
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var trailingAmount *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingAmount
@@ -9904,7 +9904,7 @@ func (this *Exchange) createTrailingPercentOrderWsBody(ch chan any, symbol any, 
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var trailingPercent *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingPercent
@@ -9949,7 +9949,7 @@ func (this *Exchange) createTriggerOrderWsBody(ch chan any, symbol any, typeVar 
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var triggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = triggerPrice
@@ -9980,7 +9980,7 @@ func (this *Exchange) editOrderWsBody(ch chan any, id any, symbol any, typeVar a
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -10000,11 +10000,11 @@ func (this *Exchange) FetchClosedOrdersWsAsync(optionalArgs ...any) <-chan any {
 func (this *Exchange) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -10044,11 +10044,11 @@ func (this *Exchange) FetchOpenOrdersWsAsync(optionalArgs ...any) <-chan any {
 func (this *Exchange) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -10253,7 +10253,7 @@ func (this *Exchange) fetchRestOrderBookSafeBody(ch chan any, symbol any, option
 	defer ReturnPanicError(ch)
 	chSent := false
 	_ = chSent
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10338,7 +10338,7 @@ func (this *Exchange) FetchL2OrderBookAsync(symbol any, optionalArgs ...any) <-c
 func (this *Exchange) fetchL2OrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10360,7 +10360,7 @@ func (this *Exchange) EditLimitBuyOrderAsync(id any, symbol any, amount any, opt
 func (this *Exchange) editLimitBuyOrderBody(ch chan any, id any, symbol any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10378,7 +10378,7 @@ func (this *Exchange) EditLimitSellOrderAsync(id any, symbol any, amount any, op
 func (this *Exchange) editLimitSellOrderBody(ch chan any, id any, symbol any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10396,7 +10396,7 @@ func (this *Exchange) EditLimitOrderAsync(id any, symbol any, side any, amount a
 func (this *Exchange) editLimitOrderBody(ch chan any, id any, symbol any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10416,7 +10416,7 @@ func (this *Exchange) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -10436,9 +10436,9 @@ func (this *Exchange) EditOrderWithClientOrderIdAsync(clientOrderId any, symbol 
 func (this *Exchange) editOrderWithClientOrderIdBody(ch chan any, clientOrderId any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -10491,9 +10491,9 @@ func (this *Exchange) watchPositionForSymbolsBody(ch chan any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -10621,7 +10621,7 @@ func (this *Exchange) FetchOrderWithClientOrderIdAsync(clientOrderId any, option
 func (this *Exchange) fetchOrderWithClientOrderIdBody(ch chan any, clientOrderId any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10644,7 +10644,7 @@ func (this *Exchange) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	// TODO: TypeScript: change method signature by replacing
 	// Promise<string> with Promise<Order['status']>.
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10707,7 +10707,7 @@ func (this *Exchange) createTrailingAmountOrderBody(ch chan any, symbol any, typ
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var trailingAmount *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingAmount
@@ -10753,7 +10753,7 @@ func (this *Exchange) createTrailingPercentOrderBody(ch chan any, symbol any, ty
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var trailingPercent *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = trailingPercent
@@ -10883,7 +10883,7 @@ func (this *Exchange) createTriggerOrderBody(ch chan any, symbol any, typeVar an
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var triggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = triggerPrice
@@ -10925,7 +10925,7 @@ func (this *Exchange) createStopLossOrderBody(ch chan any, symbol any, typeVar a
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var stopLossPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = stopLossPrice
@@ -10967,7 +10967,7 @@ func (this *Exchange) createTakeProfitOrderBody(ch chan any, symbol any, typeVar
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var takeProfitPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = takeProfitPrice
@@ -11018,11 +11018,11 @@ func (this *Exchange) createOrderWithTakeProfitAndStopLossBody(ch chan any, symb
 	 * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
 	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	takeProfit := GetArg(optionalArgs, 1, nil)
+	var takeProfit *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = takeProfit
-	stopLoss := GetArg(optionalArgs, 2, nil)
+	var stopLoss *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
 	_ = stopLoss
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -11080,7 +11080,7 @@ func (this *Exchange) CancelOrderWithClientOrderIdAsync(clientOrderId any, optio
 func (this *Exchange) cancelOrderWithClientOrderIdBody(ch chan any, clientOrderId any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11125,7 +11125,7 @@ func (this *Exchange) CancelOrdersWithClientOrderIdsAsync(clientOrderIds any, op
 func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrderIds any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11353,7 +11353,7 @@ func (this *Exchange) CreateMarketOrderAsync(symbol any, side any, amount any, o
 func (this *Exchange) createMarketOrderBody(ch chan any, symbol any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11435,7 +11435,7 @@ func (this *Exchange) CreatePostOnlyOrderAsync(symbol any, typeVar any, side any
 func (this *Exchange) createPostOnlyOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11459,7 +11459,7 @@ func (this *Exchange) CreateReduceOnlyOrderAsync(symbol any, typeVar any, side a
 func (this *Exchange) createReduceOnlyOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11483,7 +11483,7 @@ func (this *Exchange) CreateStopOrderAsync(symbol any, typeVar any, side any, am
 func (this *Exchange) createStopOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var triggerPrice *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = triggerPrice

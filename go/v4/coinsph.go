@@ -1358,7 +1358,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1374,7 +1374,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"interval": interval,
 	}
 	if limit == nil {
-		limit = 1000
+		limit = Int64PtrTyped(1000)
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -1781,7 +1781,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	// todo: add test order low priority
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1789,10 +1789,10 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var testOrder *bool = this.SafeBool(params, "test", false)
-	params = this.Omit(params, "test")
+	params = MapTyped(this.Omit(params, "test"))
 	var orderType any = DerefScalar(this.SafeString(params, "type", typeVar))
 	orderType = this.EncodeOrderType(orderType)
-	params = this.Omit(params, "type")
+	params = MapTyped(this.Omit(params, "type"))
 	var orderSide any = this.EncodeOrderSide(side)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -1821,9 +1821,9 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			var createMarketBuyOrderRequiresPrice bool = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+			params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 			var cost *float64 = this.SafeNumber2(params, "cost", "quoteOrderQty")
-			params = this.Omit(params, "cost")
+			params = MapTyped(this.Omit(params, "cost"))
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {
@@ -1849,7 +1849,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 	request["newOrderRespType"] = newOrderRespType
-	params = this.Omit(params, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty")
+	params = MapTyped(this.Omit(params, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty"))
 	var response any = map[string]any{}
 	if testOrder != nil && *testOrder == true {
 

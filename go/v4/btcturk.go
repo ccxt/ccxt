@@ -852,9 +852,9 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1h")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -872,10 +872,10 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	if since != nil {
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 	} else if limit == nil {
-		limit = 100 // default value
+		limit = Int64PtrTyped(100) // default value
 	}
 	if limit != nil {
-		limit = mathMin(limit, 11000) // max 11000 candles diapason can be covered
+		limit = Int64PtrTyped(mathMin(limit, 11000)) // max 11000 candles diapason can be covered
 		if timeframe == "1y" {
 			panic(BadRequest(this.Id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\""))
 		}
@@ -1125,7 +1125,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit

@@ -911,7 +911,7 @@ func (this *Hashkey) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	listenKey := (<-this.AuthenticateAsync())
@@ -923,7 +923,7 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = "spot"
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var messageHash any = ccxt.Add("balance:", typeVar)
 	var url any = this.GetPrivateUrl(listenKey)
 	var client ccxt.ClientInterface = this.Client(url)
@@ -932,10 +932,10 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var awaitBalanceSnapshot any = nil
 	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
 	fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
-	params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1))
 	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
 	awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
-	params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1))
 	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {
 
 		ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))))

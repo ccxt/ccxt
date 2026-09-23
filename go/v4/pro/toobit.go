@@ -701,7 +701,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -711,7 +711,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "channel", "depth")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 	var messageHashes []any = []any{}
 	var subParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -863,7 +863,7 @@ func (this *Toobit) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -874,7 +874,7 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.GetValue(marketTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
 	var typeVar string = func() string {
 		if isSpot {
@@ -912,7 +912,7 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...any) {
-	subscriptionHash := ccxt.GetArg(optionalArgs, 0, nil)
+	var subscriptionHash *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subscriptionHash
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

@@ -1025,7 +1025,7 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 	return message
 }
 func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1058,7 +1058,7 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 		sideInternal = "BID"
 	}
 	var priceInternal any = ""
-	if (price != nil) && (!IsEqual(price, 0)) {
+	if (price != nil) && (price == nil || *price != 0) {
 		priceInternal = this.PriceToPrecision(symbol, price)
 	}
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
@@ -1206,7 +1206,7 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 func (this *Hibachi) EditOrderRequest(nonce any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1267,9 +1267,9 @@ func (this *Hibachi) EditOrderAsync(id any, symbol any, typeVar any, side any, o
 func (this *Hibachi) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1922,7 +1922,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1944,7 +1944,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrdersByStatus", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -2084,7 +2084,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2102,7 +2102,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["toMs"] = until
 	}
@@ -2798,11 +2798,11 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
@@ -2824,7 +2824,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchMySettlementHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["endTime"] = this.ParseToInt(Divide(until, 1000))
 	}

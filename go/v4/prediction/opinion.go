@@ -2397,7 +2397,7 @@ func (this *Opinion) WatchOrderBookAsync(outcome any, optionalArgs ...any) <-cha
 func (this *Opinion) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2445,7 +2445,7 @@ func (this *Opinion) seedOrderBookBody(ch chan any, outcome any, sym any, option
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 
 	snapshot := (<-this.FetchOrderBookAsync(outcome, limit))

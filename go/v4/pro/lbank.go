@@ -100,7 +100,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -470,7 +470,7 @@ func (this *Lbank) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -483,7 +483,7 @@ func (this *Lbank) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...an
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("fetchTrades:", market["symbol"])
 	if limit == nil {
-		limit = 10
+		limit = ccxt.Int64PtrTyped(10)
 	}
 	var message map[string]any = map[string]any{
 		"action":  "request",
@@ -945,7 +945,7 @@ func (this *Lbank) FetchOrderBookWsAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Lbank) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -958,7 +958,7 @@ func (this *Lbank) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs ..
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("fetchOrderbook:", market["symbol"])
 	if limit == nil {
-		limit = 100
+		limit = ccxt.Int64PtrTyped(100)
 	}
 	var subscribe map[string]any = map[string]any{
 		"action":  "request",
@@ -993,7 +993,7 @@ func (this *Lbank) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Lbank) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1007,7 +1007,7 @@ func (this *Lbank) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
 	params = this.Omit(params, "aggregation")
 	if limit == nil {
-		limit = 100
+		limit = ccxt.Int64PtrTyped(100)
 	}
 	var subscribe map[string]any = map[string]any{
 		"action":    "subscribe",

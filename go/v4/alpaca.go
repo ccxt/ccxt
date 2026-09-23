@@ -1048,9 +1048,9 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1063,16 +1063,16 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var paginationCalls any = 10
 	var paginationCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginationCalls", 10)
 	paginationCalls = GetValue(paginationCallsparamsVariable, 0)
-	params = GetValue(paginationCallsparamsVariable, 1)
+	params = MapTyped(GetValue(paginationCallsparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"symbols": marketId,
 		"loc":     loc,
 	}
-	params = this.Omit(params, []any{"loc", "method"})
+	params = MapTyped(this.Omit(params, []any{"loc", "method"}))
 	var ohlcvs any = nil
 	if method != nil && *method == "marketPublicGetV1beta3CryptoLocBars" {
 		if limit != nil {
@@ -1083,7 +1083,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		}
 		var until *int64 = this.SafeInteger(params, "until")
 		if until != nil {
-			params = this.Omit(params, "until")
+			params = MapTyped(this.Omit(params, "until"))
 			request["end"] = this.Iso8601(until)
 		}
 		request["timeframe"] = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1499,7 +1499,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1528,7 +1528,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
-		params = this.Omit(params, "cost")
+		params = MapTyped(this.Omit(params, "cost"))
 		request["notional"] = this.CostToPrecision(symbol, cost)
 	} else {
 		request["qty"] = this.AmountToPrecision(symbol, amount)
@@ -1536,15 +1536,15 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var defaultTIF any = nil
 	var defaultTIFparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce")
 	defaultTIF = GetValue(defaultTIFparamsVariable, 0)
-	params = GetValue(defaultTIFparamsVariable, 1)
+	params = MapTyped(GetValue(defaultTIFparamsVariable, 1))
 	if defaultTIF != nil {
 		// the venue only accepts lowercase values, normalize the unified uppercase spellings
 		defaultTIF = ToLower(defaultTIF)
 	}
 	request["time_in_force"] = defaultTIF
-	params = this.Omit(params, []any{"timeInForce", "triggerPrice"})
+	params = MapTyped(this.Omit(params, []any{"timeInForce", "triggerPrice"}))
 	request["client_order_id"] = this.GenerateClientOrderId(params)
-	params = this.Omit(params, []any{"clientOrderId"})
+	params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 
 	order := (<-this.TraderPrivatePostV2Orders(this.Extend(request, params))).Raw
 	PanicOnError(order)
@@ -1920,7 +1920,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1939,7 +1939,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stop_price")
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
-		params = this.Omit(params, "triggerPrice")
+		params = MapTyped(this.Omit(params, "triggerPrice"))
 	}
 	if price != nil {
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
@@ -1947,13 +1947,13 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var timeInForce any = nil
 	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "timeInForce", "gtc")
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
-	params = GetValue(timeInForceparamsVariable, 1)
+	params = MapTyped(GetValue(timeInForceparamsVariable, 1))
 	if timeInForce != nil {
 		// the venue only accepts lowercase values, normalize the unified uppercase spellings
 		request["time_in_force"] = ToLower(timeInForce)
 	}
 	request["client_order_id"] = this.GenerateClientOrderId(params)
-	params = this.Omit(params, []any{"clientOrderId"})
+	params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 
 	response := (<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
@@ -2108,7 +2108,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2123,7 +2123,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
-		params = this.Omit(params, "until")
+		params = MapTyped(this.Omit(params, "until"))
 		AddElementToObject(request, "until", this.Iso8601(until))
 	}
 	if since != nil {
@@ -2134,7 +2134,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("until", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params))).Raw
 	PanicOnError(response)
@@ -2310,11 +2310,11 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 

@@ -260,13 +260,13 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 	_ = market
 	symbols := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var privateAccess bool = (ccxt.IsEqual(access, "private"))
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var id any = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
 	var subscribe map[string]any = map[string]any{
@@ -352,7 +352,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 	_ = market
 	symbols := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var subscriptionParams map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = subscriptionParams
@@ -360,7 +360,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var id any = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
 	var unsubscribe map[string]any = map[string]any{

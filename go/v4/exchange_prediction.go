@@ -189,12 +189,12 @@ func (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs .
 }
 func (this *PredictionExchange) FilterEventsByStatus(events any, optionalArgs ...any) any {
 	// 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
-	status := GetArg(optionalArgs, 0, nil)
+	var status *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = status
-	if (status == nil) || (status == "all") {
+	if (status == nil) || (status != nil && *status == "all") {
 		return events
 	}
-	var wantActive bool = (status == "active")
+	var wantActive bool = (status != nil && *status == "active")
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
 		var event any = GetValue(events, i)
@@ -209,7 +209,7 @@ func (this *PredictionExchange) FilterEventsByStatus(events any, optionalArgs ..
 func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, optionalArgs ...any) any {
 	// keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
 	// own-line length read so the regex transpiler uses count() (array) not strlen() (string)
-	searchIn := GetArg(optionalArgs, 0, nil)
+	var searchIn *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = searchIn
 	var queriesLength int = 0
 	if !IsEqual(queries, nil) {
@@ -218,8 +218,8 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, 
 	if (searchIn == nil) || (IsEqual(queries, nil)) || (queriesLength == 0) {
 		return events
 	}
-	var checkTitle bool = (searchIn == "title") || (searchIn == "both")
-	var checkDescription bool = (searchIn == "description") || (searchIn == "both")
+	var checkTitle bool = (searchIn != nil && *searchIn == "title") || (searchIn != nil && *searchIn == "both")
+	var checkDescription bool = (searchIn != nil && *searchIn == "description") || (searchIn != nil && *searchIn == "both")
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
 		var event any = GetValue(events, i)
@@ -1125,9 +1125,9 @@ func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome any, optiona
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2101,9 +2101,9 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	// `symbol` key, which would silently drop every parsed row
 	outcomeObj := GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2140,9 +2140,9 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	// prediction-market analogue of the base parseOrders — see parsePredictionTrades
 	outcomeObj := GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

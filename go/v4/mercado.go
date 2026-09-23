@@ -616,7 +616,7 @@ func (this *Mercado) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
@@ -992,11 +992,11 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -1122,9 +1122,9 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "15m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1138,7 +1138,7 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol":     Add(Add(market["base"], "-"), market["quote"]),
 	}
 	if limit == nil {
-		limit = 100 // set some default limit, as it's required if user doesn't provide it
+		limit = Int64PtrTyped(100) // set some default limit, as it's required if user doesn't provide it
 	}
 	if since != nil {
 		request["from"] = this.ParseToInt(Divide(since, 1000))

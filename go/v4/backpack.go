@@ -1198,11 +1198,11 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1217,7 +1217,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
 	}
@@ -1241,7 +1241,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var price *string = this.SafeString(params, "price")
 	if price != nil {
 		request["priceType"] = this.Capitalize(price)
-		params = this.Omit(params, "price")
+		params = MapTyped(this.Omit(params, "price"))
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Klines(this.Extend(request, params))).Raw))
@@ -1844,7 +1844,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1864,7 +1864,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -1902,7 +1902,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1922,7 +1922,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["to"] = until
 	}
@@ -2138,7 +2138,7 @@ func (this *Backpack) FetchDepositAddressAsync(code any, optionalArgs ...any) <-
 func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2147,7 +2147,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes"))
 	}
@@ -2284,7 +2284,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -2314,7 +2314,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		var cost *string = this.SafeString2(params, "cost", "quoteQuantity")
 		if cost != nil {
 			request["quoteQuantity"] = this.CostToPrecision(symbol, cost)
-			params = this.Omit(params, []any{"cost", "quoteQuantity"})
+			params = MapTyped(this.Omit(params, []any{"cost", "quoteQuantity"}))
 		} else {
 			request[quantityKey] = this.AmountToPrecision(symbol, amount)
 		}
@@ -2322,17 +2322,17 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	// trigger orders
 	if isTriggerOrder {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
-		params = this.Omit(params, "triggerPrice")
+		params = MapTyped(this.Omit(params, "triggerPrice"))
 	}
 	var clientOrderId *int64 = this.SafeInteger(params, "clientOrderId") // the exchange requires uint
 	if clientOrderId != nil {
 		request["clientId"] = clientOrderId
-		params = this.Omit(params, "clientOrderId")
+		params = MapTyped(this.Omit(params, "clientOrderId"))
 	}
 	var postOnly bool = false
 	var postOnlyparamsVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, params)
 	postOnly = GetValueBool(postOnlyparamsVariable, 0, false)
-	params = GetValue(postOnlyparamsVariable, 1)
+	params = MapTyped(GetValue(postOnlyparamsVariable, 1))
 	if postOnly {
 		AddElementToObject(params, "postOnly", true)
 	}
@@ -2346,7 +2346,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		if takeProfitPrice != nil {
 			request["takeProfitLimitPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
 		}
-		params = this.Omit(params, "takeProfit")
+		params = MapTyped(this.Omit(params, "takeProfit"))
 	}
 	var stopLoss any = this.SafeDict(params, "stopLoss")
 	if !IsEqual(stopLoss, nil) {
@@ -2358,12 +2358,12 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		if stopLossPrice != nil {
 			request["stopLossLimitPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 		}
-		params = this.Omit(params, "stopLoss")
+		params = MapTyped(this.Omit(params, "stopLoss"))
 	}
 	var selfTradePrevention any = nil
 	var selfTradePreventionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "selfTradePrevention")
 	selfTradePrevention = GetValue(selfTradePreventionparamsVariable, 0)
-	params = GetValue(selfTradePreventionparamsVariable, 1)
+	params = MapTyped(GetValue(selfTradePreventionparamsVariable, 1))
 	if selfTradePrevention != nil {
 		if IsEqual(selfTradePrevention, "EXPIRE_MAKER") {
 			request["selfTradePrevention"] = "RejectMaker"

@@ -461,12 +461,12 @@ func (this *Coinbaseinternational) HandlePortfolioAndParamsAsync(methodName any,
 func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, methodName any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var portfolio any = nil
 	var portfolioparamsVariable []any = this.HandleOptionAndParams(params, methodName, "portfolio")
 	portfolio = GetValue(portfolioparamsVariable, 0)
-	params = GetValue(portfolioparamsVariable, 1)
+	params = MapTyped(GetValue(portfolioparamsVariable, 1))
 	if (portfolio != nil) && (!IsEqual(portfolio, "")) {
 
 		ch <- []any{portfolio, params}
@@ -501,12 +501,12 @@ func (this *Coinbaseinternational) HandleNetworkIdAndParamsAsync(currencyCode an
 func (this *Coinbaseinternational) handleNetworkIdAndParamsBody(ch chan any, currencyCode any, methodName any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var networkId any = nil
 	var networkIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "network_arn_id")
 	networkId = GetValue(networkIdparamsVariable, 0)
-	params = GetValue(networkIdparamsVariable, 1)
+	params = MapTyped(GetValue(networkIdparamsVariable, 1))
 	if networkId == nil {
 
 		PanicOnError((<-this.LoadCurrencyNetworksAsync(currencyCode)))
@@ -626,7 +626,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol any, optio
 	_ = since
 	var limit int64 = GetArgInt64(optionalArgs, 2, 100)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -635,7 +635,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol any, optio
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes48119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 10000))
@@ -655,7 +655,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol any, optio
 	}
 	var unitl *int64 = this.SafeInteger(params, "until")
 	if unitl != nil {
-		params = this.Omit(params, "until")
+		params = MapTyped(this.Omit(params, "until"))
 		request["end"] = this.Iso8601(unitl)
 	}
 
@@ -721,7 +721,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
@@ -733,11 +733,11 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var maxEntriesPerRequest any = 100
 	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
+	params = MapTyped(GetValue(maxEntriesPerRequestparamsVariable, 1))
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
@@ -843,7 +843,7 @@ func (this *Coinbaseinternational) fetchFundingHistoryBody(ch chan any, optional
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -859,7 +859,7 @@ func (this *Coinbaseinternational) fetchFundingHistoryBody(ch chan any, optional
 	var portfolios any = nil
 	var portfoliosparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "portfolios")
 	portfolios = GetValue(portfoliosparamsVariable, 0)
-	params = GetValue(portfoliosparamsVariable, 1)
+	params = MapTyped(GetValue(portfoliosparamsVariable, 1))
 	if portfolios != nil {
 		request["portfolios"] = portfolios
 	}
@@ -946,7 +946,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan any, optionalArgs 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -962,7 +962,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan any, optionalArgs 
 	var portfolios any = nil
 	var portfoliosparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "portfolios")
 	portfolios = GetValue(portfoliosparamsVariable, 0)
-	params = GetValue(portfoliosparamsVariable, 1)
+	params = MapTyped(GetValue(portfoliosparamsVariable, 1))
 	if portfolios != nil {
 		request["portfolios"] = portfolios
 	}
@@ -1313,7 +1313,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1322,11 +1322,11 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	var paginate any = nil
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var maxEntriesPerRequest any = 100
 	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
+	params = MapTyped(GetValue(maxEntriesPerRequestparamsVariable, 1))
 	var pageKey string = "ccxtPageKey"
 	if paginate == true {
 
@@ -1350,14 +1350,14 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	var portfolios any = nil
 	var portfoliosparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "portfolios")
 	portfolios = GetValue(portfoliosparamsVariable, 0)
-	params = GetValue(portfoliosparamsVariable, 1)
+	params = MapTyped(GetValue(portfoliosparamsVariable, 1))
 	if portfolios != nil {
 		request["portfolios"] = portfolios
 	}
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["time_to"] = this.Iso8601(until)
 	}
@@ -2610,7 +2610,7 @@ func (this *Coinbaseinternational) CancelAllOrdersAsync(optionalArgs ...any) <-c
 func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2626,7 +2626,7 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan any, optionalArgs
 		"portfolio": portfolio,
 	}
 	var market any = nil
-	if (symbol != nil) && (!IsEqual(symbol, "")) {
+	if (symbol != nil) && (symbol == nil || *symbol != "") {
 		market = this.Market(symbol)
 		request["instrument"] = GetValue(market, "id")
 	}
@@ -2798,11 +2798,11 @@ func (this *Coinbaseinternational) FetchOpenOrdersAsync(optionalArgs ...any) <-c
 func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2837,12 +2837,12 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 		"result_offset": offSet,
 	}
 	var market any = nil
-	if (symbol != nil) && (!IsEqual(symbol, "")) {
+	if (symbol != nil) && (symbol == nil || *symbol != "") {
 		market = this.Market(symbol)
 		request["instrument"] = symbol
 	}
 	if limit != nil {
-		if IsGreaterThan(limit, 100) {
+		if *limit > 100 {
 			panic(BadRequest(this.Id + " fetchOpenOrders() maximum limit is 100"))
 		}
 		request["result_limit"] = limit
@@ -2917,9 +2917,9 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2928,12 +2928,12 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var pageKey string = "ccxtPageKey"
 	var maxEntriesPerRequest any = 100
 	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
-	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
+	params = MapTyped(GetValue(maxEntriesPerRequestparamsVariable, 1))
 	if paginate {
 
 		retRes227319 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
@@ -2951,7 +2951,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 		"result_offset": offSet,
 	}
 	if limit != nil {
-		if IsGreaterThan(limit, 100) {
+		if *limit > 100 {
 			panic(BadRequest(this.Id + " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades."))
 		}
 		request["result_limit"] = limit
@@ -2961,7 +2961,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	}
 	var until *string = this.SafeString(params, "until")
 	if until != nil {
-		params = this.Omit(params, []any{"until"})
+		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["ref_datetime"] = this.Iso8601(until)
 	}
 

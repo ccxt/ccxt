@@ -1467,7 +1467,7 @@ func (this *Cex) FetchClosedOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Cex) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2234,12 +2234,12 @@ func (this *Cex) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan 
 func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var accountId any = nil
 	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
-	params = GetValue(accountIdparamsVariable, 1)
+	params = MapTyped(GetValue(accountIdparamsVariable, 1))
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))
 	}
@@ -2250,7 +2250,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"accountId":  accountId,

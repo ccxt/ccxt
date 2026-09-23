@@ -366,7 +366,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -461,9 +461,9 @@ func (this *Mudrex) fetchMarkOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -757,7 +757,7 @@ func (this *Mudrex) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -766,9 +766,9 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var requested *string = this.SafeStringN(params, []any{"trade_currency", "tradeCurrency", "currency"})
-	params = this.Omit(params, []any{"trade_currency", "tradeCurrency", "currency"})
+	params = MapTyped(this.Omit(params, []any{"trade_currency", "tradeCurrency", "currency"}))
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
@@ -1777,9 +1777,9 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1792,7 +1792,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var maxCalls any = nil
 	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginationCalls", 10)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
-	params = GetValue(maxCallsparamsVariable, 1)
+	params = MapTyped(GetValue(maxCallsparamsVariable, 1))
 	var pageSize any = 0
 	if limit != nil {
 		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied

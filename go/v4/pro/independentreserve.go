@@ -172,7 +172,7 @@ func (this *Independentreserve) WatchOrderBookAsync(symbol any, optionalArgs ...
 func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -183,7 +183,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	if limit == nil {
-		limit = 100
+		limit = ccxt.Int64PtrTyped(100)
 	}
 	var limitString *string = this.NumberToString(limit)
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), market["base"]), "-"), market["quote"])

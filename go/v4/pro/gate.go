@@ -276,7 +276,7 @@ func (this *Gate) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelAllOrdersWs() requires a symbol argument"))
@@ -296,9 +296,9 @@ func (this *Gate) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	var channel any = ccxt.Add(messageType, ".order_cancel_cp")
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "channel", channel)
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 	var url any = this.GetUrlByMarket(market)
-	params = this.Omit(params, []any{"stop", "trigger"})
+	params = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	typeVar := ccxt.GetValue(typeVarqueryVariable, 0)
 	query := ccxt.GetValue(typeVarqueryVariable, 1)
@@ -404,9 +404,9 @@ func (this *Gate) EditOrderWsAsync(id any, symbol any, typeVar any, side any, op
 func (this *Gate) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	amount := ccxt.GetArg(optionalArgs, 0, nil)
+	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := ccxt.GetArg(optionalArgs, 1, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -452,7 +452,7 @@ func (this *Gate) FetchOrderWsAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Gate) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -501,11 +501,11 @@ func (this *Gate) FetchOpenOrdersWsAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -535,11 +535,11 @@ func (this *Gate) FetchClosedOrdersWsAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -574,9 +574,9 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status any, optionalArg
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -720,7 +720,7 @@ func (this *Gate) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -741,7 +741,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var interval any = intervalDefault
 	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
-	params = ccxt.GetValue(intervalparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(intervalparamsVariable, 1))
 	var messageType any = this.GetTypeByMarket(market)
 	var limit any = this.SafeInteger(params, "limit")
 	if ccxt.IsEqual(limit, nil) {
@@ -1583,7 +1583,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1599,10 +1599,10 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("watchMyTrades", market, params)
 	subType = ccxt.GetValue(subTypeparamsVariable, 0)
-	params = ccxt.GetValue(subTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
 	var messageType any = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot",
 		"margin": "spot",
@@ -1700,7 +1700,7 @@ func (this *Gate) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1710,10 +1710,10 @@ func (this *Gate) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("watchBalance", nil, params)
 	subType = ccxt.GetValue(subTypeparamsVariable, 0)
-	params = ccxt.GetValue(subTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
 	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
 	var requiresUid bool = (!ccxt.IsEqual(typeVar, "spot"))
@@ -2299,9 +2299,9 @@ func (this *Gate) WatchMyLiquidationsAsync(symbol any, optionalArgs ...any) <-ch
 func (this *Gate) watchMyLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params

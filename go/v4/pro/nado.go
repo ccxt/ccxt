@@ -266,7 +266,7 @@ func (this *Nado) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Nado) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -334,7 +334,7 @@ func (this *Nado) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any
 func (this *Nado) watchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -868,7 +868,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 
@@ -887,7 +887,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.GetValue(subaccountparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "order_update",
@@ -925,7 +925,7 @@ func (this *Nado) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 
@@ -944,7 +944,7 @@ func (this *Nado) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchOrders", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.GetValue(subaccountparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "order_update",
@@ -985,7 +985,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 
@@ -1004,7 +1004,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.GetValue(subaccountparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "fill",
@@ -1042,7 +1042,7 @@ func (this *Nado) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 
@@ -1061,7 +1061,7 @@ func (this *Nado) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchMyTrades", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.GetValue(subaccountparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "fill",
@@ -1102,7 +1102,7 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 
@@ -1123,7 +1123,7 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.GetValue(subaccountparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "position_change",
@@ -1163,7 +1163,7 @@ func (this *Nado) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 
@@ -1184,7 +1184,7 @@ func (this *Nado) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchPositions", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.GetValue(subaccountparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "position_change",
@@ -1304,9 +1304,9 @@ func (this *Nado) EditOrderWsAsync(id any, symbol any, typeVar any, side any, op
 func (this *Nado) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	amount := ccxt.GetArg(optionalArgs, 0, nil)
+	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := ccxt.GetArg(optionalArgs, 1, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1370,7 +1370,7 @@ func (this *Nado) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Nado) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1403,7 +1403,7 @@ func (this *Nado) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan any {
 func (this *Nado) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1480,7 +1480,7 @@ func (this *Nado) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan any {
 func (this *Nado) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1670,7 +1670,7 @@ func (this *Nado) AuthenticateAsync(optionalArgs ...any) <-chan any {
 func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "subscriptions")
@@ -1693,11 +1693,11 @@ func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "authenticate", "recvWindow", 5000)
 	recvWindow = ccxt.GetValue(recvWindowparamsVariable, 0)
-	params = ccxt.GetValue(recvWindowparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(recvWindowparamsVariable, 1))
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "authenticate", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
-	params = ccxt.GetValue(subaccountparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var id any = this.RequestId()
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var expiration any = this.Sum(this.Milliseconds(), recvWindow)

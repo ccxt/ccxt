@@ -182,7 +182,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -191,7 +191,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
 	method = ccxt.GetValue(methodparamsVariable, 0)
-	params = ccxt.GetValue(methodparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 	var market map[string]any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var urlUid any = func() any {
@@ -243,7 +243,7 @@ func (this *Woo) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -252,7 +252,7 @@ func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
 	method = ccxt.GetValue(methodparamsVariable, 0)
-	params = ccxt.GetValue(methodparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 	var market map[string]any = this.Market(symbol)
 	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var topic string = "orderbook"
@@ -501,7 +501,7 @@ func (this *Woo) UnWatchTickerAsync(symbol any, optionalArgs ...any) <-chan any 
 func (this *Woo) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -510,7 +510,7 @@ func (this *Woo) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "method", "ticker")
 	method = ccxt.GetValue(methodparamsVariable, 0)
-	params = ccxt.GetValue(methodparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 	var market map[string]any = this.Market(symbol)
 	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var topic string = "ticker"

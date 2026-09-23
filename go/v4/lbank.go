@@ -493,12 +493,12 @@ func (this *Lbank) FetchTimeAsync(optionalArgs ...any) <-chan any {
 func (this *Lbank) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
 	if IsEqual(typeVar, "swap") {
 
@@ -1051,7 +1051,7 @@ func (this *Lbank) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1069,7 +1069,7 @@ func (this *Lbank) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
 	if IsEqual(typeVar, "swap") {
 		request["productGroup"] = "SwapU"
@@ -1152,9 +1152,9 @@ func (this *Lbank) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Lbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1162,7 +1162,7 @@ func (this *Lbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if limit == nil {
-		limit = 60
+		limit = Int64PtrTyped(60)
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -1170,7 +1170,7 @@ func (this *Lbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
 	if IsEqual(typeVar, "swap") {
 		request["depth"] = limit
@@ -2045,7 +2045,7 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2055,7 +2055,7 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var clientOrderId *string = this.SafeString2(params, "custom_id", "clientOrderId")
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	params = this.Omit(params, []any{"custom_id", "clientOrderId", "timeInForce", "postOnly"})
+	params = MapTyped(this.Omit(params, []any{"custom_id", "clientOrderId", "timeInForce", "postOnly"}))
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2086,9 +2086,9 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 			var createMarketBuyOrderRequiresPrice bool = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+			params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 			var cost *float64 = this.SafeNumber(params, "cost")
-			params = this.Omit(params, "cost")
+			params = MapTyped(this.Omit(params, "cost"))
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {
@@ -2113,7 +2113,7 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
 	var defaultMethod *string = this.SafeString(options, "method", "spotPrivatePostSupplementCreateOrder")
 	var method *string = this.SafeString(params, "method", defaultMethod)
-	params = this.Omit(params, "method")
+	params = MapTyped(this.Omit(params, "method"))
 	var response any = nil
 	if method != nil && *method == "spotPrivatePostCreateOrder" {
 
@@ -2321,7 +2321,7 @@ func (this *Lbank) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Lbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2565,7 +2565,7 @@ func (this *Lbank) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2578,7 +2578,7 @@ func (this *Lbank) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if limit == nil {
-		limit = 100
+		limit = Int64PtrTyped(100)
 	}
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
@@ -2645,7 +2645,7 @@ func (this *Lbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2658,7 +2658,7 @@ func (this *Lbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if limit == nil {
-		limit = 100
+		limit = Int64PtrTyped(100)
 	}
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
@@ -2998,18 +2998,18 @@ func (this *Lbank) withdrawBody(ch chan any, code any, amount any, address any, 
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var fee *string = this.SafeString(params, "fee")
-	params = this.Omit(params, "fee")
+	params = MapTyped(this.Omit(params, "fee"))
 	// The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
 	this.CheckRequiredArgument("withdraw", fee, "fee")
 	var currency map[string]any = MapTyped(this.Currency(code))
@@ -3023,7 +3023,7 @@ func (this *Lbank) withdrawBody(ch chan any, code any, amount any, address any, 
 		request["memo"] = tag
 	}
 	var network *string = this.SafeStringUpper2(params, "network", "networkName")
-	params = this.Omit(params, []any{"network", "networkName"})
+	params = MapTyped(this.Omit(params, []any{"network", "networkName"}))
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var networkId *string = this.SafeString(networks, network, network)
 	if networkId != nil {

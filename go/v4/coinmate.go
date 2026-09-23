@@ -994,11 +994,11 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -1108,7 +1108,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1117,7 +1117,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if limit == nil {
-		limit = 1000
+		limit = Int64PtrTyped(1000)
 	}
 	var request map[string]any = map[string]any{
 		"limit": limit,
@@ -1608,7 +1608,7 @@ func (this *Coinmate) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Coinmate) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1620,7 +1620,7 @@ func (this *Coinmate) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"orderId": id,
 	}
 	var market any = nil
-	if (symbol != nil) && (!IsEqual(symbol, "")) {
+	if (symbol != nil) && (symbol == nil || *symbol != "") {
 		market = this.Market(symbol)
 	}
 

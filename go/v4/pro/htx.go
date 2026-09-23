@@ -2125,18 +2125,18 @@ func (this *Htx) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var subType any = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("watchBalance", nil, params, "linear")
 	subType = ccxt.GetValue(subTypeparamsVariable, 0)
-	params = ccxt.GetValue(subTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subTypeparamsVariable, 1))
 	var isUnifiedAccount *bool = this.SafeBool2(params, "isUnifiedAccount", "unified", false)
-	params = this.Omit(params, []any{"isUnifiedAccount", "unified"})
+	params = ccxt.MapTyped(this.Omit(params, []any{"isUnifiedAccount", "unified"}))
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -2155,7 +2155,7 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		channel = messageHash
 	} else if isV5Linear {
 		marginMode = ccxt.DerefScalar(this.SafeString(params, "margin", "cross"))
-		params = this.Omit(params, []any{"currency", "symbol", "margin"})
+		params = ccxt.MapTyped(this.Omit(params, []any{"currency", "symbol", "margin"}))
 		channel = "account"
 		messageHash = "account"
 	} else {
@@ -2174,7 +2174,7 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		marginMode = ccxt.DerefScalar(this.SafeString(params, "margin", "cross"))
-		params = this.Omit(params, []any{"currency", "symbol", "margin"})
+		params = ccxt.MapTyped(this.Omit(params, []any{"currency", "symbol", "margin"}))
 		var prefix any = "accounts"
 		messageHash = prefix
 		if ccxt.IsEqual(subType, "linear") {

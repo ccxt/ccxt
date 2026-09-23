@@ -315,7 +315,7 @@ func (this *Pacifica) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan a
 func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -423,7 +423,7 @@ func (this *Pacifica) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any
 func (this *Pacifica) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -571,7 +571,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.SetupApiKeyHeaders()
 	if this.Markets == nil {
@@ -582,7 +582,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var aggLevel any = nil
 	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
-	params = ccxt.GetValue(aggLevelparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(aggLevelparamsVariable, 1))
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
@@ -627,7 +627,7 @@ func (this *Pacifica) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-c
 func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -637,7 +637,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var aggLevel any = nil
 	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
-	params = ccxt.GetValue(aggLevelparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(aggLevelparamsVariable, 1))
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var isTestnet any = this.IsSandboxModeEnabled
@@ -878,12 +878,12 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("watchMyTrades", params)
 	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
-	params = ccxt.GetValue(userAddressparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -940,7 +940,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -952,7 +952,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("unWatchMyTrades", params)
 	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
-	params = ccxt.GetValue(userAddressparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
 	var messageHash string = "unsubscribe:myTrades"
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
@@ -1502,7 +1502,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1511,7 +1511,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("watchOrders", params)
 	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
-	params = ccxt.GetValue(userAddressparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
 	var market map[string]any = nil
 	var messageHash any = "order"
 	if symbol != nil {
@@ -1566,7 +1566,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1587,7 +1587,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("unWatchOrders", params)
 	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
-	params = ccxt.GetValue(userAddressparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"params": map[string]any{

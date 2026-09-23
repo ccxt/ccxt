@@ -1268,7 +1268,7 @@ func (this *Bitrue) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Bitrue) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1277,11 +1277,11 @@ func (this *Bitrue) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var subType any = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchBalance", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var response any = nil
 	var result any = nil
 	if IsEqual(typeVar, "swap") {
@@ -1327,7 +1327,7 @@ func (this *Bitrue) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Bitrue) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1342,8 +1342,8 @@ func (this *Bitrue) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			"contractName": market["id"],
 		}
 		if limit != nil {
-			if IsGreaterThan(limit, 100) {
-				limit = 100
+			if limit != nil && *limit > 100 {
+				limit = Int64PtrTyped(100)
 			}
 			request["limit"] = limit // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
 		}
@@ -1361,8 +1361,8 @@ func (this *Bitrue) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			"symbol": market["id"],
 		}
 		if limit != nil {
-			if IsGreaterThan(limit, 1000) {
-				limit = 1000
+			if limit != nil && *limit > 1000 {
+				limit = Int64PtrTyped(1000)
 			}
 			request["limit"] = limit // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
 		}
@@ -1825,7 +1825,7 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1852,7 +1852,7 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
-		params = GetValue(typeVarparamsVariable, 1)
+		params = MapTyped(GetValue(typeVarparamsVariable, 1))
 		if !IsEqual(typeVar, "spot") {
 			panic(NotSupported(this.Id + " fetchTickers only support spot when symbols are not proved"))
 		}
@@ -2295,7 +2295,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2330,10 +2330,10 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		var createMarketBuyOrderRequiresPrice any = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 		if isMarket && (IsEqual(side, "buy")) && (createMarketBuyOrderRequiresPrice == true) {
 			var cost *string = this.SafeString(params, "cost")
-			params = this.Omit(params, "cost")
+			params = MapTyped(this.Omit(params, "cost"))
 			if (price == nil) && (cost == nil) {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)"))
 			} else {
@@ -2363,7 +2363,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		}()
 		var leverage *string = this.SafeString(params, "leverage", "1")
 		request["leverage"] = this.ParseToNumeric(leverage)
-		params = this.Omit(params, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})
+		params = MapTyped(this.Omit(params, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"}))
 		if GetValue(market, "linear") == true {
 
 			response = (<-this.FapiV2PrivatePostOrder(this.Extend(request, params))).Raw
@@ -2383,12 +2383,12 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		}
 		var clientOrderId *string = this.SafeString2(params, "newClientOrderId", "clientOrderId")
 		if clientOrderId != nil {
-			params = this.Omit(params, []any{"newClientOrderId", "clientOrderId"})
+			params = MapTyped(this.Omit(params, []any{"newClientOrderId", "clientOrderId"}))
 			request["newClientOrderId"] = clientOrderId
 		}
 		var triggerPrice *float64 = this.SafeNumber2(params, "triggerPrice", "stopPrice")
 		if triggerPrice != nil {
-			params = this.Omit(params, []any{"triggerPrice", "stopPrice"})
+			params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice"}))
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
 
@@ -2904,7 +2904,7 @@ func (this *Bitrue) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2923,8 +2923,8 @@ func (this *Bitrue) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["startTime"] = since
 	}
 	if limit != nil {
-		if IsGreaterThan(limit, 1000) {
-			limit = 1000
+		if limit != nil && *limit > 1000 {
+			limit = Int64PtrTyped(1000)
 		}
 		request["limit"] = limit
 	}
@@ -3339,11 +3339,11 @@ func (this *Bitrue) withdrawBody(ch chan any, code any, amount any, address any,
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -3358,7 +3358,7 @@ func (this *Bitrue) withdrawBody(ch chan any, code any, amount any, address any,
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["chainName"] = this.NetworkCodeToId(networkCode, currency["code"])
 	}
@@ -3543,7 +3543,7 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3564,8 +3564,8 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["beginTime"] = since
 	}
 	if limit != nil {
-		if IsGreaterThan(limit, 200) {
-			limit = 200
+		if limit != nil && *limit > 200 {
+			limit = Int64PtrTyped(200)
 		}
 		request["limit"] = limit
 	}

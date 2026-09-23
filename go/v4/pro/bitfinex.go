@@ -847,12 +847,12 @@ func (this *Bitfinex) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-cha
 func (this *Bitfinex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if limit != nil {
-		if (!ccxt.IsEqual(limit, 25)) && (!ccxt.IsEqual(limit, 100)) {
+		if (limit == nil || *limit != 25) && (limit == nil || *limit != 100) {
 			panic(ccxt.ExchangeError(this.Id + " watchOrderBook limit argument must be undefined, 25 or 100"))
 		}
 	}

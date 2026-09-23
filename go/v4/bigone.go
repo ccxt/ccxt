@@ -988,7 +988,7 @@ func (this *Bigone) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Bigone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -998,7 +998,7 @@ func (this *Bigone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTicker", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	if IsEqual(typeVar, "spot") {
 		var request map[string]any = map[string]any{
 			"asset_pair_name": market["id"],
@@ -1053,7 +1053,7 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1067,7 +1067,7 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var request map[string]any = map[string]any{}
 	symbols = this.MarketSymbols(symbols)
@@ -1173,7 +1173,7 @@ func (this *Bigone) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1261,7 +1261,7 @@ func (this *Bigone) ParseContractBidsAsks(bidsAsks any) any {
 	return result
 }
 func (this *Bigone) ParseContractOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var responseBids any = this.SafeDict(orderbook, "bids")
 	var responseAsks any = this.SafeDict(orderbook, "asks")
@@ -1839,7 +1839,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1859,7 +1859,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var postOnly any = nil
 	var postOnlyparamsVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), (exchangeSpecificParam != nil && *exchangeSpecificParam == true), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = GetValue(postOnlyparamsVariable, 1)
+	params = MapTyped(GetValue(postOnlyparamsVariable, 1))
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var request map[string]any = map[string]any{
 		"asset_pair_name": market["id"],
@@ -1883,9 +1883,9 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			var createMarketBuyOrderRequiresPrice any = nil
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+			params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 			var cost *float64 = this.SafeNumber(params, "cost")
-			params = this.Omit(params, "cost")
+			params = MapTyped(this.Omit(params, "cost"))
 			if createMarketBuyOrderRequiresPrice == true {
 				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -1927,7 +1927,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	params = this.Omit(params, []any{"stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"})
+	params = MapTyped(this.Omit(params, []any{"stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"}))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
 	//
@@ -2823,11 +2823,11 @@ func (this *Bigone) withdrawBody(ch chan any, code any, amount any, address any,
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2844,7 +2844,7 @@ func (this *Bigone) withdrawBody(ch chan any, code any, amount any, address any,
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["gateway_name"] = this.NetworkCodeToId(networkCode, currency["code"])
 	}

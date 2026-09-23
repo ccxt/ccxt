@@ -669,7 +669,7 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -679,11 +679,11 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	var depth any = "100"
 	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
-	params = ccxt.GetValue(depthparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(depthparamsVariable, 1))
 	var frequency any = "100ms"
 	var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "frequency", frequency)
 	frequency = ccxt.GetValue(frequencyparamsVariable, 0)
-	params = ccxt.GetValue(frequencyparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(frequencyparamsVariable, 1))
 	var channelSuffix string = ""
 	if ccxt.IsEqual(frequency, "100ms") {
 		channelSuffix = "@100ms"
@@ -722,7 +722,7 @@ func (this *Bydfi) UnWatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...
 func (this *Bydfi) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -732,11 +732,11 @@ func (this *Bydfi) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var depth any = "100"
 	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
-	params = ccxt.GetValue(depthparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(depthparamsVariable, 1))
 	var frequency any = "100ms"
 	var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "frequency", frequency)
 	frequency = ccxt.GetValue(frequencyparamsVariable, 0)
-	params = ccxt.GetValue(frequencyparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(frequencyparamsVariable, 1))
 	var channelSuffix string = ""
 	if ccxt.IsEqual(frequency, "100ms") {
 		channelSuffix = "@100ms"
@@ -807,9 +807,9 @@ func (this *Bydfi) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

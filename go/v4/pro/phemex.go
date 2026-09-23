@@ -348,7 +348,7 @@ func (this *Phemex) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Phemex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -357,7 +357,7 @@ func (this *Phemex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var usePerpetualApi bool = (this.SafeString(params, "settle") != nil && *this.SafeString(params, "settle") == "USDT")
 	var messageHash any = ":balance"
 	messageHash = func() any {
@@ -975,7 +975,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -995,7 +995,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	if symbol == nil {
 		var settle *string = this.SafeString(params, "settle")
 		messageHash = func() any {
@@ -1175,7 +1175,7 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1195,7 +1195,7 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var isUSDTSettled bool = (this.SafeString(params, "settle") != nil && *this.SafeString(params, "settle") == "USDT")
 	if symbol == nil {
 		messageHash = func() any {

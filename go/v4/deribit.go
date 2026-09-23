@@ -1179,7 +1179,7 @@ func (this *Deribit) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var instrumentsResponses []any = []any{}
 	var result []any = []any{}
@@ -1187,7 +1187,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var fetchAllMarkets any = nil
 	var fetchAllMarketsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
 	fetchAllMarkets = GetValue(fetchAllMarketsparamsVariable, 0)
-	params = GetValue(fetchAllMarketsparamsVariable, 1)
+	params = MapTyped(GetValue(fetchAllMarketsparamsVariable, 1))
 	if fetchAllMarkets == true {
 
 		instrumentsResponse := (<-this.PublicGetGetInstruments(params)).Raw
@@ -1974,9 +1974,9 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1985,7 +1985,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes150219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
@@ -2002,7 +2002,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var now int64 = this.Milliseconds()
 	if since == nil {
 		if limit == nil {
-			limit = 1000 // at max, it provides 5000 bars, but we set generous default here
+			limit = Int64PtrTyped(1000) // at max, it provides 5000 bars, but we set generous default here
 		}
 		request["start_timestamp"] = Subtract(now, Multiply(Multiply((Subtract(limit, 1)), duration), 1000))
 		request["end_timestamp"] = now
@@ -2017,7 +2017,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
-		params = this.Omit(params, "until")
+		params = MapTyped(this.Omit(params, "until"))
 		request["end_timestamp"] = until
 	}
 
@@ -4038,11 +4038,11 @@ func (this *Deribit) withdrawBody(ch chan any, code any, amount any, address any
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -4223,9 +4223,9 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4235,7 +4235,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var maxEntriesPerRequest int = 744 // seems exchange returns max 744 items per request
 	var eachItemDuration string = "1h"
 	if paginate {
@@ -4263,13 +4263,13 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
 	if until != nil {
-		params = this.Omit(params, []any{"until"})
+		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["end_timestamp"] = until
 	} else {
 		request["end_timestamp"] = time
 	}
 	if InOp(params, "isDeribitPaginationCall") {
-		params = this.Omit(params, "isDeribitPaginationCall")
+		params = MapTyped(this.Omit(params, "isDeribitPaginationCall"))
 		if limit == nil {
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
@@ -4379,7 +4379,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4388,7 +4388,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes344619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))))

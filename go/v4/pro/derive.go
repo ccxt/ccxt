@@ -109,7 +109,7 @@ func (this *Derive) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Derive) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -118,7 +118,7 @@ func (this *Derive) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if limit == nil {
-		limit = 10
+		limit = ccxt.Int64PtrTyped(10)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var topic any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook.", market["id"]), ".10."), this.NumberToString(limit))
@@ -663,7 +663,7 @@ func (this *Derive) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -672,7 +672,7 @@ func (this *Derive) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchOrders", params)
 	subaccountId = ccxt.GetValue(subaccountIdparamsVariable, 0)
-	params = ccxt.GetValue(subaccountIdparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subaccountIdparamsVariable, 1))
 	var topic any = ccxt.Add(this.NumberToString(subaccountId), ".orders")
 	var messageHash any = topic
 	if symbol != nil {
@@ -816,7 +816,7 @@ func (this *Derive) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -825,7 +825,7 @@ func (this *Derive) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchMyTrades", params)
 	subaccountId = ccxt.GetValue(subaccountIdparamsVariable, 0)
-	params = ccxt.GetValue(subaccountIdparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(subaccountIdparamsVariable, 1))
 	var topic any = ccxt.Add(this.NumberToString(subaccountId), ".trades")
 	var messageHash any = topic
 	if symbol != nil {

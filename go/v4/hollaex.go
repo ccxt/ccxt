@@ -1132,7 +1132,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1147,7 +1147,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var maxLimit int = 500
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", paginate)
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate == true {
 
 		retRes94919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
@@ -1167,7 +1167,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	request["from"] = this.ParseToInt(Divide(start, 1000)) // convert to seconds
 	request["to"] = this.ParseToInt(Divide(until, 1000))   // convert to seconds
-	params = this.Omit(params, "until")
+	params = MapTyped(this.Omit(params, "until"))
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetChart(this.Extend(request, params))).Raw))
 
@@ -2335,11 +2335,11 @@ func (this *Hollaex) withdrawBody(ch chan any, code any, amount any, address any
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -2353,7 +2353,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code any, amount any, address any
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a network parameter"))
 	}
-	params = this.Omit(params, "network")
+	params = MapTyped(this.Omit(params, "network"))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   amount,

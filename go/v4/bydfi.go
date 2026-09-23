@@ -876,7 +876,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1051,7 +1051,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1061,7 +1061,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit)
@@ -1083,7 +1083,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	var now int64 = this.Milliseconds()
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var timeDelta any = Multiply(duration, numberOfCandles)
@@ -1390,7 +1390,7 @@ func (this *Bydfi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
@@ -1412,7 +1412,7 @@ func (this *Bydfi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -1495,7 +1495,7 @@ func (this *Bydfi) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1506,7 +1506,7 @@ func (this *Bydfi) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	orderRequest = this.Extend(orderRequest, map[string]any{
 		"wallet": wallet,
 	})
@@ -1698,7 +1698,7 @@ func (this *Bydfi) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan any
 func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1723,7 +1723,7 @@ func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"wallet": wallet,
 		"orders": ordersRequests,
@@ -1760,11 +1760,11 @@ func (this *Bydfi) EditOrderAsync(id any, symbol any, typeVar any, side any, opt
 func (this *Bydfi) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1774,7 +1774,7 @@ func (this *Bydfi) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	AddElementToObject(request, "wallet", wallet)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1FapiTradeEditOrder(request)).Raw))
@@ -1802,7 +1802,7 @@ func (this *Bydfi) EditOrdersAsync(orders any, optionalArgs ...any) <-chan any {
 func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1827,7 +1827,7 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"wallet":     wallet,
 		"editOrders": ordersRequests,
@@ -1887,7 +1887,7 @@ func (this *Bydfi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
@@ -1900,7 +1900,7 @@ func (this *Bydfi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"wallet": wallet,
@@ -1973,7 +1973,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument"))
@@ -1986,7 +1986,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"wallet": wallet,
@@ -1995,7 +1995,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger any = false
 	var triggerparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "trigger", trigger)
 	trigger = GetValue(triggerparamsVariable, 0)
-	params = GetValue(triggerparamsVariable, 1)
+	params = MapTyped(GetValue(triggerparamsVariable, 1))
 	if !(trigger == true) {
 		//
 		//     {
@@ -2067,7 +2067,7 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrder() requires a symbol argument"))
@@ -2089,13 +2089,13 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	request["wallet"] = wallet
 	var response any = nil
 	var trigger any = false
 	var triggerparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrder", "trigger", trigger)
 	trigger = GetValue(triggerparamsVariable, 0)
-	params = GetValue(triggerparamsVariable, 1)
+	params = MapTyped(GetValue(triggerparamsVariable, 1))
 	if !(trigger == true) {
 
 		response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params))).Raw
@@ -2137,7 +2137,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -2231,12 +2231,12 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 func (this *Bydfi) HandleSinceAndUntil(methodName any, optionalArgs ...any) any {
 	since := GetArg(optionalArgs, 0, nil)
 	_ = since
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams2(params, methodName, "until", "endTime")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	var now int64 = this.Milliseconds()
 	var sevenDays int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64) // the maximum range is 7 days
 	var startTime any = since
@@ -2446,7 +2446,7 @@ func (this *Bydfi) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
@@ -2459,7 +2459,7 @@ func (this *Bydfi) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "setLeverage", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"leverage": leverage,
@@ -2491,7 +2491,7 @@ func (this *Bydfi) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bydfi) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " fetchLeverage() requires a symbol argument"))
@@ -2504,7 +2504,7 @@ func (this *Bydfi) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchLeverage", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"wallet": wallet,
@@ -2562,7 +2562,7 @@ func (this *Bydfi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2571,7 +2571,7 @@ func (this *Bydfi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var contractType any = "FUTURE"
 	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
-	params = GetValue(contractTypeparamsVariable, 1)
+	params = MapTyped(GetValue(contractTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 	}
@@ -2624,7 +2624,7 @@ func (this *Bydfi) FetchPositionsForSymbolAsync(symbol any, optionalArgs ...any)
 func (this *Bydfi) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2634,7 +2634,7 @@ func (this *Bydfi) fetchPositionsForSymbolBody(ch chan any, symbol any, optional
 	var contractType any = "FUTURE"
 	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
-	params = GetValue(contractTypeparamsVariable, 1)
+	params = MapTyped(GetValue(contractTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 		"symbol":       market["id"],
@@ -2782,7 +2782,7 @@ func (this *Bydfi) FetchPositionHistoryAsync(symbol any, optionalArgs ...any) <-
 func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
@@ -2840,7 +2840,7 @@ func (this *Bydfi) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -2931,7 +2931,7 @@ func (this *Bydfi) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Bydfi) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2941,11 +2941,11 @@ func (this *Bydfi) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	var contractType any = "FUTURE"
 	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarginMode", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
-	params = GetValue(contractTypeparamsVariable, 1)
+	params = MapTyped(GetValue(contractTypeparamsVariable, 1))
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarginMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 		"symbol":       market["id"],
@@ -3003,7 +3003,7 @@ func (this *Bydfi) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
@@ -3020,11 +3020,11 @@ func (this *Bydfi) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	var contractType any = "FUTURE"
 	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
-	params = GetValue(contractTypeparamsVariable, 1)
+	params = MapTyped(GetValue(contractTypeparamsVariable, 1))
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 		"symbol":       market["id"],
@@ -3061,7 +3061,7 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol != nil {
 		panic(NotSupported(this.Id + " setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency"))
@@ -3079,15 +3079,15 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "setPositionMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var contractType any = "FUTURE"
 	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "setPositionMode", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
-	params = GetValue(contractTypeparamsVariable, 1)
+	params = MapTyped(GetValue(contractTypeparamsVariable, 1))
 	var settleCoin any = "USDT"
 	var settleCoinparamsVariable []any = this.HandleOptionAndParams(params, "setPositionMode", "settleCoin", settleCoin)
 	settleCoin = GetValue(settleCoinparamsVariable, 0)
-	params = GetValue(settleCoinparamsVariable, 1)
+	params = MapTyped(GetValue(settleCoinparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 		"wallet":       wallet,
@@ -3130,7 +3130,7 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3139,16 +3139,16 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var contractType any = "FUTURE"
 	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionMode", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
-	params = GetValue(contractTypeparamsVariable, 1)
+	params = MapTyped(GetValue(contractTypeparamsVariable, 1))
 	var settleCoin any = "USDT"
 	if symbol == nil {
 		var settleCoinparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionMode", "settleCoin", settleCoin)
 		settleCoin = GetValue(settleCoinparamsVariable, 0)
-		params = GetValue(settleCoinparamsVariable, 1)
+		params = MapTyped(GetValue(settleCoinparamsVariable, 1))
 	} else {
 		var market map[string]any = MapTyped(this.Market(symbol))
 		settleCoin = market["settleId"]
@@ -3208,7 +3208,7 @@ func (this *Bydfi) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3217,11 +3217,11 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var wallet any = nil
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "wallet")
 	wallet = GetValue(walletparamsVariable, 0)
-	params = GetValue(walletparamsVariable, 1)
+	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if wallet == nil {
@@ -3388,11 +3388,11 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a code argument"))
@@ -3405,7 +3405,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paginate *bool = this.SafeBool(params, "paginate", false)
 	if paginate != nil && *paginate == true {
 		var maxLimit int = 50
-		params = this.Omit(params, "paginate")
+		params = MapTyped(this.Omit(params, "paginate"))
 		params = this.Extend(params, map[string]any{
 			"paginationDirection": "backward",
 		})
@@ -3421,12 +3421,12 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams2(params, "fetchTransfers", "until", "endTime")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if IsEqual(until, nil) {
 		until = this.Milliseconds() // exchange requires endTime
 	}
 	if since == nil {
-		since = 1 // exchange requires startTime but allows any value
+		since = Int64PtrTyped(1) // exchange requires startTime but allows any value
 	}
 	request["startTime"] = since
 	request["endTime"] = until

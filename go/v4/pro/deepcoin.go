@@ -857,7 +857,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -868,7 +868,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var suffix any = nil
 	suffixparamsVariable := this.OrderBookSuffix(market, "watchOrderBook", params)
 	suffix = ccxt.GetValue(suffixparamsVariable, 0)
-	params = ccxt.GetValue(suffixparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(suffixparamsVariable, 1))
 
 	orderbook := (<-this.WatchPublicAsync(market, messageHash, "25", params, suffix))
 	ccxt.PanicOnError(orderbook)
@@ -895,7 +895,7 @@ func (this *Deepcoin) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-c
 func (this *Deepcoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -906,7 +906,7 @@ func (this *Deepcoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var suffix any = nil
 	suffixparamsVariable := this.OrderBookSuffix(market, "unWatchOrderBook", params)
 	suffix = ccxt.GetValue(suffixparamsVariable, 0)
-	params = ccxt.GetValue(suffixparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(suffixparamsVariable, 1))
 	var subscription map[string]any = map[string]any{
 		"topic": "orderbook",
 	}
@@ -928,13 +928,13 @@ func (this *Deepcoin) OrderBookSuffix(market any, methodName any, optionalArgs .
 	// 120 spot markets, 52 of 120 swaps in a live probe); the tick size
 	// itself was accepted on 116 and 117 of them, and the handful whose
 	// tick was rejected accepted the next coarser level
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var symbol *string = this.SafeString(market, "symbol")
 	var aggregation any = nil
 	var aggregationparamsVariable []any = this.HandleOptionAndParams(params, methodName, "aggregation")
 	aggregation = ccxt.GetValue(aggregationparamsVariable, 0)
-	params = ccxt.GetValue(aggregationparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(aggregationparamsVariable, 1))
 	if aggregation == nil {
 		var precision map[string]any = ccxt.SafeMapTyped(market, "precision")
 		var tickSize *float64 = this.SafeNumber(precision, "price")

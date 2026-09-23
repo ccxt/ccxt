@@ -1100,11 +1100,11 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1114,7 +1114,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes91519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))
@@ -1133,19 +1133,19 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		"price_type": priceType,
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	params = this.Omit(params, "price")
+	params = MapTyped(this.Omit(params, "price"))
 	if since != nil {
 		var duration any = this.ParseTimeframe(timeframe)
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 		if limit == nil {
-			limit = 2000
+			limit = Int64PtrTyped(2000)
 		}
-		limit = mathMin(limit, 2000)
+		limit = Int64PtrTyped(mathMin(limit, 2000))
 		var toTimestamp any = this.Sum(request["from"], Subtract(Multiply(limit, duration), 1))
 		var currentTimestamp int64 = this.Seconds()
 		request["to"] = mathMin(toTimestamp, currentTimestamp)
 	} else if limit != nil {
-		limit = mathMin(limit, 2000)
+		limit = Int64PtrTyped(mathMin(limit, 2000))
 		var duration any = this.ParseTimeframe(timeframe)
 		request["to"] = this.Seconds()
 		request["from"] = this.ParseToInt(Subtract(request["to"], (Multiply(duration, limit))))
@@ -1215,7 +1215,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1224,7 +1224,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes100819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
@@ -1238,13 +1238,13 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	var method any = nil
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "method", "historyGetMarketSymbolExecutions")
 	method = GetValue(methodparamsVariable, 0)
-	params = GetValue(methodparamsVariable, 1)
+	params = MapTyped(GetValue(methodparamsVariable, 1))
 	var rawTrades any = []any{}
 	var isFullHistoryEndpoint bool = (IsEqual(method, "historyGetMarketSymbolExecutions"))
 	if isFullHistoryEndpoint {
 		var requestparamsVariable []any = this.HandleUntilOption("before", request, params)
 		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
+		params = MapTyped(GetValue(requestparamsVariable, 1))
 		if since != nil {
 			AddElementToObject(request, "since", since)
 			AddElementToObject(request, "sort", "asc")
@@ -1319,7 +1319,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	} else {
 		var requestparamsVariable []any = this.HandleUntilOption("lastTime", request, params)
 		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
+		params = MapTyped(GetValue(requestparamsVariable, 1))
 
 		response := (<-this.PublicGetHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -1521,7 +1521,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -1536,7 +1536,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	var postOnly bool = false
 	var postOnlyparamsVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "post")), params)
 	postOnly = GetValueBool(postOnlyparamsVariable, 0, false)
-	params = GetValue(postOnlyparamsVariable, 1)
+	params = MapTyped(GetValue(postOnlyparamsVariable, 1))
 	if postOnly {
 		typeVar = "post"
 	} else if timeInForce != nil && *timeInForce == "ioc" {
@@ -1594,7 +1594,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	if (price != nil) && !isMarketOrder {
 		request["limitPrice"] = this.PriceToPrecision(symbol, price)
 	}
-	params = this.Omit(params, []any{"clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
+	params = MapTyped(this.Omit(params, []any{"clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice"}))
 	return this.Extend(request, params)
 }
 
@@ -3065,7 +3065,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

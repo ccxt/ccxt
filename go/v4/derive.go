@@ -1332,7 +1332,7 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1347,8 +1347,8 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["instrument_name"] = GetValue(market, "id")
 	}
 	if limit != nil {
-		if IsGreaterThan(limit, 1000) {
-			limit = 1000
+		if limit != nil && *limit > 1000 {
+			limit = Int64PtrTyped(1000)
 		}
 		request["page_size"] = limit // default 100, max 1000
 	}
@@ -2090,7 +2090,7 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
@@ -2104,8 +2104,8 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
-	params = this.Omit(params, []any{"trigger", "stop"})
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
+	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 		"subaccount_id":   subaccountId,
@@ -2116,7 +2116,7 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var response any = nil
 	if isByClientOrder {
 		request["label"] = clientOrderIdExchangeSpecific
-		params = this.Omit(params, []any{"clientOrderId", "label"})
+		params = MapTyped(this.Omit(params, []any{"clientOrderId", "label"}))
 
 		response = (<-this.PrivatePostCancelByLabel(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -2208,7 +2208,7 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2221,7 +2221,7 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelAllOrders", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -2284,7 +2284,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2293,7 +2293,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes178019 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))
@@ -2302,11 +2302,11 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-	params = this.Omit(params, []any{"trigger", "stop"})
+	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrders", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -2688,7 +2688,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2697,7 +2697,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"order_id":      id,
 		"subaccount_id": subaccountId,
@@ -2785,7 +2785,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2794,7 +2794,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes216619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
@@ -2805,7 +2805,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchMyTrades", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -2895,7 +2895,7 @@ func (this *Derive) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2904,11 +2904,11 @@ func (this *Derive) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	params = this.Omit(params, []any{"subaccount_id"})
+	params = MapTyped(this.Omit(params, []any{"subaccount_id"}))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetPositions(this.Extend(request, params))).Raw))
 	//
@@ -3060,7 +3060,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3069,7 +3069,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes239419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
@@ -3080,7 +3080,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchFundingHistory", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -3313,7 +3313,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3322,7 +3322,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
@@ -3383,7 +3383,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3392,7 +3392,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
-	params = GetValue(subaccountIdparamsVariable, 1)
+	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}

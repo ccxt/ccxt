@@ -1125,7 +1125,7 @@ func (this *Extended) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-cha
 func (this *Extended) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1250,14 +1250,14 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes99819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nil, 100))))
@@ -1347,18 +1347,18 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes106819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor", nil, 100))))
@@ -1691,9 +1691,9 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
@@ -1703,7 +1703,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes133219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "cursor", "cursor", nil, 10000))))
@@ -1713,11 +1713,11 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var market map[string]any = MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	if limit == nil {
-		limit = 100
+		limit = Int64PtrTyped(100)
 	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(params, "endTime", until)
-	params = this.Omit(params, []any{"endTime", "until"})
+	params = MapTyped(this.Omit(params, []any{"endTime", "until"}))
 	if since == nil {
 		since = Subtract(endTime, (Multiply(Multiply(Multiply(limit, 60), 60), 1000)))
 	}
@@ -1816,7 +1816,7 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1828,7 +1828,7 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only"))
 	}
 	if limit == nil {
-		limit = 100
+		limit = Int64PtrTyped(100)
 	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(params, "endTime", until)
@@ -2097,14 +2097,14 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes163919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "cursor", "cursor", nil, 50))))
@@ -2232,14 +2232,14 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransactions", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes173219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransactions", code, since, limit, params, "cursor", "cursor", nil, 50))))
@@ -2322,11 +2322,11 @@ func (this *Extended) FetchDepositsAsync(optionalArgs ...any) <-chan any {
 func (this *Extended) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2359,11 +2359,11 @@ func (this *Extended) FetchWithdrawalsAsync(optionalArgs ...any) <-chan any {
 func (this *Extended) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2489,14 +2489,14 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes189819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))))
@@ -3123,7 +3123,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
@@ -3133,7 +3133,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes238419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchPositionsHistory", symbols, since, limit, params, "cursor", "cursor", nil, 10000))))
@@ -3418,7 +3418,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -3459,14 +3459,14 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	if this.IsSandboxModeEnabled {
 		builderFeeRate = DerefScalar(this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate"))
 		builderId = DerefScalar(this.SafeString2(params, "builderId", "defaultBuilderId"))
-		params = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
+		params = MapTyped(this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"}))
 	} else {
 		var builderFeeRateparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "builderFeeRate", "0.0001")
 		builderFeeRate = GetValue(builderFeeRateparamsVariable, 0)
-		params = GetValue(builderFeeRateparamsVariable, 1)
+		params = MapTyped(GetValue(builderFeeRateparamsVariable, 1))
 		var builderIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "builderId")
 		builderId = GetValue(builderIdparamsVariable, 0)
-		params = GetValue(builderIdparamsVariable, 1)
+		params = MapTyped(GetValue(builderIdparamsVariable, 1))
 	}
 	var totalFee *string = fee
 	if !IsEqual(builderFeeRate, nil) {
@@ -3641,7 +3641,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 			request["trigger"] = trigger
 		}
 	}
-	params = this.Omit(params, []any{"clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"})
+	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"}))
 
 	ch <- map[string]any{
 		"request":       this.Extend(request, params),
@@ -3693,7 +3693,7 @@ func (this *Extended) CreateOrderAsync(symbol any, typeVar any, side any, amount
 func (this *Extended) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3746,7 +3746,7 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -3767,7 +3767,7 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 			amount = DerefScalar(this.SafeNumber(order, "qty"))
 		}
 		if price == nil {
-			price = DerefScalar(this.SafeNumber(order, "price"))
+			price = this.SafeNumber(order, "price")
 		}
 		if expiryEpochMillis == nil {
 			expiryEpochMillis = this.SafeInteger(order, "expireTime")
@@ -4207,14 +4207,14 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes321719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))))

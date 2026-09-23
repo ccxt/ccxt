@@ -1642,7 +1642,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
@@ -2770,7 +2770,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	// kalshi has no market orders — every order is a limit order and the price is required
 	price := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if price == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }"))
@@ -2806,7 +2806,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	// accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
 	// `time_in_force` param (handled below) still overrides
 	var unifiedTif *string = this.SafeStringUpper(params, "timeInForce")
-	params = this.Omit(params, "timeInForce")
+	params = ccxt.MapTyped(this.Omit(params, "timeInForce"))
 	var defaultTif string = func() string {
 		if isMarket {
 			return "immediate_or_cancel"
@@ -2825,11 +2825,11 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	var timeInForce any = nil
 	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "time_in_force", defaultTif)
 	timeInForce = ccxt.GetValue(timeInForceparamsVariable, 0)
-	params = ccxt.GetValue(timeInForceparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsVariable, 1))
 	var stp any = nil
 	var stpparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "self_trade_prevention_type", "taker_at_cross")
 	stp = ccxt.GetValue(stpparamsVariable, 0)
-	params = ccxt.GetValue(stpparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(stpparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"ticker":                     ticker,
 		"side":                       bookSide,
@@ -2902,7 +2902,7 @@ func (this *Kalshi) editOrderBody(ch chan any, id any, outcome any, typeVar any,
 	// order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = amount
-	price := ccxt.GetArg(optionalArgs, 1, nil)
+	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params

@@ -89,12 +89,12 @@ func (this *Bitopro) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if limit != nil {
-		if (!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20)) && (!ccxt.IsEqual(limit, 50)) && (!ccxt.IsEqual(limit, 100)) && (!ccxt.IsEqual(limit, 500)) && (!ccxt.IsEqual(limit, 1000)) {
+		if (limit == nil || *limit != 5) && (limit == nil || *limit != 10) && (limit == nil || *limit != 20) && (limit == nil || *limit != 50) && (limit == nil || *limit != 100) && (limit == nil || *limit != 500) && (limit == nil || *limit != 1000) {
 			panic(ccxt.ExchangeError(this.Id + " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000"))
 		}
 	}

@@ -905,7 +905,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -921,7 +921,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 		request["secondaryCurrencyCode"] = GetValue(market, "quoteId")
 	}
 	if limit == nil {
-		limit = 50
+		limit = Int64PtrTyped(50)
 	}
 	request["pageIndex"] = 1
 	request["pageSize"] = limit
@@ -955,7 +955,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -971,7 +971,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 		request["secondaryCurrencyCode"] = GetValue(market, "quoteId")
 	}
 	if limit == nil {
-		limit = 50
+		limit = Int64PtrTyped(50)
 	}
 	request["pageIndex"] = 1
 	request["pageSize"] = limit
@@ -1390,11 +1390,11 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -1411,7 +1411,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		panic(BadRequest(this.Id + " withdraw () does not accept params[\"networkCode\"]"))
 	}

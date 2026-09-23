@@ -949,7 +949,7 @@ func (this *Upbit) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Upbit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1271,7 +1271,7 @@ func (this *Upbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1281,7 +1281,7 @@ func (this *Upbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if limit == nil {
-		limit = 200
+		limit = Int64PtrTyped(200)
 	}
 	var request map[string]any = map[string]any{
 		"market": market["id"],
@@ -1487,7 +1487,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1499,7 +1499,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var timeframePeriod any = this.ParseTimeframe(timeframe)
 	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	if limit == nil {
-		limit = 200
+		limit = Int64PtrTyped(200)
 	}
 	var request map[string]any = map[string]any{
 		"market":    market["id"],
@@ -1616,7 +1616,7 @@ func (this *Upbit) CreateOrderAsync(symbol any, typeVar any, side any, amount an
 func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1822,7 +1822,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2537,7 +2537,7 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2559,7 +2559,7 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PrivateGetOrdersClosed(this.Extend(request, params)))
 	PanicOnError(response)
@@ -2618,7 +2618,7 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2640,7 +2640,7 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PrivateGetOrdersClosed(this.Extend(request, params)))
 	PanicOnError(response)
@@ -2850,7 +2850,7 @@ func (this *Upbit) FetchDepositAddressAsync(code any, optionalArgs ...any) <-cha
 func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2860,7 +2860,7 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires params[\"network\"]"))
 	}
@@ -2962,11 +2962,11 @@ func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, 
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2983,14 +2983,14 @@ func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, 
 		if network == nil {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a network argument"))
 		}
-		params = this.Omit(params, []any{"network"})
+		params = MapTyped(this.Omit(params, []any{"network"}))
 		request["net_type"] = network
 		request["currency"] = currency["id"]
 		request["address"] = address
 		if tag != nil {
 			request["secondary_address"] = tag
 		}
-		params = this.Omit(params, "network")
+		params = MapTyped(this.Omit(params, "network"))
 
 		response = (<-this.PrivatePostWithdrawsCoin(this.Extend(request, params)))
 		PanicOnError(response)

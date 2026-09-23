@@ -174,7 +174,7 @@ func (this *P2b) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -184,7 +184,7 @@ func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
-	params = ccxt.GetValue(nameparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(nameparamsVariable, 1))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "tickerSubs"), market["id"], true) // we need to re-subscribe to all tickers upon watching a new ticker
@@ -219,7 +219,7 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -230,7 +230,7 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
-	params = ccxt.GetValue(nameparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(nameparamsVariable, 1))
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {

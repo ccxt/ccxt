@@ -310,7 +310,7 @@ func (this *Coinbaseinternational) WatchTickerAsync(symbol any, optionalArgs ...
 func (this *Coinbaseinternational) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -319,7 +319,7 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan any, symbol any, opti
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "channel", "LEVEL1")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 
 	retRes23415 := (<-this.SubscribeAsync(channel, []any{symbol}, params))
 	ccxt.PanicOnError(retRes23415)
@@ -359,7 +359,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -368,7 +368,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "LEVEL1")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 
 	ticker := (<-this.SubscribeAsync(channel, symbols, params))
 	ccxt.PanicOnError(ticker)

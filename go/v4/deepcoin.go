@@ -802,7 +802,7 @@ func (this *Deepcoin) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-cha
 func (this *Deepcoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -812,7 +812,7 @@ func (this *Deepcoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if limit == nil {
-		limit = 400
+		limit = Int64PtrTyped(400)
 	}
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
@@ -873,7 +873,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -883,7 +883,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 		params = this.Extend(params, map[string]any{
 			"calculateUntil": true,
@@ -896,7 +896,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var price *string = this.SafeString(params, "price")
-	params = this.Omit(params, "price")
+	params = MapTyped(this.Omit(params, "price"))
 	var bar *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
@@ -908,11 +908,11 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
 		request["after"] = until
-		params = this.Omit(params, "until")
+		params = MapTyped(this.Omit(params, "until"))
 	}
 	var calculateUntil *bool = this.SafeBool(params, "calculateUntil", false)
 	if calculateUntil != nil && *calculateUntil == true {
-		params = this.Omit(params, "calculateUntil")
+		params = MapTyped(this.Omit(params, "calculateUntil"))
 		if since != nil {
 			// the exchange do not have a since param for this endpoint
 			// we calculate until (after) for correct pagination
@@ -1314,7 +1314,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1323,7 +1323,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes102219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "code", nil, 1, 50))))
@@ -1345,7 +1345,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
 		request["endTime"] = until
-		params = this.Omit(params, "until")
+		params = MapTyped(this.Omit(params, "until"))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAssetDepositList(this.Extend(request, params))).Raw))
@@ -1386,7 +1386,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1395,7 +1395,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes107019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "code", nil, 1, 50))))
@@ -1417,7 +1417,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
 		request["endTime"] = until
-		params = this.Omit(params, "until")
+		params = MapTyped(this.Omit(params, "until"))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAssetWithdrawList(this.Extend(request, params))).Raw))
@@ -1814,12 +1814,12 @@ func (this *Deepcoin) TransferAsync(code any, amount any, fromAccount any, toAcc
 func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var userId any = nil
 	var userIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "userId")
 	userId = GetValue(userIdparamsVariable, 0)
-	params = GetValue(userIdparamsVariable, 1)
+	params = MapTyped(GetValue(userIdparamsVariable, 1))
 	userId = func() any {
 		if (userId != nil) && (!IsEqual(userId, "")) {
 			return userId
@@ -1981,7 +1981,7 @@ func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	 * @name deepcoin#createOrderRequest
 	 * @description helper function to build request
 	 */
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2031,7 +2031,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 	 */
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -2043,7 +2043,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 	var orderType any = typeVar
 	orderTypeparamsVariable := this.HandleTypePostOnlyAndTimeInForce(typeVar, params)
 	orderType = GetValue(orderTypeparamsVariable, 0)
-	params = GetValue(orderTypeparamsVariable, 1)
+	params = MapTyped(GetValue(orderTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"instId":  market["id"],
 		"side":    side,
@@ -2052,18 +2052,18 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
 		request["clOrdId"] = clientOrderId
-		params = this.Omit(params, "clientOrderId")
+		params = MapTyped(this.Omit(params, "clientOrderId"))
 	}
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var stopLossPrice *string = this.SafeString(stopLoss, "triggerPrice")
 	if stopLossPrice != nil {
-		params = this.Omit(params, []any{"stopLoss"})
+		params = MapTyped(this.Omit(params, []any{"stopLoss"}))
 		request["slTriggerPx"] = this.PriceToPrecision(symbol, stopLossPrice)
 	}
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var takeProfitPrice *string = this.SafeString(takeProfit, "triggerPrice")
 	if takeProfitPrice != nil {
-		params = this.Omit(params, []any{"takeProfit"})
+		params = MapTyped(this.Omit(params, []any{"takeProfit"}))
 		request["tpTriggerPx"] = this.PriceToPrecision(symbol, takeProfitPrice)
 	}
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
@@ -2081,7 +2081,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 			if !isMarketOrder {
 				panic(BadRequest(this.Id + " createOrder() accepts a cost parameter for spot market orders only"))
 			}
-			params = this.Omit(params, "cost")
+			params = MapTyped(this.Omit(params, "cost"))
 			request["sz"] = this.CostToPrecision(symbol, cost)
 			request["tgtCcy"] = "quote_ccy"
 		} else {
@@ -2095,12 +2095,12 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		var marginMode any = "cross"
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params, marginMode)
 		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
+		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		request["tdMode"] = marginMode
 		var mrgPosition any = "merge"
 		var mrgPositionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "mrgPosition", mrgPosition)
 		mrgPosition = GetValue(mrgPositionparamsVariable, 0)
-		params = GetValue(mrgPositionparamsVariable, 1)
+		params = MapTyped(GetValue(mrgPositionparamsVariable, 1))
 		request["mrgPosition"] = mrgPosition
 		var posSide any = nil
 		var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
@@ -2138,7 +2138,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	 */
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -2175,13 +2175,13 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	var marginMode any = "cross"
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params, marginMode)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var isCrossMargin int = 1
 	if IsEqual(marginMode, "isolated") {
 		isCrossMargin = 0
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
-	params = this.Omit(params, "reduceOnly")
+	params = MapTyped(this.Omit(params, "reduceOnly"))
 	request["isCrossMargin"] = isCrossMargin
 	request["tdMode"] = marginMode
 	if GetValue(market, "swap") == true {
@@ -2202,7 +2202,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	var mrgPosition any = "merge"
 	var mrgPositionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "mrgPosition", mrgPosition)
 	mrgPosition = GetValue(mrgPositionparamsVariable, 0)
-	params = GetValue(mrgPositionparamsVariable, 1)
+	params = MapTyped(GetValue(mrgPositionparamsVariable, 1))
 	request["mrgPosition"] = mrgPosition
 	return this.Extend(request, params)
 }
@@ -2912,7 +2912,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2929,7 +2929,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var marginMode *string = this.SafeString(params, "marginMode")
 	var encodedMarginMode int = 1
 	if marginMode != nil {
-		params = this.Omit(params, "marginMode")
+		params = MapTyped(this.Omit(params, "marginMode"))
 		if marginMode != nil && *marginMode == "isolated" {
 			encodedMarginMode = 0
 		}
@@ -2937,7 +2937,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var merged any = true
 	var mergedparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "merged", merged)
 	merged = GetValue(mergedparamsVariable, 0)
-	params = GetValue(mergedparamsVariable, 1)
+	params = MapTyped(GetValue(mergedparamsVariable, 1))
 	var isMergedMode int = func() int {
 		if merged == true {
 			return 1
@@ -3438,7 +3438,7 @@ func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
@@ -3456,14 +3456,14 @@ func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	var marginMode any = "cross"
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("setLeverage", params, marginMode)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
 		panic(BadRequest(this.Id + " setLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	var mrgPosition any = "merge"
 	var mrgPositionparamsVariable []any = this.HandleOptionAndParams(params, "setLeverage", "mrgPosition", mrgPosition)
 	mrgPosition = GetValue(mrgPositionparamsVariable, 0)
-	params = GetValue(mrgPositionparamsVariable, 1)
+	params = MapTyped(GetValue(mrgPositionparamsVariable, 1))
 	if (!IsEqual(mrgPosition, "merge")) && (!IsEqual(mrgPosition, "split")) {
 		panic(BadRequest(this.Id + " setLeverage() mrgPosition parameter must be either merge or split"))
 	}
@@ -3515,7 +3515,7 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3530,7 +3530,7 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	}
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType)
 	subType = GetValue(subTypeparamsVariable, 0)
-	params = GetValue(subTypeparamsVariable, 1)
+	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var instType string = "SwapU"
 	if IsEqual(subType, "inverse") {
 		instType = "Swap"

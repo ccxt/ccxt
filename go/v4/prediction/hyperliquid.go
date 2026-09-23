@@ -1489,7 +1489,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
 	ccxt.PanicOnError((<-this.InitializeClientAsync()))
@@ -1562,7 +1562,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	var vaultAddress any = nil
 	var vaultAddressparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "vaultAddress")
 	vaultAddress = ccxt.GetValue(vaultAddressparamsVariable, 0)
-	params = ccxt.GetValue(vaultAddressparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(vaultAddressparamsVariable, 1))
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
 	var orderAction map[string]any = map[string]any{
 		"type":     "order",
@@ -1660,7 +1660,7 @@ func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan an
 func (this *Hyperliquid) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1691,7 +1691,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	if outcome == nil {
@@ -1706,7 +1706,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
 	var nonce int64 = this.Milliseconds()
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
-	params = this.Omit(params, []any{"clientOrderId", "client_id"})
+	params = ccxt.MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
 	var cancelReq []any = []any{}
 	var cancelAction map[string]any = map[string]any{
 		"type":    "cancel",
@@ -1739,7 +1739,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	var vaultAddress any = nil
 	var vaultAddressparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "vaultAddress")
 	vaultAddress = ccxt.GetValue(vaultAddressparamsVariable, 0)
-	params = ccxt.GetValue(vaultAddressparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(vaultAddressparamsVariable, 1))
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
 	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
@@ -1828,9 +1828,9 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1895,9 +1895,9 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2244,9 +2244,9 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params

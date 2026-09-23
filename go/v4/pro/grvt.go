@@ -206,7 +206,7 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers requires a symbols argument"))
@@ -214,11 +214,11 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "v1.ticker.s")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 	var interval any = 500
 	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
-	params = ccxt.GetValue(intervalparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(intervalparamsVariable, 1))
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -682,7 +682,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -691,7 +691,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var channel any = nil
 	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "channel", "v1.book.d")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
-	params = ccxt.GetValue(channelparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 	var isSnapshot bool = (ccxt.IsEqual(channel, "v1.book.s"))
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if symbolsLength == 0 {
@@ -700,12 +700,12 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	if limit == nil {
 		var limitparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "limit", 100)
 		limit = ccxt.GetValue(limitparamsVariable, 0)
-		params = ccxt.GetValue(limitparamsVariable, 1)
+		params = ccxt.MapTyped(ccxt.GetValue(limitparamsVariable, 1))
 	}
 	var interval any = 500
 	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
-	params = ccxt.GetValue(intervalparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(intervalparamsVariable, 1))
 	symbols = this.MarketSymbols(symbols)
 	var extraPart any = func() any {
 		if isSnapshot {

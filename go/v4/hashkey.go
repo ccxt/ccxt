@@ -1560,7 +1560,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchMyTrades"
 	if this.Markets == nil {
@@ -1575,7 +1575,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -1585,14 +1585,14 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
 	var accountId any = nil
 	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
-	params = GetValue(accountIdparamsVariable, 1)
+	params = MapTyped(GetValue(accountIdparamsVariable, 1))
 	var response any = nil
 	if IsEqual(marketType, "spot") {
 		if !IsEqual(market, nil) {
@@ -1778,7 +1778,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchOHLCV"
 	if this.Markets == nil {
@@ -1788,7 +1788,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, methodName, "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes157219 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
@@ -1811,7 +1811,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -2069,7 +2069,7 @@ func (this *Hashkey) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Hashkey) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2080,7 +2080,7 @@ func (this *Hashkey) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(methodName, nil, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	if IsEqual(marketType, "swap") {
 
 		response := (<-this.PrivateGetApiV1FuturesBalance(params)).Raw
@@ -2213,7 +2213,7 @@ func (this *Hashkey) FetchDepositAddressAsync(code any, optionalArgs ...any) <-c
 func (this *Hashkey) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2226,7 +2226,7 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode == nil {
 		networkCode = this.DefaultNetworkCode(code)
 	}
@@ -2309,7 +2309,7 @@ func (this *Hashkey) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchDeposits"
 	if this.Markets == nil {
@@ -2331,7 +2331,7 @@ func (this *Hashkey) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -2385,7 +2385,7 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchWithdrawals"
 	if this.Markets == nil {
@@ -2407,7 +2407,7 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -2467,11 +2467,11 @@ func (this *Hashkey) withdrawBody(ch chan any, code any, amount any, address any
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2488,7 +2488,7 @@ func (this *Hashkey) withdrawBody(ch chan any, code any, amount any, address any
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	if networkCode != nil {
 		request["chainType"] = this.NetworkCodeToId(networkCode, currency["code"])
 	}
@@ -2804,7 +2804,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchLedger"
 	if since == nil {
@@ -2813,7 +2813,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until = GetValue(untilparamsVariable, 0)
-	params = GetValue(untilparamsVariable, 1)
+	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if IsEqual(until, nil) {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires an until argument"))
 	}
@@ -2831,14 +2831,14 @@ func (this *Hashkey) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var flowType any = nil
 	var flowTypeparamsVariable []any = this.HandleOptionAndParams(params, methodName, "flowType")
 	flowType = GetValue(flowTypeparamsVariable, 0)
-	params = GetValue(flowTypeparamsVariable, 1)
+	params = MapTyped(GetValue(flowTypeparamsVariable, 1))
 	if flowType != nil {
 		request["flowType"] = this.EncodeFlowType(flowType)
 	}
 	var accountType any = nil
 	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, methodName, "accountType")
 	accountType = GetValue(accountTypeparamsVariable, 0)
-	params = GetValue(accountTypeparamsVariable, 1)
+	params = MapTyped(GetValue(accountTypeparamsVariable, 1))
 	if accountType != nil {
 		request["accountType"] = this.EncodeAccountType(accountType)
 	}
@@ -2960,7 +2960,7 @@ func (this *Hashkey) CreateOrderAsync(symbol any, typeVar any, side any, amount 
 func (this *Hashkey) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3050,7 +3050,7 @@ func (this *Hashkey) CreateSpotOrderAsync(symbol any, typeVar any, side any, amo
 func (this *Hashkey) createSpotOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3090,7 +3090,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan any, symbol any, typeVar any, s
 	return nil
 }
 func (this *Hashkey) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3273,7 +3273,7 @@ func (this *Hashkey) CreateSwapOrderAsync(symbol any, typeVar any, side any, amo
 func (this *Hashkey) createSwapOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3543,7 +3543,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var methodName string = "cancelOrders"
 	if this.Markets == nil {
@@ -3560,7 +3560,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
 	if IsEqual(marketType, "spot") {
 
@@ -3686,13 +3686,13 @@ func (this *Hashkey) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hashkey) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var methodName string = "fetchOpenOrders"
 	this.CheckTypeParam(methodName, params)
@@ -3707,7 +3707,7 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = "spot"
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	params = this.Extend(map[string]any{
 		"methodName": methodName,
 	}, params)

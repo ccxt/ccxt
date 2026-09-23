@@ -661,7 +661,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -674,7 +674,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var level any = 0
 	var levelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "level", level)
 	level = GetValue(levelparamsVariable, 0)
-	params = GetValue(levelparamsVariable, 1)
+	params = MapTyped(GetValue(levelparamsVariable, 1))
 	request["level"] = level
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, params))).Raw))

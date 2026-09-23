@@ -1399,7 +1399,7 @@ func (this *Grvt) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Grvt) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
@@ -1575,7 +1575,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1687,7 +1687,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1918,9 +1918,9 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1998,9 +1998,9 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2255,7 +2255,7 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -2368,7 +2368,7 @@ func (this *Grvt) TransferAsync(code any, amount any, fromAccount any, toAccount
 func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
@@ -2378,11 +2378,11 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 		var tradingAccountId any = nil
 		var tradingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "tradingAccountId")
 		tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
-		params = GetValue(tradingAccountIdparamsVariable, 1)
+		params = MapTyped(GetValue(tradingAccountIdparamsVariable, 1))
 		var fundingAccountId any = nil
 		var fundingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "fundingAccountId")
 		fundingAccountId = GetValue(fundingAccountIdparamsVariable, 0)
-		params = GetValue(fundingAccountIdparamsVariable, 1)
+		params = MapTyped(GetValue(fundingAccountIdparamsVariable, 1))
 		if (tradingAccountId == nil) || (fundingAccountId == nil) {
 			panic(ArgumentsRequired(this.Id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)"))
 		}
@@ -2665,7 +2665,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
@@ -2690,7 +2690,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	if IsEqual(clientOrderId, nil) {
 		clientOrderId = ToString(this.Nonce()) + "000" + ToString(this.RequestId())
 	}
-	params = this.Omit(params, []any{"clientOrderId"})
+	params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
 	var subAccountId any = this.GetSubAccountId(params)
 	var isReduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
@@ -2729,7 +2729,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			timeInForce = "IMMEDIATE_OR_CANCEL"
 		}
 	}
-	params = this.Omit(params, []any{"reduceOnly", "postOnly", "timeInForce"})
+	params = MapTyped(this.Omit(params, []any{"reduceOnly", "postOnly", "timeInForce"}))
 	// Trigger & SL & TP
 	var triggerPrice any = nil
 	var stopLossPrice any = nil
@@ -2738,7 +2738,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	triggerPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 0)
 	stopLossPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 1)
 	takeProfitPrice = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 2)
-	params = GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 3)
+	params = MapTyped(GetValue(triggerPricestopLossPricetakeProfitPriceparamsVariable, 3))
 	if (triggerPrice != nil) || (stopLossPrice != nil) || (takeProfitPrice != nil) {
 		// trigger price
 		var selectedPrice any = nil
@@ -2799,7 +2799,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 				"close_position": this.SafeBool(params, "closePosition", false),
 			},
 		})
-		params = this.Omit(params, []any{"triggerDirection", "triggerPriceType", "closePosition"})
+		params = MapTyped(this.Omit(params, []any{"triggerDirection", "triggerPriceType", "closePosition"}))
 	}
 	var eipType string = "EIP712_ORDER_TYPE"
 	var builderFee *bool = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true))
@@ -2808,7 +2808,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		orderRequest["builder"] = this.SafeString(this.Options, "builder")
 		orderRequest["builder_fee"] = this.SafeString(this.Options, "builderRate")
 	}
-	params = this.Omit(params, []any{"builderFee"})
+	params = MapTyped(this.Omit(params, []any{"builderFee"}))
 	var signedOrderRequest any = this.CreateSignedRequest(orderRequest, eipType)
 	var request map[string]any = map[string]any{
 		"order": signedOrderRequest,
@@ -2970,7 +2970,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -3399,7 +3399,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -3511,7 +3511,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit

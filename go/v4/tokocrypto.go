@@ -2082,7 +2082,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2095,12 +2095,12 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	if postOnly != nil && *postOnly == true {
 		typeVar = "LIMIT_MAKER"
 	}
-	params = this.Omit(params, []any{"clientId", "clientOrderId"})
+	params = MapTyped(this.Omit(params, []any{"clientId", "clientOrderId"}))
 	var initialUppercaseType string = ToUpper(typeVar)
 	var uppercaseType string = initialUppercaseType
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
 	if !IsEqual(triggerPrice, nil) {
-		params = this.Omit(params, []any{"triggerPrice", "stopPrice"})
+		params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice"}))
 		if uppercaseType == "MARKET" {
 			uppercaseType = "STOP_LOSS"
 		} else if uppercaseType == "LIMIT" {
@@ -2166,9 +2166,9 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 			var createMarketBuyOrderRequiresPrice bool = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+			params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 			var cost *float64 = this.SafeNumber2(params, "cost", "quoteOrderQty")
-			params = this.Omit(params, []any{"cost", "quoteOrderQty"})
+			params = MapTyped(this.Omit(params, []any{"cost", "quoteOrderQty"}))
 			if cost != nil {
 				quoteAmount = cost
 			} else if createMarketBuyOrderRequiresPrice {
@@ -3017,11 +3017,11 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))

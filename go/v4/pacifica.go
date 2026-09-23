@@ -1059,12 +1059,12 @@ func (this *Pacifica) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var userAccount any = nil
 	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchBalance", params)
 	userAccount = GetValue(userAccountparamsVariable, 0)
-	params = GetValue(userAccountparamsVariable, 1)
+	params = MapTyped(GetValue(userAccountparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"account": userAccount,
 	}
@@ -1164,7 +1164,7 @@ func (this *Pacifica) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadAccountSettingsAsync()))
@@ -1176,7 +1176,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 	var userAccount any = nil
 	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchLeverage", params)
 	userAccount = GetValue(userAccountparamsVariable, 0)
-	params = GetValue(userAccountparamsVariable, 1)
+	params = MapTyped(GetValue(userAccountparamsVariable, 1))
 	var cacheAddress any = this.WalletAddress
 	var settings any = nil
 	if IsEqual(userAccount, cacheAddress) {
@@ -1257,12 +1257,12 @@ func (this *Pacifica) FetchAccountSettingsAsync(optionalArgs ...any) <-chan any 
 func (this *Pacifica) fetchAccountSettingsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var userAccount any = nil
 	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchAccountSettings", params)
 	userAccount = GetValue(userAccountparamsVariable, 0)
-	params = GetValue(userAccountparamsVariable, 1)
+	params = MapTyped(GetValue(userAccountparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"account": userAccount,
 	}
@@ -1341,14 +1341,14 @@ func (this *Pacifica) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-ch
 func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadAccountSettingsAsync()))
 	var userAccount any = nil
 	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchMarginMode", params)
 	userAccount = GetValue(userAccountparamsVariable, 0)
-	params = GetValue(userAccountparamsVariable, 1)
+	params = MapTyped(GetValue(userAccountparamsVariable, 1))
 	var cacheAddress any = this.WalletAddress
 	var settings any = nil
 	if IsEqual(userAccount, cacheAddress) {
@@ -1430,7 +1430,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1440,7 +1440,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var aggLevel any = nil
 	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
 	aggLevel = GetValue(aggLevelparamsVariable, 0)
-	params = GetValue(aggLevelparamsVariable, 1)
+	params = MapTyped(GetValue(aggLevelparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"agg_level": aggLevel,
@@ -1617,9 +1617,9 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if since == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"since\" argument"))
@@ -1636,7 +1636,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes125019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
@@ -1652,7 +1652,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var nowMillis int64 = this.Milliseconds()
 	var until any = DerefScalar(this.SafeInteger(request, "end_time"))
 	if IsEqual(until, nil) {
@@ -1803,7 +1803,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1816,11 +1816,11 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchMyTrades", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
@@ -1831,7 +1831,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	AddElementToObject(request, "account", userAddress)
 	if symbol != nil {
 		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
@@ -2337,7 +2337,7 @@ func (this *Pacifica) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any
 func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2402,7 +2402,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	return nil
 }
 func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2528,7 +2528,7 @@ func (this *Pacifica) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2722,7 +2722,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2735,7 +2735,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
@@ -3037,7 +3037,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3046,7 +3046,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOpenOrders", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
@@ -3116,7 +3116,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3125,7 +3125,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var defaultLimit int = 100 // max default 100
 	if paginate {
 
@@ -3136,7 +3136,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOrders", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3527,7 +3527,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3536,7 +3536,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"account": userAddress,
@@ -3803,7 +3803,7 @@ func (this *Pacifica) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-ch
 func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3812,7 +3812,7 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"account": userAddress,
@@ -4017,7 +4017,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4026,11 +4026,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchLedger", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
@@ -4150,7 +4150,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -4163,11 +4163,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchFundingHistory", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
-	params = GetValue(userAddressparamsVariable, 1)
+	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}

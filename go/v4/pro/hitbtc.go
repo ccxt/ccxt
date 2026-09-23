@@ -1027,13 +1027,13 @@ func (this *Hitbtc) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Hitbtc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1046,7 +1046,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.GetValue(marketTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var name any = this.GetSupportedMapping(marketType, map[string]any{
 		"spot":   "spot_subscribe",
 		"margin": "margin_subscribe",
@@ -1298,7 +1298,7 @@ func (this *Hitbtc) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Hitbtc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1307,14 +1307,14 @@ func (this *Hitbtc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var name any = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot_balance_subscribe",
 		"swap":   "futures_balance_subscribe",
 		"future": "futures_balance_subscribe",
 	})
 	var mode *string = this.SafeString(params, "mode", "batches")
-	params = this.Omit(params, "mode")
+	params = ccxt.MapTyped(this.Omit(params, "mode"))
 	var request map[string]any = map[string]any{
 		"mode": mode,
 	}
@@ -1355,7 +1355,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1366,14 +1366,14 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.GetValue(marketTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
-	params = ccxt.GetValue(marginModeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marginModeparamsVariable, 1))
 	requestparamsVariable := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, params)
 	request = ccxt.GetValue(requestparamsVariable, 0)
-	params = ccxt.GetValue(requestparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(requestparamsVariable, 1))
 	request = this.Extend(request, params)
 	if ccxt.IsEqual(marketType, "swap") {
 
@@ -1420,7 +1420,7 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1436,7 +1436,7 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrderWs", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.GetValue(marketTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("cancelOrderWs", params)
 	marginMode := ccxt.GetValue(marginModequeryVariable, 0)
 	query := ccxt.GetValue(marginModequeryVariable, 1)
@@ -1484,7 +1484,7 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1497,11 +1497,11 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrdersWs", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.GetValue(marketTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelAllOrdersWs", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
-	params = ccxt.GetValue(marginModeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marginModeparamsVariable, 1))
 	if ccxt.IsEqual(marketType, "swap") {
 
 		retRes122419 := (<-this.TradeRequestAsync("futures_cancel_orders", params))
@@ -1548,7 +1548,7 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1563,11 +1563,11 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrdersWs", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-	params = ccxt.GetValue(marketTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOpenOrdersWs", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
-	params = ccxt.GetValue(marginModeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marginModeparamsVariable, 1))
 	if ccxt.IsEqual(marketType, "swap") {
 
 		retRes126219 := (<-this.TradeRequestAsync("futures_get_orders", request))

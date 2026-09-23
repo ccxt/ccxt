@@ -1303,7 +1303,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1322,7 +1322,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var durationInSeconds any = this.ParseTimeframe(timeframe)
 	var duration any = Multiply(durationInSeconds, 1000)
 	if limit == nil {
-		limit = 1500
+		limit = Int64PtrTyped(1500)
 	}
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],

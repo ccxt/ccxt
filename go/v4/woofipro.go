@@ -1849,7 +1849,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1858,7 +1858,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes135819 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
@@ -1877,7 +1877,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_t", request, params, 0.001)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFundingRateHistory(this.Extend(request, params))).Raw))
 	//
@@ -1990,7 +1990,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1999,7 +1999,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes146119 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
@@ -2017,7 +2017,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		request["start_t"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until") // unified in milliseconds
-	params = this.Omit(params, []any{"until"})
+	params = MapTyped(this.Omit(params, []any{"until"}))
 	if until != nil {
 		request["end_t"] = until
 	}
@@ -2147,7 +2147,7 @@ func (this *Woofipro) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-cha
 func (this *Woofipro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2160,7 +2160,7 @@ func (this *Woofipro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		limit = mathMin(limit, 1000)
+		limit = Int64PtrTyped(mathMin(limit, 1000))
 		request["max_level"] = limit
 	}
 
@@ -3174,7 +3174,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3190,7 +3190,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}()
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes242819 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))
@@ -3200,7 +3200,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request any = map[string]any{}
 	var market any = nil
-	params = this.Omit(params, []any{"stop", "trigger"})
+	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -3218,7 +3218,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_t", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if isTrigger != nil && *isTrigger == true {
 
@@ -3460,7 +3460,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3469,7 +3469,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes261419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
@@ -3493,7 +3493,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_t", request, params)
 	request = GetValue(requestparamsVariable, 0)
-	params = GetValue(requestparamsVariable, 1)
+	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetTrades(this.Extend(request, params))).Raw))
 	//
@@ -3725,11 +3725,11 @@ func (this *Woofipro) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Woofipro) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3881,11 +3881,11 @@ func (this *Woofipro) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan 
 func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

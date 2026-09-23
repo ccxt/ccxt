@@ -815,7 +815,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	chSent := false
 	_ = chSent
 	// this endpoint requires authentication
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if !this.CheckRequiredCredentials(false) {
 
@@ -825,7 +825,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	var skipFetchCurrencies bool = false
 	var skipFetchCurrenciesparamsVariable []any = this.HandleOptionAndParams(params, "fetchCurrencies", "skipFetchCurrencies", false)
 	skipFetchCurrencies = GetValueBool(skipFetchCurrenciesparamsVariable, 0, false)
-	params = GetValue(skipFetchCurrenciesparamsVariable, 1)
+	params = MapTyped(GetValue(skipFetchCurrenciesparamsVariable, 1))
 	if skipFetchCurrencies {
 
 		// sub-accounts can't access this endpoint
@@ -1346,7 +1346,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1355,7 +1355,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes97319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))))
@@ -1375,7 +1375,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	params = this.Omit(params, []any{"until"})
+	params = MapTyped(this.Omit(params, []any{"until"}))
 	if until != nil {
 		request["end_time"] = until
 	}
@@ -1452,7 +1452,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1461,7 +1461,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes105719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
@@ -1479,7 +1479,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		request["count"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	params = this.Omit(params, []any{"until"})
+	params = MapTyped(this.Omit(params, []any{"until"}))
 	if until != nil {
 		request["end_ts"] = until
 	}
@@ -1536,11 +1536,11 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1549,7 +1549,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes112119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
@@ -1563,15 +1563,15 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"timeframe":       this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if limit != nil {
-		if IsGreaterThan(limit, 300) {
-			limit = 300
+		if limit != nil && *limit > 300 {
+			limit = Int64PtrTyped(300)
 		}
 		request["count"] = limit
 	}
 	var now int64 = this.Microseconds()
 	var duration any = this.ParseTimeframe(timeframe)
 	var until *int64 = this.SafeInteger(params, "until", now)
-	params = this.Omit(params, []any{"until"})
+	params = MapTyped(this.Omit(params, []any{"until"}))
 	if since != nil {
 		request["start_ts"] = Subtract(since, Multiply(duration, 1000))
 		if limit != nil {
@@ -1630,7 +1630,7 @@ func (this *Cryptocom) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-ch
 func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1642,7 +1642,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 	}
-	if (limit != nil) && (!IsEqual(limit, 0)) {
+	if (limit != nil) && (limit == nil || *limit != 0) {
 		request["depth"] = mathMin(limit, 50) // max 50
 	}
 
@@ -1854,7 +1854,7 @@ func (this *Cryptocom) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -1878,10 +1878,10 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = GetValue(marketTypeparamsVariable, 1)
+	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	marginModeparamsVariable := this.CustomHandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if (IsEqual(marketType, "margin")) || (marginMode != nil) {
 		request["spot_margin"] = "MARGIN"
 	} else if IsEqual(marketType, "spot") {
@@ -1959,7 +1959,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	} else {
 		request["type"] = uppercaseType
 	}
-	params = this.Omit(params, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
+	params = MapTyped(this.Omit(params, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}))
 	return this.Extend(request, params)
 }
 
@@ -2121,7 +2121,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -2219,9 +2219,9 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side 
 		var createMarketBuyOrderRequiresPrice bool = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
-		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 		var cost *float64 = this.SafeNumber2(params, "cost", "notional")
-		params = this.Omit(params, "cost")
+		params = MapTyped(this.Omit(params, "cost"))
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
@@ -2240,7 +2240,7 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side 
 	} else {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	params = this.Omit(params, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
+	params = MapTyped(this.Omit(params, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}))
 	return this.Extend(request, params)
 }
 
@@ -2269,7 +2269,7 @@ func (this *Cryptocom) editOrderBody(ch chan any, id any, symbol any, typeVar an
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2617,7 +2617,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2626,7 +2626,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		var retRes196619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))))
@@ -2646,7 +2646,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	params = this.Omit(params, []any{"until"})
+	params = MapTyped(this.Omit(params, []any{"until"}))
 	if until != nil {
 		request["end_time"] = until
 	}
@@ -2725,11 +2725,11 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = GetValue(tagparamsVariable, 1)
+	params = MapTyped(GetValue(tagparamsVariable, 1))
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -2746,7 +2746,7 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
 	var networkCode any = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
-	params = GetValue(networkCodeparamsVariable, 1)
+	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
 		request["network_id"] = networkId
@@ -3443,15 +3443,15 @@ func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName any, optionalA
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {Array} the marginMode in lowercase
 	 */
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
-	params = this.Omit(params, "margin")
+	params = MapTyped(this.Omit(params, "margin"))
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams(methodName, params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = GetValue(marginModeparamsVariable, 1)
+	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if marginMode != nil {
 		if !IsEqual(marginMode, "cross") {
 			panic(NotSupported(this.Id + " only cross margin is supported"))
@@ -3856,7 +3856,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3869,7 +3869,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
+	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})
 	if IsEqual(typeVar, "option") {
 		typeVar = "WARRANT"
@@ -4071,7 +4071,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
@@ -4083,7 +4083,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
-	params = GetValue(paginateparamsVariable, 1)
+	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
 		retRes319619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
@@ -4106,7 +4106,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		request["count"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	params = this.Omit(params, []any{"until"})
+	params = MapTyped(this.Omit(params, []any{"until"}))
 	if until != nil {
 		request["end_ts"] = until
 	}

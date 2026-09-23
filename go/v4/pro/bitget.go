@@ -110,24 +110,24 @@ func (this *Bitget) Describe() any {
 func (this *Bitget) GetInstType(methodName any, market any, optionalArgs ...any) any {
 	var uta bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = uta
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var instType any = nil
 	if ccxt.IsEqual(market, nil) {
 		instTypeparamsVariable := this.HandleProductTypeAndParams(nil, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
-		params = ccxt.GetValue(instTypeparamsVariable, 1)
+		params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	} else if (ccxt.GetValue(market, "swap") == true) || (ccxt.GetValue(market, "future") == true) {
 		instTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
-		params = ccxt.GetValue(instTypeparamsVariable, 1)
+		params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	} else {
 		instType = "SPOT"
 	}
 	var instypeAux any = nil
 	var instypeAuxparamsVariable []any = this.HandleOptionAndParams(params, methodName, "instType", instType)
 	instypeAux = ccxt.GetValue(instypeAuxparamsVariable, 0)
-	params = ccxt.GetValue(instypeAuxparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(instypeAuxparamsVariable, 1))
 	instType = instypeAux
 	if (uta == true) && (instType != nil) {
 		instType = ccxt.ToLower(instType)
@@ -155,7 +155,7 @@ func (this *Bitget) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Bitget) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -168,10 +168,10 @@ func (this *Bitget) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	instTypeparamsVariable := this.GetInstType("watchTicker", market, uta, params)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
-	params = ccxt.GetValue(instTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
@@ -245,7 +245,7 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -260,10 +260,10 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	instTypeparamsVariable := this.GetInstType("watchTickers", market, uta, params)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
-	params = ccxt.GetValue(instTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -528,7 +528,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -543,10 +543,10 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchBidsAsks", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	instTypeparamsVariable := this.GetInstType("watchBidsAsks", market, uta, params)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
-	params = ccxt.GetValue(instTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -654,7 +654,7 @@ func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -669,10 +669,10 @@ func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchOHLCV", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	instTypeparamsVariable := this.GetInstType("watchOHLCV", market, uta, params)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
-	params = ccxt.GetValue(instTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
@@ -723,7 +723,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -744,7 +744,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}()
 	instTypeparamsVariable := this.GetInstType("watchOHLCV", market, uta, params)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
-	params = ccxt.GetValue(instTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
@@ -991,7 +991,7 @@ func (this *Bitget) UnWatchChannelAsync(symbol any, channel any, messageHashTopi
 func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, messageHashTopic any, methodName any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1003,10 +1003,10 @@ func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, mes
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, methodName, "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	instTypeparamsVariable := this.GetInstType(methodName, market, uta, params)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
-	params = ccxt.GetValue(instTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
@@ -1017,7 +1017,7 @@ func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, mes
 		params = this.Extend(params, map[string]any{
 			"uta": true,
 		})
-		params = this.Omit(params, "interval")
+		params = ccxt.MapTyped(this.Omit(params, "interval"))
 	} else {
 		args["channel"] = channel
 		args["instId"] = market["id"]
@@ -1052,7 +1052,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1070,14 +1070,14 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var instType any = nil
 		instTypeparamsVariable := this.GetInstType("watchOrderBookForSymbols", market, uta, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
-		params = ccxt.GetValue(instTypeparamsVariable, 1)
+		params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 		var args map[string]any = map[string]any{
 			"instType": instType,
 		}
@@ -1330,7 +1330,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if symbolsLength == 0 {
@@ -1344,7 +1344,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTradesForSymbols", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -1353,7 +1353,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		var instType any = nil
 		instTypeparamsVariable := this.GetInstType("watchTradesForSymbols", market, uta, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
-		params = ccxt.GetValue(instTypeparamsVariable, 1)
+		params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 		var args map[string]any = map[string]any{
 			"instType": instType,
 		}
@@ -1686,7 +1686,7 @@ func (this *Bitget) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1699,13 +1699,13 @@ func (this *Bitget) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	symbols = this.MarketSymbols(symbols)
 	if (symbols != nil) && !this.IsEmpty(symbols) {
 		market = this.GetMarketFromSymbols(symbols)
 		instTypeparamsVariable := this.GetInstType("watchPositions", market, uta, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
-		params = ccxt.GetValue(instTypeparamsVariable, 1)
+		params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	}
 	if uta == true {
 		instType = "UTA"
@@ -2592,7 +2592,7 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -2608,18 +2608,18 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var instType any = nil
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	if ccxt.IsEqual(market, nil) && (ccxt.IsEqual(typeVar, "spot")) {
 		instType = "SPOT"
 	} else {
 		instTypeparamsVariable := this.GetInstType("watchMyTrades", market, uta, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
-		params = ccxt.GetValue(instTypeparamsVariable, 1)
+		params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	}
 	if uta == true {
 		instType = "UTA"
@@ -2825,20 +2825,20 @@ func (this *Bitget) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
-	params = ccxt.GetValue(utaparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("watchBalance", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
-	params = ccxt.GetValue(marginModeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(marginModeparamsVariable, 1))
 	var instType any = nil
 	var channel string = "account"
 	if (ccxt.IsEqual(typeVar, "swap")) || (ccxt.IsEqual(typeVar, "future")) {
@@ -2857,7 +2857,7 @@ func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var instTypeparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "instType", instType)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
-	params = ccxt.GetValue(instTypeparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(instTypeparamsVariable, 1))
 	if uta == true {
 		instType = "UTA"
 	}
