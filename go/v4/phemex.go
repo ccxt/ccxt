@@ -2297,7 +2297,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString any = nil
 	var amountString any = nil
 	var timestamp *int64 = nil
-	var id any = nil
+	var id *string = nil
 	var side any = nil
 	var costString any = nil
 	var typeVar any = nil
@@ -2308,13 +2308,13 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var orderId any = nil
+	var orderId *string = nil
 	var takerOrMaker any = nil
 	if IsArray(trade) {
 		var tradeLength int = GetArrayLength(trade)
 		timestamp = this.SafeIntegerProduct(trade, 0, 0.000001)
 		if tradeLength > 4 {
-			id = DerefScalar(this.SafeString(trade, tradeLength-4))
+			id = this.SafeString(trade, tradeLength-4)
 		}
 		side = this.SafeStringLower(trade, tradeLength-3)
 		priceString = DerefScalar(this.SafeString(trade, tradeLength-2))
@@ -2328,8 +2328,8 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 		if IsEqual(timestamp, nil) {
 			timestamp = this.SafeInteger(trade, "createdAt")
 		}
-		id = DerefScalar(this.SafeString2(trade, "execId", "execID"))
-		orderId = DerefScalar(this.SafeString(trade, "orderID"))
+		id = this.SafeString2(trade, "execId", "execID")
+		orderId = this.SafeString(trade, "orderID")
 		if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
 			var sideId *string = this.SafeStringLower(trade, "side")
 			if (sideId != nil && *sideId == "buy") || (sideId != nil && *sideId == "sell") {

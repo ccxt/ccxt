@@ -2349,11 +2349,11 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCostString *string = this.SafeString(order, "paid_commission")
 	if feeCostString != nil {
-		var feeCurrencyCode any = nil
+		var feeCurrencyCode *string = nil
 		if market != nil {
 			var settlingAsset map[string]any = SafeMapTyped(GetValue(market, "info"), "settling_asset")
 			var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
-			feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
+			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
 		}
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -4969,7 +4969,7 @@ func (this *Delta) Sign(path any, optionalArgs ...any) any {
 		var auth any = Add(Add(method, timestamp), requestPath)
 		if IsEqual(method, "GET") {
 			if len(ObjectKeys(query)) > 0 {
-				var queryString any = "?" + this.Urlencode(query)
+				var queryString string = "?" + this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, queryString)
 			}

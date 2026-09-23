@@ -1223,7 +1223,7 @@ func (this *Woo) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
 		var ts string = ccxt.ToString(this.Nonce())
-		var auth any = "|" + ts
+		var auth string = "|" + ts
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 		var request map[string]any = map[string]any{
 			"event": event,

@@ -461,7 +461,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		var timeframes []string = ccxt.ObjectKeys(updates[marketId])
 		for j := 0; j < len(timeframes); j++ {
 			var timeframe string = ccxt.GetValue(timeframes, j).(string)
-			var messageHash any = name + ":" + timeframe + ":" + marketId
+			var messageHash string = name + ":" + timeframe + ":" + marketId
 			var market any = this.SafeMarket(marketId)
 			var symbol any = ccxt.GetValue(market, "symbol")
 			var stored any = this.SafeList(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})

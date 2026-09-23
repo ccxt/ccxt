@@ -3554,9 +3554,9 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id any = nil
+	var id *string = nil
 	var timestamp *int64 = nil
-	var timeInForce any = nil
+	var timeInForce *string = nil
 	var postOnly any = nil
 	var side any = nil
 	var price any = nil
@@ -3564,7 +3564,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 	var filled any = nil
 	var remaining any = nil
 	var cost any = nil
-	var average any = nil
+	var average *string = nil
 	var fee any = nil
 	var lastTradeTimestamp *int64 = nil
 	var lastUpdateTimestamp *int64 = nil
@@ -3645,9 +3645,9 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(placeOrder, "product_id")
 		market = this.SafeMarket(marketId, market)
 		var data map[string]any = SafeMapTyped(order, "data")
-		id = DerefScalar(this.SafeString(data, "digest"))
+		id = this.SafeString(data, "digest")
 		if IsEqual(id, nil) {
-			id = DerefScalar(this.SafeString(placeOrder, "digest"))
+			id = this.SafeString(placeOrder, "digest")
 			timestamp = this.SafeTimestamp(order, "placed_at")
 			lastUpdateTimestamp = this.SafeTimestamp(order, "updated_at")
 		}

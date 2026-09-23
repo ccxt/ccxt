@@ -1481,22 +1481,22 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var priceString any = nil
-	var amountString any = nil
-	var costString any = nil
+	var priceString *string = nil
+	var amountString *string = nil
+	var costString *string = nil
 	var timestamp *int64 = nil
-	var id any = nil
+	var id *string = nil
 	var marketId any = nil
 	var side any = nil
-	var orderId any = nil
-	var takerOrMaker any = nil
+	var orderId *string = nil
+	var takerOrMaker *string = nil
 	var fee map[string]any = map[string]any{}
-	var typeVar any = nil
+	var typeVar *string = nil
 	if IsArray(trade) {
-		priceString = DerefScalar(this.SafeString(trade, 3))
-		amountString = DerefScalar(this.SafeString(trade, 2))
+		priceString = this.SafeString(trade, 3)
+		amountString = this.SafeString(trade, 2)
 		timestamp = this.SafeInteger(trade, 6)
-		id = DerefScalar(this.SafeString(trade, 0))
+		id = this.SafeString(trade, 0)
 		marketId = DerefScalar(this.SafeString(trade, 1))
 		var takerSide *int64 = this.SafeInteger(trade, 8)
 		if takerSide != nil && *takerSide == 0 {
@@ -1504,15 +1504,15 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 		} else if takerSide != nil && *takerSide == 1 {
 			side = "sell"
 		}
-		orderId = DerefScalar(this.SafeString(trade, 4))
+		orderId = this.SafeString(trade, 4)
 	} else {
 		timestamp = this.SafeInteger2(trade, "TradeTimeMS", "ReceiveTime")
-		id = DerefScalar(this.SafeString(trade, "TradeId"))
-		orderId = DerefScalar(this.SafeString2(trade, "OrderId", "OrigOrderId"))
+		id = this.SafeString(trade, "TradeId")
+		orderId = this.SafeString2(trade, "OrderId", "OrigOrderId")
 		marketId = DerefScalar(this.SafeString2(trade, "InstrumentId", "Instrument"))
-		priceString = DerefScalar(this.SafeString(trade, "Price"))
-		amountString = DerefScalar(this.SafeString(trade, "Quantity"))
-		costString = DerefScalar(this.SafeString2(trade, "Value", "GrossValueExecuted"))
+		priceString = this.SafeString(trade, "Price")
+		amountString = this.SafeString(trade, "Quantity")
+		costString = this.SafeString2(trade, "Value", "GrossValueExecuted")
 		takerOrMaker = this.SafeStringLower(trade, "MakerTaker")
 		side = this.SafeStringLower(trade, "Side")
 		typeVar = this.SafeStringLower(trade, "OrderType")
@@ -3246,15 +3246,15 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id any = nil
+	var id *string = nil
 	var currencyId *string = this.SafeString(transaction, "ProductId")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var typeVar any = nil
 	if InOp(transaction, "DepositId") {
-		id = DerefScalar(this.SafeString(transaction, "DepositId"))
+		id = this.SafeString(transaction, "DepositId")
 		typeVar = "deposit"
 	} else if InOp(transaction, "WithdrawId") {
-		id = DerefScalar(this.SafeString(transaction, "WithdrawId"))
+		id = this.SafeString(transaction, "WithdrawId")
 		typeVar = "withdrawal"
 	}
 	var templateForm any = this.ParseJson(this.SafeValue2(transaction, "TemplateForm", "DepositInfo"))

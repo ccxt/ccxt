@@ -6256,14 +6256,14 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) any {
 	var wAvg *string = this.SafeString(ticker, "weightedAvgPrice")
 	var isCoinm bool = (InOp(ticker, "baseVolume"))
 	var baseVolume any = nil
-	var quoteVolume any = nil
+	var quoteVolume *string = nil
 	if isCoinm {
 		baseVolume = DerefScalar(this.SafeString(ticker, "baseVolume"))
 		// 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
 		quoteVolume = Precise.StringMul(baseVolume, wAvg)
 	} else {
 		baseVolume = DerefScalar(this.SafeString(ticker, "volume"))
-		quoteVolume = DerefScalar(this.SafeString2(ticker, "quoteVolume", "amount"))
+		quoteVolume = this.SafeString2(ticker, "quoteVolume", "amount")
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

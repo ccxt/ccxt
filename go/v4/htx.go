@@ -2987,26 +2987,26 @@ func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol any = DerefScalar(this.SafeSymbol(marketId, market))
 	symbol = this.TryGetSymbolFromFutureMarkets(symbol)
 	var timestamp *int64 = this.SafeInteger2(ticker, "ts", "quoteTime")
-	var bid any = nil
-	var bidVolume any = nil
-	var ask any = nil
-	var askVolume any = nil
+	var bid *string = nil
+	var bidVolume *string = nil
+	var ask *string = nil
+	var askVolume *string = nil
 	if InOp(ticker, "bid") {
 		if !IsEqual(GetValue(ticker, "bid"), nil) && IsArray(GetValue(ticker, "bid")) {
-			bid = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 0))
-			bidVolume = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 1))
+			bid = this.SafeString(GetValue(ticker, "bid"), 0)
+			bidVolume = this.SafeString(GetValue(ticker, "bid"), 1)
 		} else {
-			bid = DerefScalar(this.SafeString(ticker, "bid"))
-			bidVolume = DerefScalar(this.SafeString(ticker, "bidSize"))
+			bid = this.SafeString(ticker, "bid")
+			bidVolume = this.SafeString(ticker, "bidSize")
 		}
 	}
 	if InOp(ticker, "ask") {
 		if !IsEqual(GetValue(ticker, "ask"), nil) && IsArray(GetValue(ticker, "ask")) {
-			ask = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 0))
-			askVolume = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 1))
+			ask = this.SafeString(GetValue(ticker, "ask"), 0)
+			askVolume = this.SafeString(GetValue(ticker, "ask"), 1)
 		} else {
-			ask = DerefScalar(this.SafeString(ticker, "ask"))
-			askVolume = DerefScalar(this.SafeString(ticker, "askSize"))
+			ask = this.SafeString(ticker, "ask")
+			askVolume = this.SafeString(ticker, "askSize")
 		}
 	}
 	var open *string = this.SafeString(ticker, "open")
@@ -3626,7 +3626,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	// htx's multi-market trade-id is a bit complex to parse accordingly.
 	// - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
 	// - otherwise the least priority is given to the `id` key
-	var id any = nil
+	var id *string = nil
 	var safeId *string = this.SafeString(trade, "id")
 	if (safeId != nil) && (func() int {
 		if safeId == nil {
@@ -3636,7 +3636,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	}() >= 0) {
 		id = safeId
 	} else {
-		id = DerefScalar(this.SafeStringN(trade, []any{"trade_id", "trade-id", "id"}))
+		id = this.SafeStringN(trade, []any{"trade_id", "trade-id", "id"})
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -6453,13 +6453,13 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"created_at", "created-at", "create_date", "created_time"})
 	var clientOrderId *string = this.SafeStringN(order, []any{"client_order_id", "client-or" + "der-id", "algo_client_order_id"}) // transpiler regex trick for php issue
-	var cost any = nil
-	var amount any = nil
+	var cost *string = nil
+	var amount *string = nil
 	if (!IsEqual(typeVar, nil)) && (GetIndexOf(typeVar, "market") >= 0) && (isLinearOrder != true) {
-		cost = DerefScalar(this.SafeString(order, "field-cash-amount"))
+		cost = this.SafeString(order, "field-cash-amount")
 	} else {
-		amount = DerefScalar(this.SafeString2(order, "volume", "amount"))
-		cost = DerefScalar(this.SafeStringN(order, []any{"filled-cash-amount", "field-cash-amount", "trade_turnover"})) // same typo here
+		amount = this.SafeString2(order, "volume", "amount")
+		cost = this.SafeStringN(order, []any{"filled-cash-amount", "field-cash-amount", "trade_turnover"}) // same typo here
 	}
 	var filled *string = this.SafeStringN(order, []any{"filled-amount", "field-amount", "trade_volume"}) // typo in their API, filled amount
 	var price *string = this.SafeString2(order, "price", "order_price")

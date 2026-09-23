@@ -1410,7 +1410,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "instrument_code")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var feeCostString *string = this.SafeString(feeInfo, "fee_amount")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var fee any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(feeInfo, "fee_currency")

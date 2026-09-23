@@ -1086,7 +1086,7 @@ func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) any {
 	var low *string = this.SafeString(ticker, "low")
 	var baseVolume *string = this.SafeString(ticker, "volume")
 	var quoteVolume *string = this.SafeString(ticker, "quoteVolume")
-	var percentage any = nil
+	var percentage *string = nil
 	var percentageNumber *float64 = this.SafeFloat(ticker, "priceChangePercent")
 	// in some cases priceChangePercent is a non-numeric string like "N/A"
 	if percentageNumber != nil {

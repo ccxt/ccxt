@@ -1721,7 +1721,7 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(amountObject, "amount", v3Amount)
 	var costString *string = this.SafeString(subtotalObject, "amount", v3Cost)
 	var priceString any = nil
-	var cost any = nil
+	var cost *string = nil
 	if (costString != nil) && (amountString != nil) {
 		priceString = Precise.StringDiv(costString, amountString)
 	} else {
@@ -4210,10 +4210,10 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 	var marketIOC map[string]any = SafeMapTyped(orderConfiguration, "market_market_ioc")
 	var isLimit bool = ((!IsEqual(limitGTC, nil)) || (!IsEqual(limitGTD, nil)) || (!IsEqual(limitIOC, nil)))
 	var isStop bool = ((!IsEqual(stopLimitGTC, nil)) || (!IsEqual(stopLimitGTD, nil)))
-	var price any = nil
-	var amount any = nil
+	var price *string = nil
+	var amount *string = nil
 	var postOnly *bool = nil
-	var triggerPrice any = nil
+	var triggerPrice *string = nil
 	if isLimit {
 		var target any = nil
 		if !IsEqual(limitGTC, nil) {
@@ -4223,8 +4223,8 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 		} else {
 			target = limitIOC
 		}
-		price = DerefScalar(this.SafeString(target, "limit_price"))
-		amount = DerefScalar(this.SafeString(target, "base_size"))
+		price = this.SafeString(target, "limit_price")
+		amount = this.SafeString(target, "base_size")
 		postOnly = this.SafeBool(target, "post_only")
 	} else if isStop {
 		var stopTarget any = func() any {
@@ -4233,12 +4233,12 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 			}
 			return stopLimitGTD
 		}()
-		price = DerefScalar(this.SafeString(stopTarget, "limit_price"))
-		amount = DerefScalar(this.SafeString(stopTarget, "base_size"))
+		price = this.SafeString(stopTarget, "limit_price")
+		amount = this.SafeString(stopTarget, "base_size")
 		postOnly = this.SafeBool(stopTarget, "post_only")
-		triggerPrice = DerefScalar(this.SafeString(stopTarget, "stop_price"))
+		triggerPrice = this.SafeString(stopTarget, "stop_price")
 	} else {
-		amount = DerefScalar(this.SafeString(marketIOC, "base_size"))
+		amount = this.SafeString(marketIOC, "base_size")
 	}
 	var datetime *string = this.SafeString(order, "created_time")
 	var totalFees *string = this.SafeString(order, "total_fees")

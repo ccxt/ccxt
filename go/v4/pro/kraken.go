@@ -647,7 +647,7 @@ func (this *Kraken) HandleTicker(client any, message map[string]any) {
 	var symbol *string = this.SafeString(ticker, "symbol")
 	var messageHash any = this.GetMessageHash("ticker", nil, symbol)
 	var vwap *string = this.SafeString(ticker, "vwap")
-	var quoteVolume any = nil
+	var quoteVolume *string = nil
 	var baseVolume *string = this.SafeString(ticker, "volume")
 	if (baseVolume != nil) && (vwap != nil) {
 		quoteVolume = ccxt.Precise.StringMul(baseVolume, vwap)

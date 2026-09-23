@@ -839,7 +839,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 
 	data := (<-this.FetchWebEndpointAsync("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>"))
 	PanicOnError(data)
-	var error any = this.Id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets."
+	var error string = this.Id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets."
 	var tables []string = Split(data, "tbody>")
 	var numTables int = len(tables)
 	if numTables < 2 {
@@ -853,7 +853,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 	var result []any = []any{}
 	// skip the first element (empty string)
 	for i := 1; i < numRows; i++ {
-		var row any = GetValue(rows, i)
+		var row string = rows[i]
 		var cells []string = Split(row, "</td>\n") // eslint-disable-line quotes
 		var numCells int = len(cells)
 		if numCells < 5 {

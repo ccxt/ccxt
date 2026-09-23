@@ -1438,14 +1438,14 @@ func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var isCoinm bool = (InOp(ticker, "baseVolume"))
-	var baseVolume any = nil
-	var quoteVolume any = nil
+	var baseVolume *string = nil
+	var quoteVolume *string = nil
 	if isCoinm {
-		baseVolume = DerefScalar(this.SafeString(ticker, "baseVolume"))
-		quoteVolume = DerefScalar(this.SafeString(ticker, "volume"))
+		baseVolume = this.SafeString(ticker, "baseVolume")
+		quoteVolume = this.SafeString(ticker, "volume")
 	} else {
-		baseVolume = DerefScalar(this.SafeString(ticker, "volume"))
-		quoteVolume = DerefScalar(this.SafeString(ticker, "quoteVolume"))
+		baseVolume = this.SafeString(ticker, "volume")
+		quoteVolume = this.SafeString(ticker, "quoteVolume")
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

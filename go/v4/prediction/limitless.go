@@ -4102,7 +4102,7 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 			"lmts-timestamp": timestamp,
 			"lmts-signature": signature,
 		})
-		var headerKey any = "lmts-api" + "-key" // concatenating because of the php version
+		var headerKey string = "lmts-api" + "-key" // concatenating because of the php version
 		var headersKey map[string]any = map[string]any{}
 		ccxt.AddElementToObject(headersKey, headerKey, this.ApiKey)
 		headers = this.Extend(headers, headersKey)

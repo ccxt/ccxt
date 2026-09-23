@@ -592,7 +592,7 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	var subscriptionHash any = name + ".subscribe"
+	var subscriptionHash string = name + ".subscribe"
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var subscribe map[string]any = map[string]any{
 		"method": subscriptionHash,
@@ -652,7 +652,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	var subscriptionHash any = name + ".subscribe"
+	var subscriptionHash string = name + ".subscribe"
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(symbols, i)))
@@ -724,7 +724,7 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		return "trade"
 	}()
 	var messageHash any = ccxt.Add("trade:", symbol)
-	var method any = name + ".subscribe"
+	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -786,7 +786,7 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		return "orderbook"
 	}()
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var method any = name + ".subscribe"
+	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -850,7 +850,7 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		return "kline"
 	}()
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("kline:", timeframe), ":"), symbol)
-	var method any = name + ".subscribe"
+	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -1150,7 +1150,7 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var market string = ccxt.GetValue(keys, i).(string)
-		var hash any = channel + ":" + market
+		var hash string = channel + ":" + market
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
 	// generic subscription

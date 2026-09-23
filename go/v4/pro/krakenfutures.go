@@ -1202,7 +1202,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
 			var symbol string = ccxt.GetValue(keys, i).(string)
-			var symbolMessageHash any = messageHash + ":" + symbol
+			var symbolMessageHash string = messageHash + ":" + symbol
 			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 		}
 	}
@@ -1818,7 +1818,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	var tradeSymbolKeys []string = ccxt.ObjectKeys(tradeSymbols)
 	for i := 0; i < len(tradeSymbolKeys); i++ {
 		var symbol string = ccxt.GetValue(tradeSymbolKeys, i).(string)
-		var messageHash any = "myTrades:" + symbol
+		var messageHash string = "myTrades:" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")

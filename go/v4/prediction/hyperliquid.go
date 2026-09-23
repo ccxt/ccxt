@@ -533,7 +533,7 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo any, outcomeId any, opti
 				}
 				return "0000"
 			}()
-			var isoStr any = ccxt.Slice(ymd, 0, 4) + "-" + ccxt.Slice(ymd, 4, 6) + "-" + ccxt.Slice(ymd, 6, 8) + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
+			var isoStr string = ccxt.Slice(ymd, 0, 4) + "-" + ccxt.Slice(ymd, 4, 6) + "-" + ccxt.Slice(ymd, 6, 8) + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
 			expiryMs = this.Parse8601(isoStr)
 			expiryDatetime = isoStr
 		}
@@ -1265,7 +1265,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 			continue
 		}
 		// the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
-		var tradeCoin any = "#" + func() string {
+		var tradeCoin string = "#" + func() string {
 			if coin == nil {
 				return ""
 			}
@@ -2482,7 +2482,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 				var wordsLength int = len(words)
 				var allWords bool = true
 				for wi := 0; wi < wordsLength; wi++ {
-					var word any = ccxt.GetValue(words, wi)
+					var word string = words[wi]
 					// `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
 					if (!ccxt.IsEqual(word, "")) && (ccxt.GetIndexOf(haystack, word) < 0) {
 						allWords = false
@@ -2576,7 +2576,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) any {
 				}
 				return "0000"
 			}()
-			var isoStr any = ccxt.Slice(ymd, 0, 4) + "-" + ccxt.Slice(ymd, 4, 6) + "-" + ccxt.Slice(ymd, 6, 8) + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
+			var isoStr string = ccxt.Slice(ymd, 0, 4) + "-" + ccxt.Slice(ymd, 4, 6) + "-" + ccxt.Slice(ymd, 6, 8) + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
 			expiryMs = ccxt.DerefScalar(this.Parse8601(isoStr))
 			expiryDatetime = isoStr
 		}

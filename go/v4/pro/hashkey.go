@@ -1034,7 +1034,7 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	var messageHash any = "balance:" + typeVar
+	var messageHash string = "balance:" + typeVar
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 }
 func (this *Hashkey) AuthenticateAsync(optionalArgs ...any) <-chan any {

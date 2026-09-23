@@ -1194,12 +1194,12 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var factor *string = this.SafeString(trade, "factor")
-	var costString any = nil
+	var costString *string = nil
 	if factor != nil {
 		amountString = Precise.StringDiv(amountString, factor)
 	} else {
 		amountString = this.SafeString(trade, "base_volume")
-		costString = DerefScalar(this.SafeString(trade, "quote_volume"))
+		costString = this.SafeString(trade, "quote_volume")
 	}
 	var symbol any = GetValue(market, "symbol")
 	var fee any = nil

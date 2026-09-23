@@ -4299,7 +4299,7 @@ func (this *Myriad) HandleMessage(client any, message any) {
 		var lines []string = ccxt.Split(message, "\n")
 		var linesLength int = len(lines)
 		for i := 0; i < linesLength; i++ {
-			var line any = ccxt.GetValue(lines, i)
+			var line string = lines[i]
 			if ccxt.GetLength(line) > 0 {
 				var parsed any = ccxt.JsonParse(line)
 				this.HandleCentrifugoFrame(client, parsed)
@@ -4471,7 +4471,7 @@ func (this *Myriad) HandleOrderBook(client any, data any) {
 	var updatedSymbols []string = ccxt.ObjectKeys(updated)
 	var updatedLength int = len(updatedSymbols)
 	for k := 0; k < updatedLength; k++ {
-		var sym any = ccxt.GetValue(updatedSymbols, k)
+		var sym string = updatedSymbols[k]
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, sym), ccxt.Add("orderbook::", sym))
 	}
 }
@@ -5225,7 +5225,7 @@ func (this *Myriad) Sign(path any, optionalArgs ...any) any {
 		// corrupted header name in php only - every other language stays green, so the
 		// regression would ship silently. pinned by the fixture in
 		// ts/src/test/static/request/prediction/myriad.json
-		var headerKey any = "x-api" + "-key"
+		var headerKey string = "x-api" + "-key"
 		var headersKey map[string]any = map[string]any{}
 		ccxt.AddElementToObject(headersKey, headerKey, this.ApiKey)
 		headers = this.Extend(headers, headersKey)

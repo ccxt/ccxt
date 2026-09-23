@@ -3420,7 +3420,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) an
 	_ = currency
 	var typeVar string
 	var rawStatus *string = this.SafeString(transaction, "status")
-	var status any = nil
+	var status *string = nil
 	if InOp(transaction, "client_wid") {
 		typeVar = "withdrawal"
 		status = this.ParseWithdrawalStatus(rawStatus)

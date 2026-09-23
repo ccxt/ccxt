@@ -2210,7 +2210,7 @@ func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var direction any = nil
-	var txId any = nil
+	var txId *string = nil
 	var networkCode any = nil
 	var addressFrom *string = this.SafeString(transaction, "from_account_id")
 	var addressTo *string = this.SafeString(transaction, "to_account_id")
@@ -2221,7 +2221,7 @@ func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) any {
 		if metaData != nil {
 			var parsedMeta any = this.ParseJson(metaData)
 			direction = this.SafeStringLower(parsedMeta, "direction")
-			txId = DerefScalar(this.SafeString(parsedMeta, "provider_tx_id"))
+			txId = this.SafeString(parsedMeta, "provider_tx_id")
 			networkCode = this.NetworkIdToCode(this.SafeString(parsedMeta, "chainid"), code)
 			if IsEqual(direction, "withdrawal") {
 				addressTo = this.SafeString(parsedMeta, "endpoint")
@@ -3951,11 +3951,11 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		return this.ParseTimeInForce(timeInForceRaw)
 	}()
-	var size any = nil
+	var size *string = nil
 	var side any = nil
-	var price any = nil
-	var filled any = nil
-	var avgPrice any = nil
+	var price *string = nil
+	var filled *string = nil
+	var avgPrice *string = nil
 	var legs any = this.SafeList(order, "legs", []any{})
 	var metadata map[string]any = SafeMapTyped(order, "metadata")
 	var stateObj map[string]any = SafeMapTyped(order, "state")
@@ -3966,7 +3966,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	if !IsEqual(firstLeg, nil) {
 		var marketId *string = this.SafeString(firstLeg, "instrument")
 		market = this.SafeMarket(marketId, market)
-		size = DerefScalar(this.SafeString(firstLeg, "size"))
+		size = this.SafeString(firstLeg, "size")
 		var isBuyingAsset bool = (IsEqual(this.SafeBool(firstLeg, "is_buying_asset"), true))
 		side = func() string {
 			if isBuyingAsset {
@@ -3974,9 +3974,9 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 			}
 			return "sell"
 		}()
-		price = DerefScalar(this.SafeString(firstLeg, "limit_price"))
-		filled = DerefScalar(this.SafeString(filledAmounts, primaryOrderIndex))
-		avgPrice = DerefScalar(this.SafeString(avgPrices, primaryOrderIndex))
+		price = this.SafeString(firstLeg, "limit_price")
+		filled = this.SafeString(filledAmounts, primaryOrderIndex)
+		avgPrice = this.SafeString(avgPrices, primaryOrderIndex)
 	}
 	var timestamp *int64 = this.SafeIntegerProduct(metadata, "create_time", 0.000001)
 	// const triggerDetails = this.safeDict (metadata, 'trigger', {});

@@ -1362,7 +1362,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var makerOrderId *string = this.SafeString(trade, "maker_order_id")
 	var takerOrderId *string = this.SafeString(trade, "taker_order_id")
-	var orderId any = nil
+	var orderId *string = nil
 	if makerOrderId != nil {
 		orderId = makerOrderId
 	} else if takerOrderId != nil {
@@ -1751,14 +1751,14 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var typeVar *string = this.ParseType(this.SafeString(order, "type"))
 	var price *string = this.SafeString(order, "price")
-	var amount any = nil
-	var filled any = nil
-	var cost any = nil
+	var amount *string = nil
+	var filled *string = nil
+	var cost *string = nil
 	if (typeVar != nil && *typeVar == "market") && IsEqual(side, "buy") {
-		cost = DerefScalar(this.SafeString(order, "filled_amount"))
+		cost = this.SafeString(order, "filled_amount")
 	} else {
-		amount = DerefScalar(this.SafeString(order, "amount"))
-		filled = DerefScalar(this.SafeString(order, "filled_amount"))
+		amount = this.SafeString(order, "amount")
+		filled = this.SafeString(order, "filled_amount")
 	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,

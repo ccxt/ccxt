@@ -1127,9 +1127,9 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
 	var isRiskOrder bool = (rawSide != nil && *rawSide == "STOPLOSS") || (rawSide != nil && *rawSide == "TAKEPROFIT")
 	var priceString *string = this.SafeString2(order, "price", "order_price")
 	var orderPrice any = priceString
-	var triggerPrice any = nil
-	var stopLossPrice any = nil
-	var takeProfitPrice any = nil
+	var triggerPrice *string = nil
+	var stopLossPrice *string = nil
+	var takeProfitPrice *string = nil
 	if isRiskOrder {
 		triggerPrice = priceString
 		orderPrice = nil

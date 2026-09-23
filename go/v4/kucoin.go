@@ -3549,7 +3549,7 @@ func (this *Kucoin) ParseContractTicker(ticker any, optionalArgs ...any) any {
 	var last *string = this.SafeString2(ticker, "price", "lastTradePrice")
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "ts", 0.000001)
 	var change *string = this.SafeString(ticker, "priceChg")
-	var percentage any = nil
+	var percentage *string = nil
 	if (last == nil) || (change == nil) {
 		percentage = Precise.StringMul(this.SafeString(ticker, "priceChgPct"), "100")
 	}
@@ -8374,7 +8374,7 @@ func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerProduct2(order, "orderTime", "ts", 0.000001)
 	var lastUpdateTimestamp *int64 = this.SafeIntegerProduct(order, "updatedTime", 0.000001)
 	var rawTimeInForce *string = this.SafeString(order, "timeInForce")
-	var amount any = nil
+	var amount *string = nil
 	var cost any = nil
 	var sizeUnit *string = this.SafeString(order, "sizeUnit")
 	var size *string = this.SafeString(order, "size")
@@ -11243,7 +11243,7 @@ func (this *Kucoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	//     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
 	//
-	var referenceId any = nil
+	var referenceId *string = nil
 	if (context != nil) && (context == nil || *context != "") {
 
 		{
@@ -11283,7 +11283,7 @@ func (this *Kucoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		}
 		return this.OmitZero(feeCostString)
 	}()
-	var feeCurrency any = nil
+	var feeCurrency *string = nil
 	if feeCost != nil {
 		feeCurrency = code
 		fee = map[string]any{

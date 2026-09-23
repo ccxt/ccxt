@@ -1746,7 +1746,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
 	var avgPrice *string = this.SafeString(order, "trade_avg_price")
 	var rawTrades any = this.SafeValue(order, "trade")
 	var typeSideParts any = []any{}
-	var typeVar any = nil
+	var typeVar *string = nil
 	if typeSide != nil {
 		if func() int {
 			if typeSide == nil {
@@ -1761,7 +1761,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	if ccxt.IsEqual(typeVar, nil) {
-		typeVar = ccxt.DerefScalar(this.SafeString(order, "order_price_type"))
+		typeVar = this.SafeString(order, "order_price_type")
 	}
 	var side *string = this.SafeStringLower(typeSideParts, 0)
 	if side == nil {
@@ -3201,7 +3201,7 @@ func (this *Htx) HandleMyTrade(client any, message any, optionalArgs ...any) {
 			var genericOrderHash string = ccxt.Replace(messageHash, ccxt.Add(".", ccxt.GetValue(market, "lowercaseId")), "")
 			var lowerCaseBaseId *string = this.SafeStringLower(market, "baseId")
 			genericOrderHash = ccxt.Replace(genericOrderHash, ccxt.Add(".", lowerCaseBaseId), "")
-			var genericTradesHash any = genericOrderHash + ":" + "trade"
+			var genericTradesHash string = genericOrderHash + ":" + "trade"
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, genericTradesHash)
 		}
 	}
@@ -3274,11 +3274,11 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) any {
 	} else {
 		takerOrMaker = this.SafeStringLower(trade, "role")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var orderTypeParts any = []any{}
 	if orderType != nil {
 		orderTypeParts = ccxt.Split(orderType, "-")
-		typeVar = ccxt.DerefScalar(this.SafeString(orderTypeParts, 1, orderType))
+		typeVar = this.SafeString(orderTypeParts, 1, orderType)
 	}
 	var fee any = nil
 	var feeCurrency *string = this.SafeCurrencyCode(this.SafeStringN(trade, []any{"feeCurrency", "fee_currency", "fee_asset"}))

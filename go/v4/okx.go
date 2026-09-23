@@ -5820,8 +5820,8 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) any {
 	var average *string = this.SafeString(order, "avgPx")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var feeCostString *string = this.SafeString(order, "fee")
-	var amount any = nil
-	var cost any = nil
+	var amount *string = nil
+	var cost *string = nil
 	// spot market buy: "sz" can refer either to base currency units or to quote currency units
 	// see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
 	var defaultTgtCcy *string = this.SafeString(this.Options, "tgtCcy", "base_ccy")
@@ -5829,10 +5829,10 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) any {
 	var instType *string = this.SafeString(order, "instType")
 	if (side != nil && *side == "buy") && (IsEqual(typeVar, "market")) && (instType != nil && *instType == "SPOT") && (tgtCcy != nil && *tgtCcy == "quote_ccy") {
 		// "sz" refers to the cost
-		cost = DerefScalar(this.SafeString(order, "sz"))
+		cost = this.SafeString(order, "sz")
 	} else {
 		// "sz" refers to the trade currency amount
-		amount = DerefScalar(this.SafeString(order, "sz"))
+		amount = this.SafeString(order, "sz")
 	}
 	var fee any = nil
 	if feeCostString != nil {
@@ -7767,7 +7767,7 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar string
-	var id any = nil
+	var id *string = nil
 	var withdrawalId *string = this.SafeString(transaction, "wdId")
 	var addressFrom *string = this.SafeString(transaction, "from")
 	var addressTo *string = this.SafeString(transaction, "to")
@@ -7784,7 +7784,7 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) any {
 		id = withdrawalId
 	} else {
 		// the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-		id = DerefScalar(this.SafeString(transaction, "depId"))
+		id = this.SafeString(transaction, "depId")
 		typeVar = "deposit"
 	}
 	var currencyId *string = this.SafeString(transaction, "ccy")
@@ -7903,7 +7903,7 @@ func (this *Okx) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId any = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var longLeverage *int64 = nil
 	var shortLeverage *int64 = nil
 	for i := 0; i < GetArrayLength(leverage); i++ {
@@ -8709,7 +8709,7 @@ func (this *Okx) Sign(path any, optionalArgs ...any) any {
 		var auth any = Add(Add(timestamp, method), request)
 		if IsEqual(method, "GET") {
 			if len(ObjectKeys(query)) > 0 {
-				var urlencodedQuery any = "?" + this.Urlencode(query)
+				var urlencodedQuery string = "?" + this.Urlencode(query)
 				url = Add(url, urlencodedQuery)
 				auth = Add(auth, urlencodedQuery)
 			}

@@ -1751,9 +1751,9 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
-		var feeCurrencyCode any = nil
+		var feeCurrencyCode *string = nil
 		if feeCurrencyId != nil {
-			feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
+			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
 		}
 		fee = map[string]any{
 			"cost":     feeCostString,

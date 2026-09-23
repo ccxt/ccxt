@@ -1226,13 +1226,13 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan any, code any, option
 	response := (<-this.PrivatePostDepositsCurrency(this.Extend(request, params)))
 	PanicOnError(response)
 	var rawAddress *string = this.SafeString(response, "address")
-	var tag any = nil
-	var address any = nil
+	var tag *string = nil
+	var address *string = nil
 	if rawAddress != nil {
 		var addressParts []string = Split(rawAddress, ";")
 		// if a tag or memo is used it is separated by a colon in the 'address' value
-		tag = DerefScalar(this.SafeString(addressParts, 0))
-		address = DerefScalar(this.SafeString(addressParts, 1))
+		tag = this.SafeString(addressParts, 0)
+		address = this.SafeString(addressParts, 1)
 	}
 
 	ch <- map[string]any{
@@ -1283,7 +1283,7 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar any = nil
-	var id any = nil
+	var id *string = nil
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var currencyId *string = this.SafeString(transaction, "currency")
@@ -1291,10 +1291,10 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 	var state *string = this.SafeString(transaction, "state")
 	if InOp(transaction, "depositId") {
 		typeVar = "deposit"
-		id = DerefScalar(this.SafeString(transaction, "depositId"))
+		id = this.SafeString(transaction, "depositId")
 	} else if InOp(transaction, "withdrawalId") {
 		typeVar = "withdrawal"
-		id = DerefScalar(this.SafeString(transaction, "withdrawalId"))
+		id = this.SafeString(transaction, "withdrawalId")
 	}
 	var feeCost any = func() any {
 		if IsEqual(typeVar, "withdrawal") {

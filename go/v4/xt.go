@@ -1779,8 +1779,8 @@ func (this *Xt) ParseMarket(market any) any {
 	var underlyingType *string = this.SafeString(market, "underlyingType")
 	var linear any = nil
 	var inverse any = nil
-	var settleId any = nil
-	var settle any = nil
+	var settleId *string = nil
+	var settle *string = nil
 	var expiry any = nil
 	var future bool = false
 	var swap bool = false
@@ -3030,7 +3030,7 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"t", "time", "timestamp"})
 	var quantity *string = this.SafeString2(trade, "q", "quantity")
-	var amount any = nil
+	var amount *string = nil
 	if IsEqual(marketType, "spot") {
 		amount = quantity
 	} else {

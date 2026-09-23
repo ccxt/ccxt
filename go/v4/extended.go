@@ -720,7 +720,7 @@ func (this *Extended) ParseMarket(market any) any {
 	var minAmount *float64 = this.SafeNumber(tradingConfig, "minOrderSize")
 	var maxCost *float64 = this.SafeNumber(tradingConfig, "maxLimitOrderValue")
 	var created *int64 = this.SafeInteger(market, "createdAt")
-	var settleId any = nil
+	var settleId *string = nil
 	var settle any = nil
 	var symbol any = Add(Add(base, "/"), quote)
 	var isSpot bool = false

@@ -2286,9 +2286,9 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var price *string = this.SafeString(order, "price")
 	var costString *string = this.SafeString(order, "cummulativeQuoteQty")
-	var amountString any = nil
+	var amountString *string = nil
 	if rawType == nil || *rawType != "buy_market" {
-		amountString = DerefScalar(this.SafeString2(order, "origQty", "amount"))
+		amountString = this.SafeString2(order, "origQty", "amount")
 	}
 	var filledString *string = this.SafeString2(order, "executedQty", "deal_amount")
 	return this.SafeOrder(map[string]any{
@@ -3139,8 +3139,8 @@ func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var txid *string = this.SafeString(transaction, "txId")
 	var timestamp *int64 = this.SafeInteger2(transaction, "insertTime", "applyTime")
 	var address *string = this.SafeString(transaction, "address")
-	var addressFrom any = nil
-	var addressTo any = nil
+	var addressFrom *string = nil
+	var addressTo *string = nil
 	if typeVar == "deposit" {
 		addressFrom = address
 	} else {
@@ -3875,7 +3875,7 @@ func (this *Lbank) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Milliseconds())
-		var echostr any = this.Uuid22() + this.Uuid16()
+		var echostr string = this.Uuid22() + this.Uuid16()
 		query = this.Extend(map[string]any{
 			"api_key": this.ApiKey,
 		}, query)

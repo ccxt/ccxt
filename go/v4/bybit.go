@@ -2632,7 +2632,7 @@ func (this *Bybit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var list []any = SafeListTyped(result, "list")
 	var status string = "ok"
 	var eta *int64 = nil
-	var url any = nil
+	var url *string = nil
 	for i := 0; i < len(list); i++ {
 		var event any = func() any {
 			if i >= 0 && i < len(list) {
@@ -2644,11 +2644,11 @@ func (this *Bybit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		if state != nil && *state == "ongoing" {
 			status = "maintenance"
 			eta = this.SafeInteger(event, "end")
-			url = DerefScalar(this.SafeString(event, "href"))
+			url = this.SafeString(event, "href")
 			break
 		} else if state != nil && *state == "scheduled" {
 			eta = this.SafeInteger(event, "begin")
-			url = DerefScalar(this.SafeString(event, "href"))
+			url = this.SafeString(event, "href")
 		}
 	}
 
@@ -5295,15 +5295,15 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower(order, "orderType")
 	var price *string = this.SafeString(order, "price")
 	var side *string = this.SafeStringLower(order, "side")
-	var amount any = nil
-	var cost any = nil
+	var amount *string = nil
+	var cost *string = nil
 	var qtyIsQuote bool = (GetValue(market, "spot") == true) && (typeVar != nil && *typeVar == "market") && ((marketUnit != nil && *marketUnit == "quoteCoin") || ((marketUnit == nil) && (side != nil && *side == "buy")))
 	if qtyIsQuote == true {
 		// qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
-		cost = DerefScalar(this.SafeString(order, "cumExecValue"))
+		cost = this.SafeString(order, "cumExecValue")
 	} else {
-		amount = DerefScalar(this.SafeString(order, "qty"))
-		cost = DerefScalar(this.SafeString(order, "cumExecValue"))
+		amount = this.SafeString(order, "qty")
+		cost = this.SafeString(order, "cumExecValue")
 	}
 	var filled *string = this.SafeString(order, "cumExecQty")
 	var remaining *string = this.SafeString(order, "leavesQty")

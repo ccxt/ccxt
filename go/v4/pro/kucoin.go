@@ -1602,7 +1602,7 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	if isFuturesMethod {
 		channelName = "/contractMarket/execution:"
 	}
-	var topic any = channelName + ccxt.Join(marketIds, ",")
+	var topic string = channelName + ccxt.Join(marketIds, ",")
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		messageHashes = append(messageHashes, ccxt.Add("trades:", symbol))
@@ -1660,7 +1660,7 @@ func (this *Kucoin) unWatchTradesForSymbolsBody(ch chan any, symbols any, option
 	if isFuturesMethod {
 		channelName = "/contractMarket/execution:"
 	}
-	var topic any = channelName + ccxt.Join(marketIds, ",")
+	var topic string = channelName + ccxt.Join(marketIds, ",")
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trades:", symbol))
@@ -3543,7 +3543,7 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	var messageHash any = typeVar + ":balance"
+	var messageHash string = typeVar + ":balance"
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 }
 

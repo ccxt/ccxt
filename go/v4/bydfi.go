@@ -1002,7 +1002,7 @@ func (this *Bydfi) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var orderId *string = this.SafeString(trade, "orderId")
-	var side any = nil // fetchMyTrades always returns side BUY
+	var side *string = nil // fetchMyTrades always returns side BUY
 	if orderId == nil {
 		// from fetchTrades
 		side = this.SafeStringLower(trade, "side")

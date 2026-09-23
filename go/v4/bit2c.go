@@ -1000,14 +1000,14 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
 		side = "sell"
 	}
 	var price *string = this.SafeString(orderUnified, "price")
-	var amount any = nil
-	var remaining any = nil
+	var amount *string = nil
+	var remaining *string = nil
 	if isNewOrder {
-		amount = DerefScalar(this.SafeString(orderUnified, "amount")) // NOTE:'initialAmount' is currently not set on new order
-		remaining = DerefScalar(this.SafeString(orderUnified, "amount"))
+		amount = this.SafeString(orderUnified, "amount") // NOTE:'initialAmount' is currently not set on new order
+		remaining = this.SafeString(orderUnified, "amount")
 	} else {
-		amount = DerefScalar(this.SafeString(orderUnified, "initialAmount"))
-		remaining = DerefScalar(this.SafeString(orderUnified, "amount"))
+		amount = this.SafeString(orderUnified, "initialAmount")
+		remaining = this.SafeString(orderUnified, "amount")
 	}
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
@@ -1173,9 +1173,9 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = nil
-	var id any = nil
+	var id *string = nil
 	var price any = nil
-	var amount any = nil
+	var amount *string = nil
 	var orderId any = nil
 	var fee any = nil
 	var side any = nil
@@ -1186,7 +1186,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = this.SafeTimestamp(trade, "ticks")
 		price = DerefScalar(this.SafeString(trade, "price"))
 		price = this.RemoveCommaFromValue(price)
-		amount = DerefScalar(this.SafeString(trade, "firstAmount"))
+		amount = this.SafeString(trade, "firstAmount")
 		var reference_parts []string = Split(reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
 		var marketId *string = this.SafeString(trade, "pair")
 		market = this.SafeMarket(marketId, market)
@@ -1219,9 +1219,9 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	} else {
 		timestamp = this.SafeTimestamp(trade, "date")
-		id = DerefScalar(this.SafeString(trade, "tid"))
+		id = this.SafeString(trade, "tid")
 		price = DerefScalar(this.SafeString(trade, "price"))
-		amount = DerefScalar(this.SafeString(trade, "amount"))
+		amount = this.SafeString(trade, "amount")
 		side = this.SafeValue(trade, "isBid")
 		if side != nil {
 			if (side != nil) && (!IsEqual(side, "")) {

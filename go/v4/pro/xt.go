@@ -107,7 +107,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
 		// concurrent callers each minted their own token, last write won, and the losers
 		// carried an orphaned token into name + '@' + listenKey so their streams went dead
-		var messageHash any = "authenticate:" + tradeType
+		var messageHash string = "authenticate:" + tradeType
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 			// a flight is already in progress - wake when the leader
 			// settles it: the token is then in the bucket

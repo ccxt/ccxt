@@ -832,7 +832,7 @@ func (this *Bitmex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(authenticated, nil) {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
-		var payload any = "GET" + "/realtime" + ccxt.ToString(timestamp)
+		var payload string = "GET" + "/realtime" + ccxt.ToString(timestamp)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256)
 		var request map[string]any = map[string]any{
 			"op":   "authKeyExpires",

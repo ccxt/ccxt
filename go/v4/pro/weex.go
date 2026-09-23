@@ -184,7 +184,7 @@ func (this *Weex) Authenticate(url any) {
 		return
 	}
 	var timestamp any = this.Nonce()
-	var payload any = ccxt.ToString(timestamp) + "/v3/ws/private"
+	var payload string = ccxt.ToString(timestamp) + "/v3/ws/private"
 	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
 	var originalHeaders any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers")
 	var userAgent *string = this.SafeString(originalHeaders, "User-Agent", "ccxt")
@@ -1545,7 +1545,7 @@ func (this *Weex) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		return "myTrades"
 	}()
-	var unSubHash any = "unsubscribe::" + subHash
+	var unSubHash string = "unsubscribe::" + subHash
 	var channel string = "fill"
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
@@ -1631,7 +1631,7 @@ func (this *Weex) HandleMyTrades(client any, message any) {
 	}
 	for j := 0; j < len(symbolKeys); j++ {
 		var symbol string = ccxt.GetValue(symbolKeys, j).(string)
-		var symbolMessageHash any = messageHash + "::" + symbol
+		var symbolMessageHash string = messageHash + "::" + symbol
 		client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
@@ -1802,7 +1802,7 @@ func (this *Weex) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return "orders"
 	}()
-	var unSubHash any = "unsubscribe::" + subHash
+	var unSubHash string = "unsubscribe::" + subHash
 	var channel string = "orders"
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
@@ -1889,7 +1889,7 @@ func (this *Weex) HandleOrders(client any, message any) {
 	}
 	for i := 0; i < len(symbolKeys); i++ {
 		var symbol string = ccxt.GetValue(symbolKeys, i).(string)
-		var symbolMessageHash any = messageHash + "::" + symbol
+		var symbolMessageHash string = messageHash + "::" + symbol
 		client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
@@ -2205,7 +2205,7 @@ func (this *Weex) HandleBalance(client any, message any) {
 	if ccxt.GetIndexOf(url, "contract") >= 0 {
 		accountType = "swap"
 	}
-	var messageHash any = accountType + ":balance"
+	var messageHash string = accountType + ":balance"
 	if ccxt.IsEqual(ccxt.GetValue(this.Balance, accountType), nil) {
 		ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 	}
@@ -2359,7 +2359,7 @@ func (this *Weex) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.NotSupported(this.Id + " unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols."))
 	}
 	var subHash string = "positions"
-	var unSubHash any = "unsubscribe::" + subHash
+	var unSubHash string = "unsubscribe::" + subHash
 	var channel string = "positions"
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,

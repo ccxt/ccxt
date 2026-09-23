@@ -944,26 +944,26 @@ func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
-	var bid any = nil
-	var bidVolume any = nil
-	var ask any = nil
-	var askVolume any = nil
+	var bid *string = nil
+	var bidVolume *string = nil
+	var ask *string = nil
+	var askVolume *string = nil
 	if InOp(ticker, "bid") {
 		if IsArray(GetValue(ticker, "bid")) {
-			bid = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 0))
-			bidVolume = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 1))
+			bid = this.SafeString(GetValue(ticker, "bid"), 0)
+			bidVolume = this.SafeString(GetValue(ticker, "bid"), 1)
 		} else {
-			bid = DerefScalar(this.SafeString(ticker, "bid"))
-			bidVolume = DerefScalar(this.SafeString(ticker, "bidSize"))
+			bid = this.SafeString(ticker, "bid")
+			bidVolume = this.SafeString(ticker, "bidSize")
 		}
 	}
 	if InOp(ticker, "ask") {
 		if IsArray(GetValue(ticker, "ask")) {
-			ask = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 0))
-			askVolume = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 1))
+			ask = this.SafeString(GetValue(ticker, "ask"), 0)
+			askVolume = this.SafeString(GetValue(ticker, "ask"), 1)
 		} else {
-			ask = DerefScalar(this.SafeString(ticker, "ask"))
-			askVolume = DerefScalar(this.SafeString(ticker, "askSize"))
+			ask = this.SafeString(ticker, "ask")
+			askVolume = this.SafeString(ticker, "askSize")
 		}
 	}
 	var open *string = this.SafeString(ticker, "open")
@@ -2109,7 +2109,7 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "id")
 	var side any = nil
 	var typeVar any = nil
-	var status any = nil
+	var status *string = nil
 	if InOp(order, "type") {
 		var orderType []string = Split(GetValue(order, "type"), "-")
 		side = GetValue(orderType, 0)

@@ -1213,7 +1213,7 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 	var updatesKeys []string = ccxt.ObjectKeys(updatedTypes)
 	for i := 0; i < len(updatesKeys); i++ {
 		var typeVar string = ccxt.GetValue(updatesKeys, i).(string)
-		var messageHash any = "balance:" + typeVar
+		var messageHash string = "balance:" + typeVar
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 	}
 }
@@ -1344,7 +1344,7 @@ func (this *Bitfinex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
 		var nonce int64 = this.Milliseconds()
-		var payload any = "AUTH" + ccxt.ToString(nonce)
+		var payload string = "AUTH" + ccxt.ToString(nonce)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384, "hex")
 		var event string = "auth"
 		var request map[string]any = map[string]any{

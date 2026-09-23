@@ -934,7 +934,7 @@ func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...
 		}
 		return "contract"
 	}()
-	var messageHash any = typeVar + ":fetchBalanceSnapshot"
+	var messageHash string = typeVar + ":fetchBalanceSnapshot"
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 		client.(ccxt.ClientInterface).Future(messageHash)
 		this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, marketType)

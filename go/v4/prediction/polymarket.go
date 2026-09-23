@@ -3266,7 +3266,7 @@ func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVe
 		"Order":         orderStruct,
 	}, innerValue)
 	var innerSigObj any = this.SignMessage(innerEncoded, this.PrivateKey)
-	var innerSig any = this.Remove0xPrefix(ccxt.GetValue(innerSigObj, "r")) + this.Remove0xPrefix(ccxt.GetValue(innerSigObj, "s")) + this.IntToBase16(ccxt.GetValue(innerSigObj, "v"))
+	var innerSig string = this.Remove0xPrefix(ccxt.GetValue(innerSigObj, "r")) + this.Remove0xPrefix(ccxt.GetValue(innerSigObj, "s")) + this.IntToBase16(ccxt.GetValue(innerSigObj, "v"))
 	// innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
 	// orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
 	// php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -3860,7 +3860,7 @@ func (this *Polymarket) Sign(path any, optionalArgs ...any) any {
 		// string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
 		// '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
 		// would corrupt the literal to 'auth/derive-$api-key' and break this check
-		var deriveApiKeyPath any = "auth/derive-" + "api-key"
+		var deriveApiKeyPath string = "auth/derive-" + "api-key"
 		var isL1Auth bool = (ccxt.IsEqual(path, "auth/api-key")) || (ccxt.IsEqual(path, deriveApiKeyPath)) || (ccxt.IsEqual(path, "auth/api-keys"))
 		if isL1Auth {
 			// L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials

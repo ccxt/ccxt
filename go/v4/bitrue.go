@@ -1443,11 +1443,11 @@ func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(nil, market)
 	var last *string = this.SafeString2(ticker, "lastPrice", "last")
 	var timestamp *int64 = this.SafeInteger(ticker, "time")
-	var percentage any = nil
+	var percentage *string = nil
 	if IsEqual(this.SafeBool(market, "swap"), true) {
 		percentage = Precise.StringMul(this.SafeString(ticker, "rose"), "100")
 	} else {
-		percentage = DerefScalar(this.SafeString(ticker, "priceChangePercent"))
+		percentage = this.SafeString(ticker, "priceChangePercent")
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -3262,18 +3262,18 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var tagType *string = this.SafeString(transaction, "tagType")
 	var addressTo *string = this.SafeString(transaction, "addressTo")
 	var addressFrom *string = this.SafeString(transaction, "addressFrom")
-	var tagTo any = nil
-	var tagFrom any = nil
+	var tagTo *string = nil
+	var tagFrom *string = nil
 	if tagType != nil {
 		if addressTo != nil {
 			var parts []string = Split(addressTo, "_")
 			addressTo = this.SafeString(parts, 0)
-			tagTo = DerefScalar(this.SafeString(parts, 1))
+			tagTo = this.SafeString(parts, 1)
 		}
 		if addressFrom != nil {
 			var parts []string = Split(addressFrom, "_")
 			addressFrom = this.SafeString(parts, 0)
-			tagFrom = DerefScalar(this.SafeString(parts, 1))
+			tagFrom = this.SafeString(parts, 1)
 		}
 	}
 	var txid *string = this.SafeString(transaction, "txid")
@@ -3514,12 +3514,12 @@ func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var transferType *string = this.SafeString(transfer, "transferType")
-	var fromAccount any = nil
-	var toAccount any = nil
+	var fromAccount *string = nil
+	var toAccount *string = nil
 	if transferType != nil {
 		var accountSplit []string = Split(transferType, "_to_")
-		fromAccount = DerefScalar(this.SafeString(accountSplit, 0))
-		toAccount = DerefScalar(this.SafeString(accountSplit, 1))
+		fromAccount = this.SafeString(accountSplit, 0)
+		toAccount = this.SafeString(accountSplit, 1)
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "ctime")
 	return map[string]any{

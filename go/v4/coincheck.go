@@ -741,11 +741,11 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	var quoteId any = GetValue(market, "quoteId")
 	var symbol any = GetValue(market, "symbol")
 	var takerOrMaker any = nil
-	var amountString any = nil
-	var costString any = nil
-	var side any = nil
+	var amountString *string = nil
+	var costString *string = nil
+	var side *string = nil
 	var fee any = nil
-	var orderId any = nil
+	var orderId *string = nil
 	if InOp(trade, "liquidity") {
 		if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "T" {
 			takerOrMaker = "taker"
@@ -753,17 +753,17 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 			takerOrMaker = "maker"
 		}
 		var funds map[string]any = SafeMapTyped(trade, "funds")
-		amountString = DerefScalar(this.SafeString(funds, baseId))
-		costString = DerefScalar(this.SafeString(funds, quoteId))
+		amountString = this.SafeString(funds, baseId)
+		costString = this.SafeString(funds, quoteId)
 		fee = map[string]any{
 			"currency": this.SafeString(trade, "fee_currency"),
 			"cost":     this.SafeString(trade, "fee"),
 		}
-		side = DerefScalar(this.SafeString(trade, "side"))
-		orderId = DerefScalar(this.SafeString(trade, "order_id"))
+		side = this.SafeString(trade, "side")
+		orderId = this.SafeString(trade, "order_id")
 	} else {
-		amountString = DerefScalar(this.SafeString(trade, "amount"))
-		side = DerefScalar(this.SafeString(trade, "order_type"))
+		amountString = this.SafeString(trade, "amount")
+		side = this.SafeString(trade, "order_type")
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,

@@ -1924,7 +1924,7 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "size")
 	var contractSize *string = this.SafeString(market, "contractSize")
 	var baseAmount *string = Precise.StringMul(contractSize, filled)
-	var cost any = nil
+	var cost *string = nil
 	if average != nil {
 		cost = Precise.StringMul(average, baseAmount)
 	}
@@ -2840,8 +2840,8 @@ func (this *Blofin) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar string
-	var id any = nil
-	var status any = nil
+	var id *string = nil
+	var status *string = nil
 	var withdrawalId *string = this.SafeString(transaction, "withdrawId")
 	var depositId *string = this.SafeString(transaction, "depositId")
 	var addressTo *string = this.SafeString(transaction, "address")
@@ -4145,7 +4145,7 @@ func (this *Blofin) Sign(path any, optionalArgs ...any) any {
 		var sign_body any = ""
 		if IsEqual(method, "GET") {
 			if !this.IsEmpty(query) {
-				var urlencodedQuery any = "?" + this.Urlencode(query)
+				var urlencodedQuery string = "?" + this.Urlencode(query)
 				url = Add(url, urlencodedQuery)
 				request = Add(request, urlencodedQuery)
 			}

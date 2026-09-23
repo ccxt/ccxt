@@ -56,7 +56,7 @@ func (this *Coinbaseexchange) Authenticate() any {
 	this.CheckRequiredCredentials()
 	var path string = "/users/self/verify"
 	var nonce any = this.Nonce()
-	var payload any = ccxt.ToString(nonce) + "GET" + path
+	var payload string = ccxt.ToString(nonce) + "GET" + path
 	var signature string = this.Hmac(this.Encode(payload), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	return map[string]any{
 		"timestamp":  nonce,

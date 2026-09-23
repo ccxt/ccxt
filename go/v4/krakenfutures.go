@@ -917,8 +917,8 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) any {
 	var percentage *string = Precise.StringMul(Precise.StringDiv(change, open), "100")
 	var average *string = Precise.StringDiv(Precise.StringAdd(open, last), "2")
 	var volume *string = this.SafeString(ticker, "vol24h")
-	var baseVolume any = nil
-	var quoteVolume any = nil
+	var baseVolume *string = nil
+	var quoteVolume *string = nil
 	var isIndex *bool = this.SafeBool(market, "index", false)
 	if isIndex == nil || *isIndex != true {
 		if GetValue(market, "linear") == true {
@@ -2948,7 +2948,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	if (amount == nil) && (!isPrior) && (remaining != nil) {
 		amount = Precise.StringAdd(filled, remaining)
 	}
-	var cost any = nil
+	var cost *string = nil
 	if (filled != nil) && (market != nil) {
 		var whichPrice any = func() any {
 			if average != nil {

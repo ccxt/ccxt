@@ -7631,27 +7631,27 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 			return true
 		}()
 	}
-	var price any = nil
-	var average any = nil
+	var price *string = nil
+	var average *string = nil
 	var basePrice *string = this.SafeString(order, "basePrice")
 	if basePrice != nil {
 		// for spot fetchOpenOrders, the price is priceAvg and the filled price is basePrice
-		price = DerefScalar(this.SafeString(order, "priceAvg"))
-		average = DerefScalar(this.SafeString(order, "basePrice"))
+		price = this.SafeString(order, "priceAvg")
+		average = this.SafeString(order, "basePrice")
 	} else {
-		price = DerefScalar(this.SafeStringN(order, []any{"price", "executePrice", "slLimitPrice", "tpLimitPrice"}))
-		average = DerefScalar(this.SafeString(order, "priceAvg"))
+		price = this.SafeStringN(order, []any{"price", "executePrice", "slLimitPrice", "tpLimitPrice"})
+		average = this.SafeString(order, "priceAvg")
 	}
-	var size any = nil
-	var filled any = nil
+	var size *string = nil
+	var filled *string = nil
 	var baseSize *string = this.SafeString(order, "baseSize")
 	if baseSize != nil {
 		// for spot margin fetchOpenOrders, the order size is baseSize and the filled amount is size
 		size = baseSize
-		filled = DerefScalar(this.SafeString(order, "size"))
+		filled = this.SafeString(order, "size")
 	} else {
-		size = DerefScalar(this.SafeString2(order, "size", "qty"))
-		filled = DerefScalar(this.SafeString2(order, "baseVolume", "cumExecQty"))
+		size = this.SafeString2(order, "size", "qty")
+		filled = this.SafeString2(order, "baseVolume", "cumExecQty")
 	}
 	var side any = DerefScalar(this.SafeString(order, "side"))
 	var posMode *string = this.SafeString(order, "posMode")
@@ -7667,7 +7667,7 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 	var isBuyMarket bool = (IsEqual(side, "buy")) && (orderType != nil && *orderType == "market")
 	if (GetValue(market, "spot") == true) && isBuyMarket {
 		// as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
-		size = DerefScalar(this.SafeString(order, "baseVolume"))
+		size = this.SafeString(order, "baseVolume")
 	}
 	return this.SafeOrder(map[string]any{
 		"info":                order,
@@ -13774,9 +13774,9 @@ func (this *Bitget) ParseMarginLoan(info any, optionalArgs ...any) any {
 	_ = market
 	var currencyId *string = this.SafeString(info, "coin")
 	var marketId *string = this.SafeString(info, "symbol")
-	var symbol any = nil
+	var symbol *string = nil
 	if marketId != nil {
-		symbol = DerefScalar(this.SafeSymbol(marketId, market, nil, "spot"))
+		symbol = this.SafeSymbol(marketId, market, nil, "spot")
 	}
 	return map[string]any{
 		"id":        this.SafeString2(info, "loanId", "repayId"),

@@ -817,7 +817,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(orderUpdate, "updateTime")
 	var status *string = this.SafeString(orderUpdate, "orderStatus")
 	var orderAmount *string = this.SafeString(orderUpdate, "orderAmt")
-	var cost any = nil
+	var cost *string = nil
 	if (ccxt.IsEqual(typeVar, "market")) && (side != nil && *side == "buy") {
 		cost = orderAmount
 	}

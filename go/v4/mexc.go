@@ -2127,15 +2127,15 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id any = nil
 	var timestamp *int64 = nil
-	var orderId any = nil
+	var orderId *string = nil
 	var symbol any = nil
 	var fee any = nil
 	var typeVar any = nil
 	var side any = nil
 	var takerOrMaker any = nil
-	var priceString any = nil
-	var amountString any = nil
-	var costString any = nil
+	var priceString *string = nil
+	var amountString *string = nil
+	var costString *string = nil
 	// if swap
 	if InOp(trade, "v") {
 		//
@@ -2153,8 +2153,8 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = this.SafeInteger(trade, "t")
 		market = this.SafeMarket(nil, market)
 		symbol = GetValue(market, "symbol")
-		priceString = DerefScalar(this.SafeString(trade, "p"))
-		amountString = DerefScalar(this.SafeString(trade, "v"))
+		priceString = this.SafeString(trade, "p")
+		amountString = this.SafeString(trade, "v")
 		side = this.ParseOrderSide(this.SafeString(trade, "T"))
 		takerOrMaker = "taker"
 	} else {
@@ -2212,12 +2212,12 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		symbol = GetValue(market, "symbol")
 		id = DerefScalar(this.SafeString2(trade, "id", "a"))
-		priceString = DerefScalar(this.SafeString2(trade, "price", "p"))
-		orderId = DerefScalar(this.SafeString(trade, "orderId"))
+		priceString = this.SafeString2(trade, "price", "p")
+		orderId = this.SafeString(trade, "orderId")
 		// if swap
 		if InOp(trade, "positionMode") {
 			timestamp = this.SafeInteger(trade, "timestamp")
-			amountString = DerefScalar(this.SafeString(trade, "vol"))
+			amountString = this.SafeString(trade, "vol")
 			side = this.ParseOrderSide(this.SafeString(trade, "side"))
 			fee = map[string]any{
 				"cost":     this.SafeString(trade, "fee"),
@@ -2232,8 +2232,8 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 			}()
 		} else {
 			timestamp = this.SafeInteger2(trade, "time", "T")
-			amountString = DerefScalar(this.SafeString2(trade, "qty", "q"))
-			costString = DerefScalar(this.SafeString(trade, "quoteQty"))
+			amountString = this.SafeString2(trade, "qty", "q")
+			costString = this.SafeString(trade, "quoteQty")
 			var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 			var isMaker *bool = this.SafeBool(trade, "isMaker")
 			var buyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
@@ -2626,18 +2626,18 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = nil
-	var bid any = nil
-	var ask any = nil
+	var bid *string = nil
+	var ask *string = nil
 	var bidVolume any = nil
 	var askVolume any = nil
-	var baseVolume any = nil
-	var quoteVolume any = nil
-	var open any = nil
-	var high any = nil
-	var low any = nil
+	var baseVolume *string = nil
+	var quoteVolume *string = nil
+	var open *string = nil
+	var high *string = nil
+	var low *string = nil
 	var changePcnt any = nil
-	var changeValue any = nil
-	var prevClose any = nil
+	var changeValue *string = nil
+	var prevClose *string = nil
 	var isSwap *bool = this.SafeBool(market, "swap")
 	// if swap
 	if (isSwap != nil && *isSwap == true) || (InOp(ticker, "timestamp")) {
@@ -2663,13 +2663,13 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 		//     }
 		//
 		timestamp = this.SafeInteger(ticker, "timestamp")
-		bid = DerefScalar(this.SafeString(ticker, "bid1"))
-		ask = DerefScalar(this.SafeString(ticker, "ask1"))
-		baseVolume = DerefScalar(this.SafeString(ticker, "volume24"))
-		quoteVolume = DerefScalar(this.SafeString(ticker, "amount24"))
-		high = DerefScalar(this.SafeString(ticker, "high24Price"))
-		low = DerefScalar(this.SafeString(ticker, "lower24Price"))
-		changeValue = DerefScalar(this.SafeString(ticker, "riseFallValue"))
+		bid = this.SafeString(ticker, "bid1")
+		ask = this.SafeString(ticker, "ask1")
+		baseVolume = this.SafeString(ticker, "volume24")
+		quoteVolume = this.SafeString(ticker, "amount24")
+		high = this.SafeString(ticker, "high24Price")
+		low = this.SafeString(ticker, "lower24Price")
+		changeValue = this.SafeString(ticker, "riseFallValue")
 		changePcnt = DerefScalar(this.SafeString(ticker, "riseFallRate"))
 		changePcnt = Precise.StringMul(changePcnt, "100")
 	} else {
@@ -2696,8 +2696,8 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 		//     }
 		//
 		timestamp = this.SafeInteger(ticker, "closeTime")
-		bid = DerefScalar(this.SafeString(ticker, "bidPrice"))
-		ask = DerefScalar(this.SafeString(ticker, "askPrice"))
+		bid = this.SafeString(ticker, "bidPrice")
+		ask = this.SafeString(ticker, "askPrice")
 		bidVolume = DerefScalar(this.SafeString(ticker, "bidQty"))
 		askVolume = DerefScalar(this.SafeString(ticker, "askQty"))
 		if Precise.StringEq(bidVolume, "0") {
@@ -2706,13 +2706,13 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 		if Precise.StringEq(askVolume, "0") {
 			askVolume = nil
 		}
-		baseVolume = DerefScalar(this.SafeString(ticker, "volume"))
-		quoteVolume = DerefScalar(this.SafeString(ticker, "quoteVolume"))
-		open = DerefScalar(this.SafeString(ticker, "openPrice"))
-		high = DerefScalar(this.SafeString(ticker, "highPrice"))
-		low = DerefScalar(this.SafeString(ticker, "lowPrice"))
-		prevClose = DerefScalar(this.SafeString(ticker, "prevClosePrice"))
-		changeValue = DerefScalar(this.SafeString(ticker, "priceChange"))
+		baseVolume = this.SafeString(ticker, "volume")
+		quoteVolume = this.SafeString(ticker, "quoteVolume")
+		open = this.SafeString(ticker, "openPrice")
+		high = this.SafeString(ticker, "highPrice")
+		low = this.SafeString(ticker, "lowPrice")
+		prevClose = this.SafeString(ticker, "prevClosePrice")
+		changeValue = this.SafeString(ticker, "priceChange")
 		changePcnt = DerefScalar(this.SafeString(ticker, "priceChangePercent"))
 		changePcnt = Precise.StringMul(changePcnt, "100")
 	}

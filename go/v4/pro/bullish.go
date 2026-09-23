@@ -578,7 +578,7 @@ func (this *Bullish) HandleOrders(client any, message any) {
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
 			var hashSymbol string = ccxt.GetValue(keys, i).(string)
-			var symbolMessageHash any = messageHash + "::" + hashSymbol
+			var symbolMessageHash string = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 		}
 	}
@@ -709,7 +709,7 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
 			var hashSymbol string = ccxt.GetValue(keys, i).(string)
-			var symbolMessageHash any = messageHash + "::" + hashSymbol
+			var symbolMessageHash string = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
 		}
 	}

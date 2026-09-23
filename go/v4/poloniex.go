@@ -2194,7 +2194,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeStringN(order, []any{"orderNumber", "id", "orderId", "ordId"})
 	var fee any = nil
 	var feeCurrency *string = this.SafeString2(order, "tokenFeeCurrency", "feeCcy")
-	var feeCost any = nil
+	var feeCost *string = nil
 	var feeCurrencyCode any = nil
 	var rate *string = this.SafeString(order, "fee")
 	if feeCurrency == nil {
@@ -2207,7 +2207,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		// poloniex accepts a 30% discount to pay fees in TRX
 		feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrency))
-		feeCost = DerefScalar(this.SafeString2(order, "tokenFee", "feeAmt"))
+		feeCost = this.SafeString2(order, "tokenFee", "feeAmt")
 	}
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -3546,7 +3546,7 @@ func (this *Poloniex) ParseDepositAddressSpecial(response any, currency any, net
 	if address == nil {
 		address = this.SafeString(response, GetValue(networkEntry, "id"))
 	}
-	var tag any = nil
+	var tag *string = nil
 	this.CheckAddress(address)
 	if !IsEqual(networkEntry, nil) {
 		var depositAddress *string = this.SafeString(GetValue(networkEntry, "info"), "depositAddress")
@@ -4350,7 +4350,7 @@ func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var shortLeverage *int64 = nil
 	var longLeverage *int64 = nil
 	var marketId any = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var data []any = SafeListTyped(leverage, "data")
 	for i := 0; i < len(data); i++ {
 		var entry any = func() any {

@@ -2088,7 +2088,7 @@ func (this *Okx) authenticateBody(ch chan any, optionalArgs ...any) any {
 		var timestamp string = ccxt.ToString(this.Seconds())
 		var method string = "GET"
 		var path string = "/users/self/verify"
-		var auth any = timestamp + method + path
+		var auth string = timestamp + method + path
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "base64")
 		var operation string = "login"
 		var request map[string]any = map[string]any{

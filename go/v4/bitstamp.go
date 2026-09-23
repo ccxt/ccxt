@@ -1785,7 +1785,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(trade, "id", "tid")
-	var symbol any = nil
+	var symbol *string = nil
 	var side any = nil
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
@@ -1832,7 +1832,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	if costString == nil {
 		costString = this.SafeString(trade, quoteIdLower)
 	}
-	symbol = DerefScalar(this.SafeString(market, "symbol"))
+	symbol = this.SafeString(market, "symbol")
 	var datetimeString *string = this.SafeString2(trade, "date", "datetime")
 	var timestamp any = nil
 	if datetimeString != nil {

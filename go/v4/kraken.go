@@ -1787,10 +1787,10 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	var datetime any = nil
 	var side any = nil
 	var typeVar any = nil
-	var price any = nil
-	var amount any = nil
+	var price *string = nil
+	var amount *string = nil
 	var id any = nil
-	var orderId any = nil
+	var orderId *string = nil
 	var fee any = nil
 	var symbol any = nil
 	if IsArray(trade) {
@@ -1807,8 +1807,8 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 			return "market"
 		}()
-		price = DerefScalar(this.SafeString(trade, 0))
-		amount = DerefScalar(this.SafeString(trade, 1))
+		price = this.SafeString(trade, 0)
+		amount = this.SafeString(trade, 1)
 		var tradeLength int = GetArrayLength(trade)
 		if tradeLength > 6 {
 			id = DerefScalar(this.SafeString(trade, 6)) // artificially added as per #1794
@@ -1824,13 +1824,13 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 			// delisted market ids go here
 			market = this.GetDelistedMarketById(marketId)
 		}
-		orderId = DerefScalar(this.SafeString(trade, "ordertxid"))
+		orderId = this.SafeString(trade, "ordertxid")
 		id = DerefScalar(this.SafeString2(trade, "id", "postxid"))
 		timestamp = this.SafeTimestamp(trade, "time")
 		side = DerefScalar(this.SafeString(trade, "type"))
 		typeVar = DerefScalar(this.SafeString(trade, "ordertype"))
-		price = DerefScalar(this.SafeString(trade, "price"))
-		amount = DerefScalar(this.SafeString(trade, "vol"))
+		price = this.SafeString(trade, "price")
+		amount = this.SafeString(trade, "vol")
 		if InOp(trade, "fee") {
 			var currency any = nil
 			if market != nil {
@@ -1847,8 +1847,8 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 		id = DerefScalar(this.SafeString(trade, "trade_id"))
 		side = DerefScalar(this.SafeString(trade, "side"))
 		typeVar = DerefScalar(this.SafeString(trade, "ord_type"))
-		price = DerefScalar(this.SafeString(trade, "price"))
-		amount = DerefScalar(this.SafeString(trade, "qty"))
+		price = this.SafeString(trade, "price")
+		amount = this.SafeString(trade, "qty")
 	}
 	if market != nil {
 		symbol = GetValue(market, "symbol")
@@ -2448,7 +2448,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId any = nil
 	var price any = nil
 	var amount any = nil
-	var cost any = nil
+	var cost *string = nil
 	var triggerPrice any = nil
 	if !IsEqual(orderDescription, nil) {
 		var parts []string = Split(orderDescription, " ")
@@ -2456,7 +2456,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 		if isUsingCost == nil || *isUsingCost != true {
 			amount = DerefScalar(this.SafeString(parts, 1))
 		} else {
-			cost = DerefScalar(this.SafeString(parts, 1))
+			cost = this.SafeString(parts, 1)
 		}
 		marketId = DerefScalar(this.SafeString(parts, 2))
 		var part4 *string = this.SafeString(parts, 4)

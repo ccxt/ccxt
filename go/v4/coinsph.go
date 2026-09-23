@@ -1667,9 +1667,9 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	var costString any = nil
+	var costString *string = nil
 	if orderId != nil {
-		costString = DerefScalar(this.SafeString(trade, "quoteQty"))
+		costString = this.SafeString(trade, "quoteQty")
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,

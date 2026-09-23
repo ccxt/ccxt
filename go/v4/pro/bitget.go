@@ -2502,9 +2502,9 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	var isBuy bool = (side != nil && *side == "buy")
 	var totalAmount any = nil
-	var filledAmount any = nil
+	var filledAmount *string = nil
 	var cost any = nil
-	var remaining any = nil
+	var remaining *string = nil
 	var totalFilled *string = this.SafeString2(order, "accBaseVolume", "cumExecQty")
 	if isSpot {
 		if isMargin {
@@ -2531,7 +2531,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 		}
 	} else {
 		// baseVolume should not be used for "amount" for contracts !
-		filledAmount = ccxt.DerefScalar(this.SafeString2(order, "baseVolume", "cumExecQty"))
+		filledAmount = this.SafeString2(order, "baseVolume", "cumExecQty")
 		totalAmount = ccxt.DerefScalar(this.SafeString2(order, "size", "qty"))
 		cost = ccxt.DerefScalar(this.SafeString2(order, "fillNotionalUsd", "cumExecValue"))
 	}
@@ -2892,7 +2892,7 @@ func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 		return ccxt.ToLower(instType)
 	}()
-	var messageHash any = "balance:" + instTypeLower
+	var messageHash string = "balance:" + instTypeLower
 
 	retRes233515 := (<-this.WatchPrivateAsync(uta, messageHash, messageHash, args, params))
 	ccxt.PanicOnError(retRes233515)
@@ -3192,7 +3192,7 @@ func (this *Bitget) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
 		var timestamp string = ccxt.ToString(this.Seconds())
-		var auth any = timestamp + "GET" + "/user/verify"
+		var auth string = timestamp + "GET" + "/user/verify"
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "base64")
 		var operation string = "login"
 		var request map[string]any = map[string]any{

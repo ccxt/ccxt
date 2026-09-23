@@ -690,7 +690,7 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Balance, marketType, map[string]any{})
 	}
 	ccxt.AddElementToObject(this.Balance, marketType, this.ParseWsBalance(message))
-	var messageHash any = marketType + ":balance"
+	var messageHash string = marketType + ":balance"
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, marketType), messageHash)
 }
 func (this *Blofin) ParseWsBalance(message map[string]any) any {
@@ -1138,7 +1138,7 @@ func (this *Blofin) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var milliseconds int64 = this.Milliseconds()
 	var messageHash string = "authenticate_hash"
 	var timestamp string = ccxt.ToString(milliseconds)
-	var nonce any = "n_" + timestamp
+	var nonce string = "n_" + timestamp
 	var auth any = ccxt.Add("/users/self/verify"+"GET"+timestamp+"", nonce)
 	var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256))
 	var request map[string]any = map[string]any{

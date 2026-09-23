@@ -1043,11 +1043,11 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var price *string = this.SafeString(trade, "p")
 	var amount *string = this.SafeString(trade, "q")
-	var orderId any = nil
+	var orderId *string = nil
 	if ccxt.IsEqual(side, "buy") {
-		orderId = ccxt.DerefScalar(this.SafeString(trade, "b"))
+		orderId = this.SafeString(trade, "b")
 	} else {
-		orderId = ccxt.DerefScalar(this.SafeString(trade, "a"))
+		orderId = this.SafeString(trade, "a")
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,

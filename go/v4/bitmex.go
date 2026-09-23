@@ -2091,15 +2091,15 @@ func (this *Bitmex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower(transaction, "transactType")
 	// Deposits have no from address or to address, withdrawals have both
 	var address any = nil
-	var addressFrom any = nil
+	var addressFrom *string = nil
 	var addressTo any = nil
 	if typeVar != nil && *typeVar == "withdrawal" {
 		address = DerefScalar(this.SafeString(transaction, "address"))
-		addressFrom = DerefScalar(this.SafeString(transaction, "tx"))
+		addressFrom = this.SafeString(transaction, "tx")
 		addressTo = address
 	} else if typeVar != nil && *typeVar == "deposit" {
 		addressTo = DerefScalar(this.SafeString(transaction, "address"))
-		addressFrom = DerefScalar(this.SafeString(transaction, "tx"))
+		addressFrom = this.SafeString(transaction, "tx")
 	}
 	var amountString *string = this.SafeString(transaction, "amount")
 	var amountStringAbs *string = Precise.StringAbs(amountString)
@@ -2595,7 +2595,7 @@ func (this *Bitmex) ParseOrder(order any, optionalArgs ...any) any {
 		amount = this.ConvertFromRawQuantity(symbol, qty)
 	}
 	var average *string = this.SafeString(order, "avgPx")
-	var filled any = nil
+	var filled *string = nil
 	var cumQty *string = this.NumberToString(this.ConvertFromRawQuantity(symbol, this.SafeString(order, "cumQty")))
 	if EvalTruthy(isInverse) {
 		filled = Precise.StringDiv(cumQty, average)

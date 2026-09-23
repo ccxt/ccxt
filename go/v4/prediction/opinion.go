@@ -1255,8 +1255,8 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side any, amount any, 
 		makerRaw = ccxt.Precise.StringMul(amountStr, priceStr)
 	}
 	var makerAmountWei string = this.DecimalToPrecision(ccxt.Precise.StringMul(makerRaw, decimalsStr), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
-	var makerAmount any = nil
-	var takerAmount any = nil
+	var makerAmount *string = nil
+	var takerAmount *string = nil
 	if ccxt.IsEqual(side, "BUY") {
 		var k *string = ccxt.Precise.StringDiv(makerAmountWei, priceNum, 0)
 		makerAmount = ccxt.Precise.StringMul(k, priceNum)

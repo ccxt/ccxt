@@ -1002,7 +1002,7 @@ func (this *Bullish) ParseMarket(market any) any {
 	var inverse any = nil
 	var expiryDatetime any = nil
 	var contractSize *float64 = nil
-	var optionType any = nil
+	var optionType *string = nil
 	var strike any = nil
 	var margin any = false
 	if typeVar != nil && *typeVar == "spot" {

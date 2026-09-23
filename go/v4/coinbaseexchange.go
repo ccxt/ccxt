@@ -1142,13 +1142,13 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = nil
-	var bid any = nil
-	var ask any = nil
-	var last any = nil
-	var high any = nil
-	var low any = nil
-	var open any = nil
-	var volume any = nil
+	var bid *string = nil
+	var ask *string = nil
+	var last *string = nil
+	var high *string = nil
+	var low *string = nil
+	var open *string = nil
+	var volume *string = nil
 	var symbol any = func() any {
 		if market == nil {
 			return nil
@@ -1156,16 +1156,16 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
 		return GetValue(market, "symbol")
 	}()
 	if IsArray(ticker) {
-		last = DerefScalar(this.SafeString(ticker, 4))
+		last = this.SafeString(ticker, 4)
 	} else {
 		timestamp = this.Parse8601(this.SafeString(ticker, "time"))
-		bid = DerefScalar(this.SafeString(ticker, "bid"))
-		ask = DerefScalar(this.SafeString(ticker, "ask"))
-		high = DerefScalar(this.SafeString(ticker, "high"))
-		low = DerefScalar(this.SafeString(ticker, "low"))
-		open = DerefScalar(this.SafeString(ticker, "open"))
-		last = DerefScalar(this.SafeString2(ticker, "price", "last"))
-		volume = DerefScalar(this.SafeString(ticker, "volume"))
+		bid = this.SafeString(ticker, "bid")
+		ask = this.SafeString(ticker, "ask")
+		high = this.SafeString(ticker, "high")
+		low = this.SafeString(ticker, "low")
+		open = this.SafeString(ticker, "open")
+		last = this.SafeString2(ticker, "price", "last")
+		volume = this.SafeString(ticker, "volume")
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1352,13 +1352,13 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString2(trade, "time", "created_at"))
 	var marketId *string = this.SafeString(trade, "product_id")
 	market = this.SafeMarket(marketId, market, "-")
-	var feeRate any = nil
+	var feeRate *string = nil
 	var takerOrMaker any = nil
-	var cost any = nil
+	var cost *string = nil
 	var feeCurrencyId *string = this.SafeStringLower(market, "quoteId")
 	if feeCurrencyId != nil {
 		var costField any = *feeCurrencyId + "_value"
-		cost = DerefScalar(this.SafeString(trade, costField))
+		cost = this.SafeString(trade, costField)
 		var liquidity *string = this.SafeString(trade, "liquidity")
 		if liquidity != nil {
 			takerOrMaker = func() string {
@@ -1367,7 +1367,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 				}
 				return "maker"
 			}()
-			feeRate = DerefScalar(this.SafeString(market, takerOrMaker))
+			feeRate = this.SafeString(market, takerOrMaker)
 		}
 	}
 	var feeCost *string = this.SafeString2(trade, "fill_fees", "fee")
@@ -2391,15 +2391,15 @@ func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) an
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var code *string = this.SafeCurrencyCode(nil, currency)
 	var details map[string]any = SafeMapTyped(item, "details")
-	var account any = nil
-	var referenceAccount any = nil
-	var referenceId any = nil
+	var account *string = nil
+	var referenceAccount *string = nil
+	var referenceId *string = nil
 	if typeVar != nil && *typeVar == "transfer" {
-		account = DerefScalar(this.SafeString(details, "from"))
-		referenceAccount = DerefScalar(this.SafeString(details, "to"))
-		referenceId = DerefScalar(this.SafeString(details, "profile_transfer_id"))
+		account = this.SafeString(details, "from")
+		referenceAccount = this.SafeString(details, "to")
+		referenceId = this.SafeString(details, "profile_transfer_id")
 	} else {
-		referenceId = DerefScalar(this.SafeString(details, "order_id"))
+		referenceId = this.SafeString(details, "order_id")
 	}
 	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{

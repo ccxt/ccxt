@@ -840,7 +840,7 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true)
 	var subMessageHash string = "tickers"
-	var messageHash any = "unsubscribe:" + subMessageHash
+	var messageHash string = "unsubscribe:" + subMessageHash
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
 		if isTestnet == true {
@@ -1677,7 +1677,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; i < len(keys); i++ {
 		var symbol string = ccxt.GetValue(keys, i).(string)
-		var innerMessageHash any = messageHash + ":" + symbol
+		var innerMessageHash string = messageHash + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1742,7 +1742,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 }
 func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) {
 	var subMessageHash string = "tickers"
-	var messageHash any = "unsubscribe:" + subMessageHash
+	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	var symbols []string = ccxt.ObjectKeys(this.Tickers)
 	for i := 0; i < len(symbols); i++ {
@@ -1769,7 +1769,7 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
 }
 func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
 	var subHash string = "order"
-	var unSubHash any = "unsubscribe:" + subHash
+	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
 	var topicStructure map[string]any = map[string]any{
 		"topic": "orders",
@@ -1778,7 +1778,7 @@ func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
 }
 func (this *Pacifica) HandleMyTradesUnsubscription(client any, subscription any) {
 	var subHash string = "myTrades"
-	var unSubHash any = "unsubscribe:" + subHash
+	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
 	var topicStructure map[string]any = map[string]any{
 		"topic": "myTrades",

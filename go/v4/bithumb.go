@@ -683,7 +683,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		results := (<-promiseAll(promises))
 		PanicOnError(results)
 		for i := 0; i < len(quotes); i++ {
-			var quote any = GetValue(quotes, i)
+			var quote string = quotes[i]
 			var quoteId any = quote
 			var response any = GetValue(results, i)
 			var data map[string]any = SafeMapTyped(response, "data")
@@ -3922,7 +3922,7 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 		var key string = GetValue(keys, i).(string)
 		var value any = GetValue(query, key)
 		if IsArray(value) {
-			var encodedKey any = this.EncodeURIComponent(key) + "[]"
+			var encodedKey string = this.EncodeURIComponent(key) + "[]"
 			for j := 0; j < GetArrayLength(value); j++ {
 				var item any = GetValue(value, j)
 				var valueString any = DerefScalar(this.SafeString(value, j))

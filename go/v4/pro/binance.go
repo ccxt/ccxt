@@ -5810,7 +5810,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		var stockStatus *string = this.SafeString(statuses, stockRawStatus, stockRawStatus)
 		var stockAmount *string = this.SafeString(order, "Q")
 		var stockFilled *string = this.SafeString(order, "fq")
-		var stockRemaining any = nil
+		var stockRemaining *string = nil
 		if (stockAmount != nil) && (stockFilled != nil) {
 			stockRemaining = ccxt.Precise.StringSub(stockAmount, stockFilled)
 		}

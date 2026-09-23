@@ -1507,7 +1507,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var orderSide *string = this.SafeString(order, "side")
-	var side any = nil
+	var side *string = nil
 	if orderSide != nil {
 		var parts []string = Split(orderSide, "_")
 		var partsLength int = len(parts)

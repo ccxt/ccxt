@@ -1091,7 +1091,7 @@ func (this *Predictfun) StripPriceFormatting(text any) any {
 	var charsLength int = len(chars)
 	var stripped any = ""
 	for i := 0; i < charsLength; i++ {
-		var ch any = ccxt.GetValue(chars, i)
+		var ch string = chars[i]
 		var keep bool = true
 		if ccxt.IsEqual(ch, "$") {
 			keep = false
@@ -1908,7 +1908,7 @@ func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any
 	var amountStr *string = this.SafeString(party, "amount")
 	amountStr = ccxt.Precise.StringDiv(amountStr, "1000000000000000000")
 	var side any = nil
-	var order any = nil
+	var order *string = nil
 	var fee any = nil
 	var quoteType *string = this.SafeStringLower(party, "quoteType")
 	if quoteType != nil && *quoteType == "bid" {
@@ -1916,7 +1916,7 @@ func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any
 	} else if quoteType != nil && *quoteType == "ask" {
 		side = "sell"
 	}
-	order = ccxt.DerefScalar(this.SafeString(party, "hash"))
+	order = this.SafeString(party, "hash")
 	var rawFee any = this.SafeDict(party, "fee")
 	if !ccxt.IsEqual(rawFee, nil) {
 		var feeType *string = this.SafeString(rawFee, "type")
@@ -3959,7 +3959,7 @@ func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any
 	var futures []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 	var futuresLength int = len(futures)
 	for i := 0; i < futuresLength; i++ {
-		var future any = ccxt.GetValue(futures, i)
+		var future string = futures[i]
 		if (ccxt.GetIndexOf(future, "orders::") == 0) || (ccxt.GetIndexOf(future, "myTrades::") == 0) {
 			hashes = append(hashes, future)
 		}
@@ -4697,7 +4697,7 @@ func (this *Predictfun) Sign(path any, optionalArgs ...any) any {
 	if (apiKey != nil) && (!(sandboxMode != nil && *sandboxMode)) {
 		// the php transpiler prefixes every standalone 'api' with a $, string literals included,
 		// since sign () has a parameter of that name - ending the literal right after it avoids that
-		var apiKeyHeader any = "x-api" + "-key"
+		var apiKeyHeader string = "x-api" + "-key"
 		ccxt.AddElementToObject(authHeaders, apiKeyHeader, apiKey)
 	}
 	// the API key authorises the request, the JWT authorises acting for a wallet - authenticate ()

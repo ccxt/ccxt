@@ -3966,14 +3966,14 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) any {
 	var bidAccountId *string = this.SafeString(trade, "bid_account_id")
 	var isMakerAsk *bool = this.SafeBool(trade, "is_maker_ask")
 	var side any = nil
-	var orderId any = nil
+	var orderId *string = nil
 	if accountIndex != nil {
 		if accountIndex == askAccountId || (accountIndex != nil && askAccountId != nil && *accountIndex == *askAccountId) {
 			side = "sell"
-			orderId = DerefScalar(this.SafeString(trade, "ask_id"))
+			orderId = this.SafeString(trade, "ask_id")
 		} else if accountIndex == bidAccountId || (accountIndex != nil && bidAccountId != nil && *accountIndex == *bidAccountId) {
 			side = "buy"
-			orderId = DerefScalar(this.SafeString(trade, "bid_id"))
+			orderId = this.SafeString(trade, "bid_id")
 		}
 	}
 	var takerOrMaker any = nil

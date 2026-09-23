@@ -1569,7 +1569,7 @@ func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) any
 	var txId *string = this.SafeString(transaction, "tx_hash")
 	var rawStatus *string = this.SafeString(transaction, "status")
 	var typeVar string
-	var status any = nil
+	var status *string = nil
 	var fee any = nil
 	if InOp(transaction, "fee") {
 		typeVar = "withdrawal"

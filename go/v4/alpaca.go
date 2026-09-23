@@ -2613,18 +2613,18 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var activityType *string = this.SafeString(transaction, "activity_type")
-	var txid any = nil
+	var txid *string = nil
 	var timestamp *int64 = nil
 	var datetime any = nil
-	var network any = nil
-	var address any = nil
-	var addressTo any = nil
-	var addressFrom any = nil
+	var network *string = nil
+	var address *string = nil
+	var addressTo *string = nil
+	var addressFrom *string = nil
 	var typeVar any = nil
 	var amount any = nil
 	var code any = nil
-	var status any = nil
-	var comment any = nil
+	var status *string = nil
+	var comment *string = nil
 	var internal any = nil
 	var fee any = nil
 	if activityType != nil {
@@ -2654,13 +2654,13 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		comment = activityType
 		internal = (activityType == nil || *activityType != "TRANS")
 	} else {
-		txid = DerefScalar(this.SafeString(transaction, "tx_hash"))
+		txid = this.SafeString(transaction, "tx_hash")
 		datetime = DerefScalar(this.SafeString(transaction, "created_at"))
 		timestamp = this.Parse8601(datetime)
-		network = DerefScalar(this.SafeString(transaction, "chain"))
-		address = DerefScalar(this.SafeString(transaction, "to_address"))
-		addressTo = DerefScalar(this.SafeString(transaction, "to_address"))
-		addressFrom = DerefScalar(this.SafeString(transaction, "from_address"))
+		network = this.SafeString(transaction, "chain")
+		address = this.SafeString(transaction, "to_address")
+		addressTo = this.SafeString(transaction, "to_address")
+		addressFrom = this.SafeString(transaction, "from_address")
 		typeVar = this.ParseTransactionType(this.SafeString(transaction, "direction"))
 		amount = DerefScalar(this.SafeNumber(transaction, "amount"))
 		var currencyId *string = this.SafeString(transaction, "asset")

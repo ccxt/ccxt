@@ -792,7 +792,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "CreatedTimestampUtc"))
 	var filled *string = this.SafeString(order, "VolumeFilled")
 	var feeRate *string = this.SafeString(order, "FeePercent")
-	var feeCost any = nil
+	var feeCost *string = nil
 	if (feeRate != nil) && (filled != nil) {
 		feeCost = Precise.StringMul(feeRate, filled)
 	}

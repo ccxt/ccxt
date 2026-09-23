@@ -936,13 +936,13 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	var bidAccountId *int64 = this.SafeInteger(trade, "bid_account_id")
 	var askAccountId *int64 = this.SafeInteger(trade, "ask_account_id")
 	var side any = nil
-	var order any = nil
+	var order *string = nil
 	var takerOrMaker any = nil
 	if accountIndex != nil {
 		if bidAccountId == accountIndex || (bidAccountId != nil && accountIndex != nil && *bidAccountId == *accountIndex) {
 			// Own trades should use the account's order side
 			side = "buy"
-			order = ccxt.DerefScalar(this.SafeString(trade, "bid_id"))
+			order = this.SafeString(trade, "bid_id")
 			takerOrMaker = func() string {
 				if isMakerAsk != nil && *isMakerAsk == true {
 					return "taker"
@@ -951,7 +951,7 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			}()
 		} else if askAccountId == accountIndex || (askAccountId != nil && accountIndex != nil && *askAccountId == *accountIndex) {
 			side = "sell"
-			order = ccxt.DerefScalar(this.SafeString(trade, "ask_id"))
+			order = this.SafeString(trade, "ask_id")
 			takerOrMaker = func() string {
 				if isMakerAsk != nil && *isMakerAsk == true {
 					return "maker"

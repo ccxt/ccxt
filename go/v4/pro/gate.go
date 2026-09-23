@@ -1698,7 +1698,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var market string = ccxt.GetValue(keys, i).(string)
-		var hash any = "myTrades:" + market
+		var hash string = "myTrades:" + market
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, "myTrades")

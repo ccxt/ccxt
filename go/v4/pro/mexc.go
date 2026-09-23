@@ -371,7 +371,7 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 		}
 		return ""
 	}()
-	var topic any = messageHashPrefix + "ticker"
+	var topic string = messageHashPrefix + "ticker"
 	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var entry any = ccxt.GetValue(data, i)
@@ -1893,7 +1893,7 @@ func (this *Mexc) HandleBalance(client any, message any) {
 		}
 		return "swap"
 	}()
-	var messageHash any = "balance:" + typeVar
+	var messageHash string = "balance:" + typeVar
 	var data any = this.SafeDictN(message, []any{"data", "privateAccount"})
 	var futuresTimestamp *int64 = this.SafeInteger2(message, "ts", "createTime")
 	var timestamp *int64 = this.SafeInteger2(data, "time", futuresTimestamp)

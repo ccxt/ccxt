@@ -810,14 +810,14 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var stopPrice *string = this.SafeString(order, "activation_price")
 	var rawType *string = this.SafeString(order, "type")
 	var typeVar *string = this.ParseWsOrderType(rawType)
-	var amount any = nil
+	var amount *string = nil
 	var remaining any = nil
 	if typeVar != nil && *typeVar == "market" {
-		amount = ccxt.DerefScalar(this.SafeString(order, "deal_stock"))
+		amount = this.SafeString(order, "deal_stock")
 		remaining = "0"
 	} else {
 		remaining = ccxt.DerefScalar(this.SafeString(order, "left"))
-		amount = ccxt.DerefScalar(this.SafeString(order, "amount"))
+		amount = this.SafeString(order, "amount")
 	}
 	var timestamp *int64 = this.SafeTimestamp(order, "ctime")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "mtime")
