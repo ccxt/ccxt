@@ -610,15 +610,14 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object queries = (List<Object>)(this.parseSearchQueries(parameters));
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
-            Object queriesLength = ((List<?>)queries).size();
+            Integer queriesLength = ((List<?>)queries).size();
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isGreaterThan(queriesLength, 0))
             {
@@ -641,7 +640,7 @@ public class Polymarket extends PolymarketApi
                 String eventSlug = this.safeString(rawEvent, "slug");
                 if ((!java.util.Objects.equals(eventSlug, null)) && (!java.util.Objects.equals(eventSlug, "")))
                 {
-                    String eventKey = this.shortenSlug(eventSlug);
+                    String eventKey = this.shortenSlug((String) (eventSlug));
                     ((Map<String, Object>)eventsDict).put((String)eventKey, parsedEvent);
                 }
             }
@@ -649,6 +648,24 @@ public class Polymarket extends PolymarketApi
             return flatMarkets;
         });
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchMarkets
+     * @description retrieves data on all markets for polymarket, each prediction market becomes one market with its outcome tokens listed under the outcomes key
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.query] a single search term used to filter the fetched events
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
+     * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
+     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -662,12 +679,11 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    public CompletableFuture<Object> fetchRawEventsBySearch(Object queries, Object... optionalArgs)
+    public CompletableFuture<Object> fetchRawEventsBySearch(Object queries, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Long resultLimit = this.safeInteger(parameters, "limit");
             // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
             // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
@@ -699,7 +715,7 @@ public class Polymarket extends PolymarketApi
             for (var qi = 0; qi < ((List<?>)queries).size(); qi++)
             {
                 Object q = (queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi));
-                final Object finalSortParam = sortParam;
+                final String finalSortParam = sortParam;
                 Map<String, Object> baseRequest = new HashMap<String, Object>() {{
                     put( "q", q );
                     put( "limit_per_type", pageSize );
@@ -710,13 +726,13 @@ public class Polymarket extends PolymarketApi
                 {
                     ((Map<String, Object>)baseRequest).put("events_status", eventsStatus);
                 }
-                Object firstRequest = new HashMap<String, Object>() {{
+                Map<String, Object> firstRequest = new HashMap<String, Object>() {{
                     put( "page", 1 );
                 }};
                 firstRequest = this.extend(this.extend(firstRequest, baseRequest), rest);
                 Map<String, Object> first = (this.gammaPublicGetPublicSearch(firstRequest)).join();
                 Object firstEvents = (List<Object>)(this.safeList(first, "events", new ArrayList<Object>(Arrays.asList())));
-                Object firstEventsLength = ((List<?>)firstEvents).size();
+                Integer firstEventsLength = ((List<?>)firstEvents).size();
                 Map<String, Object> pagination = (Map<String, Object>) this.safeDict(first, "pagination", new HashMap<String, Object>() {{}});
                 Long totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
                 Object totalPages = Math.ceil(Double.parseDouble(String.valueOf((((double) totalResults) / ((double) pageSize)))));
@@ -724,7 +740,7 @@ public class Polymarket extends PolymarketApi
                 // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
                 if (!java.util.Objects.equals(resultLimit, null))
                 {
-                    Object limitPages = Math.ceil(Double.parseDouble(String.valueOf((((double) resultLimit) / ((double) pageSize)))));
+                    Double limitPages = Math.ceil(Double.parseDouble(String.valueOf((((double) resultLimit) / ((double) pageSize)))));
                     if (Helpers.isLessThan(limitPages, totalPages))
                     {
                         totalPages = limitPages;
@@ -747,7 +763,7 @@ public class Polymarket extends PolymarketApi
                 for (var pi = 0; pi < ((List<?>)remainingPages).size(); pi++)
                 {
                     final Object finalPi = pi;
-                    Object pageRequest = new HashMap<String, Object>() {{
+                    Map<String, Object> pageRequest = new HashMap<String, Object>() {{
                         put( "page", Helpers.GetValue(remainingPages, finalPi) );
                     }};
                     pageRequest = this.extend(this.extend(pageRequest, baseRequest), rest);
@@ -782,6 +798,21 @@ public class Polymarket extends PolymarketApi
         });
 
     }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchRawEventsBySearch
+     * @description fetches raw gamma event objects matching the given search terms, paginating through all result pages
+     * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
+     * @param {string[]} queries search terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] page size per search query, defaults to 50
+     * @returns {object[]} an array of raw gamma event objects
+     */
+    public CompletableFuture<Object> fetchRawEventsBySearch(Object queries, Object... optionalArgs)
+    {
+        return this.fetchRawEventsBySearch(queries, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @ignore
@@ -793,7 +824,7 @@ public class Polymarket extends PolymarketApi
      */
     public Object tagToSlug(Object tag)
     {
-        Object lower = ((String)tag).toLowerCase();
+        String lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
         Object slug = "";
@@ -833,19 +864,18 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of raw gamma event objects
      */
-    public CompletableFuture<Object> fetchRawEventsList(Object... optionalArgs)
+    public CompletableFuture<Object> fetchRawEventsList(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // gamma hard-caps each response at 100 events regardless of the requested limit, so the
             // page size must be that cap or pagination never advances (the > check below stays false)
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Long pageSize = this.safeInteger(this.options, "eventsPageSize", 100);
             // scope the listing: without a search query loadMarkets would otherwise dump every
             // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
             Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 200));
-            Object maxPages = Math.ceil(Double.parseDouble(String.valueOf((((double) limit) / ((double) pageSize)))));
+            Double maxPages = Math.ceil(Double.parseDouble(String.valueOf((((double) limit) / ((double) pageSize)))));
             String status = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "active"));
             // sort maps to the gamma `order` field; 'volume' is the default ranking
             String sort = this.safeString(parameters, "sort");
@@ -858,8 +888,8 @@ public class Polymarket extends PolymarketApi
                 order = "startDate";
             }
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags")));
-            final Object finalOrder = order;
-            Object baseRequest = new HashMap<String, Object>() {{
+            final String finalOrder = order;
+            Map<String, Object> baseRequest = new HashMap<String, Object>() {{
                 put( "limit", pageSize );
                 put( "order", finalOrder );
                 put( "ascending", false );
@@ -869,7 +899,7 @@ public class Polymarket extends PolymarketApi
             // fetchEvents returns the tagged events rather than filtering the top-volume listing down
             // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
             List<Object> requestedTags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-            Object requestedTagsLength = ((List<?>)requestedTags).size();
+            Integer requestedTagsLength = ((List<?>)requestedTags).size();
             if (Helpers.isGreaterThan(requestedTagsLength, 1))
             {
                 Map<String, Object> seen = new HashMap<String, Object>() {{}};
@@ -909,14 +939,14 @@ public class Polymarket extends PolymarketApi
             }
             // 'all' — no active/closed filter
             // fetch page 1 first; if full, fire remaining pages in parallel
-            Object firstPageRequest = new HashMap<String, Object>() {{
+            Map<String, Object> firstPageRequest = new HashMap<String, Object>() {{
                 put( "offset", 0 );
             }};
             firstPageRequest = this.extend(firstPageRequest, baseRequest);
             List<Object> firstPageResponse = (this.gammaPublicGetEvents(firstPageRequest)).join();
-            Object firstPageIsArray = (firstPageResponse instanceof List);
+            Boolean firstPageIsArray = (firstPageResponse instanceof List);
             List<Object> firstPage = ((Boolean.TRUE.equals(firstPageIsArray))) ? firstPageResponse : new ArrayList<Object>(Arrays.asList());
-            Object firstPageLength = ((List<?>)firstPage).size();
+            Integer firstPageLength = ((List<?>)firstPage).size();
             List<Object> allRawEvents = new ArrayList<Object>(Arrays.asList());
             for (var fi = 0; Helpers.isLessThan(fi, firstPageLength); fi++)
             {
@@ -933,7 +963,7 @@ public class Polymarket extends PolymarketApi
                 for (var oi = 0; oi < ((List<?>)offsets).size(); oi++)
                 {
                     final Object finalOi = oi;
-                    Object pageRequest = new HashMap<String, Object>() {{
+                    Map<String, Object> pageRequest = new HashMap<String, Object>() {{
                         put( "offset", Helpers.GetValue(offsets, finalOi) );
                     }};
                     pageRequest = this.extend(pageRequest, baseRequest);
@@ -943,14 +973,14 @@ public class Polymarket extends PolymarketApi
                 for (var ri = 0; ri < ((List<?>)restPages).size(); ri++)
                 {
                     Object page = (((!java.util.Objects.equals((restPages == null || ri < 0 || ri >= ((List<?>)restPages).size() ? null : ((List<?>)restPages).get(ri)), null)))) ? (restPages == null || ri < 0 || ri >= ((List<?>)restPages).size() ? null : ((List<?>)restPages).get(ri)) : new ArrayList<Object>(Arrays.asList());
-                    Object pageLength = Helpers.getArrayLength(page);
+                    Integer pageLength = Helpers.getArrayLength(page);
                     for (var pi = 0; Helpers.isLessThan(pi, pageLength); pi++)
                     {
                         ((List<Object>)allRawEvents).add(Helpers.GetValue(page, pi));
                     }
                 }
             }
-            Object allRawEventsLength = ((List<?>)allRawEvents).size();
+            Integer allRawEventsLength = ((List<?>)allRawEvents).size();
             if (Helpers.isGreaterThan(allRawEventsLength, limit))
             {
                 return this.arraySlice(allRawEvents, 0, limit);
@@ -958,6 +988,21 @@ public class Polymarket extends PolymarketApi
             return allRawEvents;
         });
 
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchRawEventsList
+     * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.status] 'active', 'closed' or 'all', defaults to options.defaultEventStatus
+     * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
+     * @returns {object[]} an array of raw gamma event objects
+     */
+    public CompletableFuture<Object> fetchRawEventsList(Object... optionalArgs)
+    {
+        return this.fetchRawEventsList(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseEventToMarkets(Map<String, Object> eventVar)
@@ -1066,7 +1111,7 @@ public class Polymarket extends PolymarketApi
             Double tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             Double orderMinSize = this.safeNumber(market, "orderMinSize", 1);
-            Object priceMax = this.parseNumber(Precise.stringSub("1", this.numberToString(tickSize)));
+            Double priceMax = this.parseNumber(Precise.stringSub("1", this.numberToString(tickSize)));
             Boolean negRisk = (Boolean) this.safeBool(market, "negRisk", false);
             String endDate = this.safeString(market, "endDate", this.safeString(market, "end_date_iso"));
             // Gamma API returns these arrays as JSON-encoded strings
@@ -1103,14 +1148,14 @@ public class Polymarket extends PolymarketApi
             {
                 outcomePrices = parsedPrices;
             }
-            Object outcomeLabelsLength = ((List<?>)outcomeLabels).size();
-            Object clobTokenIdsLength = ((List<?>)clobTokenIds).size();
+            Integer outcomeLabelsLength = ((List<?>)outcomeLabels).size();
+            Integer clobTokenIdsLength = ((List<?>)clobTokenIds).size();
             if (java.util.Objects.equals(outcomeLabelsLength, 0) || java.util.Objects.equals(clobTokenIdsLength, 0))
             {
                 continue;
             }
             // Market outcome (no outcome suffix)
-            Object marketSymbol = this.slugToMarketSymbol(eventSlug, marketSlug);
+            Object marketSymbol = this.slugToMarketSymbol((String) (eventSlug), (String) (marketSlug));
             // Build outcomes array
             List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
             for (var oi = 0; oi < ((List<?>)outcomeLabels).size(); oi++)
@@ -1122,8 +1167,8 @@ public class Polymarket extends PolymarketApi
                 {
                     continue;
                 }
-                Object outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel);
-                Object winnerRaw = null;
+                Object outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), (String) (marketSlug), (String) (outcomeLabel));
+                Boolean winnerRaw = null;
                 Object settleFractionRaw = null;
                 if (Boolean.TRUE.equals(marketResolved) && (!java.util.Objects.equals(outcomePrice, null)))
                 {
@@ -1144,12 +1189,12 @@ public class Polymarket extends PolymarketApi
                 }
                 // effectively-final copies: Java emits the object literal below as an anonymous
                 // inner class, which cannot capture a reassigned local
-                Object winner = winnerRaw;
+                Boolean winner = winnerRaw;
                 Object settleFraction = settleFractionRaw;
 final Object finalClobTokenId = clobTokenId;
-                final Object finalOutcomePrice = outcomePrice;
-                final Object finalActive = active;
-                final Object finalClosed = closed;
+                final Double finalOutcomePrice = outcomePrice;
+                final Boolean finalActive = active;
+                final Boolean finalClosed = closed;
                                 ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
                     put( "outcome", outcomeHandle );
                     put( "outcomeId", finalClobTokenId );
@@ -1264,7 +1309,7 @@ final Object finalClobTokenId = clobTokenId;
                     put( "clob_token_ids", outcomeSymbol );
                 }})).join();
                 List<Object> rawMarkets = (((!java.util.Objects.equals(response, null)))) ? response : new ArrayList<Object>(Arrays.asList());
-                Object rawMarketsLength = ((List<?>)rawMarkets).size();
+                Integer rawMarketsLength = ((List<?>)rawMarkets).size();
                 if (Helpers.isGreaterThan(rawMarketsLength, 0))
                 {
                     if (java.util.Objects.equals(this.markets, null))
@@ -1274,7 +1319,7 @@ final Object finalClobTokenId = clobTokenId;
                     Object ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (new HashMap<String, Object>() {{
                         put( "markets", rawMarkets );
                     }}));
-                    Object ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
+                    Integer ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
                     for (var i = 0; Helpers.isLessThan(i, ccxtMarketsLength); i++)
                     {
                         Object mkt = (ccxtMarkets == null || i < 0 || i >= ((List<?>)ccxtMarkets).size() ? null : ((List<?>)ccxtMarkets).get(i));
@@ -1324,7 +1369,7 @@ final Object finalClobTokenId = clobTokenId;
                     ((List<Object>)tokenIds).add(outcomeSymbol);
                 }
             }
-            Object tokenIdsLength = ((List<?>)tokenIds).size();
+            Integer tokenIdsLength = ((List<?>)tokenIds).size();
             if (Helpers.isGreaterThan(tokenIdsLength, 0))
             {
                 if (java.util.Objects.equals(this.markets, null))
@@ -1371,7 +1416,7 @@ final Object finalClobTokenId = clobTokenId;
             }
             for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
             {
-                if (!Boolean.TRUE.equals(this.hasOutcome((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))))
+                if (!Boolean.TRUE.equals(this.hasOutcome((String) ((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i))))))
                 {
                     (this.fetchOutcome((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))).join();
                 }
@@ -1392,13 +1437,12 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
+    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object outcomeObj = (this.loadOutcome(outcome)).join();
+            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicGetMidpoint(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
@@ -1449,9 +1493,24 @@ final Object finalClobTokenId = clobTokenId;
             //         }
             //     }
             //
-            return this.parsePredictionTicker(response, outcomeObj);
+            return this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
         }).thenApply(PredictionTicker::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchTicker
+     * @description fetches the current mid-price and best bid/ask for a single outcome token
+     * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
+     * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
+     * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
+    {
+        return this.fetchTicker(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1465,13 +1524,11 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes2, Map<String, Object> parameters)
     {
-
+        final Object outcomes3 = outcomes2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcomes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcomes = outcomes3;
             if (java.util.Objects.equals(outcomes, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
@@ -1487,7 +1544,7 @@ final Object finalClobTokenId = clobTokenId;
             List<Object> tokenIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)targets).size(); i++)
             {
-                Object outcomeObj = this.outcome((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i)));
+                Object outcomeObj = this.outcome((String) ((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i))));
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if ((!java.util.Objects.equals(tokenId, null)) && !(outcomesByTokenId.containsKey(tokenId)))
                 {
@@ -1497,7 +1554,7 @@ final Object finalClobTokenId = clobTokenId;
             }
             Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 200);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object tokenIdsLength = ((List<?>)tokenIds).size();
+            Integer tokenIdsLength = ((List<?>)tokenIds).size();
             Object startIndex = 0;
             while (Helpers.isLessThan(startIndex, tokenIdsLength))
             {
@@ -1519,12 +1576,12 @@ final Object finalClobTokenId = clobTokenId;
                 Object booksResponse = (responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0));
                 Object midpoints = (responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1));
                 Object lastTradesResponse = (responses == null || 2 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(2));
-                Object booksIsArray = (booksResponse instanceof List);
+                Boolean booksIsArray = (booksResponse instanceof List);
                 Object books = ((Boolean.TRUE.equals(booksIsArray))) ? booksResponse : new ArrayList<Object>(Arrays.asList());
-                Object lastTradesIsArray = (lastTradesResponse instanceof List);
+                Boolean lastTradesIsArray = (lastTradesResponse instanceof List);
                 Object lastTrades = ((Boolean.TRUE.equals(lastTradesIsArray))) ? lastTradesResponse : new ArrayList<Object>(Arrays.asList());
                 Map<String, Object> lastTradesByTokenId = new HashMap<String, Object>() {{}};
-                Object lastTradesLength = ((List<?>)lastTrades).size();
+                Integer lastTradesLength = ((List<?>)lastTrades).size();
                 for (var li = 0; Helpers.isLessThan(li, lastTradesLength); li++)
                 {
                     Object lastTradeEntry = (lastTrades == null || li < 0 || li >= ((List<?>)lastTrades).size() ? null : ((List<?>)lastTrades).get(li));
@@ -1534,7 +1591,7 @@ final Object finalClobTokenId = clobTokenId;
                         ((Map<String, Object>)lastTradesByTokenId).put((String)lastTradeTokenId, lastTradeEntry);
                     }
                 }
-                Object booksLength = ((List<?>)books).size();
+                Integer booksLength = ((List<?>)books).size();
                 for (var i = 0; Helpers.isLessThan(i, booksLength); i++)
                 {
                     Object book = (books == null || i < 0 || i >= ((List<?>)books).size() ? null : ((List<?>)books).get(i));
@@ -1545,7 +1602,7 @@ final Object finalClobTokenId = clobTokenId;
                     }
                     Object outcomeObj = (outcomesByTokenId == null || tokenId == null ? null : outcomesByTokenId.get(tokenId));
                     String mid = this.safeString(midpoints, tokenId);
-                    final Object finalTokenId = tokenId;
+                    final String finalTokenId = tokenId;
                     Map<String, Object> tickerInput = new HashMap<String, Object>() {{
                         put( "midpoint", new HashMap<String, Object>() {{
                             put( "mid", mid );
@@ -1553,7 +1610,7 @@ final Object finalClobTokenId = clobTokenId;
                         put( "book", book );
                         put( "lastTrade", Polymarket.this.safeDict(lastTradesByTokenId, finalTokenId, new HashMap<String, Object>() {{}}) );
                     }};
-                    Object ticker = this.parsePredictionTicker(tickerInput, outcomeObj);
+                    Object ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), outcomeObj);
                     String symbolKey = this.safeString(ticker, "outcome", tokenId);
                     ((Map<String, Object>)result).put((String)symbolKey, ticker);
                 }
@@ -1562,6 +1619,21 @@ final Object finalClobTokenId = clobTokenId;
             return result;
         }).thenApply(PredictionTickers::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchTickers
+     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints (200 per request trio)
+     * @see https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
+     * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
+     * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
+     */
+    public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1573,7 +1645,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Object ticker, Object... optionalArgs)
+    public Object parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1608,38 +1680,37 @@ final Object finalClobTokenId = clobTokenId;
         //         }
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> midpointData = (Map<String, Object>) this.safeDict(ticker, "midpoint", new HashMap<String, Object>() {{}});
         Map<String, Object> bookData = (Map<String, Object>) this.safeDict(ticker, "book", new HashMap<String, Object>() {{}});
         Double mid = this.safeNumber(midpointData, "mid");
         Object bids = (List<Object>)(this.safeList(bookData, "bids", new ArrayList<Object>(Arrays.asList())));
         Object asks = (List<Object>)(this.safeList(bookData, "asks", new ArrayList<Object>(Arrays.asList())));
-        Object bidsLength = ((List<?>)bids).size();
-        Object asksLength = ((List<?>)asks).size();
+        Integer bidsLength = ((List<?>)bids).size();
+        Integer asksLength = ((List<?>)asks).size();
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
-        Object bestBid = (((Helpers.isGreaterThan(bidsLength, 0)))) ? Helpers.GetValue(bids, Helpers.subtract(bidsLength, 1)) : null;
-        Object bestAsk = (((Helpers.isGreaterThan(asksLength, 0)))) ? Helpers.GetValue(asks, Helpers.subtract(asksLength, 1)) : null;
+        Object bestBid = (((Helpers.isGreaterThan(bidsLength, 0)))) ? Helpers.GetValue(bids, (((long) bidsLength) - 1L)) : null;
+        Object bestAsk = (((Helpers.isGreaterThan(asksLength, 0)))) ? Helpers.GetValue(asks, (((long) asksLength) - 1L)) : null;
         // book.last_trade_price is market-level and denominated in whichever token traded last —
         // on the complementary token it is the OTHER side's price, so only the per-token
         // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
         // never-traded token, which also falls back to the mid
         Map<String, Object> lastTradeData = (Map<String, Object>) this.safeDict(ticker, "lastTrade", new HashMap<String, Object>() {{}});
-        Object last = this.safeNumber(lastTradeData, "price");
-        if ((java.util.Objects.equals(last, null)) || (Helpers.isEqual(last, 0)))
+        Double last = this.safeNumber(lastTradeData, "price");
+        if ((java.util.Objects.equals(last, null)) || ((last != null && last == 0)))
         {
             last = mid;
         }
-        Object outcome = this.safeOutcomeSymbol(null, market);
+        Object outcome = this.safeOutcomeSymbol((String) (null), market);
         Long timestamp = this.safeInteger(bookData, "timestamp");
-        Object quoteVolume = null;
+        Double quoteVolume = null;
         if (!java.util.Objects.equals(market, null))
         {
             quoteVolume = this.safeNumber2(((Map<String, Object>)market).get("info"), "volume24hr", "volume");
         }
-        final Object finalMarket = market;
-        final Object finalLast = last;
-        final Object finalQuoteVolume = quoteVolume;
-        return this.safePredictionTicker(new HashMap<String, Object>() {{
+        final Map<String, Object> finalMarket = market;
+        final Double finalLast = last;
+        final Double finalQuoteVolume = quoteVolume;
+        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", outcome );
             put( "outcomeId", Polymarket.this.safeString(finalMarket, "outcomeId") );
             put( "label", Polymarket.this.safeString(finalMarket, "label") );
@@ -1663,7 +1734,20 @@ final Object finalClobTokenId = clobTokenId;
             put( "baseVolume", null );
             put( "quoteVolume", finalQuoteVolume );
             put( "info", ticker );
-        }}, market);
+        }}), market);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parsePredictionTicker
+     * @description parses a combined midpoint + order book response into a unified ticker object
+     * @param {object} ticker a dict with midpoint and book entries
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    public Object parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
+    {
+        return this.parsePredictionTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1676,14 +1760,12 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object outcomeObj = (this.loadOutcome(outcome)).join();
+            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -1710,10 +1792,24 @@ final Object finalClobTokenId = clobTokenId;
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
-            return this.safePredictionOrderBook(orderbook, outcomeObj);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size");
+            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchOrderBook
+     * @description fetches the CLOB order book for a single outcome token
+     * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {int} [limit] not used by polymarket fetchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+     */
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1728,25 +1824,25 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object timeframe2, Long since2, Long limit2, Map<String, Object> parameters)
     {
-
+        final Object timeframe3 = timeframe2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object timeframe = timeframe3;
+            Long since = since3;
+            Object limit = limit3;
             if (!(((Map<?, ?>)this.timeframes).containsKey(timeframe)))
             {
+                // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
                 Object supportedKeys = Helpers.objectKeys(this.timeframes);
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + timeframe) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
-            Object outcomeObj = (this.loadOutcome(outcome)).join();
+            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
             Long fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
-            Object nowS = this.seconds();
+            Long nowS = this.seconds();
             Object startS = null;
             Object endS = nowS;
             if (!java.util.Objects.equals(since, null))
@@ -1777,7 +1873,7 @@ final Object finalClobTokenId = clobTokenId;
                     startS = Helpers.subtract(endS, maxWindow);
                 }
             }
-            final Object finalFidelityMin = fidelityMin;
+            final Long finalFidelityMin = fidelityMin;
             final Object finalStartS = startS;
             final Object finalEndS = endS;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1812,12 +1908,12 @@ final Object finalClobTokenId = clobTokenId;
                 Object snappedMs = Helpers.multiply((Math.floor(Double.parseDouble(String.valueOf((((double) rawMs) / ((double) resolutionMs)))))), resolutionMs);
                 // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
                 // rather than fabricating a 0, probing s/v in case the field ever appears
-                Object vol = this.safeNumber(item, "s");
+                Double vol = this.safeNumber(item, "s");
                 if (java.util.Objects.equals(vol, null))
                 {
                     vol = this.safeNumber(item, "v");
                 }
-                Object bucketKey = String.valueOf(snappedMs);
+                String bucketKey = String.valueOf(snappedMs);
                 if (!(buckets.containsKey(bucketKey)))
                 {
                     ((Map<String, Object>)buckets).put((String)bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, price, price, price, price, vol)));
@@ -1842,7 +1938,7 @@ final Object finalClobTokenId = clobTokenId;
                 ((List<Object>)unsortedCandles).add(Helpers.GetValue(buckets, (bucketKeys == null || i < 0 || i >= bucketKeys.size() ? null : bucketKeys.get(i))));
             }
             List<Object> candles = this.sortBy(unsortedCandles, 0);
-            Object candlesLength = ((List<?>)candles).size();
+            Integer candlesLength = ((List<?>)candles).size();
             if ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThan(candlesLength, limit)))
             {
                 return this.arraySlice(candles, Helpers.opNeg(limit));
@@ -1851,8 +1947,24 @@ final Object finalClobTokenId = clobTokenId;
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name polymarket#fetchOHLCV
+     * @description fetches price history ticks for a single outcome token and buckets them client-side into OHLCV candles, snapping tick timestamps to the candle boundary
+     * @see https://docs.polymarket.com/api-reference/markets/get-prices-history
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(outcome, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         // Unused: fetchOHLCV performs client-side bucket aggregation directly.
         //
@@ -1861,9 +1973,12 @@ final Object finalClobTokenId = clobTokenId;
         //         "p": "0.265"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Double price = this.safeNumber(ohlcv, "p");
         return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "t"), price, price, price, price, null));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1874,12 +1989,11 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current server time in milliseconds
      */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String response = (this.clobPublicGetTime(parameters)).join();
             //
             //     1781273248
@@ -1887,6 +2001,18 @@ final Object finalClobTokenId = clobTokenId;
             return Helpers.multiply(this.parseToInt(response), 1000);
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchTime
+     * @description fetches the current timestamp from the CLOB server
+     * @see https://docs.polymarket.com/api-reference/data/get-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current server time in milliseconds
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1897,18 +2023,17 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
      */
-    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String response = (this.gammaPublicGetStatus(parameters)).join();
             //
             //     OK
             //
             Boolean ok = (java.util.Objects.equals(response, "OK")) || (java.util.Objects.equals(response, "ok"));
-            final Object finalResponse = response;
+            final String finalResponse = response;
             return new HashMap<String, Object>() {{
                 put( "status", ((Boolean.TRUE.equals(ok))) ? "ok" : "maintenance" );
                 put( "updated", null );
@@ -1918,6 +2043,18 @@ final Object finalClobTokenId = clobTokenId;
             }};
         }).thenApply(Status::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchStatus
+     * @description fetches the gamma API health status
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+     */
+    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    {
+        return this.fetchStatus(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1929,20 +2066,19 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    public CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String outcome, Object... optionalArgs)
+    public CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object outcomeObj = (this.loadOutcome(outcome)).join();
+            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
             if (java.util.Objects.equals(conditionId, null))
             {
                 throw new BadRequest(((this.id + " fetchOpenInterest() requires outcome.info.conditionId for ") + outcome)) ;
             }
-            final Object finalConditionId = conditionId;
+            final String finalConditionId = conditionId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", finalConditionId );
             }};
@@ -1951,19 +2087,31 @@ final Object finalClobTokenId = clobTokenId;
             //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
             //
             Map<String, Object> first = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parsePredictionOpenInterest(first, ((Object)outcomeObj));
+            return this.parsePredictionOpenInterest((Map<String, Object>) (first), ((Object)outcomeObj));
         }).thenApply(PredictionOpenInterest::new);
 
     }
+    /**
+     * @method
+     * @name polymarket#fetchOpenInterest
+     * @description fetches the open interest of a prediction market outcome
+     * @see https://docs.polymarket.com/api-reference/misc/get-open-interest
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    public CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String outcome, Object... optionalArgs)
+    {
+        return this.fetchOpenInterest(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parsePredictionOpenInterest(Object interest, Object... optionalArgs)
+    public Object parsePredictionOpenInterest(Map<String, Object> interest, Map<String, Object> market)
     {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object openInterest = this.safeOpenInterest(new HashMap<String, Object>() {{
-            put( "symbol", Polymarket.this.safeOutcomeSymbol(null, market) );
+            put( "symbol", Polymarket.this.safeOutcomeSymbol((String) (null), market) );
             put( "openInterestAmount", null );
             put( "openInterestValue", Polymarket.this.safeNumber(interest, "value") );
             put( "baseVolume", null );
@@ -1972,11 +2120,15 @@ final Object finalClobTokenId = clobTokenId;
             put( "datetime", null );
             put( "info", interest );
         }}, market);
-        ((Map<String, Object>)openInterest).put("outcome", this.safeOutcomeSymbol(null, market));
+        ((Map<String, Object>)openInterest).put("outcome", this.safeOutcomeSymbol((String) (null), market));
         ((Map<String, Object>)openInterest).put("outcomeId", this.safeString(market, "outcomeId"));
         ((Map<String, Object>)openInterest).put("market", this.safeString(market, "market"));
         ((Map<String,Object>)openInterest).remove("symbol");
         return openInterest;
+    }
+    public Object parsePredictionOpenInterest(Map<String, Object> interest, Object... optionalArgs)
+    {
+        return this.parsePredictionOpenInterest(interest, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1988,13 +2140,12 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    public CompletableFuture<PredictionTradingFee> fetchTradingFee(String outcome, Object... optionalArgs)
+    public CompletableFuture<PredictionTradingFee> fetchTradingFee(String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object outcomeObj = (this.loadOutcome(outcome)).join();
+            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -2004,10 +2155,10 @@ final Object finalClobTokenId = clobTokenId;
             //     { "base_fee": 30 }   // base fee in basis points
             //
             String baseFeeBps = this.safeString(response, "base_fee");
-            Object rate = (((!java.util.Objects.equals(baseFeeBps, null)))) ? this.parseNumber(Precise.stringDiv(baseFeeBps, "10000")) : null;
+            Double rate = (((!java.util.Objects.equals(baseFeeBps, null)))) ? this.parseNumber(Precise.stringDiv(baseFeeBps, "10000")) : null;
             return new HashMap<String, Object>() {{
                 put( "info", response );
-                put( "outcome", Polymarket.this.safeOutcomeSymbol(null, ((Object)outcomeObj)) );
+                put( "outcome", Polymarket.this.safeOutcomeSymbol((String) (null), ((Object)outcomeObj)) );
                 put( "outcomeId", Polymarket.this.safeString(outcomeObj, "outcomeId") );
                 put( "market", Polymarket.this.safeString(outcomeObj, "market") );
                 put( "maker", rate );
@@ -2017,6 +2168,19 @@ final Object finalClobTokenId = clobTokenId;
             }};
         }).thenApply(PredictionTradingFee::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchTradingFee
+     * @description fetches the base fee rate for a prediction market outcome token
+     * @see https://docs.polymarket.com/api-reference/market-data/get-fee-rate
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+     */
+    public CompletableFuture<PredictionTradingFee> fetchTradingFee(String outcome, Object... optionalArgs)
+    {
+        return this.fetchTradingFee(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2030,15 +2194,12 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Object... optionalArgs)
+    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            Object outcomeObj = (this.loadOutcome(outcome)).join();
+            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
@@ -2051,7 +2212,7 @@ final Object finalClobTokenId = clobTokenId;
             // THEN filtering can return 0 rows on an active outcome (if the top `limit` market trades are
             // all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
             // token filter by parsePredictionTrades
-            final Object finalConditionId = conditionId;
+            final String finalConditionId = conditionId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", finalConditionId );
             }};
@@ -2074,7 +2235,52 @@ final Object finalClobTokenId = clobTokenId;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name polymarket#fetchTrades
+     * @description fetches public trade history for a single outcome token from the data API
+     * @see https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {int} [since] not used by polymarket fetchTrades
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Object... optionalArgs)
+    {
+        return this.fetchTrades(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name polymarket#fetchMyTrades
+     * @description fetches the authenticated user's trade history from the CLOB, optionally filtered by outcome token
+     * @see https://docs.polymarket.com/api-reference/trade/get-trades
+     * @param {string} [outcome] unified outcome or outcome token id
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome2, Long since, Long limit, Map<String, Object> parameters)
+    {
+        final String outcome3 = outcome2;
+        return BaseExchange.supplyAsync(() -> {
+            String outcome = outcome3;
+            (this.loadApiCredentials()).join();
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Object outcomeObj = null;
+            if (!java.util.Objects.equals(outcome, null))
+            {
+                outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                ((Map<String, Object>)request).put("asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
+            }
+            Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
+            Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
+        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name polymarket#fetchMyTrades
@@ -2088,26 +2294,7 @@ final Object finalClobTokenId = clobTokenId;
      */
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            (this.loadApiCredentials()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                outcomeObj = (this.loadOutcome(outcome)).join();
-                ((Map<String, Object>)request).put("asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
-            }
-            Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
-            Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
-
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2122,22 +2309,18 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchOrderTrades(String id, Object... optionalArgs)
+    public CompletableFuture<List<PredictionTrade>> fetchOrderTrades(String id, String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
             // the ones where this order was the taker or one of the matched makers
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object trades = (this.fetchMyTrades((Object)(outcome), (Object)(null), (Object)(null), (Object)(parameters))).join();
+            List<PredictionTrade> trades = (this.fetchMyTrades((Object)(outcome), (Object)(null), (Object)(null), (Object)(parameters))).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
-                Object trade = (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i));
+                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(trade, "info", new HashMap<String, Object>() {{}});
                 Boolean belongs = (java.util.Objects.equals(this.safeString(trade, "order"), id)) || (java.util.Objects.equals(this.safeString(info, "taker_order_id"), id));
                 List<Object> makerOrders = (List<Object>) this.safeList(info, "maker_orders", new ArrayList<Object>(Arrays.asList()));
@@ -2157,6 +2340,22 @@ final Object finalClobTokenId = clobTokenId;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name polymarket#fetchOrderTrades
+     * @description fetches all the trades made from a single order
+     * @see https://docs.polymarket.com/api-reference/trade/get-trades
+     * @param {string} id the order id
+     * @param {string} [outcome] unified outcome or outcome token id to narrow the lookup
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    public CompletableFuture<List<PredictionTrade>> fetchOrderTrades(String id, Object... optionalArgs)
+    {
+        return this.fetchOrderTrades(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @ignore
@@ -2167,11 +2366,10 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public Object parsePredictionTrade(Object trade, Object... optionalArgs)
+    public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("transactionHash", "transaction_hash", "id")));
         Long timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
         if (java.util.Objects.equals(timestamp, null))
@@ -2181,25 +2379,25 @@ final Object finalClobTokenId = clobTokenId;
         Double price = this.safeNumber(trade, "price");
         Double amount = this.safeNumber(trade, "size");
         String rawSide = this.safeStringLower(trade, "side");
-        Object side = (((java.util.Objects.equals(rawSide, "buy") || java.util.Objects.equals(rawSide, "sell")))) ? rawSide : null;
+        String side = (((java.util.Objects.equals(rawSide, "buy") || java.util.Objects.equals(rawSide, "sell")))) ? rawSide : null;
         String assetId = this.safeString2(trade, "asset", "asset_id");
-        Object mkt = (((!java.util.Objects.equals(market, null)))) ? market : this.safeOutcome(assetId);
-        Object outcome = this.safeOutcomeSymbol(null, mkt);
+        Object mkt = (((!java.util.Objects.equals(market, null)))) ? market : this.safeOutcome((String) (assetId));
+        Object outcome = this.safeOutcomeSymbol((String) (null), mkt);
         String rawTakerOrMaker = this.safeStringLower(trade, "trader_side");
-        Object takerOrMaker = (((java.util.Objects.equals(rawTakerOrMaker, "taker") || java.util.Objects.equals(rawTakerOrMaker, "maker")))) ? rawTakerOrMaker : null;
+        String takerOrMaker = (((java.util.Objects.equals(rawTakerOrMaker, "taker") || java.util.Objects.equals(rawTakerOrMaker, "maker")))) ? rawTakerOrMaker : null;
         String feeRateBps = this.safeString(trade, "fee_rate_bps");
-        Object fee = null;
+        Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeRateBps, null))
         {
-            final Object finalFeeRateBps = feeRateBps;
+            final String finalFeeRateBps = feeRateBps;
             fee = new HashMap<String, Object>() {{
                 put( "currency", "USDC" );
                 put( "rate", Polymarket.this.parseNumber(Precise.stringDiv(finalFeeRateBps, "10000")) );
             }};
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalFee = fee;
-        return this.safePredictionTrade(new HashMap<String, Object>() {{
+        final Long finalTimestamp = timestamp;
+        final Map<String, Object> finalFee = fee;
+        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", finalTimestamp );
@@ -2216,7 +2414,20 @@ final Object finalClobTokenId = clobTokenId;
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}, mkt);
+        }}), mkt);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parsePredictionTrade
+     * @description parses a raw data API trade object into a unified trade object
+     * @param {object} trade the raw trade object
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    public Object parsePredictionTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parsePredictionTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2228,12 +2439,11 @@ final Object finalClobTokenId = clobTokenId;
      * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadApiCredentials()).join();
             // the collateral balance is tied to the signature type / funder that holds the USDC
             Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
@@ -2246,6 +2456,19 @@ final Object finalClobTokenId = clobTokenId;
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchBalance
+     * @description fetches the USDC collateral balance available for trading on the CLOB
+     * @see https://docs.polymarket.com/api-reference/trade/get-balance-allowance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2263,12 +2486,12 @@ final Object finalClobTokenId = clobTokenId;
         }};
         // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
         String raw = this.safeString(response, "balance");
-        Object total = null;
+        Double total = null;
         if (!java.util.Objects.equals(raw, null))
         {
             total = this.parseNumber(Precise.stringDiv(raw, "1000000"));
         }
-        final Object finalTotal = total;
+        final Double finalTotal = total;
         ((Map<String, Object>)result).put("USDC", new HashMap<String, Object>() {{
     put( "free", finalTotal );
     put( "used", null );
@@ -2286,14 +2509,12 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes2, Map<String, Object> parameters)
     {
-
+        final Object outcomes3 = outcomes2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcomes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object outcomesLength = 0;
+            Object outcomes = outcomes3;
+            Integer outcomesLength = 0;
             if (!java.util.Objects.equals(outcomes, null))
             {
                 outcomesLength = ((List<?>)outcomes).size();
@@ -2324,7 +2545,7 @@ final Object finalClobTokenId = clobTokenId;
             }
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
-                Object outcomeObj = this.outcome((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
+                Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Helpers.addElementToObject(wantedIds, Helpers.GetValue(outcomeObj, "outcomeId"), true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2342,7 +2563,39 @@ final Object finalClobTokenId = clobTokenId;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name polymarket#fetchPositions
+     * @description fetches open outcome token positions for the wallet from the data API
+     * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
+     * @param {string[]} [outcomes] unified outcomes to filter by
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name polymarket#fetchPosition
+     * @description fetches the open position for a single outcome token
+     * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            List<PredictionPosition> positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(outcome))), (Object)(parameters))).join();
+            return this.safeDict(positions, 0);
+        }).thenApply(PredictionPosition::new);
+
+    }
     /**
      * @method
      * @name polymarket#fetchPosition
@@ -2354,14 +2607,7 @@ final Object finalClobTokenId = clobTokenId;
      */
     public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(outcome))), (Object)(parameters))).join();
-            return this.safeDict(positions, 0);
-        }).thenApply(PredictionPosition::new);
-
+        return this.fetchPosition(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2373,11 +2619,10 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Object position, Object... optionalArgs)
+    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String tokenId = this.safeString(position, "asset");
-        Object marketData = this.safeOutcome(tokenId, market);
+        Object marketData = this.safeOutcome((String) (tokenId), market);
         Double size = this.safeNumber(position, "size");
         Double entryPrice = this.safeNumber(position, "avgPrice");
         Double curPrice = this.safeNumber(position, "currentPrice");
@@ -2386,10 +2631,10 @@ final Object finalClobTokenId = clobTokenId;
         {
             notional = Helpers.multiply(size, curPrice);
         }
-        final Object finalSize = size;
+        final Double finalSize = size;
         final Object finalNotional = notional;
-        final Object finalCurPrice = curPrice;
-        return this.safePredictionPosition(new HashMap<String, Object>() {{
+        final Double finalCurPrice = curPrice;
+        return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Polymarket.this.safeString(position, "id") );
             put( "outcome", Polymarket.this.safeString(marketData, "outcome") );
             put( "outcomeId", Polymarket.this.safeString(marketData, "outcomeId") );
@@ -2419,7 +2664,20 @@ final Object finalClobTokenId = clobTokenId;
             put( "marginType", "cross" );
             put( "percentage", null );
             put( "info", position );
-        }});
+        }}));
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parsePredictionPosition
+     * @description parses a raw data API position object into a unified position object
+     * @param {object} position the raw position object
+     * @param {object} [market] the outcome object the position belongs to
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    public Object parsePredictionPosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePredictionPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2433,21 +2691,17 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String outcome = outcome3;
             (this.loadApiCredentials()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                outcomeObj = (this.loadOutcome(outcome)).join();
+                outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 ((Map<String, Object>)request).put("asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
@@ -2455,6 +2709,21 @@ final Object finalClobTokenId = clobTokenId;
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchOpenOrders
+     * @description fetches open resting orders for the authenticated user, optionally filtered by outcome token
+     * @see https://docs.polymarket.com/api-reference/trade/get-user-orders
+     * @param {string} [outcome] unified outcome or outcome token id
+     * @param {int} [since] not used by polymarket fetchOpenOrders
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2467,23 +2736,35 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // the request only needs the order id; the outcome is a labelling hint, so resolve it from
             // cache (no network) — fetchOrder stays a single request even on a cold cache.
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadApiCredentials()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Map<String, Object> response = (this.clobPrivateGetDataOrderId(this.extend(request, parameters))).join();
-            return this.parsePredictionOrder(response);
+            return this.parsePredictionOrder((Map<String, Object>) (response));
         }).thenApply(PredictionOrder::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchOrder
+     * @description fetches a single order by id from the CLOB private data endpoint
+     * @see https://docs.polymarket.com/api-reference/trade/get-single-order-by-id
+     * @param {string} id the order id
+     * @param {string} [outcome] unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2495,7 +2776,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Object order, Object... optionalArgs)
+    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // {
@@ -2507,10 +2788,9 @@ final Object finalClobTokenId = clobTokenId;
         //     "success":true
         // }
         // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString2(order, "id", "orderID");
         String tokenId = this.safeString(order, "asset_id");
-        Object mkt = this.safeOutcome(tokenId, market);
+        Object mkt = this.safeOutcome((String) (tokenId), market);
         // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
         String status = this.parseOrderStatus(this.safeString2(order, "status", "type"));
         String side = this.safeStringLower(order, "side");
@@ -2518,7 +2798,7 @@ final Object finalClobTokenId = clobTokenId;
         Double amount = this.safeNumber(order, "original_size");
         Double filled = this.safeNumber(order, "size_matched", 0);
         Long ts = this.safeIntegerProduct(order, "created_at", 1000);
-        return this.safePredictionOrder(new HashMap<String, Object>() {{
+        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "info", order );
@@ -2544,7 +2824,20 @@ final Object finalClobTokenId = clobTokenId;
             put( "remaining", null );
             put( "fee", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}, mkt);
+        }}), mkt);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parsePredictionOrder
+     * @description parses a raw CLOB order object into a unified order object
+     * @param {object} order the raw order object
+     * @param {object} [market] the outcome object the order belongs to
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public Object parsePredictionOrder(Map<String, Object> order, Object... optionalArgs)
+    {
+        return this.parsePredictionOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2596,24 +2889,48 @@ final Object finalClobTokenId = clobTokenId;
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadApiCredentials()).join();
-            (this.loadOutcome(outcome)).join();
+            (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> built = this.buildClobOrderBody((String) (outcome), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.clobPrivatePostOrder(this.safeDict(built, "body"))).join();
             // request echo first so the response's real orderID/status/success win on overlap
             Map<String, Object> enriched = this.extend(this.safeDict(built, "request"), response);
-            Object order = this.parsePredictionOrder(enriched, ((Object)this.safeDict(built, "outcome")));
+            Object order = this.parsePredictionOrder((Map<String, Object>) (enriched), ((Object)this.safeDict(built, "outcome")));
             Helpers.addElementToObject(order, "info", response); // keep info the raw exchange response, not the request echo
             return order;
         }).thenApply(PredictionOrder::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#createOrder
+     * @description places a limit or market order on the CLOB for the given outcome token
+     * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how many outcome tokens to trade
+     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current price for market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderType] time-in-force override: 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
+     * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
+     * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
+     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
+     * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
+     * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+     * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
+     * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
+     * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2625,12 +2942,11 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadApiCredentials()).join();
             // buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
             // requested outcomes first (one gamma request for all uncached token ids)
@@ -2674,17 +2990,30 @@ final Object finalClobTokenId = clobTokenId;
                 {
                     // request echo first so the response's real orderID/status win on overlap
                     Map<String, Object> enriched = this.extend((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)), (response == null || i < 0 || i >= response.size() ? null : response.get(i)));
-                    Object parsedItem = this.parsePredictionOrder(enriched, ((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
+                    Object parsedItem = this.parsePredictionOrder((Map<String, Object>) (enriched), ((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
                     Helpers.addElementToObject(parsedItem, "info", (response == null || i < 0 || i >= response.size() ? null : response.get(i))); // keep info the raw exchange response
                     ((List<Object>)result).add(parsedItem);
                 }
             } else
             {
-                ((List<Object>)result).add(this.parsePredictionOrder(response));
+                ((List<Object>)result).add(this.parsePredictionOrder((Map<String, Object>) (response)));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name polymarket#createOrders
+     * @description places multiple orders on the CLOB in a single batched request
+     * @see https://docs.polymarket.com/api-reference/trade/post-orders
+     * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Object... optionalArgs)
+    {
+        return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2694,17 +3023,15 @@ final Object finalClobTokenId = clobTokenId;
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    public Map<String, Object> buildClobOrderBody(String outcome, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> buildClobOrderBody(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         // pure builder, no network I/O — intentionally synchronous. a no-op async method
         // transpiles in php to a promise-typed wrapper around a body that returns a plain
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        Object outcomeObj = this.outcome(outcome);
+        Object outcomeObj = this.outcome((String) (outcome));
         Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
-        Object sideStr = ((String)((String)side)).toUpperCase();
+        String sideStr = ((String)((String)side)).toUpperCase();
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
@@ -2764,7 +3091,7 @@ final Object finalClobTokenId = clobTokenId;
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         Double cost = this.safeNumber(parameters, "cost");
         Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode")));
-        Map<String, Object> amounts = this.polymarketOrderRawAmounts((String) (sideStr), amount, price, (String) (tickSize), cost);
+        Map<String, Object> amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, (String) (tickSize), cost);
         String makerAmount = this.safeString(amounts, "makerAmount");
         String takerAmount = this.safeString(amounts, "takerAmount");
         Object sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
@@ -2802,8 +3129,8 @@ final Object finalClobTokenId = clobTokenId;
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         Object maker = funder;
         Object signer = ((((signatureType != null && signatureType == 3)))) ? funder : eoa;
-        final Object finalSignatureType = signatureType;
-        final Object finalBuilderBytes32 = builderBytes32;
+        final Long finalSignatureType = signatureType;
+        final String finalBuilderBytes32 = builderBytes32;
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "salt", salt );
             put( "maker", maker );
@@ -2823,8 +3150,8 @@ final Object finalClobTokenId = clobTokenId;
         String domainVersion = this.safeString(this.options, "ctfExchangeVersion", "2");
         String signature = this.signClobOrder((Map<String, Object>) (message), exchangeAddress, domainVersion, signatureType);
         String owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
-        final Object finalSideStr = sideStr;
-        final Object finalOrderTypeStr = orderTypeStr;
+        final String finalSideStr = sideStr;
+        final String finalOrderTypeStr = orderTypeStr;
         Map<String, Object> orderBody = new HashMap<String, Object>() {{
             put( "deferExec", false );
             put( "postOnly", postOnly );
@@ -2869,7 +3196,40 @@ final Object finalClobTokenId = clobTokenId;
             put( "request", requestEcho );
         }};
     }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#buildClobOrderBody
+     * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
+     * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
+     */
+    public Map<String, Object> buildClobOrderBody(String outcome, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.buildClobOrderBody(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name polymarket#createMarketBuyOrderWithCost
+     * @description places a market buy order sized by USDC cost (how much to spend) rather than shares
+     * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {float} cost the amount of USDC to spend
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String outcome, Object cost, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> request = this.extend(parameters, new HashMap<String, Object>() {{
+                put( "cost", cost );
+            }});
+            return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(request))).join();
+        }).thenApply(PredictionOrder::new);
+
+    }
     /**
      * @method
      * @name polymarket#createMarketBuyOrderWithCost
@@ -2882,21 +3242,11 @@ final Object finalClobTokenId = clobTokenId;
      */
     public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String outcome, Object cost, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Map<String, Object> request = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "cost", cost );
-            }});
-            return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(request))).join();
-        }).thenApply(PredictionOrder::new);
-
+        return this.createMarketBuyOrderWithCost(outcome, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Map<String, Object> polymarketOrderRawAmounts(String side, Object size, Object price, String tickSize, Object... optionalArgs)
+    public Map<String, Object> polymarketOrderRawAmounts(String side, Object size, Object price, String tickSize, Object cost)
     {
-        Object cost = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> configs = new HashMap<String, Object>() {{
             put( "0.1", new HashMap<String, Object>() {{
                 put( "price", 1 );
@@ -2923,8 +3273,8 @@ final Object finalClobTokenId = clobTokenId;
         Long priceDecimals = this.safeInteger(cfg, "price");
         Long sizeDecimals = this.safeInteger(cfg, "size");
         Long amountDecimals = this.safeInteger(cfg, "amount");
-        Object priceStr = this.numberToString(price);
-        Object rawPrice = this.decimalToPrecision(priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
+        String priceStr = this.numberToString(price);
+        String rawPrice = this.decimalToPrecision(priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
         Object makerRaw = null;
         Object takerRaw = null;
         if ((!java.util.Objects.equals(cost, null)) && (java.util.Objects.equals(side, "BUY")))
@@ -2932,27 +3282,31 @@ final Object finalClobTokenId = clobTokenId;
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
             // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
             // a marketable FOK would round just under the ask and fail to cross
-            Object costStr = this.numberToString(cost);
+            String costStr = this.numberToString(cost);
             makerRaw = this.decimalToPrecision(costStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
             takerRaw = this.decimalToPrecision(Precise.stringDiv(makerRaw, rawPrice), TRUNCATE, amountDecimals, DECIMAL_PLACES);
         } else if (java.util.Objects.equals(side, "BUY"))
         {
-            Object sizeStr = this.numberToString(size);
+            String sizeStr = this.numberToString(size);
             takerRaw = this.decimalToPrecision(sizeStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
             makerRaw = this.decimalToPrecision(Precise.stringMul(takerRaw, rawPrice), ROUND, amountDecimals, DECIMAL_PLACES);
         } else
         {
-            Object sizeStr = this.numberToString(size);
+            String sizeStr = this.numberToString(size);
             makerRaw = this.decimalToPrecision(sizeStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
             takerRaw = this.decimalToPrecision(Precise.stringMul(makerRaw, rawPrice), ROUND, amountDecimals, DECIMAL_PLACES);
         }
         // scale to collateral units (USDC has 6 decimals; shares are also scaled by 1e6)
-        Object makerAmount = this.decimalToPrecision(Precise.stringMul(makerRaw, "1000000"), TRUNCATE, 0, DECIMAL_PLACES);
-        Object takerAmount = this.decimalToPrecision(Precise.stringMul(takerRaw, "1000000"), TRUNCATE, 0, DECIMAL_PLACES);
+        String makerAmount = this.decimalToPrecision(Precise.stringMul(makerRaw, "1000000"), TRUNCATE, 0, DECIMAL_PLACES);
+        String takerAmount = this.decimalToPrecision(Precise.stringMul(takerRaw, "1000000"), TRUNCATE, 0, DECIMAL_PLACES);
         return new HashMap<String, Object>() {{
             put( "makerAmount", makerAmount );
             put( "takerAmount", takerAmount );
         }};
+    }
+    public Map<String, Object> polymarketOrderRawAmounts(String side, Object size, Object price, String tickSize, Object... optionalArgs)
+    {
+        return this.polymarketOrderRawAmounts(side, size, price, tickSize, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
     public String signClobOrder(Map<String, Object> message, Object exchangeAddress, Object domainVersion, Object sigType)
@@ -3017,8 +3371,8 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> eoaSig = this.signMessage(encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            Object eoaSignature = Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(((Map<String, Object>)eoaSig).get("r"))), this.remove0xPrefix(((Map<String, Object>)eoaSig).get("s"))), this.intToBase16(((Map<String, Object>)eoaSig).get("v")));
-            return ((String)eoaSignature).toLowerCase();
+            String eoaSignature = Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(((Map<String, Object>)eoaSig).get("r"))), this.remove0xPrefix(((Map<String, Object>)eoaSig).get("s"))), this.intToBase16(((Map<String, Object>)eoaSig).get("v")));
+            return eoaSignature.toLowerCase();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
@@ -3071,12 +3425,12 @@ final Object finalClobTokenId = clobTokenId;
         String ctLenHex = this.intToBase16(orderTypeString.length());
         // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         // simple identifier) picks it up instead of leaking a padStart() function call
-        Object lenHex = Helpers.padStart(ctLenHex, ((Number)4).intValue(), ((String)"0").charAt(0));
-        Object orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
-        Object wrappedSignature = Helpers.add(Helpers.add(Helpers.add(Helpers.add(("0x" + innerSig), this.remove0xPrefix(appDomainSep)), this.remove0xPrefix(contentsHash)), orderTypeStringHex), lenHex);
+        String lenHex = Helpers.padStart(ctLenHex, ((Number)4).intValue(), ((String)"0").charAt(0));
+        String orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
+        String wrappedSignature = (Helpers.add(Helpers.add(Helpers.add(("0x" + innerSig), this.remove0xPrefix(appDomainSep)), this.remove0xPrefix(contentsHash)), orderTypeStringHex) + lenHex);
         // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
         // uppercase hex in some targets); the signature is case-insensitive bytes
-        return ((String)wrappedSignature).toLowerCase();
+        return wrappedSignature.toLowerCase();
     }
 
     /**
@@ -3089,13 +3443,11 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> cancelOrder(Object id, String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadApiCredentials()).join();
             // cancelling by id needs no market data, so events do not have to be loaded first
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3107,13 +3459,27 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> notCanceled = (Map<String, Object>) this.safeDict(response, "not_canceled", new HashMap<String, Object>() {{}});
             String failureReason = this.safeString(notCanceled, id);
             String status = (((java.util.Objects.equals(failureReason, null)))) ? "canceled" : "open";
-            return this.safePredictionOrder(new HashMap<String, Object>() {{
+            return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", status );
                 put( "info", response );
-            }});
+            }}));
         }).thenApply(PredictionOrder::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#cancelOrder
+     * @description cancels a single open order by id on the CLOB
+     * @see https://docs.polymarket.com/api-reference/trade/cancel-single-order
+     * @param {string} id the order id
+     * @param {string} [outcome] unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3126,13 +3492,11 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadApiCredentials()).join();
             // the request body is the bare array of order ids (DELETE /orders), so params are not merged
             Map<String, Object> response = (this.clobPrivateDeleteOrders(ids)).join();
@@ -3141,15 +3505,29 @@ final Object finalClobTokenId = clobTokenId;
             for (var i = 0; i < ((List<?>)canceled).size(); i++)
             {
     final Object finalI = i;
-                            ((List<Object>)orders).add(this.safePredictionOrder(new HashMap<String, Object>() {{
+                            ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "id", Polymarket.this.safeString(canceled, finalI) );
                     put( "status", "canceled" );
                     put( "info", response );
-                }}));
+                }})));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name polymarket#cancelOrders
+     * @description cancels multiple open orders by id on the CLOB in a single request
+     * @see https://docs.polymarket.com/api-reference/trade/cancel-orders
+     * @param {string[]} ids the order ids to cancel
+     * @param {string} [outcome] not used by polymarket cancelOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3162,19 +3540,17 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<PredictionOrder>> cancelAllOrders(String outcome2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            String outcome = outcome3;
             (this.loadApiCredentials()).join();
             Object response = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
-                Object outcomeObj = (this.loadOutcome(outcome)).join();
+                Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "asset_id", Helpers.GetValue(outcomeObj, "outcomeId") );
                 }};
@@ -3190,15 +3566,29 @@ final Object finalClobTokenId = clobTokenId;
             {
     final Object finalI = i;
                 final Object finalResponse = response;
-                            ((List<Object>)orders).add(this.safePredictionOrder(new HashMap<String, Object>() {{
+                            ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "id", Polymarket.this.safeString(canceled, finalI) );
                     put( "status", "canceled" );
                     put( "info", finalResponse );
-                }}));
+                }})));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name polymarket#cancelAllOrders
+     * @description cancels all open orders on the CLOB, optionally scoped to one outcome token
+     * @see https://docs.polymarket.com/api-reference/trade/cancel-all-orders
+     * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
+     * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3221,12 +3611,11 @@ final Object finalClobTokenId = clobTokenId;
      * @param {int} [params.maxSearchPages] max search pages to fetch when no limit is given (default 5), bounding a broad query
      * @returns {object[]} an array of event structures
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.requireEventQuery(parameters);
             String requestedEventId = this.safeString(parameters, "eventId");
             String requestedSlug = this.safeString(parameters, "slug");
@@ -3236,7 +3625,7 @@ final Object finalClobTokenId = clobTokenId;
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
             }
-            Object queriesLength = ((List<?>)queries).size();
+            Integer queriesLength = ((List<?>)queries).size();
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
             if ((!java.util.Objects.equals(requestedEventId, null)) || (!java.util.Objects.equals(requestedSlug, null)))
             {
@@ -3250,7 +3639,7 @@ final Object finalClobTokenId = clobTokenId;
                     ((Map<String, Object>)lookup).put("slug", requestedSlug);
                 }
                 List<Object> response = (this.gammaPublicGetEvents(lookup)).join();
-                Object responseIsArray = (response instanceof List);
+                Boolean responseIsArray = (response instanceof List);
                 rawEvents = ((Boolean.TRUE.equals(responseIsArray))) ? response : new ArrayList<Object>(Arrays.asList());
             } else if (Helpers.isGreaterThan(queriesLength, 0))
             {
@@ -3274,7 +3663,7 @@ final Object finalClobTokenId = clobTokenId;
                 Object rawEvent = (rawEvents == null || rei < 0 || rei >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(rei));
                 Object eventForParsing = rawEvent;
                 Object ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (eventForParsing));
-                Object ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
+                Integer ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
                 if (java.util.Objects.equals(ccxtMarketsLength, 0))
                 {
                     // search results may omit the nested markets, fall back to the detail endpoint
@@ -3283,13 +3672,13 @@ final Object finalClobTokenId = clobTokenId;
                     Object detailedEvent = null;
                     if (!java.util.Objects.equals(eventId, null))
                     {
-                        final Object finalEventId = eventId;
+                        final String finalEventId = eventId;
                         detailedEvent = (this.gammaPublicGetEventsId(new HashMap<String, Object>() {{
                             put( "id", finalEventId );
                         }})).join();
                     } else if (!java.util.Objects.equals(rawEventSlug, null))
                     {
-                        final Object finalRawEventSlug = rawEventSlug;
+                        final String finalRawEventSlug = rawEventSlug;
                         detailedEvent = (this.gammaPublicGetEventsSlugSlug(new HashMap<String, Object>() {{
                             put( "slug", finalRawEventSlug );
                         }})).join();
@@ -3331,6 +3720,30 @@ final Object finalClobTokenId = clobTokenId;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name polymarket#fetchEvents
+     * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance; for an unscoped top-volume browse use fetchMarkets ()
+     * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.query] a single keyword search term
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
+     * @param {int} [params.limit] max number of events to return
+     * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
+     * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
+     * @param {string} [params.searchIn] when searching, restrict the match to 'title' (default), 'description' or 'both'
+     * @param {string} [params.eventId] direct lookup by event id (short-circuits the listing/search)
+     * @param {string} [params.slug] direct lookup by event slug
+     * @param {int} [params.searchPageSize] search page size (gamma limit_per_type, default 100); lower it to shrink the download when a small limit is enough, higher to over-fetch before client-side status/title filtering
+     * @param {int} [params.maxSearchPages] max search pages to fetch when no limit is given (default 5), bounding a broad query
+     * @returns {object[]} an array of event structures
+     */
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
+    {
+        return this.fetchEvents(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -3342,12 +3755,11 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
+    public CompletableFuture<PredictionEvent> fetchEvent(String id, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object response = null;
             if (((String)id).indexOf("-") >= 0)
             {
@@ -3370,6 +3782,20 @@ final Object finalClobTokenId = clobTokenId;
             return eventVar;
         }).thenApply(PredictionEvent::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#fetchEvent
+     * @description fetches a single prediction-market event by its id or slug
+     * @see https://docs.polymarket.com/api-reference/events/get-event-by-id
+     * @see https://docs.polymarket.com/api-reference/events/get-event-by-slug
+     * @param {string} id the event id (numeric) or slug
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
+    {
+        return this.fetchEvent(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseEvent(Map<String, Object> rawEvent)
@@ -3452,7 +3878,7 @@ final Object finalClobTokenId = clobTokenId;
         // prefer the human-readable label ("Fed Rates") over the slug — matching is
         // normalized (normalizeTagKey), so the display form is free to be the friendly one
         List<Object> rawTags = (List<Object>) this.safeList(rawEvent, "tags", new ArrayList<Object>(Arrays.asList()));
-        Object rawTagsLength = ((List<?>)rawTags).size();
+        Integer rawTagsLength = ((List<?>)rawTags).size();
         List<Object> parsedTags = new ArrayList<Object>(Arrays.asList());
         for (var ti = 0; Helpers.isLessThan(ti, rawTagsLength); ti++)
         {
@@ -3467,7 +3893,7 @@ final Object finalClobTokenId = clobTokenId;
         return this.extend(new HashMap<String, Object>() {{
             put( "id", Polymarket.this.safeString(rawEvent, "id") );
             put( "slug", finalSlug );
-            put( "event", (((!java.util.Objects.equals(finalSlug, null) && !java.util.Objects.equals(finalSlug, "")))) ? Polymarket.this.shortenSlug(finalSlug) : null );
+            put( "event", (((!java.util.Objects.equals(finalSlug, null) && !java.util.Objects.equals(finalSlug, "")))) ? Polymarket.this.shortenSlug((String) (finalSlug)) : null );
             put( "title", Polymarket.this.safeString(rawEvent, "title") );
             put( "tags", parsedTags );
             put( "markets", marketsList );
@@ -3538,14 +3964,9 @@ final Object finalClobTokenId = clobTokenId;
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
         // api is either a string ('gamma') or array (['gamma', 'public'])
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "gamma";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object apiGroup = (((api instanceof String))) ? api : Helpers.GetValue(api, 0);
         Object access = (((api instanceof String))) ? "public" : Helpers.GetValue(api, 1);
         Object baseUrls = ((Map<String, Object>)this.urls).get("api");
@@ -3557,7 +3978,7 @@ final Object finalClobTokenId = clobTokenId;
         if ((parameters instanceof List))
         {
             Object paramsList = (List<Object>)(parameters);
-            Object paramsListLength = ((List<?>)paramsList).size();
+            Integer paramsListLength = ((List<?>)paramsList).size();
             isArrayBody = Helpers.isGreaterThan(paramsListLength, 0);
         }
         Object query = new HashMap<String, Object>() {{}};
@@ -3590,7 +4011,7 @@ final Object finalClobTokenId = clobTokenId;
         } else
         {
             List<Object> queryKeys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
-            Object queryKeysLength = ((List<?>)queryKeys).size();
+            Integer queryKeysLength = ((List<?>)queryKeys).size();
             if (Helpers.isGreaterThan(queryKeysLength, 0))
             {
                 body = this.json(query);
@@ -3618,7 +4039,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 Object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
-                Object timestamp = String.valueOf(this.seconds());
+                String timestamp = String.valueOf(this.seconds());
                 Long nonce = this.safeInteger(parameters, "nonce", 0);
                 Object l1signature = this.signClobAuth(address, timestamp, nonce);
                 headers = this.extend(headers, new HashMap<String, Object>() {{
@@ -3637,11 +4058,11 @@ final Object finalClobTokenId = clobTokenId;
                 String passphrase = this.safeString(this.options, "l2Passphrase", this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
                 Object address = (((!java.util.Objects.equals(this.privateKey, null)))) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
-                Object timestamp = String.valueOf(this.seconds());
+                String timestamp = String.valueOf(this.seconds());
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 String requestPath = ("/" + this.implodeParams(path, parameters));
-                Object auth = (Helpers.add(timestamp, method) + requestPath);
+                Object auth = ((timestamp + method) + requestPath);
                 if (!java.util.Objects.equals(body, null))
                 {
                     auth = Helpers.add(auth, body);
@@ -3658,7 +4079,7 @@ final Object finalClobTokenId = clobTokenId;
                 signature = (signature == null ? null : ((String)signature).replace("+", "-"));
                 signature = (signature == null ? null : ((String)signature).replace("/", "_"));
                 final Object finalSignature = signature;
-                final Object finalTimestamp = timestamp;
+                final String finalTimestamp = timestamp;
                 headers = this.extend(headers, new HashMap<String, Object>() {{
                     put( "POLY_ADDRESS", address );
                     put( "POLY_API_KEY", apiKey );
@@ -3668,7 +4089,7 @@ final Object finalClobTokenId = clobTokenId;
                 }});
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
@@ -3678,6 +4099,27 @@ final Object finalClobTokenId = clobTokenId;
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#sign
+     * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
+     * @param {string} path the endpoint path
+     * @param {string|string[]} api the api group and access level
+     * @param {string} method the http method
+     * @param {object} params the request parameters
+     * @param {object} [headers] request headers
+     * @param {string} [body] the request body
+     * @returns {object} a dict with url, method, body and headers
+     */
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "gamma", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null);
+    }
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    {
+        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
     public Object hashMessage(Object message)
@@ -3689,7 +4131,7 @@ final Object finalClobTokenId = clobTokenId;
     {
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
-        Object cleaned = ((String)this.remove0xPrefix(address)).toLowerCase();
+        String cleaned = ((String)this.remove0xPrefix(address)).toLowerCase();
         Object hashHex = this.hash(this.encode(cleaned), keccak(), "hex");
         Object addrChars = this.stringToCharsArray(cleaned);
         Object hashChars = this.stringToCharsArray(hashHex);
@@ -3772,16 +4214,28 @@ final Object finalClobTokenId = clobTokenId;
      * @param {int} [Helpers.GetValue(params, "nonce")] the nonce used to derive the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public CompletableFuture<Object> deriveApiKey(Object... optionalArgs)
+    public CompletableFuture<Object> deriveApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.clobPrivateGetAuthDeriveApiKey(parameters)).join();
             return this.setApiCredentials((Map<String, Object>) (response));
         });
 
+    }
+    /**
+     * @method
+     * @name polymarket#deriveApiKey
+     * @description derives the L2 api credentials (apiKey, secret, passphrase) deterministically from the wallet private key
+     * @see https://docs.polymarket.com/developers/CLOB/authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [Helpers.GetValue(params, "nonce")] the nonce used to derive the credentials, defaults to 0
+     * @returns {object} the api credentials { apiKey, secret, passphrase }
+     */
+    public CompletableFuture<Object> deriveApiKey(Object... optionalArgs)
+    {
+        return this.deriveApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3793,16 +4247,28 @@ final Object finalClobTokenId = clobTokenId;
      * @param {int} [Helpers.GetValue(params, "nonce")] the nonce used to create the credentials, defaults to 0
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public CompletableFuture<Object> createApiKey(Object... optionalArgs)
+    public CompletableFuture<Object> createApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.clobPrivatePostAuthApiKey(parameters)).join();
             return this.setApiCredentials((Map<String, Object>) (response));
         });
 
+    }
+    /**
+     * @method
+     * @name polymarket#createApiKey
+     * @description creates new L2 api credentials (apiKey, secret, passphrase) for the wallet private key
+     * @see https://docs.polymarket.com/developers/CLOB/authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [Helpers.GetValue(params, "nonce")] the nonce used to create the credentials, defaults to 0
+     * @returns {object} the api credentials { apiKey, secret, passphrase }
+     */
+    public CompletableFuture<Object> createApiKey(Object... optionalArgs)
+    {
+        return this.createApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3813,12 +4279,11 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
-    public CompletableFuture<Object> createOrDeriveApiKey(Object... optionalArgs)
+    public CompletableFuture<Object> createOrDeriveApiKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object creds = null;
             try
             {
@@ -3834,6 +4299,18 @@ final Object finalClobTokenId = clobTokenId;
             return creds;
         });
 
+    }
+    /**
+     * @method
+     * @name polymarket#createOrDeriveApiKey
+     * @description derives the existing L2 api credentials for the wallet private key, creating them if none exist yet
+     * @see https://docs.polymarket.com/developers/CLOB/authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api credentials { apiKey, secret, passphrase }
+     */
+    public CompletableFuture<Object> createOrDeriveApiKey(Object... optionalArgs)
+    {
+        return this.createOrDeriveApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object setApiCredentials(Map<String, Object> response)
@@ -3964,8 +4441,8 @@ final Object finalClobTokenId = clobTokenId;
             Object a = (rawAsks == null || j < 0 || j >= ((List<?>)rawAsks).size() ? null : ((List<?>)rawAsks).get(j));
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(a, "price"), this.safeNumber(a, "size"))));
         }
-        Object outcomeObj = this.safeOutcome(outcome);
-final Object finalOutcome = outcome;
+        Object outcomeObj = this.safeOutcome((String) (outcome));
+final String finalOutcome = outcome;
                 Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{
             put( "bids", bids );
             put( "asks", asks );
@@ -4026,9 +4503,9 @@ final Object finalOutcome = outcome;
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         Double price = this.safeNumber(eventVar, "price");
         Double amount = this.safeNumber(eventVar, "size");
-        Object market = this.safeOutcome(tokenId);
-        final Object finalOutcome = outcome;
-        Object trade = this.safePredictionTrade(new HashMap<String, Object>() {{
+        Object market = this.safeOutcome((String) (tokenId));
+        final String finalOutcome = outcome;
+        Object trade = this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Polymarket.this.safeString(eventVar, "transaction_hash") );
             put( "info", eventVar );
             put( "timestamp", timestamp );
@@ -4045,7 +4522,7 @@ final Object finalOutcome = outcome;
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}, market);
+        }}), market);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = new HashMap<String, Object>() {{}};
@@ -4070,14 +4547,12 @@ final Object finalOutcome = outcome;
      * @param {object} [params] extra params (currently unused)
      * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
      */
-    public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome2, Object... optionalArgs)
+    public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome2, Long limit, Map<String, Object> parameters)
     {
-        final Object outcome3 = outcome2;
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object outcomeObj = (this.loadOutcome(outcome)).join();
+            String outcome = outcome3;
+            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
             String messageHash = ("orderbook::" + outcome);
@@ -4086,11 +4561,24 @@ final Object finalOutcome = outcome;
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(PredictionOrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#watchOrderBook
+     * @description streams live order-book updates for a single Polymarket outcome token
+     * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
+     * @param {int} [limit] optional depth limit applied after resolving
+     * @param {object} [params] extra params (currently unused)
+     * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
+     */
+    public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome, Object... optionalArgs)
+    {
+        return this.watchOrderBook(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4103,15 +4591,12 @@ final Object finalOutcome = outcome;
      * @param {object} [params] extra params (unused)
      * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
      */
-    public CompletableFuture<List<PredictionTrade>> watchTrades(String outcome2, Object... optionalArgs)
+    public CompletableFuture<List<PredictionTrade>> watchTrades(String outcome2, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object outcome3 = outcome2;
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            Object outcomeObj = (this.loadOutcome(outcome)).join();
+            String outcome = outcome3;
+            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
             String messageHash = ("trades::" + outcome);
@@ -4120,11 +4605,25 @@ final Object finalOutcome = outcome;
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object trades = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name polymarket#watchTrades
+     * @description streams live fills for a single Polymarket outcome token
+     * @param {string} outcome unified outcome
+     * @param {int} [since] optional unix timestamp (ms) lower bound
+     * @param {int} [limit] optional max number of trades to return
+     * @param {object} [params] extra params (unused)
+     * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
+     */
+    public CompletableFuture<List<PredictionTrade>> watchTrades(String outcome, Object... optionalArgs)
+    {
+        return this.watchTrades(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4135,13 +4634,12 @@ final Object finalOutcome = outcome;
      * @param {object} [params] extra params (unused)
      * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
      */
-    public CompletableFuture<PredictionTicker> watchTicker(String outcome2, Object... optionalArgs)
+    public CompletableFuture<PredictionTicker> watchTicker(String outcome2, Map<String, Object> parameters)
     {
-        final Object outcome3 = outcome2;
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object outcomeObj = (this.loadOutcome(outcome)).join();
+            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
             String messageHash = ("ticker::" + outcome);
@@ -4162,13 +4660,13 @@ final Object finalOutcome = outcome;
                     Helpers.addElementToObject(this.orderbooks, outcome, seededBook);
                 }
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             Object bids = ((Object)Helpers.GetValue(orderbook, "bids"));
             Object asks = ((Object)Helpers.GetValue(orderbook, "asks"));
             Object bestBid = null;
             Object bestBidVolume = null;
-            Object bidsLength = 0;
+            Integer bidsLength = 0;
             if (!java.util.Objects.equals(bids, null))
             {
                 bidsLength = Helpers.getArrayLength(bids);
@@ -4180,7 +4678,7 @@ final Object finalOutcome = outcome;
             }
             Object bestAsk = null;
             Object bestAskVolume = null;
-            Object asksLength = 0;
+            Integer asksLength = 0;
             if (!java.util.Objects.equals(asks, null))
             {
                 asksLength = Helpers.getArrayLength(asks);
@@ -4202,14 +4700,14 @@ final Object finalOutcome = outcome;
             {
                 mid = bestAsk;
             }
-            Object market = this.safeOutcome(outcome);
+            Object market = this.safeOutcome((String) (outcome));
             final Object finalOutcome = outcome;
             final Object finalBestBid = bestBid;
             final Object finalBestBidVolume = bestBidVolume;
             final Object finalBestAsk = bestAsk;
             final Object finalBestAskVolume = bestAskVolume;
             final Object finalMid = mid;
-            return this.safePredictionTicker(new HashMap<String, Object>() {{
+            return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "outcome", finalOutcome );
                 put( "outcomeId", Polymarket.this.safeString(market, "outcomeId") );
                 put( "label", Polymarket.this.safeString(market, "label") );
@@ -4233,9 +4731,21 @@ final Object finalOutcome = outcome;
                 put( "baseVolume", null );
                 put( "quoteVolume", null );
                 put( "info", orderbook );
-            }}, market);
+            }}), market);
         }).thenApply(PredictionTicker::new);
 
+    }
+    /**
+     * @method
+     * @name polymarket#watchTicker
+     * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
+     * @param {string} outcome unified outcome
+     * @param {object} [params] extra params (unused)
+     * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
+     */
+    public CompletableFuture<PredictionTicker> watchTicker(String outcome, Object... optionalArgs)
+    {
+        return this.watchTicker(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4249,20 +4759,18 @@ final Object finalOutcome = outcome;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<PredictionOrder>> watchOrders(String outcome2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String outcome = outcome3;
+            Object limit = limit3;
             (this.loadApiCredentials()).join();
             String messageHash = "orders";
             if (!java.util.Objects.equals(outcome, null))
             {
-                Object outcomeObj = (this.loadOutcome(outcome)).join();
+                Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 outcome = this.safeString(outcomeObj, "outcome");
                 messageHash = ("orders::" + outcome);
             }
@@ -4274,6 +4782,21 @@ final Object finalOutcome = outcome;
             return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name polymarket#watchOrders
+     * @description watches the authenticated user's order updates over the CLOB user websocket channel
+     * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
+     * @param {string} [outcome] unified outcome to filter the stream to one market
+     * @param {int} [since] the earliest time in ms to return orders for
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> watchOrders(Object... optionalArgs)
+    {
+        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4287,20 +4810,18 @@ final Object finalOutcome = outcome;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<PredictionTrade>> watchMyTrades(String outcome2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            String outcome = outcome3;
+            Object limit = limit3;
             (this.loadApiCredentials()).join();
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(outcome, null))
             {
-                Object outcomeObj = (this.loadOutcome(outcome)).join();
+                Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 outcome = this.safeString(outcomeObj, "outcome");
                 messageHash = ("myTrades::" + outcome);
             }
@@ -4313,14 +4834,28 @@ final Object finalOutcome = outcome;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name polymarket#watchMyTrades
+     * @description watches the authenticated user's trade fills over the CLOB user websocket channel
+     * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
+     * @param {string} [outcome] unified outcome to filter the stream to one market
+     * @param {int} [since] the earliest time in ms to return trades for
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    public CompletableFuture<List<PredictionTrade>> watchMyTrades(Object... optionalArgs)
+    {
+        return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> subscribeUserChannel(Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> subscribeUserChannel(Object messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // the user channel authenticates inside the subscribe frame, not via HMAC headers
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object apiKey = (((!java.util.Objects.equals(this.apiKey, null)))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
             Object secret = (((!java.util.Objects.equals(this.secret, null)))) ? this.secret : this.safeString(this.options, "l2Secret");
             Object passphrase = (((!java.util.Objects.equals(this.password, null)))) ? this.password : this.safeString(this.options, "l2Passphrase");
@@ -4335,11 +4870,15 @@ final Object finalOutcome = outcome;
                 put( "markets", new ArrayList<Object>(Arrays.asList()) );
                 put( "type", "user" );
             }};
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("wsUser");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("wsUser");
             String subscribeHash = "user";
             return (this.watch(url, messageHash, this.extend(subscribeMsg, parameters), subscribeHash, null)).join();
         });
 
+    }
+    public CompletableFuture<Object> subscribeUserChannel(Object messageHash, Object... optionalArgs)
+    {
+        return this.subscribeUserChannel(messageHash, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrder(Client client, Object eventVar)
@@ -4350,7 +4889,7 @@ final Object finalOutcome = outcome;
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Object parsed = this.parsePredictionOrder(eventVar);
+        Object parsed = this.parsePredictionOrder((Map<String, Object>) (eventVar));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, "orders");
         String outcome = this.safeString(parsed, "outcome");
@@ -4368,7 +4907,7 @@ final Object finalOutcome = outcome;
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
-        Object parsed = this.parsePredictionTrade(eventVar);
+        Object parsed = this.parsePredictionTrade((Map<String, Object>) (eventVar));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, "myTrades");
         String outcome = this.safeString(parsed, "outcome");

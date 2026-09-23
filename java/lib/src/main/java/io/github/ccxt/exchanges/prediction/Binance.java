@@ -208,24 +208,23 @@ public class Binance extends BinanceApi
      * @param {int} [params.limit] for an unscoped listing (no query), the max number of topics to collect (defaults to options.maxFetchMarketsLimit, 200)
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object queries = (List<Object>)(this.parseSearchQueries(parameters));
-            Object queriesLength = ((List<?>)queries).size();
+            Integer queriesLength = ((List<?>)queries).size();
             if (Helpers.isGreaterThan(queriesLength, 0))
             {
                 Object eventParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
-                Object events = (this.fetchEvents((Object)(eventParams))).join();
-                Object eventsLength = ((List<?>)events).size();
+                List<PredictionEvent> events = (this.fetchEvents(eventParams)).join();
+                Integer eventsLength = ((List<?>)events).size();
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
                 for (var ei = 0; Helpers.isLessThan(ei, eventsLength); ei++)
                 {
-                    Object eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= ((List<?>)events).size() ? null : ((List<?>)events).get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
-                    Object eventMarketsLength = ((List<?>)eventMarkets).size();
+                    Object eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
+                    Integer eventMarketsLength = ((List<?>)eventMarkets).size();
                     for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
                     {
                         ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
@@ -238,13 +237,13 @@ public class Binance extends BinanceApi
             Object rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
-            Object rawTopicsLength = ((List<?>)rawTopics).size();
+            Integer rawTopicsLength = ((List<?>)rawTopics).size();
             for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
                 Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)parsedEvents).add(parsedEvent);
                 Object eventMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
-                Object eventMarketsLength = ((List<?>)eventMarkets).size();
+                Integer eventMarketsLength = ((List<?>)eventMarkets).size();
                 for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
                 {
                     ((List<Object>)flatMarkets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
@@ -254,6 +253,23 @@ public class Binance extends BinanceApi
             return flatMarkets;
         });
 
+    }
+    /**
+     * @method
+     * @name binance#fetchMarkets
+     * @description fetches binance prediction markets; with a query it resolves the query via the search endpoint and returns the matched topics' markets, otherwise it pages the market listing
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.query] a single search query resolved against the market search endpoint
+     * @param {string[]} [params.queries] multiple search queries (alternative to query)
+     * @param {string} [params.l1Category] filter the listing by a level-1 category id (see the category/list endpoint)
+     * @param {string} [params.l2Category] filter the listing by a level-2 category id
+     * @param {int} [params.limit] for an unscoped listing (no query), the max number of topics to collect (defaults to options.maxFetchMarketsLimit, 200)
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -266,12 +282,11 @@ public class Binance extends BinanceApi
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    public CompletableFuture<Object> fetchRawTopics(Object maxTopics2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchRawTopics(Object maxTopics2, Map<String, Object> rest)
     {
         final Object maxTopics3 = maxTopics2;
         return BaseExchange.supplyAsync(() -> {
             Object maxTopics = maxTopics3;
-            Object rest = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(maxTopics, null))
             {
                 maxTopics = this.safeInteger(this.options, "maxFetchMarketsLimit", 200);
@@ -286,7 +301,7 @@ public class Binance extends BinanceApi
             while (true)
             {
                 Object reqLimit = pageLimit;
-                Object collectedLength = ((List<?>)collected).size();
+                Integer collectedLength = ((List<?>)collected).size();
                 Object remaining = Helpers.subtract(maxTopics, collectedLength);
                 if (Helpers.isLessThan(remaining, reqLimit))
                 {
@@ -336,7 +351,7 @@ public class Binance extends BinanceApi
                 //     }
                 //
                 Object pageTopics = (List<Object>)(this.safeList(response, "marketTopics", new ArrayList<Object>(Arrays.asList())));
-                Object pageTopicsLength = ((List<?>)pageTopics).size();
+                Integer pageTopicsLength = ((List<?>)pageTopics).size();
                 for (var i = 0; Helpers.isLessThan(i, pageTopicsLength); i++)
                 {
                     ((List<Object>)collected).add((pageTopics == null || i < 0 || i >= ((List<?>)pageTopics).size() ? null : ((List<?>)pageTopics).get(i)));
@@ -352,7 +367,42 @@ public class Binance extends BinanceApi
         });
 
     }
+    /**
+     * @ignore
+     * @method
+     * @name binance#fetchRawTopics
+     * @description pages the market/list endpoint and returns up to `maxTopics` raw market topics
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#list-prediction-markets
+     * @param {int} maxTopics stop collecting once this many topics are gathered
+     * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
+     * @returns {object[]} raw market topic objects
+     */
+    public CompletableFuture<Object> fetchRawTopics(Object maxTopics, Object... optionalArgs)
+    {
+        return this.fetchRawTopics(maxTopics, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @ignore
+     * @method
+     * @name binance#fetchRawTopicDetail
+     * @description fetches a single raw market topic (with nested markets and outcome tokens) by its id
+     * @param {string} topicId the marketTopicId
+     * @param {object} [params] extra params forwarded verbatim to the detail endpoint
+     * @returns {object} the raw market topic object
+     */
+    public CompletableFuture<Object> fetchRawTopicDetail(Object topicId, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "marketTopicId", topicId );
+            }};
+            return (this.sapiPrivateGetMarketDetail(this.extend(request, parameters))).join();
+        });
+
+    }
     /**
      * @ignore
      * @method
@@ -364,16 +414,7 @@ public class Binance extends BinanceApi
      */
     public CompletableFuture<Object> fetchRawTopicDetail(Object topicId, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "marketTopicId", topicId );
-            }};
-            return (this.sapiPrivateGetMarketDetail(this.extend(request, parameters))).join();
-        });
-
+        return this.fetchRawTopicDetail(topicId, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -390,18 +431,18 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object rawTopicsLength = ((List<?>)rawTopics).size();
+            Integer rawTopicsLength = ((List<?>)rawTopics).size();
             for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
                 Object rawTopic = (rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i));
                 Object rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
-                Object rawMarketsLength = ((List<?>)rawMarkets).size();
+                Integer rawMarketsLength = ((List<?>)rawMarkets).size();
                 Boolean hasOutcomes = false;
                 if (Helpers.isGreaterThan(rawMarketsLength, 0))
                 {
                     Map<String, Object> firstMarket = (Map<String, Object>) this.safeDict(rawMarkets, 0, new HashMap<String, Object>() {{}});
                     Object firstOutcomes = (List<Object>)(this.safeList(firstMarket, "outcomes", new ArrayList<Object>(Arrays.asList())));
-                    Object firstOutcomesLength = ((List<?>)firstOutcomes).size();
+                    Integer firstOutcomesLength = ((List<?>)firstOutcomes).size();
                     hasOutcomes = (Helpers.isGreaterThan(firstOutcomesLength, 0));
                 }
                 if (Boolean.TRUE.equals(hasOutcomes))
@@ -441,12 +482,11 @@ public class Binance extends BinanceApi
      * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters2)
     {
-
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
             if (!java.util.Objects.equals(allowUnscopedFetchEvents, true))
             {
@@ -455,7 +495,7 @@ public class Binance extends BinanceApi
             Object queries = this.parseSearchQueries(parameters);
             // binance has no tag taxonomy — resolve requested tags through the semantic search too
             List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-            Object tagsLength = ((List<?>)tags).size();
+            Integer tagsLength = ((List<?>)tags).size();
             List<Object> allQueries = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)queries).size(); i++)
             {
@@ -465,10 +505,10 @@ public class Binance extends BinanceApi
             {
                 ((List<Object>)allQueries).add((tags == null || i < 0 || i >= tags.size() ? null : tags.get(i)));
             }
-            Object allQueriesLength = ((List<?>)allQueries).size();
+            Integer allQueriesLength = ((List<?>)allQueries).size();
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Long userLimit = this.safeInteger(parameters, "limit");
-            Object fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
+            Long fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
             if (!java.util.Objects.equals(userLimit, null))
             {
                 fetchCap = userLimit;
@@ -523,14 +563,14 @@ public class Binance extends BinanceApi
                 Object listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
                 rawTopics = (this.completeRawTopics(listed)).join();
             }
-            Object rawTopicsLength = ((List<?>)rawTopics).size();
+            Integer rawTopicsLength = ((List<?>)rawTopics).size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
                 Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)result).add(parsedEvent);
                 Object parsedMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
-                Object parsedMarketsLength = ((List<?>)parsedMarkets).size();
+                Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
                 for (var mi = 0; Helpers.isLessThan(mi, parsedMarketsLength); mi++)
                 {
                     Object m = (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
@@ -551,6 +591,29 @@ public class Binance extends BinanceApi
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name binance#fetchEvents
+     * @description fetches prediction-market events (market topics); the call must be scoped by query/queries/tags, eventId, or an l1Category/l2Category listing filter
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.query] a free-text search resolved against the semantic market search endpoint
+     * @param {string[]} [params.queries] multiple free-text searches (alternative to query)
+     * @param {string[]} [params.tags] treated as additional free-text searches (binance has no tag taxonomy)
+     * @param {string} [params.eventId] a marketTopicId, fetched directly via the detail endpoint
+     * @param {string} [params.l1Category] scope the listing server-side by a level-1 category id
+     * @param {string} [params.l2Category] scope the listing server-side by a level-2 category id
+     * @param {int} [params.limit] the maximum number of events to return
+     * @param {string} [params.sort] 'volume' | 'liquidity' | 'newest' (client-side)
+     * @param {string} [params.status] 'active' | 'closed' | 'all' (client-side)
+     * @param {string} [params.sortBy] sort events by server side ('RECOMMENDED' | 'VOLUME' | 'PARTICIPANTS' | 'CREATED_TIME' | 'END_DATE'), works when no queries and eventId provided
+     * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
+     * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
+    {
+        return this.fetchEvents(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @ignore
@@ -563,15 +626,14 @@ public class Binance extends BinanceApi
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit2, Map<String, Object> rest)
     {
         final Object limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object limit = limit3;
-            Object rest = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> collected = new ArrayList<Object>(Arrays.asList());
-            Object queriesLength = ((List<?>)queries).size();
+            Integer queriesLength = ((List<?>)queries).size();
             if (java.util.Objects.equals(limit, null))
             {
                 limit = 20;
@@ -599,7 +661,7 @@ public class Binance extends BinanceApi
                 //         }
                 //     ]
                 //
-                Object responseLength = ((List<?>)response).size();
+                Integer responseLength = ((List<?>)response).size();
                 for (var i = 0; Helpers.isLessThan(i, responseLength); i++)
                 {
                     Object rawTopic = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
@@ -616,7 +678,7 @@ public class Binance extends BinanceApi
                 }
             }
             Object capped = collected;
-            Object collectedLength = ((List<?>)collected).size();
+            Integer collectedLength = ((List<?>)collected).size();
             if ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThan(collectedLength, limit)))
             {
                 capped = this.arraySlice(collected, 0, limit);
@@ -624,6 +686,21 @@ public class Binance extends BinanceApi
             return (this.completeRawTopics(capped)).join();
         });
 
+    }
+    /**
+     * @ignore
+     * @method
+     * @name binance#fetchEventsByQuery
+     * @description resolves free-text queries through the semantic market search endpoint, then completes the matched topics with their outcome tokens
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#market-search
+     * @param {string[]} queries free-text search strings
+     * @param {int} [limit] max number of topics to fetch
+     * @param {object} [rest] extra params forwarded verbatim to the search endpoint
+     * @returns {object[]} raw market topic objects with usable nested markets
+     */
+    public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit, Object... optionalArgs)
+    {
+        return this.fetchEventsByQuery(queries, limit, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -635,18 +712,30 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
+    public CompletableFuture<PredictionEvent> fetchEvent(String id, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object events = (this.fetchEvents((Object)(this.extend(new HashMap<String, Object>() {{
+            List<PredictionEvent> events = (this.fetchEvents(this.extend(new HashMap<String, Object>() {{
                 put( "eventId", id );
-            }}, parameters)))).join();
+            }}, parameters))).join();
             return this.safeDict(events, 0);
         }).thenApply(PredictionEvent::new);
 
+    }
+    /**
+     * @method
+     * @name binance#fetchEvent
+     * @description fetches a single prediction-market event (market topic) by its marketTopicId
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data
+     * @param {string} id the marketTopicId
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
+    {
+        return this.fetchEvent(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -690,7 +779,7 @@ public class Binance extends BinanceApi
         Object rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         Boolean anyActive = false;
-        Object rawMarketsLength = ((List<?>)rawMarkets).size();
+        Integer rawMarketsLength = ((List<?>)rawMarkets).size();
         for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
         {
             Object parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), (Map<String, Object>) (rawTopic));
@@ -722,7 +811,7 @@ public class Binance extends BinanceApi
         return new HashMap<String, Object>() {{
             put( "id", topicId );
             put( "slug", finalSlug );
-            put( "event", (((!java.util.Objects.equals(finalSlug, null)))) ? Binance.this.shortenSlug(finalSlug) : null );
+            put( "event", (((!java.util.Objects.equals(finalSlug, null)))) ? Binance.this.shortenSlug((String) (finalSlug)) : null );
             put( "title", title );
             put( "description", Binance.this.safeString(rawTopic, "description") );
             put( "markets", marketsList );
@@ -776,7 +865,7 @@ public class Binance extends BinanceApi
         String vendor = this.safeString(rawTopic, "vendor");
         String collateral = this.safeString(rawTopic, "collateral", "USDT");
         String title = this.safeString(rawMarket, "title", marketId);
-        Object marketSymbol = this.slugToMarketSymbol(topicSlug, title);
+        Object marketSymbol = this.slugToMarketSymbol((String) (topicSlug), (String) (title));
         String tradingStatus = this.safeString(rawMarket, "tradingStatus");
         String status = this.safeString(rawMarket, "status");
         Boolean active = (java.util.Objects.equals(tradingStatus, "OPEN"));
@@ -787,9 +876,9 @@ public class Binance extends BinanceApi
         Boolean resolved = (java.util.Objects.equals(status, "RESOLVED")) || (java.util.Objects.equals(status, "SETTLED"));
         Long endDate = this.safeInteger(rawTopic, "endDate");
         String feeRateBps = this.safeString(rawTopic, "feeRateBps", "200");
-        Object feeRate = this.parseNumber(Precise.stringDiv(feeRateBps, "10000"));
+        Double feeRate = this.parseNumber(Precise.stringDiv(feeRateBps, "10000"));
         String decimalPrecision = this.safeString(rawMarket, "decimalPrecision", "2");
-        Object pricePrecision = this.parseNumber(this.parsePrecision(decimalPrecision));
+        Double pricePrecision = this.parseNumber(this.parsePrecision(decimalPrecision));
         Map<String, Object> precision = new HashMap<String, Object>() {{
             put( "amount", 0.01 );
             put( "price", pricePrecision );
@@ -798,14 +887,14 @@ public class Binance extends BinanceApi
         Double liquidity = this.safeNumber(rawMarket, "liquidity");
         Object rawOutcomes = (List<Object>)(this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList())));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
-        Object resolvedOutcomeRaw = null;
-        Object rawOutcomesLength = ((List<?>)rawOutcomes).size();
+        String resolvedOutcomeRaw = null;
+        Integer rawOutcomesLength = ((List<?>)rawOutcomes).size();
         for (var oi = 0; Helpers.isLessThan(oi, rawOutcomesLength); oi++)
         {
             Object rawOutcome = (rawOutcomes == null || oi < 0 || oi >= ((List<?>)rawOutcomes).size() ? null : ((List<?>)rawOutcomes).get(oi));
             String label = this.safeStringUpper(rawOutcome, "name");
             String tokenId = this.safeString(rawOutcome, "tokenId");
-            Object outcomeHandle = ((marketSymbol + ":") + label);
+            String outcomeHandle = ((marketSymbol + ":") + label);
             String price = this.safeString(rawOutcome, "price");
             Object winnerRaw = null;
             Object settleFractionRaw = null;
@@ -821,7 +910,7 @@ public class Binance extends BinanceApi
             Object winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
 final Object finalMarketSymbol = marketSymbol;
-            final Object finalPrice = price;
+            final String finalPrice = price;
             final Object finalActive = active;
                         ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
                 put( "id", tokenId );
@@ -854,10 +943,10 @@ final Object finalMarketSymbol = marketSymbol;
                 }} );
             }});
         }
-        Object resolvedOutcome = resolvedOutcomeRaw;
+        String resolvedOutcome = resolvedOutcomeRaw;
         final Object finalMarketSymbol = marketSymbol;
-        final Object finalActive = active;
-        final Object finalResolved = resolved;
+        final Boolean finalActive = active;
+        final Boolean finalResolved = resolved;
         return new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "market", finalMarketSymbol );
@@ -933,14 +1022,13 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
+    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            (this.loadOutcome(outcome)).join();
-            Object outcomeObj = this.outcome(outcome);
+            (this.loadOutcome((String) (outcome))).join();
+            Object outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", Binance.this.safeString(info, "marketId") );
@@ -949,9 +1037,22 @@ final Object finalMarketSymbol = marketSymbol;
             //
             //     { "marketId": 5567895, "lastTradePrice": "0.52" }
             //
-            return this.parsePredictionTicker(response, ((Object)outcomeObj));
+            return this.parsePredictionTicker((Map<String, Object>) (response), ((Object)outcomeObj));
         }).thenApply(PredictionTicker::new);
 
+    }
+    /**
+     * @method
+     * @name binance#fetchTicker
+     * @description fetches the last trade price for a single prediction outcome
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#query-last-trade-price
+     * @param {string} outcome unified outcome handle like BTC_PRICE_1H_UP_DOWN_UP:YES, or an outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
+    {
+        return this.fetchTicker(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -963,12 +1064,11 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public Object parsePredictionTicker(Object raw, Object... optionalArgs)
+    public Object parsePredictionTicker(Map<String, Object> raw, Map<String, Object> market)
     {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object marketAny = ((Object)market);
         Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
@@ -985,7 +1085,7 @@ final Object finalMarketSymbol = marketSymbol;
             isMirrored = (java.util.Objects.equals(label, "NO")) || (java.util.Objects.equals(label, "DOWN"));
         }
         String lastString = this.safeString(raw, "lastTradePrice");
-        Object last = null;
+        Double last = null;
         if (!java.util.Objects.equals(lastString, null))
         {
             if (Boolean.TRUE.equals(isMirrored))
@@ -996,8 +1096,8 @@ final Object finalMarketSymbol = marketSymbol;
                 last = this.parseNumber(lastString);
             }
         }
-        final Object finalLast = last;
-        return this.safePredictionTicker(new HashMap<String, Object>() {{
+        final Double finalLast = last;
+        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", Binance.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", Binance.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Binance.this.safeString(outcomeObj, "label") );
@@ -1021,7 +1121,20 @@ final Object finalMarketSymbol = marketSymbol;
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", raw );
-        }}, market);
+        }}), market);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name binance#parsePredictionTicker
+     * @description parses a last-trade-price response into a unified ticker object; the venue quotes the market's primary (YES) token, so a NO outcome mirrors as 1 - price
+     * @param {object} raw the raw last-trade-price object
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    public Object parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
+    {
+        return this.parsePredictionTicker(raw, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1033,13 +1146,11 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes2, Map<String, Object> parameters)
     {
-
+        final Object outcomes3 = outcomes2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcomes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcomes = outcomes3;
             if (java.util.Objects.equals(outcomes, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
@@ -1047,10 +1158,10 @@ final Object finalMarketSymbol = marketSymbol;
             (this.loadOutcomes(outcomes)).join();
             Map<String, Object> responsesByMarketId = new HashMap<String, Object>() {{}};
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object outcomesLength = ((List<?>)outcomes).size();
+            Integer outcomesLength = ((List<?>)outcomes).size();
             for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
             {
-                Object outcomeObj = this.outcome((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
+                Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(info, "marketId");
                 if (java.util.Objects.equals(marketId, null))
@@ -1060,20 +1171,33 @@ final Object finalMarketSymbol = marketSymbol;
                 Object response = this.safeDict(responsesByMarketId, marketId);
                 if (java.util.Objects.equals(response, null))
                 {
-                    final Object finalMarketId = marketId;
+                    final String finalMarketId = marketId;
                     Map<String, Object> request = new HashMap<String, Object>() {{
                         put( "marketId", finalMarketId );
                     }};
                     response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
                     ((Map<String, Object>)responsesByMarketId).put((String)marketId, response);
                 }
-                Object ticker = this.parsePredictionTicker(response, ((Object)outcomeObj));
+                Object ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Object)outcomeObj));
                 String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                 ((Map<String, Object>)result).put((String)symbolKey, ticker);
             }
             return result;
         }).thenApply(PredictionTickers::new);
 
+    }
+    /**
+     * @method
+     * @name binance#fetchTickers
+     * @description fetches last trade prices for multiple outcomes, one request per distinct underlying market
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#query-last-trade-price
+     * @param {string[]} outcomes unified outcomes — required: the venue has no all-tickers endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1086,15 +1210,13 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            (this.loadOutcome(outcome)).join();
-            Object outcomeObj = this.outcome(outcome);
+            (this.loadOutcome((String) (outcome))).join();
+            Object outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "vendor", Binance.this.safeString(info, "vendor", Binance.this.safeString(Binance.this.options, "defaultVendor")) );
@@ -1112,10 +1234,24 @@ final Object finalMarketSymbol = marketSymbol;
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
-            return this.safePredictionOrderBook(orderbook, outcomeObj);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size");
+            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name binance#fetchOrderBook
+     * @description fetches the order book for a single prediction outcome token
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#query-order-book
+     * @param {string} outcome unified outcome handle, or an outcome token id
+     * @param {int} [limit] not used by binance fetchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
+    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1127,12 +1263,11 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {string} [params.type] 'CeDefi', 'FUNDING', or 'SPOT'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "type", "SPOT");
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -1160,7 +1295,7 @@ final Object finalMarketSymbol = marketSymbol;
                 if (java.util.Objects.equals(accountType, type))
                 {
                     String free = this.safeString(balance, "availableBalanceDisplay");
-                    Object account = this.account();
+                    Map<String, Object> account = (Map<String, Object>) this.account();
                     ((Map<String, Object>)account).put("free", free);
                     ((Map<String, Object>)result).put("USDT", account);
                 }
@@ -1168,6 +1303,19 @@ final Object finalMarketSymbol = marketSymbol;
             return this.safeBalance(result);
         }).thenApply(Balances::new);
 
+    }
+    /**
+     * @method
+     * @name binance#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/wallet#query-payment-option-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'CeDefi', 'FUNDING', or 'SPOT'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1179,7 +1327,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [outcomeObj] the ourtome the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Object order, Object... optionalArgs)
+    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> outcomeObj)
     {
         //
         // {
@@ -1208,7 +1356,6 @@ final Object finalMarketSymbol = marketSymbol;
         //     "networkFee": "0.000001"
         // }
         //
-        Object outcomeObj = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         if (java.util.Objects.equals(outcomeObj, null))
         {
@@ -1221,12 +1368,12 @@ final Object finalMarketSymbol = marketSymbol;
                 outcomeName = marketId;
             }
             outcomeName = Helpers.add(outcomeName, (":" + outcome));
-            outcomeObj = this.safeOutcome(outcomeName);
+            outcomeObj = (Map<String, Object>) (this.safeOutcome((String) (outcomeName)));
         }
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "createTime");
-        final Object finalOutcomeObj = outcomeObj;
-        return this.safePredictionOrder(new HashMap<String, Object>() {{
+        final Map<String, Object> finalOutcomeObj = outcomeObj;
+        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Binance.this.safeString(order, "orderId") );
             put( "clientOrderId", null );
             put( "info", order );
@@ -1252,7 +1399,20 @@ final Object finalMarketSymbol = marketSymbol;
             put( "remaining", null );
             put( "fee", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}, outcomeObj);
+        }}), outcomeObj);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name binance#parsePredictionOrder
+     * @description parses a raw binance prediction order object into a unified order object
+     * @param {object} order the raw order object
+     * @param {object} [outcomeObj] the ourtome the order belongs to
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public Object parsePredictionOrder(Map<String, Object> order, Object... optionalArgs)
+    {
+        return this.parsePredictionOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseOrderStatus(String status)
@@ -1290,18 +1450,18 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String outcome3 = outcome2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object paginate = false;
+            Object outcome = outcome3;
+            Long limit = limit3;
+            Object parameters = parameters3;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = null;
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", 100);
@@ -1322,8 +1482,8 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome(outcome)).join();
-                outcomeObj = this.outcome(outcome);
+                (this.loadOutcome((String) (outcome))).join();
+                outcomeObj = this.outcome((String) (outcome));
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(outcomeObj, "market"));
                 ((Map<String, Object>)request).put("marketId", ((Map<String, Object>)market).get("id"));
             }
@@ -1374,6 +1534,24 @@ final Object finalMarketSymbol = marketSymbol;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name binance#fetchOpenOrders
+     * @description fetches currently open orders for the user
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#query-active-orders
+     * @param {string} [outcome] filter by outcome
+     * @param {int} [since] only return orders updated since this timestamp in ms
+     * @param {int} [limit] max number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradeSide] Filter by trade side. Enum: BUY, SELL
+     * @param {string} [params.l1Category] Filter by level-1 category
+     * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1391,18 +1569,20 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String outcome3 = outcome2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object paginate = false;
+            Object outcome = outcome3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = null;
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "maxEntriesPerRequest", 100);
@@ -1423,8 +1603,8 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome(outcome)).join();
-                outcomeObj = this.outcome(outcome);
+                (this.loadOutcome((String) (outcome))).join();
+                outcomeObj = this.outcome((String) (outcome));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1484,6 +1664,26 @@ final Object finalMarketSymbol = marketSymbol;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name binance#fetchOrders
+     * @description fetches all historical orders for the user
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#query-order-history
+     * @param {string} [outcome] filter by outcome
+     * @param {int} [since] only return orders updated since this timestamp in ms
+     * @param {int} [limit] max number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderType] Filter by order type. Enum: MARKET, LIMIT
+     * @param {string} [params.l1Category] Filter by level-1 category
+     * @param {string} [params.status] Filter by order status
+     * @param {string} [params.until] end timestamp in ms
+     * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs)
+    {
+        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1495,13 +1695,11 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {string} [params.tab] Position status tab. Values from PositionQueryType. Default ONGOING
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes2, Map<String, Object> parameters)
     {
-
+        final Object outcomes3 = outcomes2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcomes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcomes = outcomes3;
             (this.loadOutcomes()).join();
             Map<String, Object> requestedOutcomeSymbols = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(outcomes, null))
@@ -1509,7 +1707,7 @@ final Object finalMarketSymbol = marketSymbol;
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Object requestedOutcomeObj = this.safeOutcome(requested);
+                    Object requestedOutcomeObj = this.safeOutcome((String) (requested));
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     ((Map<String, Object>)requestedOutcomeSymbols).put((String)requestedOutcome, true);
                 }
@@ -1575,7 +1773,7 @@ final Object finalMarketSymbol = marketSymbol;
                 return positions;
             }
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
-            Object positionsLength = ((List<?>)positions).size();
+            Integer positionsLength = ((List<?>)positions).size();
             for (var i = 0; Helpers.isLessThan(i, positionsLength); i++)
             {
                 Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
@@ -1589,6 +1787,20 @@ final Object finalMarketSymbol = marketSymbol;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name binance#fetchPositions
+     * @description fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/position#query-positions
+     * @param {string[]} [outcomes] filter by outcome ids or outcomes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tab] Position status tab. Values from PositionQueryType. Default ONGOING
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1599,18 +1811,17 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<PredictionPosition> fetchPosition(Object outcome2, Object... optionalArgs)
+    public CompletableFuture<PredictionPosition> fetchPosition(Object outcome2, Map<String, Object> parameters)
     {
         final Object outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome(outcome)).join();
-                outcomeObj = this.outcome(outcome);
+                (this.loadOutcome((String) (outcome))).join();
+                outcomeObj = this.outcome((String) (outcome));
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(outcomeObj, "market"));
                 ((Map<String, Object>)request).put("marketTopicId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "marketTopicId"));
             }
@@ -1626,6 +1837,19 @@ final Object finalMarketSymbol = marketSymbol;
         }).thenApply(PredictionPosition::new);
 
     }
+    /**
+     * @method
+     * @name binance#fetchPosition
+     * @description fetch data on an open position
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/position#query-positions-by-filter
+     * @param {string} [outcome] filter by outcome
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Object... optionalArgs)
+    {
+        return this.fetchPosition(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @ignore
@@ -1636,9 +1860,8 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [outcomeObj] the ourtome the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Object position, Object... optionalArgs)
+    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> outcomeObj)
     {
-        Object outcomeObj = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (java.util.Objects.equals(outcomeObj, null))
         {
             String marketId = this.safeString(position, "marketId");
@@ -1650,12 +1873,12 @@ final Object finalMarketSymbol = marketSymbol;
                 outcomeName = marketId;
             }
             outcomeName = Helpers.add(outcomeName, (":" + outcome));
-            outcomeObj = this.safeOutcome(outcomeName);
+            outcomeObj = (Map<String, Object>) (this.safeOutcome((String) (outcomeName)));
         }
         Long timestamp = this.safeInteger(position, "createdTime");
-        Object totalCost = this.parseNumber(this.safeString(position, "totalCost"));
-        final Object finalOutcomeObj = outcomeObj;
-        return this.safePredictionPosition(new HashMap<String, Object>() {{
+        Double totalCost = this.parseNumber(this.safeString(position, "totalCost"));
+        final Map<String, Object> finalOutcomeObj = outcomeObj;
+        return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Binance.this.safeInteger(position, "positionId") );
             put( "outcome", Binance.this.safeString(finalOutcomeObj, "outcome") );
             put( "outcomeId", Binance.this.safeString2(finalOutcomeObj, "outcomeId", "id") );
@@ -1683,7 +1906,20 @@ final Object finalMarketSymbol = marketSymbol;
             put( "marginMode", "cross" );
             put( "percentage", Binance.this.parseNumber(Binance.this.safeString(position, "unrealizedPnlPercent")) );
             put( "info", position );
-        }});
+        }}));
+    }
+    /**
+     * @ignore
+     * @method
+     * @name binance#parsePredictionPosition
+     * @description parses a spot balance entry for an outcome token into a unified position object
+     * @param {object} position the raw balance entry
+     * @param {object} [outcomeObj] the ourtome the position belongs to
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    public Object parsePredictionPosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePredictionPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1702,18 +1938,20 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String outcome3 = outcome2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object paginate = false;
+            Object outcome = outcome3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
+            Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = null;
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", 100);
@@ -1736,8 +1974,8 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome(outcome)).join();
-                outcomeObj = this.outcome(outcome);
+                (this.loadOutcome((String) (outcome))).join();
+                outcomeObj = this.outcome((String) (outcome));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1797,6 +2035,26 @@ final Object finalMarketSymbol = marketSymbol;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name binance#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#query-order-history
+     * @param {string} [outcome] filter by outcome
+     * @param {int} [since] only return orders updated since this timestamp in ms
+     * @param {int} [limit] max number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderType] Filter by order type. Enum: MARKET, LIMIT
+     * @param {string} [params.l1Category] Filter by level-1 category
+     * @param {string} [params.status] Filter by order status
+     * @param {string} [params.until] end timestamp in ms
+     * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @ignore
@@ -1807,7 +2065,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [outcomeObj] the outcome the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public Object parsePredictionTrade(Object trade, Object... optionalArgs)
+    public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> outcomeObj)
     {
         //
         // {
@@ -1836,7 +2094,6 @@ final Object finalMarketSymbol = marketSymbol;
         //     "networkFee": "0.000001"
         // }
         //
-        Object outcomeObj = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (java.util.Objects.equals(outcomeObj, null))
         {
             String marketId = this.safeString(trade, "marketId");
@@ -1848,14 +2105,14 @@ final Object finalMarketSymbol = marketSymbol;
                 outcomeName = marketId;
             }
             outcomeName = Helpers.add(outcomeName, (":" + outcome));
-            outcomeObj = this.safeOutcome(outcomeName);
+            outcomeObj = (Map<String, Object>) (this.safeOutcome((String) (outcomeName)));
         }
         Long timestamp = this.safeInteger(trade, "createTime");
         String filled = this.safeString(trade, "filledShareQty");
         String cost = this.safeString(trade, "filledUsdtAmount");
         String price = this.safeString(trade, "price");
         String orderType = this.safeStringLower(trade, "orderType");
-        Object fee = null;
+        Map<String, Object> fee = null;
         if ((java.util.Objects.equals(orderType, "market")) && (!java.util.Objects.equals(cost, null)) && (!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(filled, null)))
         {
             // buys pay cost above price*filled, sells receive proceeds net of the fee —
@@ -1866,13 +2123,13 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "cost", Binance.this.parseNumber(feeCost) );
             }};
         }
-        final Object finalOutcomeObj = outcomeObj;
-        final Object finalOrderType = orderType;
-        final Object finalPrice = price;
-        final Object finalFilled = filled;
-        final Object finalCost = cost;
-        final Object finalFee = fee;
-        return this.safePredictionTrade(new HashMap<String, Object>() {{
+        final Map<String, Object> finalOutcomeObj = outcomeObj;
+        final String finalOrderType = orderType;
+        final String finalPrice = price;
+        final String finalFilled = filled;
+        final String finalCost = cost;
+        final Map<String, Object> finalFee = fee;
+        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", null );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1891,7 +2148,20 @@ final Object finalMarketSymbol = marketSymbol;
             put( "filled", finalFilled );
             put( "cost", finalCost );
             put( "fee", finalFee );
-        }}, outcomeObj);
+        }}), outcomeObj);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name binance#parsePredictionTrade
+     * @description parses a single binance fill into a unified trade object
+     * @param {object} trade the raw fill object
+     * @param {object} [outcomeObj] the outcome the trade belongs to
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    public Object parsePredictionTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parsePredictionTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1903,12 +2173,11 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    public CompletableFuture<Object> fetchWallet(Object methodName, Object... optionalArgs)
+    public CompletableFuture<Object> fetchWallet(Object methodName, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             Object cachedWallet = this.safeDict(this.options, "wallet");
             if (!java.util.Objects.equals(cachedWallet, null))
             {
@@ -1937,7 +2206,7 @@ final Object finalMarketSymbol = marketSymbol;
                 Helpers.addElementToObject(this.options, "wallet", cachedWallet);
                 return cachedWallet;
             }
-            Object walletLength = ((List<?>)wallets).size();
+            Integer walletLength = ((List<?>)wallets).size();
             for (var i = 0; Helpers.isLessThan(i, walletLength); i++)
             {
                 String w = this.safeString((wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)), "walletAddress", "");
@@ -1956,6 +2225,19 @@ final Object finalMarketSymbol = marketSymbol;
         });
 
     }
+    /**
+     * @method
+     * @name binance#fetchWallet
+     * @description fetch wallet for user and save the one match the walletAddress user provided
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/wallet#list-prediction-wallets
+     * @param {string} [methodName] method name
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a wallet
+     */
+    public CompletableFuture<Object> fetchWallet(Object methodName, Object... optionalArgs)
+    {
+        return this.fetchWallet(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1970,12 +2252,11 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    public CompletableFuture<Object> fetchQuote(Map<String, Object> request, Object... optionalArgs)
+    public CompletableFuture<Object> fetchQuote(Map<String, Object> request, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object response = (this.sapiPrivatePostTradeGetQuote(this.extend(request, parameters))).join();
             //
             // {
@@ -2009,6 +2290,23 @@ final Object finalMarketSymbol = marketSymbol;
             return response;
         });
 
+    }
+    /**
+     * @method
+     * @name binance#fetchQuote
+     * @description request for quote from binance server
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#get-quote
+     * @param {object} [request] request to the exchange API endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.chainId] Chain ID. Default 56 (BSC)
+     * @param {integer} [params.feeRateBps] Fee rate in basis points. Default 200, range 1–10000
+     * @param {string} [params.fundingSource] Funding source. Enum: MPC, CEX. Default MPC
+     * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
+     * @returns {object} a quote
+     */
+    public CompletableFuture<Object> fetchQuote(Map<String, Object> request, Object... optionalArgs)
+    {
+        return this.fetchQuote(request, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object priceToPrecision(Object outcome, Object price)
@@ -2056,34 +2354,34 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object price2, Map<String, Object> parameters2)
     {
-
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            (this.loadOutcome(outcome)).join();
-            Object outcomeObj = this.outcome(outcome);
+            Object price = price3;
+            Map<String, Object> parameters = parameters3;
+            (this.loadOutcome((String) (outcome))).join();
+            Object outcomeObj = this.outcome((String) (outcome));
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
             Object marketSymbol = this.safeString(outcomeObj, "market");
             Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
-            Object typeUpper = ((String)type).toUpperCase();
-            Object sideUpper = ((String)side).toUpperCase();
+            String typeUpper = ((String)type).toUpperCase();
+            String sideUpper = ((String)side).toUpperCase();
             Object wallet = (this.fetchWallet("createOrder", parameters)).join();
             String defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
             String slippage = this.safeString(parameters, "slippage", defaultSlippage);
             String cost = this.safeString(parameters, "cost");
             Long slippageBps = this.parseToInt(Precise.stringMul(slippage, "10000"));
-            final Object finalTypeUpper = typeUpper;
+            final String finalTypeUpper = typeUpper;
             Map<String, Object> commonRequest = new HashMap<String, Object>() {{
                 put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
                 put( "orderType", finalTypeUpper );
                 put( "slippageBps", slippageBps );
             }};
-            Object amountStr = this.numberToString(amount);
-            Object priceStr = this.numberToString(price);
+            String amountStr = this.numberToString(amount);
+            String priceStr = this.numberToString(price);
             String defaultTif = "FOK";
             if (java.util.Objects.equals(typeUpper, "LIMIT"))
             {
@@ -2125,9 +2423,9 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 throw new ArgumentsRequired((this.id + " createOrder requires accountType (SPOT, FUNDING)")) ;
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "accountType", "cost")));
-            final Object finalSideUpper = sideUpper;
-            final Object finalAmountStr = amountStr;
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "accountType", "cost")));
+            final String finalSideUpper = sideUpper;
+            final String finalAmountStr = amountStr;
             Map<String, Object> quoteRequest = this.extend(commonRequest, new HashMap<String, Object>() {{
                 put( "tokenId", Helpers.GetValue(outcomeObj, "id") );
                 put( "side", finalSideUpper );
@@ -2135,7 +2433,7 @@ final Object finalMarketSymbol = marketSymbol;
             }});
             Object quote = (this.fetchQuote((Map<String, Object>) (quoteRequest), parameters)).join();
             String quoteId = this.safeString(quote, "quoteId");
-            final Object finalAccountType = accountType;
+            final String finalAccountType = accountType;
             Map<String, Object> orderRequest = this.extend(commonRequest, new HashMap<String, Object>() {{
                 put( "walletId", Helpers.GetValue(wallet, "walletId") );
                 put( "quoteId", quoteId );
@@ -2144,7 +2442,7 @@ final Object finalMarketSymbol = marketSymbol;
             }});
             Object response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, parameters))).join();
             final Object finalPrice = price;
-            return this.safePredictionOrder(new HashMap<String, Object>() {{
+            return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", Binance.this.safeString(response, "orderId") );
                 put( "clientOrderId", null );
                 put( "info", response );
@@ -2164,9 +2462,33 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "cost", null );
                 put( "fee", null );
                 put( "trades", new ArrayList<Object>(Arrays.asList()) );
-            }}, market);
+            }}), market);
         }).thenApply(PredictionOrder::new);
 
+    }
+    /**
+     * @method
+     * @name binance#createOrder
+     * @description creates a limit or market order for an outcome market
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#place-order
+     * @param {string} outcome unified outcome
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount quantity of outcome tokens
+     * @param {float} [price] limit price (0–1 range for prediction markets)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] Must match orderType: FOK for MARKET, GTC for LIMIT
+     * @param {string} [params.slippage] slippage for market orders (default 5%)
+     * @param {string} [params.fundingSource] Funding source. Enum: MPC, CEX. Default MPC
+     * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
+     * @param {string} [params.accountType] Payment account type. Enum: SPOT, FUNDING
+     * @param {string} [params.feeRateBps] Payment account type. Enum: SPOT, FUNDING
+     * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2180,18 +2502,32 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, Object side, Object cost, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(PredictionOrder::new);
 
+    }
+    /**
+     * @method
+     * @name binance#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    {
+        return this.createMarketOrderWithCost(symbol, side, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2204,17 +2540,29 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<PredictionOrder> cancelOrder(Object id, String outcome, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object orders = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(outcome), (Object)(parameters))).join();
+            List<PredictionOrder> orders = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(outcome), (Object)(parameters))).join();
             return this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
         }).thenApply(PredictionOrder::new);
 
+    }
+    /**
+     * @method
+     * @name binance#cancelOrder
+     * @description cancels a single open order
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#batch-cancel-orders
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2227,18 +2575,16 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome2, Map<String, Object> parameters)
     {
-
+        final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcome = outcome3;
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                (this.loadOutcome(outcome)).join();
-                outcomeObj = this.outcome(outcome);
+                (this.loadOutcome((String) (outcome))).join();
+                outcomeObj = this.outcome((String) (outcome));
             }
             Object wallet = (this.fetchWallet("cancelOrders", parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2268,7 +2614,7 @@ final Object finalMarketSymbol = marketSymbol;
             List<Object> canceledOrders = (List<Object>) this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
             String outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
             List<Object> failedOrders = (List<Object>) this.safeList(response, "failed", new ArrayList<Object>(Arrays.asList()));
-            Object failedOrdersLength = ((List<?>)failedOrders).size();
+            Integer failedOrdersLength = ((List<?>)failedOrders).size();
             if (Helpers.isGreaterThan(failedOrdersLength, 0))
             {
                 Object failedDetails = "";
@@ -2286,7 +2632,7 @@ final Object finalMarketSymbol = marketSymbol;
                 throw new OrderNotFound(((this.id + " cancelOrders() failed for ") + failedDetails)) ;
             }
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Object canceledOrdersLength = ((List<?>)canceledOrders).size();
+            Integer canceledOrdersLength = ((List<?>)canceledOrders).size();
             for (var i = 0; Helpers.isLessThan(i, canceledOrdersLength); i++)
             {
                 Object status = (canceledOrders == null || i < 0 || i >= canceledOrders.size() ? null : canceledOrders.get(i));
@@ -2303,11 +2649,25 @@ final Object finalMarketSymbol = marketSymbol;
                     put( "timestamp", null );
                     put( "datetime", null );
                 }};
-                ((List<Object>)orders).add(this.safePredictionOrder(order));
+                ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (order)));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name binance#cancelOrders
+     * @description cancels multiple open orders
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#batch-cancel-orders
+     * @param {string[]} ids order ids
+     * @param {string} [outcome] unified outcome (required)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -2341,13 +2701,8 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "sapi";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object apiGroup = (((api instanceof String))) ? api : Helpers.GetValue(api, 0);
         Object baseUrls = ((Map<String, Object>)this.urls).get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("sapi")));
@@ -2365,7 +2720,7 @@ final Object finalMarketSymbol = marketSymbol;
         Object querystring = this.urlencodeNested(extendedParams);
         querystring = (querystring == null ? null : ((String)querystring).replace("%5B", "["));
         querystring = (querystring == null ? null : ((String)querystring).replace("%5D", "]"));
-        Object signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
+        String signature = (String) this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
         querystring = Helpers.add((querystring + "&signature="), signature);
         headers = new HashMap<String, Object>() {{
             put( "X-MBX-APIKEY", Binance.this.apiKey );
@@ -2378,7 +2733,7 @@ final Object finalMarketSymbol = marketSymbol;
             body = querystring;
             Helpers.addElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded");
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
@@ -2388,5 +2743,26 @@ final Object finalMarketSymbol = marketSymbol;
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    /**
+     * @ignore
+     * @method
+     * @name binance#sign
+     * @description builds the request URL and attaches the standard binance SAPI HMAC-SHA256 signature — every prediction endpoint is signed
+     * @param {string} path the endpoint path
+     * @param {string|string[]} [api] the api group and access level
+     * @param {string} [method] HTTP method
+     * @param {object} [params] request parameters
+     * @param {object} [headers] request headers
+     * @param {object} [body] request body
+     * @returns {object} a dictionary with url, method, body and headers
+     */
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "sapi", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null);
+    }
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    {
+        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 }
