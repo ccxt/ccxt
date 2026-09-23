@@ -1245,9 +1245,9 @@ public class Deribit extends DeribitApi
             List<Object> instrumentsResponses = new ArrayList<Object>(Arrays.asList());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> parsedMarkets = new HashMap<String, Object>() {{}};
-            Object fetchAllMarkets = null;
+            Boolean fetchAllMarkets = null;
             List<Object> fetchAllMarketsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
-            fetchAllMarkets = ((List<Object>) fetchAllMarketsparametersVariable).get(0);
+            fetchAllMarkets = Helpers.isTrue(((List<Object>) fetchAllMarketsparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) fetchAllMarketsparametersVariable).get(1);
             if (Helpers.isTrue(fetchAllMarkets))
             {

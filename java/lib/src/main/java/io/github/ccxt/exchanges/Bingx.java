@@ -3454,9 +3454,9 @@ public class Bingx extends BingxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = null;
-            Object standard = null;
+            Boolean standard = null;
             List<Object> standardparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "standard", false);
-            standard = ((List<Object>) standardparametersVariable).get(0);
+            standard = Helpers.isTrue(((List<Object>) standardparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) standardparametersVariable).get(1);
             String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
@@ -3757,9 +3757,9 @@ public class Bingx extends BingxApi
                 (this.loadMarkets()).join();
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object standard = null;
+            Boolean standard = null;
             List<Object> standardparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "standard", false);
-            standard = ((List<Object>) standardparametersVariable).get(0);
+            standard = Helpers.isTrue(((List<Object>) standardparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) standardparametersVariable).get(1);
             Map<String, Object> response = null;
             if (Helpers.isTrue(standard))
@@ -6264,7 +6264,7 @@ public class Bingx extends BingxApi
             }
             String type = null;
             String subType = null;
-            Object standard = null;
+            Boolean standard = null;
             Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
@@ -6273,7 +6273,7 @@ public class Bingx extends BingxApi
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             List<Object> standardparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
-            standard = ((List<Object>) standardparametersVariable).get(0);
+            standard = Helpers.isTrue(((List<Object>) standardparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) standardparametersVariable).get(1);
             if (Helpers.isTrue(standard))
             {

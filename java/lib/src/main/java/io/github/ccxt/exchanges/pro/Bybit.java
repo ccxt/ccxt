@@ -206,7 +206,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         return Helpers.toLongOrNull(requestId);
     }
 
-    public CompletableFuture<Object> getUrlByMarketType(String symbol2, Object isPrivate, String method2, Map<String, Object> parameters2)
+    public CompletableFuture<String> getUrlByMarketType(String symbol2, Object isPrivate, String method2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
         final String method3 = method2;
@@ -272,10 +272,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             url = this.implodeHostname(url);
             return url;
-        });
+        }).thenApply(res -> (String) res);
 
     }
-    public CompletableFuture<Object> getUrlByMarketType(Object... optionalArgs)
+    public CompletableFuture<String> getUrlByMarketType(Object... optionalArgs)
     {
         return this.getUrlByMarketType(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : false, Helpers.getArgString(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }

@@ -317,7 +317,7 @@ public class Binance extends BinanceApi
                     put( "offset", finalOffset );
                     put( "limit", finalReqLimit );
                 }};
-                Object response = (this.sapiPrivateGetMarketList(this.extend(request, rest))).join();
+                Map<String, Object> response = (this.sapiPrivateGetMarketList(this.extend(request, rest))).join();
                 //
                 //     {
                 //         "marketTopics": [
@@ -648,7 +648,7 @@ public class Binance extends BinanceApi
                     put( "query", Helpers.GetValue(queries, finalQi) );
                 }};
                 ((Map<String, Object>)request).put("topK", limit);
-                Object response = (this.sapiPrivateGetMarketSearch(this.extend(request, rest))).join();
+                List<Object> response = (this.sapiPrivateGetMarketSearch(this.extend(request, rest))).join();
                 //
                 //     [
                 //         {
@@ -664,7 +664,7 @@ public class Binance extends BinanceApi
                 Integer responseLength = ((List<?>)response).size();
                 for (var i = 0; Helpers.isLessThan(i, responseLength); i++)
                 {
-                    Object rawTopic = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
+                    Object rawTopic = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                     String topicId = this.safeString(rawTopic, "marketTopicId");
                     if (!java.util.Objects.equals(topicId, null))
                     {
@@ -1033,7 +1033,7 @@ final Object finalMarketSymbol = marketSymbol;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", Binance.this.safeString(info, "marketId") );
             }};
-            Object response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
             //
             //     { "marketId": 5567895, "lastTradePrice": "0.52" }
             //
@@ -1168,7 +1168,7 @@ final Object finalMarketSymbol = marketSymbol;
                 {
                     continue;
                 }
-                Object response = this.safeDict(responsesByMarketId, marketId);
+                Map<String, Object> response = (Map<String, Object>) this.safeDict(responsesByMarketId, marketId);
                 if (java.util.Objects.equals(response, null))
                 {
                     final String finalMarketId = marketId;
@@ -1223,7 +1223,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "marketId", Binance.this.safeString(info, "marketId") );
                 put( "tokenId", Binance.this.safeString2(outcomeObj, "outcomeId", "id") );
             }};
-            Object response = (this.sapiPrivateGetOrderBook(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivateGetOrderBook(this.extend(request, parameters))).join();
             //
             //     {
             //         "outcome": "YES",
@@ -1272,7 +1272,7 @@ final Object finalMarketSymbol = marketSymbol;
             List<Object> typeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "type", "SPOT");
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object response = (this.sapiPrivateGetBalancePaymentOptions(parameters)).join();
+            Map<String, Object> response = (this.sapiPrivateGetBalancePaymentOptions(parameters)).join();
             //
             // {
             //     "items": [
@@ -1493,7 +1493,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object wallet = (this.fetchWallet("fetchOpenOrders", parameters)).join();
             ((Map<String, Object>)request).put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
-            Object response = (this.sapiPrivateGetOrderList(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivateGetOrderList(this.extend(request, parameters))).join();
             //
             // {
             //     "total": 2,
@@ -1622,7 +1622,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
             ((Map<String, Object>)request).put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
-            Object response = (this.sapiPrivateGetOrderHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "total": 15,
@@ -1716,7 +1716,7 @@ final Object finalMarketSymbol = marketSymbol;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
             }};
-            Object response = (this.sapiPrivateGetPositionList(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivateGetPositionList(this.extend(request, parameters))).join();
             //
             // {
             //     "summary": {
@@ -1827,7 +1827,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
             ((Map<String, Object>)request).put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
-            Object response = (this.sapiPrivateGetPositionFilter(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivateGetPositionFilter(this.extend(request, parameters))).join();
             //
             //
             List<Object> positions = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
@@ -1993,7 +1993,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object wallet = (this.fetchWallet("fetchMyTrades", parameters)).join();
             ((Map<String, Object>)request).put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
-            Object response = (this.sapiPrivateGetOrderHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "total": 15,
@@ -2187,7 +2187,7 @@ final Object finalMarketSymbol = marketSymbol;
             List<Object> walletAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "walletAddress", this.walletAddress);
             walletAddress = ((List<Object>) walletAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletAddressparametersVariable).get(1);
-            Object response = (this.sapiPrivateGetWalletList()).join();
+            Map<String, Object> response = (this.sapiPrivateGetWalletList()).join();
             //
             // {
             //     "wallets": [
@@ -2257,7 +2257,7 @@ final Object finalMarketSymbol = marketSymbol;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.sapiPrivatePostTradeGetQuote(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivatePostTradeGetQuote(this.extend(request, parameters))).join();
             //
             // {
             //     "quoteId": "q_20260525_abc123xyz",
@@ -2440,7 +2440,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "timeInForce", timeInForce );
                 put( "accountType", finalAccountType );
             }});
-            Object response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, parameters))).join();
             final Object finalPrice = price;
             return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", Binance.this.safeString(response, "orderId") );
@@ -2597,7 +2597,7 @@ final Object finalMarketSymbol = marketSymbol;
                 String key = (("cancelInfoList[" + this.numberToString(i)) + "].orderId");
                 ((Map<String, Object>)request).put((String)key, (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
             }
-            Object response = (this.sapiPrivatePostTradeBatchCancel(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.sapiPrivatePostTradeBatchCancel(this.extend(request, parameters))).join();
             //
             // {
             //     "canceled": [

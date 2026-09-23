@@ -4476,9 +4476,9 @@ public class Htx extends HtxApi
             } else
             {
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
-                Object useHistorical = null;
+                Boolean useHistorical = null;
                 List<Object> useHistoricalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
-                useHistorical = ((List<Object>) useHistoricalparametersVariable).get(0);
+                useHistorical = Helpers.isTrue(((List<Object>) useHistoricalparametersVariable).get(0));
                 parameters = (Map<String, Object>) ((List<Object>) useHistoricalparametersVariable).get(1);
                 if (!Helpers.isTrue(useHistorical))
                 {
@@ -4921,9 +4921,9 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object isUnifiedAccount = null;
+            Boolean isUnifiedAccount = null;
             List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
-            isUnifiedAccount = ((List<Object>) isUnifiedAccountparametersVariable).get(0);
+            isUnifiedAccount = Helpers.isTrue(((List<Object>) isUnifiedAccountparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
             if (Helpers.isTrue(isUnifiedAccount))
             {
@@ -4934,7 +4934,7 @@ public class Htx extends HtxApi
             type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            Object isMultiAssetMode = null;
+            Boolean isMultiAssetMode = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType");
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
@@ -4943,7 +4943,7 @@ public class Htx extends HtxApi
                 subType = "linear";
             }
             List<Object> isMultiAssetModeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
-            isMultiAssetMode = ((List<Object>) isMultiAssetModeparametersVariable).get(0);
+            isMultiAssetMode = Helpers.isTrue(((List<Object>) isMultiAssetModeparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isMultiAssetModeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean spot = (java.util.Objects.equals(type, "spot"));
@@ -7012,7 +7012,7 @@ public class Htx extends HtxApi
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    public CompletableFuture<Object> createSpotOrderRequest(String symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Map<String, Object>> createSpotOrderRequest(String symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final String type3 = type2;
         final String side3 = side2;
@@ -7153,7 +7153,7 @@ public class Htx extends HtxApi
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
             return this.extend(request, parameters);
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
     /**
@@ -7171,7 +7171,7 @@ public class Htx extends HtxApi
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    public CompletableFuture<Object> createSpotOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> createSpotOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createSpotOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -7499,7 +7499,7 @@ public class Htx extends HtxApi
                 {
                     throw new NotSupported((this.id + " createOrder() does not support trailing orders for spot markets")) ;
                 }
-                Object spotRequest = (this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
+                Map<String, Object> spotRequest = (this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
                 response = (this.spotPrivatePostV1OrderOrdersPlace(spotRequest)).join();
             } else
             {

@@ -3212,9 +3212,9 @@ public class Whitebit extends WhitebitApi
             List<Object> requestType = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(type, "spot"))
             {
-                Object isMargin = null;
+                Boolean isMargin = null;
                 List<Object> isMarginparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
-                isMargin = ((List<Object>) isMarginparametersVariable).get(0);
+                isMargin = Helpers.isTrue(((List<Object>) isMarginparametersVariable).get(0));
                 parameters = (Map<String, Object>) ((List<Object>) isMarginparametersVariable).get(1);
                 if (Helpers.isTrue(isMargin))
                 {
