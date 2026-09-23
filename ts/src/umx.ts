@@ -91,7 +91,7 @@ export default class umx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
@@ -2084,21 +2084,134 @@ export default class umx extends Exchange {
     }
 
     override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        // the transfer endpoint answers the bare envelope whose data member is a boolean
-        const timestamp = this.safeInteger (transfer, 'ts');
-        const success = this.safeBool (transfer, 'data', false);
-        const status = (success) ? 'ok' : 'failed';
+        //
+        // transfer
+        //     {
+        //         "code": "0",
+        //         "data": true,
+        //         "msg": "Success",
+        //         "ts": "1790195059978",
+        //         "traceId": "20756a85d29b38fdd2565cb9ae3493db"
+        //     }
+        //
+        // fetchTransfers
+        //     {
+        //         "id": "2008158167452857783",
+        //         "clientTransferId": "2008158167452857783",
+        //         "accountName": "1000000000000000000",
+        //         "fromAccountType": "funding",
+        //         "toAccountType": "trading",
+        //         "amount": "30.000000",
+        //         "currency": "USDT",
+        //         "status": "success",
+        //         "createTime": "1790195059877",
+        //         "pid": "1000000000000000000",
+        //         "uid": "100000000000001",
+        //         "cid": "100000000000002",
+        //         "source": "api",
+        //         "multiplier": "1.000000000000000000",
+        //         "stockAmount": "0.000"
+        //     }
+        //
+        const rawStatus = this.safeString (transfer, 'status');
+        let status = this.parseTransferStatus (rawStatus);
+        if (status === undefined) {
+            const msg = this.safeStringLower (transfer, 'msg');
+            status = (msg === 'success') ? 'ok' : 'failed'; // response from transfer() endpoint
+        }
+        const timestamp = this.safeInteger2 (transfer, 'createTime', 'ts'); // ts - response timestamp from the transfer endpoint
+        const currencyId = this.safeString (transfer, 'currency');
         return {
             'info': transfer,
-            'id': undefined,
+            'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'fromAccountType'),
+            'toAccount': this.safeString (transfer, 'toAccountType'),
             'status': status,
         } as TransferEntry;
+    }
+
+    /**
+     * @method
+     * @name umx#fetchTransfers
+     * @description fetch the history of internal transfers between the accounts of the same user
+     * @see https://www.umx.com/docs/coin-apis/funding-account/transfer/get-internal-transfer-history
+     * @param {string} [code] unified currency code to narrow the answer to a single currency
+     * @param {int} [since] timestamp in ms of the earliest transfer to fetch, the venue reaches back three months at most
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest transfer to fetch
+     * @param {boolean} [params.paginate] default false, when true fetches the transfers in multiple calls, walking backwards from the newest entry
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            // the venue documents beginId and endId cursors on this endpoint, but endId is
+            // ignored outright and beginId filters on values that do not match the id field, so
+            // the pagination walks on endTime instead, backwards from the newest entry
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params, 100) as TransferEntry[];
+        }
+        let currency: Currency = undefined;
+        let request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        const response = await this.privateGetV1AssetTransferHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "id": "2008158167452857783",
+        //                 "clientTransferId": "2008158167452857783",
+        //                 "accountName": "1000000000000000000",
+        //                 "fromAccountType": "funding",
+        //                 "toAccountType": "trading",
+        //                 "amount": "30.000000",
+        //                 "currency": "USDT",
+        //                 "status": "success",
+        //                 "createTime": "1790195059877",
+        //                 "pid": "1000000000000000000",
+        //                 "uid": "100000000000001",
+        //                 "cid": "100000000000002",
+        //                 "source": "api",
+        //                 "multiplier": "1.000000000000000000",
+        //                 "stockAmount": "0.000"
+        //             }
+        //         ],
+        //         "msg": "Success",
+        //         "ts": "1790196179407",
+        //         "traceId": "75af642acd5db64d40e8d33e17f92e43"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransfers (data, currency, since, limit);
+    }
+
+    parseTransferStatus (status: Str): Str {
+        const statuses: Dict = {
+            'success': 'ok',
+            'pending': 'pending',
+            'fail': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {

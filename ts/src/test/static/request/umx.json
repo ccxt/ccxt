@@ -8,6 +8,35 @@
     ],
     "options": {},
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "transfers since with limit",
+                "method": "fetchTransfers",
+                "url": "https://api.umx.com/api/v1/asset/transfer/history?beginTime=1790196000000",
+                "input": [
+                    null,
+                    1790196000000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "transfers of a single currency",
+                "method": "fetchTransfers",
+                "url": "https://api.umx.com/api/v1/asset/transfer/history?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "all transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.umx.com/api/v1/asset/transfer/history",
+                "input": [],
+                "output": null
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer from the funding to the trading account",

@@ -8,6 +8,67 @@
     ],
     "options": {},
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "all transfers",
+                "method": "fetchTransfers",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "id": "2008158167452857870",
+                            "clientTransferId": "test transfer from trading to funding",
+                            "accountName": "1000000000000000000",
+                            "fromAccountType": "trading",
+                            "toAccountType": "funding",
+                            "amount": "5.000000",
+                            "currency": "USDT",
+                            "status": "success",
+                            "createTime": "1790196610916",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "source": "api",
+                            "multiplier": "1.000000000000000000",
+                            "stockAmount": "0.000"
+                        }
+                    ],
+                    "msg": "Success",
+                    "ts": "1790197903306",
+                    "traceId": "fca4c00adad3b5a418bbeabf36a21627"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2008158167452857870",
+                            "clientTransferId": "test transfer from trading to funding",
+                            "accountName": "1000000000000000000",
+                            "fromAccountType": "trading",
+                            "toAccountType": "funding",
+                            "amount": "5.000000",
+                            "currency": "USDT",
+                            "status": "success",
+                            "createTime": "1790196610916",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "source": "api",
+                            "multiplier": "1.000000000000000000",
+                            "stockAmount": "0.000"
+                        },
+                        "id": "2008158167452857870",
+                        "timestamp": 1790196610916,
+                        "datetime": "2026-09-23T20:50:10.916Z",
+                        "currency": "USDT",
+                        "amount": 5,
+                        "fromAccount": "trading",
+                        "toAccount": "funding",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer from the funding to the trading account",
