@@ -649,13 +649,25 @@ export default class blofin extends blofinRest {
             channel = 'orders-algo';
         }
         const orders = await this.watchMultipleWrapper (false, channel, 'watchOrdersForSymbols', symbols, paramsOmitted);
-        const first = this.safeDict (orders, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
+        // every symbol shares one orders cache, so count and filter by the requested symbols
+        // instead of by the symbol of whichever order happens to be cached first
+        let requestedSymbols: Strings = undefined;
+        let countSymbol: Str = undefined;
+        const unifiedSymbols = this.marketSymbols (symbols, undefined, true);
+        if (unifiedSymbols !== undefined) {
+            const symbolsLength = unifiedSymbols.length;
+            if (symbolsLength > 0) {
+                requestedSymbols = unifiedSymbols;
+            }
+            if (symbolsLength === 1) {
+                countSymbol = unifiedSymbols[0];
+            }
+        }
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit (tradeSymbol, limit);
+            limitResolved = orders.getLimit (countSymbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
+        return this.filterBySymbolsSinceLimit (orders, requestedSymbols, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: Dict) {
