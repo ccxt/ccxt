@@ -1581,9 +1581,8 @@ func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan any, outcome any, c
 		"costDenominated": true,
 	})
 
-	retRes112115 := (<-this.CreateOrderAsync(outcome, "market", "buy", cost, nil, request))
-	ccxt.PanicOnError(retRes112115)
-	ch <- retRes112115
+	var retRes112115 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, "market", "buy", cost, nil, request))))
+	ch <- ccxt.BoxAbsent(retRes112115)
 	return nil
 }
 
@@ -2447,9 +2446,8 @@ func (this *Myriad) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if requestedTradingModel != nil && *requestedTradingModel == "amm" {
 
-		retRes178819 := (<-this.FetchAmmOrdersAsync(outcome, since, limit, params))
-		ccxt.PanicOnError(retRes178819)
-		ch <- retRes178819
+		var retRes178819 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchAmmOrdersAsync(outcome, since, limit, params))))
+		ch <- ccxt.BoxAbsent(retRes178819)
 		return nil
 	}
 
@@ -2530,9 +2528,8 @@ func (this *Myriad) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "open",
 	}
 
-	retRes184915 := (<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes184915)
-	ch <- retRes184915
+	var retRes184915 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
+	ch <- ccxt.BoxAbsent(retRes184915)
 	return nil
 }
 
@@ -2567,9 +2564,8 @@ func (this *Myriad) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		"status": "filled",
 	}
 
-	retRes186715 := (<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes186715)
-	ch <- retRes186715
+	var retRes186715 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
+	ch <- ccxt.BoxAbsent(retRes186715)
 	return nil
 }
 
@@ -2604,9 +2600,8 @@ func (this *Myriad) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "cancelled",
 	}
 
-	retRes188515 := (<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes188515)
-	ch <- retRes188515
+	var retRes188515 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
+	ch <- ccxt.BoxAbsent(retRes188515)
 	return nil
 }
 
@@ -5273,11 +5268,11 @@ func (this *Myriad) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Myriad) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error) {
-	res := ccxt.AwaitResult(this.FetchMarketsAsync(params...))
+	var res ccxt.AsyncResult[[]ccxt.MarketInterface] = ccxt.AwaitResult(ccxt.NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewMarketInterfaceArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5299,11 +5294,11 @@ func (this *Myriad) FetchRawMarketsBySearch(queries []any, options ...FetchRawMa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchRawMarketsBySearchAsync(queries, opts.Params))
+	var res ccxt.AsyncResult[[]map[string]any] = ccxt.AwaitResult(ccxt.NewMapArray, this.FetchRawMarketsBySearchAsync(queries, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewMapArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5317,11 +5312,11 @@ func (this *Myriad) FetchRawMarketsBySearch(queries []any, options ...FetchRawMa
  * @returns {object[]} an array of raw myriad market objects
  */
 func (this *Myriad) FetchRawMarketsList(params ...any) ([]map[string]any, error) {
-	res := ccxt.AwaitResult(this.FetchRawMarketsListAsync(params...))
+	var res ccxt.AsyncResult[[]map[string]any] = ccxt.AwaitResult(ccxt.NewMapArray, this.FetchRawMarketsListAsync(params...))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewMapArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5340,11 +5335,11 @@ func (this *Myriad) FetchEvent(id string, options ...FetchEventOptions) (ccxt.Pr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchEventAsync(id, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionEvent] = ccxt.AwaitResult(ccxt.NewPredictionEvent, this.FetchEventAsync(id, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionEvent{}, res.Err
 	}
-	return ccxt.NewPredictionEvent(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5363,11 +5358,11 @@ func (this *Myriad) FetchRawMarketById(id string, options ...FetchRawMarketByIdO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchRawMarketByIdAsync(id, opts.Params))
+	var res ccxt.AsyncResult[map[string]any] = ccxt.AwaitResult(ccxt.AssertAs[map[string]any], this.FetchRawMarketByIdAsync(id, opts.Params))
 	if res.Err != nil {
 		return map[string]any{}, res.Err
 	}
-	return res.Value.(map[string]any), nil
+	return res.Value, nil
 }
 
 /**
@@ -5386,11 +5381,11 @@ func (this *Myriad) FetchRawQuestionById(id string, options ...FetchRawQuestionB
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchRawQuestionByIdAsync(id, opts.Params))
+	var res ccxt.AsyncResult[map[string]any] = ccxt.AwaitResult(ccxt.AssertAs[map[string]any], this.FetchRawQuestionByIdAsync(id, opts.Params))
 	if res.Err != nil {
 		return map[string]any{}, res.Err
 	}
-	return res.Value.(map[string]any), nil
+	return res.Value, nil
 }
 
 /**
@@ -5409,11 +5404,11 @@ func (this *Myriad) FetchRawQuestionsBySearch(queries []string, options ...Fetch
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchRawQuestionsBySearchAsync(queries, opts.Params))
+	var res ccxt.AsyncResult[[]map[string]any] = ccxt.AwaitResult(ccxt.NewMapArray, this.FetchRawQuestionsBySearchAsync(queries, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewMapArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5426,11 +5421,11 @@ func (this *Myriad) FetchRawQuestionsBySearch(queries []string, options ...Fetch
  * @returns {object[]} an array of raw myriad question objects
  */
 func (this *Myriad) FetchRawQuestionsList(params ...any) ([]map[string]any, error) {
-	res := ccxt.AwaitResult(this.FetchRawQuestionsListAsync(params...))
+	var res ccxt.AsyncResult[[]map[string]any] = ccxt.AwaitResult(ccxt.NewMapArray, this.FetchRawQuestionsListAsync(params...))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewMapArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5450,11 +5445,11 @@ func (this *Myriad) FetchPositions(options ...FetchPositionsOptions) ([]ccxt.Pre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchPositionsAsync(opts.Outcomes, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionPosition] = ccxt.AwaitResult(ccxt.NewPredictionPositionArray, this.FetchPositionsAsync(opts.Outcomes, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionPositionArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5476,11 +5471,11 @@ func (this *Myriad) FetchTradeQuote(outcome string, side string, amount float64,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchTradeQuoteAsync(outcome, side, amount, opts.Params))
+	var res ccxt.AsyncResult[map[string]any] = ccxt.AwaitResult(ccxt.AssertAs[map[string]any], this.FetchTradeQuoteAsync(outcome, side, amount, opts.Params))
 	if res.Err != nil {
 		return map[string]any{}, res.Err
 	}
-	return res.Value.(map[string]any), nil
+	return res.Value, nil
 }
 
 /**
@@ -5506,11 +5501,11 @@ func (this *Myriad) CreateOrder(outcome string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CreateOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrder, this.CreateOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionOrder{}, res.Err
 	}
-	return ccxt.NewPredictionOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5527,11 +5522,11 @@ func (this *Myriad) CreateOrderbookOrder(outcome string, typeVar string, side st
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CreateOrderbookOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrder, this.CreateOrderbookOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionOrder{}, res.Err
 	}
-	return ccxt.NewPredictionOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5551,11 +5546,11 @@ func (this *Myriad) CreateOrders(orders []ccxt.PredictionOrderRequest, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrderArray, this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5583,11 +5578,11 @@ func (this *Myriad) EditOrder(id string, outcome string, typeVar string, side st
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.EditOrderAsync(id, outcome, typeVar, side, opts.Amount, opts.Price, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrder, this.EditOrderAsync(id, outcome, typeVar, side, opts.Amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionOrder{}, res.Err
 	}
-	return ccxt.NewPredictionOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5614,11 +5609,11 @@ func (this *Myriad) CreateAmmOrder(outcome string, typeVar string, side string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CreateAmmOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrder, this.CreateAmmOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionOrder{}, res.Err
 	}
-	return ccxt.NewPredictionOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5638,11 +5633,11 @@ func (this *Myriad) CreateMarketBuyOrderWithCost(outcome string, cost float64, o
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CreateMarketBuyOrderWithCostAsync(outcome, cost, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrder, this.CreateMarketBuyOrderWithCostAsync(outcome, cost, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionOrder{}, res.Err
 	}
-	return ccxt.NewPredictionOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5663,11 +5658,11 @@ func (this *Myriad) FetchAmmOrders(options ...FetchAmmOrdersOptions) ([]ccxt.Pre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchAmmOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrderArray, this.FetchAmmOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5690,11 +5685,11 @@ func (this *Myriad) CancelOrder(id string, options ...CancelOrderOptions) (ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CancelOrderAsync(id, opts.Outcome, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrder, this.CancelOrderAsync(id, opts.Outcome, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionOrder{}, res.Err
 	}
-	return ccxt.NewPredictionOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5713,11 +5708,11 @@ func (this *Myriad) CancelAllOrders(options ...CancelAllOrdersOptions) ([]ccxt.P
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CancelAllOrdersAsync(opts.Outcome, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrderArray, this.CancelAllOrdersAsync(opts.Outcome, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5739,11 +5734,11 @@ func (this *Myriad) CancelOrders(ids []string, options ...CancelOrdersOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.CancelOrdersAsync(ids, opts.Outcome, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrderArray, this.CancelOrdersAsync(ids, opts.Outcome, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5763,11 +5758,11 @@ func (this *Myriad) FetchOrder(id string, options ...FetchOrderOptions) (ccxt.Pr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOrderAsync(id, opts.Outcome, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrder, this.FetchOrderAsync(id, opts.Outcome, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionOrder{}, res.Err
 	}
-	return ccxt.NewPredictionOrder(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5790,11 +5785,11 @@ func (this *Myriad) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.Predictio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrderArray, this.FetchOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5815,11 +5810,11 @@ func (this *Myriad) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.P
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOpenOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrderArray, this.FetchOpenOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5840,11 +5835,11 @@ func (this *Myriad) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]cc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchClosedOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrderArray, this.FetchClosedOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5865,11 +5860,11 @@ func (this *Myriad) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchCanceledOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrderArray, this.FetchCanceledOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5892,11 +5887,11 @@ func (this *Myriad) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.Predi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchMyTradesAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionTrade] = ccxt.AwaitResult(ccxt.NewPredictionTradeArray, this.FetchMyTradesAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5912,11 +5907,11 @@ func (this *Myriad) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.Predi
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
 func (this *Myriad) FetchBalance(params ...any) (ccxt.Balances, error) {
-	res := ccxt.AwaitResult(this.FetchBalanceAsync(params...))
+	var res ccxt.AsyncResult[ccxt.Balances] = ccxt.AwaitResult(ccxt.NewBalances, this.FetchBalanceAsync(params...))
 	if res.Err != nil {
 		return ccxt.Balances{}, res.Err
 	}
-	return ccxt.NewBalances(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5935,11 +5930,11 @@ func (this *Myriad) FetchTicker(outcome string, options ...ccxt.FetchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchTickerAsync(outcome, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionTicker] = ccxt.AwaitResult(ccxt.NewPredictionTicker, this.FetchTickerAsync(outcome, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionTicker{}, res.Err
 	}
-	return ccxt.NewPredictionTicker(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5958,11 +5953,11 @@ func (this *Myriad) FetchTradingFee(outcome string, options ...ccxt.FetchTrading
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchTradingFeeAsync(outcome, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionTradingFee] = ccxt.AwaitResult(ccxt.NewPredictionTradingFee, this.FetchTradingFeeAsync(outcome, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionTradingFee{}, res.Err
 	}
-	return ccxt.NewPredictionTradingFee(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -5982,11 +5977,11 @@ func (this *Myriad) FetchOrderBook(outcome string, options ...ccxt.FetchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOrderBookAsync(outcome, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrderBook] = ccxt.AwaitResult(ccxt.NewPredictionOrderBook, this.FetchOrderBookAsync(outcome, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionOrderBook{}, res.Err
 	}
-	return ccxt.NewPredictionOrderBook(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6008,11 +6003,11 @@ func (this *Myriad) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOHLCVAsync(outcome, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.FetchOHLCVAsync(outcome, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6031,11 +6026,11 @@ func (this *Myriad) FetchTickers(options ...FetchTickersOptions) (ccxt.Predictio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchTickersAsync(opts.Outcomes, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionTickers] = ccxt.AwaitResult(ccxt.NewPredictionTickers, this.FetchTickersAsync(opts.Outcomes, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionTickers{}, res.Err
 	}
-	return ccxt.NewPredictionTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6056,11 +6051,11 @@ func (this *Myriad) FetchTrades(outcome string, options ...ccxt.FetchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchTradesAsync(outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionTrade] = ccxt.AwaitResult(ccxt.NewPredictionTradeArray, this.FetchTradesAsync(outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6078,11 +6073,11 @@ func (this *Myriad) FetchTrades(outcome string, options ...ccxt.FetchTradesOptio
  * @returns {object[]} an array of event structures
  */
 func (this *Myriad) FetchEvents(params map[string]interface{}) ([]ccxt.PredictionEvent, error) {
-	res := ccxt.AwaitResult(this.FetchEventsAsync(params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionEvent] = ccxt.AwaitResult(ccxt.NewPredictionEventArray, this.FetchEventsAsync(params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionEventArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6102,11 +6097,11 @@ func (this *Myriad) WatchOrderBook(outcome string, options ...ccxt.WatchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrderBookAsync(outcome, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrderBook] = ccxt.AwaitResult(ccxt.NewPredictionOrderBookFromWs, this.WatchOrderBookAsync(outcome, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionOrderBook{}, res.Err
 	}
-	return ccxt.NewPredictionOrderBookFromWs(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6127,11 +6122,11 @@ func (this *Myriad) WatchTrades(outcome string, options ...ccxt.WatchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTradesAsync(outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionTrade] = ccxt.AwaitResult(ccxt.NewPredictionTradeArray, this.WatchTradesAsync(outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6153,11 +6148,11 @@ func (this *Myriad) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.Predi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchMyTradesAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionTrade] = ccxt.AwaitResult(ccxt.NewPredictionTradeArray, this.WatchMyTradesAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionTradeArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6176,11 +6171,11 @@ func (this *Myriad) WatchTicker(outcome string, options ...ccxt.WatchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTickerAsync(outcome, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionTicker] = ccxt.AwaitResult(ccxt.NewPredictionTicker, this.WatchTickerAsync(outcome, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionTicker{}, res.Err
 	}
-	return ccxt.NewPredictionTicker(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6199,11 +6194,11 @@ func (this *Myriad) WatchTickers(options ...WatchTickersOptions) (ccxt.Predictio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchTickersAsync(opts.Outcomes, opts.Params))
+	var res ccxt.AsyncResult[ccxt.PredictionTickers] = ccxt.AwaitResult(ccxt.NewPredictionTickers, this.WatchTickersAsync(opts.Outcomes, opts.Params))
 	if res.Err != nil {
 		return ccxt.PredictionTickers{}, res.Err
 	}
-	return ccxt.NewPredictionTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6225,11 +6220,11 @@ func (this *Myriad) WatchOHLCV(outcome string, options ...ccxt.WatchOHLCVOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOHLCVAsync(outcome, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.WatchOHLCVAsync(outcome, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6250,11 +6245,11 @@ func (this *Myriad) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.Predictio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrderArray, this.WatchOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionOrderArray(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -6275,11 +6270,11 @@ func (this *Myriad) WatchPositions(options ...WatchPositionsOptions) ([]ccxt.Pre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.WatchPositionsAsync(opts.Outcomes, opts.Since, opts.Limit, opts.Params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionPosition] = ccxt.AwaitResult(ccxt.NewPredictionPositionArray, this.WatchPositionsAsync(opts.Outcomes, opts.Since, opts.Limit, opts.Params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionPositionArray(res.Value), nil
+	return res.Value, nil
 }
 
 // missing typed methods from base
@@ -6300,11 +6295,11 @@ func (this *Myriad) CreateDepositAddress(code string, options ...ccxt.CreateDepo
 	return this.exchangeTyped.CreateDepositAddress(code, options...)
 }
 func (this *Myriad) CreateMarketSellOrderWithCost(outcome string, cost float64, params map[string]any) (ccxt.PredictionOrder, error) {
-	res := ccxt.AwaitResult(this.CreateMarketSellOrderWithCostAsync(outcome, cost, params))
+	var res ccxt.AsyncResult[ccxt.PredictionOrder] = ccxt.AwaitResult(ccxt.NewPredictionOrder, this.CreateMarketSellOrderWithCostAsync(outcome, cost, params))
 	if res.Err != nil {
 		return ccxt.PredictionOrder{}, res.Err
 	}
-	return ccxt.NewPredictionOrder(res.Value), nil
+	return res.Value, nil
 }
 func (this *Myriad) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
@@ -6439,11 +6434,11 @@ func (this *Myriad) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOptio
 	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
 func (this *Myriad) FetchOpenInterest(outcome string, params map[string]any) (ccxt.PredictionOpenInterest, error) {
-	res := ccxt.AwaitResult(this.FetchOpenInterestAsync(outcome, params))
+	var res ccxt.AsyncResult[ccxt.PredictionOpenInterest] = ccxt.AwaitResult(ccxt.NewPredictionOpenInterest, this.FetchOpenInterestAsync(outcome, params))
 	if res.Err != nil {
 		return ccxt.PredictionOpenInterest{}, res.Err
 	}
-	return ccxt.NewPredictionOpenInterest(res.Value), nil
+	return res.Value, nil
 }
 func (this *Myriad) FetchOpenInterestHistory(symbol string, options ...ccxt.FetchOpenInterestHistoryOptions) ([]ccxt.OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
@@ -6467,21 +6462,21 @@ func (this *Myriad) FetchOrderTrades(id string, params map[string]any, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchOrderTradesAsync(id, opts.Outcome, opts.Since, opts.Limit, params))
+	var res ccxt.AsyncResult[[]ccxt.PredictionTrade] = ccxt.AwaitResult(ccxt.NewPredictionTradeArray, this.FetchOrderTradesAsync(id, opts.Outcome, opts.Since, opts.Limit, params))
 	if res.Err != nil {
 		return nil, res.Err
 	}
-	return ccxt.NewPredictionTradeArray(res.Value), nil
+	return res.Value, nil
 }
 func (this *Myriad) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Myriad) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {
-	res := ccxt.AwaitResult(this.FetchPositionAsync(outcome, params))
+	var res ccxt.AsyncResult[ccxt.PredictionPosition] = ccxt.AwaitResult(ccxt.NewPredictionPosition, this.FetchPositionAsync(outcome, params))
 	if res.Err != nil {
 		return ccxt.PredictionPosition{}, res.Err
 	}
-	return ccxt.NewPredictionPosition(res.Value), nil
+	return res.Value, nil
 }
 func (this *Myriad) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)

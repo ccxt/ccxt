@@ -72,9 +72,8 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) a
 		"method": "futuresPublicGetAllTickers",
 	}
 
-	retRes5015 := (<-this.FetchTickersAsync(symbols, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes5015)
-	ch <- retRes5015
+	var retRes5015 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.FetchTickersAsync(symbols, this.Extend(request, params)))))
+	ch <- ccxt.BoxAbsent(retRes5015)
 	return nil
 }
 
@@ -170,11 +169,11 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.FetchBidsAsksAsync(opts.Symbols, opts.Params))
+	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.FetchBidsAsksAsync(opts.Symbols, opts.Params))
 	if res.Err != nil {
 		return ccxt.Tickers{}, res.Err
 	}
-	return ccxt.NewTickers(res.Value), nil
+	return res.Value, nil
 }
 
 /**
@@ -195,9 +194,9 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := ccxt.AwaitResult(this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
+	var res ccxt.AsyncResult[ccxt.TransferEntry] = ccxt.AwaitResult(ccxt.NewTransferEntry, this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
 	if res.Err != nil {
 		return ccxt.TransferEntry{}, res.Err
 	}
-	return ccxt.NewTransferEntry(res.Value), nil
+	return res.Value, nil
 }

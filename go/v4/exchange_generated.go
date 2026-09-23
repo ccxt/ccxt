@@ -5407,9 +5407,8 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan any, code any, optiona
 		panic(NotSupported(this.Id + " fetchTransactionFee() is not supported yet"))
 	}
 
-	retRes676015 := (<-this.FetchTransactionFeesAsync([]any{code}, params))
-	PanicOnError(retRes676015)
-	ch <- retRes676015
+	var retRes676015 map[string]any = MapTyped(PanicOnError((<-this.FetchTransactionFeesAsync([]any{code}, params))))
+	ch <- BoxAbsent(retRes676015)
 	return nil
 }
 func (this *BaseExchange) FetchTransactionFeesAsync(optionalArgs ...any) <-chan any {
@@ -11133,9 +11132,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
 		"clientOrderIds": clientOrderIds,
 	})
 
-	retRes1013515 := (<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))
-	PanicOnError(retRes1013515)
-	ch <- retRes1013515
+	var retRes1013515 []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))))
+	ch <- BoxAbsent(retRes1013515)
 	return nil
 }
 func (this *Exchange) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
