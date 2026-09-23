@@ -4331,6 +4331,38 @@ const PRECISE_STRING_STATICS = new Set ([
 // declares an override (census)
 const DATAFLOW_STRING_BASE_METHODS = new Set ([ 'iso8601', 'numberToString' ]);
 
+// the single-box accessor families: `this.<name>(...)` calls whose hand-written Java
+// declaration is exactly that box on every path, so an accumulator whose only non-null
+// writes are these needs no checkcast — the box is already the declared one.
+const DATAFLOW_SINGLE_BOX_ACCESSORS = new Map ([
+    [ 'safeNumber', 'Double' ], [ 'safeNumber2', 'Double' ], [ 'safeNumberN', 'Double' ],
+    [ 'safeFloat', 'Double' ], [ 'safeFloat2', 'Double' ], [ 'safeFloatN', 'Double' ],
+    [ 'safeInteger', 'Long' ], [ 'safeInteger2', 'Long' ], [ 'safeIntegerN', 'Long' ],
+    [ 'parseToInt', 'Long' ], [ 'parse8601', 'Long' ], [ 'milliseconds', 'Long' ],
+    [ 'seconds', 'Long' ],
+    [ 'safeCurrencyCode', JAVA_DATAFLOW_STRING ],
+]);
+
+// an admitted name must resolve to the base-tier declaration (Exchange, Exchange.nooverloads,
+// functions/{type,time,misc}) or the lib.d.ts `milliseconds = Date.now`; a venue override or
+// an unresolved call is not provable.
+function resolvesToSingleBoxBaseAccessor (printer, node) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    } catch (e) {
+        declaration = undefined;
+    }
+    if (declaration === undefined) {
+        return false;
+    }
+    const file = declaration.getSourceFile?.().fileName;
+    if (file === undefined) {
+        return false;
+    }
+    return NUMERIC_BASE_TIER_DECLARATION_FILE.test (file) || NUMERIC_LIB_DTS_FILE.test (file);
+}
+
 // declarations whose full decision is being computed right now (`let a = a;`)
 const dataflowClassifyInProgress = new Set ();
 
@@ -4493,6 +4525,12 @@ function dataflowThisCallType (printer, node) {
     }
     if (DATAFLOW_STRING_BASE_METHODS.has (name)) {
         return resolvesToBaseAccessor (printer, node, name) ? JAVA_DATAFLOW_STRING : undefined;
+    }
+    // a single-box accessor needs no checkcast: every admitted name's Java declaration is
+    // that box on every path (see DATAFLOW_SINGLE_BOX_ACCESSORS)
+    const singleBox = DATAFLOW_SINGLE_BOX_ACCESSORS.get (name);
+    if (singleBox !== undefined && resolvesToSingleBoxBaseAccessor (printer, node)) {
+        return singleBox;
     }
     return undefined;
 }
