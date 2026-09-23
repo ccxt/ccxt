@@ -3339,8 +3339,7 @@ func (this *Bydfi) transferBody(ch chan any, code any, amount any, fromAccount a
 		"toType":   toId,
 	}
 
-	response := (<-this.PrivatePostV1AccountTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1AccountTransfer(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,

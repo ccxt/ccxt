@@ -8606,8 +8606,7 @@ func (this *Htx) withdrawBody(ch chan any, code any, amount any, address any, op
 	}
 	request["amount"] = amount
 
-	response := (<-this.SpotPrivatePostV1DwWithdrawApiCreate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivatePostV1DwWithdrawApiCreate(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -10961,8 +10960,7 @@ func (this *Htx) borrowIsolatedMarginBody(ch chan any, symbol any, code any, amo
 		"symbol":   market["id"],
 	}
 
-	response := (<-this.PrivatePostMarginOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostMarginOrders(this.Extend(request, params))).Raw))
 	//
 	// Isolated
 	//
@@ -11010,8 +11008,7 @@ func (this *Htx) borrowCrossMarginBody(ch chan any, code any, amount any, option
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 
-	response := (<-this.PrivatePostCrossMarginOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCrossMarginOrders(this.Extend(request, params))).Raw))
 	//
 	// Cross
 	//

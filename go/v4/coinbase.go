@@ -6101,8 +6101,7 @@ func (this *Coinbase) transferBody(ch chan any, code any, amount any, fromAccoun
 		"target_portfolio_uuid": toAccount,
 	}
 
-	response := (<-this.V3PrivatePostBrokeragePortfoliosMoveFunds(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostBrokeragePortfoliosMoveFunds(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
@@ -6568,8 +6567,7 @@ func (this *Coinbase) fetchPortfolioDetailsBody(ch chan any, portfolioUuid any, 
 		"portfolio_uuid": portfolioUuid,
 	}
 
-	response := (<-this.V3PrivateGetBrokeragePortfoliosPortfolioUuid(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetBrokeragePortfoliosPortfolioUuid(this.Extend(request, params))).Raw))
 	var result any = this.ParsePortfolioDetails(response)
 
 	ch <- result

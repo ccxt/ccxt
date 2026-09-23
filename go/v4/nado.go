@@ -2586,8 +2586,7 @@ func (this *Nado) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols, "swap", true)
 
-	response := (<-this.ArchiveV2PublicGetContracts(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchiveV2PublicGetContracts(params)).Raw))
 	//
 	//     {
 	//         "BTC-PERP_USDT0": {
@@ -2706,8 +2705,7 @@ func (this *Nado) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols, "swap", true)
 
-	response := (<-this.ArchiveV2PublicGetContracts(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ArchiveV2PublicGetContracts(params)).Raw))
 	//
 	//     {
 	//         "BTC-PERP_USDT0": {
@@ -2778,8 +2776,7 @@ func (this *Nado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		}(),
 	}
 
-	response := (<-this.GatewayV2PublicGetOrderbook(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.GatewayV2PublicGetOrderbook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "product_id": 1,
@@ -2838,8 +2835,7 @@ func (this *Nado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	response := (<-this.ArchiveV2PublicGetTrades(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.ArchiveV2PublicGetTrades(this.Extend(request, params))).Raw))
 
 	//
 	//     [

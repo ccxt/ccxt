@@ -509,8 +509,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
 	}
 
-	response := (<-this.WwwGetOrderFetchOrderbook(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.WwwGetOrderFetchOrderbook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "bids":[
@@ -619,8 +618,7 @@ func (this *Bitbns) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.WwwGetOrderFetchTickers(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.WwwGetOrderFetchTickers(params)).Raw))
 
 	//
 	//     {
@@ -710,8 +708,7 @@ func (this *Bitbns) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V1PostCurrentCoinBalanceEVERYTHING(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostCurrentCoinBalanceEVERYTHING(params)).Raw))
 
 	//
 	//     {
@@ -1355,8 +1352,7 @@ func (this *Bitbns) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"market": market["quoteId"],
 	}
 
-	response := (<-this.WwwGetExchangeDataTradedetails(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.WwwGetExchangeDataTradedetails(this.Extend(request, params))).Raw))
 
 	//
 	//     [

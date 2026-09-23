@@ -460,8 +460,7 @@ func (this *Btcbox) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostBalance(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostBalance(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -500,8 +499,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		request["coin"] = market["baseId"]
 	}
 
-	response := (<-this.PublicGetDepth(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDepth(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
@@ -565,8 +563,7 @@ func (this *Btcbox) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		request["coin"] = market["baseId"]
 	}
 
-	response := (<-this.PublicGetTicker(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTicker(response, market)
 	return nil
@@ -597,8 +594,7 @@ func (this *Btcbox) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetTickers(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 
 	ch <- this.ParseTickers(response, symbols)
 	return nil
@@ -677,8 +673,7 @@ func (this *Btcbox) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["coin"] = market["baseId"]
 	}
 
-	response := (<-this.PublicGetOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -732,8 +727,7 @@ func (this *Btcbox) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"coin":   market["baseId"],
 	}
 
-	response := (<-this.PrivatePostTradeAdd(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeAdd(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -781,8 +775,7 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"coin": market["baseId"],
 	}
 
-	response := (<-this.PrivatePostTradeCancel(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeCancel(this.Extend(request, params))).Raw))
 
 	//
 	//     {"result":true, "id":"11"}
@@ -899,8 +892,7 @@ func (this *Btcbox) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"coin": market["baseId"],
 	}, params)
 
-	response := (<-this.PrivatePostTradeView(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeView(this.Extend(request, params))).Raw))
 
 	//
 	//      {
@@ -947,8 +939,7 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs
 		"coin": market["baseId"],
 	}
 
-	response := (<-this.PrivatePostTradeList(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostTradeList(this.Extend(request, params))).Raw))
 	//
 	// [
 	//      {

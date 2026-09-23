@@ -2747,8 +2747,7 @@ func (this *Bigone) transferBody(ch chan any, code any, amount any, fromAccount 
 		"guid":   guid,
 	}
 
-	response := (<-this.PrivatePostTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTransfer(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 0,

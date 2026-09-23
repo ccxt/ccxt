@@ -2810,8 +2810,7 @@ func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address an
 		params = MapTyped(this.Omit(params, "network"))
 	}
 
-	response := (<-this.PrivatePostDwWithdrawApiCreate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDwWithdrawApiCreate(this.Extend(request, params))).Raw))
 
 	//
 	//     {

@@ -12665,8 +12665,7 @@ func (this *Binance) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	}
 	// has support for the 'network' parameter
 
-	response := (<-this.SapiGetCapitalDepositAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SapiGetCapitalDepositAddress(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -12891,8 +12890,7 @@ func (this *Binance) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.SapiGetCapitalConfigGetall(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SapiGetCapitalConfigGetall(params)).Raw))
 
 	//
 	//    [
@@ -15700,8 +15698,7 @@ func (this *Binance) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	response := (<-this.EapiPublicGetExerciseHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.EapiPublicGetExerciseHistory(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -15776,8 +15773,7 @@ func (this *Binance) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 
-	response := (<-this.EapiPrivateGetExerciseRecord(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.EapiPrivateGetExerciseRecord(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -18136,8 +18132,7 @@ func (this *Binance) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.EapiPublicGetMark(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.EapiPublicGetMark(this.Extend(request, params))).Raw))
 
 	//
 	//     [
