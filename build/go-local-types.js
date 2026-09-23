@@ -119,6 +119,10 @@ export const CCXT_GO_BOOL_METHOD_NAMES = [
 
 
 
+// Base methods whose every TS return is a string or undefined (`Str`): build/goTranspiler.ts
+// coerceStringPtrMethods retypes the base copy and every venue override to `*string`.
+export const CCXT_GO_STRING_PTR_METHOD_NAMES = [ 'NetworkIdToCode', 'FindTimeframe' ];
+
 export const CCXT_GO_HELPER_RETURN_TYPES = {
     // Typed twins of GetArg (go/v4/exchange_helpers.go) -- the `var x <T> = GetArg<T>(...)`
     // locals the printer declares for a provable optional argument
@@ -278,6 +282,10 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.HandleParamString': '[]any',
     'this.HandleParamString2': '[]any',
     'this.HandleMarketTypeAndParams': '[]any',
+    ...Object.fromEntries (CCXT_GO_STRING_PTR_METHOD_NAMES.flatMap ((name) => [ [ 'this.' + name, '*string' ], [ 'exchange.' + name, '*string' ] ])),
+    // exchange.go: seconds as int64; a missing/malformed timeframe panics NotSupported like TS
+    'this.ParseTimeframe': 'int64',
+    'exchange.ParseTimeframe': 'int64',
 };
 
 // ---------------------------------------------------------------------------
