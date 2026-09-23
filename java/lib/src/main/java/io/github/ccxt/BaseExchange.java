@@ -1045,6 +1045,11 @@ public class BaseExchange {
         return io.github.ccxt.base.Generic.omitZero(value);
     }
 
+    // a String input comes back unchanged or null
+    public String omitZero(String value) {
+        return (String) io.github.ccxt.base.Generic.omitZero(value);
+    }
+
     // sum (both overloads)
     public Object sum(Object... args) {
         return io.github.ccxt.base.Generic.sum(args);
@@ -1159,15 +1164,15 @@ public class BaseExchange {
         return SafeMethods.safeStringLowerN(obj, keys, defaultValue);
     }
 
-    public Object safeTimestamp(Object obj, Object key, Object... defaultValue) {
+    public Long safeTimestamp(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.safeTimestamp(obj, key, defaultValue);
     }
 
-    public Object safeTimestamp2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public Long safeTimestamp2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return SafeMethods.safeTimestamp2(obj, key1, key2, defaultValue);
     }
 
-    public Object safeTimestampN(Object obj, List<Object> keys, Object... defaultValue) {
+    public Long safeTimestampN(Object obj, List<Object> keys, Object... defaultValue) {
         return SafeMethods.safeTimestampN(obj, keys, defaultValue);
     }
 

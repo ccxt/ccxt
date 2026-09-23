@@ -3,7 +3,7 @@
 import { BaseExchange } from './Exchange.js';
 import { Precise } from './Precise.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -407,7 +407,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new BadSymbol (this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
 
-    outcome (outcomeSymbol: Str): any {
+    outcome (outcomeSymbol: Str): PredictionOutcomeMarket {
         if (outcomeSymbol === undefined) {
             throw new ArgumentsRequired (this.id + ' outcome() requires an outcomeSymbol argument');
         }
@@ -439,7 +439,7 @@ export default class PredictionExchange extends BaseExchange {
         return false;
     }
 
-    safeOutcome (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): any {
+    safeOutcome (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): PredictionOutcomeMarket {
         if (outcomeIdOrSymbol !== undefined) {
             if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
                 return this.outcomes[outcomeIdOrSymbol];
@@ -451,7 +451,9 @@ export default class PredictionExchange extends BaseExchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {}};
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
+        outcomeObj = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {}};
+        return outcomeObj;
     }
 
     safeOutcomeSymbol (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
@@ -753,7 +755,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.outcomes;
     }
 
-    async loadOutcome (outcomeSymbol: Str, reload = false) {
+    async loadOutcome (outcomeSymbol: Str, reload = false): Promise<PredictionOutcomeMarket> {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
         // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on

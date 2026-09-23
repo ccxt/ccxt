@@ -1850,6 +1850,8 @@ const VENUE_RETURN_KINDS = {
     'createRegularOrderRequest': [ JAVA_ARRAY_TYPE_MAP () ], 'postActionRequest': [ JAVA_ARRAY_TYPE_MAP () ],
     'getBybitType': [ 'java.util.List<Object>' ], 'getInstType': [ 'java.util.List<Object>' ],
     'getMarginMode': [ 'java.util.List<Object>' ], 'resolveAuthType': [ 'java.util.List<Object>' ],
+    'networkIdToCode': [ 'String' ], 'findTimeframe': [ 'String' ],
+    'outcome': [ JAVA_ARRAY_TYPE_MAP () ], 'safeOutcome': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -1948,6 +1950,45 @@ function venueReturnCast (printer, node, method, javaType) {
         return undefined;
     }
     return '(' + javaType + ')';
+}
+
+// `this.omit (<Dict>, keys)`: Functions.omit answers a fresh LinkedHashMap for a map input,
+// null for null, and hands a List back only for a list input the TS type excludes
+function omitMapLocalType (printer, call, name) {
+    if (name !== 'omit' || call.arguments.length !== 2) {
+        return undefined;
+    }
+    const file = resolvedSignatureFile (printer, call);
+    if (file === undefined || !HELPER_SOURCE_FILE.test (file)) {
+        return undefined;
+    }
+    let type;
+    try {
+        type = printer.getChecker ().getTypeAtLocation (call.arguments[0]);
+    } catch (e) {
+        return undefined;
+    }
+    if (type?.isUnion?.()) {
+        const parts = type.types.filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+        type = parts.length === 1 ? parts[0] : undefined;
+    }
+    if (typeof printer.isJavaMapStructureType !== 'function' || !printer.isJavaMapStructureType (type)) {
+        return undefined;
+    }
+    return { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')', noCastAssertions: true };
+}
+
+// `this.omitZero (<String>)` binds the hand-written `String omitZero (String)` overload
+function omitZeroStringLocalType (printer, call, name) {
+    if (name !== 'omitZero' || call.arguments.length !== 1
+        || !isStaticallyStringExpression (printer, unwrapParens (call.arguments[0]), undefined)) {
+        return undefined;
+    }
+    const file = resolvedSignatureFile (printer, call);
+    if (file === undefined || !HELPER_SOURCE_FILE.test (file)) {
+        return undefined;
+    }
+    return { type: 'String', nonNull: false, strictPlus: true };
 }
 
 // ===== method signature retype =====
@@ -2628,6 +2669,14 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     if (venue !== undefined) {
         return { type: venue };
     }
+    const omitMap = asserted ? undefined : omitMapLocalType (printer, initializer, name);
+    if (omitMap !== undefined) {
+        return omitMap;
+    }
+    const omitZero = asserted ? undefined : omitZeroStringLocalType (printer, initializer, name);
+    if (omitZero !== undefined) {
+        return omitZero;
+    }
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
     if (!asserted && accessor !== undefined && accessorResolvesToBase (printer, initializer, name, accessor)) {
         // hx2 java-03: entries with `defaultArg` are only the named box when the call's own
@@ -2741,7 +2790,9 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 return wsMapReadType (node) === javaType;
             }
             if (javaType === JAVA_STRUCTURE_TYPE) {
-                return STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name);
+                return (STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name))
+                    || safeDictLocalType (printer, node, name) !== undefined
+                    || omitMapLocalType (printer, node, name) !== undefined;
             }
             if (javaType === 'String') {
                 if (name === 'parse8601') {
@@ -5500,7 +5551,8 @@ export function installJavaLocalTypes (transpiler) {
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType
                 && !JAVA_STRING_RETURN_METHODS_CAST.has (call))
-            || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined)
+            || (javaType === JAVA_STRUCTURE_TYPE && (STRUCTURE_THIS_RETURN_TYPES[call] !== undefined
+                || call === 'omit' || SAFE_DICT_ACCESSORS.has (call)))
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'));
         // SS-01: the safeStringUpper/Lower family dropped out of this list — those calls
         // are declared `String` in the hand-written base now, so a write to a String local
@@ -7408,9 +7460,8 @@ export function patchJavaLiteralLocalTypes (transpiler) {
 //   * safeIntegerProduct2 / safeIntegerProductN (and SafeMethods.SafeNumberN) -> NOT
 //     typed: they hand the caller's raw defaultValue back on the failure path, so the
 //     box is whatever the call site passed (an Integer for the ubiquitous `0`).
-//   * safeTimestamp / safeTimestamp2 are NOT narrowable for the same reason (the Java
-//     safeTimestampN returns the caller's default untouched) — already documented in
-//     section 3; they are absent here too.
+//   * safeTimestamp / safeTimestamp2 / safeTimestampN -> Long: the hand-written
+//     SafeMethods.safeTimestampN is declared Long and converts the default to Long.
 //
 // UPSTREAM RETYPES (the other half of the slice — all declaration-only):
 //   * java/lib/src/main/java/io/github/ccxt/BaseExchange.java: safeInteger / safeInteger2
@@ -7481,6 +7532,10 @@ export const JAVA_NUMERIC_LOCAL_TYPES = {
     'seconds': 'Long',
     'parse8601': 'Long',
     'parseTimeframe': 'int',
+    // SafeMethods.safeTimestampN converts the default through toLongQuiet as well
+    'safeTimestamp': 'Long',
+    'safeTimestamp2': 'Long',
+    'safeTimestampN': 'Long',
 };
 
 // calls whose Java DECLARED return type moves Object -> Long/Double in this slice: a
@@ -7492,6 +7547,7 @@ export const JAVA_NUMERIC_LOCAL_TYPES = {
 const JAVA_NUMERIC_RETYPED_CALLS = new Set ([
     'safeInteger', 'safeInteger2', 'safeIntegerN', 'safeIntegerProduct',
     'safeNumber', 'safeNumber2', 'safeNumberN', 'parseToInt',
+    'safeTimestamp', 'safeTimestamp2', 'safeTimestampN',
 ]);
 
 // GENERATED methods whose erased `Object` return type installJavaNumericLocalTypes

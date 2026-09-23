@@ -228,6 +228,17 @@ export interface PredictionOutcome {
     precision?: Precision;       // outcome-level price/amount precision
 }
 
+// a cached outcome token as held in ex.outcomes: market-shaped so it can be passed where a
+// Market is expected, plus the outcome identity keys
+export interface PredictionOutcomeMarket extends MarketInterface {
+    outcome: string;
+    outcomeId: string;
+    label?: Str;
+    market?: Str;
+    marketId?: Str;
+    event?: Str;
+}
+
 // Prediction trading structures are standalone — they do NOT extend the base unified
 // types and carry only prediction-meaningful fields, with no `symbol`. `outcome` (the
 // "MARKET:LABEL" handle) + `outcomeId` are the canonical identity; price = probability
