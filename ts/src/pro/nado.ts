@@ -97,10 +97,8 @@ export default class nado extends nadoRest {
         const market = this.market (symbol);
         const messageHash = 'trade:' + market['symbol'];
         const trades = await this.watchPublic ('trade', market, messageHash, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (market['symbol'], limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -143,12 +141,10 @@ export default class nado extends nadoRest {
             messageHashes.push ('trade:' + market['symbol']);
         }
         const trades = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -294,10 +290,8 @@ export default class nado extends nadoRest {
         };
         const result = await this.watchPublic ('latest_candlestick', market, messageHash, this.extend (request, params));
         const stored = result[2];
-        if (this.newUpdates) {
-            limit = stored.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (stored, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? stored.getLimit (market['symbol'], limit) : limit;
+        return this.filterBySinceLimit (stored, since, limitResolved, 0, true);
     }
 
     /**
@@ -332,10 +326,8 @@ export default class nado extends nadoRest {
             }, params));
         }
         const [ resultSymbol, resultTimeframe, stored ] = await this.watchPublicMultiple ('latest_candlestick', markets, messageHashes, params, subscriptionParams);
-        if (this.newUpdates) {
-            limit = stored.getLimit (resultSymbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? stored.getLimit (resultSymbol, limit) : limit;
+        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (resultSymbol, resultTimeframe, filtered);
     }
 
@@ -558,10 +550,11 @@ export default class nado extends nadoRest {
         let market: Market = undefined;
         let messageHash = 'orders';
         let productId: Int = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = market['symbol'];
+            messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }
         const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchOrders', 'subaccount', 'default');
@@ -572,10 +565,8 @@ export default class nado extends nadoRest {
             'product_id': productId,
         };
         const orders = await this.watchPrivate ('order_update', stream, messageHash, paramsSubaccount);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -595,10 +586,11 @@ export default class nado extends nadoRest {
         let market: Market = undefined;
         let messageHash = 'orders';
         let productId: Int = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = market['symbol'];
+            messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }
         const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'unWatchOrders', 'subaccount', 'default');
@@ -631,10 +623,11 @@ export default class nado extends nadoRest {
         let market: Market = undefined;
         let messageHash = 'myTrades';
         let productId: Int = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = market['symbol'];
+            messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }
         const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchMyTrades', 'subaccount', 'default');
@@ -645,10 +638,8 @@ export default class nado extends nadoRest {
             'product_id': productId,
         };
         const trades = await this.watchPrivate ('fill', stream, messageHash, paramsSubaccount);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -668,10 +659,11 @@ export default class nado extends nadoRest {
         let market: Market = undefined;
         let messageHash = 'myTrades';
         let productId: Int = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = market['symbol'];
+            messageHash += ':' + symbolResolved;
             productId = this.parseToInt (market['id']);
         }
         const [ subaccount, paramsSubaccount ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'unWatchMyTrades', 'subaccount', 'default');

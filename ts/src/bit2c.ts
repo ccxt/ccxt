@@ -934,6 +934,7 @@ export default class bit2c extends Exchange {
         let fee: FeeString = undefined;
         let side: string;
         let makerOrTaker: Str = undefined;
+        let tradeMarket: Market = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
             id = reference;
@@ -943,8 +944,8 @@ export default class bit2c extends Exchange {
             amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString (trade, 'pair');
-            market = this.safeMarket (marketId, market);
-            market = this.safeMarket (reference_parts[0], market);
+            const marketByPair = this.safeMarket (marketId, market);
+            tradeMarket = this.safeMarket (reference_parts[0], marketByPair);
             const isMaker = this.safeBool (trade, 'isMaker');
             makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
             orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
@@ -966,6 +967,7 @@ export default class bit2c extends Exchange {
             id = this.safeString (trade, 'tid');
             price = this.safeString (trade, 'price');
             amount = this.safeString (trade, 'amount');
+            tradeMarket = this.safeMarket (undefined, market);
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
                 if ((side !== undefined) && (side !== '')) {
@@ -975,13 +977,13 @@ export default class bit2c extends Exchange {
                 }
             }
         }
-        market = this.safeMarket (undefined, market);
+        const marketResolved = this.safeMarket (undefined, tradeMarket);
         return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -990,7 +992,7 @@ export default class bit2c extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     isFiat (code: Str): boolean {
@@ -1052,6 +1054,8 @@ export default class bit2c extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (api === 'public') {
             url += '.json';
         } else {
@@ -1066,16 +1070,18 @@ export default class bit2c extends Exchange {
                     url += '?' + auth;
                 }
             } else {
-                body = auth;
+                requestBody = auth;
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512, 'base64');
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
                 'sign': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

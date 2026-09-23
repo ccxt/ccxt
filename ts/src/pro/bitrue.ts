@@ -201,9 +201,10 @@ export default class bitrue extends bitrueRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = market['symbol'];
         }
         const url = await this.authenticate ();
         const messageHash = 'orders';
@@ -215,10 +216,8 @@ export default class bitrue extends bitrueRest {
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -496,10 +495,8 @@ export default class bitrue extends bitrueRest {
         };
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -616,10 +613,8 @@ export default class bitrue extends bitrueRest {
         };
         const request = this.deepExtend (message, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {

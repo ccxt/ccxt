@@ -2047,16 +2047,16 @@ export default class delta extends Exchange {
             request['limit_price'] = this.priceToPrecision (market['symbol'], price);
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
-        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        const reduceOnly = this.safeBool (params, 'reduceOnly');
+        const reduceOnly = this.safeBool (paramsOmitted, 'reduceOnly');
         if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
-            params = this.omit (params, 'reduceOnly');
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const paramsOmitted2: Dict = (reduceOnly === true) ? this.omit (paramsOmitted, 'reduceOnly') : paramsOmitted;
+        const response = await this.privatePostOrders (this.extend (request, paramsOmitted2));
         //
         //     {
         //         "result":{
@@ -2618,9 +2618,9 @@ export default class delta extends Exchange {
         const networkCode = this.safeStringUpper (params, 'network');
         if (networkCode !== undefined) {
             request['network'] = this.networkCodeToId (networkCode, code);
-            params = this.omit (params, 'network');
         }
-        const response = await this.privateGetDepositsAddress (this.extend (request, params));
+        const paramsOmitted: Dict = (networkCode !== undefined) ? this.omit (params, 'network') : params;
+        const response = await this.privateGetDepositsAddress (this.extend (request, paramsOmitted));
         //
         //    {
         //        "success": true,
@@ -2906,13 +2906,11 @@ export default class delta extends Exchange {
     async modifyMarginHelper (symbol: string, amount: any, type: any, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = amount.toString ();
-        if (type === 'reduce') {
-            amount = Precise.stringMul (amount, '-1');
-        }
+        const amountString = amount.toString ();
+        const deltaMargin = (type === 'reduce') ? Precise.stringMul (amountString, '-1') : amountString;
         const request: Dict = {
             'product_id': market['numericId'],
-            'delta_margin': amount,
+            'delta_margin': deltaMargin,
         };
         const response = await this.privatePostPositionsChangeMargin (this.extend (request, params));
         //
@@ -4166,6 +4164,8 @@ export default class delta extends Exchange {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
@@ -4173,7 +4173,7 @@ export default class delta extends Exchange {
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.seconds ().toString ();
-            headers = {
+            requestHeaders = {
                 'api-key': this.apiKey,
                 'timestamp': timestamp,
             };
@@ -4185,14 +4185,16 @@ export default class delta extends Exchange {
                     url += queryString;
                 }
             } else {
-                body = this.json (query);
-                auth += body;
-                headers['Content-Type'] = 'application/json';
+                requestBody = this.json (query);
+                auth += requestBody;
+                requestHeaders['Content-Type'] = 'application/json';
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            headers['signature'] = signature;
+            requestHeaders['signature'] = signature;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
