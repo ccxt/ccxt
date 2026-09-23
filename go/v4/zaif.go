@@ -951,6 +951,12 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["currency_pair"] = GetValue(market, "id")
 	}
+	if since != nil {
+		request["since"] = this.ParseToInt(Divide(since, 1000))
+	}
+	if limit != nil {
+		request["count"] = mathMin(limit, 1000)
+	}
 
 	response := (<-this.PrivatePostTradeHistory(this.Extend(request, params)))
 	PanicOnError(response)
@@ -990,8 +996,8 @@ func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, o
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		retRes75512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes75512)
+		retRes76112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes76112)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	if IsEqual(code, "JPY") {
