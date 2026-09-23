@@ -72,10 +72,8 @@ export default class gemini extends geminiRest {
         const subscribeHash = 'l2:' + market['symbol'];
         const url = this.urls['api']['ws'] + '/v2/marketdata';
         const trades = await this.watch (url, messageHash, request, subscribeHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (market['symbol'], limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -91,12 +89,10 @@ export default class gemini extends geminiRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
-        if (this.newUpdates) {
-            const first = this.safeList (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeList (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
@@ -302,10 +298,8 @@ export default class gemini extends geminiRest {
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
         const url = this.urls['api']['ws'] + '/v2/marketdata';
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? ohlcv.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict): Dict {
@@ -671,16 +665,12 @@ export default class gemini extends geminiRest {
             'url': url,
         };
         await this.authenticate (authParams);
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-        }
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         const messageHash = 'orders';
         const orders = await this.watch (url, messageHash, undefined, messageHash);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleHeartbeat (client: Client, message: Dict): Dict {

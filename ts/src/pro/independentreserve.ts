@@ -145,10 +145,8 @@ export default class independentreserve extends independentreserveRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        if (limit === undefined) {
-            limit = 100;
-        }
-        const limitString = this.numberToString (limit);
+        const limitResolved: Int = (limit === undefined) ? 100 : limit;
+        const limitString = this.numberToString (limitResolved);
         const url = this.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
         const messageHash = 'orderbook:' + symbolValue + ':' + limitString;
         const subscription: Dict = {
