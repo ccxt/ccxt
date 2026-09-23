@@ -380,12 +380,12 @@ export default class coinbaseinternational extends Exchange {
     }
 
     async handleNetworkIdAndParams (currencyCode: string, methodName: string, params: Dict = {}): Promise<[Str, Dict]> {
-        let networkId: Str = undefined;
-        [ networkId, params ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
+        const [ networkIdOption, paramsNetworkArnId ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
+        let networkId: Str = networkIdOption;
         if (networkId === undefined) {
             await this.loadCurrencyNetworks (currencyCode);
             const networks = this.currencies[currencyCode]['networks'];
-            const network = this.safeString2 (params, 'networkCode', 'network');
+            const network = this.safeString2 (paramsNetworkArnId, 'networkCode', 'network');
             if (network === undefined) {
                 // find default network
                 if (this.isEmpty (networks)) {
@@ -397,7 +397,7 @@ export default class coinbaseinternational extends Exchange {
                 networkId = this.networkCodeToId (network, currencyCode);
             }
         }
-        return [ networkId, params ];
+        return [ networkId, paramsNetworkArnId ];
     }
 
     /**
@@ -475,10 +475,9 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 10000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000) as OHLCV[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -490,12 +489,12 @@ export default class coinbaseinternational extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument');
         }
-        const unitl = this.safeInteger (params, 'until');
+        const unitl = this.safeInteger (paramsPaginate, 'until');
         if (unitl !== undefined) {
-            params = this.omit (params, 'until');
             request['end'] = this.iso8601 (unitl);
         }
-        const response = await this.v1PublicGetInstrumentsInstrumentCandles (this.extend (request, params));
+        const paramsOmitted: Dict = (unitl !== undefined) ? this.omit (paramsPaginate, 'until') : paramsPaginate;
+        const response = await this.v1PublicGetInstrumentsInstrumentCandles (this.extend (request, paramsOmitted));
         //
         //   {
         //       "aggregations": [
@@ -817,25 +816,24 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('createDepositAddress', params);
+        const [ method, paramsMethod ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
+        const [ portfolio, paramsPortfolio ] = await this.handlePortfolioAndParams ('createDepositAddress', paramsMethod);
+        let requestParams: Dict = paramsPortfolio;
         const request: Dict = {
             'portfolio': portfolio,
         };
         if (method === 'v1PrivatePostTransfersAddress') {
             const currency = this.currency (code);
             request['asset'] = currency['id'];
-            let networkId: Str | Dict = undefined;
-            [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'createDepositAddress', params);
+            const [ networkId, paramsNetworkId ] = await this.handleNetworkIdAndParams (code, 'createDepositAddress', paramsPortfolio);
             request['network_arn_id'] = networkId;
+            requestParams = paramsNetworkId;
         }
         let response = undefined;
         if (method === 'v1PrivatePostTransfersCreateCounterpartyId') {
-            response = await this.v1PrivatePostTransfersCreateCounterpartyId (this.extend (request, params));
+            response = await this.v1PrivatePostTransfersCreateCounterpartyId (this.extend (request, requestParams));
         } else {
-            response = await this.v1PrivatePostTransfersAddress (this.extend (request, params));
+            response = await this.v1PrivatePostTransfersAddress (this.extend (request, requestParams));
         }
         //
         // v1PrivatePostTransfersAddress
@@ -2247,20 +2245,18 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         const pageKey = 'ccxtPageKey';
-        let maxEntriesPerRequest = 100;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', maxEntriesPerRequest);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Trade[];
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as Trade[];
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
-        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
+        const page = this.safeInteger (paramsMaxEntriesPerRequest, pageKey, 1) - 1;
+        const offSet = this.safeInteger2 (paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request: Dict = {
             'result_offset': offSet,
         };
@@ -2273,12 +2269,12 @@ export default class coinbaseinternational extends Exchange {
         if (since !== undefined) {
             request['time_from'] = this.iso8601 (since);
         }
-        const until = this.safeString (params, 'until');
+        const until = this.safeString (paramsMaxEntriesPerRequest, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
             request['ref_datetime'] = this.iso8601 (until);
         }
-        const response = await this.v1PrivateGetPortfoliosFills (this.extend (request, params));
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (paramsMaxEntriesPerRequest, [ 'until' ]) : paramsMaxEntriesPerRequest;
+        const response = await this.v1PrivateGetPortfoliosFills (this.extend (request, paramsOmitted));
         //
         //    {
         //        "pagination":{
@@ -2385,26 +2381,27 @@ export default class coinbaseinternational extends Exchange {
             }
         }
         const url = this.urls['api']['rest'] + fullPath;
+        const hasSignedBody = signed && (method !== 'GET') && (Object.keys (query).length > 0);
+        const requestBody: Str = hasSignedBody ? this.json (query) : body;
+        let signedHeaders: NullableDict = undefined;
         if (signed) {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             let payload = '';
-            if (method !== 'GET') {
-                if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    payload = body;
-                }
+            if (hasSignedBody) {
+                payload = requestBody;
             }
             const auth = nonce + method + savedPath + payload;
             const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
-            headers = {
+            signedHeaders = {
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-PASSPHRASE': this.password,
                 'CB-ACCESS-KEY': this.apiKey,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestHeaders: NullableDict = signed ? signedHeaders : headers;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

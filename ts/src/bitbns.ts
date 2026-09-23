@@ -1290,36 +1290,35 @@ export default class bitbns extends Exchange {
         }
         if (api !== 'www') {
             this.checkRequiredCredentials ();
-            headers = {
-                'X-BITBNS-APIKEY': this.apiKey,
-            };
         }
+        const apiKeyHeaders: Dict = {
+            'X-BITBNS-APIKEY': this.apiKey,
+        };
+        let requestHeaders: NullableDict = (api !== 'www') ? apiKeyHeaders : headers;
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
+        const queryLength = Object.keys (query).length;
+        const postBody = (queryLength > 0) ? this.json (query) : '{}';
+        const requestBody: Str = (method === 'POST') ? postBody : body;
         if (method === 'GET') {
-            if (Object.keys (query).length > 0) {
+            if (queryLength > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (method === 'POST') {
-            if (Object.keys (query).length > 0) {
-                body = this.json (query);
-            } else {
-                body = '{}';
-            }
             const auth: Dict = {
                 'timeStamp_nonce': nonce,
-                'body': body,
+                'body': requestBody,
             };
             const payload = this.stringToBase64 (this.json (auth));
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha512);
-            headers = (headers === undefined) ? {} : headers;
-            headers['X-BITBNS-PAYLOAD'] = payload;
-            headers['X-BITBNS-SIGNATURE'] = signature;
-            headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
+            requestHeaders['X-BITBNS-PAYLOAD'] = payload;
+            requestHeaders['X-BITBNS-SIGNATURE'] = signature;
+            requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

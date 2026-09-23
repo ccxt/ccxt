@@ -741,14 +741,12 @@ export default class indodax extends Exchange {
             'tf': selectedTimeframe,
             'symbol': market['id'],
         };
-        if (limit === undefined) {
-            limit = 1000;
-        }
+        const limitResolved = (limit === undefined) ? 1000 : limit;
         if (since !== undefined) {
             request['from'] = Math.floor (since / 1000);
         } else {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = now - limit * duration - 1;
+            request['from'] = now - limitResolved * duration - 1;
         }
         const response = await this.publicGetTradingviewHistoryV2 (this.extend (request, paramsOmitted));
         //
@@ -763,7 +761,7 @@ export default class indodax extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limitResolved);
     }
 
     parseOrderStatus (status: Str) {
@@ -1003,11 +1001,12 @@ export default class indodax extends Exchange {
         };
         let priceIsRequired = false;
         let quantityIsRequired = false;
+        const isMarketBuy = (type === 'market') && (side === 'buy');
+        const paramsOmitted: Dict = isMarketBuy ? this.omit (params, 'cost') : params;
         if (type === 'market') {
             if (side === 'buy') {
                 let quoteAmount: Str = undefined;
                 const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
                 } else {
@@ -1039,7 +1038,7 @@ export default class indodax extends Exchange {
         if (quantityIsRequired) {
             request[market['baseId'] as string] = this.amountToPrecision (symbol, amount);
         }
-        const result = await this.privatePostTrade (this.extend (request, params));
+        const result = await this.privatePostTrade (this.extend (request, paramsOmitted));
         const data = this.safeDict (result, 'return', {});
         const id = this.safeString (data, 'order_id');
         return this.safeOrder ({
@@ -1518,7 +1517,10 @@ export default class indodax extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api];
-        if (api === 'public') {
+        let privateBody: Str = undefined;
+        let privateHeaders: NullableDict = undefined;
+        const isPublic = (api === 'public');
+        if (isPublic) {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);
             url = url + requestPath;
@@ -1527,18 +1529,20 @@ export default class indodax extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            body = this.urlencode (this.extend ({
+            privateBody = this.urlencode (this.extend ({
                 'method': path,
                 'timestamp': this.nonce (),
                 'recvWindow': this.options['recvWindow'],
             }, params));
-            headers = {
+            privateHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
+                'Sign': this.hmac (this.encode (privateBody), this.encode (this.secret), sha512),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestBody: Str = isPublic ? body : privateBody;
+        const requestHeaders: NullableDict = isPublic ? headers : privateHeaders;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
