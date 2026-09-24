@@ -610,7 +610,7 @@ class zebpay extends Exchange {
          * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market->md#get-order-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {int} [$limit] the maximum amount of order book entries to return.
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
@@ -621,11 +621,11 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = null;
         if ($market['spot'] === true) {
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
             //
             //       {
             //         "asks": [
@@ -758,48 +758,53 @@ class zebpay extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch. Swap => 1–1000, omit for 1000
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch (inclusive). Swap => requires $since
          * @param {int} [$params->endtime] the latest time in ms to fetch orders for
+         * @param {string} [$params->priceType] *swap only* LTP (default) or MARK_PRICE
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100; // default is 200
-        }
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot'] === true) {
-            $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        } else {
-            $request['interval'] = $timeframe;
-        }
-        if (($market['contract'] === true) && ($limit !== null)) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            if ($market['spot'] === true) {
-                $request['startTime'] = $since;
-            } else {
-                $request['since'] = $since;
-            }
-        }
         $until = $this->safe_integer_2($params, 'until', 'endtime');
-        if ($until !== null) {
-            $request['endTime'] = $until;
-            $params = $this->omit($params, array( 'endtime', 'until' ));
-        }
+        $params = $this->omit($params, array( 'until', 'endtime', 'endTime', 'interval', 'startTime' ));
         $response = null;
         if ($market['spot'] === true) {
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
             if ($until === null || $since === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
             }
+            $params = $this->omit($params, 'priceType');
             $response = Async\await($this->publicSpotGetV2MarketKlines($this->extend($request, $params)));
         } else {
+            $request['timeframe'] = $timeframe;
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
+            if ($until !== null) {
+                if ($since === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument when $params["until"] is used');
+                }
+                $request['until'] = $until;
+            }
             $response = Async\await($this->publicSwapPostV1MarketKlines($this->extend($request, $params)));
         }
         //
@@ -2063,6 +2068,11 @@ class zebpay extends Exchange {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {
+                $priceType = $this->safe_string($params, 'priceType');
+                $params = $this->omit($params, 'priceType');
+                if ($priceType !== null) {
+                    $url .= '?' . $this->urlencode(array( 'priceType' => $priceType ));
+                }
                 $body = json_encode($params);
                 $headers = array(
                     'Referrer' => 'ccxt',
