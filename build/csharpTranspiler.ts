@@ -7552,7 +7552,7 @@ class NewTranspiler {
         const maxThreads = csharpWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
-                filename: resolve(__dirname, 'csharp-worker.ts'),
+                filename: resolve(__dirname, 'csharp-worker-entry.mjs'),
                 maxThreads,
             });
         }
