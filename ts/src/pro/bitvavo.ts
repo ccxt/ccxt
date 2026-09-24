@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
+import { Dictionary, Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -496,7 +496,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
