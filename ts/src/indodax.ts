@@ -380,6 +380,9 @@ export default class indodax extends Exchange {
             const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const isMaintenance = this.safeInteger (market, 'is_maintenance');
             const inMaintenance = (isMaintenance !== undefined) && (isMaintenance !== 0);
             result.push ({

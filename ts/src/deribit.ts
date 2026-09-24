@@ -961,6 +961,9 @@ export default class deribit extends Exchange {
                 const settleId = this.safeString (market, 'settlement_currency');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const settle = this.safeCurrencyCode (settleId);
                 const settlementPeriod = this.safeString (market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');

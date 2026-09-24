@@ -321,6 +321,9 @@ export default class btcturk extends Exchange {
         const quoteId = this.safeString (entry, 'denominator');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const filters = this.safeList (entry, 'filters', []);
         let minPrice: Num = undefined;
         let maxPrice: Num = undefined;

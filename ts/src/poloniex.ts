@@ -874,6 +874,9 @@ export default class poloniex extends Exchange {
         const quoteId = this.safeString (market, 'quoteCurrencyName');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const state = this.safeString (market, 'state');
         const active = state === 'NORMAL';
         const symbolTradeLimit = this.safeDict (market, 'symbolTradeLimit');
@@ -966,6 +969,9 @@ export default class poloniex extends Exchange {
         const settleId = this.safeString (market, 'sCcy');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         const status = this.safeString (market, 'status');
         const active = status === 'OPEN';

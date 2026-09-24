@@ -574,6 +574,9 @@ export default class bithumb extends Exchange {
                     }
                     const market = data[currencyId];
                     const base = this.safeCurrencyCode (currencyId);
+                    if (base === undefined) {
+                        continue;
+                    }
                     let active = true;
                     if (Array.isArray (market)) {
                         const numElements = market.length;

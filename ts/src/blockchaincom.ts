@@ -335,6 +335,9 @@ export default class blockchaincom extends Exchange {
             const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const numericId = this.safeNumber (market, 'id');
             let active: Bool = undefined;
             const marketState = this.safeString (market, 'status');

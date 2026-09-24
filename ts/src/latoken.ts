@@ -892,9 +892,12 @@ export default class latoken extends Exchange {
         const quoteId = this.safeString (trade, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        if ((this.markets !== undefined) && (symbol in this.markets)) {
-            market = this.market (symbol);
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                market = this.market (symbol);
+            }
         }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
