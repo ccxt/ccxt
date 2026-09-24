@@ -23,6 +23,8 @@ export default class umx extends umxRest {
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'unWatchOHLCV': true,
+                'watchOHLCVForSymbols': true,
+                'unWatchOHLCVForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'unWatchOrderBook': true,
@@ -832,18 +834,49 @@ export default class umx extends umxRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
+        return result[symbol][timeframe];
+    }
+
+    /**
+     * @method
+     * @name umx#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low and close price and the volume of multiple markets
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/kline-channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to watch, e.g. [ [ 'BTC/USDT', '1m' ], [ 'ETH/USDT:USDT', '5m' ] ]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of candles indexed by symbol and timeframe, the candles of the market that updated
+     */
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+        await this.loadMarkets ();
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const entry = this.safeList (symbolsAndTimeframes, i, []);
+            const market = this.market (this.safeString (entry, 0));
+            const entrySymbol = market['symbol'];
+            const entryTimeframe = this.safeString (entry, 1, '1m');
+            const interval = this.safeString (this.timeframes, entryTimeframe, entryTimeframe);
+            const messageHash = 'ohlcv::' + entrySymbol + '::' + entryTimeframe;
+            if (!this.inArray (messageHash, messageHashes)) {
+                messageHashes.push (messageHash);
+                topics.push (this.subscriptionTopic ('kline#' + interval, entrySymbol));
+            }
+        }
         const url = this.urls['api']['ws']['public'];
-        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         const message: Dict = {
             'event': 'subscribe',
-            'data': [ this.subscriptionTopic ('kline#' + interval, symbol) ],
+            'data': topics,
         };
-        const ohlcv = await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
+        const res = await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes);
+        const [ symbol, timeframe, candles ] = res;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = candles.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
     /**
@@ -857,25 +890,51 @@ export default class umx extends umxRest {
      * @returns {any} the result of the unwatch operation
      */
     override async unWatchOHLCV (symbol: string, timeframe = '1m', params: Dict = {}): Promise<any> {
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchOHLCVForSymbols
+     * @description unsubscribes from the candles channel of multiple markets
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/kline-channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to stop watching, e.g. [ [ 'BTC/USDT', '1m' ], [ 'ETH/USDT:USDT', '5m' ] ]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const subMessageHashes = [];
+        const messageHashes = [];
+        const topics = [];
+        const unified = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const entry = this.safeList (symbolsAndTimeframes, i, []);
+            const market = this.market (this.safeString (entry, 0));
+            const entrySymbol = market['symbol'];
+            const entryTimeframe = this.safeString (entry, 1, '1m');
+            const interval = this.safeString (this.timeframes, entryTimeframe, entryTimeframe);
+            const subMessageHash = 'ohlcv::' + entrySymbol + '::' + entryTimeframe;
+            if (!this.inArray (subMessageHash, subMessageHashes)) {
+                subMessageHashes.push (subMessageHash);
+                messageHashes.push ('unsubscribe::' + subMessageHash);
+                topics.push (this.subscriptionTopic ('kline#' + interval, entrySymbol));
+                unified.push ([ entrySymbol, entryTimeframe ]);
+            }
+        }
         const url = this.urls['api']['ws']['public'];
-        const subMessageHash = 'ohlcv::' + symbol + '::' + timeframe;
-        const messageHash = 'unsubscribe::' + subMessageHash;
         const message: Dict = {
             'event': 'unsubscribe',
-            'data': [ this.subscriptionTopic ('kline#' + interval, symbol) ],
+            'data': topics,
         };
         const subscription: Dict = {
             'unsubscribe': true,
-            'symbolsAndTimeframes': [ [ symbol, timeframe ] ],
-            'messageHashes': [ messageHash ],
-            'subMessageHashes': [ subMessageHash ],
+            'symbolsAndTimeframes': unified,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
             'topic': 'ohlcv',
         };
-        return await this.watch (url, messageHash, this.deepExtend (message, params), messageHash, subscription);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -922,7 +981,8 @@ export default class umx extends umxRest {
             const stored = this.ohlcvs[symbol][timeframe];
             const parsed = this.parseWsOHLCV (row, market);
             stored.append (parsed);
-            client.resolve (stored, 'ohlcv::' + symbol + '::' + timeframe);
+            const resolveData = [ symbol, timeframe, stored ];
+            client.resolve (resolveData, 'ohlcv::' + symbol + '::' + timeframe);
         }
     }
 
@@ -1055,7 +1115,8 @@ export default class umx extends umxRest {
         }
         let topics = [];
         if (isTrigger) {
-            // the oco_order stream takes a subscription without an instrument type
+            // the oco_order stream takes a subscription without an instrument type for every
+            // market, a single symbol needs the businessType, the venue answers 70110 otherwise
             topics = this.privateTopics ('oco_order', symbol, []);
         } else {
             topics = this.privateTopics ('order', symbol, [ 'spot', 'linear_perpetual', 'linear_futures' ]);

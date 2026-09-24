@@ -1755,6 +1755,102 @@
                     }
                 ]
             }
+        ],
+        "watchOHLCVForSymbols": [
+            {
+                "description": "candles of a perpetual and a spot market with different timeframes in one subscription",
+                "input": [
+                    [
+                        [
+                            "ETH/USDT:USDT",
+                            "1m"
+                        ],
+                        [
+                            "ETH/USDT",
+                            "5m"
+                        ]
+                    ]
+                ],
+                "url": "wss://stream.umx.com/ws/public/v1/market",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP",
+                                "stream": "kline#1m",
+                                "message": "成功",
+                                "code": 0
+                            },
+                            {
+                                "businessType": "spot",
+                                "symbol": "ETH-USDT",
+                                "stream": "kline#5m",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790269608359
+                    },
+                    {
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "stream": "kline#1m",
+                        "data": [
+                            {
+                                "symbol": "ETH-USDT-PERP",
+                                "period": "1m",
+                                "openTime": "1790269560000",
+                                "closeTime": "1790269609520",
+                                "openPrice": "2682.66",
+                                "closePrice": "2683.05",
+                                "highPrice": "2683.26",
+                                "lowPrice": "2681.11",
+                                "volume": "0.322",
+                                "quoteVolume": "863.74597",
+                                "count": "14",
+                                "priceChange": "0.39",
+                                "priceChangePercent": "0.0001"
+                            }
+                        ],
+                        "ts": 1790269609522
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "kline#1m",
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP"
+                            },
+                            {
+                                "stream": "kline#5m",
+                                "businessType": "spot",
+                                "symbol": "ETH-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "ETH/USDT:USDT": {
+                            "1m": [
+                                [
+                                    1790269560000,
+                                    2682.66,
+                                    2683.26,
+                                    2681.11,
+                                    2683.05,
+                                    0.322
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
         ]
     }
 }
