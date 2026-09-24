@@ -1953,7 +1953,7 @@ export default class okx extends okxRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel', '');
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }

@@ -1145,7 +1145,7 @@ export default class predictfun extends Exchange {
             'amount': 0.01, // todo check
             'price': pricePrecision,
         };
-        const rawOutcomes = this.safeList (rawMarket, 'outcomes', []) as any[];
+        const rawOutcomes: Dict[] = this.safeList (rawMarket, 'outcomes', []);
         const outcomes: any[] = [];
         let resolvedOutcomeRaw: Str = undefined;
         const rawOutcomesLength = rawOutcomes.length;
@@ -1489,7 +1489,7 @@ export default class predictfun extends Exchange {
         // since is applied client side by parsePredictionTrades
         const response = await this.predictfunGetV1OrdersMatches (this.extend (request, query));
         // the venue answers with the shape documented in fetchTrades below
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const wallet = signerAddress.toLowerCase ();
         // a settlement names one taker and several makers, and the wallet may sit on either side,
         // so the legs it signed are the ones to report - a self trade legitimately yields two rows
@@ -1584,7 +1584,7 @@ export default class predictfun extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const flattenTrades: any[] = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {

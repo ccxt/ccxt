@@ -1505,7 +1505,7 @@ export default class myriad extends Exchange {
         //         }
         //     }
         //
-        const rows = this.safeList (response, 'data', []);
+        const rows: Dict[] = this.safeList (response, 'data', []);
         const result: any[] = [];
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
@@ -2442,7 +2442,7 @@ export default class myriad extends Exchange {
         //     }
         //
         const outcomeId = (market !== undefined && market !== null) ? this.safeString (market['info'], 'outcomeId') : undefined;
-        const outcomes = this.safeList (raw, 'outcomes', []) as any[];
+        const outcomes: Dict[] = this.safeList (raw, 'outcomes', []);
         let price: Num = undefined;
         let change: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
@@ -2605,7 +2605,7 @@ export default class myriad extends Exchange {
         //         "externalSources": []
         //     }
         //
-        const outcomes = this.safeList (response, 'outcomes', []) as any[];
+        const outcomes: Dict[] = this.safeList (response, 'outcomes', []);
         let price: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = outcomes[i];
@@ -3342,7 +3342,7 @@ export default class myriad extends Exchange {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
-        const changes = this.safeList (data, 'changes', []);
+        const changes: Dict[] = this.safeList (data, 'changes', []);
         const changesLength = changes.length;
         const updated: Dict = {};
         for (let i = 0; i < changesLength; i++) {
@@ -3625,7 +3625,7 @@ export default class myriad extends Exchange {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
-        const outcomes = this.safeList (data, 'outcomes', []);
+        const outcomes: Dict[] = this.safeList (data, 'outcomes', []);
         const outcomesLength = outcomes.length;
         if (this.tickers === undefined) {
             this.tickers = this.createSafeDictionary ();

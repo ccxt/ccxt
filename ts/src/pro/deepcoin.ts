@@ -791,7 +791,7 @@ export default class deepcoin extends deepcoinRest {
     }
 
     handleOrderBookSnapshot (client: Client, message: Dict) {
-        const entries = this.safeList (message, 'r', []);
+        const entries: Dict[] = this.safeList (message, 'r', []);
         const first = this.safeDict (entries, 0, {});
         const data = this.safeDict (first, 'd', {});
         const marketId = this.safeString (data, 'I');
