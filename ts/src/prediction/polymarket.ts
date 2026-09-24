@@ -3395,10 +3395,6 @@ export default class polymarket extends Exchange {
         if (raw === undefined) {
             return undefined;
         }
-        const n = this.parseToInt (raw);
-        if (n === undefined) {
-            return undefined;
-        }
-        return n;
+        return this.parseToInt (raw);
     }
 }

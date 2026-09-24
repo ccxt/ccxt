@@ -717,9 +717,6 @@ export default class toobit extends toobitRest {
         if (isSpot) {
             subscriptionHash = spotSubHash;
         }
-        if (subscriptionHash === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchBalance() requires a subscription hash');
-        }
         const url = this.getUserStreamUrl ();
         const client = this.client (url);
         this.setBalanceCache (client, marketType, subscriptionHash, params);
@@ -797,7 +794,7 @@ export default class toobit extends toobitRest {
             account['info'] = balance;
             account['used'] = this.safeString (balance, 'l');
             account['free'] = this.safeString (balance, 'f');
-            if ((type !== undefined) && (code !== undefined)) {
+            if (code !== undefined) {
                 this.balance[type][code] = account;
             }
         }
