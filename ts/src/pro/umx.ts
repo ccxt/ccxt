@@ -1000,6 +1000,29 @@ export default class umx extends umxRest {
     /**
      * @ignore
      * @method
+     * @name umx#authorizationSignature
+     * @description sign the authorization request of the notification and trading sockets
+     * @param {string} timestamp the access timestamp in milliseconds
+     * @returns {string} the hex encoded signature
+     */
+    authorizationSignature (timestamp: string): string {
+        // the venue signs the json of the data object appended to the same prehash the rest
+        // api uses, with an empty query string, and requires the field order type, accessKey,
+        // accessTimestamp, the signed body is spelled out because the maps of some ports
+        // (go, java) do not keep the insertion order when serialized
+        // a closing brace followed by a quote would be read by the php transpiler as the end
+        // of an array, so it is cut out of a literal padded with a space
+        const openBrace = '{';
+        let closeBrace = '} ';
+        closeBrace = closeBrace.slice (0, 1);
+        const signedData = openBrace + '"type":"Token","accessKey":"' + this.apiKey + '","accessTimestamp":"' + timestamp + '"' + closeBrace;
+        const payload = timestamp + 'POST' + '/v2/notification' + signedData;
+        return this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name umx#authenticate
      * @description authenticate the private websocket connection, required before any private subscription
      * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/user-authentication
@@ -1020,18 +1043,7 @@ export default class umx extends umxRest {
                 'accessKey': this.apiKey,
                 'accessTimestamp': timestamp,
             };
-            // the venue signs the json of the data object appended to the same prehash the rest
-            // api uses, with an empty query string, and requires the field order type, accessKey,
-            // accessTimestamp, the signed body is spelled out because the maps of some ports
-            // (go, java) do not keep the insertion order when serialized
-            // a closing brace followed by a quote would be read by the php transpiler as the end
-            // of an array, so it is cut out of a literal padded with a space
-            const openBrace = '{';
-            let closeBrace = '} ';
-            closeBrace = closeBrace.slice (0, 1);
-            const signedData = openBrace + '"type":"Token","accessKey":"' + this.apiKey + '","accessTimestamp":"' + timestamp + '"' + closeBrace;
-            const payload = timestamp + 'POST' + '/v2/notification' + signedData;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+            const signature = this.authorizationSignature (timestamp);
             const message: Dict = {
                 'data': request,
                 'accessSign': signature,
@@ -1755,15 +1767,8 @@ export default class umx extends umxRest {
         const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
         if (isAuthenticated === undefined) {
             const timestamp = this.numberToString (this.nonce ());
-            // signed like the notification socket, over the same path, but the signature travels
-            // inside the body and the body is signed without it, the key order is required, the
-            // closing brace is built as in authenticate
-            const openBrace = '{';
-            let closeBrace = '} ';
-            closeBrace = closeBrace.slice (0, 1);
-            const signedData = openBrace + '"type":"Token","accessKey":"' + this.apiKey + '","accessTimestamp":"' + timestamp + '"' + closeBrace;
-            const payload = timestamp + 'POST' + '/v2/notification' + signedData;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+            // signed like the notification socket, but the signature travels inside the body
+            const signature = this.authorizationSignature (timestamp);
             const body: Dict = {
                 'type': 'Token',
                 'accessKey': this.apiKey,
