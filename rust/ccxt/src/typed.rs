@@ -1286,109 +1286,213 @@ pub trait TypedExchangeExt: TypedExchange {
 }
 impl<T: TypedExchange + ?Sized> TypedExchangeExt for T {}
 
+#[cfg(feature = "alpaca")]
 pub use crate::exchanges::alpaca_typed::Alpaca;
+#[cfg(feature = "apex")]
 pub use crate::exchanges::apex_typed::Apex;
+#[cfg(feature = "aster")]
 pub use crate::exchanges::aster_typed::Aster;
+#[cfg(feature = "backpack")]
 pub use crate::exchanges::backpack_typed::Backpack;
+#[cfg(feature = "bequant")]
 pub use crate::exchanges::bequant_typed::Bequant;
+#[cfg(feature = "bigone")]
 pub use crate::exchanges::bigone_typed::Bigone;
+#[cfg(feature = "binance")]
 pub use crate::exchanges::binance_typed::Binance;
+#[cfg(feature = "binancecoinm")]
 pub use crate::exchanges::binancecoinm_typed::Binancecoinm;
+#[cfg(feature = "binanceus")]
 pub use crate::exchanges::binanceus_typed::Binanceus;
+#[cfg(feature = "binanceusdm")]
 pub use crate::exchanges::binanceusdm_typed::Binanceusdm;
+#[cfg(feature = "bingx")]
 pub use crate::exchanges::bingx_typed::Bingx;
+#[cfg(feature = "bit2c")]
 pub use crate::exchanges::bit2c_typed::Bit2c;
+#[cfg(feature = "bitbank")]
 pub use crate::exchanges::bitbank_typed::Bitbank;
+#[cfg(feature = "bitbns")]
 pub use crate::exchanges::bitbns_typed::Bitbns;
+#[cfg(feature = "bitfinex")]
 pub use crate::exchanges::bitfinex_typed::Bitfinex;
+#[cfg(feature = "bitflyer")]
 pub use crate::exchanges::bitflyer_typed::Bitflyer;
+#[cfg(feature = "bitget")]
 pub use crate::exchanges::bitget_typed::Bitget;
+#[cfg(feature = "bithumb")]
 pub use crate::exchanges::bithumb_typed::Bithumb;
+#[cfg(feature = "bitopro")]
 pub use crate::exchanges::bitopro_typed::Bitopro;
+#[cfg(feature = "bitrue")]
 pub use crate::exchanges::bitrue_typed::Bitrue;
+#[cfg(feature = "bitso")]
 pub use crate::exchanges::bitso_typed::Bitso;
+#[cfg(feature = "bitstamp")]
 pub use crate::exchanges::bitstamp_typed::Bitstamp;
+#[cfg(feature = "bitteam")]
 pub use crate::exchanges::bitteam_typed::Bitteam;
+#[cfg(feature = "bittrade")]
 pub use crate::exchanges::bittrade_typed::Bittrade;
+#[cfg(feature = "bitvavo")]
 pub use crate::exchanges::bitvavo_typed::Bitvavo;
+#[cfg(feature = "blockchaincom")]
 pub use crate::exchanges::blockchaincom_typed::Blockchaincom;
+#[cfg(feature = "blofin")]
 pub use crate::exchanges::blofin_typed::Blofin;
+#[cfg(feature = "btcbox")]
 pub use crate::exchanges::btcbox_typed::Btcbox;
+#[cfg(feature = "btcmarkets")]
 pub use crate::exchanges::btcmarkets_typed::Btcmarkets;
+#[cfg(feature = "btcturk")]
 pub use crate::exchanges::btcturk_typed::Btcturk;
+#[cfg(feature = "btse")]
 pub use crate::exchanges::btse_typed::Btse;
+#[cfg(feature = "bullish")]
 pub use crate::exchanges::bullish_typed::Bullish;
+#[cfg(feature = "bybit")]
 pub use crate::exchanges::bybit_typed::Bybit;
+#[cfg(feature = "bybiteu")]
 pub use crate::exchanges::bybiteu_typed::Bybiteu;
+#[cfg(feature = "bybitid")]
 pub use crate::exchanges::bybitid_typed::Bybitid;
+#[cfg(feature = "bydfi")]
 pub use crate::exchanges::bydfi_typed::Bydfi;
+#[cfg(feature = "cex")]
 pub use crate::exchanges::cex_typed::Cex;
+#[cfg(feature = "coinbase")]
 pub use crate::exchanges::coinbase_typed::Coinbase;
+#[cfg(feature = "coinbaseexchange")]
 pub use crate::exchanges::coinbaseexchange_typed::Coinbaseexchange;
+#[cfg(feature = "coinbaseinternational")]
 pub use crate::exchanges::coinbaseinternational_typed::Coinbaseinternational;
+#[cfg(feature = "coincheck")]
 pub use crate::exchanges::coincheck_typed::Coincheck;
+#[cfg(feature = "coinex")]
 pub use crate::exchanges::coinex_typed::Coinex;
+#[cfg(feature = "coinmate")]
 pub use crate::exchanges::coinmate_typed::Coinmate;
+#[cfg(feature = "coinone")]
 pub use crate::exchanges::coinone_typed::Coinone;
+#[cfg(feature = "coinsph")]
 pub use crate::exchanges::coinsph_typed::Coinsph;
+#[cfg(feature = "coinspot")]
 pub use crate::exchanges::coinspot_typed::Coinspot;
+#[cfg(feature = "cryptocom")]
 pub use crate::exchanges::cryptocom_typed::Cryptocom;
+#[cfg(feature = "cryptomus")]
 pub use crate::exchanges::cryptomus_typed::Cryptomus;
+#[cfg(feature = "deepcoin")]
 pub use crate::exchanges::deepcoin_typed::Deepcoin;
+#[cfg(feature = "delta")]
 pub use crate::exchanges::delta_typed::Delta;
+#[cfg(feature = "deribit")]
 pub use crate::exchanges::deribit_typed::Deribit;
+#[cfg(feature = "derive")]
 pub use crate::exchanges::derive_typed::Derive;
+#[cfg(feature = "digifinex")]
 pub use crate::exchanges::digifinex_typed::Digifinex;
+#[cfg(feature = "dydx")]
 pub use crate::exchanges::dydx_typed::Dydx;
+#[cfg(feature = "extended")]
 pub use crate::exchanges::extended_typed::Extended;
+#[cfg(feature = "fmfwio")]
 pub use crate::exchanges::fmfwio_typed::Fmfwio;
+#[cfg(feature = "foxbit")]
 pub use crate::exchanges::foxbit_typed::Foxbit;
+#[cfg(feature = "gate")]
 pub use crate::exchanges::gate_typed::Gate;
+#[cfg(feature = "gateeu")]
 pub use crate::exchanges::gateeu_typed::Gateeu;
+#[cfg(feature = "gemini")]
 pub use crate::exchanges::gemini_typed::Gemini;
+#[cfg(feature = "grvt")]
 pub use crate::exchanges::grvt_typed::Grvt;
+#[cfg(feature = "hashkey")]
 pub use crate::exchanges::hashkey_typed::Hashkey;
+#[cfg(feature = "hibachi")]
 pub use crate::exchanges::hibachi_typed::Hibachi;
+#[cfg(feature = "hitbtc")]
 pub use crate::exchanges::hitbtc_typed::Hitbtc;
+#[cfg(feature = "hollaex")]
 pub use crate::exchanges::hollaex_typed::Hollaex;
+#[cfg(feature = "htx")]
 pub use crate::exchanges::htx_typed::Htx;
+#[cfg(feature = "hyperliquid")]
 pub use crate::exchanges::hyperliquid_typed::Hyperliquid;
+#[cfg(feature = "independentreserve")]
 pub use crate::exchanges::independentreserve_typed::Independentreserve;
+#[cfg(feature = "indodax")]
 pub use crate::exchanges::indodax_typed::Indodax;
+#[cfg(feature = "kraken")]
 pub use crate::exchanges::kraken_typed::Kraken;
+#[cfg(feature = "krakenfutures")]
 pub use crate::exchanges::krakenfutures_typed::Krakenfutures;
+#[cfg(feature = "kucoin")]
 pub use crate::exchanges::kucoin_typed::Kucoin;
+#[cfg(feature = "kucoinfutures")]
 pub use crate::exchanges::kucoinfutures_typed::Kucoinfutures;
+#[cfg(feature = "latoken")]
 pub use crate::exchanges::latoken_typed::Latoken;
+#[cfg(feature = "lbank")]
 pub use crate::exchanges::lbank_typed::Lbank;
+#[cfg(feature = "lighter")]
 pub use crate::exchanges::lighter_typed::Lighter;
+#[cfg(feature = "luno")]
 pub use crate::exchanges::luno_typed::Luno;
+#[cfg(feature = "mercado")]
 pub use crate::exchanges::mercado_typed::Mercado;
+#[cfg(feature = "mexc")]
 pub use crate::exchanges::mexc_typed::Mexc;
+#[cfg(feature = "modetrade")]
 pub use crate::exchanges::modetrade_typed::Modetrade;
+#[cfg(feature = "mudrex")]
 pub use crate::exchanges::mudrex_typed::Mudrex;
+#[cfg(feature = "myokx")]
 pub use crate::exchanges::myokx_typed::Myokx;
+#[cfg(feature = "nado")]
 pub use crate::exchanges::nado_typed::Nado;
+#[cfg(feature = "ndax")]
 pub use crate::exchanges::ndax_typed::Ndax;
+#[cfg(feature = "okx")]
 pub use crate::exchanges::okx_typed::Okx;
+#[cfg(feature = "okxus")]
 pub use crate::exchanges::okxus_typed::Okxus;
+#[cfg(feature = "onetrading")]
 pub use crate::exchanges::onetrading_typed::Onetrading;
+#[cfg(feature = "p2b")]
 pub use crate::exchanges::p2b_typed::P2b;
+#[cfg(feature = "pacifica")]
 pub use crate::exchanges::pacifica_typed::Pacifica;
+#[cfg(feature = "paradex")]
 pub use crate::exchanges::paradex_typed::Paradex;
+#[cfg(feature = "paymium")]
 pub use crate::exchanges::paymium_typed::Paymium;
+#[cfg(feature = "phemex")]
 pub use crate::exchanges::phemex_typed::Phemex;
+#[cfg(feature = "poloniex")]
 pub use crate::exchanges::poloniex_typed::Poloniex;
+#[cfg(feature = "revolutx")]
 pub use crate::exchanges::revolutx_typed::Revolutx;
+#[cfg(feature = "tokocrypto")]
 pub use crate::exchanges::tokocrypto_typed::Tokocrypto;
+#[cfg(feature = "toobit")]
 pub use crate::exchanges::toobit_typed::Toobit;
+#[cfg(feature = "upbit")]
 pub use crate::exchanges::upbit_typed::Upbit;
+#[cfg(feature = "weex")]
 pub use crate::exchanges::weex_typed::Weex;
+#[cfg(feature = "whitebit")]
 pub use crate::exchanges::whitebit_typed::Whitebit;
+#[cfg(feature = "woo")]
 pub use crate::exchanges::woo_typed::Woo;
+#[cfg(feature = "woofipro")]
 pub use crate::exchanges::woofipro_typed::Woofipro;
+#[cfg(feature = "xt")]
 pub use crate::exchanges::xt_typed::Xt;
+#[cfg(feature = "zaif")]
 pub use crate::exchanges::zaif_typed::Zaif;
+#[cfg(feature = "zebpay")]
 pub use crate::exchanges::zebpay_typed::Zebpay;
 
 /// Construct a boxed typed wrapper by exchange id — the typed analog of
@@ -1397,109 +1501,213 @@ pub use crate::exchanges::zebpay_typed::Zebpay;
 /// for an unknown id.
 pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedExchange>> {
     match id {
+        #[cfg(feature = "alpaca")]
         "alpaca" => Some(Box::new(Alpaca::new(config))),
+        #[cfg(feature = "apex")]
         "apex" => Some(Box::new(Apex::new(config))),
+        #[cfg(feature = "aster")]
         "aster" => Some(Box::new(Aster::new(config))),
+        #[cfg(feature = "backpack")]
         "backpack" => Some(Box::new(Backpack::new(config))),
+        #[cfg(feature = "bequant")]
         "bequant" => Some(Box::new(Bequant::new(config))),
+        #[cfg(feature = "bigone")]
         "bigone" => Some(Box::new(Bigone::new(config))),
+        #[cfg(feature = "binance")]
         "binance" => Some(Box::new(Binance::new(config))),
+        #[cfg(feature = "binancecoinm")]
         "binancecoinm" => Some(Box::new(Binancecoinm::new(config))),
+        #[cfg(feature = "binanceus")]
         "binanceus" => Some(Box::new(Binanceus::new(config))),
+        #[cfg(feature = "binanceusdm")]
         "binanceusdm" => Some(Box::new(Binanceusdm::new(config))),
+        #[cfg(feature = "bingx")]
         "bingx" => Some(Box::new(Bingx::new(config))),
+        #[cfg(feature = "bit2c")]
         "bit2c" => Some(Box::new(Bit2c::new(config))),
+        #[cfg(feature = "bitbank")]
         "bitbank" => Some(Box::new(Bitbank::new(config))),
+        #[cfg(feature = "bitbns")]
         "bitbns" => Some(Box::new(Bitbns::new(config))),
+        #[cfg(feature = "bitfinex")]
         "bitfinex" => Some(Box::new(Bitfinex::new(config))),
+        #[cfg(feature = "bitflyer")]
         "bitflyer" => Some(Box::new(Bitflyer::new(config))),
+        #[cfg(feature = "bitget")]
         "bitget" => Some(Box::new(Bitget::new(config))),
+        #[cfg(feature = "bithumb")]
         "bithumb" => Some(Box::new(Bithumb::new(config))),
+        #[cfg(feature = "bitopro")]
         "bitopro" => Some(Box::new(Bitopro::new(config))),
+        #[cfg(feature = "bitrue")]
         "bitrue" => Some(Box::new(Bitrue::new(config))),
+        #[cfg(feature = "bitso")]
         "bitso" => Some(Box::new(Bitso::new(config))),
+        #[cfg(feature = "bitstamp")]
         "bitstamp" => Some(Box::new(Bitstamp::new(config))),
+        #[cfg(feature = "bitteam")]
         "bitteam" => Some(Box::new(Bitteam::new(config))),
+        #[cfg(feature = "bittrade")]
         "bittrade" => Some(Box::new(Bittrade::new(config))),
+        #[cfg(feature = "bitvavo")]
         "bitvavo" => Some(Box::new(Bitvavo::new(config))),
+        #[cfg(feature = "blockchaincom")]
         "blockchaincom" => Some(Box::new(Blockchaincom::new(config))),
+        #[cfg(feature = "blofin")]
         "blofin" => Some(Box::new(Blofin::new(config))),
+        #[cfg(feature = "btcbox")]
         "btcbox" => Some(Box::new(Btcbox::new(config))),
+        #[cfg(feature = "btcmarkets")]
         "btcmarkets" => Some(Box::new(Btcmarkets::new(config))),
+        #[cfg(feature = "btcturk")]
         "btcturk" => Some(Box::new(Btcturk::new(config))),
+        #[cfg(feature = "btse")]
         "btse" => Some(Box::new(Btse::new(config))),
+        #[cfg(feature = "bullish")]
         "bullish" => Some(Box::new(Bullish::new(config))),
+        #[cfg(feature = "bybit")]
         "bybit" => Some(Box::new(Bybit::new(config))),
+        #[cfg(feature = "bybiteu")]
         "bybiteu" => Some(Box::new(Bybiteu::new(config))),
+        #[cfg(feature = "bybitid")]
         "bybitid" => Some(Box::new(Bybitid::new(config))),
+        #[cfg(feature = "bydfi")]
         "bydfi" => Some(Box::new(Bydfi::new(config))),
+        #[cfg(feature = "cex")]
         "cex" => Some(Box::new(Cex::new(config))),
+        #[cfg(feature = "coinbase")]
         "coinbase" => Some(Box::new(Coinbase::new(config))),
+        #[cfg(feature = "coinbaseexchange")]
         "coinbaseexchange" => Some(Box::new(Coinbaseexchange::new(config))),
+        #[cfg(feature = "coinbaseinternational")]
         "coinbaseinternational" => Some(Box::new(Coinbaseinternational::new(config))),
+        #[cfg(feature = "coincheck")]
         "coincheck" => Some(Box::new(Coincheck::new(config))),
+        #[cfg(feature = "coinex")]
         "coinex" => Some(Box::new(Coinex::new(config))),
+        #[cfg(feature = "coinmate")]
         "coinmate" => Some(Box::new(Coinmate::new(config))),
+        #[cfg(feature = "coinone")]
         "coinone" => Some(Box::new(Coinone::new(config))),
+        #[cfg(feature = "coinsph")]
         "coinsph" => Some(Box::new(Coinsph::new(config))),
+        #[cfg(feature = "coinspot")]
         "coinspot" => Some(Box::new(Coinspot::new(config))),
+        #[cfg(feature = "cryptocom")]
         "cryptocom" => Some(Box::new(Cryptocom::new(config))),
+        #[cfg(feature = "cryptomus")]
         "cryptomus" => Some(Box::new(Cryptomus::new(config))),
+        #[cfg(feature = "deepcoin")]
         "deepcoin" => Some(Box::new(Deepcoin::new(config))),
+        #[cfg(feature = "delta")]
         "delta" => Some(Box::new(Delta::new(config))),
+        #[cfg(feature = "deribit")]
         "deribit" => Some(Box::new(Deribit::new(config))),
+        #[cfg(feature = "derive")]
         "derive" => Some(Box::new(Derive::new(config))),
+        #[cfg(feature = "digifinex")]
         "digifinex" => Some(Box::new(Digifinex::new(config))),
+        #[cfg(feature = "dydx")]
         "dydx" => Some(Box::new(Dydx::new(config))),
+        #[cfg(feature = "extended")]
         "extended" => Some(Box::new(Extended::new(config))),
+        #[cfg(feature = "fmfwio")]
         "fmfwio" => Some(Box::new(Fmfwio::new(config))),
+        #[cfg(feature = "foxbit")]
         "foxbit" => Some(Box::new(Foxbit::new(config))),
+        #[cfg(feature = "gate")]
         "gate" => Some(Box::new(Gate::new(config))),
+        #[cfg(feature = "gateeu")]
         "gateeu" => Some(Box::new(Gateeu::new(config))),
+        #[cfg(feature = "gemini")]
         "gemini" => Some(Box::new(Gemini::new(config))),
+        #[cfg(feature = "grvt")]
         "grvt" => Some(Box::new(Grvt::new(config))),
+        #[cfg(feature = "hashkey")]
         "hashkey" => Some(Box::new(Hashkey::new(config))),
+        #[cfg(feature = "hibachi")]
         "hibachi" => Some(Box::new(Hibachi::new(config))),
+        #[cfg(feature = "hitbtc")]
         "hitbtc" => Some(Box::new(Hitbtc::new(config))),
+        #[cfg(feature = "hollaex")]
         "hollaex" => Some(Box::new(Hollaex::new(config))),
+        #[cfg(feature = "htx")]
         "htx" => Some(Box::new(Htx::new(config))),
+        #[cfg(feature = "hyperliquid")]
         "hyperliquid" => Some(Box::new(Hyperliquid::new(config))),
+        #[cfg(feature = "independentreserve")]
         "independentreserve" => Some(Box::new(Independentreserve::new(config))),
+        #[cfg(feature = "indodax")]
         "indodax" => Some(Box::new(Indodax::new(config))),
+        #[cfg(feature = "kraken")]
         "kraken" => Some(Box::new(Kraken::new(config))),
+        #[cfg(feature = "krakenfutures")]
         "krakenfutures" => Some(Box::new(Krakenfutures::new(config))),
+        #[cfg(feature = "kucoin")]
         "kucoin" => Some(Box::new(Kucoin::new(config))),
+        #[cfg(feature = "kucoinfutures")]
         "kucoinfutures" => Some(Box::new(Kucoinfutures::new(config))),
+        #[cfg(feature = "latoken")]
         "latoken" => Some(Box::new(Latoken::new(config))),
+        #[cfg(feature = "lbank")]
         "lbank" => Some(Box::new(Lbank::new(config))),
+        #[cfg(feature = "lighter")]
         "lighter" => Some(Box::new(Lighter::new(config))),
+        #[cfg(feature = "luno")]
         "luno" => Some(Box::new(Luno::new(config))),
+        #[cfg(feature = "mercado")]
         "mercado" => Some(Box::new(Mercado::new(config))),
+        #[cfg(feature = "mexc")]
         "mexc" => Some(Box::new(Mexc::new(config))),
+        #[cfg(feature = "modetrade")]
         "modetrade" => Some(Box::new(Modetrade::new(config))),
+        #[cfg(feature = "mudrex")]
         "mudrex" => Some(Box::new(Mudrex::new(config))),
+        #[cfg(feature = "myokx")]
         "myokx" => Some(Box::new(Myokx::new(config))),
+        #[cfg(feature = "nado")]
         "nado" => Some(Box::new(Nado::new(config))),
+        #[cfg(feature = "ndax")]
         "ndax" => Some(Box::new(Ndax::new(config))),
+        #[cfg(feature = "okx")]
         "okx" => Some(Box::new(Okx::new(config))),
+        #[cfg(feature = "okxus")]
         "okxus" => Some(Box::new(Okxus::new(config))),
+        #[cfg(feature = "onetrading")]
         "onetrading" => Some(Box::new(Onetrading::new(config))),
+        #[cfg(feature = "p2b")]
         "p2b" => Some(Box::new(P2b::new(config))),
+        #[cfg(feature = "pacifica")]
         "pacifica" => Some(Box::new(Pacifica::new(config))),
+        #[cfg(feature = "paradex")]
         "paradex" => Some(Box::new(Paradex::new(config))),
+        #[cfg(feature = "paymium")]
         "paymium" => Some(Box::new(Paymium::new(config))),
+        #[cfg(feature = "phemex")]
         "phemex" => Some(Box::new(Phemex::new(config))),
+        #[cfg(feature = "poloniex")]
         "poloniex" => Some(Box::new(Poloniex::new(config))),
+        #[cfg(feature = "revolutx")]
         "revolutx" => Some(Box::new(Revolutx::new(config))),
+        #[cfg(feature = "tokocrypto")]
         "tokocrypto" => Some(Box::new(Tokocrypto::new(config))),
+        #[cfg(feature = "toobit")]
         "toobit" => Some(Box::new(Toobit::new(config))),
+        #[cfg(feature = "upbit")]
         "upbit" => Some(Box::new(Upbit::new(config))),
+        #[cfg(feature = "weex")]
         "weex" => Some(Box::new(Weex::new(config))),
+        #[cfg(feature = "whitebit")]
         "whitebit" => Some(Box::new(Whitebit::new(config))),
+        #[cfg(feature = "woo")]
         "woo" => Some(Box::new(Woo::new(config))),
+        #[cfg(feature = "woofipro")]
         "woofipro" => Some(Box::new(Woofipro::new(config))),
+        #[cfg(feature = "xt")]
         "xt" => Some(Box::new(Xt::new(config))),
+        #[cfg(feature = "zaif")]
         "zaif" => Some(Box::new(Zaif::new(config))),
+        #[cfg(feature = "zebpay")]
         "zebpay" => Some(Box::new(Zebpay::new(config))),
         _ => None,
     }
