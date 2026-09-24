@@ -478,7 +478,7 @@ func (this *Nado) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var messageHashes []any = []any{}
 	var subscriptionParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var marketSymbol *string = this.SafeString(symbolAndTimeframe, 0)
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
 		var market map[string]any = ccxt.MapTyped(this.Market(marketSymbol))
@@ -559,7 +559,7 @@ func (this *Nado) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	var messageHashes []any = []any{}
 	var subscriptionParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var marketSymbol *string = this.SafeString(symbolAndTimeframe, 0)
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
 		var market map[string]any = ccxt.MapTyped(this.Market(marketSymbol))
@@ -2399,7 +2399,7 @@ func (this *Nado) HandleUnsubscription(client any, message any) {
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
 		var unsubscribeHash string = ccxt.GetValue(subscriptions, i).(string)
-		var subscription map[string]any = ccxt.MapTyped(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash))
+		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash)
 		var subscriptionId *string = this.SafeString(subscription, "id")
 		if subscriptionId != id && (subscriptionId == nil || id == nil || *subscriptionId != *id) {
 			continue

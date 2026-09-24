@@ -774,12 +774,10 @@ func (this *Ndax) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "ProductId")
 	var code *string = this.SafeCurrencyCode(this.SafeString(rawCurrency, "Product"))
 	var ProductType *string = this.SafeString(rawCurrency, "ProductType")
-	var typeVar string = func() string {
-		if ProductType != nil && *ProductType == "NationalCurrency" {
-			return "fiat"
-		}
-		return "crypto"
-	}()
+	var typeVar string = "crypto"
+	if ProductType != nil && *ProductType == "NationalCurrency" {
+		typeVar = "fiat"
+	}
 	if ProductType != nil && *ProductType == "Unknown" {
 		// such currency is just a blanket entry
 		typeVar = "other"
@@ -992,8 +990,8 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 			}
 			return bidsKey
 		}()
-		retRes71312 := GetValue(result, side)
-		AppendToArray(&retRes71312, bidask)
+		retRes71612 := GetValue(result, side)
+		AppendToArray(&retRes71612, bidask)
 	}
 	result["bids"] = this.SortBy(result["bids"], 0, true)
 	result["asks"] = this.SortBy(result["asks"], 0)
@@ -1640,7 +1638,7 @@ func (this *Ndax) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = MapTyped(GetValue(response, i))
+		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "ProductId")
 		if (currencyId != nil) && (this.Currencies_by_id != nil) && (InOp(this.Currencies_by_id, currencyId)) {
 			var code *string = this.SafeCurrencyCode(currencyId)
@@ -1727,7 +1725,7 @@ func (this *Ndax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Ndax) ParseLedgerEntryType(typeVar any) *string {
+func (this *Ndax) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"Trade":             "trade",
 		"Deposit":           "transaction",
@@ -2914,8 +2912,8 @@ func (this *Ndax) createDepositAddressBody(ch chan any, code any, optionalArgs .
 		"GenerateNewKey": true,
 	}
 
-	var retRes234015 map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes234015)
+	var retRes234315 map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes234315)
 	return nil
 }
 
@@ -3309,7 +3307,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	//         ]
 	//     }
 	//
-	var templateTypes []any = SafeListTypedDefault(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
+	var templateTypes []any = SafeListTyped(withdrawTemplateTypesResponse, "TemplateTypes")
 	var firstTemplateType map[string]any = SafeMapTyped(templateTypes, 0)
 	if IsEqual(firstTemplateType, nil) {
 		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template type for ", currency["code"])))

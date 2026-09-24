@@ -885,7 +885,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if strings.HasSuffix(id, "_BQX") {
 			continue
 		}
-		var market any = this.SafeValue(response, id)
+		var market map[string]any = SafeMapTyped(response, id)
 		var marketType *string = this.SafeString(market, "type")
 		var expiry *int64 = this.SafeInteger(market, "expiry")
 		var contract bool = (marketType != nil && *marketType == "futures")
@@ -1229,7 +1229,7 @@ func (this *Hitbtc) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var entry map[string]any = MapTyped(GetValue(response, i))
+		var entry map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2238,7 +2238,7 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -3243,7 +3243,7 @@ func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
-	var postOnly any = this.SafeValue(order, "post_only")
+	var postOnly *bool = this.SafeBool(order, "post_only")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
 	var rawTrades []any = SafeListTyped(order, "trades")
 	return this.SafeOrder(map[string]any{
@@ -3261,7 +3261,7 @@ func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) any {
 		"side":                side,
 		"timeInForce":         timeInForce,
 		"postOnly":            postOnly,
-		"reduceOnly":          this.SafeValue(order, "reduce_only"),
+		"reduceOnly":          this.SafeBool(order, "reduce_only"),
 		"filled":              filled,
 		"remaining":           nil,
 		"cost":                nil,
@@ -3590,7 +3590,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		if marketId == nil {
 			continue
 		}
-		var rawFundingRate any = this.SafeValue(response, marketId)
+		var rawFundingRate map[string]any = SafeMapTyped(response, marketId)
 		var marketInner map[string]any = MapTyped(this.Market(marketId))
 		var symbol *string = SafeStringPtr(marketInner["symbol"])
 		var fundingRate any = this.ParseFundingRate(rawFundingRate, marketInner)
@@ -3635,7 +3635,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -3944,12 +3944,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 	var entryPrice *float64 = nil
 	var contracts *float64 = nil
 	for i := 0; i < len(positions); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(positions) {
-				return DerefScalar(positions[i])
-			}
-			return nil
-		}()
+		var entry map[string]any = SafeMapTyped(positions, i)
 		liquidationPrice = this.SafeNumber(entry, "price_liquidation")
 		entryPrice = this.SafeNumber(entry, "price_entry")
 		contracts = this.SafeNumber(entry, "quantity")
@@ -3957,12 +3952,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 	var currencies []any = SafeListTyped(position, "currencies")
 	var collateral *float64 = nil
 	for i := 0; i < len(currencies); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(currencies) {
-				return DerefScalar(currencies[i])
-			}
-			return nil
-		}()
+		var entry map[string]any = SafeMapTyped(currencies, i)
 		collateral = this.SafeNumber(entry, "margin_balance")
 	}
 	var marketId *string = this.SafeString(position, "symbol")
@@ -4340,7 +4330,7 @@ func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var currencies []any = SafeListTypedDefault(data, "currencies", []any{})
+	var currencies []any = SafeListTyped(data, "currencies")
 	var currencyInfo map[string]any = SafeMapTyped(currencies, 0)
 	var datetime *string = this.SafeString(data, "updated_at")
 	return map[string]any{
@@ -4659,12 +4649,7 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	var networks []any = SafeListTyped(fee, "networks")
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; j < len(networks); j++ {
-		var networkEntry map[string]any = MapTyped(func() any {
-			if j >= 0 && j < len(networks) {
-				return DerefScalar(networks[j])
-			}
-			return nil
-		}())
+		var networkEntry map[string]any = SafeMapTyped(networks, j)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
 		var networkCode any = DerefScalar(this.NetworkIdToCode(networkId, code))

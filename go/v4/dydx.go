@@ -1049,7 +1049,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 }
 func (this *Dydx) HandlePublicAddress(methodName any, params any) any {
 	var userAux any = nil
-	var userAuxparamsVariable []any = this.HandleOptionAndParams(params, methodName, "user")
+	var userAuxparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "user")
 	userAux = GetValue(userAuxparamsVariable, 0)
 	params = GetValue(userAuxparamsVariable, 1)
 	var user any = userAux

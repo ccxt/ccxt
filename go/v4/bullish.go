@@ -1194,7 +1194,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var maxLimit int = 100
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
@@ -1285,7 +1285,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		response = ListTyped(PanicOnError((<-this.PrivateGetV1TradesClientOrderIdClientOrderId(this.Extend(request, params))).Raw))
 	} else {
 		var paginate bool = false
-		var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+		var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 		paginate = GetValueBool(paginateparamsVariable, 0, false)
 		params = GetValue(paginateparamsVariable, 1)
 		if paginate {
@@ -1727,7 +1727,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var maxLimit int = 100
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1822,7 +1822,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var maxLimit int = 100
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
@@ -2846,7 +2846,7 @@ func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var currencyId *string = this.SafeString(transaction, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.SafeString(transaction, "status")
-	var sources []any = SafeListTypedDefault(transactionDetails, "sources", []any{})
+	var sources []any = SafeListTyped(transactionDetails, "sources")
 	var source map[string]any = SafeMapTyped(sources, 0)
 	var sourceAddress *string = this.SafeString(source, "address")
 	var fee map[string]any = map[string]any{
@@ -2882,7 +2882,7 @@ func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"info":        transaction,
 	}
 }
-func (this *Bullish) ParseTransactionType(typeVar any) *string {
+func (this *Bullish) ParseTransactionType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"DEPOSIT":  "deposit",
 		"WITHDRAW": "withdrawal",
@@ -2917,12 +2917,7 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 		var response []any = ListTyped(PanicOnError((<-this.PrivateGetV1AccountsTradingAccounts(params)).Raw))
 		var accounts []any = this.ToArray(response)
 		for i := 0; i < len(accounts); i++ {
-			var account map[string]any = MapTyped(func() any {
-				if i >= 0 && i < len(accounts) {
-					return DerefScalar(accounts[i])
-				}
-				return nil
-			}())
+			var account map[string]any = SafeMapTyped(accounts, i)
 			var name *string = this.SafeString(account, "tradingAccountName")
 			if name != nil && *name == "Primary Account" {
 				tradingAccountId = DerefScalar(this.SafeString(account, "tradingAccountId"))
@@ -3218,7 +3213,7 @@ func (this *Bullish) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = MapTyped(GetValue(response, i))
+		var balance map[string]any = SafeMapTyped(response, i)
 		var symbol *string = this.SafeString(balance, "assetSymbol")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account map[string]any = this.Account()
@@ -3391,7 +3386,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(tradingAccountId)
 	var maxLimit int = 100
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {

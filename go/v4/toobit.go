@@ -1580,15 +1580,15 @@ func (this *Toobit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		request["limit"] = limit
 	}
 	var response any = []any{}
-	var endpoint any = nil
-	var endpointparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "price")
-	endpoint = GetValue(endpointparamsVariable, 0)
+	var endpoint *string = nil
+	var endpointparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOHLCV", "price")
+	endpoint = SafeStringPtr(GetValue(endpointparamsVariable, 0))
 	params = MapTyped(GetValue(endpointparamsVariable, 1))
-	if IsEqual(endpoint, "index") {
+	if endpoint != nil && *endpoint == "index" {
 
 		response = (<-this.CommonGetQuoteV1IndexKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(endpoint, "mark") {
+	} else if endpoint != nil && *endpoint == "mark" {
 
 		response = (<-this.CommonGetQuoteV1MarkPriceKlines(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -1977,7 +1977,7 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2074,7 +2074,7 @@ func (this *Toobit) ParseBalance(response any) any {
 	}
 	var balances any = this.SafeList(response, "balances", response)
 	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance map[string]any = MapTyped(GetValue(balances, i))
+		var balance map[string]any = SafeMapTyped(balances, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString2(balance, "free", "availableBalance")

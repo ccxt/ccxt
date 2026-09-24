@@ -516,12 +516,10 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		var triggerDirectionparamsVariable []any = this.HandleTriggerDirectionAndParams(params)
 		triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
 		params = MapTyped(GetValue(triggerDirectionparamsVariable, 1))
-		var directionSuffix string = func() string {
-			if IsEqual(triggerDirection, "ascending") {
-				return "above"
-			}
-			return "below"
-		}()
+		var directionSuffix string = "below"
+		if IsEqual(triggerDirection, "ascending") {
+			directionSuffix = "above"
+		}
 		var triggerPriceX18 any = this.ConvertToX18(triggerPrice)
 		var priceRequirement map[string]any = map[string]any{}
 		AddElementToObject(priceRequirement, "oracle_price_"+directionSuffix, triggerPriceX18)
@@ -1283,10 +1281,10 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
 
-		var retRes105319 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+		var retRes105619 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 			"status_types": []any{"waiting_price", "waiting_dependency"},
 		})))))
-		ch <- BoxAbsent(retRes105319)
+		ch <- BoxAbsent(retRes105619)
 		return nil
 	}
 	if symbol == nil {
@@ -1384,10 +1382,10 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
 
-		var retRes113019 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+		var retRes113319 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 			"status_types": []any{"triggered", "triggering", "twap_executing", "twap_completed"},
 		})))))
-		ch <- BoxAbsent(retRes113019)
+		ch <- BoxAbsent(retRes113319)
 		return nil
 	}
 	var ordersRequest map[string]any = map[string]any{
@@ -1474,11 +1472,11 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes119415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+	var retRes119715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 		"trigger":      true,
 		"status_types": []any{"cancelled", "internal_error"},
 	})))))
-	ch <- BoxAbsent(retRes119415)
+	ch <- BoxAbsent(retRes119715)
 	return nil
 }
 
@@ -1510,11 +1508,11 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes121415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+	var retRes121715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 		"trigger":      true,
 		"status_types": []any{"cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed"},
 	})))))
-	ch <- BoxAbsent(retRes121415)
+	ch <- BoxAbsent(retRes121715)
 	return nil
 }
 
@@ -1714,8 +1712,8 @@ func (this *Nado) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes136115 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))))
-	ch <- BoxAbsent(retRes136115)
+	var retRes136415 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))))
+	ch <- BoxAbsent(retRes136415)
 	return nil
 }
 
@@ -1749,8 +1747,8 @@ func (this *Nado) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes137815 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))))
-	ch <- BoxAbsent(retRes137815)
+	var retRes138115 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))))
+	ch <- BoxAbsent(retRes138115)
 	return nil
 }
 func (this *Nado) QueryTransactionsByEventTypeAsync(eventType any, transactionType any, methodName any, optionalArgs ...any) <-chan any {
@@ -2155,13 +2153,11 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var pair map[string]any = MapTyped(this.SafeDict(pairsById, id, map[string]any{}))
 		var asset map[string]any = MapTyped(this.SafeDict(assetsById, id, map[string]any{}))
 		var rawType *string = this.SafeString(market, "type")
-		var typeVar any = func() any {
-			if rawType != nil && *rawType == "perp" {
-				return "swap"
-			}
-			return rawType
-		}()
-		var contract bool = (IsEqual(typeVar, "swap"))
+		var typeVar *string = rawType
+		if rawType != nil && *rawType == "perp" {
+			typeVar = SafeStringPtr("swap")
+		}
+		var contract bool = (typeVar != nil && *typeVar == "swap")
 		var tickerId *string = this.SafeString2(pair, "ticker_id", "tickerId")
 		if tickerId == nil {
 			continue
@@ -2206,7 +2202,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"quoteId":     quoteId,
 			"settleId":    settleId,
 			"type":        typeVar,
-			"spot":        (IsEqual(typeVar, "spot")),
+			"spot":        (typeVar != nil && *typeVar == "spot"),
 			"margin":      nil,
 			"swap":        contract,
 			"future":      false,
@@ -3249,12 +3245,7 @@ func (this *Nado) ParseBalance(response any) any {
 	}
 	var balances []any = SafeListTyped(response, "spot_balances")
 	for i := 0; i < len(balances); i++ {
-		var rawBalance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var rawBalance map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(rawBalance, "product_id")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil && *code == "0" {
@@ -3766,12 +3757,12 @@ func (this *Nado) PadHex(value any, length any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " padHex() requires length"))
 	}
 	var zeros string = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	var padded any = func() any {
-		if left == true {
-			return (Add(zeros, value))
-		}
-		return (Add(value, zeros))
-	}()
+	var padded any = nil
+	if left == true {
+		padded = (Add(zeros, value))
+	} else {
+		padded = (Add(value, zeros))
+	}
 	if left == true {
 		var start any = Subtract(GetLength(padded), length)
 		return Slice(padded, start, GetLength(padded))

@@ -862,7 +862,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 	// push requested tags server-side (gamma accepts one tag_slug per request) so a tags-only
 	// fetchEvents returns the tagged events rather than filtering the top-volume listing down
 	// to nothing; multiple tags run one listing per tag, unioned and deduped by event id
-	var requestedTags []any = ccxt.SafeListTypedDefault(params, "tags", []any{})
+	var requestedTags []any = ccxt.SafeListTyped(params, "tags")
 	var requestedTagsLength int = len(requestedTags)
 	if requestedTagsLength > 1 {
 		var seen map[string]any = map[string]any{}
@@ -1900,12 +1900,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 	var resolutionMs any = ccxt.Multiply(ccxt.Multiply(fidelityMin, 60), 1000)
 	var buckets map[string]any = map[string]any{}
 	for i := 0; i < len(history); i++ {
-		var item map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(history) {
-				return ccxt.DerefScalar(history[i])
-			}
-			return nil
-		}())
+		var item map[string]any = ccxt.SafeMapTyped(history, i)
 		var t *int64 = this.SafeInteger(item, "t")
 		var price *float64 = this.SafeNumber(item, "p")
 		if (t == nil) || (price == nil) {
@@ -2351,27 +2346,23 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 	var price *float64 = this.SafeNumber(trade, "price")
 	var amount *float64 = this.SafeNumber(trade, "size")
 	var rawSide *string = this.SafeStringLower(trade, "side")
-	var side *string = func() *string {
-		if (rawSide != nil && *rawSide == "buy") || (rawSide != nil && *rawSide == "sell") {
-			return rawSide
-		}
-		return nil
-	}()
+	var side *string = nil
+	if (rawSide != nil && *rawSide == "buy") || (rawSide != nil && *rawSide == "sell") {
+		side = rawSide
+	}
 	var assetId *string = this.SafeString2(trade, "asset", "asset_id")
-	var mkt any = func() any {
-		if market != nil {
-			return market
-		}
-		return this.SafeOutcome(assetId)
-	}()
+	var mkt any = nil
+	if market != nil {
+		mkt = market
+	} else {
+		mkt = this.SafeOutcome(assetId)
+	}
 	var outcome any = this.SafeOutcomeSymbol(nil, mkt)
 	var rawTakerOrMaker *string = this.SafeStringLower(trade, "trader_side")
-	var takerOrMaker *string = func() *string {
-		if (rawTakerOrMaker != nil && *rawTakerOrMaker == "taker") || (rawTakerOrMaker != nil && *rawTakerOrMaker == "maker") {
-			return rawTakerOrMaker
-		}
-		return nil
-	}()
+	var takerOrMaker *string = nil
+	if (rawTakerOrMaker != nil && *rawTakerOrMaker == "taker") || (rawTakerOrMaker != nil && *rawTakerOrMaker == "maker") {
+		takerOrMaker = rawTakerOrMaker
+	}
 	var feeRateBps *string = this.SafeString(trade, "fee_rate_bps")
 	var fee map[string]any = nil
 	if feeRateBps != nil {
@@ -2859,7 +2850,7 @@ func (this *Polymarket) createOrdersBody(ch chan any, orders any, optionalArgs .
 	// requested outcomes first (one gamma request for all uncached token ids)
 	var orderOutcomes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
-		var o any = ccxt.GetValue(orders, i)
+		var o map[string]any = ccxt.SafeMapTyped(orders, i)
 		var __oc *string = this.SafeString(o, "outcome")
 		if __oc != nil {
 			orderOutcomes = append(orderOutcomes, __oc)
@@ -2871,7 +2862,7 @@ func (this *Polymarket) createOrdersBody(ch chan any, orders any, optionalArgs .
 	var outcomes []any = []any{}
 	var requests []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
-		var o any = ccxt.GetValue(orders, i)
+		var o map[string]any = ccxt.SafeMapTyped(orders, i)
 		var orderParams any = this.SafeDict(o, "params", map[string]any{})
 		if this.SafeString(orderParams, "salt") == nil {
 			// a distinct salt per order so two identical orders don't collide, within a batch or across calls
@@ -3028,12 +3019,10 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	// wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
 	// still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
 	var maker any = funder
-	var signer any = func() any {
-		if signatureType != nil && *signatureType == 3 {
-			return funder
-		}
-		return eoa
-	}()
+	var signer any = eoa
+	if signatureType != nil && *signatureType == 3 {
+		signer = funder
+	}
 	var message map[string]any = map[string]any{
 		"salt":          salt,
 		"maker":         maker,
@@ -3049,12 +3038,10 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	}
 	var exchangeV2 *string = this.SafeString(this.Options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B")
 	var negRiskExchangeV2 *string = this.SafeString(this.Options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59")
-	var exchangeAddress *string = func() *string {
-		if negRisk != nil && *negRisk == true {
-			return negRiskExchangeV2
-		}
-		return exchangeV2
-	}()
+	var exchangeAddress *string = exchangeV2
+	if negRisk != nil && *negRisk == true {
+		exchangeAddress = negRiskExchangeV2
+	}
 	var domainVersion *string = this.SafeString(this.Options, "ctfExchangeVersion", "2")
 	var signature any = this.SignClobOrder(message, exchangeAddress, domainVersion, signatureType)
 	var owner *string = this.SafeString(this.Options, "l2ApiKey", this.ApiKey)
@@ -3125,8 +3112,8 @@ func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan any, outcome an
 		"cost": cost,
 	})
 
-	var retRes220215 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, "market", "buy", cost, nil, request))))
-	ch <- ccxt.BoxAbsent(retRes220215)
+	var retRes221915 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, "market", "buy", cost, nil, request))))
+	ch <- ccxt.BoxAbsent(retRes221915)
 	return nil
 }
 func (this *Polymarket) PolymarketOrderRawAmounts(side any, size any, price any, tickSize any, optionalArgs ...any) any {
@@ -3343,12 +3330,10 @@ func (this *Polymarket) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	// fields, so report the cancellation outcome explicitly rather than parsing an empty order
 	var notCanceled map[string]any = ccxt.SafeMapTyped(response, "not_canceled")
 	var failureReason *string = this.SafeString(notCanceled, id)
-	var status string = func() string {
-		if failureReason == nil {
-			return "canceled"
-		}
-		return "open"
-	}()
+	var status string = "open"
+	if failureReason == nil {
+		status = "canceled"
+	}
 
 	ch <- this.SafePredictionOrder(map[string]any{
 		"id":     id,
@@ -3386,9 +3371,9 @@ func (this *Polymarket) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 
 	response := (<-this.ClobPrivateDeleteOrders(ids)).Raw
 	ccxt.PanicOnError(response)
-	var canceled any = this.SafeList(response, "canceled", []any{})
+	var canceled []any = ccxt.SafeListTyped(response, "canceled")
 	var orders []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(canceled); i++ {
+	for i := 0; i < len(canceled); i++ {
 		orders = append(orders, this.SafePredictionOrder(map[string]any{
 			"id":     this.SafeString(canceled, i),
 			"status": "canceled",
@@ -3439,9 +3424,9 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 
 		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateDeleteCancelAll(params)).Raw))
 	}
-	var canceled any = this.SafeList(response, "canceled", []any{})
+	var canceled []any = ccxt.SafeListTyped(response, "canceled")
 	var orders []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(canceled); i++ {
+	for i := 0; i < len(canceled); i++ {
 		orders = append(orders, this.SafePredictionOrder(map[string]any{
 			"id":     this.SafeString(canceled, i),
 			"status": "canceled",
@@ -3851,13 +3836,13 @@ func (this *Polymarket) Sign(path any, optionalArgs ...any) any {
 				hasArrayParam = true
 			}
 		}
-		var querystring any = func() any {
-			if hasArrayParam {
-				return this.UrlencodeWithArrayRepeat(query)
-			}
-			return this.Urlencode(query)
-		}()
-		if !ccxt.IsEqual(querystring, "") {
+		var querystring string
+		if hasArrayParam {
+			querystring = this.UrlencodeWithArrayRepeat(query)
+		} else {
+			querystring = this.Urlencode(query)
+		}
+		if querystring != "" {
 			url = ccxt.Add(url, ccxt.Add("?", querystring))
 		}
 	} else if isArrayBody {
@@ -3910,12 +3895,12 @@ func (this *Polymarket) Sign(path any, optionalArgs ...any) any {
 			var secret *string = this.SafeString(this.Options, "l2Secret", this.Secret)
 			var passphrase *string = this.SafeString(this.Options, "l2Passphrase", this.Password)
 			// POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-			var address any = func() any {
-				if !ccxt.IsEqual(this.PrivateKey, nil) {
-					return this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
-				}
-				return this.WalletAddress
-			}()
+			var address any = nil
+			if !ccxt.IsEqual(this.PrivateKey, nil) {
+				address = this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
+			} else {
+				address = this.WalletAddress
+			}
 			var timestamp string = ccxt.ToString(this.Seconds())
 			// the L2 HMAC signs only the request path (no query string), matching
 			// @polymarket/clob-client — query params are sent separately, not signed
@@ -4176,19 +4161,19 @@ func (this *Polymarket) loadApiCredentialsBody(ch chan any) any {
 		}
 		return this.SafeString(this.Options, "l2ApiKey")
 	}()
-	var secret any = func() any {
-		if !ccxt.IsEqual(this.Secret, nil) {
-			return this.Secret
-		}
-		return this.SafeString(this.Options, "l2Secret")
-	}()
+	var secret any = nil
+	if !ccxt.IsEqual(this.Secret, nil) {
+		secret = this.Secret
+	} else {
+		secret = this.SafeString(this.Options, "l2Secret")
+	}
 	var passphrase any = func() any {
 		if !ccxt.IsEqual(this.Password, nil) {
 			return this.Password
 		}
 		return this.SafeString(this.Options, "l2Passphrase")
 	}()
-	var hasL2 bool = (apiKey != nil) && (secret != nil) && (passphrase != nil)
+	var hasL2 bool = (apiKey != nil) && (!ccxt.IsEqual(secret, nil)) && (passphrase != nil)
 	if hasL2 {
 
 		return nil
@@ -4249,22 +4234,12 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 	var rawAsks []any = ccxt.SafeListTyped(event, "asks")
 	var bids []any = []any{}
 	for i := 0; i < len(rawBids); i++ {
-		var b map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(rawBids) {
-				return ccxt.DerefScalar(rawBids[i])
-			}
-			return nil
-		}())
+		var b map[string]any = ccxt.SafeMapTyped(rawBids, i)
 		bids = append(bids, []any{this.SafeNumber(b, "price"), this.SafeNumber(b, "size")})
 	}
 	var asks []any = []any{}
 	for j := 0; j < len(rawAsks); j++ {
-		var a map[string]any = ccxt.MapTyped(func() any {
-			if j >= 0 && j < len(rawAsks) {
-				return ccxt.DerefScalar(rawAsks[j])
-			}
-			return nil
-		}())
+		var a map[string]any = ccxt.SafeMapTyped(rawAsks, j)
 		asks = append(asks, []any{this.SafeNumber(a, "price"), this.SafeNumber(a, "size")})
 	}
 	var outcomeObj map[string]any = this.SafeOutcome(outcome)
@@ -4285,12 +4260,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	var changes []any = ccxt.SafeListTyped(event, "price_changes")
 	var updated map[string]any = map[string]any{}
 	for i := 0; i < len(changes); i++ {
-		var change map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(changes) {
-				return ccxt.DerefScalar(changes[i])
-			}
-			return nil
-		}())
+		var change map[string]any = ccxt.SafeMapTyped(changes, i)
 		var tokenId *string = this.SafeString(change, "asset_id")
 		var outcome any = this.TokenIdToSymbol(tokenId)
 		if (outcome == nil) || !(ccxt.InOp(this.Orderbooks, outcome)) {
@@ -4654,12 +4624,12 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan any, messageHash any, o
 		}
 		return this.SafeString(this.Options, "l2ApiKey")
 	}()
-	var secret any = func() any {
-		if !ccxt.IsEqual(this.Secret, nil) {
-			return this.Secret
-		}
-		return this.SafeString(this.Options, "l2Secret")
-	}()
+	var secret any = nil
+	if !ccxt.IsEqual(this.Secret, nil) {
+		secret = this.Secret
+	} else {
+		secret = ccxt.DerefScalar(this.SafeString(this.Options, "l2Secret"))
+	}
 	var passphrase any = func() any {
 		if !ccxt.IsEqual(this.Password, nil) {
 			return this.Password

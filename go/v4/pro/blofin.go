@@ -777,12 +777,10 @@ func (this *Blofin) watchOrdersForSymbolsBody(ch chan any, symbols any, optional
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
-	var channel string = func() string {
-		if trigger != nil && *trigger == true {
-			return "orders-algo"
-		}
-		return "orders"
-	}()
+	var channel string = "orders"
+	if trigger != nil && *trigger == true {
+		channel = "orders-algo"
+	}
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchMultipleWrapperAsync(false, channel, "watchOrdersForSymbols", symbols, params))))
 	if this.NewUpdates {
@@ -968,7 +966,7 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var first map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var fundingRate any = this.ParseFundingRate(first)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
@@ -1057,12 +1055,10 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 		}}
 	}
 	var request any = this.GetSubscriptionRequest(rawSubscriptions)
-	var privateOrPublic string = func() string {
-		if ccxt.EvalTruthy(isPublic) {
-			return "public"
-		}
-		return "private"
-	}()
+	var privateOrPublic string = "private"
+	if ccxt.EvalTruthy(isPublic) {
+		privateOrPublic = "public"
+	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), privateOrPublic)
 
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes)))

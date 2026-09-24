@@ -112,12 +112,10 @@ func (this *Hitbtc) authenticateBody(ch chan any) any {
 	if ccxt.IsEqual(authenticated, nil) {
 		var timestamp int64 = this.Milliseconds()
 		var timestampString *string = this.NumberToString(timestamp)
-		var timestampEncoded string = func() string {
-			if timestampString == nil {
-				return ""
-			}
-			return *timestampString
-		}()
+		var timestampEncoded *string = timestampString
+		if timestampString == nil {
+			timestampEncoded = ccxt.SafeStringPtr("")
+		}
 		var signature string = this.Hmac(this.Encode(timestampEncoded), this.Encode(this.Secret), ccxt.Sha256, "hex")
 		var request map[string]any = map[string]any{
 			"method": "login",
@@ -333,12 +331,10 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 	//
 	var snapshot map[string]any = ccxt.SafeMapTyped(message, "snapshot")
 	var data map[string]any = ccxt.SafeDict2Typed(message, "snapshot", "update")
-	var typeVar string = func() string {
-		if !ccxt.IsEqual(snapshot, nil) && !ccxt.IsEqual(snapshot, nil) {
-			return "snapshot"
-		}
-		return "update"
-	}()
+	var typeVar string = "update"
+	if !ccxt.IsEqual(snapshot, nil) && !ccxt.IsEqual(snapshot, nil) {
+		typeVar = "snapshot"
+	}
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
@@ -686,12 +682,10 @@ func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
-	var bidAskSymbol any = func() any {
-		if market != nil {
-			return ccxt.GetValue(market, "symbol")
-		}
-		return nil
-	}()
+	var bidAskSymbol any = nil
+	if market != nil {
+		bidAskSymbol = ccxt.GetValue(market, "symbol")
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":    bidAskSymbol,
 		"timestamp": timestamp,
