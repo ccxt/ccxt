@@ -729,7 +729,7 @@ export default class onetrading extends onetradingRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
-        const rawOrders = this.safeList (message, 'orders', []);
+        const rawOrders: Dict[] = this.safeList (message, 'orders', []);
         const rawOrdersLength = rawOrders.length;
         if (rawOrdersLength === 0) {
             return;
@@ -740,7 +740,7 @@ export default class onetrading extends onetradingRest {
             let symbol = this.safeString (order, 'symbol', '');
             orders.append (order);
             client.resolve (this.orders, 'orders:' + symbol);
-            const rawTrades = this.safeList (rawOrders[i], 'trades', []);
+            const rawTrades: Dict[] = this.safeList (rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
                 const trade = this.parseTrade (rawTrades[ii]);
                 symbol = this.safeString (trade, 'symbol', symbol);

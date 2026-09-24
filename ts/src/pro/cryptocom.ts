@@ -58,7 +58,7 @@ export default class cryptocom extends cryptocomRest {
         });
     }
 
-    async pong (client: Client, message: Dict) {
+    async pong (client: Client, message: Dict): Promise<void> {
         // {
         //     "id": 1587523073344,
         //     "method": "public/heartbeat",
@@ -963,7 +963,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string) {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;

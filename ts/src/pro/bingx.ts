@@ -1189,7 +1189,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: any, subType: Str) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: any, subType: Str): Promise<void> {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
@@ -1275,7 +1275,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, type: Str) {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: Str): Promise<void> {
         const positions = await this.fetchPositions (undefined, { 'type': type, 'subType': 'linear' });
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1431,7 +1431,7 @@ export default class bingx extends bingxRest {
         return true;
     }
 
-    async keepAliveListenKey (params: Dict = {}) {
+    async keepAliveListenKey (params: Dict = {}): Promise<void> {
         const listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
@@ -1464,7 +1464,7 @@ export default class bingx extends bingxRest {
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<void> {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
@@ -1512,7 +1512,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: any): Promise<void> {
         //
         // spot
         // {

@@ -2058,7 +2058,7 @@ export default class mexc extends mexcRest {
         return listenKey;
     }
 
-    async keepAliveListenKey (listenKey: Str, params: Dict = {}) {
+    async keepAliveListenKey (listenKey: Str, params: Dict = {}): Promise<void> {
         if (listenKey === undefined) {
             return;
         }

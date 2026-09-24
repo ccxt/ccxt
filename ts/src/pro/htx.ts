@@ -2350,7 +2350,7 @@ export default class htx extends htxRest {
         }
     }
 
-    async pong (client: Client, message: Dict) {
+    async pong (client: Client, message: Dict): Promise<void> {
         //
         //     { ping: 1583491673714 }
         //     { action: "ping", data: { ts: 1645108204665 } }
@@ -2706,7 +2706,7 @@ export default class htx extends htxRest {
             } else {
                 // this trades object is artificially created
                 // in handleOrder
-                const rawTrades = this.safeList (message, 'trades', []);
+                const rawTrades: Dict[] = this.safeList (message, 'trades', []);
                 const marketId = this.safeString (message, 'symbol');
                 const market = this.market (marketId);
                 for (let i = 0; i < rawTrades.length; i++) {

@@ -1593,7 +1593,7 @@ export default class lighter extends lighterRest {
         this.spawn (this.pong, client, message);
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: any): Promise<void> {
         const request: Dict = {
             'type': 'pong',
         };

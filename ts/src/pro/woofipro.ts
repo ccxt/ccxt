@@ -1064,7 +1064,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string) {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1380,7 +1380,7 @@ export default class woofipro extends woofiproRest {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message: Dict) {
+    async pong (client: Client, message: Dict): Promise<void> {
         await client.send ({ 'event': 'pong' });
     }
 

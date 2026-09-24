@@ -942,7 +942,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<void> {
         const url = this.safeString (params, 'url');
         if (url === undefined) {
             return;

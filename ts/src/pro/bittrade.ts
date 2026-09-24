@@ -585,7 +585,7 @@ export default class bittrade extends bittradeRest {
         }
     }
 
-    async pong (client: Client, message: Dict) {
+    async pong (client: Client, message: Dict): Promise<void> {
         //
         //     { ping: 1583491673714 }
         //

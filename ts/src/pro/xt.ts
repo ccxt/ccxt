@@ -749,7 +749,7 @@ export default class xt extends xtRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: any): Promise<void> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;

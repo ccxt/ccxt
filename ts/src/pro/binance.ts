@@ -968,7 +968,7 @@ export default class binance extends binanceRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async fetchOrderBookSnapshot (client: Client, message: any, subscription: any) {
+    async fetchOrderBookSnapshot (client: Client, message: any, subscription: any): Promise<void> {
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = 'orderbook::' + symbol;
         try {
@@ -2810,7 +2810,7 @@ export default class binance extends binanceRest {
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
-    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
+    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot'): Promise<void> {
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const client = this.client (url);
         const subscriptions = client.subscriptions;
@@ -2887,7 +2887,7 @@ export default class binance extends binanceRest {
      * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    async ensureUserDataStreamWsSubscribeListenToken (marketType: string = 'margin', params: Dict = {}) {
+    async ensureUserDataStreamWsSubscribeListenToken (marketType: string = 'margin', params: Dict = {}): Promise<void> {
         const url = this.urls['api']['ws']['ws-api']['spot'];
         const options = this.safeDict (this.options, marketType, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
@@ -2972,7 +2972,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async renewListenToken (params: Dict = {}) {
+    async renewListenToken (params: Dict = {}): Promise<void> {
         const type = this.safeString (params, 'type', 'margin');
         const options = this.safeDict (this.options, type, {});
         const symbol = this.safeString (options, 'symbol');
@@ -2991,7 +2991,7 @@ export default class binance extends binanceRest {
         await this.ensureUserDataStreamWsSubscribeListenToken (type, renewParams);
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<void> {
         const time = this.milliseconds ();
         const resolvedAuth = this.resolveAuthType ('authenticate', undefined, params);
         const type = resolvedAuth[0];
@@ -3097,7 +3097,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async keepAliveListenKey (params: Dict = {}) {
+    async keepAliveListenKey (params: Dict = {}): Promise<void> {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
@@ -3228,7 +3228,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void> {
         const params: Dict = {
             'type': type,
         };
@@ -3458,7 +3458,7 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
+        const result: Dict[] = this.safeList (message, 'result', []);
         const positions: Position[] = [];
         for (let i = 0; i < result.length; i++) {
             const parsed = this.parsePositionRisk (result[i]);
@@ -4885,7 +4885,7 @@ export default class binance extends binanceRest {
         const orders: Dict[] = this.safeList (message, 'o', []);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
-            const fills = this.safeList (order, 'fi', []);
+            const fills: Dict[] = this.safeList (order, 'fi', []);
             const rawQty = this.safeString (order, 'q', '0');
             let side = 'BUY';
             if (Precise.stringLt (rawQty, '0')) {
@@ -5032,7 +5032,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void> {
         const params: Dict = {
             'type': type,
         };
