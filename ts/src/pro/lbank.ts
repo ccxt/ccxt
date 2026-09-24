@@ -141,7 +141,7 @@ export default class lbank extends lbankRest {
             'pair': market['id'],
         };
         const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }

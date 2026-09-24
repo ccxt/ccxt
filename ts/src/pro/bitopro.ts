@@ -210,7 +210,7 @@ export default class bitopro extends bitoproRest {
         }
         const url = this.urls['ws']['private'] + '/' + 'user-trades';
         this.authenticate (url);
-        const trades = await this.watch (url, messageHash, undefined, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, undefined, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }

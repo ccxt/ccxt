@@ -451,10 +451,10 @@ public partial class bingx : ccxt.bingx
             { "unsubscribe", false },
             { "id", uuid },
         };
-        object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
         if (isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true))
@@ -1179,10 +1179,10 @@ public partial class bingx : ccxt.bingx
             { "unsubscribe", false },
             { "id", uuid },
         };
-        object orders = await this.watch(url, messageHash, request, subscriptionHash, subscription);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscriptionHash, subscription));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1267,10 +1267,10 @@ public partial class bingx : ccxt.bingx
             { "unsubscribe", false },
             { "id", uuid },
         };
-        object trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscriptionHash, subscription));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }

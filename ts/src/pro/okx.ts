@@ -245,7 +245,7 @@ export default class okx extends okxRest {
             await this.authenticate ({ 'access': access });
         }
         const url = this.getUrl (channel, access);
-        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');

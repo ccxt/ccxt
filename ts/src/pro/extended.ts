@@ -682,7 +682,7 @@ export default class extended extends extendedRest {
         if (query.length > 0) {
             url += '?' + query;
         }
-        const trades = await this.watch (url, messageHash, undefined, messageHash, {
+        const trades: ArrayCache = await this.watch (url, messageHash, undefined, messageHash, {
             'symbol': symbol,
             'limit': limit,
         });
@@ -776,7 +776,7 @@ export default class extended extends extendedRest {
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe + ':' + candleType;
         const query = this.urlencode (this.extend ({ 'interval': interval }, params));
         const url = this.urls['api']['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query;
-        const ohlcv = await this.watch (url, messageHash, undefined, messageHash, {
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, undefined, messageHash, {
             'name': 'ohlcv',
             'symbol': symbol,
             'timeframe': timeframe,

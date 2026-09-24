@@ -741,7 +741,7 @@ export default class deribit extends deribitRest {
             'id': this.requestId (),
         };
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, channel, request, channel, request);
+        const orders: ArrayCache = await this.watch (url, channel, request, channel, request);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }

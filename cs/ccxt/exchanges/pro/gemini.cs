@@ -70,10 +70,10 @@ public partial class gemini : ccxt.gemini
         };
         string subscribeHash = ("l2:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata"));
-        object trades = await this.watch(url, messageHash, request, subscribeHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscribeHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar}));
+            limitVar = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -323,10 +323,10 @@ public partial class gemini : ccxt.gemini
         };
         string messageHash = ((("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + timeframeId);
         string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata"));
-        object ohlcv = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbol, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -740,10 +740,10 @@ public partial class gemini : ccxt.gemini
             symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         string messageHash = "orders";
-        object orders = await this.watch(url, messageHash, null, messageHash);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, null, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }

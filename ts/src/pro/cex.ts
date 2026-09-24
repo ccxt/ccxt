@@ -506,7 +506,7 @@ export default class cex extends cexRest {
             'oid': symbol,
         };
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash, request);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash, request);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }

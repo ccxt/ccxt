@@ -1201,10 +1201,10 @@ public partial class onetrading : ccxt.onetrading
     { "properties", properties },
 }} },
         };
-        object ohlcv = await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
