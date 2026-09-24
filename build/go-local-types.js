@@ -5815,6 +5815,9 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         return;
     }
     installCcxtGoArrayBindingHolders (goTranspiler);
+    // ccxt drivers pass relative ts/src paths; the generated tree was proven with the
+    // sibling-file parameter proof off for those, and TS7 file names are always absolute
+    goTranspiler.goTsSrcTree = () => undefined;
     if (typeof goTranspiler.goTypeOfInitializer !== 'function' || typeof goTranspiler.isWholePrintedCall !== 'function') {
         return; // older printer without local typing: nothing to extend
     }
