@@ -542,7 +542,7 @@ export default class hyperliquid extends Exchange {
         const types = this.safeList (options, 'types', []);
         const rawPromises: Promise<any>[] = [];
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType = this.safeString (types, i);
             if (marketType === 'swap') {
                 rawPromises.push (this.fetchSwapMarkets (params));
             } else if (marketType === 'spot') {
@@ -4085,7 +4085,7 @@ export default class hyperliquid extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: any, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: string, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4685,7 +4685,7 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress !== undefined) {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
-                if (record['type'] === 'vaultDeposit') {
+                if (this.safeString (record, 'type') === 'vaultDeposit') {
                     const delta = this.safeDict (record, 'delta', {});
                     if (delta['vault'] === '0x' + vaultAddress) {
                         deposits.push (record);
@@ -4755,7 +4755,7 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress !== undefined) {
             for (let i = 0; i < records.length; i++) {
                 const record = records[i];
-                if (record['type'] === 'vaultWithdraw') {
+                if (this.safeString (record, 'type') === 'vaultWithdraw') {
                     const delta = this.safeDict (record, 'delta', {});
                     if (delta['vault'] === '0x' + vaultAddress) {
                         withdrawals.push (record);

@@ -3,7 +3,7 @@
 
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/kraken.js';
-import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
+import { AccountSuspended, BadSymbol, BadRequest, BadResponse, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
@@ -1491,8 +1491,8 @@ export default class kraken extends Exchange {
         let symbol: Str = undefined;
         if (Array.isArray (trade)) {
             timestamp = this.safeTimestamp (trade, 2);
-            side = (trade[3] === 's') ? 'sell' : 'buy';
-            type = (trade[4] === 'l') ? 'limit' : 'market';
+            side = (this.safeString (trade, 3) === 's') ? 'sell' : 'buy';
+            type = (this.safeString (trade, 4) === 'l') ? 'limit' : 'market';
             price = this.safeString (trade, 0);
             amount = this.safeString (trade, 1);
             const tradeLength = trade.length;
@@ -1608,7 +1608,10 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeValue (result, id);
+        const trades = this.safeList (result, id);
+        if (trades === undefined) {
+            throw new BadResponse (this.id + ' fetchTrades() response has no trades list for ' + id);
+        }
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
         if (length <= 0) {
@@ -1853,7 +1856,7 @@ export default class kraken extends Exchange {
         }
     }
 
-    getDelistedMarketById (id: any) {
+    getDelistedMarketById (id: string) {
         if (id === undefined) {
             return id;
         }
@@ -3261,7 +3264,10 @@ export default class kraken extends Exchange {
 
     addPaginationCursorToResult (result: any) {
         const cursor = this.safeString (result, 'next_cursor');
-        const data = this.safeValue (result, 'withdrawals');
+        const data = this.safeList (result, 'withdrawals');
+        if (data === undefined) {
+            throw new BadResponse (this.id + ' fetchWithdrawals() response has no withdrawals list');
+        }
         const dataLength = data.length;
         if (cursor !== undefined && dataLength > 0) {
             const last = data[dataLength - 1];

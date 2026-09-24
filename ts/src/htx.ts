@@ -3885,13 +3885,13 @@ export default class htx extends Exchange {
         if (account === undefined) {
             throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
         }
-        if (balance['type'] === 'trade') {
+        if (this.safeString (balance, 'type') === 'trade') {
             account['free'] = this.safeString (balance, 'balance');
         }
         if (account === undefined) {
             throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
         }
-        if (balance['type'] === 'frozen') {
+        if (this.safeString (balance, 'type') === 'frozen') {
             account['used'] = this.safeString (balance, 'balance');
         }
         return account;
@@ -6488,8 +6488,8 @@ export default class htx extends Exchange {
         const addresses: List = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
-            const noteMatch = (note === undefined) || (address['note'] === note);
-            const networkMatch = (networkCode === undefined) || (address['network'] === networkCode);
+            const noteMatch = (note === undefined) || (this.safeString (address, 'note') === note);
+            const networkMatch = (networkCode === undefined) || (this.safeString (address, 'network') === networkCode);
             if (noteMatch && networkMatch) {
                 addresses.push (address);
             }
@@ -8433,7 +8433,7 @@ export default class htx extends Exchange {
         if ((market['future'] === true) && (market['inverse'] === true)) {
             for (let i = 0; i < positions.length; i++) {
                 const entry = positions[i];
-                if (entry['contract_code'] === market['id']) {
+                if (this.safeString (entry, 'contract_code') === market['id']) {
                     position = entry;
                     break;
                 }
