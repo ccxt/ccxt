@@ -109,11 +109,11 @@ export default class okx extends okxRest {
         if (channel === undefined) {
             throw new ArgumentsRequired (this.id + ' getUrl() requires a channel argument');
         }
-        const isSandbox = this.options['sandboxMode'];
+        const isSandbox: Bool = this.options['sandboxMode'];
         const sandboxSuffix = (isSandbox === true) ? '?brokerId=9999' : '';
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
-        const url = this.urls['api']['ws'];
+        const url: string = this.urls['api']['ws'];
         if (isBusiness || (channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
             return url + '/business' + sandboxSuffix;
         } else if (isPublic) {

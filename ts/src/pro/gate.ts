@@ -659,8 +659,11 @@ export default class gate extends gateRest {
             if (storedOrderBook !== undefined) {
                 cacheLength = storedOrderBook.cache.length;
             }
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
-            const waitAmount = isSpot ? snapshotDelay : 0;
+            const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+            let waitAmount: Int = 0;
+            if (isSpot) {
+                waitAmount = snapshotDelay;
+            }
             if (cacheLength === waitAmount) {
                 // max limit is 100
                 const subscription = client.subscriptions[messageHash];
@@ -676,7 +679,7 @@ export default class gate extends gateRest {
         } else {
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            const checksum: Bool = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum === true) {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 client.reject (error, messageHash);
@@ -1148,7 +1151,7 @@ export default class gate extends gateRest {
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', market, params);
-        const messageType = this.getSupportedMapping (type, {
+        const messageType: string = this.getSupportedMapping (type, {
             'spot': 'spot',
             'margin': 'spot',
             'future': 'futures',
@@ -1245,7 +1248,7 @@ export default class gate extends gateRest {
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
         const requiresUid = (type !== 'spot');
-        const channelType = this.getSupportedMapping (type, {
+        const channelType: string = this.getSupportedMapping (type, {
             'spot': 'spot',
             'margin': 'spot',
             'future': 'futures',
@@ -1343,7 +1346,7 @@ export default class gate extends gateRest {
         const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
         const rawType = this.safeString (parts, 0);
-        const channelType = this.getSupportedMapping (rawType, {
+        const channelType: string = this.getSupportedMapping (rawType, {
             'spot': 'spot',
             'futures': 'swap',
             'options': 'option',
@@ -1382,7 +1385,7 @@ export default class gate extends gateRest {
         if (type === 'spot') {
             type = 'swap';
         }
-        const typeId = this.getSupportedMapping (type, {
+        const typeId: string = this.getSupportedMapping (type, {
             'future': 'futures',
             'swap': 'futures',
             'option': 'options',
@@ -1401,8 +1404,8 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarketType (type, isInverse);
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        const fetchPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue (this.positions, type);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             return await client.future (type + ':fetchPositionsSnapshot');
@@ -1414,14 +1417,14 @@ export default class gate extends gateRest {
         return this.filterBySymbolsSinceLimit (this.safeValue (this.positions, type), symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type: string, symbols: Strings = undefined) {
         if (this.positions === undefined) {
             this.positions = {};
         }
         if (type in this.positions) {
             return;
         }
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        const fetchPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1433,7 +1436,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, type: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: string) {
         const positions = await this.fetchPositions (undefined, { 'type': type });
         this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];
@@ -1562,7 +1565,7 @@ export default class gate extends gateRest {
         let type: Str = undefined;
         let query: NullableDict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        const typeId = this.getSupportedMapping (type, {
+        const typeId: string = this.getSupportedMapping (type, {
             'spot': 'spot',
             'margin': 'spot',
             'future': 'futures',
@@ -1726,7 +1729,7 @@ export default class gate extends gateRest {
         let type: Str = undefined;
         let query: NullableDict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
-        const typeId = this.getSupportedMapping (type, {
+        const typeId: string = this.getSupportedMapping (type, {
             'future': 'futures',
             'swap': 'futures',
             'option': 'options',
@@ -2180,7 +2183,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getUrlByMarket (market: any) {
+    getUrlByMarket (market: any): string {
         const baseUrl = this.urls['api'][market['type']];
         if (market['contract'] === true) {
             return (market['linear'] === true) ? baseUrl['usdt'] : baseUrl['btc'];
@@ -2189,7 +2192,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getTypeByMarket (market: Market) {
+    getTypeByMarket (market: Market): Str {
         if (market === undefined) {
             return undefined;
         }

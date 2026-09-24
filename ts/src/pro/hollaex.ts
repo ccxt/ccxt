@@ -457,7 +457,7 @@ export default class hollaex extends hollaexRest {
     }
 
     async watchPublic (messageHash: string, params: Dict = {}) {
-        const url = this.urls['api']['ws'];
+        const url: string = this.urls['api']['ws'];
         const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
@@ -480,7 +480,7 @@ export default class hollaex extends hollaexRest {
             // that would trigger a new connection on each received message
             this.options['ws-expires'] = expires;
         }
-        const url = this.urls['api']['ws'];
+        const url: string = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
         const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         const authParams: Dict = {

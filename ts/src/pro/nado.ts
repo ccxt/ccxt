@@ -1835,7 +1835,7 @@ export default class nado extends nadoRest {
     }
 
     override ping (client: Client) {
-        const gatewayUrl = this.urls['api']['ws']['gateway'];
+        const gatewayUrl: string = this.urls['api']['ws']['gateway'];
         if (client.url === gatewayUrl) {
             // the v2 gateway is kept alive with protocol-level ping frames,
             // returning undefined makes the client send one instead of a message

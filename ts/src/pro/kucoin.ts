@@ -95,7 +95,7 @@ export default class kucoin extends kucoinRest {
         });
     }
 
-    async negotiate (privateChannel: any, isFuturesMethod: boolean = false, params: Dict = {}) {
+    async negotiate (privateChannel: boolean, isFuturesMethod: boolean = false, params: Dict = {}) {
         let connectId = (privateChannel === true) ? 'private' : 'public';
         if (isFuturesMethod) {
             connectId += 'Futures';
@@ -1683,7 +1683,7 @@ export default class kucoin extends kucoinRest {
                     }
                 }
                 const limit = this.safeInteger (subscription, 'limit');
-                const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
                 if (cacheLength === snapshotDelay) {
                     this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
                 }
@@ -1739,7 +1739,7 @@ export default class kucoin extends kucoinRest {
                 const cacheLength = orderbook.cache.length;
                 const subscription = this.safeDict (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
-                const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
                 const utaParams: Dict = {
                     'uta': true,
                 };
@@ -2844,8 +2844,8 @@ export default class kucoin extends kucoinRest {
         const messageHash = 'position:' + market['symbol'];
         const client = this.client (url);
         this.setPositionCache (client, symbol);
-        const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', true);
-        const awaitPositionSnapshot = this.handleOption ('watchPosition', 'awaitPositionSnapshot', true);
+        const fetchPositionSnapshot: Bool = this.handleOption ('watchPosition', 'fetchPositionSnapshot', true);
+        const awaitPositionSnapshot: Bool = this.handleOption ('watchPosition', 'awaitPositionSnapshot', true);
         const currentPosition = this.getCurrentPosition (symbol);
         if ((fetchPositionSnapshot === true) && (awaitPositionSnapshot === true) && (currentPosition === undefined)) {
             const snapshot = await client.future ('fetchPositionSnapshot:' + symbol);
@@ -2887,8 +2887,8 @@ export default class kucoin extends kucoinRest {
         const url = await this.getUtaUrl ();
         const client = this.client (url);
         this.setPositionsCache (client, uta);
-        const fetchPositionSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        const fetchPositionSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionSnapshot: Bool = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.positions;
         if ((fetchPositionSnapshot === true) && (awaitPositionSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
@@ -2919,7 +2919,7 @@ export default class kucoin extends kucoinRest {
         if (!(this.isEmpty (this.positions))) {
             return;
         }
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        const fetchPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
@@ -2951,7 +2951,7 @@ export default class kucoin extends kucoinRest {
     }
 
     setPositionCache (client: Client, symbol: string) {
-        const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', false);
+        const fetchPositionSnapshot: Bool = this.handleOption ('watchPosition', 'fetchPositionSnapshot', false);
         if (fetchPositionSnapshot === true) {
             const messageHash = 'fetchPositionSnapshot:' + symbol;
             if (!(messageHash in client.futures)) {
