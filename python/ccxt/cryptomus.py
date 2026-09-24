@@ -433,7 +433,7 @@ class cryptomus(Exchange, ImplicitAPI):
         code = None
         networks = {}
         for i in range(0, len(rawCurrency)):
-            networkEntry = rawCurrency[i]
+            networkEntry = self.safe_dict(rawCurrency, i)
             # set ID on first loop
             if id is None:
                 id = self.safe_string(networkEntry, 'currency_code')
@@ -687,7 +687,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'info': balance,
         }
         for i in range(0, len(balance)):
-            balanceEntry = balance[i]
+            balanceEntry = self.safe_dict(balance, i)
             currencyId = self.safe_string(balanceEntry, 'ticker')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1112,7 +1112,7 @@ class cryptomus(Exchange, ImplicitAPI):
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
-            tier = feeTiers[i]
+            tier = self.safe_dict(feeTiers, i)
             turnover = self.safe_number(tier, 'from_turnover')
             taker = self.safe_string(tier, 'taker_percent')
             maker = self.safe_string(tier, 'maker_percent')

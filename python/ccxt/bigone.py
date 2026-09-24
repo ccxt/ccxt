@@ -614,7 +614,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         promises = [self.publicGetAssetPairs(params), self.contractPublicGetSymbols(params)]
         promisesResult = promises
-        response = promisesResult[0]
+        response = self.safe_dict(promisesResult, 0)
         contractResponse = promisesResult[1]
         #
         #     {
@@ -836,7 +836,9 @@ class bigone(Exchange, ImplicitAPI):
         #        "openInterest": 1141372.0
         #    }
         #
-        marketType = 'spot' if ('asset_pair_name' in ticker) else 'swap'
+        marketType = 'swap'
+        if 'asset_pair_name' in ticker:
+            marketType = 'spot'
         marketId = self.safe_string_2(ticker, 'asset_pair_name', 'symbol')
         symbol = self.safe_symbol(marketId, market, '-', marketType)
         close = self.safe_string_2(ticker, 'close', 'latestPrice')
@@ -1379,7 +1381,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             symbol = self.safe_string(balance, 'asset_symbol')
             code = self.safe_currency_code(symbol)
             account = self.account()
@@ -1544,7 +1546,9 @@ class bigone(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         isBuy = (side == 'buy')
-        requestSide = 'BID' if isBuy else 'ASK'
+        requestSide = 'ASK'
+        if isBuy:
+            requestSide = 'BID'
         uppercaseType = type.upper()
         isLimit = uppercaseType == 'LIMIT'
         exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
@@ -2026,7 +2030,9 @@ class bigone(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txid')
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
-        type = 'withdrawal' if ('customer_id' in transaction) else 'deposit'
+        type = 'deposit'
+        if 'customer_id' in transaction:
+            type = 'withdrawal'
         internal = self.safe_bool(transaction, 'is_internal')
         return {
             'info': transaction,

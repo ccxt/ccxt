@@ -479,7 +479,7 @@ class lbank(Exchange, ImplicitAPI):
         networksRaw = rawCurrency
         networks = {}
         for j in range(0, len(networksRaw)):
-            networkEntry = networksRaw[j]
+            networkEntry = self.safe_dict(networksRaw, j)
             networkId = self.safe_string(networkEntry, 'chain')
             if networkId is None:
                 networkId = self.safe_string(networkEntry, 'assetCode')  # use type as fallback if networkId is not present
@@ -803,7 +803,7 @@ class lbank(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['swap'] is True:
             responseForSwap = await self.fetch_tickers([market['symbol']], params)
-            return self.safe_value(responseForSwap, market['symbol'])
+            return self.safe_dict(responseForSwap, market['symbol'])
         request = {
             'symbol': market['id'],
         }
@@ -1321,7 +1321,7 @@ class lbank(Exchange, ImplicitAPI):
         balances = self.safe_list(data, 'balances')
         if balances is not None:
             for i in range(0, len(balances)):
-                item = balances[i]
+                item = self.safe_dict(balances, i)
                 currencyId = self.safe_string(item, 'asset')
                 codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -1334,7 +1334,7 @@ class lbank(Exchange, ImplicitAPI):
         isArray = isinstance(data, list)
         if isArray is True:
             for i in range(0, len(data)):
-                item = data[i]
+                item = self.safe_dict(data, i)
                 currencyId = self.safe_string(item, 'coin')
                 codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -1405,7 +1405,7 @@ class lbank(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         responseForSwap = await self.fetch_funding_rates([market['symbol']], params)
-        return self.safe_value(responseForSwap, market['symbol'])
+        return self.safe_dict(responseForSwap, market['symbol'])
 
     async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -2617,14 +2617,14 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):
-            entry = result[i]
+            entry = self.safe_dict(result, i)
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
             networkList = self.safe_list(entry, 'networkList', [])
             if code is not None:
                 withdrawFees[code] = {}
             for j in range(0, len(networkList)):
-                networkEntry = networkList[j]
+                networkEntry = self.safe_dict(networkList, j)
                 fee = self.safe_number(networkEntry, 'withdrawFee')
                 if fee is not None:
                     networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'), code)
@@ -2673,7 +2673,7 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):
-            item = result[i]
+            item = self.safe_dict(result, i)
             canWithdraw = self.safe_string(item, 'canWithDraw')
             if canWithdraw == 'true':
                 currencyId = self.safe_string(item, 'assetCode')
@@ -2874,7 +2874,7 @@ class lbank(Exchange, ImplicitAPI):
         code = self.safe_string(currency, 'code')
         networkList = self.safe_list(fee, 'networkList', [])
         for j in range(0, len(networkList)):
-            networkEntry = networkList[j]
+            networkEntry = self.safe_dict(networkList, j)
             networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'), code)
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
             isDefault = self.safe_bool(networkEntry, 'isDefault')

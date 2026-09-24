@@ -1388,7 +1388,9 @@ class woo(Exchange, ImplicitAPI):
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
-        clientOrderIdKey = 'clientAlgoOrderId' if isConditional else 'clientOrderId'
+        clientOrderIdKey = 'clientOrderId'
+        if isConditional:
+            clientOrderIdKey = 'clientAlgoOrderId'
         request['type'] = orderType  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if not isConditional:
             if postOnly:
@@ -1446,7 +1448,9 @@ class woo(Exchange, ImplicitAPI):
                 'childOrders': [],
             }
             childOrders = outterOrder['childOrders']
-            closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
+            closeSide = 'BUY'
+            if orderSide == 'BUY':
+                closeSide = 'SELL'
             if hasStopLoss:
                 stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
                 stopLossOrder = {
@@ -1853,7 +1857,7 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
         request = {}
@@ -2501,7 +2505,7 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
         request = {}
@@ -2699,7 +2703,7 @@ class woo(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'holding', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             code = self.safe_currency_code(self.safe_string(balance, 'token'))
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
@@ -2753,7 +2757,7 @@ class woo(Exchange, ImplicitAPI):
         currentyNetworkId = self.safe_string(networkEntry, 'currencyNetworkId')
         return [currentyNetworkId, params]
 
-    def parse_deposit_address(self, depositEntry: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositEntry: dict, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositEntry, 'address')
         self.check_address(address)
         networkId = self.safe_string(depositEntry, 'network')
@@ -2869,7 +2873,9 @@ class woo(Exchange, ImplicitAPI):
         currency = self.safe_currency(code, currency)
         amount = self.safe_number(item, 'amount')
         side = self.safe_string(item, 'tokenSide')
-        direction = 'in' if (side == 'DEPOSIT') else 'out'
+        direction = 'out'
+        if side == 'DEPOSIT':
+            direction = 'in'
         timestamp = self.safe_timestamp(item, 'createdTime')
         fee = self.parse_token_and_fee_temp(item, ['feeToken'], ['feeAmount'])
         return self.safe_ledger_entry({
@@ -3281,7 +3287,7 @@ class woo(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
+    def parse_margin_loan(self, info: dict, currency: Currency = None) -> MarginLoan:
         #
         #     {
         #         "success": true,
@@ -3374,7 +3380,7 @@ class woo(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         return None
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         #     {
         #         "id": 1286360,
@@ -3425,7 +3431,7 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
         request = {}
@@ -3633,7 +3639,7 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25)
         if symbol is None:

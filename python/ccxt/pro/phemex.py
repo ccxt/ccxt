@@ -359,7 +359,7 @@ class phemex(ccxt.async_support.phemex):
         #
         self.balance['info'] = message
         for i in range(0, len(message)):
-            balance = message[i]
+            balance = self.safe_dict(message, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             currency = self.safe_dict(self.currencies, code, {})
@@ -579,7 +579,9 @@ class phemex(ccxt.async_support.phemex):
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
         isUsdtSwap = (isSwap is True) and settleIsUSDT
-        name = 'trade_p' if isUsdtSwap else 'trade'
+        name = 'trade'
+        if isUsdtSwap:
+            name = 'trade_p'
         messageHash = 'trade:' + symbol
         method = name + '.subscribe'
         subscribe = {
@@ -618,7 +620,9 @@ class phemex(ccxt.async_support.phemex):
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
         isUsdtSwap = (isSwap is True) and settleIsUSDT
-        name = 'orderbook_p' if isUsdtSwap else 'orderbook'
+        name = 'orderbook'
+        if isUsdtSwap:
+            name = 'orderbook_p'
         messageHash = 'orderbook:' + symbol
         method = name + '.subscribe'
         subscribe = {
@@ -656,7 +660,9 @@ class phemex(ccxt.async_support.phemex):
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
         isUsdtSwap = (isSwap is True) and settleIsUSDT
-        name = 'kline_p' if isUsdtSwap else 'kline'
+        name = 'kline'
+        if isUsdtSwap:
+            name = 'kline_p'
         messageHash = 'kline:' + timeframe + ':' + symbol
         method = name + '.subscribe'
         subscribe = {
@@ -1439,7 +1445,9 @@ class phemex(ccxt.async_support.phemex):
             orders = self.safe_dict_2(message, 'orders', 'orders_p', {})
             self.handle_orders(client, orders)
         if ('accounts' in message) or ('accounts_p' in message) or ('wallets' in message):
-            type = 'swap' if ('accounts' in message) else 'spot'
+            type = 'spot'
+            if 'accounts' in message:
+                type = 'swap'
             if 'accounts_p' in message:
                 type = 'perpetual'
             accounts = self.safe_list_n(message, ['accounts', 'accounts_p', 'wallets'], [])

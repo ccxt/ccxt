@@ -807,7 +807,7 @@ class extended(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         tickers = {}
         for i in range(0, len(data)):
-            marketData = data[i]
+            marketData = self.safe_dict(data, i)
             marketId = self.safe_string(marketData, 'name')
             market = self.safe_market(marketId)
             stats = self.safe_dict(marketData, 'marketStats', {})
@@ -977,7 +977,7 @@ class extended(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
         market = None
@@ -1041,7 +1041,7 @@ class extended(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
         market = None
@@ -1090,7 +1090,7 @@ class extended(Exchange, ImplicitAPI):
             result.append(entry)
         return self.parse_funding_histories(result, market, since, limit)
 
-    def parse_funding_history(self, history: object, market: Market = None):
+    def parse_funding_history(self, history: dict, market: Market = None):
         #
         #     {
         #         "id": 8341,
@@ -1287,7 +1287,7 @@ class extended(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'cursor', 'cursor', None, 10000)
         market = self.market(symbol)
@@ -1574,7 +1574,7 @@ class extended(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'cursor', 'cursor', None, 50)
         currency = None
@@ -1658,7 +1658,7 @@ class extended(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransactions', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTransactions', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTransactions', code, since, limit, params, 'cursor', 'cursor', None, 50)
         currency = None
@@ -1813,7 +1813,7 @@ class extended(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', None, 50)
         currency = None
@@ -2264,7 +2264,7 @@ class extended(Exchange, ImplicitAPI):
         if isinstance(symbols, str):
             symbols = [symbols]
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchPositionsHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchPositionsHistory', symbols, since, limit, params, 'cursor', 'cursor', None, 10000)
         request = {}
@@ -3026,7 +3026,7 @@ class extended(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
         market = None
@@ -3256,7 +3256,9 @@ class extended(Exchange, ImplicitAPI):
             '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
         ))
         isTestnet = self.urls['api']['rest'].find('sepolia') >= 0
-        defaultChainId = 'SN_SEPOLIA' if isTestnet else 'SN_MAIN'
+        defaultChainId = 'SN_MAIN'
+        if isTestnet:
+            defaultChainId = 'SN_SEPOLIA'
         chainId = self.safe_string(self.options, 'chainId', defaultChainId)
         return self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements([
             domainTypeHash,

@@ -259,7 +259,7 @@ class ndax(ccxt.async_support.ndax):
         #
         updates = {}
         for i in range(0, len(payload)):
-            ohlcv = payload[i]
+            ohlcv = self.safe_list(payload, i)
             marketId = self.safe_string(ohlcv, 8)
             market = self.safe_market(marketId)
             symbol = market['symbol']
@@ -413,7 +413,7 @@ class ndax(ccxt.async_support.ndax):
         timestamp = None
         nonce = None
         for i in range(0, len(payload)):
-            bidask = payload[i]
+            bidask = self.safe_list(payload, i)
             if timestamp is None:
                 timestamp = self.safe_integer(bidask, 2)
             else:

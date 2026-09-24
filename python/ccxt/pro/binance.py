@@ -299,7 +299,9 @@ class binance(ccxt.async_support.binance):
     def get_stock_unified_symbol(self, stockSymbol: Str, quote: Str = None) -> Str:
         if stockSymbol is None:
             return None
-        safeQuote = 'USDC' if (quote is None) else quote
+        safeQuote = quote
+        if quote is None:
+            safeQuote = 'USDC'
         parsed = self.safe_symbol(stockSymbol, None, '/', 'spot')
         if (parsed is not None) and (parsed.find('/') >= 0):
             return parsed
@@ -996,7 +998,9 @@ class binance(ccxt.async_support.binance):
         # symbol and stalls the orderbook future (delivery/option ids are
         # unique, so the swap hint resolves those correctly too)
         isSpot = self.is_spot_url(client)
-        marketType = 'spot' if isSpot else 'swap'
+        marketType = 'swap'
+        if isSpot:
+            marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'orderbook::' + symbol
@@ -1420,8 +1424,12 @@ class binance(ccxt.async_support.binance):
             if (price is not None) and (amount is not None):
                 cost = Precise.string_mul(price, amount)
         marketId = self.safe_string(trade, 's')
-        fallbackType = 'contract' if ('ps' in trade) else 'spot'
-        marketType = market['type'] if (market is not None) else fallbackType
+        fallbackType = 'spot'
+        if 'ps' in trade:
+            fallbackType = 'contract'
+        marketType = fallbackType
+        if market is not None:
+            marketType = market['type']
         symbol = self.safe_symbol(marketId, market, None, marketType)
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
@@ -1463,7 +1471,9 @@ class binance(ccxt.async_support.binance):
         # resolve the market from the transport url — an ambiguous id like
         # BTCUSDT maps to both the spot and the linear swap market
         isSpot = self.is_spot_url(client)
-        marketType = 'spot' if isSpot else 'contract'
+        marketType = 'contract'
+        if isSpot:
+            marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'trade::' + symbol
@@ -1583,7 +1593,9 @@ class binance(ccxt.async_support.binance):
                 marketId = marketId.replace('_perp', '')
             shouldUseUTC8 = (isUtc8 and isSpot)
             suffix = '@+08:00'
-            utcSuffix = suffix if shouldUseUTC8 else ''
+            utcSuffix = ''
+            if shouldUseUTC8:
+                utcSuffix = suffix
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             messageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
         url = self.get_ws_url(wsUrlType, self.get_future_ws_category(klineType)) + '/' + self.stream(wsUrlType, 'multipleOHLCV')
@@ -1653,7 +1665,9 @@ class binance(ccxt.async_support.binance):
                 marketId = marketId.replace('_perp', '')
             shouldUseUTC8 = (isUtc8 and isSpot)
             suffix = '@+08:00'
-            utcSuffix = suffix if shouldUseUTC8 else ''
+            utcSuffix = ''
+            if shouldUseUTC8:
+                utcSuffix = suffix
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             subMessageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
             messageHashes.append('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString)
@@ -1749,7 +1763,9 @@ class binance(ccxt.async_support.binance):
         # resolve the market from the transport url — an ambiguous id like
         # BTCUSDT maps to both the spot and the linear swap market
         isSpot = self.is_spot_url(client)
-        marketType = 'spot' if isSpot else 'contract'
+        marketType = 'contract'
+        if isSpot:
+            marketType = 'spot'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
@@ -2491,7 +2507,7 @@ class binance(ccxt.async_support.binance):
         else:
             rawTickers.append(message)
         for i in range(0, len(rawTickers)):
-            ticker = rawTickers[i]
+            ticker = self.safe_dict(rawTickers, i)
             event = self.safe_string(ticker, 'e')
             if isBidAsk:
                 event = 'bookTicker'  # as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
@@ -2506,7 +2522,9 @@ class binance(ccxt.async_support.binance):
             # option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             tickerMarketById = self.safe_dict(tickerMarketsByIdList, 0) if (numTickerMarkets == 1) else None
             isSpot = self.is_spot_url(client)
-            tickerFallbackType = 'spot' if isSpot else 'contract'
+            tickerFallbackType = 'contract'
+            if isSpot:
+                tickerFallbackType = 'spot'
             tickerMarketType = tickerMarketById['type'] if (tickerMarketById is not None) else tickerFallbackType
             parsedTicker = self.parse_ws_ticker(ticker, tickerMarketType)
             symbol = parsedTicker['symbol']
@@ -2750,7 +2768,9 @@ class binance(ccxt.async_support.binance):
         isStock = (type == 'stock')
         options = self.safe_dict(self.options, type, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
-        refreshRateKey = 'stockListenKeyRefreshRate' if isStock else 'listenKeyRefreshRate'
+        refreshRateKey = 'listenKeyRefreshRate'
+        if isStock:
+            refreshRateKey = 'stockListenKeyRefreshRate'
         listenKeyRefreshRate = self.safe_integer(self.options, refreshRateKey, 1200000)
         delay = self.sum(listenKeyRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
@@ -2900,14 +2920,16 @@ class binance(ccxt.async_support.binance):
         })
         # whether or not to schedule another listenKey keepAlive request
         clients = list(self.clients.values())
-        refreshRateKey = 'stockListenKeyRefreshRate' if isStock else 'listenKeyRefreshRate'
+        refreshRateKey = 'listenKeyRefreshRate'
+        if isStock:
+            refreshRateKey = 'stockListenKeyRefreshRate'
         listenKeyRefreshRate = self.safe_integer(self.options, refreshRateKey, 1200000)
         delayParams = params
         if isStock:
             # params had type omitted above - restore it so the next cycle routes back here
             delayParams = self.extend(params, {'type': 'stock'})
         for i in range(0, len(clients)):
-            client = clients[i]
+            client = self.safe_dict(clients, i)
             clientSubscriptions = self.safe_dict(client, 'subscriptions', {})
             subscriptionKeys = list(clientSubscriptions.keys())
             for j in range(0, len(subscriptionKeys)):
@@ -4183,7 +4205,9 @@ class binance(ccxt.async_support.binance):
         executionType = self.safe_string(order, 'x')
         marketId = self.safe_string(order, 's')
         # futures user-data events carry the position side field, spot ones do not
-        marketType = 'contract' if ('ps' in order) else 'spot'
+        marketType = 'spot'
+        if 'ps' in order:
+            marketType = 'contract'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         timestamp = self.safe_integer(order, 'O')
         T = self.safe_integer(order, 'T')
@@ -4468,7 +4492,7 @@ class binance(ccxt.async_support.binance):
         #
         orders = self.safe_list(message, 'o', [])
         for i in range(0, len(orders)):
-            order = orders[i]
+            order = self.safe_dict(orders, i)
             fills = self.safe_list(order, 'fi', [])
             rawQty = self.safe_string(order, 'q', '0')
             side = 'BUY'
@@ -4498,7 +4522,7 @@ class binance(ccxt.async_support.binance):
             }
             self.handle_order(client, normalizedOrder)
             for j in range(0, len(fills)):
-                fill = fills[j]
+                fill = self.safe_dict(fills, j)
                 isMaker = (self.safe_string(fill, 'm') == 'MAKER')
                 # normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
                 normalizedTrade = {
@@ -4656,7 +4680,7 @@ class binance(ccxt.async_support.binance):
         rawPositions = self.safe_list(data, 'P', [])
         newPositions = []
         for i in range(0, len(rawPositions)):
-            rawPosition = rawPositions[i]
+            rawPosition = self.safe_dict(rawPositions, i)
             position = self.parse_ws_position(rawPosition)
             timestamp = self.safe_integer(message, 'E')
             position['timestamp'] = timestamp
@@ -5097,7 +5121,7 @@ class binance(ccxt.async_support.binance):
             return
         B = self.safe_list(message, 'B', [])
         for i in range(0, len(B)):
-            entry = B[i]
+            entry = self.safe_dict(B, i)
             currencyId = self.safe_string(entry, 'a')
             code = self.safe_currency_code(currencyId)
             if code is not None:
@@ -5118,7 +5142,7 @@ class binance(ccxt.async_support.binance):
         P = self.safe_list(message, 'P', [])
         newPositions = []
         for i in range(0, len(P)):
-            rawPosition = P[i]
+            rawPosition = self.safe_dict(P, i)
             position = self.parse_ws_options_position(rawPosition)
             position['timestamp'] = timestamp
             position['datetime'] = self.iso8601(timestamp)
@@ -5255,7 +5279,7 @@ class binance(ccxt.async_support.binance):
         }
         event = self.safe_string(message, 'e')
         if isinstance(message, list):
-            arrayMessage = message[0]
+            arrayMessage = self.safe_dict(message, 0)
             event = self.safe_string(arrayMessage, 'e') + '@arr'
         method = self.safe_value(methods, event)
         if method is None:
