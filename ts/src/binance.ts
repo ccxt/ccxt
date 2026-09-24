@@ -11220,7 +11220,7 @@ export default class binance extends Exchange {
             if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
-            maintenanceMarginPercentageString = bracket[1];
+            maintenanceMarginPercentageString = this.safeString (bracket, 1);
         }
         const maintenanceMarginPercentage = this.parseNumber (maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString (position, 'unrealizedProfit');
@@ -11441,7 +11441,7 @@ export default class binance extends Exchange {
             if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
-            maintenanceMarginPercentageString = bracket[1];
+            maintenanceMarginPercentageString = this.safeString (bracket, 1);
         }
         const notional = this.parseNumber (notionalStringAbs);
         const contractsAbs = Precise.stringAbs (this.safeString (position, 'positionAmt'));
@@ -13373,10 +13373,10 @@ export default class binance extends Exchange {
         let response: NullableDict = undefined;
         let code: Str = undefined;
         if (market['linear'] === true) {
-            code = market['quote'];
+            code = this.safeString (market, 'quote');
             response = await this.fapiPrivatePostPositionMargin (this.extend (request, params));
         } else {
-            code = market['base'];
+            code = this.safeString (market, 'base');
             response = await this.dapiPrivatePostPositionMargin (this.extend (request, params));
         }
         //

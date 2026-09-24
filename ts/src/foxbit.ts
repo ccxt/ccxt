@@ -1830,7 +1830,7 @@ export default class foxbit extends Exchange {
             market = this.market (symbol);
         }
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
         }
         const timestamp = this.parseDate (this.safeString (order, 'created_at'));
         const price = this.safeString (order, 'price');

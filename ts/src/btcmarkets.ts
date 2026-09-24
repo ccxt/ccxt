@@ -1133,13 +1133,13 @@ export default class btcmarkets extends Exchange {
         let currency: Str = undefined;
         let cost: Str = undefined;
         if (market['quote'] === 'AUD') {
-            currency = market['quote'];
+            currency = this.safeString (market, 'quote');
             const amountString = this.numberToString (amount);
             const priceString = this.numberToString (price);
             const otherUnitsAmount = Precise.stringMul (amountString, priceString);
             cost = this.costToPrecision (symbol, otherUnitsAmount);
         } else {
-            currency = market['base'];
+            currency = this.safeString (market, 'base');
             cost = this.amountToPrecision (symbol, amount);
         }
         const rate = this.safeValue (market, takerOrMaker);

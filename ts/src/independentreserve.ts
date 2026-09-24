@@ -606,7 +606,7 @@ export default class independentreserve extends Exchange {
         } else if (market !== undefined) {
             symbol = market['symbol'];
             base = market['base'];
-            quote = market['quote'];
+            quote = this.safeString (market, 'quote');
         }
         let orderType = this.safeString2 (order, 'Type', 'OrderType');
         let side: Str = undefined;
