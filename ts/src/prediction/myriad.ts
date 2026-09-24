@@ -3338,7 +3338,7 @@ export default class myriad extends Exchange {
         this.orderbooks[sym as string] = orderbook;
     }
 
-    handleOrderBook (client: any, data: any) {
+    handleOrderBook (client: any, data: Dict) {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
@@ -3434,7 +3434,7 @@ export default class myriad extends Exchange {
         return undefined;
     }
 
-    handleTrades (client: any, data: any) {
+    handleTrades (client: any, data: Dict) {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
@@ -3621,7 +3621,7 @@ export default class myriad extends Exchange {
         return this.filterBySinceLimit (result, since, limit, 0, true);
     }
 
-    handleTicker (client: any, data: any) {
+    handleTicker (client: any, data: Dict) {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
@@ -3697,7 +3697,7 @@ export default class myriad extends Exchange {
         return this.filterByValueSinceLimit (orders, 'outcome', outcome, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
-    handleOrder (client: any, data: any) {
+    handleOrder (client: any, data: Dict) {
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheByOutcomeById (limit);
@@ -3796,7 +3796,7 @@ export default class myriad extends Exchange {
         this.options['positionBalances'] = balances;
     }
 
-    handlePosition (client: any, data: any) {
+    handlePosition (client: any, data: Dict) {
         if (this.positions === undefined) {
             const limit = this.safeInteger (this.options, 'positionsLimit', 1000);
             this.positions = new ArrayCacheByOutcomeById (limit);

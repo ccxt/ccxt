@@ -3001,7 +3001,7 @@ export default class polymarket extends Exchange {
         }
     }
 
-    handleOrderBookSnapshot (client: any, event: any) {
+    handleOrderBookSnapshot (client: any, event: Dict) {
         const tokenId = this.safeString (event, 'asset_id');
         const outcome = this.tokenIdToSymbol (tokenId);
         if (outcome === undefined) {
@@ -3039,7 +3039,7 @@ export default class polymarket extends Exchange {
         client.resolve (orderbook, 'ticker::' + outcome);
     }
 
-    handleOrderBookDelta (client: any, event: any) {
+    handleOrderBookDelta (client: any, event: Dict) {
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
         const changes = this.safeList (event, 'price_changes', []) as any[];
         const updated: Dict = {};
@@ -3071,7 +3071,7 @@ export default class polymarket extends Exchange {
         }
     }
 
-    handleTrade (client: any, event: any) {
+    handleTrade (client: any, event: Dict) {
         const tokenId = this.safeString (event, 'asset_id');
         const outcome = this.tokenIdToSymbol (tokenId);
         if (outcome === undefined) {
@@ -3305,7 +3305,7 @@ export default class polymarket extends Exchange {
         return await this.watch (url, messageHash, this.extend (subscribeMsg, params), subscribeHash);
     }
 
-    handleOrder (client: any, event: any) {
+    handleOrder (client: any, event: Dict) {
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheByOutcomeById (limit);
@@ -3320,7 +3320,7 @@ export default class polymarket extends Exchange {
         }
     }
 
-    handleMyTrade (client: any, event: any) {
+    handleMyTrade (client: any, event: Dict) {
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheByOutcomeById (limit);
