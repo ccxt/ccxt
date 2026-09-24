@@ -2215,7 +2215,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getMarketTypeByUrl (url: string) {
+    getMarketTypeByUrl (url: string): string {
         const findBy: Dict = {
             'op-': 'option',
             'delivery': 'future',

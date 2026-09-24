@@ -91,7 +91,7 @@ export default class luno extends lunoRest {
         if (length === 0) {
             return;
         }
-        const symbol = subscription['symbol'];
+        const symbol: string = subscription['symbol'];
         const market = this.market (symbol);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
@@ -204,7 +204,7 @@ export default class luno extends lunoRest {
         //         "timestamp": 1660598775360
         //     }
         //
-        const symbol = subscription['symbol'];
+        const symbol: string = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger (message, 'timestamp');
         if (!(symbol in this.orderbooks)) {
