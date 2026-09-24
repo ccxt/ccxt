@@ -789,7 +789,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 	// override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
 	// same trade-off as loadOutcome: on venues where the whole universe is one cheap
 	// request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-	outcomes := GetArg(optionalArgs, 0, nil)
+	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var reload bool = GetArgBool(optionalArgs, 1, false)
 	_ = reload

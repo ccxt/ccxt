@@ -1542,7 +1542,7 @@ func (this *Hyperliquid) FetchFundingRatesAsync(optionalArgs ...any) <-chan any 
 func (this *Hyperliquid) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4698,7 +4698,7 @@ func (this *Hyperliquid) fetchPositionBody(ch chan any, symbol any, optionalArgs
 	return nil
 }
 func (this *Hyperliquid) GetDexFromSymbols(methodName any, optionalArgs ...any) any {
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	if symbols == nil {
 		return nil

@@ -3720,7 +3720,7 @@ func (this *Myriad) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4688,7 +4688,7 @@ func (this *Myriad) WatchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4981,7 +4981,7 @@ func (this *Myriad) WatchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Myriad) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since

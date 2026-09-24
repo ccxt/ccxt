@@ -3528,7 +3528,7 @@ func (this *Lbank) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan any
 func (this *Lbank) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3571,7 +3571,7 @@ func (this *Lbank) fetchPrivateDepositWithdrawFeesBody(ch chan any, optionalArgs
 	defer ReturnPanicError(ch)
 	// complete response
 	// incl. for coins which undefined in public method
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3627,7 +3627,7 @@ func (this *Lbank) fetchPublicDepositWithdrawFeesBody(ch chan any, optionalArgs 
 	defer ReturnPanicError(ch)
 	// extremely incomplete response
 	// vast majority fees undefined
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3682,7 +3682,7 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response []any, optionalArgs .
 	//        ...
 	//    ]
 	//
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {

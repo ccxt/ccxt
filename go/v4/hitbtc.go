@@ -4581,7 +4581,7 @@ func (this *Hitbtc) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan an
 func (this *Hitbtc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

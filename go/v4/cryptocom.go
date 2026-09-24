@@ -3539,7 +3539,7 @@ func (this *Cryptocom) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan
 func (this *Cryptocom) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
