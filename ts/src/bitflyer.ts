@@ -226,7 +226,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseExpiryDate (expiry: any) {
+    parseExpiryDate (expiry: string) {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
