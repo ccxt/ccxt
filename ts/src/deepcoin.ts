@@ -406,7 +406,7 @@ export default class deepcoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        let types: List = [ 'spot', 'swap' ];
+        let types: string[] = [ 'spot', 'swap' ];
         const fetchMarketsOption = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOption !== undefined) {
             types = this.safeList (fetchMarketsOption, 'types', types) as List;

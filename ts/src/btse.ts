@@ -3633,7 +3633,7 @@ export default class btse extends Exchange {
         //         }
         //     ]
         //
-        let safeResponse: List = [];
+        let safeResponse: Dict[] = [];
         if (Array.isArray (response)) {
             safeResponse = response;
         }
@@ -3752,7 +3752,7 @@ export default class btse extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], legacyMessage, feedback);
             throw new ExchangeError (feedback);
         }
-        let rows = [];
+        let rows: Dict[] = [];
         if (Array.isArray (response)) {
             rows = response;
         } else {

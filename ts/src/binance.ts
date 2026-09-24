@@ -5705,7 +5705,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        let responseList: List = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = this.toArray (response);
         }
@@ -9164,7 +9164,7 @@ export default class binance extends Exchange {
         //             }
         //         ]
         //     }
-        let responseList: List = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             if (stock === true) {
                 const rows = this.safeList (response, 'rows', []);
@@ -9436,7 +9436,7 @@ export default class binance extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' method() returned empty response');
         }
-        let responseList: List = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = this.toArray (response);
         }
@@ -9581,7 +9581,7 @@ export default class binance extends Exchange {
         if (typeof response === 'string') {
             response = this.parseJson (response);
         }
-        let responseList: List = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = this.toArray (response);
         }
@@ -15718,7 +15718,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        let responseList: List = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
             responseList = this.toArray (response);
         }

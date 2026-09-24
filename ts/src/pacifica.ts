@@ -2441,7 +2441,7 @@ export default class pacifica extends Exchange {
         return orders as Order[];
     }
 
-    addPaginationCursorToResult (response: Dict): any[] {
+    addPaginationCursorToResult (response: Dict): Dict[] {
         const data: Dict[] = this.safeList (response, 'data', []);
         const paginationCursor = this.safeString (response, 'next_cursor');
         const hasMore = this.safeBool (response, 'has_more', false);

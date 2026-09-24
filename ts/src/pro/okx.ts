@@ -409,7 +409,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (channel, 'public');
-        const fundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const fundingRate: FundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const symbol = this.safeString (fundingRate, 'symbol');
             const result: Dict = {};
@@ -819,7 +819,7 @@ export default class okx extends okxRest {
             ],
         };
         const url = this.getUrl (channel, 'public');
-        const newLiquidations = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const newLiquidations: Liquidation[] = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -913,7 +913,7 @@ export default class okx extends okxRest {
             ],
         };
         const url = this.getUrl (channel, 'private');
-        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const newLiquidations: Liquidation[] = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             return newLiquidations;
         }

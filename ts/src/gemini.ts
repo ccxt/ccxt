@@ -714,7 +714,7 @@ export default class gemini extends Exchange {
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
         const marketIds: List = [];
-        let allMarketIds: List = [];
+        let allMarketIds: string[] = [];
         if (Array.isArray (marketIdsRaw)) {
             allMarketIds = marketIdsRaw;
         }

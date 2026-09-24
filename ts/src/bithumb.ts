@@ -1077,7 +1077,7 @@ export default class bithumb extends Exchange {
                 if ((firstMarketId !== undefined) && (this.safeString (marketIdsChunk, 1) === undefined)) {
                     expectedMarketId = firstMarketId;
                 }
-                let tickers = [];
+                let tickers: Dict[] = [];
                 if (Array.isArray (response)) {
                     tickers = response;
                 } else if (this.isDictionary (response)) {
@@ -1635,7 +1635,7 @@ export default class bithumb extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrders() requires a non-empty orders array');
         }
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        let orderSymbols: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');

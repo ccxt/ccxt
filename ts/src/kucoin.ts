@@ -2410,7 +2410,7 @@ export default class kucoin extends Exchange {
         let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionBoolAndParams (params, 'fetchAccounts', 'uta', uta);
         let response = undefined;
-        let data: List = [];
+        let data: Dict[] = [];
         if (uta) {
             response = await this.utaPrivateGetAccountModeAccountOverview (this.extend (params, { 'accountMode': 'unified' }));
             //
@@ -6852,7 +6852,7 @@ export default class kucoin extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.options['fetchMyTradesMethod'];
+        const method = this.safeString (this.options, 'fetchMyTradesMethod');
         let parseResponseData = false;
         let response = undefined;
         [ request, params ] = this.handleUntilOption ('endAt', request, params);
@@ -6935,7 +6935,7 @@ export default class kucoin extends Exchange {
             trades = this.safeList (data, 'items', []);
         }
         // v1 may put a bare list or dict under data; normalize once for parseTrades
-        let tradesList: List = [];
+        let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = this.toArray (trades);
         }
@@ -10384,7 +10384,7 @@ export default class kucoin extends Exchange {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        let dataList: List = [];
+        let dataList: Dict[] = [];
         if (uta) {
             if (limit !== undefined) {
                 request['pageSize'] = limit;
@@ -11012,7 +11012,7 @@ export default class kucoin extends Exchange {
         }
         const request: Dict = {};
         let response = undefined;
-        let orders: List = [];
+        let orders: Dict[] = [];
         if (uta) {
             let accountMode = 'unified';
             [ accountMode, params ] = this.handleOptionStringAndParams (params, 'cancelOrders', 'accountMode', accountMode);

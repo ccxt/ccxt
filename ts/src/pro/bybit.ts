@@ -1765,7 +1765,7 @@ export default class bybit extends bybitRest {
         [ method, params ] = this.handleOptionStringAndParams (params, 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbol;
         const topic = method + '.' + market['id'];
-        const newLiquidation = await this.watchTopics (url, [ messageHash ], [ topic ], params);
+        const newLiquidation: Liquidation[] = await this.watchTopics (url, [ messageHash ], [ topic ], params);
         if (this.newUpdates) {
             return newLiquidation;
         }

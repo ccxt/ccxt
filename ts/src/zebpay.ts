@@ -1222,7 +1222,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        let orders: List = [];
+        let orders: Dict[] = [];
         if (market['spot'] === true) {
             request['currentPage'] = 1;
             if (limit !== undefined) {
@@ -1230,7 +1230,7 @@ export default class zebpay extends Exchange {
             }
             response = await this.privateSpotGetV2ExOrders (this.extend (request, params));
             const responseData = this.safeDict (response, 'data', {});
-            orders = this.safeList (responseData, 'items', []) as List;
+            orders = this.safeList (responseData, 'items', []);
         } else {
             if (since !== undefined) {
                 request['since'] = since;
@@ -1240,7 +1240,7 @@ export default class zebpay extends Exchange {
             }
             response = await this.privateSwapGetV1TradeOrderOpenOrders (this.extend (request, params));
             const responseData = this.safeDict (response, 'data', {});
-            orders = this.safeList (responseData, 'data', []) as List;
+            orders = this.safeList (responseData, 'data', []);
         }
         //
         //     {

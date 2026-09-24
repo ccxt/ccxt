@@ -1075,7 +1075,7 @@ export default class deribit extends Exchange {
         const result: Dict = {
             'info': balance,
         };
-        let summaries: List = [];
+        let summaries: Dict[] = [];
         if ('summaries' in balance) {
             summaries = this.safeList (balance, 'summaries', []);
         } else {

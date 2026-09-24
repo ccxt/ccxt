@@ -7112,7 +7112,7 @@ export default class okx extends Exchange {
         //        "type": "8"
         //    }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -8570,7 +8570,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const entryMarketId = this.safeString (entry, 'instId');
@@ -9238,7 +9238,7 @@ export default class okx extends Exchange {
         //     }
         //
         const result: Dict = {};
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'ccy');

@@ -7,7 +7,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ChecksumError, ArgumentsRequired, AuthenticationError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Dictionary, Balances, Bool, Dict, Int, Liquidation, List, Market, Num, FeeString, NullableList, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Dictionary, Balances, Bool, Dict, Int, Liquidation, Market, Num, FeeString, NullableList, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import Client from '../base/ws/Client.js';
@@ -429,7 +429,7 @@ export default class binance extends binanceRest {
         const subscribe: Dict = {
             'id': requestId,
         };
-        const newLiquidations = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscribe);
+        const newLiquidations: Liquidation[] = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscribe);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -635,7 +635,7 @@ export default class binance extends binanceRest {
         const listenKey = this.options[type]['listenKey'];
         const url = this.getPrivateWsUrl (type, listenKey);
         const message = undefined;
-        const newLiquidations = await this.watchMultiple (url, messageHashes, message, [ type ]);
+        const newLiquidations: Liquidation[] = await this.watchMultiple (url, messageHashes, message, [ type ]);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -2747,7 +2747,7 @@ export default class binance extends binanceRest {
         }
         let channelName: Str = undefined;
         const resolvedMessageHashes: string[] = [];
-        let rawTickers: List = [];
+        let rawTickers: Dict[] = [];
         const newTickers: Dict = {};
         if (Array.isArray (message)) {
             rawTickers = message;
