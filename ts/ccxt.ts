@@ -106,6 +106,7 @@ import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
 import gateeu from  './src/gateeu.js'
 import gemini from  './src/gemini.js'
+import gmx from  './src/gmx.js'
 import grvt from  './src/grvt.js'
 import hashkey from  './src/hashkey.js'
 import hibachi from  './src/hibachi.js'
@@ -301,6 +302,7 @@ const exchanges = {
     'gate':                   gate,
     'gateeu':                 gateeu,
     'gemini':                 gemini,
+    'gmx':                    gmx,
     'grvt':                   grvt,
     'hashkey':                hashkey,
     'hibachi':                hibachi,
@@ -669,6 +671,7 @@ export {
     gate,
     gateeu,
     gemini,
+    gmx,
     grvt,
     hashkey,
     hibachi,
