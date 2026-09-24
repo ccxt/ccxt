@@ -81,5 +81,24 @@ public partial class BaseTest
         Assert(projectedFees.ContainsKey("ACE"), "the top-level currency container must still unwrap");
         var projectedFee = (Dictionary<string, object>)projectedFees["ACE"];
         Assert(projectedFee.ContainsKey("networks") && !projectedFee.ContainsKey("BEP20"), "nested networks must survive the fee container");
+
+        var currency = new Currency {
+            networks = new Dictionary<string, Network>() { { "BEP20", new Network { fee = 3.0 } } },
+        };
+        var projectedCurrency = (Dictionary<string, object>)testMainClass.detypeForComparison(currency);
+        Assert(projectedCurrency.ContainsKey("networks") && !projectedCurrency.ContainsKey("BEP20"), "currency networks must also stay nested");
+        var currencyNetworks = (Dictionary<string, object>)projectedCurrency["networks"];
+        Assert((double)((Dictionary<string, object>)currencyNetworks["BEP20"])["fee"] == 3.0, "currency network fields must remain accessible");
+
+        // String-indexed containers still unwrap, including dictionaries of lists.
+        foreach (var wrapper in new object[] {
+            new Tickers { tickers = new Dictionary<string, Ticker>() { { "TEST", new Ticker { last = 3.0 } } } },
+            new Balances { balances = new Dictionary<string, Balance>() { { "TEST", new Balance { total = 3.0 } } } },
+            new LeverageTiers { tiers = new Dictionary<string, List<LeverageTier>>() { { "TEST", new List<LeverageTier>() { new LeverageTier { maxLeverage = 3.0 } } } } },
+        })
+        {
+            var projectedWrapper = (Dictionary<string, object>)testMainClass.detypeForComparison(wrapper);
+            Assert(projectedWrapper.ContainsKey("TEST"), "string-indexed containers must keep their entries at the top level");
+        }
     }
 }

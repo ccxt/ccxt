@@ -401,6 +401,7 @@ public partial class testMainClass : BaseTest
             return row;
         }
         var result = new dict();
+        var indexer = type.GetProperty("Item", new[] { typeof(string) });
         foreach (var field in fields)
         {
             var fieldValue = field.GetValue(value);
@@ -409,10 +410,11 @@ public partial class testMainClass : BaseTest
             // LeverageTiers, ...) hold a Dictionary<string, T> where T is a unified
             // struct or a list of them; the unified shape is that dictionary itself,
             // keyed by symbol/currency, so splat its entries instead of nesting them.
-            // Deposit/withdraw fee networks are nested, not top-level containers.
-            if ((type != typeof(DepositWithdrawFee) || field.Name != "networks") && fieldType.IsGenericType
+            // Only unwrap dictionaries exposed by the container's string indexer.
+            if (fieldType.IsGenericType
                 && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
                 && fieldType.GetGenericArguments()[0] == typeof(string)
+                && indexer != null && indexer.PropertyType == fieldType.GetGenericArguments()[1]
                 && isProjectable(fieldType.GetGenericArguments()[1]))
             {
                 if (fieldValue is System.Collections.IDictionary inner)
