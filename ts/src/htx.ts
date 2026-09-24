@@ -9560,7 +9560,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlement (settlement: Dict, market: Market) {
+    parseSettlement (settlement: NullableDict, market: Market) {
         //
         // coin-m swap, fetchSettlementHistory
         //

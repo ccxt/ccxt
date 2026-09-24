@@ -3676,7 +3676,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingHistories (data, market, since, limit);
     }
 
-    parseFundingHistory (contract: Dict, market: Market = undefined) {
+    parseFundingHistory (contract: NullableDict, market: Market = undefined) {
         //
         //     {
         //         "market": "BTC_PERP",

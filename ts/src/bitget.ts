@@ -9750,7 +9750,7 @@ export default class bitget extends Exchange {
         return this.parseFundingHistories (bills, market, since, limit);
     }
 
-    parseFundingHistory (contract: Dict, market: Market = undefined) {
+    parseFundingHistory (contract: NullableDict, market: Market = undefined) {
         //
         //     {
         //         "billId": "1111499428100472833",

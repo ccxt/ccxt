@@ -5190,7 +5190,7 @@ export default class xt extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit) as FundingHistory[];
     }
 
-    parseFundingHistory (contract: Dict, market: Market = undefined) {
+    parseFundingHistory (contract: NullableDict, market: Market = undefined) {
         //
         //     {
         //         "id": "210804044057280512",
