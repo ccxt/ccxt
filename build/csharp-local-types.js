@@ -2774,6 +2774,22 @@ function wsOrderBookWatchType (declaration) {
     return 'ccxt.pro.IOrderBook';
 }
 
+// `const trades: ArrayCache = await this.watch (...)`: the annotation names the cache class every
+// handler resolves for those hashes (proven per site in ts/src/pro); watch hands that object back
+// unchanged, so the identity cast only checks it
+const CSHARP_WS_WATCH_CACHE_ANNOTATIONS = [ 'ArrayCache', 'ArrayCacheByTimestamp', 'ArrayCacheBySymbolById', 'ArrayCacheBySymbolBySide' ];
+
+function wsCacheAnnotatedWatchType (declaration) {
+    const name = wsWatchAwaitMethodName (declaration);
+    const type = declaration?.type;
+    if ((name !== 'watch' && name !== 'watchMultiple') || type?.kind !== ts.SyntaxKind.TypeReference
+        || type.typeName?.kind !== ts.SyntaxKind.Identifier || type.typeArguments !== undefined) {
+        return undefined;
+    }
+    const annotated = String (type.typeName.escapedText);
+    return CSHARP_WS_WATCH_CACHE_ANNOTATIONS.includes (annotated) ? ('ccxt.pro.' + annotated) : undefined;
+}
+
 // the printed initializer still IS the awaited call the type was proven from: an
 // implicit-`this` call prints `await this.<name>(`, a table call prints `await <name>(`.
 // Anything else (a typed core's `ccxt.BaseExchange.FromX(...)` funnel) is a different
@@ -10624,7 +10640,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         const wsCacheFieldElement = (elementType === undefined) ? wsCacheFieldElementBoxType (declaration.initializer) : undefined;
         // the ws order book subscriber core (`const orderbook = await this.watch (...)` +
         // `return orderbook.limit ()`): the resolve proof is wsOrderBookWatchType above
-        const wsOrderBookType = wsOrderBookWatchType (declaration);
+        const wsOrderBookType = wsOrderBookWatchType (declaration) ?? wsCacheAnnotatedWatchType (declaration);
         if (wsOrderBookType !== undefined) {
             csharpType = wsOrderBookType;
             cast = wsOrderBookType;

@@ -1300,7 +1300,7 @@ export default class binance extends binanceRest {
         const subscribe: Dict = {
             'id': requestId,
         };
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -4373,7 +4373,7 @@ export default class binance extends binanceRest {
             const stockSubscribe: Dict = {
                 'id': stockRequestId,
             };
-            const stockOrders = await this.watch (stockUrl, stockMessageHash, this.extend (stockRequest, stockQuery), stockMessageHash, stockSubscribe);
+            const stockOrders: ArrayCache = await this.watch (stockUrl, stockMessageHash, this.extend (stockRequest, stockQuery), stockMessageHash, stockSubscribe);
             if (this.newUpdates) {
                 limit = stockOrders.getLimit (symbol, limit);
             }
@@ -4419,7 +4419,7 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
-        const orders = await this.watch (url, messageHash, message, type);
+        const orders: ArrayCache = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -5473,7 +5473,7 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
-        const trades = await this.watch (url, messageHash, message, type);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }

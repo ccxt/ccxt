@@ -224,7 +224,7 @@ export default class p2b extends p2bRest {
             'id': this.milliseconds (),
         };
         const query = this.extend (subscribe, params);
-        const trades = await this.watchMultiple (url, messageHashes, query, messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, query, messageHashes);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
