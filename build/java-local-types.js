@@ -11237,3 +11237,147 @@ export function patchJavaLimitLocalTypes (transpiler) {
         return at === -1 ? printed : printed.slice (0, at) + `${iden}${type} ${printedName} = ` + printed.slice (at + marker.length);
     };
 }
+
+// ===== 23. omit of a Map (types-java-acc) =====
+// `const x = this.omit (m, ...)` with m declared Map<String, Object> in Java: Functions.omit only
+// hands a List back for a List input, so the result is a fresh Map (or null for a null m).
+function javaOmitMapCall (printer, node, depth = 0) {
+    const call = unwrapParens (node);
+    if (call === undefined || !ts.isCallExpression (call) || !isThisCall (call)
+        || call.expression.name.escapedText !== 'omit' || call.arguments.length < 2
+        || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    const file = declaration?.getSourceFile?.().fileName;
+    const name = declaration?.name?.escapedText ?? declaration?.parent?.name?.escapedText;
+    if (file === undefined || !COLLECTION_SOURCE_FILE.test (file) || String (name) !== 'omit') {
+        return undefined;
+    }
+    if (!javaOmitSourceIsMap (printer, unwrapParens (call.arguments[0]), depth)) {
+        return undefined;
+    }
+    // the source may print as an Object snapshot copy, which binds an Object-declared overload
+    return { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')' };
+}
+
+// the omitted source is a Map in Java: a parameter the printer declares Map<String, Object> (the
+// async snapshot copy may print Object, so every write in the body must be a Map producer too) or
+// a local another section typed Map
+function javaOmitSourceIsMap (printer, source, depth) {
+    if (source === undefined || !ts.isIdentifier (source) || depth > 3) {
+        return false;
+    }
+    const declaration = printer.getChecker ().getSymbolAtLocation (source)?.valueDeclaration;
+    if (declaration === undefined) {
+        return false;
+    }
+    let type;
+    if (ts.isParameter (declaration)) {
+        type = declaration.initializer !== undefined
+            ? printer.javaOptionalParameterType?.(declaration) : printer.javaNativeParameterType?.(declaration);
+    } else {
+        type = printer.javaDeclaredLocalTypeResolver?.(declaration);
+    }
+    if (String (type ?? '').replace (/^java\.util\./, '') !== 'Map<String, Object>') {
+        return false;
+    }
+    if (!ts.isParameter (declaration)) {
+        return true;
+    }
+    const scope = enclosingFunction (declaration);
+    const name = String (declaration.name.escapedText);
+    for (const n of (identifierIndex (scope).get (name) ?? [])) {
+        const parent = n.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === n
+            && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            const right = unwrapParens (parent.right);
+            const ok = parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                && (javaOmitMapCall (printer, right, depth + 1) !== undefined
+                    || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE);
+            if (!ok) {
+                return false;
+            }
+        }
+        if (parent !== undefined && ts.isArrayLiteralExpression (parent)) {
+            return false; // destructuring target
+        }
+    }
+    return true;
+}
+
+function javaOmitLocalType (printer, declaration) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const info = javaOmitMapCall (printer, declaration.initializer);
+    if (info === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const writeOk = (right) => javaOmitMapCall (printer, right) !== undefined
+        || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE;
+    return isSafeToNarrow (printer, declaration, String (declaration.name.escapedText), JAVA_STRUCTURE_TYPE, isProFile,
+        { noCastAssertions: true, writeOk }) ? info : undefined;
+}
+
+export function patchJavaOmitLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaOmitLocalTypesPatched) {
+        return;
+    }
+    printer._javaOmitLocalTypesPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined) {
+            return printed;
+        }
+        let info;
+        try {
+            info = javaOmitLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || !printed.startsWith ('this.omit(', at + marker.length)) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        const cast = info.cast === '' ? '' : info.cast + ' ';
+        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${cast}` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // later omit/Map-producer writes to a typed local take the checkcast their Object overload needs
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration;
+        } catch (e) {
+            return printed;
+        }
+        if (declaration === undefined || !typed.has (declaration)) {
+            return printed;
+        }
+        const info = javaOmitMapCall (printer, node.right) ?? accumulatorWriteInfo (printer, node.right);
+        return info === undefined || info.type !== JAVA_STRUCTURE_TYPE ? printed : accumulatorCastWrite (printer, node, printed, info);
+    };
+}
