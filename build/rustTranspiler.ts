@@ -11268,6 +11268,13 @@ impl std::ops::DerefMut for ${coreName} {
         createFolderRecursively(BASE_TESTS_FOLDER);
         createFolderRecursively(BASE_TESTS_WS_FOLDER);
         createFolderRecursively(GENERATED_TESTS_FOLDER);
+        // one TS7 snapshot for every test file of this pass instead of one per file
+        const testRoots = [ './ts/src/test/base', './ts/src/pro/test/base', './ts/src/test/Exchange/base',
+            './ts/src/test/Exchange', './ts/src/pro/test/Exchange' ]
+            .filter(d => fs.existsSync(d))
+            .flatMap(d => fs.readdirSync(d).filter(f => f.endsWith('.ts')).map(f => `${d}/${f}`));
+        if (fs.existsSync('./ts/src/test/tests.ts')) testRoots.push('./ts/src/test/tests.ts');
+        this.transpiler.setSharedProgram(testRoots);
         this.transpileBaseTests(BASE_TESTS_FOLDER);
         this.transpileBaseTestsWs(BASE_TESTS_WS_FOLDER);
         this.transpileExchangeTests(GENERATED_TESTS_FOLDER);
