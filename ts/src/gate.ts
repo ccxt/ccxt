@@ -2811,7 +2811,7 @@ export default class gate extends Exchange {
     parseFundingHistories (response: any, symbol: any, since: Int, limit: Int): FundingHistory[] {
         const result: FundingHistory[] = [];
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+            const entry = this.safeDict (response, i);
             const funding = this.parseFundingHistory (entry);
             result.push (funding);
         }

@@ -2755,7 +2755,7 @@ export default class binance extends binanceRest {
             rawTickers.push (message);
         }
         for (let i = 0; i < rawTickers.length; i++) {
-            const ticker = rawTickers[i];
+            const ticker = this.safeDict (rawTickers, i);
             let event = this.safeString (ticker, 'e');
             if (isBidAsk) {
                 event = 'bookTicker'; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
@@ -5140,7 +5140,7 @@ export default class binance extends binanceRest {
         const rawPositions = this.safeList (data, 'P', []);
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
+            const rawPosition = this.safeDict (rawPositions, i);
             const position = this.parseWsPosition (rawPosition);
             const timestamp = this.safeInteger (message, 'E');
             position['timestamp'] = timestamp;
@@ -5663,7 +5663,7 @@ export default class binance extends binanceRest {
         const P = this.safeList (message, 'P', []);
         const newPositions = [];
         for (let i = 0; i < P.length; i++) {
-            const rawPosition = P[i];
+            const rawPosition = this.safeDict (P, i);
             const position = this.parseWsOptionsPosition (rawPosition);
             position['timestamp'] = timestamp;
             position['datetime'] = this.iso8601 (timestamp);
@@ -5818,7 +5818,7 @@ export default class binance extends binanceRest {
         };
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {
-            const arrayMessage = message[0];
+            const arrayMessage = this.safeDict (message, 0);
             event = this.safeString (arrayMessage, 'e') + '@arr';
         }
         method = this.safeValue (methods, event);

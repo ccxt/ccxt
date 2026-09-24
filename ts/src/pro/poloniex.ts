@@ -664,7 +664,7 @@ export default class poloniex extends poloniexRest {
         //
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
+            const item = this.safeDict (data, i);
             const marketId = this.safeString (item, 'symbol');
             if (marketId !== undefined) {
                 const trade = this.parseWsTrade (item);

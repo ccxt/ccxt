@@ -332,7 +332,7 @@ export default class coinex extends coinexRest {
         }
         const data = this.safeDict (message, 'data', {});
         const balances = this.safeList (data, 'balance_list', []);
-        const firstEntry = balances[0];
+        const firstEntry = this.safeDict (balances, 0);
         const updated = this.safeInteger (firstEntry, 'updated_at');
         const unrealizedPnl = this.safeString (firstEntry, 'unrealized_pnl');
         const isSpot = (updated !== undefined);

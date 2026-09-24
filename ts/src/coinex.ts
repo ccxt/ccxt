@@ -5891,7 +5891,7 @@ export default class coinex extends Exchange {
         const data = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
+            const item = this.safeDict (data, i);
             const asset = this.safeDict (item, 'asset', {});
             const currencyId = this.safeString (asset, 'ccy');
             if (currencyId === undefined) {
