@@ -803,7 +803,7 @@ export default class apex extends apexRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
             this.fetchPositions (),
@@ -1064,7 +1064,7 @@ export default class apex extends apexRest {
         };
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict) {
         //
         //     {"op": "ping", "args": ["1761069137485"]}
         //

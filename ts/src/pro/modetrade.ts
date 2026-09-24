@@ -1063,7 +1063,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1380,7 +1380,7 @@ export default class modetrade extends modetradeRest {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict) {
         await client.send ({ 'event': 'pong' });
     }
 

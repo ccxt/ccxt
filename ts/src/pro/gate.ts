@@ -1433,7 +1433,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, type: any): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: any) {
         const positions = await this.fetchPositions (undefined, { 'type': type });
         this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];

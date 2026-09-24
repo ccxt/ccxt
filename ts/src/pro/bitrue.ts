@@ -812,7 +812,7 @@ export default class bitrue extends bitrueRest {
         this.spawn (this.pong, client, message);
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict) {
         //
         //     {
         //         "ping": 1670057540627
@@ -917,7 +917,7 @@ export default class bitrue extends bitrueRest {
         return this.options['listenKeyUrl'];
     }
 
-    async keepAliveListenKey (params: Dict = {}): Promise<void> {
+    async keepAliveListenKey (params: Dict = {}) {
         const listenKey = this.safeString (this.options, 'listenKey');
         const request: Dict = {
             'listenKey': listenKey,

@@ -968,7 +968,7 @@ export default class binance extends binanceRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async fetchOrderBookSnapshot (client: Client, message: any, subscription: any): Promise<void> {
+    async fetchOrderBookSnapshot (client: Client, message: any, subscription: any) {
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = 'orderbook::' + symbol;
         try {
@@ -2810,7 +2810,7 @@ export default class binance extends binanceRest {
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
-    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot'): Promise<void> {
+    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const client = this.client (url);
         const subscriptions = client.subscriptions;
@@ -2887,7 +2887,7 @@ export default class binance extends binanceRest {
      * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    async ensureUserDataStreamWsSubscribeListenToken (marketType: string = 'margin', params: Dict = {}): Promise<void> {
+    async ensureUserDataStreamWsSubscribeListenToken (marketType: string = 'margin', params: Dict = {}) {
         const url = this.urls['api']['ws']['ws-api']['spot'];
         const options = this.safeDict (this.options, marketType, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
@@ -2972,7 +2972,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async renewListenToken (params: Dict = {}): Promise<void> {
+    async renewListenToken (params: Dict = {}) {
         const type = this.safeString (params, 'type', 'margin');
         const options = this.safeDict (this.options, type, {});
         const symbol = this.safeString (options, 'symbol');
@@ -2991,7 +2991,7 @@ export default class binance extends binanceRest {
         await this.ensureUserDataStreamWsSubscribeListenToken (type, renewParams);
     }
 
-    async authenticate (params: Dict = {}): Promise<void> {
+    async authenticate (params: Dict = {}) {
         const time = this.milliseconds ();
         const resolvedAuth = this.resolveAuthType ('authenticate', undefined, params);
         const type = resolvedAuth[0];
@@ -3097,7 +3097,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async keepAliveListenKey (params: Dict = {}): Promise<void> {
+    async keepAliveListenKey (params: Dict = {}) {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
@@ -3228,7 +3228,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
         const params: Dict = {
             'type': type,
         };
@@ -5032,7 +5032,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
         const params: Dict = {
             'type': type,
         };

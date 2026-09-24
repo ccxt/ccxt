@@ -1628,7 +1628,7 @@ export default class weex extends weexRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: string): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
         const params: Dict = {
             'type': type,
         };
@@ -1783,7 +1783,7 @@ export default class weex extends weexRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, params: any): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string, params: any) {
         const positions = await this.fetchPositions (undefined, params);
         this.positions = new ArrayCacheBySymbolById ();
         const cache = this.positions;
@@ -1904,7 +1904,7 @@ export default class weex extends weexRest {
         return market;
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict) {
         //
         //     { "event": "ping", "time": "1776078750000" } - public
         //

@@ -2657,7 +2657,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: string): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
         const uta = (type === 'unified');
         const params: Dict = {
             'type': type,
@@ -2931,7 +2931,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, uta: boolean): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string, uta: boolean) {
         const positions = await this.fetchPositions (undefined, { 'uta': uta });
         this.positions = new ArrayCacheBySymbolById ();
         const cache = this.positions;
@@ -2961,7 +2961,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    async loadPositionSnapshot (client: Client, messageHash: string, symbol: string): Promise<void> {
+    async loadPositionSnapshot (client: Client, messageHash: string, symbol: string) {
         const position = await this.fetchPosition (symbol);
         this.positions = new ArrayCacheBySymbolById ();
         const cache = this.positions;

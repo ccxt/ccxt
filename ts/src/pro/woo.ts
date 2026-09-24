@@ -272,7 +272,7 @@ export default class woo extends wooRest {
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
-    async fetchOrderBookSnapshot (client: Client, message: Dict, subscription: Dict): Promise<void> {
+    async fetchOrderBookSnapshot (client: Client, message: Dict, subscription: Dict) {
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (message, 'topic');
         try {
@@ -1349,7 +1349,7 @@ export default class woo extends wooRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1659,7 +1659,7 @@ export default class woo extends wooRest {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict) {
         await client.send ({ 'event': 'pong' });
     }
 

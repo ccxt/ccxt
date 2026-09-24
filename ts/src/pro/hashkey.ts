@@ -770,7 +770,7 @@ export default class hashkey extends hashkeyRest {
         // without this comment, transpilation breaks for some reason...
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: string): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
@@ -877,7 +877,7 @@ export default class hashkey extends hashkeyRest {
         return listenKey;
     }
 
-    async keepAliveListenKey (listenKey: Str, params: Dict = {}): Promise<void> {
+    async keepAliveListenKey (listenKey: Str, params: Dict = {}) {
         if (listenKey === undefined) {
             return;
         }

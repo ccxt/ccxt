@@ -2350,7 +2350,7 @@ export default class htx extends htxRest {
         }
     }
 
-    async pong (client: Client, message: Dict): Promise<void> {
+    async pong (client: Client, message: Dict) {
         //
         //     { ping: 1583491673714 }
         //     { action: "ping", data: { ts: 1645108204665 } }

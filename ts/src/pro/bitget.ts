@@ -978,7 +978,7 @@ export default class bitget extends bitgetRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async handleCheckSumError (client: Client, symbol: string, messageHash: string): Promise<void> {
+    async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
         await this.unWatchOrderBook (symbol);
         const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
         client.reject (error, messageHash);

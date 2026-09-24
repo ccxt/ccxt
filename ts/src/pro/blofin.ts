@@ -824,7 +824,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    async authenticate (params: Dict = {}): Promise<void> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const milliseconds = this.milliseconds ();
         const messageHash = 'authenticate_hash';

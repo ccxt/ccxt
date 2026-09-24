@@ -1591,7 +1591,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
             this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'linear' }),

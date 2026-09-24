@@ -922,7 +922,7 @@ export default class bydfi extends bydfiRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string): Promise<void> {
+    async loadBalanceSnapshot (client: Client, messageHash: string) {
         const params: Dict = {
             'type': 'swap',
         };
