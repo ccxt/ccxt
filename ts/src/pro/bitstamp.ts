@@ -578,7 +578,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (stored, channel);
     }
 
-    parseWsMyTrade (trade: any, market: Market = undefined): Trade {
+    parseWsMyTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "id": 635698396,
@@ -916,7 +916,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',

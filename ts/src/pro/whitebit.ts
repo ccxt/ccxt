@@ -214,7 +214,7 @@ export default class whitebit extends whitebitRest {
         //  }
         //
         const params = this.safeList (message, 'params', []);
-        const isSnapshot = this.safeValue (params, 0);
+        const isSnapshot = this.safeBool (params, 0);
         const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1066,7 +1066,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "error": { code: 1, message: "invalid argument" },
@@ -1125,7 +1125,7 @@ export default class whitebit extends whitebitRest {
             'balanceMargin_update': this.handleBalance,
             'deals_update': this.handleMyTrades,
         };
-        const topic = this.safeValue (message, 'method');
+        const topic = this.safeString (message, 'method');
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);

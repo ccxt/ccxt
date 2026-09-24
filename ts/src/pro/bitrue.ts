@@ -852,7 +852,7 @@ export default class bitrue extends bitrueRest {
         }
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<Str> {
         const listenKey: Str = this.safeString (this.options, 'listenKey');
         if (listenKey === undefined) {
             // single-flight leader election on a never-dialed client, see

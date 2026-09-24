@@ -948,7 +948,7 @@ export default class grvt extends grvtRest {
         return this.parseOrder (order, market);
     }
 
-    handleErrorMessage (client: Client, response: any): Bool {
+    handleErrorMessage (client: Client, response: Dict): Bool {
         //
         //    {
         //        "jsonrpc": "2.0",
