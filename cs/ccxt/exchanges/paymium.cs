@@ -712,6 +712,12 @@ public partial class paymium : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    public override Int64 nonce()
+    {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -728,7 +734,8 @@ public partial class paymium : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            // paymium requires an increasing nonce
+            string nonce = ((object)this.incrementingNonce()).ToString();
             object auth = (nonce + (url));
             headers = new Dictionary<string, object>() {
                 { "Api-Key", this.apiKey },

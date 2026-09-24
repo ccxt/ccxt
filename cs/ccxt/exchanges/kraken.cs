@@ -4091,7 +4091,8 @@ public partial class kraken : Exchange
             bool isCancelOrderBatch = (isEqual(path, "CancelOrderBatch"));
             bool isBatchOrder = (isEqual(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+            string nonce = ((object)this.incrementingNonce()).ToString();
             if (isCancelOrderBatch || isTriggerPercent || isBatchOrder)
             {
                 body = this.json(this.extend(new Dictionary<string, object>() {

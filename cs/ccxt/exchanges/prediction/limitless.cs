@@ -2353,7 +2353,7 @@ public partial class limitless : PredictionExchange
         {
             throw new InvalidAddress ((string)(this.id + " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")) ;
         }
-        Int64 nonce = this.milliseconds();
+        object nonce = this.incrementingNonce();
         Dictionary<string, object> sides = new Dictionary<string, object>() {
             { "buy", 0 },
             { "sell", 1 },
@@ -3542,6 +3542,13 @@ public partial class limitless : PredictionExchange
             }
         }
         return ccxt.BaseExchange.ToDictList(allRaw);
+    }
+
+    public override Int64 nonce()
+    {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two orders are signed within the same millisecond
+        return this.milliseconds();
     }
 
     /**

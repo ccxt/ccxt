@@ -2388,7 +2388,8 @@ public partial class gemini : Exchange
             {
                 throw new AuthenticationError ((string)(this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }
-            string nonce = ((object)this.nonce()).ToString();
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            string nonce = ((object)this.incrementingNonce()).ToString();
             object finalUrl = url;
             Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
                 { "request", finalUrl },

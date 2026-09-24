@@ -1047,7 +1047,7 @@ public partial class gemini : ccxt.gemini
         string? request = slice(url, startIndex, endIndex);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "request", request },
-            { "nonce", this.nonce() },
+            { "nonce", this.incrementingNonce() },
         };
         string b64 = this.stringToBase64(this.json(payload));
         string signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384, "hex");
