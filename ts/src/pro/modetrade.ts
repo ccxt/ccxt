@@ -916,12 +916,7 @@ export default class modetrade extends modetradeRest {
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
                 const tradeIdStr = this.safeString (data, 'tradeId');
-                let tradeId: Str = undefined;
-                if (tradeIdStr === undefined) {
-                    tradeId = undefined;
-                } else {
-                    tradeId = this.omitZero (tradeIdStr);
-                }
+                const tradeId = (tradeIdStr === undefined) ? undefined : this.omitZero (tradeIdStr);
                 if (tradeId !== undefined) {
                     this.handleMyTrade (client, order);
                 }
@@ -930,12 +925,7 @@ export default class modetrade extends modetradeRest {
         } else {
             // executionreport
             const tradeIdStr = this.safeString (data, 'tradeId');
-            let tradeId: Str = undefined;
-            if (tradeIdStr === undefined) {
-                tradeId = undefined;
-            } else {
-                tradeId = this.omitZero (tradeIdStr);
-            }
+            const tradeId = (tradeIdStr === undefined) ? undefined : this.omitZero (tradeIdStr);
             if (tradeId !== undefined) {
                 this.handleMyTrade (client, data);
             }

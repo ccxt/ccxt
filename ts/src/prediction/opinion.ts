@@ -1673,12 +1673,7 @@ export default class opinion extends Exchange {
      */
     opinionWsUrl (): string {
         const hasDirectApiKey = !this.isEmptyString (this.apiKey);
-        let apiKey: Str = undefined;
-        if (hasDirectApiKey) {
-            apiKey = this.apiKey;
-        } else {
-            apiKey = this.safeString (this.options, 'apiKey');
-        }
+        const apiKey = (hasDirectApiKey) ? this.apiKey : this.safeString (this.options, 'apiKey');
         if (apiKey === undefined) {
             throw new AuthenticationError (this.id + ' websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
         }
@@ -2218,12 +2213,7 @@ export default class opinion extends Exchange {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
                 const hasDirectApiKey = !this.isEmptyString (this.apiKey);
-                let apiKey: Str = undefined;
-                if (hasDirectApiKey) {
-                    apiKey = this.apiKey;
-                } else {
-                    apiKey = this.safeString (this.options, 'apiKey');
-                }
+                const apiKey = (hasDirectApiKey) ? this.apiKey : this.safeString (this.options, 'apiKey');
                 if (apiKey === undefined) {
                     throw new AuthenticationError (this.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
                 }

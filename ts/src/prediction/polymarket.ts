@@ -2991,24 +2991,14 @@ export default class polymarket extends Exchange {
             }
             return;
         }
-        let apiKey: Str = undefined;
-        if (this.apiKey !== undefined) {
-            apiKey = this.apiKey;
-        } else {
-            apiKey = this.safeString (this.options, 'l2ApiKey');
-        }
+        const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
         let secret: Str = undefined;
         if (this.secret !== undefined) {
             secret = this.secret;
         } else {
             secret = this.safeString (this.options, 'l2Secret');
         }
-        let passphrase: Str = undefined;
-        if (this.password !== undefined) {
-            passphrase = this.password;
-        } else {
-            passphrase = this.safeString (this.options, 'l2Passphrase');
-        }
+        const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
         const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
         if (hasL2) {
             return;
@@ -3345,24 +3335,14 @@ export default class polymarket extends Exchange {
 
     async subscribeUserChannel (messageHash: string, params: Dict = {}) {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
-        let apiKey: Str = undefined;
-        if (this.apiKey !== undefined) {
-            apiKey = this.apiKey;
-        } else {
-            apiKey = this.safeString (this.options, 'l2ApiKey');
-        }
+        const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
         let secret: Str = undefined;
         if (this.secret !== undefined) {
             secret = this.secret;
         } else {
             secret = this.safeString (this.options, 'l2Secret');
         }
-        let passphrase: Str = undefined;
-        if (this.password !== undefined) {
-            passphrase = this.password;
-        } else {
-            passphrase = this.safeString (this.options, 'l2Passphrase');
-        }
+        const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
         const auth: Dict = { 'apiKey': apiKey, 'secret': secret, 'passphrase': passphrase };
         // an empty markets list subscribes to every market the user is active in
         const subscribeMsg: Dict = { 'auth': auth, 'markets': [], 'type': 'user' };

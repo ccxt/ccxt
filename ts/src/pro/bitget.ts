@@ -2070,12 +2070,7 @@ export default class bitget extends bitgetRest {
             price = this.safeNumber (order, 'executePrice');
         }
         const avgPriceString = this.safeStringLowerN (order, [ 'priceAvg', 'fillPrice', 'avgPrice' ]);
-        let avgPrice: Str = undefined;
-        if (avgPriceString === undefined) {
-            avgPrice = undefined;
-        } else {
-            avgPrice = this.omitZero (avgPriceString);
-        }
+        const avgPrice = (avgPriceString === undefined) ? undefined : this.omitZero (avgPriceString);
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
         const accBaseVolume = this.omitZero (this.safeString2 (order, 'accBaseVolume', 'cumExecQty'));

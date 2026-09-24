@@ -1694,12 +1694,7 @@ export default class binance extends binanceRest {
                 const stockSymbolString = this.symbol (stockSymAndTf[0]);
                 const stockMarket = this.market (stockSymbolString);
                 const stockTicker = this.safeString2 (stockMarket, 'base', 'id');
-                let stockTickerString: Str = undefined;
-                if (stockTicker === undefined) {
-                    stockTickerString = '';
-                } else {
-                    stockTickerString = stockTicker.toLowerCase ();
-                }
+                const stockTickerString = (stockTicker === undefined) ? '' : stockTicker.toLowerCase ();
                 const stockTimeframeString = stockSymAndTf[1];
                 const stockInterval = this.safeString (this.timeframes, stockTimeframeString, stockTimeframeString);
                 if ((stockInterval !== '5m') && (stockInterval !== '1h') && (stockInterval !== '1d') && (stockInterval !== '1w') && (stockInterval !== '1M')) {
