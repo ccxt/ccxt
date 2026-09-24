@@ -3717,7 +3717,7 @@ export default class bitget extends Exchange {
         const timestamp = this.safeIntegerOmitZero (ticker, 'ts'); // exchange bitget provided 0
         const category = this.safeString (ticker, 'category');
         const markPrice = this.safeString (ticker, 'markPrice');
-        let marketType: string;
+        let marketType: Str = undefined;
         if ((markPrice !== undefined) && (category !== 'SPOT')) {
             marketType = 'contract';
         } else {

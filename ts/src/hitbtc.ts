@@ -1450,7 +1450,7 @@ export default class hitbtc extends Exchange {
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         const taker = this.safeBool (trade, 'taker');
-        let takerOrMaker: string;
+        let takerOrMaker: Str = undefined;
         if (taker !== undefined) {
             takerOrMaker = (taker === true) ? 'taker' : 'maker';
         } else {

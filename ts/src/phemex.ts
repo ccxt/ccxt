@@ -1376,7 +1376,7 @@ export default class phemex extends Exchange {
         //         48759063370, // quote volume
         //     ]
         //
-        let baseVolume: Num;
+        let baseVolume: Num = undefined;
         if ((market !== undefined) && (market['spot'] === true)) {
             baseVolume = this.parseNumber (this.fromEv (this.safeString (ohlcv, 7), market));
         } else {
