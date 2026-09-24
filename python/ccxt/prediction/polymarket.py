@@ -2462,7 +2462,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
         return None
 
-    def nonce(self):
+    def nonce(self) -> float:
         # the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
