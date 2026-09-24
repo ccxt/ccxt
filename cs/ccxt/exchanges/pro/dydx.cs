@@ -60,10 +60,10 @@ public partial class dydx : ccxt.dydx
             { "channel", "v4_trades" },
             { "id", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbol, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -318,10 +318,10 @@ public partial class dydx : ccxt.dydx
             { "channel", "v4_candles" },
             { "id", add(add((market.ContainsKey("id") ? market["id"] : null), "/"), resolution) },
         };
-        object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbol, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }

@@ -1218,6 +1218,22 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    //                    "free": "1.3447112",
+    //                    "locked": "0.08600000"
+    //                },
+    //                {
+    //                    "asset": "USDT",
+    //                    "free": "1021.21000000",
+    //                    "locked": "0.00000000"
+    //                }
+    //            ],
+    //            "permissions": [
+    //                "SPOT"
+    //            ]
+    //        }
+    //    }
+    // swap
+    //
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
         return this.unWatchOrderBook(symbol, (Object) (parameters));
@@ -3201,46 +3217,6 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchMarkPrices(Helpers.getArgStringList(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
-    //            "makerCommission": 15,
-    //            "takerCommission": 15,
-    //            "buyerCommission": 0,
-    //            "sellerCommission": 0,
-    //            "canTrade": true,
-    //            "canWithdraw": true,
-    //            "canDeposit": true,
-    //            "commissionRates": {
-    //                "maker": "0.00150000",
-    //                "taker": "0.00150000",
-    //                "buyer": "0.00000000",
-    //                "seller": "0.00000000"
-    //            },
-    //            "brokered": false,
-    //            "requireSelfTradePrevention": false,
-    //            "updateTime": 1660801833000,
-    //            "accountType": "SPOT",
-    //            "balances": [{
-    //                    "asset": "BNB",
-    //                    "free": "0.00000000",
-    //                    "locked": "0.00000000"
-    //                },
-    //                {
-    //                    "asset": "BTC",
-    //                    "free": "1.3447112",
-    //                    "locked": "0.08600000"
-    //                },
-    //                {
-    //                    "asset": "USDT",
-    //                    "free": "1021.21000000",
-    //                    "locked": "0.00000000"
-    //                }
-    //            ],
-    //            "permissions": [
-    //                "SPOT"
-    //            ]
-    //        }
-    //    }
-    // swap
-    //
     public CompletableFuture<Object> unWatchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
         return this.unWatchMarkPrices(symbols, (Object) (parameters));
@@ -3277,7 +3253,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         return this.unWatchMarkPrice(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters) //        "result": {
+    public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters)
     {
         return this.unWatchMarkPrice(symbol, (Object) (parameters));
     }

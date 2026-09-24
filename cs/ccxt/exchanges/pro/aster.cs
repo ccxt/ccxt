@@ -750,12 +750,12 @@ public partial class aster : ccxt.aster
             subscriptionArgs.Add(add(marketId, "@aggTrade"));
             messageHashes.Add(("trade::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
-        object trades = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes));
         if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(tradeSymbol, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -1992,10 +1992,10 @@ public partial class aster : ccxt.aster
         string? url = this.getPrivateUrl(type);
         var client = this.client(url);
         this.setBalanceCache(client, type);
-        object orders = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type}));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -2041,10 +2041,10 @@ public partial class aster : ccxt.aster
         string? url = this.getPrivateUrl(type);
         var client = this.client(url);
         this.setBalanceCache(client, type);
-        object trades = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type}));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }

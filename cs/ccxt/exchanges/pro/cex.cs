@@ -544,10 +544,10 @@ public partial class cex : ccxt.cex
             { "oid", symbolVar },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object orders = await this.watch(url, messageHash, request, messageHash, request);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash, request));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }

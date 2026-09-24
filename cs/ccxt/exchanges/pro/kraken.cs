@@ -923,10 +923,10 @@ public partial class kraken : ccxt.kraken
             { "req_id", requestId },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        object ohlcv = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, "timestamp", true));
     }
@@ -1297,10 +1297,10 @@ public partial class kraken : ccxt.kraken
         {
             subscribe["params"] = this.deepExtend(((IDictionary<string,object>)subscribe)["params"], parameters);
         }
-        object result = await this.watch(url, messageHash, subscribe, subscriptionHash);
+        ccxt.pro.ArrayCache result = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, subscribe, subscriptionHash));
         if (this.newUpdates)
         {
-            limit = callDynamically(result, "getLimit", new object[] {symbolVar, limit});
+            limit = result.getLimit(symbolVar, limit);
         }
         return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbolVar, since, limit, true))));
     }
