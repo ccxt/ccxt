@@ -1671,6 +1671,9 @@ export default class foxbit extends Exchange {
         const quoteId = this.safeString (quoteAssets, 'symbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const fees = this.safeDict (market, 'default_fees');
         return this.safeMarketStructure ({

@@ -1042,6 +1042,9 @@ export default class weex extends Exchange {
         const settleId = this.safeString (market, 'marginAsset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         let active = true;
         let symbol = base + '/' + quote;

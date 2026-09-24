@@ -572,6 +572,9 @@ export default class alpaca extends Exchange {
         if (quote === undefined && assetClass === 'us_equity') {
             quote = 'USD';
         }
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const status = this.safeString (asset, 'status');
         const active = (status === 'active');

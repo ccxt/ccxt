@@ -573,6 +573,9 @@ export default class lbank extends Exchange {
             const quoteId = parts[1];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push ({
                 'id': marketId,
@@ -670,6 +673,9 @@ export default class lbank extends Exchange {
             const quoteId = settleId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const symbol = base + '/' + quote + ':' + settle;
             result.push ({

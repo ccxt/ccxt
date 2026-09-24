@@ -729,6 +729,9 @@ export default class pacifica extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (isSwap) {

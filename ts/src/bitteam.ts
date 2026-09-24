@@ -466,6 +466,9 @@ export default class bitteam extends Exchange {
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const active = this.safeBool (market, 'active');
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);

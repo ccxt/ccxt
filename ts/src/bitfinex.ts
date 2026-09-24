@@ -676,6 +676,9 @@ export default class bitfinex extends Exchange {
             const splitQuote = (quote as string).split ('F0');
             base = this.safeString (splitBase, 0);
             quote = this.safeString (splitQuote, 0);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let symbol = base + '/' + quote;
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;

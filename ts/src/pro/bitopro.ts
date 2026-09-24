@@ -293,7 +293,10 @@ export default class bitopro extends bitoproRest {
         const quoteId = this.safeString (trade, 'quote');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = this.symbol (base + '/' + quote);
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = this.symbol (base + '/' + quote);
+        }
         market = this.safeMarket (symbol, market);
         const price = this.safeString (trade, 'price');
         const type = this.safeStringLower (trade, 'orderType');
