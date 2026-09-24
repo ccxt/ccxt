@@ -12071,18 +12071,104 @@ export function patchJavaOrderBookCacheLocals (transpiler) {
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
 
-// ===== 31. locals of List<String>-returning base methods (marketIds) =====
-// `const ids = this.marketIds (..)` prints `java.util.List<String>` when the call resolves to the
-// base declaration and every use passes the section 19 List<String> use audit; else it stays Object.
-function stringListReturnLocal (printer, declaration) {
-    const init = unwrapParens (declaration.initializer);
-    if (!isThisCall (init) || !JAVA_STRING_LIST_RETURN_METHODS.has (init.expression.name.escapedText)
-        || !ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
-        || init.arguments.some ((a) => ts.isSpreadElement (a))) {
+// ===== 31. List<String> locals joined over marketIds results and String list literals =====
+// Every write is a List<String> producer (base marketIds call, String-element literal, null, another
+// such local, ternaries of those) and every use passes the section 19 use audit or feeds such a local.
+const STRING_LIST_ARRAY_OPEN = 'new java.util.ArrayList<Object>(java.util.Arrays.asList(';
+const stringListJoinDecisions = new WeakMap ();
+
+function stringListElementOk (printer, element) {
+    const e = unwrapParens (element);
+    if (e !== undefined && ts.isAsExpression (e) && e.type.kind === ts.SyntaxKind.StringKeyword) {
+        return true; // prints ((String) x)
+    }
+    return e !== undefined && (isStaticallyStringExpression (printer, e, undefined) || stringProducerLocal (printer, e));
+}
+
+function stringListLocalDeclaration (printer, node) {
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+        return declaration !== undefined && ts.isVariableDeclaration (declaration) ? declaration : undefined;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+function stringListWriteOk (printer, node, seen, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 4) {
         return false;
     }
-    const file = resolvedSignatureFile (printer, init);
-    if (file === undefined || !HELPER_SOURCE_FILE.test (file) || !resolvesToMethodNamed (printer, init, init.expression.name.escapedText)) {
+    if (isNullishInitializer (value)) {
+        return true;
+    }
+    if (ts.isConditionalExpression (value)) {
+        return stringListWriteOk (printer, value.whenTrue, seen, depth + 1) && stringListWriteOk (printer, value.whenFalse, seen, depth + 1);
+    }
+    if (ts.isArrayLiteralExpression (value)) {
+        return value.elements.every ((e) => stringListElementOk (printer, e));
+    }
+    if (isThisCall (value)) {
+        const name = value.expression.name.escapedText;
+        const file = resolvedSignatureFile (printer, value);
+        return JAVA_STRING_LIST_RETURN_METHODS.has (name) && file !== undefined && HELPER_SOURCE_FILE.test (file)
+            && resolvesToMethodNamed (printer, value, name) && !value.arguments.some ((a) => ts.isSpreadElement (a));
+    }
+    if (ts.isIdentifier (value)) {
+        const declaration = stringListLocalDeclaration (printer, value);
+        return declaration !== undefined && stringListLocalType (printer, declaration, seen) !== undefined;
+    }
+    return false;
+}
+
+// `a[k] = x` prints a Map put / helper call whose value slot is Object
+function stringListStoredAsValue (node) {
+    const parent = node.parent;
+    return parent !== undefined && ts.isBinaryExpression (parent) && parent.right === node
+        && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isElementAccessExpression (parent.left);
+}
+
+// argument of a base method whose parameter at that position is `any` (prints Object)
+function stringListAnyParamArgument (printer, node) {
+    const call = node.parent;
+    if (call === undefined || !ts.isCallExpression (call) || !isThisCall (call)) {
+        return false;
+    }
+    const index = call.arguments.indexOf (node);
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        return false;
+    }
+    const parameter = declaration?.parameters?.[index];
+    return index !== -1 && parameter !== undefined && !parameter.dotDotDotToken
+        && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName)
+        && (parameter.type === undefined || parameter.type.kind === ts.SyntaxKind.AnyKeyword);
+}
+
+// the value flows (through ternary arms) into another joined List<String> local
+function stringListFeedsJoinedLocal (printer, host, seen) {
+    let node = host;
+    while (node.parent !== undefined && (ts.isParenthesizedExpression (node.parent)
+        || (ts.isConditionalExpression (node.parent) && node.parent.condition !== node))) {
+        node = node.parent;
+    }
+    const parent = node.parent;
+    let target;
+    if (parent !== undefined && ts.isBinaryExpression (parent) && parent.right === node
+        && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (parent.left)) {
+        target = stringListLocalDeclaration (printer, parent.left);
+    } else if (parent !== undefined && ts.isVariableDeclaration (parent) && parent.initializer === node) {
+        target = parent;
+    }
+    return target !== undefined && stringListLocalType (printer, target, seen) !== undefined;
+}
+
+function stringListJoinLocal (printer, declaration, seen) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement || declaration.parent?.parent?.kind === ts.SyntaxKind.ForOfStatement
+        || !stringListWriteOk (printer, declaration.initializer, seen)) {
         return false;
     }
     const scope = enclosingFunction (declaration);
@@ -12098,11 +12184,73 @@ function stringListReturnLocal (printer, declaration) {
         if (ts.isVariableDeclaration (n.parent) && n.parent.name === n) {
             return false; // same-named sibling binding
         }
-        if (!objectKeysUseIsSafe (n) || (isProFile && feedsInheritedAsyncCall (printer, n, scope))) {
+        if (enclosingFunction (n) !== scope) {
             return false;
         }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host) {
+            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !stringListWriteOk (printer, parent.right, seen)) {
+                return false;
+            }
+            continue;
+        }
+        const push = stringAccumulatorPush (n);
+        if (push !== undefined) {
+            if (push.arguments.length !== 1 || !stringListElementOk (printer, push.arguments[0])) {
+                return false;
+            }
+            continue;
+        }
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
+            return false;
+        }
+        if (stringListFeedsJoinedLocal (printer, host, seen)) {
+            continue;
+        }
+        if (stringListReturnUse (n, scope) || stringListStoredAsValue (host) || stringListAnyParamArgument (printer, host)
+            || objectKeysUseIsSafe (n)) {
+            continue;
+        }
+        return false;
     }
     return true;
+}
+
+// linked locals (a = b, b feeds a) are decided together: an in-progress local is assumed
+// List<String>; a failed decision drops the decisions taken under it
+function stringListLocalType (printer, declaration, seen = undefined) {
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    if (!stringListJoinDecisions.has (declaration)) {
+        const state = seen === undefined ? { active: new Set (), decided: [] } : seen;
+        if (state.active.has (declaration)) {
+            return JAVA_STRING_LIST_TYPE;
+        }
+        state.active.add (declaration);
+        const mark = state.decided.length;
+        let ok = false;
+        try {
+            ok = stringListJoinLocal (printer, declaration, state);
+        } catch (e) {
+            ok = false;
+        }
+        state.active.delete (declaration);
+        if (!ok) {
+            for (const d of state.decided.splice (mark)) {
+                stringListJoinDecisions.delete (d);
+            }
+        }
+        stringListJoinDecisions.set (declaration, ok);
+        state.decided.push (declaration);
+    }
+    return stringListJoinDecisions.get (declaration) ? JAVA_STRING_LIST_TYPE : undefined;
+}
+
+function stringListRetypeValue (text) {
+    return text.split (STRING_LIST_ARRAY_OPEN).join ('new java.util.ArrayList<String>(java.util.Arrays.asList(')
+        .replace (/^(\s*)\(java\.util\.List<Object>\)\s*/, '$1');
 }
 
 export function patchJavaStringListReturnLocals (transpiler) {
@@ -12126,20 +12274,35 @@ export function patchJavaStringListReturnLocals (transpiler) {
         const heads = [ printer.VAR_TOKEN, 'java.util.List<Object>', 'List<Object>' ].map ((t) => `${iden}${t} ${name} = `);
         const head = heads.find ((h) => printed.lastIndexOf (h) !== -1);
         const at = head === undefined ? -1 : printed.lastIndexOf (head);
-        if (at === -1 || !printed.slice (at + head.length).startsWith ('this.marketIds(')) {
+        if (at === -1) {
             return printed;
         }
-        let ok = false;
-        try {
-            ok = stringListReturnLocal (printer, declaration);
-        } catch (e) {
-            ok = false;
-        }
-        if (!ok) {
-            return head === heads[0] ? printed : printed.slice (0, at) + heads[0] + printed.slice (at + head.length);
+        if (stringListLocalType (printer, declaration) === undefined) {
+            // a declared List<Object> cannot take a List<String> call result
+            return head !== heads[0] && printed.slice (at + head.length).startsWith ('this.marketIds(')
+                ? printed.slice (0, at) + heads[0] + printed.slice (at + head.length) : printed;
         }
         typed.set (declaration, JAVA_STRING_LIST_TYPE);
-        return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${name} = ` + printed.slice (at + head.length);
+        return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${name} = ` + stringListRetypeValue (printed.slice (at + head.length));
     };
+    const receiverDeclaration = (receiver) => (receiver !== undefined && ts.isIdentifier (receiver)
+        ? stringListLocalDeclaration (printer, receiver) : undefined);
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !typed.has (receiverDeclaration (node.left))) {
+            return printed;
+        }
+        const marker = `${printer.printNode (node.left, 0)} = `;
+        const at = printed.indexOf (marker);
+        return at === -1 ? printed : printed.slice (0, at + marker.length) + stringListRetypeValue (printed.slice (at + marker.length));
+    };
+    if (typeof printer.printArrayPushCall === 'function') {
+        const upstreamPush = printer.printArrayPushCall.bind (printer);
+        printer.printArrayPushCall = function (node, identation, name = undefined, parsedArg = undefined) {
+            return typed.has (receiverDeclaration (node?.expression?.expression))
+                ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
+        };
+    }
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
