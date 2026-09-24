@@ -1719,10 +1719,13 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object network = this.safeString(parameters, "network");
+            String network = this.safeString(parameters, "network");
             Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
             String defaultNetwork = this.safeString(defaultNetworks, code);
-            network = (((!java.util.Objects.equals(network, null) && !java.util.Objects.equals(network, "")))) ? network : defaultNetwork;
+            if ((java.util.Objects.equals(network, null)) || (java.util.Objects.equals(network, "")))
+            {
+                network = defaultNetwork;
+            }
             if (!java.util.Objects.equals(network, null))
             {
                 parameters = (Map<String, Object>) this.omit(parameters, "network");

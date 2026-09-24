@@ -3437,14 +3437,14 @@ public class Upbit extends UpbitApi
                 put( "access_key", Upbit.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Object hasQuery = ((List<?>)Helpers.objectKeys(query)).size();
+            Integer hasQuery = ((List<?>)Helpers.objectKeys(query)).size();
             String auth = null;
             if ((!java.util.Objects.equals(method, "GET")) && (!java.util.Objects.equals(method, "DELETE")))
             {
                 body = (String) (this.json(parameters));
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
-            if ((!java.util.Objects.equals(hasQuery, null)) && (!java.util.Objects.equals(hasQuery, 0)))
+            if (!java.util.Objects.equals(hasQuery, 0))
             {
                 auth = this.rawencode(query);
             }

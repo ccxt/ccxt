@@ -2613,7 +2613,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 tif = "IOC";
             } else
             {
-                tif = (((java.util.Objects.equals(tif, null)))) ? "GTC" : tif;
+                if (java.util.Objects.equals(tif, null))
+                {
+                    tif = "GTC";
+                }
             }
             if (!java.util.Objects.equals(postOnly, null))
             {

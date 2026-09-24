@@ -6151,7 +6151,13 @@ public class Bybit extends BybitApi
             {
                 ((Map<String, Object>)request).put("triggerDirection", ((Boolean.TRUE.equals(isStopLossOrder))) ? 2 : 1);
             }
-            triggerPrice = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            if (Boolean.TRUE.equals(isStopLossOrder))
+            {
+                triggerPrice = stopLossTriggerPrice;
+            } else
+            {
+                triggerPrice = takeProfitTriggerPrice;
+            }
             ((Map<String, Object>)request).put("triggerPrice", this.getPrice((String) (symbol), triggerPrice));
             ((Map<String, Object>)request).put("reduceOnly", true);
         }
@@ -6391,7 +6397,13 @@ public class Bybit extends BybitApi
         Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
         if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
         {
-            triggerPrice = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            if (Boolean.TRUE.equals(isStopLossOrder))
+            {
+                triggerPrice = stopLossTriggerPrice;
+            } else
+            {
+                triggerPrice = takeProfitTriggerPrice;
+            }
         }
         if (!java.util.Objects.equals(triggerPrice, null))
         {

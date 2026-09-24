@@ -5011,11 +5011,6 @@ final String finalOutcome = outcome;
         {
             return null;
         }
-        Long n = this.parseToInt(raw);
-        if (java.util.Objects.equals(n, null))
-        {
-            return null;
-        }
-        return n;
+        return this.parseToInt(raw);
     }
 }

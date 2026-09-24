@@ -7756,10 +7756,6 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Helpers.addElementToObject(this.balance, accountType, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "info", message);
-        if (java.util.Objects.equals(accountType, null))
-        {
-            return;
-        }
         List<Object> B = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)B).size(); i++)
         {

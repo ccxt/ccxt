@@ -838,7 +838,10 @@ public class Whitebit extends WhitebitApi
         String id = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
         String quoteId = this.safeString(market, "money");
-        quoteId = (((java.util.Objects.equals(quoteId, "PERP")))) ? "USDT" : quoteId;
+        if (java.util.Objects.equals(quoteId, "PERP"))
+        {
+            quoteId = "USDT";
+        }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Boolean active = (Boolean) this.safeBool(market, "tradesEnabled");
