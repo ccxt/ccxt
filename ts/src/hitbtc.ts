@@ -1604,7 +1604,7 @@ export default class hitbtc extends Exchange {
         const addressTo = address;
         const tag = this.safeString (native, 'payment_id');
         const tagTo = tag;
-        const sender = this.safeValue (native, 'senders');
+        const sender = this.safeList (native, 'senders');
         const addressFrom = this.safeString (sender, 0);
         const amount = this.safeNumber (native, 'amount');
         const subType = this.safeString (transaction, 'subtype');
@@ -2633,7 +2633,7 @@ export default class hitbtc extends Exchange {
         const symbol = market['symbol'];
         const postOnly = this.safeValue (order, 'post_only');
         const timeInForce = this.safeString (order, 'time_in_force');
-        const rawTrades = this.safeValue (order, 'trades');
+        const rawTrades = this.safeList (order, 'trades');
         return this.safeOrder ({
             'info': order,
             'id': id,
