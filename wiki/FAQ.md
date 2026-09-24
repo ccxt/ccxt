@@ -596,3 +596,30 @@ exchange = ccxt.binance()
 orderbook = exchange.fetch_order_book('BTC/USDT:USDT', 5, {'rpi': True})
 ```
 
+
+## Rust build is too slow and heavy, how to improve it?
+
+The `ccxt` crate compiles every exchange by default. A fresh debug build of a crate that depends on it needs about 19 GB of RAM and a few minutes; a release build needs about 50 GB, which does not complete on a 16 or 32 GB machine.
+
+Every exchange sits behind a cargo feature named after its id. Turn the defaults off and list only the exchanges you use:
+
+```toml
+[dependencies]
+ccxt = { version = "4", default-features = false, features = ["binance", "kraken", "okx"] }
+```
+
+Measured on the same machine, that brings a fresh build with three exchanges from 3m23s / 18.6 GB down to 29s / 2.5 GB (release: 7m49s / 50 GB down to 3m05s / 4.9 GB). The full numbers are in [rust/BUILD-BENCHMARK.md](https://github.com/ccxt/ccxt/blob/master/rust/BUILD-BENCHMARK.md).
+
+Things to know:
+
+- `ccxt-pro` (WebSocket) and `ccxt-prediction` use the same feature names. Features are per crate, so put the list on every ccxt crate you depend on, and leave `default-features = false` on each of them, otherwise that crate's `all` brings every exchange back:
+
+  ```toml
+  ccxt     = { version = "4", default-features = false, features = ["binance"] }
+  ccxt-pro = { version = "4", default-features = false, features = ["binance"] }
+  ```
+
+- A derived exchange enables its parent on its own (`binanceus` pulls in `binance`).
+- Prediction markets that share an id with a regular exchange are separate features: `ccxt-prediction`'s `binance` is the prediction venue, `ccxt`'s `binance` the spot/derivatives one.
+- `ccxt::from_id("kraken", …)` returns `None` for an exchange that was not compiled in, so a program that picks exchanges at runtime needs them in the list.
+- If you still need everything, `debug = 0` (or `"line-tables-only"`) in `[profile.dev]` and `lto = "off"` in `[profile.release]` of your own `Cargo.toml` cut memory noticeably; `RUSTFLAGS="-C codegen-units=4"` trades build time for a lower peak.
