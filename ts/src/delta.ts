@@ -580,7 +580,7 @@ export default class delta extends Exchange {
         const id = this.safeString (rawCurrency, 'symbol');
         const numericId = this.safeInteger (rawCurrency, 'id');
         const code = this.safeCurrencyCode (id);
-        const chains = this.safeList (rawCurrency, 'networks', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'networks', []);
         const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
@@ -1416,7 +1416,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const tickers = this.safeList (response, 'result', []);
+        const tickers: Dict[] = this.safeList (response, 'result', []);
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = tickers[i];

@@ -1130,7 +1130,7 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'funding_rate_history', []);
+        const data: Dict[] = this.safeList (result, 'funding_rate_history', []);
         const rates: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

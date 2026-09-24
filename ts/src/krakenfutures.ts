@@ -444,7 +444,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const instruments = this.safeList (response, 'instruments', []);
+        const instruments: Dict[] = this.safeList (response, 'instruments', []);
         const result: List = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
@@ -3042,7 +3042,7 @@ export default class krakenfutures extends Exchange {
         }
         const marketIds = this.marketIds (symbols);
         const response = await this.publicGetTickers (params);
-        const tickers = this.safeList (response, 'tickers', []);
+        const tickers: Dict[] = this.safeList (response, 'tickers', []);
         const fundingRates: FundingRate[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
