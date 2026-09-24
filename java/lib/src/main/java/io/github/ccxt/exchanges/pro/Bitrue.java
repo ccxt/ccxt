@@ -280,7 +280,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -625,7 +625,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -782,7 +782,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));

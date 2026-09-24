@@ -127,7 +127,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object trades = (this.watchPublic("trade", market, messageHash, parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, ((Map<String, Object>)market).get("symbol"), limit);
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -224,7 +224,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -512,7 +512,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object stored = Helpers.GetValue(result, 2);
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(stored, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(stored, ((Map<String, Object>)market).get("symbol"), limit);
             }
             return this.filterBySinceLimit(stored, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -578,7 +578,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             var stored = ((List<Object>) resultSymbolresultTimeframestoredVariable).get(2);
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(stored, "getLimit", new Object[]{resultSymbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(stored, resultSymbol, limit);
             }
             List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(resultSymbol, resultTimeframe, filtered);
@@ -1036,7 +1036,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object orders = (this.watchPrivate("order_update", (Map<String, Object>) (stream), messageHash, parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1173,7 +1173,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object trades = (this.watchPrivate("fill", (Map<String, Object>) (stream), messageHash, parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

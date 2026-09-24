@@ -741,7 +741,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             ohlcv = this.requireValue(ohlcv, "watchOHLCV() ohlcv is required");
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1232,7 +1232,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             trades = this.requireValue(trades, "watchTrades() trades is required");
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1388,7 +1388,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             trades = this.requireValue(trades, "watchMyTrades() trades is required");
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1627,7 +1627,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             orders = this.requireValue(orders, "watchOrders() orders is required");
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

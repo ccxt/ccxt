@@ -776,7 +776,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
             }
             List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
@@ -1040,7 +1040,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
             List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
@@ -1549,7 +1549,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object orders = (this.watchPrivate(new ArrayList<Object>(Arrays.asList(topic)), new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

@@ -157,7 +157,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object ohlcv = (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -377,7 +377,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

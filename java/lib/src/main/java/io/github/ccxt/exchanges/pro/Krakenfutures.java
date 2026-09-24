@@ -452,7 +452,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 List<Object> first = (List<Object>) this.safeList(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -749,7 +749,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object orders = (this.subscribePrivate(name, messageHash, parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -805,7 +805,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object trades = (this.subscribePrivate(name, messageHash, parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

@@ -165,7 +165,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 Map<String, Object> firstMarket = (Map<String, Object>) this.safeDict(trades, 0);
                 String firstSymbol = this.safeString(firstMarket, "symbol");
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{firstSymbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, firstSymbol, limit);
             }
             List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
@@ -662,7 +662,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
             }
             List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
@@ -876,7 +876,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{tradeSymbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, tradeSymbol, limit);
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

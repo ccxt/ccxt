@@ -212,7 +212,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));

@@ -209,7 +209,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, request)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -594,7 +594,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

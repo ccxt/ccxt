@@ -827,7 +827,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object trades = (this.subscribePublic(name, "trades", new ArrayList<Object>(Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp");
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -998,7 +998,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object ohlcv = (this.subscribePublic(name, "candles", new ArrayList<Object>(Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1154,7 +1154,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object orders = (this.subscribePrivate(name, symbol, parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp");
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

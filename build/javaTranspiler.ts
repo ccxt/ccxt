@@ -353,7 +353,7 @@ function retypeCastSpansValue (value: string): boolean {
 // (a checkcast or `L` suffix where javac needs one) or undefined when the value may be another box.
 // Map sources: omit of a Map, extend/deepExtend/keysort, safeDict and handle*-tuple element reads.
 const RETYPE_COPY_MAP_TOKEN = /^(?:java\.util\.)?Map<String, Object>$/;
-const RETYPE_COPY_EXTRA_CALLEES = /^(?:Helpers\.(?:mathMin|mathMax|subtract|isLessThanOrEqual|isGreaterThanOrEqual|callDynamically|addElementToObject)|String\.valueOf)$/;
+const RETYPE_COPY_EXTRA_CALLEES = /^(?:Helpers\.(?:mathMin|mathMax|subtract|isLessThanOrEqual|isGreaterThanOrEqual|callDynamically|addElementToObject)|io\.github\.ccxt\.ws\.ArrayCache\.getLimitOf|String\.valueOf)$/;
 
 function retypeTopLevelArgCount (args: string): number {
     let depth = 0;
@@ -3919,10 +3919,13 @@ class NewTranspiler {
 
         // ── Dynamic method dispatch for Object-typed variables ──
         // Dynamic method calls on Object-typed variables — use balanced paren matching
-        const dynamicMethods = ['append', 'reset', 'storeArray', 'store', 'getLimit'];
+        const dynamicMethods = ['append', 'reset', 'storeArray', 'store'];
         for (const method of dynamicMethods) {
             content = this.replaceDynamicMethodCall(content, method);
         }
+        // a resolved ws list is an ArrayCache or a plain list: the typed static answers Long for both
+        content = this.replaceDynamicMethodCall(content, 'getLimit',
+            (varName, args) => `io.github.ccxt.ws.ArrayCache.getLimitOf(${varName}, ${args})`);
         content = content.replace(/(?<!this\.)(?<!Helpers\.)(?<![\w.])([a-z]\w+)\.limit\(\)/gm,
             'Helpers.callDynamically($1, "limit", new Object[]{})');
 
@@ -4746,7 +4749,8 @@ class NewTranspiler {
         return result;
     }
 
-    replaceDynamicMethodCall(content: string, methodName: string): string {
+    replaceDynamicMethodCall(content: string, methodName: string,
+        format = (varName: string, args: string) => `Helpers.callDynamically(${varName}, "${methodName}", new Object[]{${args}})`): string {
         const pattern = new RegExp(`(?<=[^\\w.])([a-z]\\w+)\\.${methodName}\\(`, 'g');
         let result = '';
         let lastIdx = 0;
@@ -4772,7 +4776,7 @@ class NewTranspiler {
             }
             const args = content.substring(startIdx, i - 1);
             result += content.substring(lastIdx, match.index);
-            result += `Helpers.callDynamically(${varName}, "${methodName}", new Object[]{${args}})`;
+            result += format(varName, args);
             lastIdx = i;
         }
         result += content.substring(lastIdx);
