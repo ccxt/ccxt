@@ -667,12 +667,7 @@ export default class hyperliquid extends Exchange {
                     data['collateralTokenName'] = collateralTokenCode;
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode (name);
-                    let hip3Code: Str = undefined;
-                    if (safeCode === undefined) {
-                        hip3Code = name;
-                    } else {
-                        hip3Code = safeCode.replace (':', '-');
-                    }
+                    const hip3Code = (safeCode === undefined) ? name : safeCode.replace (':', '-');
                     this.options['hip3TokensByName'][(name as string)] = {
                         'quote': collateralTokenCode,
                         'code': hip3Code,

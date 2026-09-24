@@ -2990,12 +2990,7 @@ export default class bitget extends Exchange {
             }
             const maxNotional = this.safeNumberN (item, [ 'endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount', 'maxTierValue' ]);
             const marginCurrency = this.safeString2 (item, 'coin', 'baseCoin');
-            let currencyId: Str = undefined;
-            if (marginCurrency !== undefined) {
-                currencyId = marginCurrency;
-            } else {
-                currencyId = this.safeString (market, 'base');
-            }
+            const currencyId = (marginCurrency !== undefined) ? marginCurrency : this.safeString (market, 'base');
             const marketId = this.safeString (item, 'symbol');
             tiers.push ({
                 'tier': this.safeInteger2 (item, 'level', 'tier'),

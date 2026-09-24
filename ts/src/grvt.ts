@@ -3031,12 +3031,7 @@ export default class grvt extends Exchange {
         const isPostOnly = this.safeBool (order, 'post_only');
         const isReduceOnly = this.safeBool (order, 'reduce_only');
         const timeInForceRaw = this.safeString (order, 'time_in_force');
-        let timeInForce: Str = undefined;
-        if (isPostOnly === true) {
-            timeInForce = 'PO';
-        } else {
-            timeInForce = this.parseTimeInForce (timeInForceRaw);
-        }
+        const timeInForce = (isPostOnly === true) ? 'PO' : this.parseTimeInForce (timeInForceRaw);
         let size: Str = undefined;
         let side: Str = undefined;
         let price: Str = undefined;
@@ -3264,12 +3259,7 @@ export default class grvt extends Exchange {
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const usesPrivKey = this.usesPrivateKey (); // py transpiler needs this line separated
-        let secretOrPrivkey: Str = undefined;
-        if (usesPrivKey) {
-            secretOrPrivkey = this.privateKey;
-        } else {
-            secretOrPrivkey = this.secret;
-        }
+        const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix (secretOrPrivkey);
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, undefined);
         request['signature']['r'] = this.formatSignatureRS (signature['r']);

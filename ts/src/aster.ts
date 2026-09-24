@@ -3838,12 +3838,7 @@ export default class aster extends Exchange {
             const position = positions[i];
             const marketId = this.safeString (position, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'contract');
-            let code: Str = undefined;
-            if (market['linear'] === true) {
-                code = market['quote'];
-            } else {
-                code = market['base'];
-            }
+            const code = (market['linear'] === true) ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString (position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');

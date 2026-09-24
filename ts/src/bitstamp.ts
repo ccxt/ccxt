@@ -2408,10 +2408,7 @@ export default class bitstamp extends Exchange {
             if (market === undefined) {
                 market = this.getMarketFromTrade (item);
             }
-            let direction: Str = 'out';
-            if (parsedTrade['side'] === 'buy') {
-                direction = 'in';
-            }
+            const direction = (parsedTrade['side'] === 'buy') ? 'in' : 'out';
             return this.safeLedgerEntry ({
                 'info': item,
                 'id': parsedTrade['id'],

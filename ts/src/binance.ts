@@ -11100,12 +11100,7 @@ export default class binance extends Exchange {
             const position = positions[i];
             const marketId = this.safeString (position, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'contract');
-            let code: Str = undefined;
-            if (market['linear'] === true) {
-                code = market['quote'];
-            } else {
-                code = market['base'];
-            }
+            const code = (market['linear'] === true) ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString (position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
@@ -13252,10 +13247,7 @@ export default class binance extends Exchange {
             return {};
         }
         let marketType: Str = undefined;
-        let hostname: Str = 'binance.com';
-        if (this.hostname !== undefined) {
-            hostname = this.hostname;
-        }
+        const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
         if (url.startsWith ('https://api.' + hostname + '/') || url.startsWith ('https://demo-api') || url.startsWith ('https://testnet.binance.vision')) {
             marketType = 'spot';
         } else if (url.startsWith ('https://dapi.' + hostname + '/') || url.startsWith ('https://demo-dapi') || url.startsWith ('https://testnet.binancefuture.com/dapi')) {
