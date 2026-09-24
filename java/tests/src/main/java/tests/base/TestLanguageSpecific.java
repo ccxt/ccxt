@@ -37,7 +37,7 @@ public class TestLanguageSpecific extends BaseTest
         }});
         assertOptionThrows(() -> ex.handleOptionBoolAndParams(new HashMap<String, Object>(), "fetchX", "wrongBool", false), "fetchX() option wrongBool must be a boolean");
         assertOptionThrows(() -> ex.handleOptionStringAndParams(new HashMap<String, Object>(), "fetchX", "wrongString", "x"), "fetchX() option wrongString must be a string");
-        assertOptionThrows(() -> ex.handleMarginModeAndParams("fetchX", new HashMap<String, Object>() {{ put("marginMode", false); }}), "fetchX() option marginMode must be a string");
+        assertOptionThrows(() -> ex.handleMarginModeAndParams("fetchX", new HashMap<String, Object>() {{ put("marginMode", false); }}, null), "fetchX() option marginMode must be a string");
     }
 
     private void assertOptionThrows(Runnable call, String message) {
