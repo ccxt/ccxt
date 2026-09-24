@@ -869,7 +869,7 @@ export default class bitrue extends bitrueRest {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options
                 await client.future (messageHash);
-                return this.options['listenKeyUrl'];
+                return this.safeString (this.options, 'listenKeyUrl');
             }
             // register before the first await, so a concurrent caller entering
             // authenticate () while this one is inside the fetch sees the flight
@@ -914,7 +914,7 @@ export default class bitrue extends bitrueRest {
             const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
             this.delay (refreshTimeout, this.keepAliveListenKey);
         }
-        return this.options['listenKeyUrl'];
+        return this.safeString (this.options, 'listenKeyUrl');
     }
 
     async keepAliveListenKey (params: Dict = {}) {
