@@ -1677,7 +1677,7 @@ export default class bithumb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'batch_orders_response', []);
+        const data: Dict[] = this.safeList (response, 'batch_orders_response', []);
         return this.parseOrders (data, market);
     }
 
@@ -2371,7 +2371,7 @@ export default class bithumb extends Exchange {
             //     }
             //
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2658,7 +2658,7 @@ export default class bithumb extends Exchange {
         //         "fail": []
         //     }
         //
-        const data = this.safeList (response, 'success', []);
+        const data: Dict[] = this.safeList (response, 'success', []);
         return this.parseOrders (data, market);
     }
 

@@ -1234,7 +1234,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -4956,7 +4956,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRates (data, symbols);
     }
 
@@ -5614,7 +5614,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const rows = this.safeList (response, 'data', []);
+        const rows: Dict[] = this.safeList (response, 'data', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }

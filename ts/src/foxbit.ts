@@ -650,7 +650,7 @@ export default class foxbit extends Exchange {
         //      }
         //    ]
         //  }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -770,7 +770,7 @@ export default class foxbit extends Exchange {
         //     }
         // ]
         const response = await this.v3PublicGetMarketsMarketTradesHistory (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1253,7 +1253,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const list = this.safeList (response, 'data', []);
+        const list: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (list, market, since, limit);
     }
 
@@ -1303,7 +1303,7 @@ export default class foxbit extends Exchange {
         //         "created_at": "2021-02-15T22:06:32.999Z"
         //     ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1389,7 +1389,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1454,7 +1454,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1659,7 +1659,7 @@ export default class foxbit extends Exchange {
         const currency = this.currency (code);
         request['symbol'] = currency['id'];
         const response = await this.v3PrivateGetAccountsSymbolTransactions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
 

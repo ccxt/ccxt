@@ -1009,7 +1009,7 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'trades', []);
+        const data: Dict[] = this.safeList (result, 'trades', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1855,7 +1855,7 @@ export default class derive extends Exchange {
                 return [];
             }
         }
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2140,7 +2140,7 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeList (result, 'trades', []);
+        const trades: Dict[] = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -2228,7 +2228,7 @@ export default class derive extends Exchange {
                 return [];
             }
         }
-        const trades = this.safeList (result, 'trades', []);
+        const trades: Dict[] = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -2292,7 +2292,7 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
-        const positions = this.safeList (result, 'positions', []);
+        const positions: Dict[] = this.safeList (result, 'positions', []);
         return this.parsePositions (positions, symbols);
     }
 
@@ -2451,7 +2451,7 @@ export default class derive extends Exchange {
                 return [];
             }
         }
-        const events = this.safeList (result, 'events', []);
+        const events: Dict[] = this.safeList (result, 'events', []);
         return this.parseIncomes (events, market, since, limit);
     }
 
@@ -2622,7 +2622,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events = this.safeList (result, 'events', []);
+        const events: Dict[] = this.safeList (result, 'events', []);
         return this.parseTransactions (events, currency, since, limit, params);
     }
 
@@ -2671,7 +2671,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events = this.safeList (result, 'events', []);
+        const events: Dict[] = this.safeList (result, 'events', []);
         return this.parseTransactions (events, currency, since, limit, params);
     }
 

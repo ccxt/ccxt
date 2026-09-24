@@ -2756,7 +2756,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const tickerList = this.safeList (result, 'list', []);
+        const tickerList: Dict[] = this.safeList (result, 'list', []);
         return this.parseTickers (tickerList, parsedSymbols);
     }
 
@@ -3457,7 +3457,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeList (result, 'list', []);
+        const trades: Dict[] = this.safeList (result, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -5023,7 +5023,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const row = this.safeList (result, 'list', []);
+        const row: Dict[] = this.safeList (result, 'list', []);
         return this.parseOrders (row, market);
     }
 
@@ -6034,7 +6034,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const chains = this.safeList (result, 'chains', []);
+        const chains: Dict[] = this.safeList (result, 'chains', []);
         const coin = this.safeString (result, 'coin');
         const currencyFromResponse = this.currency (coin);
         const parsed = this.parseDepositAddresses (chains, [ currencyFromResponse['code'] ], false, {
@@ -8341,7 +8341,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data: Dict[] = this.safeList (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
@@ -8405,7 +8405,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data: Dict[] = this.safeList (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
@@ -9683,7 +9683,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const dataList = this.safeList (data, 'list', []);
+        const dataList: Dict[] = this.safeList (data, 'list', []);
         return this.parseConversions (dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
 

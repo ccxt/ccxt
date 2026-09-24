@@ -1728,7 +1728,7 @@ export default class krakenfutures extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetOpenorders (params);
-        const orders = this.safeList (response, 'openOrders', []);
+        const orders: Dict[] = this.safeList (response, 'openOrders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1752,7 +1752,7 @@ export default class krakenfutures extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetOrdersStatus (params);
-        const orders = this.safeList (response, 'orders', []);
+        const orders: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2518,7 +2518,7 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        const fills = this.safeList (response, 'fills', []);
+        const fills: Dict[] = this.safeList (response, 'fills', []);
         return this.parseTrades (fills, market, since, limit);
     }
 
@@ -2667,7 +2667,7 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        const logs = this.safeList (response, 'logs', []);
+        const logs: Dict[] = this.safeList (response, 'logs', []);
         return this.parseIncomes (logs, market, since, limit);
     }
 
@@ -3737,7 +3737,7 @@ export default class krakenfutures extends Exchange {
         //         ]
         //     }
         //
-        const leveragePreferences = this.safeList (response, 'leveragePreferences', []);
+        const leveragePreferences: Dict[] = this.safeList (response, 'leveragePreferences', []);
         return this.parseLeverages (leveragePreferences, symbols, 'symbol');
     }
 

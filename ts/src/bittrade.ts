@@ -955,7 +955,7 @@ export default class bittrade extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, undefined, since, limit);
     }
 
@@ -987,7 +987,7 @@ export default class bittrade extends Exchange {
             // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1448,7 +1448,7 @@ export default class bittrade extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1905,7 +1905,7 @@ export default class bittrade extends Exchange {
         }
         const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1942,7 +1942,7 @@ export default class bittrade extends Exchange {
         }
         const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 

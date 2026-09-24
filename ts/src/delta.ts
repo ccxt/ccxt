@@ -1609,7 +1609,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -1811,7 +1811,7 @@ export default class delta extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parsePositions (result, symbols);
     }
 
@@ -2386,7 +2386,7 @@ export default class delta extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2469,7 +2469,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -2523,7 +2523,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseLedger (result, currency, since, limit);
     }
 
@@ -2802,7 +2802,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const rates = this.safeList (response, 'result', []);
+        const rates: Dict[] = this.safeList (response, 'result', []);
         return this.parseFundingRates (rates, symbols);
     }
 
@@ -3279,7 +3279,7 @@ export default class delta extends Exchange {
         //         "success": true
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         const settlements = this.parseSettlements (result, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);

@@ -2332,7 +2332,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }

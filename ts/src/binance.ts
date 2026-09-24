@@ -7952,7 +7952,7 @@ export default class binance extends Exchange {
         //     }
         //
         if (stock === true) {
-            const result = this.safeList (response, 'rows', []);
+            const result: Dict[] = this.safeList (response, 'rows', []);
             return this.parseOrders (result, market, since, limit);
         }
         return this.parseOrders (response, market, since, limit);
@@ -15342,7 +15342,7 @@ export default class binance extends Exchange {
             //     }
             //
         }
-        const rows = this.safeList (response, responseQuery, []);
+        const rows: Dict[] = this.safeList (response, responseQuery, []);
         return this.parseConversions (rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
     }
 
