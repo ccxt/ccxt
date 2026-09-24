@@ -12003,8 +12003,8 @@ function javaTupleHolderElementLocalType (printer, declaration) {
             return undefined;
         }
         const name = String (call.expression.name.escapedText);
-        forms = [ new RegExp (`^\(\((?:java\.util\.)?List<Object>\)\(?this\.${name}\(.*\)\)\.get\(${k}\)$`),
-            new RegExp (`^Helpers\.GetValue\(\(?this\.${name}\(.*\), ${k}\)$`) ];
+        forms = [ new RegExp (String.raw`^\(\((?:java\.util\.)?List<Object>\)\(?this\.${name}\(.*\)\)\.get\(${k}\)$`),
+            new RegExp (String.raw`^Helpers\.GetValue\(\(?this\.${name}\(.*\), ${k}\)$`) ];
     }
     const type = handleElementType (printer, call, Number (k));
     if (type === undefined) {
@@ -12290,9 +12290,12 @@ function stringListAnyParamArgument (printer, node) {
         return false;
     }
     const parameter = declaration?.parameters?.[index];
+    // the String-list base methods print their list parameter as Object
+    const stringListParam = index === 0 && JAVA_STRING_LIST_RETURN_METHODS.has (String (call.expression.name.escapedText))
+        && resolvesToMethodNamed (printer, call, String (call.expression.name.escapedText));
     return index !== -1 && parameter !== undefined && !parameter.dotDotDotToken
         && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName)
-        && (parameter.type === undefined || parameter.type.kind === ts.SyntaxKind.AnyKeyword);
+        && (stringListParam || parameter.type === undefined || parameter.type.kind === ts.SyntaxKind.AnyKeyword);
 }
 
 // the value flows (through ternary arms) into another joined List<String> local
