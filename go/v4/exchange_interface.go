@@ -314,6 +314,7 @@ type ICoreExchange interface {
 	CheckProxyUrlSettings(optionalArgs ...any) any
 	CheckProxySettings(optionalArgs ...any) any
 	IsTickPrecision() any
+	IsSignificantPrecision() any
 	SetProperty(obj any, property any, defaultValue any)
 	Capitalize(value any) string
 	GetProperty(obj any, property any, defaultValue ...any) any
