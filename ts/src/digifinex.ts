@@ -2671,7 +2671,7 @@ export default class digifinex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {};
         return this.safeString (types, (type as string), type);
     }
@@ -3711,7 +3711,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const positionRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const positions = this.safeList (response, positionRequest, []);
+        const positions: Dict[] = this.safeList (response, positionRequest, []);
         const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i], market));
@@ -3803,7 +3803,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const dataRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const data = this.safeList (response, dataRequest, []);
+        const data: Dict[] = this.safeList (response, dataRequest, []);
         const position = this.parsePosition (data[0], market);
         if (marketType === 'swap') {
             return position;
@@ -4134,7 +4134,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const tiers: LeverageTier[] = [];
-        const brackets = this.safeValue (info, 'open_max_limits', {});
+        const brackets = this.safeList (info, 'open_max_limits', []);
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString (info, 'instrument_id');

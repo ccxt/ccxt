@@ -1411,7 +1411,7 @@ export default class grvt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const spotBalances = this.safeList (response, 'spot_balances', []);
+        const spotBalances: Dict[] = this.safeList (response, 'spot_balances', []);
         const availableBalance = this.safeString (response, 'available_balance');
         for (let i = 0; i < spotBalances.length; i++) {
             const balance = spotBalances[i];
@@ -2213,7 +2213,7 @@ export default class grvt extends Exchange {
 
     eipMessageForOrder (order: Dict, structureType: Str): Dict {
         const priceMultiplier = '1000000000';
-        const orderLegs = this.safeList (order, 'legs', []);
+        const orderLegs: Dict[] = this.safeList (order, 'legs', []);
         const legs: List = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];

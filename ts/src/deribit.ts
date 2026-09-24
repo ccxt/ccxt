@@ -866,7 +866,7 @@ export default class deribit extends Exchange {
             //         "testnet": false
             //     }
             //
-            const currenciesResult = this.safeList (currenciesResponse, 'result', []);
+            const currenciesResult: Dict[] = this.safeList (currenciesResponse, 'result', []);
             for (let i = 0; i < currenciesResult.length; i++) {
                 const currencyId = this.safeString (currenciesResult[i], 'currency');
                 const request: Dict = {
@@ -1467,7 +1467,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         const tickers: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
@@ -2988,7 +2988,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const volatilityResult = this.safeList (volatility, 'result', []);
+        const volatilityResult: Dict[] = this.safeList (volatility, 'result', []);
         const result: List = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger (volatilityResult[i], 0);

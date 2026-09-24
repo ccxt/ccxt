@@ -9564,7 +9564,7 @@ export default class binance extends Exchange {
         return this.parseTransactions (responseList, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: any, type: Str = undefined) {
+    parseTransactionStatusByType (status: Str, type: Str = undefined) {
         if (type === undefined) {
             return status;
         }

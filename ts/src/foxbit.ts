@@ -384,7 +384,7 @@ export default class foxbit extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const depositInfo = this.safeDict (rawCurrency, 'deposit_info');
         const withdrawInfo = this.safeDict (rawCurrency, 'withdraw_info');
-        const networks = this.safeList (rawCurrency, 'networks', []);
+        const networks: Dict[] = this.safeList (rawCurrency, 'networks', []);
         const type = this.safeStringLower (rawCurrency, 'type');
         const parsedNetworks: Dict = {};
         for (let j = 0; j < networks.length; j++) {
