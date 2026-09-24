@@ -1074,7 +1074,7 @@ export default class whitebit extends whitebitRest {
         //         "id": 1656090882
         //     }
         //
-        const error = this.safeValue (message, 'error');
+        const error = this.safeDict (message, 'error');
         try {
             if (error !== undefined) {
                 const code = this.safeString (message, 'code');

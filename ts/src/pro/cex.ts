@@ -1501,7 +1501,7 @@ export default class cex extends cexRest {
         //    "ok": "ok"
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeList (message, 'data');
         const messageHash = this.safeString (message, 'oid');
         client.resolve (data, messageHash);
     }
