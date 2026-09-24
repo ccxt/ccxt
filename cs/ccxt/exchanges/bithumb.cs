@@ -2497,10 +2497,10 @@ public partial class bithumb : Exchange
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
         {
-            object currency = null;
+            string? currency = null;
             if ((market != null))
             {
-                currency = getValue(market, "quote");
+                currency = this.safeString(market, "quote");
             }
             fee = new Dictionary<string, object>() {
                 { "currency", currency },

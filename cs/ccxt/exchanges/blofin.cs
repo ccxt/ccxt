@@ -1119,17 +1119,17 @@ public partial class blofin : Exchange
         string? orderId = this.safeString(trade, "orderId");
         string? feeCost = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
-        object feeCurrency = this.safeString(trade, "feeCurrency");
+        string? feeCurrency = this.safeString(trade, "feeCurrency");
         bool isSpot = (feeCurrency != null);
         if ((feeCurrency == null))
         {
-            feeCurrency = getValue(market, "settle");
-        } else if (isEqual(feeCurrency, "base_currency"))
+            feeCurrency = this.safeString(market, "settle");
+        } else if (feeCurrency == "base_currency")
         {
-            feeCurrency = getValue(market, "base");
-        } else if (isEqual(feeCurrency, "quote_currency"))
+            feeCurrency = this.safeString(market, "base");
+        } else if (feeCurrency == "quote_currency")
         {
-            feeCurrency = getValue(market, "quote");
+            feeCurrency = this.safeString(market, "quote");
         }
         if ((feeCost != null))
         {

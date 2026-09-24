@@ -1292,53 +1292,53 @@ public partial class bigone : Exchange
             { "cost", null },
             { "info", trade },
         };
-        object makerCurrencyCode = null;
-        object takerCurrencyCode = null;
+        string? makerCurrencyCode = null;
+        string? takerCurrencyCode = null;
         if ((takerOrMaker != null))
         {
             if (side == "buy")
             {
                 if (takerOrMaker == "maker")
                 {
-                    makerCurrencyCode = getValue(market, "base");
-                    takerCurrencyCode = getValue(market, "quote");
+                    makerCurrencyCode = this.safeString(market, "base");
+                    takerCurrencyCode = this.safeString(market, "quote");
                 } else
                 {
-                    makerCurrencyCode = getValue(market, "quote");
-                    takerCurrencyCode = getValue(market, "base");
+                    makerCurrencyCode = this.safeString(market, "quote");
+                    takerCurrencyCode = this.safeString(market, "base");
                 }
             } else
             {
                 if (takerOrMaker == "maker")
                 {
-                    makerCurrencyCode = getValue(market, "quote");
-                    takerCurrencyCode = getValue(market, "base");
+                    makerCurrencyCode = this.safeString(market, "quote");
+                    takerCurrencyCode = this.safeString(market, "base");
                 } else
                 {
-                    makerCurrencyCode = getValue(market, "base");
-                    takerCurrencyCode = getValue(market, "quote");
+                    makerCurrencyCode = this.safeString(market, "base");
+                    takerCurrencyCode = this.safeString(market, "quote");
                 }
             }
         } else if (side == "SELF_TRADING")
         {
             if (takerSide == "BID")
             {
-                makerCurrencyCode = getValue(market, "quote");
-                takerCurrencyCode = getValue(market, "base");
+                makerCurrencyCode = this.safeString(market, "quote");
+                takerCurrencyCode = this.safeString(market, "base");
             } else if (takerSide == "ASK")
             {
-                makerCurrencyCode = getValue(market, "base");
-                takerCurrencyCode = getValue(market, "quote");
+                makerCurrencyCode = this.safeString(market, "base");
+                takerCurrencyCode = this.safeString(market, "quote");
             }
         }
         string? makerFeeCost = this.safeString(trade, "maker_fee");
         string? takerFeeCost = this.safeString(trade, "taker_fee");
         if ((makerFeeCost != null))
         {
-            object makerCode = makerCurrencyCode;
+            string? makerCode = makerCurrencyCode;
             if ((takerFeeCost != null))
             {
-                object takerCode = takerCurrencyCode;
+                string? takerCode = takerCurrencyCode;
                 result["fees"] = new List<object>() {new Dictionary<string, object>() {
     { "cost", makerFeeCost },
     { "currency", makerCode },
@@ -1355,7 +1355,7 @@ public partial class bigone : Exchange
             }
         } else if ((takerFeeCost != null))
         {
-            object takerCode2 = takerCurrencyCode;
+            string? takerCode2 = takerCurrencyCode;
             result["fee"] = new Dictionary<string, object>() {
                 { "cost", takerFeeCost },
                 { "currency", takerCode2 },

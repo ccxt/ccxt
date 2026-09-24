@@ -2589,10 +2589,10 @@ public partial class ndax : Exchange
         List<object> parts = lastString.Split(new [] {"?memo="}, StringSplitOptions.None).ToList<object>();
         string? address = this.safeString(parts, 0);
         string? tag = this.safeString(parts, 1);
-        object code = null;
+        string? code = null;
         if ((currency != null))
         {
-            code = (currency != null && currency.ContainsKey("code") ? currency["code"] : null);
+            code = this.safeString(currency, "code");
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {

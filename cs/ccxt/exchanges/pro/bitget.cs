@@ -220,7 +220,7 @@ public partial class bitget : ccxt.bitget
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> marketInner = this.market(symbol);
             Dictionary<string, object> args = new Dictionary<string, object>() {
                 { "instType", instType },
@@ -230,7 +230,7 @@ public partial class bitget : ccxt.bitget
             args[(string)topicOrChannel] = "ticker";
             args[(string)symbolOrInstId] = (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("id") ? ((IDictionary<string, object>)marketInner)["id"] : null);
             topics.Add(args);
-            messageHashes.Add(("ticker:" + (symbol)));
+            messageHashes.Add(("ticker:" + symbol));
         }
         object tickers = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
         if (this.newUpdates)
@@ -479,7 +479,7 @@ public partial class bitget : ccxt.bitget
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> marketInner = this.market(symbol);
             Dictionary<string, object> args = new Dictionary<string, object>() {
                 { "instType", instType },
@@ -489,7 +489,7 @@ public partial class bitget : ccxt.bitget
             args[(string)topicOrChannel] = "ticker";
             args[(string)symbolOrInstId] = (marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("id") ? ((IDictionary<string, object>)marketInner)["id"] : null);
             topics.Add(args);
-            messageHashes.Add(("bidask:" + (symbol)));
+            messageHashes.Add(("bidask:" + symbol));
         }
         object tickers = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
         if (this.newUpdates)
@@ -922,7 +922,7 @@ public partial class bitget : ccxt.bitget
         parameters = utaparametersVariable[1];
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object instType = null;
             var instTypeparametersVariable = this.getInstType("watchOrderBookForSymbols", market, uta, parameters);
@@ -936,7 +936,7 @@ public partial class bitget : ccxt.bitget
             args[(string)topicOrChannel] = channel;
             args[(string)symbolOrInstId] = (market.ContainsKey("id") ? market["id"] : null);
             topics.Add(args);
-            messageHashes.Add(("orderbook:" + (symbol)));
+            messageHashes.Add(("orderbook:" + symbol));
         }
         if ((uta == true))
         {
@@ -1169,7 +1169,7 @@ public partial class bitget : ccxt.bitget
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object instType = null;
             var instTypeparametersVariable = this.getInstType("watchTradesForSymbols", market, uta, parameters);
@@ -1183,7 +1183,7 @@ public partial class bitget : ccxt.bitget
             args[(string)topicOrChannel] = uta == true ? "publicTrade" : "trade";
             args[(string)symbolOrInstId] = (market.ContainsKey("id") ? market["id"] : null);
             topics.Add(args);
-            messageHashes.Add(("trade:" + (symbol)));
+            messageHashes.Add(("trade:" + symbol));
         }
         if ((uta == true))
         {
@@ -1746,7 +1746,7 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object marketId = null;
+        string? marketId = null;
         bool? isTrigger = null;
         var isTriggerparametersVariable = this.isTriggerOrder(parameters);
         isTrigger = (bool?)((IList<object>)isTriggerparametersVariable)[0];
@@ -1757,7 +1757,7 @@ public partial class bitget : ccxt.bitget
         {
             market = this.market(symbolVar);
             symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            marketId = (market.ContainsKey("id") ? market["id"] : null);
+            marketId = this.safeString(market, "id");
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         bool? uta = null;
@@ -1808,7 +1808,7 @@ public partial class bitget : ccxt.bitget
         {
             subscriptionHash = (subscriptionHash + ":stop"); // we don't want to re-use the same subscription hash for stop orders
         }
-        object instId = (type == "spot" || type == "margin") ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        string? instId = (type == "spot" || type == "margin") ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         string channel = ((isTrigger == true)) ? "orders-algo" : "orders";
         string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("watchOrders", parameters);

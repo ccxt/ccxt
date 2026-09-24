@@ -2446,7 +2446,7 @@ public partial class polymarket : PredictionExchange
             if ((this.safeString(orderParams, "salt") == null))
             {
                 // a distinct salt per order so two identical orders don't collide, within a batch or across calls
-                object orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                Int64? orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
                 orderParams = this.extend(orderParams, new Dictionary<string, object>() {
                     { "salt", this.numberToString(orderSalt) },
                 });
@@ -2544,7 +2544,7 @@ public partial class polymarket : PredictionExchange
         string eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
         string funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
-        object defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        Int64? defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         string? salt = this.safeString(parameters, "salt", this.numberToString(defaultSalt));
         string? timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.milliseconds()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry

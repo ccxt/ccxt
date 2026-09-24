@@ -1859,10 +1859,10 @@ public partial class coinex : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(trade, "created_at");
-        object defaultType = this.safeString(this.options, "defaultType");
+        string? defaultType = this.safeString(this.options, "defaultType");
         if ((market != null))
         {
-            defaultType = getValue(market, "type");
+            defaultType = this.safeString(market, "type");
         }
         string? marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
@@ -2588,10 +2588,10 @@ public partial class coinex : Exchange
         string marketType = (orderType == "swap") ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         string? feeCurrencyId = this.safeString(order, "fee_ccy");
-        object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
+        string? feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         if ((feeCurrency == null))
         {
-            feeCurrency = getValue(market, "quote");
+            feeCurrency = this.safeString(market, "quote");
         }
         string? side = this.safeString(order, "side");
         if (side == "long")

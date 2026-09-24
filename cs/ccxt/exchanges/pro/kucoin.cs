@@ -512,8 +512,8 @@ public partial class kucoin : ccxt.kucoin
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
-                messageHashes.Add(("ticker:" + (symbol)));
+                string? symbol = ((string)getValue(symbols, i));
+                messageHashes.Add(("ticker:" + symbol));
                 Dictionary<string, object> market = this.market(symbol);
                 topics.Add(add(add(method, ":"), (market.ContainsKey("id") ? market["id"] : null)));
             }
@@ -1291,8 +1291,8 @@ public partial class kucoin : ccxt.kucoin
         string topic = (channelName + String.Join(",", marketIds.ToArray()));
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
-            messageHashes.Add(("trades:" + (symbol)));
+            string? symbol = ((string)getValue(symbols, i));
+            messageHashes.Add(("trades:" + symbol));
             string? marketId = ((string)getValue(marketIds, i));
             subscriptionHashes.Add((channelName + marketId));
         }
@@ -1698,8 +1698,8 @@ public partial class kucoin : ccxt.kucoin
         List<object> subscriptionHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
-            messageHashes.Add(("orderbook:" + (symbol)));
+            string? symbol = ((string)getValue(symbols, i));
+            messageHashes.Add(("orderbook:" + symbol));
             string? marketId = ((string)getValue(marketIds, i));
             subscriptionHashes.Add(add(add(method, ":"), marketId));
         }
@@ -3204,8 +3204,8 @@ public partial class kucoin : ccxt.kucoin
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
-                messageHashes.Add(((messageHash + ":") + (symbol)));
+                string? symbol = ((string)getValue(symbols, i));
+                messageHashes.Add(((messageHash + ":") + symbol));
             }
         }
         string? url = await this.getUtaUrl();

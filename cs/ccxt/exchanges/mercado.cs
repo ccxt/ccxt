@@ -1176,7 +1176,7 @@ public partial class mercado : Exchange
             this.checkRequiredCredentials();
             url = add(url, (this.version + "/"));
             // mercado requires each tonce to be greater than the previous one
-            object nonce = this.incrementingNonce();
+            Int64? nonce = this.incrementingNonce();
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "tapi_method", path },
                 { "tapi_nonce", nonce },

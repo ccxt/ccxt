@@ -16,10 +16,10 @@ public partial class BaseTest
             // tick and must return n and n + 1 deterministically (avoids a second-boundary flake)
             object seed = 9999999999999;
             ((IDictionary<string,object>)exchange.options)["lastNonce"] = seed;
-            object first = exchange.incrementingNonce();
-            object second = exchange.incrementingNonce();
+            Int64? first = exchange.incrementingNonce();
+            Int64? second = exchange.incrementingNonce();
             Assert(isGreaterThan(first, seed), "incrementingNonce should bump past the stored lastNonce");
-            Assert(isEqual(second, add(first, 1)), "two incrementingNonce calls in the same tick should return n and n + 1");
+            Assert(isEqual(second, (first + 1)), "two incrementingNonce calls in the same tick should return n and n + 1");
             Assert(isGreaterThan(second, first), "incrementingNonce should be strictly increasing");
         }
 }

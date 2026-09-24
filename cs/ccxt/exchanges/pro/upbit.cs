@@ -64,7 +64,7 @@ public partial class upbit : ccxt.upbit
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             object messageHash = add(add(channel, ":"), symbol);
             messageHashes.Add(messageHash);
             if (!(inOp(subscriptions, messageHash)))

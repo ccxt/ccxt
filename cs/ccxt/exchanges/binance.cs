@@ -13461,7 +13461,7 @@ public partial class binance : Exchange
         double? contracts = this.parseNumber(contractsStringAbs);
         IDictionary<string, object> leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
         List<object> leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
-        object maintenanceMarginPercentageString = null;
+        string? maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; i++)
         {
             object bracket = leverageBracket[i];
@@ -13469,7 +13469,7 @@ public partial class binance : Exchange
             {
                 break;
             }
-            maintenanceMarginPercentageString = getValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         double? maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         string? unrealizedPnlString = this.safeString(position, "unrealizedProfit");
@@ -13698,7 +13698,7 @@ public partial class binance : Exchange
         List<object> leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
         string? notionalString = this.safeString2(position, "notional", "notionalValue");
         string? notionalStringAbs = Precise.stringAbs(notionalString);
-        object maintenanceMarginPercentageString = null;
+        string? maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; i++)
         {
             object bracket = leverageBracket[i];
@@ -13706,7 +13706,7 @@ public partial class binance : Exchange
             {
                 break;
             }
-            maintenanceMarginPercentageString = getValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         double? notional = this.parseNumber(notionalStringAbs);
         string? contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
@@ -15921,14 +15921,14 @@ public partial class binance : Exchange
             { "amount", amount },
         };
         Dictionary<string, object> response = null;
-        object code = null;
+        string? code = null;
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            code = (market.ContainsKey("quote") ? market["quote"] : null);
+            code = this.safeString(market, "quote");
             response = await this.fapiPrivatePostPositionMargin(this.extend(request, parameters));
         } else
         {
-            code = (market.ContainsKey("base") ? market["base"] : null);
+            code = this.safeString(market, "base");
             response = await this.dapiPrivatePostPositionMargin(this.extend(request, parameters));
         }
         //

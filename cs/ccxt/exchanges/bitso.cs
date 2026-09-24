@@ -758,7 +758,7 @@ public partial class bitso : Exchange
 
     public override Dictionary<string, object> parseBalance(object response)
     {
-        object payload = this.safeValue(response, "payload", new Dictionary<string, object>() {});
+        IDictionary<string, object> payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
         List<object> balances = this.safeList(payload, "balances", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },

@@ -1220,8 +1220,8 @@ public partial class deepcoin : ccxt.deepcoin
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
-                string symbolMessageHash = ((messageHash + "::") + (symbol));
+                string? symbol = ((string)getValue(symbols, i));
+                string symbolMessageHash = ((messageHash + "::") + symbol);
                 messageHashes.Add(symbolMessageHash);
             }
         } else

@@ -706,8 +706,8 @@ public partial class hashkey : ccxt.hashkey
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
-                messageHashes.Add(((messageHash + ":") + (symbol)));
+                string? symbol = ((string)getValue(symbols, i));
+                messageHashes.Add(((messageHash + ":") + symbol));
             }
         }
         string? url = this.getPrivateUrl(listenKey);

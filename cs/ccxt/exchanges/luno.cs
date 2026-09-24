@@ -1545,7 +1545,7 @@ public partial class luno : Exchange
         }
         await this.loadAccounts();
         IDictionary<string, object> currency = null;
-        object id = this.safeString(parameters, "id"); // account id
+        string? id = this.safeString(parameters, "id"); // account id
         object min_row = this.safeValue(parameters, "min_row");
         object max_row = this.safeValue(parameters, "max_row");
         if ((id == null))
@@ -1561,7 +1561,7 @@ public partial class luno : Exchange
             {
                 throw new ExchangeError (((this.id + " fetchLedger() could not find account id for ") + code)) ;
             }
-            id = GetValue(account, "id");
+            id = this.safeString(account, "id");
         }
         if ((min_row == null) && (max_row == null))
         {

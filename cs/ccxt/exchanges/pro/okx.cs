@@ -237,7 +237,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             messageHashes.Add(add(add(channel, ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -1457,7 +1457,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             messageHashes.Add(add(add(depth, ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -2005,9 +2005,9 @@ public partial class okx : ccxt.okx
         Int64? limitVar = limit;
         // By default, receive order updates from any instrument type
         parameters ??= new Dictionary<string, object>();
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchMyTrades", "type", "ANY");
-        type = typeparametersVariable[0];
+        type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
@@ -2026,10 +2026,10 @@ public partial class okx : ccxt.okx
         {
             market = this.market(symbolVar);
             symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            type = (market.ContainsKey("type") ? market["type"] : null);
+            type = this.safeString(market, "type");
             messageHash = add(add(messageHash, "::"), symbolVar);
         }
-        if (isEqual(type, "future"))
+        if (type == "future")
         {
             type = "futures";
         }
@@ -2037,7 +2037,7 @@ public partial class okx : ccxt.okx
         {
             throw new ArgumentsRequired ((this.id + " watchMyTrades() type is required")) ;
         }
-        string uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = type.ToUpper();
         string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("watchMyTrades", parameters);
         marginMode = (string)marginModeparametersVariable[0];
@@ -2231,10 +2231,10 @@ public partial class okx : ccxt.okx
         string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object type = null;
+        string? type = null;
         // By default, receive order updates from any instrument type
         IList<object> typeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrders", "type", "ANY");
-        type = typeparametersVariable[0];
+        type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
@@ -2251,9 +2251,9 @@ public partial class okx : ccxt.okx
         {
             market = this.market(symbolVar);
             symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            type = (market.ContainsKey("type") ? market["type"] : null);
+            type = this.safeString(market, "type");
         }
-        if (isEqual(type, "future"))
+        if (type == "future")
         {
             type = "futures";
         }
@@ -2261,7 +2261,7 @@ public partial class okx : ccxt.okx
         {
             throw new ArgumentsRequired ((this.id + " watchOrders() type is required")) ;
         }
-        string uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = type.ToUpper();
         string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("watchOrders", parameters);
         marginMode = (string)marginModeparametersVariable[0];

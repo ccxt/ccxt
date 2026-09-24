@@ -1119,7 +1119,7 @@ public partial class coinspot : Exchange
         {
             this.checkRequiredCredentials();
             // coinspot requires an increasing nonce
-            object nonce = this.incrementingNonce();
+            Int64? nonce = this.incrementingNonce();
             body = this.json(this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters));

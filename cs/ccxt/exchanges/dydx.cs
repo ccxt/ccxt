@@ -2130,16 +2130,16 @@ public partial class dydx : Exchange
         string? defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
         string? defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
         IDictionary<string, object> feeDenom = this.safeDict(this.options, "feeDenom", new Dictionary<string, object>() {});
-        object gasPrice = null;
-        object denom = null;
+        string? gasPrice = null;
+        string? denom = null;
         if (defaultFeeDenom == "uusdc")
         {
-            gasPrice = (feeDenom != null && feeDenom.ContainsKey("USDC_GAS_PRICE") ? feeDenom["USDC_GAS_PRICE"] : null);
-            denom = (feeDenom != null && feeDenom.ContainsKey("USDC_DENOM") ? feeDenom["USDC_DENOM"] : null);
+            gasPrice = this.safeString(feeDenom, "USDC_GAS_PRICE");
+            denom = this.safeString(feeDenom, "USDC_DENOM");
         } else
         {
-            gasPrice = (feeDenom != null && feeDenom.ContainsKey("CHAINTOKEN_GAS_PRICE") ? feeDenom["CHAINTOKEN_GAS_PRICE"] : null);
-            denom = (feeDenom != null && feeDenom.ContainsKey("CHAINTOKEN_DENOM") ? feeDenom["CHAINTOKEN_DENOM"] : null);
+            gasPrice = this.safeString(feeDenom, "CHAINTOKEN_GAS_PRICE");
+            denom = this.safeString(feeDenom, "CHAINTOKEN_DENOM");
         }
         double gasLimit = Math.Ceiling(Convert.ToDouble(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier))));
         string? feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);

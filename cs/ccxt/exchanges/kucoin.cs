@@ -6621,19 +6621,19 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountMode", accountMode },
         };
-        object marketType = null;
+        string? marketType = null;
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            marketType = (market.ContainsKey("type") ? market["type"] : null);
+            marketType = this.safeString(market, "type");
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         } else
         {
             marketType = this.safeString(parameters, "marketType");
         }
         parameters = this.omit(parameters, "marketType");
-        bool isContract = (!isEqual(marketType, "spot")) && (!isEqual(marketType, "margin"));
+        bool isContract = (marketType != "spot") && (marketType != "margin");
         if (!isContract && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")) ;
@@ -6855,18 +6855,18 @@ public partial class kucoin : Exchange
             parameters = this.omit(parameters, "uta");
             return await this.FetchUtaOrder(id, symbol, parameters);
         }
-        object marketType = null;
+        string? marketType = null;
         if ((symbol == null))
         {
             IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrder", null, parameters);
-            marketType = marketTypeparametersVariable[0];
+            marketType = (string)marketTypeparametersVariable[0];
             parameters = marketTypeparametersVariable[1];
         } else
         {
             Dictionary<string, object> market = this.market(symbol);
-            marketType = (market.ContainsKey("type") ? market["type"] : null);
+            marketType = this.safeString(market, "type");
         }
-        if ((isEqual(marketType, "spot")) || (isEqual(marketType, "margin")))
+        if ((marketType == "spot") || (marketType == "margin"))
         {
             return await this.FetchSpotOrder(id, symbol, parameters);
         } else

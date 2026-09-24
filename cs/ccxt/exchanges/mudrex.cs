@@ -1589,12 +1589,12 @@ public partial class mudrex : Exchange
         List<object> rows = new List<object>() {};
         for (int i = 0; i < (transactions?.Count ?? 0); i++)
         {
-            object rebate = null;
+            string? rebate = null;
             for (int j = 0; j < (rebateKeys?.Count ?? 0); j++)
             {
                 if (isEqual(rebateKeys[j], getValue(transactionKeys, i)))
                 {
-                    rebate = getValue(rebateAmounts, j);
+                    rebate = this.safeString(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     rebateKeys[Convert.ToInt32(j)] = null;
                     break;

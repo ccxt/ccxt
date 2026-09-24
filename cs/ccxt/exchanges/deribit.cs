@@ -1715,8 +1715,8 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object code = this.safeString2(parameters, "code", "currency");
-        object type = null;
+        string? code = this.safeString2(parameters, "code", "currency");
+        string? type = null;
         parameters = this.omit(parameters, new List<object>() {"code"});
         if ((symbols != null))
         {
@@ -1729,8 +1729,8 @@ public partial class deribit : Exchange
                 }
                 if ((code == null))
                 {
-                    code = (market.ContainsKey("base") ? market["base"] : null);
-                    type = (market.ContainsKey("type") ? market["type"] : null);
+                    code = this.safeString(market, "base");
+                    type = this.safeString(market, "type");
                 }
             }
         }
@@ -1738,20 +1738,20 @@ public partial class deribit : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
         }
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if ((type != null))
         {
             string? requestType = null;
-            if (isEqual(type, "spot"))
+            if (type == "spot")
             {
                 requestType = "spot";
-            } else if (isEqual(type, "future") || (isEqual(type, "contract")))
+            } else if (type == "future" || (type == "contract"))
             {
                 requestType = "future";
-            } else if (isEqual(type, "option"))
+            } else if (type == "option")
             {
                 requestType = "option";
             }

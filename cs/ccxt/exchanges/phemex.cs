@@ -4387,7 +4387,7 @@ public partial class phemex : Exchange
         if ((firstSymbol != null))
         {
             market = this.market(firstSymbol);
-            settle = ((string)(market.ContainsKey("settle") ? market["settle"] : null));
+            settle = this.safeString(market, "settle");
             code = (market.ContainsKey("settle") ? market["settle"] : null);
         } else
         {
@@ -6204,7 +6204,7 @@ public partial class phemex : Exchange
         if ((firstSymbol != null))
         {
             market = this.market(firstSymbol);
-            settle = ((string)(market.ContainsKey("settle") ? market["settle"] : null));
+            settle = this.safeString(market, "settle");
             code = (market.ContainsKey("settle") ? market["settle"] : null);
         } else
         {

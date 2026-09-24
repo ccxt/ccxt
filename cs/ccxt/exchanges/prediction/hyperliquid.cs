@@ -1375,7 +1375,7 @@ public partial class hyperliquid : PredictionExchange
         string? marketSymbol = this.safeString(outcomeObj, "market");
         Dictionary<string, object> market = this.market(marketSymbol);
         IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
-        object nonce = this.incrementingNonce();
+        Int64? nonce = this.incrementingNonce();
         bool isBuy = ((side.ToUpper() == "BUY"));
         bool isMarket = ((type.ToUpper() == "MARKET"));
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
@@ -1533,7 +1533,7 @@ public partial class hyperliquid : PredictionExchange
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
-        object nonce = this.incrementingNonce();
+        Int64? nonce = this.incrementingNonce();
         object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         List<object> cancelReq = new List<object>() {};
@@ -2452,7 +2452,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public async virtual Task<Dictionary<string, object>> approveBuilderFee(object builder, object maxFeeRate)
     {
-        object nonce = this.incrementingNonce();
+        Int64? nonce = this.incrementingNonce();
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },

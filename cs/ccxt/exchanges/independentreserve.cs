@@ -705,7 +705,7 @@ public partial class independentreserve : Exchange
         string? baseId = this.safeString(order, "PrimaryCurrencyCode");
         string? quoteId = this.safeString(order, "SecondaryCurrencyCode");
         object bs = null;
-        object quote = null;
+        string? quote = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
             bs = this.safeCurrencyCode(baseId);
@@ -715,7 +715,7 @@ public partial class independentreserve : Exchange
         {
             symbol = getValue(market, "symbol");
             bs = getValue(market, "base");
-            quote = getValue(market, "quote");
+            quote = this.safeString(market, "quote");
         }
         string? orderType = this.safeString2(order, "Type", "OrderType");
         string? side = null;
@@ -1344,8 +1344,8 @@ public partial class independentreserve : Exchange
         {
             this.checkRequiredCredentials();
             // independentreserve requires an increasing nonce
-            object nonce = this.incrementingNonce();
-            List<object> auth = new List<object>() {url, ("apiKey=" + this.apiKey), ("nonce=" + nonce.ToString())};
+            Int64? nonce = this.incrementingNonce();
+            List<object> auth = new List<object>() {url, ("apiKey=" + this.apiKey), ("nonce=" + ((object)nonce).ToString())};
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (int i = 0; i < keys.Count; i++)
             {
