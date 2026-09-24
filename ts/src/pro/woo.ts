@@ -246,7 +246,7 @@ export default class woo extends wooRest {
         } else {
             if (!(symbol in this.orderbooks)) {
                 const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-                const subscription = this.safeValue (client.subscriptions, topic);
+                const subscription = this.safeDict (client.subscriptions, topic);
                 const limit = this.safeInteger (subscription, 'limit', defaultLimit);
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
@@ -520,7 +520,7 @@ export default class woo extends wooRest {
         //         ]
         //     }
         //
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         const timestamp = this.safeInteger (message, 'ts');
         const result: List = [];

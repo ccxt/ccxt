@@ -241,12 +241,12 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple (url, messageHashes, message, [ subscribeHash ], subscription);
     }
 
-    async getUtaUrl () {
+    async getUtaUrl (): Promise<string> {
         const utaToken = await this.authenticateUta ();
         return this.urls['api']['ws']['private'] + '?token=' + utaToken;
     }
 
-    async authenticateUta () {
+    async authenticateUta (): Promise<Str> {
         this.checkRequiredCredentials ();
         const utaToken = this.safeString (this.options, 'utaToken');
         const lastUpdate = this.safeInteger (this.options, 'utaTokenLastUpdate', 0);

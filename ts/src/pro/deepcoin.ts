@@ -172,7 +172,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.watch (url, messageHash, undefined, 'private', params);
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<Str> {
         this.checkRequiredCredentials ();
         const time = this.milliseconds ();
         // single-flight leader election on a never-dialed client, see

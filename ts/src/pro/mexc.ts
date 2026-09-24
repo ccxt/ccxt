@@ -2017,7 +2017,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    async authenticate (subscriptionHash: Str, params: Dict = {}) {
+    async authenticate (subscriptionHash: Str, params: Dict = {}): Promise<Str> {
         // we only need one listenKey since ccxt shares connections
         let listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey !== undefined) {

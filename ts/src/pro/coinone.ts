@@ -365,7 +365,7 @@ export default class coinone extends coinoneRest {
         }, market);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "response_type": "ERROR",
