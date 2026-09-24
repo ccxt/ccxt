@@ -147,7 +147,7 @@ export default class byteexchange extends Exchange {
         // timestamp = unix seconds (server accepts a +/-10s window)
         // path      = request path only, the query string is excluded
         // bodyHash  = sha256 hex of the body for POST/PUT/PATCH, otherwise ''
-        // key       = sha256 hex of the api secret (not the raw secret)
+        // key       = the raw api secret
         // signature = hmac sha256 hex (key, message)
         const endpoint = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -168,9 +168,8 @@ export default class byteexchange extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             }
-            const secretHash = this.hash (this.encode (this.secret), sha256, 'hex');
             const message = timestamp + method + endpoint + bodyHash;
-            const signature = this.hmac (this.encode (message), this.encode (secretHash), sha256, 'hex');
+            const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256, 'hex');
             headers = {
                 'X-BEXC-API-KEY': this.apiKey,
                 'X-BEXC-TIMESTAMP': timestamp,
