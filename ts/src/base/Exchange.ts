@@ -1657,7 +1657,7 @@ export class BaseExchange {
         }
     }
 
-    remove0xPrefix (hexData: any) {
+    remove0xPrefix (hexData: any): string {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2);
         } else {
@@ -5587,7 +5587,7 @@ export class BaseExchange {
         return result;
     }
 
-    async fetchWebEndpoint (method: any, endpointMethod: any, returnAsJson: any, startRegex: Str = undefined, endRegex: Str = undefined) {
+    async fetchWebEndpoint (method: string, endpointMethod: any, returnAsJson: any, startRegex: Str = undefined, endRegex: Str = undefined) {
         let errorMessage = '';
         const options = this.safeValue (this.options, method, {});
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
@@ -5596,7 +5596,7 @@ export class BaseExchange {
             if (!this.safeBool (options, 'webApiEnable', true)) {
                 return undefined;
             }
-            const maxRetries = this.safeValue (options, 'webApiRetries', 10);
+            const maxRetries = this.safeInteger (options, 'webApiRetries', 10);
             let response: any = undefined;
             let retry = 0;
             let shouldBreak = false;
@@ -5987,15 +5987,15 @@ export class BaseExchange {
         return defaultNetworkCode;
     }
 
-    selectNetworkCodeFromUnifiedNetworks (currencyCode: any, networkCode: any, indexedNetworkEntries: any): Str {
+    selectNetworkCodeFromUnifiedNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str {
         return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, true);
     }
 
-    selectNetworkIdFromRawNetworks (currencyCode: any, networkCode: any, indexedNetworkEntries: any): Str {
+    selectNetworkIdFromRawNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str {
         return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
     }
 
-    selectNetworkKeyFromNetworks (currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
+    selectNetworkKeyFromNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId: Str = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
@@ -7052,7 +7052,7 @@ export class BaseExchange {
         }
     }
 
-    findBroadlyMatchedKey (broad: any, string: any): Str {
+    findBroadlyMatchedKey (broad: any, string: Str): Str {
         // a helper for matching error strings exactly vs broadly
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
@@ -8158,7 +8158,7 @@ export class BaseExchange {
         }
     }
 
-    checkRequiredArgument (methodName: string, argument: any, argumentName: any, options: string[] = []) {
+    checkRequiredArgument (methodName: string, argument: any, argumentName: string, options: string[] = []) {
         /**
          * @ignore
          * @method
