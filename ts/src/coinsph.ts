@@ -1525,7 +1525,7 @@ export default class coinsph extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
@@ -1609,7 +1609,7 @@ export default class coinsph extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {

@@ -1085,13 +1085,14 @@ export default class coinbaseexchange extends Exchange {
             'rate': feeRate,
         };
         const id = this.safeString (trade, 'trade_id');
-        let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
+        const rawSide = this.safeString (trade, 'side');
+        let side = (rawSide === 'buy') ? 'sell' : 'buy';
         const orderId = this.safeString (trade, 'order_id');
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         const makerOrderId = this.safeString (trade, 'maker_order_id');
         const takerOrderId = this.safeString (trade, 'taker_order_id');
         if ((orderId !== undefined) || ((makerOrderId !== undefined) && (takerOrderId !== undefined))) {
-            side = (trade['side'] === 'buy') ? 'buy' : 'sell';
+            side = (rawSide === 'buy') ? 'buy' : 'sell';
         }
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
@@ -2044,12 +2045,12 @@ export default class coinbaseexchange extends Exchange {
     }
 
     parseTransactionStatus (transaction: Dict): string {
-        const canceled = this.safeValue (transaction, 'canceled_at');
+        const canceled = this.safeString (transaction, 'canceled_at');
         if ((canceled !== undefined) && (canceled !== null)) {
             return 'canceled';
         }
-        const processed = this.safeValue (transaction, 'processed_at');
-        const completed = this.safeValue (transaction, 'completed_at');
+        const processed = this.safeString (transaction, 'processed_at');
+        const completed = this.safeString (transaction, 'completed_at');
         if ((completed !== undefined) && (completed !== null)) {
             return 'ok';
         } else if ((processed !== undefined) && (processed !== null)) {

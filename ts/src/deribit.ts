@@ -1006,7 +1006,7 @@ export default class deribit extends Exchange {
                     inverse = (quote !== settle);
                     linear = (settle === quote);
                 }
-                const parsedMarketValue = this.safeValue (parsedMarkets, symbol);
+                const parsedMarketValue = this.safeBool (parsedMarkets, symbol);
                 if (parsedMarketValue !== undefined) {
                     continue;
                 }
