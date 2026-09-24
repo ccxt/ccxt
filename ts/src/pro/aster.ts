@@ -1383,6 +1383,9 @@ export default class aster extends asterRest {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchBalance() requires a market type');
+        }
         await this.authenticate (type, params);
         const url = this.getPrivateUrl (type);
         const client = this.client (url);
@@ -1398,7 +1401,7 @@ export default class aster extends asterRest {
         return await this.watch (url, messageHash, message, type);
     }
 
-    setBalanceCache (client: Client, type: any) {
+    setBalanceCache (client: Client, type: string) {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
@@ -1415,7 +1418,7 @@ export default class aster extends asterRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
         const params: Dict = {
             'type': type,
         };
@@ -1732,6 +1735,9 @@ export default class aster extends asterRest {
         let messageHash = 'orders';
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, type);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a market type');
+        }
         await this.authenticate (type, params);
         if (market !== undefined) {
             messageHash += '::' + symbol;
@@ -1771,6 +1777,9 @@ export default class aster extends asterRest {
         let messageHash = 'myTrades';
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, type);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a market type');
+        }
         await this.authenticate (type, params);
         if (market !== undefined) {
             messageHash += '::' + symbol;

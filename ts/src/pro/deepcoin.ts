@@ -846,7 +846,8 @@ export default class deepcoin extends deepcoinRest {
         //     }
         //
         const timestamp = this.safeInteger (message, 'mt', 0);
-        if (timestamp > orderbook['timestamp']) {
+        const currentTimestamp = this.safeInteger (orderbook, 'timestamp');
+        if ((currentTimestamp !== undefined) && (timestamp > currentTimestamp)) {
             const response = this.safeList (message, 'r', []);
             this.handleDeltas (orderbook, response);
             orderbook['timestamp'] = timestamp;
