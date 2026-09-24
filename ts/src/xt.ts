@@ -5144,7 +5144,7 @@ export default class xt extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const items = this.safeList (data, 'items', []);
+        const items: Dict[] = this.safeList (data, 'items', []);
         const result: List = [];
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];

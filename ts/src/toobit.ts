@@ -732,7 +732,7 @@ export default class toobit extends Exchange {
         //            },
         //          ...
         //
-        const coins = this.safeList (response, 'coins', []);
+        const coins: Dict[] = this.safeList (response, 'coins', []);
         const result: Dict = {};
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];

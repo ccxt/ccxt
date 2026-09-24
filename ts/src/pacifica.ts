@@ -2198,7 +2198,7 @@ export default class pacifica extends Exchange {
         //   "code": null
         // }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
