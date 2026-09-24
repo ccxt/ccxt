@@ -333,14 +333,14 @@ export default class predictfun extends Exchange {
         }
         const queries = this.parseSearchQueries (params);
         const queriesLength = queries.length;
-        params = this.omit (params, [ 'query', 'queries' ]);
-        const userLimit = this.safeInteger (params, 'limit');
+        let paramsValue: fetchEventsParams = this.omit (params, [ 'query', 'queries' ]);
+        const userLimit = this.safeInteger (paramsValue, 'limit');
         let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
         if (userLimit !== undefined) {
             fetchCap = userLimit;
         }
-        const slug = this.safeString2 (params, 'slug', 'eventId');
-        const rest = this.omit (params, [ 'status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant' ]);
+        const slug = this.safeString2 (paramsValue, 'slug', 'eventId');
+        const rest = this.omit (paramsValue, [ 'status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant' ]);
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
@@ -353,17 +353,17 @@ export default class predictfun extends Exchange {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
             // the venue's semantic matches and cost one request per page
-            rawTopics = await this.fetchRawTopicsByQueries (queries, params);
+            rawTopics = await this.fetchRawTopicsByQueries (queries, paramsValue);
         } else {
             const request: Dict = {};
-            const tags = this.safeList (params, 'tags', []);
+            const tags = this.safeList (paramsValue, 'tags', []);
             const tagsLength = tags.length;
             if (tagsLength > 0) {
                 const tagsString = tags.join (',');
                 request['tagIds'] = tagsString;
             }
-            params = this.omit (params, [ 'limit', 'tags' ]);
-            const extendedRequest = this.extend (request, params);
+            paramsValue = this.omit (paramsValue, [ 'limit', 'tags' ]);
+            const extendedRequest = this.extend (request, paramsValue);
             let rawTopicsResponse = await this.predictfunGetV1Categories (extendedRequest);
             //
             //     {
@@ -568,10 +568,10 @@ export default class predictfun extends Exchange {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let postParams = this.omit (params, [ 'tags' ]);
+        let postParams = this.omit (paramsValue, [ 'tags' ]);
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
-        const rawStatus = this.safeString (params, 'status');
+        const rawStatus = this.safeString (paramsValue, 'status');
         if (rawStatus === 'OPEN') {
             postParams = this.extend (postParams, { 'status': 'active' });
         } else if (rawStatus === 'RESOLVED') {
@@ -1921,8 +1921,7 @@ export default class predictfun extends Exchange {
         // read through the extractor rather than off the instance, so one call can opt in without
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
-        let warnOnMarketOrderWithoutPrice: Bool = true;
-        [ warnOnMarketOrderWithoutPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
+        const [ warnOnMarketOrderWithoutPrice, paramsWarnOnMarketOrderWithoutPrice ] = this.handleOptionAndParams (params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
         if (price === undefined) {
             // a priceless limit order already threw above, so this is a market order
             if (warnOnMarketOrderWithoutPrice) {
@@ -1946,7 +1945,7 @@ export default class predictfun extends Exchange {
             makerAmount = costWei;
             takerAmount = quantityWei;
         }
-        const slippageBps = this.safeString (params, 'slippageBps', '0');
+        const slippageBps = this.safeString (paramsWarnOnMarketOrderWithoutPrice, 'slippageBps', '0');
         if (Precise.stringGt (slippageBps, '0')) {
             if (isBuy) {
                 // widen what the taker is willing to pay, capped at one unit of collateral a share
@@ -1962,14 +1961,14 @@ export default class predictfun extends Exchange {
         const marketObj = this.safeDict (this.markets, marketSymbol, {});
         const marketRow = this.safeDict (marketObj, 'info', {});
         const marketFeeRateBps = this.safeString (marketRow, 'feeRateBps', '200');  // should be at least 200
-        const feeRateBps = this.safeString (params, 'feeRateBps', marketFeeRateBps);
+        const feeRateBps = this.safeString (paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', marketFeeRateBps);
         const marketIsNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
-        const isNegRisk = this.safeBool (params, 'isNegRisk', marketIsNegRisk);
+        const isNegRisk = this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk);
         const marketIsYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
-        const isYieldBearing = this.safeBool (params, 'isYieldBearing', marketIsYieldBearing);
+        const isYieldBearing = this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing);
         const defaultExpiration = this.safeInteger (this.options, 'defaultExpiration', 3600); // 1 hour
         let expirationDelta = defaultExpiration;
-        let expiration = this.safeInteger (params, 'expiration');
+        let expiration = this.safeInteger (paramsWarnOnMarketOrderWithoutPrice, 'expiration');
         if (expiration === undefined) {
             if (isMarket) {
                 expirationDelta = this.safeInteger (this.options, 'marketOrderExpiration', defaultExpiration);
@@ -1978,19 +1977,19 @@ export default class predictfun extends Exchange {
             expiration = this.sum (now, expirationDelta);
         }
         const nonce = this.incrementingNonce ();
-        const salt = this.safeString (params, 'salt', this.numberToString (nonce));
-        let taker = '0x0000000000000000000000000000000000000000';
-        [ taker, params ] = this.handleOptionAndParams (params, 'createOrder', 'taker', taker);
+        const salt = this.safeString (paramsWarnOnMarketOrderWithoutPrice, 'salt', this.numberToString (nonce));
+        const taker = '0x0000000000000000000000000000000000000000';
+        const [ takerOption, paramsTaker ] = this.handleOptionAndParams (paramsWarnOnMarketOrderWithoutPrice, 'createOrder', 'taker', taker);
         const contractOrder: Dict = {
             'salt': salt,
             'maker': this.walletAddress,
             'signer': this.walletAddress,
-            'taker': taker,
+            'taker': takerOption,
             'tokenId': tokenId,
             'makerAmount': this.decimalToPrecision (makerAmount, TRUNCATE, 0, DECIMAL_PLACES),
             'takerAmount': this.decimalToPrecision (takerAmount, TRUNCATE, 0, DECIMAL_PLACES),
             'expiration': expiration,
-            'nonce': this.safeString (params, 'nonce', '0'),
+            'nonce': this.safeString (paramsTaker, 'nonce', '0'),
             'feeRateBps': feeRateBps,
             'side': isBuy ? 0 : 1,
             'signatureType': 0, // EOA
@@ -2005,28 +2004,28 @@ export default class predictfun extends Exchange {
             'pricePerShare': this.decimalToPrecision (priceWei, TRUNCATE, 0, DECIMAL_PLACES),
             'strategy': strategy,
         };
-        let postOnly = this.safeBool (params, 'isPostOnly', false);
-        [ postOnly, params ] = this.handlePostOnly (isMarket, postOnly, params);
-        if (postOnly) {
-            data['isPostOnly'] = postOnly;
+        const postOnly = this.safeBool (paramsTaker, 'isPostOnly', false);
+        const [ postOnlyOption, paramsPostOnly ] = this.handlePostOnly (isMarket, postOnly, paramsTaker);
+        if (postOnlyOption) {
+            data['isPostOnly'] = postOnlyOption;
         }
-        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const timeInForce = this.safeStringUpper (paramsPostOnly, 'timeInForce');
         if (timeInForce === 'FOK') {
             data['isFillOrKill'] = true;
         }
         // documented, and the venue takes it inside data rather than as a top level key
-        const selfTradePrevention = this.safeStringUpper (params, 'selfTradePrevention');
+        const selfTradePrevention = this.safeStringUpper (paramsPostOnly, 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             data['selfTradePrevention'] = selfTradePrevention;
         }
         // every param the method consumes itself has to come out, otherwise it survives into the
         // extend below and is posted as a top level key next to 'data'
-        params = this.omit (params, [ 'isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing', 'slippageBps', 'salt', 'nonce', 'expiration', 'selfTradePrevention', 'taker' ]);
+        const paramsOmitted: Dict = this.omit (paramsPostOnly, [ 'isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing', 'slippageBps', 'salt', 'nonce', 'expiration', 'selfTradePrevention', 'taker' ]);
         // the JWT authorises the order, the api key only authorises the request
         const request: Dict = {
             'data': data,
         };
-        const response = await this.predictfunPostV1Orders (this.extend (request, params));
+        const response = await this.predictfunPostV1Orders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "data": {
@@ -3110,11 +3109,12 @@ export default class predictfun extends Exchange {
      */
     override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let messageHash = 'orders';
-        if (outcome !== undefined) {
-            await this.loadOutcome (outcome);
-            const outcomeObj = this.outcome (outcome);
-            outcome = this.safeOutcomeSymbol (undefined, outcomeObj);
-            messageHash = 'orders::' + outcome;
+        let outcomeResolved: Str = outcome;
+        if (outcomeResolved !== undefined) {
+            await this.loadOutcome (outcomeResolved);
+            const outcomeObj = this.outcome (outcomeResolved);
+            outcomeResolved = this.safeOutcomeSymbol (undefined, outcomeObj);
+            messageHash = 'orders::' + outcomeResolved;
         } else {
             // events arrive for whatever market the wallet traded, and the handler that resolves
             // them is synchronous - so the universe is warmed here, while there is still a place to
@@ -3124,10 +3124,11 @@ export default class predictfun extends Exchange {
             await this.loadOutcomes ();
         }
         const orders = await this.watchWalletEvents (messageHash, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (outcome, limit);
+            limitResolved = orders.getLimit (outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit (orders, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit (orders, outcomeResolved, since, limitResolved, true);
     }
 
     /**
@@ -3143,21 +3144,23 @@ export default class predictfun extends Exchange {
      */
     override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         let messageHash = 'myTrades';
-        if (outcome !== undefined) {
-            await this.loadOutcome (outcome);
-            const outcomeObj = this.outcome (outcome);
-            outcome = this.safeOutcomeSymbol (undefined, outcomeObj);
-            messageHash = 'myTrades::' + outcome;
+        let outcomeResolved: Str = outcome;
+        if (outcomeResolved !== undefined) {
+            await this.loadOutcome (outcomeResolved);
+            const outcomeObj = this.outcome (outcomeResolved);
+            outcomeResolved = this.safeOutcomeSymbol (undefined, outcomeObj);
+            messageHash = 'myTrades::' + outcomeResolved;
         } else {
             // same as watchOrders (): the fills come from the one wallet topic and are resolved by
             // a synchronous handler, so the cache is warmed here rather than on the first event
             await this.loadOutcomes ();
         }
         const trades = await this.watchWalletEvents (messageHash, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (outcome, limit);
+            limitResolved = trades.getLimit (outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit (trades, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit (trades, outcomeResolved, since, limitResolved, true);
     }
 
     /**
@@ -3911,7 +3914,7 @@ export default class predictfun extends Exchange {
             }
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = existingHeaders;
+        const headersValue: any = existingHeaders;
         const authHeaders: Dict = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -3946,14 +3949,15 @@ export default class predictfun extends Exchange {
         if ((jwtToken !== undefined) && this.inArray (path, walletPaths)) {
             authHeaders['Authorization'] = 'Bearer ' + jwtToken;
         }
+        let bodyValue: any = body;
         if (method !== 'GET') {
             if (!sandboxMode) {
                 this.checkRequiredCredentials ();
             }
             authHeaders['Content-Type'] = 'application/json';
-            body = this.json (params);
+            bodyValue = this.json (params);
         }
-        headers = this.extend (headers, authHeaders);
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersExtended: any = this.extend (headersValue, authHeaders);
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }
