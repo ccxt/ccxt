@@ -544,7 +544,7 @@
 
 import { NodeFlags, SyntaxKind } from 'typescript/unstable/ast';
 import { ObjectFlags, TypeFlags } from 'typescript/unstable/sync';
-// INDEX_KIND_STRING of the checker API (not exported by every installed typescript 7.x)
+// IndexKind.String of the checker API (not exported by every installed typescript 7.x)
 const INDEX_KIND_STRING = 0;
 import { isArrayLiteralExpression, isBooleanLiteral, isCallExpression, isIdentifier, isInterfaceDeclaration, isMethodDeclaration, isNumericLiteral, isObjectLiteralExpression, isPropertyAccessExpression, isStringLiteral as ts7IsStringLiteral, isStringLiteralLikeNode, isTypeLiteralNode, isTypeReferenceNode } from 'typescript/unstable/ast/is';
 import { findAncestor, isFunctionLike } from 'ast-transpiler/tsUtils';
