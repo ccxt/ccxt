@@ -2332,7 +2332,7 @@ public partial class hyperliquid : Exchange
         var order = orderglobalParamsVariable[0];
         var globalParams = orderglobalParamsVariable[1];
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, globalParams));
-        return ccxt.BaseExchange.ToOrder(getValue(orders, 0));
+        return ccxt.BaseExchange.ToOrder((orders != null && 0 < orders.Count ? orders[0] : null));
     }
 
     /**
@@ -3269,7 +3269,7 @@ public partial class hyperliquid : Exchange
         var order = orderglobalParamsVariable[0];
         var globalParams = orderglobalParamsVariable[1];
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.EditOrders(new List<object>() {order}, globalParams));
-        return ccxt.BaseExchange.ToOrder(getValue(orders, 0));
+        return ccxt.BaseExchange.ToOrder((orders != null && 0 < orders.Count ? orders[0] : null));
     }
 
     /**

@@ -128,7 +128,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             // not sure why but it is happening sometimes
             return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {}));
         }
-        object parsedOrder = getValue(orders, 0);
+        object parsedOrder = (orders != null && 0 < orders.Count ? orders[0] : null);
         return ccxt.BaseExchange.ToOrder(parsedOrder);
     }
 

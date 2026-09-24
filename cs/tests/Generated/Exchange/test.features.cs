@@ -16,7 +16,7 @@ public partial class testMainClass : BaseTest
         for (int i = 0; i < keys.Count; i++)
         {
             testSharedMethods.assertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
-            object marketType = getValue(keys, i);
+            object marketType = (keys != null && i < keys.Count ? keys[i] : null);
             object value = getValue(features, marketType);
             // assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
             if ((value == null))
@@ -31,7 +31,7 @@ public partial class testMainClass : BaseTest
                 List<object> subKeys = new List<object>(((IDictionary<string,object>)value).Keys);
                 for (int j = 0; j < subKeys.Count; j++)
                 {
-                    object subKey = getValue(subKeys, j);
+                    object subKey = (subKeys != null && j < subKeys.Count ? subKeys[j] : null);
                     testSharedMethods.assertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes);
                     object subValue = getValue(value, subKey);
                     // sometimes it might not be available for exchange, eg. future>inverse)

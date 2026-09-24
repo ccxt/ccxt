@@ -672,7 +672,7 @@ public partial class bigone : Exchange
         List<object> promises = new List<object> {this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)};
         List<object> promisesResult = await promiseAll(promises);
         IDictionary<string, object> response = this.safeDict(promisesResult, 0);
-        object contractResponse = getValue(promisesResult, 1);
+        object contractResponse = (promisesResult != null && 1 < promisesResult.Count ? promisesResult[1] : null);
         //
         //     {
         //         "code":0,

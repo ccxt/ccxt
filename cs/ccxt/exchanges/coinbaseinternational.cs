@@ -1034,7 +1034,7 @@ public partial class coinbaseinternational : Exchange
                 return networksArray[i];
             }
         }
-        return getValue(networksArray, 0);
+        return (networksArray != null && 0 < networksArray.Count ? networksArray[0] : null);
     }
 
     public async virtual Task<bool> loadCurrencyNetworks(object code, object parameters = null)

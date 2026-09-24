@@ -241,7 +241,7 @@ public partial class sxbet : PredictionExchange
         int rawMarketsLength = (rawMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            markets.Add(this.parseSxbetMarket(getValue(rawMarkets, i)));
+            markets.Add(this.parseSxbetMarket((rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null)));
         }
         int marketsLength = (markets?.Count ?? 0);
         if (((userLimit != null)) && (isGreaterThan(marketsLength, userLimit)))
@@ -283,7 +283,7 @@ public partial class sxbet : PredictionExchange
             int pageMarketsLength = pageMarkets.Count;
             for (int i = 0; i < pageMarketsLength; i++)
             {
-                rawMarkets.Add(getValue(pageMarkets, i));
+                rawMarkets.Add((pageMarkets != null && i < pageMarkets.Count ? pageMarkets[i] : null));
             }
             paginationKey = this.safeString(result, "nextKey");
             page = this.sum(page, 1);
@@ -386,8 +386,8 @@ public partial class sxbet : PredictionExchange
             string? label = ((string)outcomeLabels[oi]);
             string? outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, label);
             outcomes.Add(new Dictionary<string, object>() {
-                { "id", getValue(outcomeIds, oi) },
-                { "outcomeId", getValue(outcomeIds, oi) },
+                { "id", (outcomeIds != null && oi < outcomeIds.Count ? outcomeIds[oi] : null) },
+                { "outcomeId", (outcomeIds != null && oi < outcomeIds.Count ? outcomeIds[oi] : null) },
                 { "outcome", outcomeHandle },
                 { "market", marketSymbol },
                 { "label", label },
@@ -487,7 +487,7 @@ public partial class sxbet : PredictionExchange
         int tagsLength = tags.Count;
         for (int i = 0; i < tagsLength; i++)
         {
-            queries.Add(getValue(tags, i));
+            queries.Add((tags != null && i < tags.Count ? tags[i] : null));
         }
         object rest = this.omit(parameters, new List<object>() {"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"});
         object rawMarkets = null;
@@ -555,13 +555,13 @@ public partial class sxbet : PredictionExchange
         int orderLength = (order?.Count ?? 0);
         for (int i = 0; i < orderLength; i++)
         {
-            string? fixtureId = ((string)getValue(order, i));
+            string? fixtureId = ((string)(order != null && i < order.Count ? order[i] : null));
             Dictionary<string, object> eventVar = this.parseEvent(fixtureId, getValue(grouped, fixtureId));
             List<object> evMarkets = this.safeList(eventVar, "markets", new List<object>() {});
             int evMarketsLength = evMarkets.Count;
             for (int j = 0; j < evMarketsLength; j++)
             {
-                object m = getValue(evMarkets, j);
+                object m = (evMarkets != null && j < evMarkets.Count ? evMarkets[j] : null);
                 ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
             }
             result.Add(eventVar);
@@ -1220,7 +1220,7 @@ public partial class sxbet : PredictionExchange
         for (int i = 0; i < cancelledLength; i++)
         {
             result.Add(this.safePredictionOrder(new Dictionary<string, object>() {
-                { "id", this.safeString(getValue(cancelled, i), "orderId") },
+                { "id", this.safeString((cancelled != null && i < cancelled.Count ? cancelled[i] : null), "orderId") },
                 { "status", "canceled" },
                 { "info", response },
             }));
@@ -1231,7 +1231,7 @@ public partial class sxbet : PredictionExchange
         {
             // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
             result.Add(this.safePredictionOrder(new Dictionary<string, object>() {
-                { "id", this.safeString(getValue(notCancelled, i), "orderId") },
+                { "id", this.safeString((notCancelled != null && i < notCancelled.Count ? notCancelled[i] : null), "orderId") },
                 { "status", null },
                 { "info", response },
             }));
@@ -1241,7 +1241,7 @@ public partial class sxbet : PredictionExchange
         for (int i = 0; i < unconfirmedLength; i++)
         {
             result.Add(this.safePredictionOrder(new Dictionary<string, object>() {
-                { "id", this.safeString(getValue(unconfirmed, i), "orderId") },
+                { "id", this.safeString((unconfirmed != null && i < unconfirmed.Count ? unconfirmed[i] : null), "orderId") },
                 { "status", null },
                 { "info", response },
             }));
@@ -1608,7 +1608,7 @@ public partial class sxbet : PredictionExchange
         int rawTradesLength = rawTrades.Count;
         for (int i = 0; i < rawTradesLength; i++)
         {
-            trades.Add(this.parseSxbetV3PublicTrade(getValue(rawTrades, i)));
+            trades.Add(this.parseSxbetV3PublicTrade((rawTrades != null && i < rawTrades.Count ? rawTrades[i] : null)));
         }
         // the venue serves the tape newest-first - the unified contract is ascending by timestamp
         trades = this.sortBy(trades, "timestamp");
@@ -1655,7 +1655,7 @@ public partial class sxbet : PredictionExchange
         int rawFillsLength = rawFills.Count;
         for (int i = 0; i < rawFillsLength; i++)
         {
-            trades.Add(this.parseSxbetV3Fill(getValue(rawFills, i)));
+            trades.Add(this.parseSxbetV3Fill((rawFills != null && i < rawFills.Count ? rawFills[i] : null)));
         }
         trades = this.sortBy(trades, "timestamp");
         string? sym = ((outcomeObj != null)) ? this.safeString(outcomeObj, "outcome") : null;
@@ -1823,7 +1823,7 @@ public partial class sxbet : PredictionExchange
         int rawPositionsLength = rawPositions.Count;
         for (int i = 0; i < rawPositionsLength; i++)
         {
-            object raw = getValue(rawPositions, i);
+            object raw = (rawPositions != null && i < rawPositions.Count ? rawPositions[i] : null);
             string? marketHash = this.safeString(raw, "marketHash", "");
             if (outcomesLength > 0)
             {
@@ -1944,7 +1944,7 @@ public partial class sxbet : PredictionExchange
         int rawTradesLength = rawTrades.Count;
         for (int i = 0; i < rawTradesLength; i++)
         {
-            Dictionary<string, object> settlement = this.parseSettlement(getValue(rawTrades, i));
+            Dictionary<string, object> settlement = this.parseSettlement((rawTrades != null && i < rawTrades.Count ? rawTrades[i] : null));
             if (((wantedOutcomeId == null)) || ((this.safeString(settlement, "outcomeId") == wantedOutcomeId)))
             {
                 result.Add(settlement);
@@ -2168,7 +2168,7 @@ public partial class sxbet : PredictionExchange
         {
             for (int i = 0; i < hashesLength; i++)
             {
-                object marketHash = getValue(hashesOrder, i);
+                object marketHash = (hashesOrder != null && i < hashesOrder.Count ? hashesOrder[i] : null);
                 IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
                 rowsByHash[(string)marketHash] = this.parseSxbetSnapshotBestOdds(snapshot);
             }
@@ -2189,7 +2189,7 @@ public partial class sxbet : PredictionExchange
             int rowsLength = (rows?.Count ?? 0);
             for (int j = 0; j < rowsLength; j++)
             {
-                object row = getValue(rows, j);
+                object row = (rows != null && j < rows.Count ? rows[j] : null);
                 string? rowHash = this.safeString(row, "marketHash");
                 if ((rowHash != null))
                 {
@@ -2524,7 +2524,7 @@ public partial class sxbet : PredictionExchange
             int linesLength = lines.Count;
             for (int i = 0; i < linesLength; i++)
             {
-                string? line = ((string)getValue(lines, i));
+                string? line = ((string)(lines != null && i < lines.Count ? lines[i] : null));
                 if (line.Length > 0)
                 {
                     object parsed = parseJson(line);
@@ -2732,7 +2732,7 @@ public partial class sxbet : PredictionExchange
         int watchedSymsLength = watchedSyms.Count;
         for (int i = 0; i < watchedSymsLength; i++)
         {
-            string? sym = ((string)getValue(watchedSyms, i));
+            string? sym = ((string)(watchedSyms != null && i < watchedSyms.Count ? watchedSyms[i] : null));
             if ((this.safeString(watchedBooks, sym) != marketHash))
             {
                 continue;
@@ -2875,7 +2875,7 @@ public partial class sxbet : PredictionExchange
             int watchedSymsLength = watchedSyms.Count;
             for (int j = 0; j < watchedSymsLength; j++)
             {
-                string? sym = ((string)getValue(watchedSyms, j));
+                string? sym = ((string)(watchedSyms != null && j < watchedSyms.Count ? watchedSyms[j] : null));
                 if ((this.safeString(watchedTickers, sym) != marketHash))
                 {
                     continue;

@@ -2045,7 +2045,7 @@ public partial class pacifica : Exchange
             List<object> requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, orderParams);
             Dictionary<string, object> action = new Dictionary<string, object>() {
                 { "type", "Create" },
-                { "data", getValue(requestList, 0) },
+                { "data", (requestList != null && 0 < requestList.Count ? requestList[0] : null) },
             };
             actions.Add(action);
         }
@@ -2909,7 +2909,7 @@ public partial class pacifica : Exchange
         object lastInfo = new Dictionary<string, object>() {};
         if (lastIdx > 0)
         {
-            lastInfo = getValue(sorted, 0);
+            lastInfo = (sorted != null && 0 < sorted.Count ? sorted[0] : null);
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(lastInfo, market));
     }

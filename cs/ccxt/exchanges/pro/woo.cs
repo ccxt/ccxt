@@ -1800,7 +1800,7 @@ public partial class woo : ccxt.woo
         for (int i = 0; i < subMessageHashes.Count; i++)
         {
             string? subHash = ((string)subMessageHashes[i]);
-            string? unsubHash = ((string)getValue(unsubMessageHashes, i));
+            string? unsubHash = ((string)(unsubMessageHashes != null && i < unsubMessageHashes.Count ? unsubMessageHashes[i] : null));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

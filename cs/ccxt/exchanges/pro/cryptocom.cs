@@ -222,7 +222,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = (((("book" + ".") + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + ((object)limit).ToString());
             string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -441,7 +441,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = (("trade" + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
             messageHashes.Add(("unsubscribe:trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
@@ -651,7 +651,7 @@ public partial class cryptocom : ccxt.cryptocom
         for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
             string? marketId = ((string)marketIds[i]);
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             subMessageHashes.Add(("ticker." + marketId));
             messageHashes.Add(("unsubscribe:ticker:" + symbol));
         }
@@ -1704,7 +1704,7 @@ public partial class cryptocom : ccxt.cryptocom
                 for (int j = 0; j < messageHashes.Count; j++)
                 {
                     object unsubHash = messageHashes[j];
-                    string? subHash = ((string)getValue(subMessageHashes, j));
+                    string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
                     this.cleanUnsubscription(client, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);

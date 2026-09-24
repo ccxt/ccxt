@@ -4696,11 +4696,11 @@ public partial class binance : Exchange
             promises.Add(this.sapiGetMarginAllPairs(parameters));
         }
         List<object> results = await promiseAll(promises);
-        object responseCurrencies = getValue(results, 0);
+        object responseCurrencies = (results != null && 0 < results.Count ? results[0] : null);
         Dictionary<string, object> marginablesById = null;
         if ((fetchMargins == true))
         {
-            object responseMarginables = getValue(results, 1);
+            object responseMarginables = (results != null && 1 < results.Count ? results[1] : null);
             marginablesById = this.indexBy(responseMarginables, "assetName");
         }
         return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(responseCurrencies, marginablesById))));
@@ -5776,7 +5776,7 @@ public partial class binance : Exchange
                 object symbols = "";
                 if (((paramSymbols is IList<object>) || (paramSymbols.GetType().IsGenericType && paramSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
-                    string? mid = this.marketId(getValue(paramSymbols, 0));
+                    string? mid = this.marketId((paramSymbols != null && 0 < paramSymbols.Count ? paramSymbols[0] : null));
                     if ((mid != null))
                     {
                         symbols = mid;
@@ -6389,11 +6389,11 @@ public partial class binance : Exchange
         }
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> symbolMarket = this.market(getValue(symbols, i));
+            Dictionary<string, object> symbolMarket = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
             bool? stock = this.safeBool(symbolMarket, "stock", false);
             if ((stock == true))
             {
-                throw new NotSupported ((((((this.id + " ") + (methodName)) + "() does not support tokenized stock symbols (") + (getValue(symbols, i))) + "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
+                throw new NotSupported ((((((this.id + " ") + (methodName)) + "() does not support tokenized stock symbols (") + ((symbols != null && i < symbols.Count ? symbols[i] : null))) + "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
             }
         }
     }
@@ -6435,7 +6435,7 @@ public partial class binance : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                request["symbol"] = this.marketId(getValue(symbols, 0));
+                request["symbol"] = this.marketId((symbols != null && 0 < symbols.Count ? symbols[0] : null));
             }
         }
         object response = null;
@@ -7924,7 +7924,7 @@ public partial class binance : Exchange
             ordersRequests.Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-        Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
+        Dictionary<string, object> market = this.market((orderSymbols != null && 0 < orderSymbols.Count ? orderSymbols[0] : null));
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) || ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true)))
         {
             throw new NotSupported ((((this.id + " editOrders() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
@@ -8752,7 +8752,7 @@ public partial class binance : Exchange
             ordersRequests.Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-        Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
+        Dictionary<string, object> market = this.market((orderSymbols != null && 0 < orderSymbols.Count ? orderSymbols[0] : null));
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             throw new NotSupported ((((this.id + " createOrders() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
@@ -11476,7 +11476,7 @@ public partial class binance : Exchange
         List<object> data = new List<object>() {};
         for (int i = 0; isLessThan(i, rows); i++)
         {
-            List<object> logs = this.safeList(getValue(results, i), "userAssetDribbletDetails", new List<object>() {});
+            List<object> logs = this.safeList((results != null && i < results.Count ? results[i] : null), "userAssetDribbletDetails", new List<object>() {});
             for (int j = 0; j < logs.Count; j++)
             {
                 ((IDictionary<string,object>)logs[j])["isDustTrade"] = true;
@@ -15705,7 +15705,7 @@ public partial class binance : Exchange
                         List<object> newClientOrderIds = new List<object>() {};
                         for (int i = 0; i < origclientorderidlistLength; i++)
                         {
-                            newClientOrderIds.Add((("%22" + (getValue(origclientorderidlist, i))) + "%22"));
+                            newClientOrderIds.Add((("%22" + ((origclientorderidlist != null && i < origclientorderidlist.Count ? origclientorderidlist[i] : null))) + "%22"));
                         }
                         query = add(add(add(add(query, "&"), "origclientorderidlist=%5B"), String.Join("%2C", newClientOrderIds.ToArray())), "%5D");
                     }
@@ -17285,7 +17285,7 @@ public partial class binance : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
@@ -17442,7 +17442,7 @@ public partial class binance : Exchange
         if ((symbols != null))
         {
             symbols = this.marketSymbols(symbols);
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
         string? subType = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
@@ -17509,7 +17509,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " fetchMarginMode() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(getValue(response, 0), market));
+        return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode((response != null && 0 < response.Count ? response[0] : null), market));
     }
 
     public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
@@ -18119,7 +18119,7 @@ public partial class binance : Exchange
         if ((symbols != null))
         {
             symbols = this.marketSymbols(symbols);
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
         string type = "swap";
         string? subType = null;

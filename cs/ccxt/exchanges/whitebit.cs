@@ -1395,7 +1395,7 @@ public partial class whitebit : Exchange
                 bool symbolFound = false;
                 for (int j = 0; j < (symbols?.Count ?? 0); j++)
                 {
-                    if (isEqual(getValue(symbols, j), symbol))
+                    if (isEqual((symbols != null && j < symbols.Count ? symbols[j] : null), symbol))
                     {
                         symbolFound = true;
                         break;
@@ -1881,7 +1881,7 @@ public partial class whitebit : Exchange
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(symbol);
                 if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
                 {
