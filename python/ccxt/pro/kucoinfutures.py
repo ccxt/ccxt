@@ -4,13 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.kucoin import kucoin
-from ccxt.base.types import Any, Strings, TransferEntry
+from ccxt.base.types import Str, Strings, Tickers, TransferEntry
 from ccxt.base.errors import BadRequest
 
 
 class kucoinfutures(kucoin):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -38,7 +38,7 @@ class kucoinfutures(kucoin):
             },
         })
 
-    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
         :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -50,7 +50,7 @@ class kucoinfutures(kucoin):
         }
         return await self.fetch_tickers(symbols, self.extend(request, params))
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -60,10 +60,11 @@ class kucoinfutures(kucoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        request: dict = {
+        request = {
             'currency': self.safe_string(currency, 'id'),
             'amount': amountToPrecision,
         }
@@ -103,7 +104,7 @@ class kucoinfutures(kucoin):
             #    {
             #        "code": "200000",
             #        "data": {
-            #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+            #            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
             #        }
             #    }
             #
@@ -116,8 +117,8 @@ class kucoinfutures(kucoin):
             'toAccount': toAccount,
         })
 
-    def parse_transfer_type(self, transferType):
-        transferTypes: dict = {
+    def parse_transfer_type(self, transferType: Str) -> Str:
+        transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',
         }

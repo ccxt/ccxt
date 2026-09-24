@@ -10,31 +10,36 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchTicker(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchTicker";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        string method = "watchTicker";
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 15000);
+        int maxIdleTime = 5000;
+        bool idle = false;
+        while ((isLessThan(now, ends)) && !idle)
         {
             object response = null;
-            object success = true;
+            bool success = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchTicker(symbol);
+                response = detypeForComparison(await exchange.WatchTicker(((string)symbol)));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            now = exchange.milliseconds();
+            if (((success == true)) && ((response != null)))
             {
-                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
-                now = exchange.milliseconds();
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
                 testTicker(exchange, skippedProperties, method, response, symbol);
+                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

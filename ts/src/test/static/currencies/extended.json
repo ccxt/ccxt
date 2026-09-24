@@ -1,0 +1,46 @@
+{
+    "USDC": {
+        "info": {
+            "id": 1,
+            "name": "USD",
+            "symbol": "USD",
+            "description": "USD Collateral",
+            "precision": 6,
+            "isActive": true,
+            "isCollateral": true,
+            "starkexId": "0x1",
+            "starkexResolution": 1000000,
+            "l1Id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "l1Resolution": 1000000,
+            "version": 3,
+            "createdAt": 1752829532673,
+            "type": "SPOT",
+            "canBeUsedAsCollateral": true,
+            "riskFactors": [],
+            "availableForTradeFactors": []
+        },
+        "id": "USD",
+        "numericId": 1,
+        "code": "USDC",
+        "precision": 6,
+        "type": "spot",
+        "name": "USD",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "margin": true
+    }
+}

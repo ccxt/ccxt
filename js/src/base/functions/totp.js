@@ -4,8 +4,8 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { base16, base32 } from '../../static_dependencies/scure-base/index.js';
-import { sha1 } from '../../static_dependencies/noble-hashes/sha1.js';
+import { hex as base16, base32 } from '@scure/base';
+import { sha1 } from '@noble/hashes/legacy.js';
 import { hmac } from './crypto.js';
 function totp(secret) {
     const dec2hex = (s) => ((s < 15.5 ? '0' : '') + Math.round(s).toString(16));

@@ -5,14 +5,13 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, IndexType, Int, OrderBook, Trade
+from ccxt.base.types import IndexType, Int, Market, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 
 
 class luno(ccxt.async_support.luno):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(luno, self).describe(), {
             'has': {
                 'ws': True,
@@ -39,7 +38,7 @@ class luno(ccxt.async_support.luno):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -52,14 +51,15 @@ class luno(ccxt.async_support.luno):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription: dict = {'symbol': symbol}
+        subscription = {'symbol': symbol}
         url = self.urls['api']['ws'] + subscriptionHash
         messageHash = 'trades:' + symbol
-        subscribe: dict = {
+        subscribe = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
         }
@@ -69,7 +69,7 @@ class luno(ccxt.async_support.luno):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message, subscription):
+    def handle_trades(self, client: Client, message: dict, subscription: dict):
         #
         #     {
         #         "sequence": "110980825",
@@ -85,7 +85,7 @@ class luno(ccxt.async_support.luno):
         #         "timestamp": 1660598775360
         #     }
         #
-        rawTrades = self.safe_value(message, 'trade_updates', [])
+        rawTrades = self.safe_list(message, 'trade_updates', [])
         length = len(rawTrades)
         if length == 0:
             return
@@ -104,9 +104,9 @@ class luno(ccxt.async_support.luno):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # watchTrades(public)
+        # watchTrades (public)
         #
         #     {
         #       "base": "69.00000000",
@@ -116,12 +116,13 @@ class luno(ccxt.async_support.luno):
         #       "order_id": "BXEEU4S2BWF5WRB"
         #     }
         #
+        symbol = None if (market is None) else market['symbol']
         return self.safe_trade({
             'info': trade,
             'id': None,
             'timestamp': None,
             'datetime': None,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': None,
@@ -133,24 +134,28 @@ class luno(ccxt.async_support.luno):
             'fee': None,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://www.luno.com/en/developers/api#tag/Streaming-API
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dictConstructor [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription: dict = {'symbol': symbol}
+        subscription = {'symbol': symbol}
         url = self.urls['api']['ws'] + subscriptionHash
         messageHash = 'orderbook:' + symbol
-        subscribe: dict = {
+        subscribe = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
         }
@@ -158,7 +163,7 @@ class luno(ccxt.async_support.luno):
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message, subscription):
+    def handle_order_book(self, client: Client, message: dict, subscription: dict):
         #
         #     {
         #         "sequence": "24352",
@@ -210,9 +215,9 @@ class luno(ccxt.async_support.luno):
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)
 
-    def custom_parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
-        bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
-        asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
+    def custom_parse_order_book(self, orderbook: dict, symbol: Str, timestamp: Int = None, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
+        bids = self.parse_order_book_bids_asks(self.safe_list(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
+        asks = self.parse_order_book_bids_asks(self.safe_list(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {
             'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
@@ -222,14 +227,14 @@ class luno(ccxt.async_support.luno):
             'nonce': None,
         }
 
-    def parse_bids_asks(self, bidasks, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
+    def parse_order_book_bids_asks(self, bidasks: object, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
         bidasks = self.to_array(bidasks)
         result = []
         for i in range(0, len(bidasks)):
             result.append(self.custom_parse_bid_ask(bidasks[i], priceKey, amountKey, thirdKey))
         return result
 
-    def custom_parse_bid_ask(self, bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
+    def custom_parse_bid_ask(self, bidask: object, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         result = [price, amount]
@@ -238,7 +243,7 @@ class luno(ccxt.async_support.luno):
             result.append(thirdValue)
         return result
 
-    def handle_delta(self, orderbook, message):
+    def handle_delta(self, orderbook: object, message: object):
         #
         #  create
         #     {
@@ -254,7 +259,8 @@ class luno(ccxt.async_support.luno):
         #         "status_update": null,
         #         "timestamp": 1660598775360
         #     }
-        #  del         #     {
+        #  delete
+        #     {
         #         "sequence": "110980825",
         #         "trade_updates": [],
         #         "create_update": null,
@@ -297,7 +303,7 @@ class luno(ccxt.async_support.luno):
             asksOrderSide.storeArray([0, 0, orderId])
             bidsOrderSide.storeArray([0, 0, orderId])
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: object):
         if message == '':
             return
         subscriptions = list(client.subscriptions.values())

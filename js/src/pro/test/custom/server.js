@@ -13,11 +13,11 @@ import { extend } from 'ccxt';
 class WebSocketServer {
     constructor(config = {}) {
         const defaults = {
-            "terminateTimeout": undefined,
-            "closeTimeout": undefined,
-            "errorTimeout": undefined,
-            "closeCode": 1000,
-            "handshakeDelay": undefined,
+            "terminateTimeout": undefined, // terminate the connection immediately or later
+            "closeTimeout": undefined, // close after a while
+            "errorTimeout": undefined, // error after a while
+            "closeCode": 1000, // default closing code 1000 = ok
+            "handshakeDelay": undefined, // delay the handshake to simulate connection timeout
             "port": 8080,
         };
         // merge to this
@@ -38,7 +38,7 @@ class WebSocketServer {
         // terminate any incoming connection
         // immediately after it has been successfully established
         if (Number.isInteger(this.terminateTimeout)) {
-            if (this.terminateTimeout) {
+            if (this.terminateTimeout !== 0) {
                 setTimeout(() => { ws.terminate(); }, this.terminateTimeout);
             }
             else {
@@ -47,7 +47,7 @@ class WebSocketServer {
         }
         // close the connection after a certain amount of time
         if (Number.isInteger(this.closeTimeout)) {
-            if (this.closeTimeout) {
+            if (this.closeTimeout !== 0) {
                 setTimeout(() => {
                     console.log(new Date(), 'Closing with code', this.closeCode, typeof this);
                     // ws.terminate ()
@@ -60,7 +60,7 @@ class WebSocketServer {
         }
         // error the connection after a certain amount of time
         if (Number.isInteger(this.errorTimeout)) {
-            if (this.errorTimeout) {
+            if (this.errorTimeout !== 0) {
                 setTimeout(() => {
                     console.log(new Date(), 'Closing with code', this.errorTimeout, typeof this);
                     // ws.terminate ()

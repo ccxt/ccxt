@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/digifinex.js';
-import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class digifinex
@@ -22,7 +22,7 @@ export default class digifinex extends Exchange {
             'name': 'DigiFinex',
             'countries': ['SG'],
             'version': 'v3',
-            'rateLimit': 900,
+            'rateLimit': 900, // 300 for posts
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -126,114 +126,114 @@ export default class digifinex extends Exchange {
             'api': {
                 'public': {
                     'spot': {
-                        'get': [
-                            '{market}/symbols',
-                            'kline',
-                            'margin/currencies',
-                            'margin/symbols',
-                            'markets',
-                            'order_book',
-                            'ping',
-                            'spot/symbols',
-                            'time',
-                            'trades',
-                            'trades/symbols',
-                            'ticker',
-                            'currencies',
-                        ],
+                        'get': {
+                            '{market}/symbols': { 'cost': 1 },
+                            'kline': { 'cost': 1 },
+                            'margin/currencies': { 'cost': 1 },
+                            'margin/symbols': { 'cost': 1 },
+                            'markets': { 'cost': 1 },
+                            'order_book': { 'cost': 1 },
+                            'ping': { 'cost': 1 },
+                            'spot/symbols': { 'cost': 1 },
+                            'time': { 'cost': 1 },
+                            'trades': { 'cost': 1 },
+                            'trades/symbols': { 'cost': 1 },
+                            'ticker': { 'cost': 1 },
+                            'currencies': { 'cost': 1 },
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'public/api_weight',
-                            'public/candles',
-                            'public/candles_history',
-                            'public/depth',
-                            'public/funding_rate',
-                            'public/funding_rate_history',
-                            'public/instrument',
-                            'public/instruments',
-                            'public/ticker',
-                            'public/tickers',
-                            'public/time',
-                            'public/trades',
-                        ],
+                        'get': {
+                            'public/api_weight': { 'cost': 1 },
+                            'public/candles': { 'cost': 1 },
+                            'public/candles_history': { 'cost': 1 },
+                            'public/depth': { 'cost': 1 },
+                            'public/funding_rate': { 'cost': 1 },
+                            'public/funding_rate_history': { 'cost': 1 },
+                            'public/instrument': { 'cost': 1 },
+                            'public/instruments': { 'cost': 1 },
+                            'public/ticker': { 'cost': 1 },
+                            'public/tickers': { 'cost': 1 },
+                            'public/time': { 'cost': 1 },
+                            'public/trades': { 'cost': 1 },
+                        },
                     },
                 },
                 'private': {
                     'spot': {
-                        'get': [
-                            '{market}/financelog',
-                            '{market}/mytrades',
-                            '{market}/order',
-                            '{market}/order/detail',
-                            '{market}/order/current',
-                            '{market}/order/history',
-                            'margin/assets',
-                            'margin/financelog',
-                            'margin/mytrades',
-                            'margin/order',
-                            'margin/order/current',
-                            'margin/order/history',
-                            'margin/positions',
-                            'otc/financelog',
-                            'spot/assets',
-                            'spot/financelog',
-                            'spot/mytrades',
-                            'spot/order',
-                            'spot/order/current',
-                            'spot/order/history',
-                            'deposit/address',
-                            'deposit/history',
-                            'withdraw/history',
-                        ],
-                        'post': [
-                            '{market}/order/cancel',
-                            '{market}/order/new',
-                            '{market}/order/batch_new',
-                            'margin/order/cancel',
-                            'margin/order/new',
-                            'margin/position/close',
-                            'spot/order/cancel',
-                            'spot/order/new',
-                            'transfer',
-                            'withdraw/new',
-                            'withdraw/cancel',
-                        ],
+                        'get': {
+                            '{market}/financelog': { 'cost': 1 },
+                            '{market}/mytrades': { 'cost': 1 },
+                            '{market}/order': { 'cost': 1 },
+                            '{market}/order/detail': { 'cost': 1 },
+                            '{market}/order/current': { 'cost': 1 },
+                            '{market}/order/history': { 'cost': 1 },
+                            'margin/assets': { 'cost': 1 },
+                            'margin/financelog': { 'cost': 1 },
+                            'margin/mytrades': { 'cost': 1 },
+                            'margin/order': { 'cost': 1 },
+                            'margin/order/current': { 'cost': 1 },
+                            'margin/order/history': { 'cost': 1 },
+                            'margin/positions': { 'cost': 1 },
+                            'otc/financelog': { 'cost': 1 },
+                            'spot/assets': { 'cost': 1 },
+                            'spot/financelog': { 'cost': 1 },
+                            'spot/mytrades': { 'cost': 1 },
+                            'spot/order': { 'cost': 1 },
+                            'spot/order/current': { 'cost': 1 },
+                            'spot/order/history': { 'cost': 1 },
+                            'deposit/address': { 'cost': 1 },
+                            'deposit/history': { 'cost': 1 },
+                            'withdraw/history': { 'cost': 1 },
+                        },
+                        'post': {
+                            '{market}/order/cancel': { 'cost': 1 },
+                            '{market}/order/new': { 'cost': 1 },
+                            '{market}/order/batch_new': { 'cost': 1 },
+                            'margin/order/cancel': { 'cost': 1 },
+                            'margin/order/new': { 'cost': 1 },
+                            'margin/position/close': { 'cost': 1 },
+                            'spot/order/cancel': { 'cost': 1 },
+                            'spot/order/new': { 'cost': 1 },
+                            'transfer': { 'cost': 1 },
+                            'withdraw/new': { 'cost': 1 },
+                            'withdraw/cancel': { 'cost': 1 },
+                        },
                     },
                     'swap': {
-                        'get': [
-                            'account/balance',
-                            'account/positions',
-                            'account/finance_record',
-                            'account/trading_fee_rate',
-                            'account/transfer_record',
-                            'account/funding_fee',
-                            'trade/history_orders',
-                            'trade/history_trades',
-                            'trade/open_orders',
-                            'trade/order_info',
-                        ],
-                        'post': [
-                            'account/transfer',
-                            'account/leverage',
-                            'account/position_mode',
-                            'account/position_margin',
-                            'trade/batch_cancel_order',
-                            'trade/batch_order',
-                            'trade/cancel_order',
-                            'trade/order_place',
-                            'follow/sponsor_order',
-                            'follow/close_order',
-                            'follow/cancel_order',
-                            'follow/user_center_current',
-                            'follow/user_center_history',
-                            'follow/expert_current_open_order',
-                            'follow/add_algo',
-                            'follow/cancel_algo',
-                            'follow/account_available',
-                            'follow/plan_task',
-                            'follow/instrument_list',
-                        ],
+                        'get': {
+                            'account/balance': { 'cost': 1 },
+                            'account/positions': { 'cost': 1 },
+                            'account/finance_record': { 'cost': 1 },
+                            'account/trading_fee_rate': { 'cost': 1 },
+                            'account/transfer_record': { 'cost': 1 },
+                            'account/funding_fee': { 'cost': 1 },
+                            'trade/history_orders': { 'cost': 1 },
+                            'trade/history_trades': { 'cost': 1 },
+                            'trade/open_orders': { 'cost': 1 },
+                            'trade/order_info': { 'cost': 1 },
+                        },
+                        'post': {
+                            'account/transfer': { 'cost': 1 },
+                            'account/leverage': { 'cost': 1 },
+                            'account/position_mode': { 'cost': 1 },
+                            'account/position_margin': { 'cost': 1 },
+                            'trade/batch_cancel_order': { 'cost': 1 },
+                            'trade/batch_order': { 'cost': 1 },
+                            'trade/cancel_order': { 'cost': 1 },
+                            'trade/order_place': { 'cost': 1 },
+                            'follow/sponsor_order': { 'cost': 1 },
+                            'follow/close_order': { 'cost': 1 },
+                            'follow/cancel_order': { 'cost': 1 },
+                            'follow/user_center_current': { 'cost': 1 },
+                            'follow/user_center_history': { 'cost': 1 },
+                            'follow/expert_current_open_order': { 'cost': 1 },
+                            'follow/add_algo': { 'cost': 1 },
+                            'follow/cancel_algo': { 'cost': 1 },
+                            'follow/account_available': { 'cost': 1 },
+                            'follow/plan_task': { 'cost': 1 },
+                            'follow/instrument_list': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -268,7 +268,7 @@ export default class digifinex extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': true,
                         'limit': 500,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 30,
                         'symbolRequired': false,
                     },
@@ -289,7 +289,7 @@ export default class digifinex extends Exchange {
                     'fetchOrders': {
                         'marginMode': true,
                         'limit': 100,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 30,
                         'trigger': false,
                         'trailing': false,
@@ -312,7 +312,7 @@ export default class digifinex extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': 100000, // todo
                     },
                     'fetchOrder': {
@@ -432,20 +432,19 @@ export default class digifinex extends Exchange {
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
-                    'MATIC': 'Polygon',
                     'METIS': 'MetisDAO',
                     'MOONBEAM': 'GLMR',
                     'MOONRIVER': 'Moonriver',
                     'OPTIMISM': 'OPETH',
                     'POLYGON': 'Polygon',
+                    'MATIC': 'Polygon',
                     'RIPPLE': 'XRP',
-                    'SOLANA': 'SOL',
-                    'STELLAR': 'Stella',
+                    'SOL': 'SOL', // SOL & SPL
+                    'XLM': 'Stella', // STELLAR
                     'TERRACLASSIC': 'TerraClassic',
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRON': 'TRC20',
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
@@ -473,6 +472,7 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -532,27 +532,29 @@ export default class digifinex extends Exchange {
         for (let j = 0; j < networkEntries.length; j++) {
             const networkEntry = networkEntries[j];
             const networkId = this.safeString2(networkEntry, 'chain', 'currency');
-            const networkCode = this.networkIdToCode(networkId);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
-                'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
-                'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
-                        'max': undefined,
+            const networkCode = this.networkIdToCode(networkId, code);
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
+                    'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
+                    'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
-                        'max': undefined,
-                    },
-                },
-                'info': networkEntry,
-            };
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -565,11 +567,15 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#fetchMarkets
      * @description retrieves data on all markets for digifinex
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const options = this.safeValue(this.options, 'fetchMarkets', {});
+        const options = this.safeDict(this.options, 'fetchMarkets', {});
         const method = this.safeString(options, 'method', 'fetch_markets_v2');
         if (method === 'fetch_markets_v2') {
             return await this.fetchMarketsV2(params);
@@ -642,8 +648,8 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const spotData = this.safeValue(spotMarkets, 'symbol_list', []);
-        const swapData = this.safeValue(swapMarkets, 'data', []);
+        const spotData = this.safeList(spotMarkets, 'symbol_list', []);
+        const swapData = this.safeList(swapMarkets, 'data', []);
         const response = this.arrayConcat(spotData, swapData);
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -676,14 +682,14 @@ export default class digifinex extends Exchange {
             if (swap) {
                 type = 'swap';
                 symbol = base + '/' + quote + ':' + settle;
-                isInverse = this.safeValue(market, 'is_inverse');
-                isLinear = (!isInverse) ? true : false;
-                const isTrading = this.safeValue(market, 'isTrading');
-                if (isTrading) {
+                isInverse = this.safeBool(market, 'is_inverse');
+                isLinear = (isInverse !== true) ? true : false;
+                const isTrading = this.safeBool(market, 'isTrading');
+                if (isTrading === true) {
                     isAllowed = 1;
                 }
             }
-            const isActive = isAllowed ? true : false;
+            const isActive = (isAllowed !== 0);
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -753,11 +759,14 @@ export default class digifinex extends Exchange {
         //         "code":0
         //     }
         //
-        const markets = this.safeValue(response, 'data', []);
+        const markets = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString(market, 'market');
+            if (id === undefined) {
+                throw new ExchangeError(this.id + ' fetchMarketsV1() missing id');
+            }
             const [baseId, quoteId] = id.split('_');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
@@ -848,7 +857,9 @@ export default class digifinex extends Exchange {
             account['free'] = free;
             account['used'] = Precise.stringSub(total, free);
             account['total'] = total;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -863,7 +874,9 @@ export default class digifinex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', params);
@@ -918,7 +931,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const balanceRequest = (marketType === 'swap') ? 'data' : 'list';
-        const balances = this.safeValue(response, balanceRequest, []);
+        const balances = this.safeList(response, balanceRequest, []);
         return this.parseBalance(balances);
     }
     /**
@@ -930,10 +943,12 @@ export default class digifinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrderBook', market, params);
         const request = {};
@@ -990,7 +1005,7 @@ export default class digifinex extends Exchange {
         let timestamp = undefined;
         let orderBook = undefined;
         if (marketType === 'swap') {
-            orderBook = this.safeValue(response, 'data', {});
+            orderBook = this.safeDict(response, 'data', {});
             timestamp = this.safeInteger(orderBook, 'timestamp');
         }
         else {
@@ -1010,7 +1025,9 @@ export default class digifinex extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const first = this.safeString(symbols, 0);
         let market = undefined;
@@ -1076,7 +1093,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const result = {};
-        const tickers = this.safeValue2(response, 'ticker', 'data', []);
+        const tickers = this.safeList2(response, 'ticker', 'data', []);
         const date = this.safeInteger(response, 'date');
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend({
@@ -1084,7 +1101,9 @@ export default class digifinex extends Exchange {
             }, tickers[i]);
             const ticker = this.parseTicker(rawTicker);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
@@ -1099,11 +1118,13 @@ export default class digifinex extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             request['instrument_id'] = market['id'];
             response = await this.publicSwapGetPublicTicker(this.extend(request, params));
         }
@@ -1157,15 +1178,18 @@ export default class digifinex extends Exchange {
         //     }
         //
         const date = this.safeInteger(response, 'date');
-        const tickers = this.safeValue(response, 'ticker', []);
-        const data = this.safeValue(response, 'data', {});
-        const firstTicker = this.safeValue(tickers, 0, {});
+        const tickers = this.safeList(response, 'ticker', []);
+        const data = this.safeDict(response, 'data', {});
+        const firstTicker = this.safeDict(tickers, 0, {});
         let result = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             result = data;
         }
         else {
             result = this.extend({ 'date': date }, firstTicker);
+        }
+        if (result === undefined) {
+            throw new NullResponse(this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker(result, market);
     }
@@ -1215,10 +1239,15 @@ export default class digifinex extends Exchange {
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         market = this.safeMarket(marketId, market, undefined, marketType);
         let timestamp = this.safeTimestamp(ticker, 'date');
-        if (market['swap']) {
+        if (market['swap'] === true) {
             timestamp = this.safeInteger(ticker, 'timestamp');
         }
         const last = this.safeString(ticker, 'last');
+        let percentage = this.safeString2(ticker, 'change', 'price_change_percent');
+        if (market['swap'] === true) {
+            // swap endpoints return a raw ratio, spot already returns a percent
+            percentage = Precise.stringMul(percentage, '100');
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1235,7 +1264,7 @@ export default class digifinex extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString2(ticker, 'change', 'price_change_percent'),
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'vol', 'volume_24h'),
             'quoteVolume': this.safeString(ticker, 'base_vol'),
@@ -1348,14 +1377,17 @@ export default class digifinex extends Exchange {
             }
         }
         else {
+            if (side === undefined) {
+                throw new ExchangeError(this.id + ' parseTrade() returned no side');
+            }
             const parts = side.split('_');
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
             if (type === undefined) {
                 type = 'limit';
             }
-            const isMaker = this.safeValue(trade, 'is_maker');
-            takerOrMaker = isMaker ? 'maker' : 'taker';
+            const isMaker = this.safeBool(trade, 'is_maker');
+            takerOrMaker = (isMaker === true) ? 'maker' : 'taker';
         }
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
@@ -1390,6 +1422,7 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -1407,6 +1440,7 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#fetchStatus
      * @description the latest known information on the availability of the exchange API
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -1441,14 +1475,16 @@ export default class digifinex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         if (limit !== undefined) {
-            request['limit'] = market['swap'] ? Math.min(limit, 100) : limit;
+            request['limit'] = (market['swap'] === true) ? Math.min(limit, 100) : limit;
         }
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             request['instrument_id'] = market['id'];
             response = await this.publicSwapGetPublicTrades(this.extend(request, params));
         }
@@ -1511,23 +1547,23 @@ export default class digifinex extends Exchange {
         //         0.029927
         //     ]
         //
-        if (market['swap']) {
+        if (this.safeBool(market, 'swap') === true) {
             return [
                 this.safeInteger(ohlcv, 0),
-                this.safeNumber(ohlcv, 1),
-                this.safeNumber(ohlcv, 2),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
+                this.safeNumber(ohlcv, 1), // open
+                this.safeNumber(ohlcv, 2), // high
+                this.safeNumber(ohlcv, 3), // low
+                this.safeNumber(ohlcv, 4), // close
                 this.safeNumber(ohlcv, 5), // volume
             ];
         }
         else {
             return [
                 this.safeTimestamp(ohlcv, 0),
-                this.safeNumber(ohlcv, 5),
-                this.safeNumber(ohlcv, 3),
-                this.safeNumber(ohlcv, 4),
-                this.safeNumber(ohlcv, 2),
+                this.safeNumber(ohlcv, 5), // open
+                this.safeNumber(ohlcv, 3), // high
+                this.safeNumber(ohlcv, 4), // low
+                this.safeNumber(ohlcv, 2), // close
                 this.safeNumber(ohlcv, 1), // volume
             ];
         }
@@ -1547,11 +1583,13 @@ export default class digifinex extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
@@ -1587,6 +1625,9 @@ export default class digifinex extends Exchange {
                         }
                     }
                     else {
+                        if (limit === undefined) {
+                            throw new ArgumentsRequired(this.id + ' fetchOHLCV() requires a limit argument');
+                        }
                         request['end_time'] = this.sum(startTime, limit * duration);
                     }
                 }
@@ -1622,12 +1663,12 @@ export default class digifinex extends Exchange {
         //     }
         //
         let candles = undefined;
-        if (market['swap']) {
-            const data = this.safeValue(response, 'data', {});
-            candles = this.safeValue(data, 'candles', []);
+        if (market['swap'] === true) {
+            const data = this.safeDict(response, 'data', {});
+            candles = this.safeList(data, 'candles', []);
         }
         else {
-            candles = this.safeValue(response, 'data', []);
+            candles = this.safeList(response, 'data', []);
         }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
@@ -1651,13 +1692,15 @@ export default class digifinex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const marginResult = this.handleMarginModeAndParams('createOrder', params);
         const marginMode = marginResult[0];
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.privateSwapPostTradeOrderPlace(request);
         }
         else {
@@ -1683,6 +1726,9 @@ export default class digifinex extends Exchange {
         //         "data": "1590873693003714560"
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse(this.id + ' createOrder() returned empty response');
+        }
         const order = this.parseOrder(response, market);
         order['symbol'] = market['symbol'];
         order['type'] = type;
@@ -1702,7 +1748,9 @@ export default class digifinex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         let symbol = undefined;
         let marginMode = undefined;
@@ -1721,7 +1769,7 @@ export default class digifinex extends Exchange {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
@@ -1740,7 +1788,7 @@ export default class digifinex extends Exchange {
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.privateSwapPostTradeBatchOrder(ordersRequests);
         }
         else {
@@ -1771,11 +1819,11 @@ export default class digifinex extends Exchange {
         //     }
         //
         let data = [];
-        if (market['swap']) {
-            data = this.safeValue(response, 'data', []);
+        if (market['swap'] === true) {
+            data = this.safeList(response, 'data', []);
         }
         else {
-            data = this.safeValue(response, 'order_ids', []);
+            data = this.safeList(response, 'order_ids', []);
         }
         const result = [];
         for (let i = 0; i < orders.length; i++) {
@@ -1790,6 +1838,12 @@ export default class digifinex extends Exchange {
         return this.parseOrders(result, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1824,11 +1878,11 @@ export default class digifinex extends Exchange {
             const timeInForce = this.safeString(params, 'timeInForce');
             let orderType = undefined;
             if (side === 'buy') {
-                const requestType = (reduceOnly) ? 4 : 1;
+                const requestType = (reduceOnly === true) ? 4 : 1;
                 request['type'] = requestType;
             }
             else {
-                const requestType = (reduceOnly) ? 3 : 2;
+                const requestType = (reduceOnly === true) ? 3 : 2;
                 request['type'] = requestType;
             }
             if (isLimitOrder) {
@@ -1895,7 +1949,7 @@ export default class digifinex extends Exchange {
             request['amount'] = quantity;
         }
         if (postOnly) {
-            if (postOnlyParsed) {
+            if ((postOnlyParsed !== undefined) && (postOnlyParsed !== 0)) {
                 request['post_only'] = postOnlyParsed;
             }
             else {
@@ -1916,9 +1970,11 @@ export default class digifinex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1931,12 +1987,14 @@ export default class digifinex extends Exchange {
      * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
      * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by digifinex cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1951,7 +2009,7 @@ export default class digifinex extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
-            request['instrument_id'] = market['id'];
+            request['instrument_id'] = this.safeString(market, 'id');
         }
         else {
             request['market'] = marketType;
@@ -1993,7 +2051,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         if ((marketType === 'spot') || (marketType === 'margin')) {
-            const canceledOrders = this.safeValue(response, 'success', []);
+            const canceledOrders = this.safeList(response, 'success', []);
             const numCanceledOrders = canceledOrders.length;
             if (numCanceledOrders !== 1) {
                 throw new OrderNotFound(this.id + ' cancelOrder() ' + id + ' not found');
@@ -2009,8 +2067,8 @@ export default class digifinex extends Exchange {
         }
     }
     parseCancelOrders(response) {
-        const success = this.safeList(response, 'success');
-        const error = this.safeList(response, 'error');
+        const success = this.safeList(response, 'success', []);
+        const error = this.safeList(response, 'error', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
             const order = success[i];
@@ -2035,13 +2093,16 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#cancelOrders
      * @description cancel multiple orders
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by digifinex cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const defaultType = this.safeString(this.options, 'defaultType', 'spot');
         const orderType = this.safeString(params, 'type', defaultType);
         params = this.omit(params, 'type');
@@ -2067,7 +2128,7 @@ export default class digifinex extends Exchange {
     parseOrderStatus(status) {
         const statuses = {
             '0': 'open',
-            '1': 'open',
+            '1': 'open', // partially filled
             '2': 'closed',
             '3': 'canceled',
             '4': 'canceled', // partially filled and canceled
@@ -2234,7 +2295,9 @@ export default class digifinex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2340,7 +2403,9 @@ export default class digifinex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2447,7 +2512,9 @@ export default class digifinex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2548,7 +2615,9 @@ export default class digifinex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -2570,7 +2639,7 @@ export default class digifinex extends Exchange {
         }
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
         if (symbol !== undefined) {
-            request[marketIdRequest] = market['id'];
+            request[marketIdRequest] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2704,7 +2773,9 @@ export default class digifinex extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
@@ -2778,11 +2849,11 @@ export default class digifinex extends Exchange {
         //
         let ledger = undefined;
         if (marketType === 'swap') {
-            ledger = this.safeValue(response, 'data', []);
+            ledger = this.safeList(response, 'data', []);
         }
         else {
-            const data = this.safeValue(response, 'data', {});
-            ledger = this.safeValue(data, 'finance', []);
+            const data = this.safeDict(response, 'data', {});
+            ledger = this.safeList(data, 'finance', []);
         }
         return this.parseLedger(ledger, currency, since, limit);
     }
@@ -2811,12 +2882,15 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-address-inquiry
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -2835,16 +2909,18 @@ export default class digifinex extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const addresses = this.parseDepositAddresses(data, [currency['code']]);
-        const address = this.safeValue(addresses, code);
+        const address = this.safeDict(addresses, code);
         if (address === undefined) {
             throw new InvalidAddress(this.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');
         }
         return address;
     }
     async fetchTransactionsByType(type, code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {
         // 'currency': currency['id'],
@@ -2893,6 +2969,7 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#fetchDeposits
      * @description fetch all deposits made to an account
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2906,6 +2983,7 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#fetchWithdrawals
      * @description fetch all withdrawals made from an account
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2919,9 +2997,9 @@ export default class digifinex extends Exchange {
         // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
         // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
         const statuses = {
-            '1': 'pending',
-            '2': 'pending',
-            '3': 'ok',
+            '1': 'pending', // in Progress
+            '2': 'pending', // to be confirmed
+            '3': 'ok', // Completed
             '4': 'failed', // Rejected
         };
         return this.safeString(statuses, status, status);
@@ -3064,10 +3142,12 @@ export default class digifinex extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const currencyId = currency['id'];
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         const request = {};
@@ -3106,6 +3186,9 @@ export default class digifinex extends Exchange {
             //
             response = await this.privateSpotPostTransfer(this.extend(request, params));
         }
+        if (response === undefined) {
+            throw new NullResponse(this.id + ' transfer() returned empty response');
+        }
         return this.parseTransfer(response, currency);
     }
     /**
@@ -3122,7 +3205,9 @@ export default class digifinex extends Exchange {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             // 'chain': 'ERC20', 'OMNI', 'TRC20', // required for USDT
@@ -3143,7 +3228,9 @@ export default class digifinex extends Exchange {
         return this.parseTransaction(response, currency);
     }
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -3172,7 +3259,7 @@ export default class digifinex extends Exchange {
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        const rows = this.safeValue(response, 'positions');
+        const rows = this.safeList(response, 'positions');
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -3202,7 +3289,7 @@ export default class digifinex extends Exchange {
             'symbol': symbol,
             'currency': currency,
             'interest': undefined,
-            'interestRate': 0.001,
+            'interestRate': 0.001, // all interest rates on digifinex are 0.1%
             'amountBorrowed': this.parseNumber(amountBorrowed),
             'marginMode': undefined,
             'timestamp': undefined,
@@ -3219,7 +3306,9 @@ export default class digifinex extends Exchange {
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
     async fetchCrossBorrowRate(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const response = await this.privateSpotGetMarginAssets(this.extend(request, params));
         //
@@ -3239,8 +3328,8 @@ export default class digifinex extends Exchange {
         //         "equity": 45.133305540922
         //     }
         //
-        const data = this.safeValue(response, 'list', []);
-        let result = [];
+        const data = this.safeList(response, 'list', []);
+        let result = undefined;
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             if (this.safeString(entry, 'currency') === code) {
@@ -3259,7 +3348,9 @@ export default class digifinex extends Exchange {
      * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchCrossBorrowRates(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateSpotGetMarginAssets(params);
         //
         //     {
@@ -3278,7 +3369,7 @@ export default class digifinex extends Exchange {
         //         "equity": 45.133305540922
         //     }
         //
-        const result = this.safeValue(response, 'list', []);
+        const result = this.safeList(response, 'list', []);
         return this.parseBorrowRates(result, 'currency');
     }
     parseBorrowRate(info, currency = undefined) {
@@ -3290,14 +3381,13 @@ export default class digifinex extends Exchange {
         //         "currency": "USDT"
         //     }
         //
-        const timestamp = this.milliseconds();
         const currencyId = this.safeString(info, 'currency');
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'rate': 0.001,
+            'rate': 0.001, // all interest rates on digifinex are 0.1%
             'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
@@ -3316,7 +3406,9 @@ export default class digifinex extends Exchange {
             const currency = this.safeString(item, codeKey);
             const code = this.safeCurrencyCode(currency);
             const borrowRate = this.parseBorrowRate(item);
-            result[code] = borrowRate;
+            if (code !== undefined) {
+                result[code] = borrowRate;
+            }
         }
         return result;
     }
@@ -3330,9 +3422,11 @@ export default class digifinex extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -3417,6 +3511,7 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -3427,9 +3522,11 @@ export default class digifinex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -3457,8 +3554,8 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const result = this.safeValue(data, 'funding_rates', []);
+        const data = this.safeDict(response, 'data', {});
+        const result = this.safeList(data, 'funding_rates', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -3486,9 +3583,11 @@ export default class digifinex extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest(this.id + ' fetchTradingFee() supports swap markets only');
         }
         const request = {
@@ -3505,7 +3604,7 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTradingFee(data, market);
     }
     parseTradingFee(fee, market = undefined) {
@@ -3538,7 +3637,9 @@ export default class digifinex extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         let market = undefined;
@@ -3630,7 +3731,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const positionRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const positions = this.safeValue(response, positionRequest, []);
+        const positions = this.safeList(response, positionRequest, []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push(this.parsePosition(positions[i], market));
@@ -3648,7 +3749,9 @@ export default class digifinex extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         let marketType = undefined;
@@ -3721,7 +3824,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const dataRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const data = this.safeValue(response, dataRequest, []);
+        const data = this.safeList(response, dataRequest, []);
         const position = this.parsePosition(data[0], market);
         if (marketType === 'swap') {
             return position;
@@ -3833,7 +3936,9 @@ export default class digifinex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['type'] !== 'swap') {
             throw new BadSymbol(this.id + ' setLeverage() supports swap contracts only');
@@ -3887,12 +3992,17 @@ export default class digifinex extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.safeCurrencyCode(code);
-            request['currency'] = currency['id'];
+            currency = this.currency(code);
+            if (currency === undefined) {
+                throw new ExchangeError(this.id + ' fetchTransfers() could not resolve currency');
+            }
+            request['currency'] = this.safeString(currency, 'id');
         }
         if (since !== undefined) {
             request['start_timestamp'] = since;
@@ -3929,7 +4039,9 @@ export default class digifinex extends Exchange {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicSwapGetPublicInstruments(params);
         //
         //     {
@@ -3960,7 +4072,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, 'instrument_id');
     }
@@ -3974,9 +4086,11 @@ export default class digifinex extends Exchange {
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     async fetchMarketLeverageTiers(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest(this.id + ' fetchMarketLeverageTiers() supports swap markets only');
         }
         const request = {
@@ -4010,7 +4124,7 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseMarketLeverageTiers(data, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -4091,7 +4205,9 @@ export default class digifinex extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicSpotGetCurrencies(params);
         //
         //   {
@@ -4158,8 +4274,8 @@ export default class digifinex extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (this.inArray(code, codes))) {
-                const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
+                const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                     depositWithdrawFees[code]['info'] = [];
@@ -4177,11 +4293,13 @@ export default class digifinex extends Exchange {
                     'percentage': undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkCode = this.networkIdToCode(networkId);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
+                    const networkCode = this.networkIdToCode(networkId, code);
+                    if (networkCode !== undefined) {
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        };
+                    }
                 }
                 else {
                     depositWithdrawFees[code]['withdraw'] = withdrawResult;
@@ -4230,7 +4348,9 @@ export default class digifinex extends Exchange {
         return await this.modifyMarginHelper(symbol, amount, 2, params);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const side = this.safeString(params, 'side');
         const market = this.market(symbol);
         const request = {
@@ -4253,7 +4373,7 @@ export default class digifinex extends Exchange {
         //
         const code = this.safeInteger(response, 'code');
         const status = (code === 0) ? 'ok' : 'failed';
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.extend(this.parseMarginModification(data, market), {
             'status': status,
         });
@@ -4276,7 +4396,7 @@ export default class digifinex extends Exchange {
             'marginMode': 'isolated',
             'amount': this.safeNumber(data, 'amount'),
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString(market, 'settle'),
             'status': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -4295,7 +4415,9 @@ export default class digifinex extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         [request, params] = this.handleUntilOption('end_timestamp', request, params);
         let market = undefined;
@@ -4362,7 +4484,9 @@ export default class digifinex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         marginMode = marginMode.toLowerCase();
         if (marginMode === 'cross') {
@@ -4396,7 +4520,7 @@ export default class digifinex extends Exchange {
                 nonce = this.milliseconds().toString();
                 auth = nonce + method + payload;
                 if (method === 'GET') {
-                    if (urlencoded) {
+                    if ((urlencoded !== undefined) && (urlencoded !== '')) {
                         auth += '?' + urlencoded;
                     }
                 }
@@ -4410,7 +4534,7 @@ export default class digifinex extends Exchange {
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             if (method === 'GET') {
-                if (urlencoded) {
+                if ((urlencoded !== undefined) && (urlencoded !== '')) {
                     url += '?' + urlencoded;
                 }
             }
@@ -4418,7 +4542,7 @@ export default class digifinex extends Exchange {
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                if (urlencoded) {
+                if ((urlencoded !== undefined) && (urlencoded !== '')) {
                     body = urlencoded;
                 }
             }
@@ -4429,14 +4553,14 @@ export default class digifinex extends Exchange {
             };
         }
         else {
-            if (urlencoded) {
+            if ((urlencoded !== undefined) && (urlencoded !== '')) {
                 url += '?' + urlencoded;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fall back to default error handler
         }
         const code = this.safeString(response, 'code');

@@ -34,11 +34,11 @@ function helper_test_sandbox_state($exchange, $expect_enabled = true) {
     assert(is_array($exchange->urls) && array_key_exists('test', $exchange->urls));
     $is_sandbox_mode_enabled = exchange_prop($exchange, 'isSandboxModeEnabled');
     if ($expect_enabled) {
-        assert($is_sandbox_mode_enabled);
+        assert($is_sandbox_mode_enabled === true);
         assert($exchange->urls['api']['public'] === 'https://testnet.org');
         assert($exchange->urls['apiBackup']['public'] === 'https://example.com');
     } else {
-        assert(!$is_sandbox_mode_enabled);
+        assert($is_sandbox_mode_enabled !== true);
         assert($exchange->urls['api']['public'] === 'https://example.com');
         assert($exchange->urls['test']['public'] === 'https://testnet.org');
     }
@@ -97,7 +97,7 @@ function helper_test_init_market() {
             'BTC/USD' => $sample_market,
         ),
     ));
-    assert($exchange2->markets['BTC/USD'] !== null);
+    assert(($exchange2->markets !== null) && ($exchange2->markets['BTC/USD'] !== null));
 }
 
 
@@ -278,8 +278,7 @@ function helper_test_properties() {
     assert($exchange->timeout === 10000, 'timeout should be 10000');
     assert($exchange->verbose === false, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-    // assert (exchange.requiresEddsa === false);
-    assert(!exchange_prop($exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
+    assert(exchange_prop($exchange, 'reloadingMarkets') !== true, 'reloadingMarkets should be false');
     assert(exchange_prop($exchange, 'marketsLoading') === null, 'marketsLoading should be undefined');
     // undefined or false
     assert($exchange->version === null, 'version should be undefined');
@@ -292,23 +291,23 @@ function helper_test_properties() {
     // instance dynamic cache
     //
     // todo: remove initialization from GO
-    assert_deep_equal($exchange, array(), 'balance', $exchange->balance, array());
-    assert_deep_equal($exchange, array(), 'bidsasks', $exchange->bidsasks, array());
-    assert_deep_equal($exchange, array(), 'orderbooks', $exchange->orderbooks, array());
-    assert_deep_equal($exchange, array(), 'tickers', $exchange->tickers, array());
+    assert_deep_equal($exchange, array(), 'balance', $exchange->balance, $exchange->create_safe_dictionary(true));
+    assert_deep_equal($exchange, array(), 'bidsasks', $exchange->bidsasks, $exchange->create_safe_dictionary(true));
+    assert_deep_equal($exchange, array(), 'orderbooks', $exchange->orderbooks, $exchange->create_safe_dictionary(true));
+    assert_deep_equal($exchange, array(), 'tickers', $exchange->tickers, $exchange->create_safe_dictionary(true));
     assert($exchange->liquidations === null, 'liquidations should be undefined');
-    assert($exchange->orders === null, 'orders should be undefined');
-    assert_deep_equal($exchange, array(), 'trades', $exchange->trades, array());
-    assert_deep_equal($exchange, array(), 'transactions', $exchange->transactions, array());
-    assert_deep_equal($exchange, array(), 'ohlcvs', $exchange->ohlcvs, array());
     assert(exchange_prop($exchange, 'myLiquidations') === null);
+    assert($exchange->orders === null, 'orders should be undefined');
+    assert_deep_equal($exchange, array(), 'trades', $exchange->trades, $exchange->create_safe_dictionary(true));
+    assert_deep_equal($exchange, array(), 'transactions', $exchange->transactions, $exchange->create_safe_dictionary());
+    assert_deep_equal($exchange, array(), 'ohlcvs', $exchange->ohlcvs, $exchange->create_safe_dictionary(true));
     assert(exchange_prop($exchange, 'myTrades') === null);
     assert($exchange->positions === null, 'positions should be undefined');
     //
     // common props
     //
     assert($exchange->markets === null, 'markets should be undefined');
-    assert($exchange->symbols === null, 'symbols should be undefined');
+    assert(count($exchange->symbols) === 0, 'symbols should be an empty array');
     assert($exchange->markets_by_id === null, 'markets_by_id should be undefined');
     assert($exchange->ids === null, 'ids should be undefined');
     assert_deep_equal($exchange, array(), 'currencies', $exchange->currencies, array());
@@ -323,6 +322,9 @@ function helper_test_properties() {
         'XBT' => 'BTC',
         'BCHSV' => 'BSV',
     ));
+    // fetch history
+    $fetch_history_cache = $exchange->get_fetch_cache();
+    assert(count($fetch_history_cache) === 0, 'fetchHistoryCache should be an empty array');
 }
 
 

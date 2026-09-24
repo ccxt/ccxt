@@ -1,3 +1,5 @@
+// @NO_AUTO_TRANSPILE
+
 'use strict';
 
 import asTable from 'as-table';

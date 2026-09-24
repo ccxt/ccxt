@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\cryptomus as Exchange;
 
 class cryptomus extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cryptomus',
@@ -152,7 +151,7 @@ class cryptomus extends Exchange {
             ),
             'timeframes' => array(),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7',
+                'logo' => 'https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0',
                 'api' => array(
                     'public' => 'https://api.cryptomus.com',
                     'private' => 'https://api.cryptomus.com',
@@ -165,30 +164,45 @@ class cryptomus extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v2/user-api/exchange/markets' => 1, // done
-                        'v2/user-api/exchange/market/price' => 1, // not used
-                        'v1/exchange/market/assets' => 1, // done
-                        'v1/exchange/market/order-book/{currencyPair}' => 1, // done
-                        'v1/exchange/market/tickers' => 1, // done
-                        'v1/exchange/market/trades/{currencyPair}' => 1, // done
+                        'v2/user-api/exchange/markets' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/market/price' => array( 'cost' => 1 ), // not used
+                        'v2/user-api/exchange/markets/price' => array( 'cost' => 1 ),
+                        'v1/exchange/market/assets' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/order-book/{currencyPair}' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/tickers' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/trades/{currencyPair}' => array( 'cost' => 1 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v2/user-api/exchange/orders' => 1, // done
-                        'v2/user-api/exchange/orders/history' => 1, // done
-                        'v2/user-api/exchange/account/balance' => 1, // done
-                        'v2/user-api/exchange/account/tariffs' => 1, // done
-                        'v2/user-api/payment/services' => 1,
-                        'v2/user-api/payout/services' => 1,
-                        'v2/user-api/transaction/list' => 1,
+                        'v2/user-api/exchange/orders' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/orders/history' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/account/balance' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/account/tariffs' => array( 'cost' => 1 ), // done
+                        'v2/user-api/payment/services' => array( 'cost' => 1 ),
+                        'v2/user-api/payout/services' => array( 'cost' => 1 ),
+                        'v2/user-api/transaction/list' => array( 'cost' => 1 ),
+                        'v2/user-api/balance' => array( 'cost' => 1 ),
+                        'v2/user-api/convert/direction-list' => array( 'cost' => 1 ),
+                        'v2/user-api/convert/order-list' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/balance' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/currencies' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/packages' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/request' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/request/{id}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v2/user-api/exchange/orders' => 1, // done
-                        'v2/user-api/exchange/orders/market' => 1, // done
+                        'v2/user-api/exchange/orders' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/orders/market' => array( 'cost' => 1 ), // done
+                        'v2/user-api/convert' => array( 'cost' => 1 ),
+                        'v2/user-api/convert/calculate' => array( 'cost' => 1 ),
+                        'v2/user-api/convert/limit' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/request' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/request/{id}/report/send' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'v2/user-api/exchange/orders/{orderId}' => 1, // done
+                        'v2/user-api/exchange/orders/{orderId}' => array( 'cost' => 1 ), // done
+                        'v2/user-api/convert/{orderUuid}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -206,7 +220,7 @@ class cryptomus extends Exchange {
                     'BEP20' => 'bsc',
                     'DASH' => 'dash',
                     'POLYGON' => 'polygon',
-                    'ARB' => 'arbitrum',
+                    'ARBITRUM' => 'arbitrum',
                     'SOL' => 'sol',
                     'TON' => 'ton',
                     'ERC20' => 'eth',
@@ -223,7 +237,7 @@ class cryptomus extends Exchange {
                     'bsc' => 'BEP20',
                     'dash' => 'DASH',
                     'polygon' => 'POLYGON',
-                    'arbitrum' => 'ARB',
+                    'arbitrum' => 'ARBITRUM',
                     'sol' => 'SOL',
                     'ton' => 'TON',
                     'eth' => 'ERC20',
@@ -244,12 +258,12 @@ class cryptomus extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     '500' => '\\ccxt\\ExchangeError',
-                    '6' => '\\ccxt\\InsufficientFunds', // array("code":6,"message":"Insufficient funds.")
+                    '6' => '\\ccxt\\InsufficientFunds', // {"code":6,"message":"Insufficient funds."}
                     'Insufficient funds.' => '\\ccxt\\InsufficientFunds',
                     'Minimum amount 15 USDT' => '\\ccxt\\InvalidOrder',
-                    // array("code":500,"message":"Server error.")
-                    // array("message":"Minimum amount 15 USDT","state":1)
-                    // array("message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1)
+                    // {"code":500,"message":"Server error."}
+                    // {"message":"Minimum amount 15 USDT","state":1}
+                    // {"message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1}
                 ),
                 'broad' => array(),
             ),
@@ -262,7 +276,7 @@ class cryptomus extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for the exchange
          *
@@ -271,24 +285,24 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetV2UserApiExchangeMarkets ($params);
+        $response = $this->publicGetV2UserApiExchangeMarkets($params);
         //
         //     {
-        //         "result" => array(
-        //             array(
-        //                 "id" => "01JHN5EFT64YC4HR9KCGM5M65D",
-        //                 "symbol" => "POL_USDT",
-        //                 "baseCurrency" => "POL",
-        //                 "quoteCurrency" => "USDT",
-        //                 "baseMinSize" => "1.00000000",
-        //                 "quoteMinSize" => "5.00000000",
-        //                 "baseMaxSize" => "50000.00000000",
-        //                 "quoteMaxSize" => "10000000000.00000000",
-        //                 "basePrec" => "1",
-        //                 "quotePrec" => "4"
-        //             ),
+        //         "result": [
+        //             {
+        //                 "id": "01JHN5EFT64YC4HR9KCGM5M65D",
+        //                 "symbol": "POL_USDT",
+        //                 "baseCurrency": "POL",
+        //                 "quoteCurrency": "USDT",
+        //                 "baseMinSize": "1.00000000",
+        //                 "quoteMinSize": "5.00000000",
+        //                 "baseMaxSize": "50000.00000000",
+        //                 "quoteMaxSize": "10000000000.00000000",
+        //                 "basePrec": "1",
+        //                 "quotePrec": "4"
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -298,19 +312,22 @@ class cryptomus extends Exchange {
     public function parse_market(array $market): array {
         //
         //     {
-        //         "id" => "01JHN5EFT64YC4HR9KCGM5M65D",
-        //         "symbol" => "POL_USDT",
-        //         "baseCurrency" => "POL",
-        //         "quoteCurrency" => "USDT",
-        //         "baseMinSize" => "1.00000000",
-        //         "quoteMinSize" => "5.00000000",
-        //         "baseMaxSize" => "50000.00000000",
-        //         "quoteMaxSize" => "10000000000.00000000",
-        //         "basePrec" => "1",
-        //         "quotePrec" => "4"
+        //         "id": "01JHN5EFT64YC4HR9KCGM5M65D",
+        //         "symbol": "POL_USDT",
+        //         "baseCurrency": "POL",
+        //         "quoteCurrency": "USDT",
+        //         "baseMinSize": "1.00000000",
+        //         "quoteMinSize": "5.00000000",
+        //         "baseMaxSize": "50000.00000000",
+        //         "quoteMaxSize": "10000000000.00000000",
+        //         "basePrec": "1",
+        //         "quotePrec": "4"
         //     }
         //
         $marketId = $this->safe_string($market, 'symbol');
+        if ($marketId === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
+        }
         $parts = explode('_', $marketId);
         $baseId = $parts[0];
         $quoteId = $parts[1];
@@ -374,7 +391,7 @@ class cryptomus extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -383,23 +400,23 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicGetV1ExchangeMarketAssets ($params);
+        $response = $this->publicGetV1ExchangeMarketAssets($params);
         //
         //     {
-        //         'state' => '0',
-        //         'result' => array(
-        //             array(
-        //                 'currency_code' => 'USDC',
-        //                 'network_code' => 'bsc',
-        //                 'can_withdraw' => true,
-        //                 'can_deposit' => true,
-        //                 'min_withdraw' => '1.00000000',
-        //                 'max_withdraw' => '10000000.00000000',
-        //                 'max_deposit' => '10000000.00000000',
-        //                 'min_deposit' => '1.00000000'
-        //             ),
+        //         'state': '0',
+        //         'result': [
+        //             {
+        //                 'currency_code': 'USDC',
+        //                 'network_code': 'bsc',
+        //                 'can_withdraw': true,
+        //                 'can_deposit': true,
+        //                 'min_withdraw': '1.00000000',
+        //                 'max_withdraw': '10000000.00000000',
+        //                 'max_deposit': '10000000.00000000',
+        //                 'min_deposit': '1.00000000'
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $coins = $this->safe_list($response, 'result');
@@ -409,8 +426,8 @@ class cryptomus extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        // currency here is array of $networks
-        $id = null; // all entried have same $id, were grouped by
+        // currency here is array of networks
+        $id = null; // all entries have same id, as they were grouped by
         $code = null;
         $networks = array();
         for ($i = 0; $i < count($rawCurrency); $i++) {
@@ -421,27 +438,29 @@ class cryptomus extends Exchange {
                 $code = $this->safe_currency_code($id);
             }
             $networkId = $this->safe_string($networkEntry, 'network_code');
-            $networkCode = $this->network_id_to_code($networkId);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($networkEntry, 'min_withdraw'),
-                        'max' => $this->safe_number($networkEntry, 'max_withdraw'),
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($networkEntry, 'min_withdraw'),
+                            'max' => $this->safe_number($networkEntry, 'max_withdraw'),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($networkEntry, 'min_deposit'),
+                            'max' => $this->safe_number($networkEntry, 'max_deposit'),
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($networkEntry, 'min_deposit'),
-                        'max' => $this->safe_number($networkEntry, 'max_deposit'),
-                    ),
-                ),
-                'active' => null,
-                'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
-                'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
-                'fee' => null,
-                'precision' => null,
-                'info' => $networkEntry,
-            );
+                    'active' => null,
+                    'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
+                    'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
+                    'fee' => null,
+                    'precision' => null,
+                    'info' => $networkEntry,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -451,7 +470,7 @@ class cryptomus extends Exchange {
         ));
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -461,18 +480,20 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetV1ExchangeMarketTickers ($params);
+        $response = $this->publicGetV1ExchangeMarketTickers($params);
         //
         //     {
-        //         "data" => [
-        //         array(
-        //             "currency_pair" => "MATIC_USDT",
-        //             "last_price" => "0.342",
-        //             "base_volume" => "1676.84092771",
-        //             "quote_volume" => "573.48033609043"
-        //         ),
+        //         "data": [
+        //         {
+        //             "currency_pair": "MATIC_USDT",
+        //             "last_price": "0.342",
+        //             "base_volume": "1676.84092771",
+        //             "quote_volume": "573.48033609043"
+        //         },
         //         ...
         //     }
         //
@@ -480,13 +501,13 @@ class cryptomus extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "currency_pair" => "XMR_USDT",
-        //         "last_price" => "158.04829772",
-        //         "base_volume" => "0.35185785",
-        //         "quote_volume" => "55.523761128544"
+        //         "currency_pair": "XMR_USDT",
+        //         "last_price": "158.04829772",
+        //         "base_volume": "0.35185785",
+        //         "quote_volume": "55.523761128544"
         //     }
         //
         $marketId = $this->safe_string($ticker, 'currency_pair');
@@ -517,7 +538,7 @@ class cryptomus extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
@@ -527,9 +548,11 @@ class cryptomus extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->level] 0 or 1 or 2 or 3 or 4 or 5 - the $level of volume
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
@@ -537,23 +560,23 @@ class cryptomus extends Exchange {
         $level = 0;
         list($level, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'level', $level);
         $request['level'] = $level;
-        $response = $this->publicGetV1ExchangeMarketOrderBookCurrencyPair ($this->extend($request, $params));
+        $response = $this->publicGetV1ExchangeMarketOrderBookCurrencyPair($this->extend($request, $params));
         //
         //     {
-        //         "data" => {
-        //             "timestamp" => "1730138702",
-        //             "bids" => array(
+        //         "data": {
+        //             "timestamp": "1730138702",
+        //             "bids": [
         //                 {
-        //                     "price" => "2250.00",
-        //                     "quantity" => "1.00000"
+        //                     "price": "2250.00",
+        //                     "quantity": "1.00000"
         //                 }
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 {
-        //                     "price" => "2428.69",
-        //                     "quantity" => "0.16470"
+        //                     "price": "2428.69",
+        //                     "quantity": "0.16470"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -562,7 +585,7 @@ class cryptomus extends Exchange {
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -574,39 +597,45 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
         );
-        $response = $this->publicGetV1ExchangeMarketTradesCurrencyPair ($this->extend($request, $params));
+        $response = $this->publicGetV1ExchangeMarketTradesCurrencyPair($this->extend($request, $params));
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "trade_id" => "01J829C3RAXHXHR09HABGQ1YAT",
-        //                 "price" => "2315.6320500000000000",
-        //                 "base_volume" => "21.9839623057260000",
-        //                 "quote_volume" => "0.0094937200000000",
-        //                 "timestamp" => 1726653796,
-        //                 "type" => "sell"
+        //                 "trade_id": "01J829C3RAXHXHR09HABGQ1YAT",
+        //                 "price": "2315.6320500000000000",
+        //                 "base_volume": "21.9839623057260000",
+        //                 "quote_volume": "0.0094937200000000",
+        //                 "timestamp": 1726653796,
+        //                 "type": "sell"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data');
-        return $this->parse_trades($data, $market, $since, $limit);
+        $dataList = array();
+        if ($data !== null) {
+            $dataList = $data;
+        }
+        return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "trade_id" => "01J017Q6B3JGHZRP9D2NZHVKFX",
-        //         "price" => "59498.63487492",
-        //         "base_volume" => "94.00784310",
-        //         "quote_volume" => "0.00158000",
-        //         "timestamp" => 1718028573,
-        //         "type" => "sell"
+        //         "trade_id": "01J017Q6B3JGHZRP9D2NZHVKFX",
+        //         "price": "59498.63487492",
+        //         "base_volume": "94.00784310",
+        //         "quote_volume": "0.00158000",
+        //         "timestamp": 1718028573,
+        //         "type": "sell"
         //     }
         //
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
@@ -614,7 +643,7 @@ class cryptomus extends Exchange {
             'id' => $this->safe_string($trade, 'trade_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'side' => $this->safe_string($trade, 'type'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'quote_volume'), // quote_volume is amount
@@ -630,7 +659,7 @@ class cryptomus extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -639,30 +668,32 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
-        $response = $this->privateGetV2UserApiExchangeAccountBalance ($this->extend($request, $params));
+        $response = $this->privateGetV2UserApiExchangeAccountBalance($this->extend($request, $params));
         //
         //     {
-        //         "result" => array(
+        //         "result": [
         //             {
-        //                 "ticker" => "AVAX",
-        //                 "available" => "0.00000000",
-        //                 "held" => "0.00000000"
+        //                 "ticker": "AVAX",
+        //                 "available": "0.00000000",
+        //                 "held": "0.00000000"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
         return $this->parse_balance($result);
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         //
         //     {
-        //         "ticker" => "AVAX",
-        //         "available" => "0.00000000",
-        //         "held" => "0.00000000"
+        //         "ticker": "AVAX",
+        //         "available": "0.00000000",
+        //         "held": "0.00000000"
         //     }
         //
         $result = array(
@@ -675,12 +706,14 @@ class cryptomus extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balanceEntry, 'available');
             $account['used'] = $this->safe_string($balanceEntry, 'held');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -693,11 +726,13 @@ class cryptomus extends Exchange {
          * @param {float} $amount how much of you want to trade in units of the base currency
          * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders (only for limit orders)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {string} [$params->clientOrderId] a unique identifier for the order (optional)
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -714,7 +749,6 @@ class cryptomus extends Exchange {
         $priceToString = $this->number_to_string($price);
         $cost = null;
         list($cost, $params) = $this->handle_param_string($params, 'cost');
-        $response = null;
         if ($type === 'market') {
             if ($sideBuy) {
                 $createMarketBuyOrderRequiresPrice = true;
@@ -726,32 +760,32 @@ class cryptomus extends Exchange {
                         $cost = Precise::string_mul($amountToString, $priceToString);
                     }
                 } else {
-                    $cost = $cost ? $cost : $amountToString;
+                    $cost = ($cost !== null && $cost !== '') ? $cost : $amountToString;
                 }
                 $request['value'] = $cost;
             } else {
                 $request['quantity'] = $amountToString;
             }
-            $response = $this->privatePostV2UserApiExchangeOrdersMarket ($this->extend($request, $params));
+            $response = $this->privatePostV2UserApiExchangeOrdersMarket($this->extend($request, $params));
         } elseif ($type === 'limit') {
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price parameter for a ' . $type . ' order');
             }
             $request['quantity'] = $amountToString;
             $request['price'] = $price;
-            $response = $this->privatePostV2UserApiExchangeOrders ($this->extend($request, $params));
+            $response = $this->privatePostV2UserApiExchangeOrders($this->extend($request, $params));
         } else {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $type parameter (limit or $market)');
         }
         //
         //     {
-        //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBMG"
+        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open limit order
          *
@@ -762,19 +796,21 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $request['orderId'] = $id;
-        $response = $this->privateDeleteV2UserApiExchangeOrdersOrderId ($this->extend($request, $params));
+        $response = $this->privateDeleteV2UserApiExchangeOrdersOrderId($this->extend($request, $params));
         //
         //     {
-        //         "success" => true
+        //         "success": true
         //     }
         //
         return $this->safe_order(array( 'info' => $response ));
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -791,7 +827,9 @@ class cryptomus extends Exchange {
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -801,44 +839,44 @@ class cryptomus extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV2UserApiExchangeOrdersHistory ($this->extend($request, $params));
+        $response = $this->privateGetV2UserApiExchangeOrdersHistory($this->extend($request, $params));
         //
         //     {
-        //         "result" => array(
+        //         "result": [
         //             {
-        //                 "id" => "01JEXAPY04JDFBVFC2D23BCKMK",
-        //                 "type" => "market",
-        //                 "direction" => "sell",
-        //                 "symbol" => "TRX_USDT",
-        //                 "quantity" => "67.5400000000000000",
-        //                 "filledQuantity" => "67.5400000000000000",
-        //                 "filledValue" => "20.0053480000000000",
-        //                 "state" => "completed",
-        //                 "internalState" => "filled",
-        //                 "createdAt" => "2024-12-12 11:40:19",
-        //                 "finishedAt" => "2024-12-12 11:40:21",
-        //                 "deal" => {
-        //                     "id" => "01JEXAPZ9C9TWENPFZJASZ1YD2",
-        //                     "state" => "completed",
-        //                     "createdAt" => "2024-12-12 11:40:21",
-        //                     "completedAt" => "2024-12-12 11:40:21",
-        //                     "averageFilledPrice" => "0.2962000000000000",
-        //                     "transactions" => array(
-        //                         array(
-        //                             "id" => "01JEXAPZ9C9TWENPFZJASZ1YD3",
-        //                             "tradeRole" => "taker",
-        //                             "filledPrice" => "0.2962000000000000",
-        //                             "filledQuantity" => "67.5400000000000000",
-        //                             "filledValue" => "20.0053480000000000",
-        //                             "fee" => "0.0000000000000000",
-        //                             "feeCurrency" => "USDT",
-        //                             "committedAt" => "2024-12-12 11:40:21"
+        //                 "id": "01JEXAPY04JDFBVFC2D23BCKMK",
+        //                 "type": "market",
+        //                 "direction": "sell",
+        //                 "symbol": "TRX_USDT",
+        //                 "quantity": "67.5400000000000000",
+        //                 "filledQuantity": "67.5400000000000000",
+        //                 "filledValue": "20.0053480000000000",
+        //                 "state": "completed",
+        //                 "internalState": "filled",
+        //                 "createdAt": "2024-12-12 11:40:19",
+        //                 "finishedAt": "2024-12-12 11:40:21",
+        //                 "deal": {
+        //                     "id": "01JEXAPZ9C9TWENPFZJASZ1YD2",
+        //                     "state": "completed",
+        //                     "createdAt": "2024-12-12 11:40:21",
+        //                     "completedAt": "2024-12-12 11:40:21",
+        //                     "averageFilledPrice": "0.2962000000000000",
+        //                     "transactions": [
+        //                         {
+        //                             "id": "01JEXAPZ9C9TWENPFZJASZ1YD3",
+        //                             "tradeRole": "taker",
+        //                             "filledPrice": "0.2962000000000000",
+        //                             "filledQuantity": "67.5400000000000000",
+        //                             "filledValue": "20.0053480000000000",
+        //                             "fee": "0.0000000000000000",
+        //                             "feeCurrency": "USDT",
+        //                             "committedAt": "2024-12-12 11:40:21"
         //                         }
-        //                     )
+        //                     ]
         //                 }
-        //             ),
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -850,7 +888,7 @@ class cryptomus extends Exchange {
         return $orders;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -867,7 +905,9 @@ class cryptomus extends Exchange {
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -877,25 +917,25 @@ class cryptomus extends Exchange {
         if ($market !== null) {
             $request['market'] = $market['id'];
         }
-        $response = $this->privateGetV2UserApiExchangeOrders ($this->extend($request, $params));
+        $response = $this->privateGetV2UserApiExchangeOrders($this->extend($request, $params));
         //
         //     {
-        //         "result" => array(
-        //             array(
-        //                 "id" => "01JFFG72CBRDP68K179KC9DSTG",
-        //                 "direction" => "sell",
-        //                 "symbol" => "BTC_USDT",
-        //                 "price" => "102.0130000000000000",
-        //                 "quantity" => "0.0005000000000000",
-        //                 "value" => "0.0510065000000000",
-        //                 "filledQuantity" => "0.0000000000000000",
-        //                 "filledValue" => "0.0000000000000000",
-        //                 "createdAt" => "2024-12-19 09:02:51",
-        //                 "clientOrderId" => "987654321",
-        //                 "stopLossPrice" => "101.12"
-        //             ),
+        //         "result": [
+        //             {
+        //                 "id": "01JFFG72CBRDP68K179KC9DSTG",
+        //                 "direction": "sell",
+        //                 "symbol": "BTC_USDT",
+        //                 "price": "102.0130000000000000",
+        //                 "quantity": "0.0005000000000000",
+        //                 "value": "0.0510065000000000",
+        //                 "filledQuantity": "0.0000000000000000",
+        //                 "filledValue": "0.0000000000000000",
+        //                 "createdAt": "2024-12-19 09:02:51",
+        //                 "clientOrderId": "987654321",
+        //                 "stopLossPrice": "101.12"
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         $result = $this->safe_list($response, 'result', array());
         return $this->parse_orders($result, $market, null, null);
@@ -905,57 +945,57 @@ class cryptomus extends Exchange {
         //
         // createOrder
         //     {
-        //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
         //     }
         //
         // fetchOrders
         //     {
-        //         "id" => "01JEXAPY04JDFBVFC2D23BCKMK",
-        //         "type" => "market",
-        //         "direction" => "sell",
-        //         "symbol" => "TRX_USDT",
-        //         "quantity" => "67.5400000000000000",
-        //         "filledQuantity" => "67.5400000000000000",
-        //         "filledValue" => "20.0053480000000000",
-        //         "state" => "completed",
-        //         "internalState" => "filled",
-        //         "createdAt" => "2024-12-12 11:40:19",
-        //         "finishedAt" => "2024-12-12 11:40:21",
-        //         "deal" => {
-        //             "id" => "01JEXAPZ9C9TWENPFZJASZ1YD2",
-        //             "state" => "completed",
-        //             "createdAt" => "2024-12-12 11:40:21",
-        //             "completedAt" => "2024-12-12 11:40:21",
-        //             "averageFilledPrice" => "0.2962000000000000",
-        //             "transactions" => array(
-        //                 array(
-        //                     "id" => "01JEXAPZ9C9TWENPFZJASZ1YD3",
-        //                     "tradeRole" => "taker",
-        //                     "filledPrice" => "0.2962000000000000",
-        //                     "filledQuantity" => "67.5400000000000000",
-        //                     "filledValue" => "20.0053480000000000",
-        //                     "fee" => "0.0000000000000000",
-        //                     "feeCurrency" => "USDT",
-        //                     "committedAt" => "2024-12-12 11:40:21"
+        //         "id": "01JEXAPY04JDFBVFC2D23BCKMK",
+        //         "type": "market",
+        //         "direction": "sell",
+        //         "symbol": "TRX_USDT",
+        //         "quantity": "67.5400000000000000",
+        //         "filledQuantity": "67.5400000000000000",
+        //         "filledValue": "20.0053480000000000",
+        //         "state": "completed",
+        //         "internalState": "filled",
+        //         "createdAt": "2024-12-12 11:40:19",
+        //         "finishedAt": "2024-12-12 11:40:21",
+        //         "deal": {
+        //             "id": "01JEXAPZ9C9TWENPFZJASZ1YD2",
+        //             "state": "completed",
+        //             "createdAt": "2024-12-12 11:40:21",
+        //             "completedAt": "2024-12-12 11:40:21",
+        //             "averageFilledPrice": "0.2962000000000000",
+        //             "transactions": [
+        //                 {
+        //                     "id": "01JEXAPZ9C9TWENPFZJASZ1YD3",
+        //                     "tradeRole": "taker",
+        //                     "filledPrice": "0.2962000000000000",
+        //                     "filledQuantity": "67.5400000000000000",
+        //                     "filledValue": "20.0053480000000000",
+        //                     "fee": "0.0000000000000000",
+        //                     "feeCurrency": "USDT",
+        //                     "committedAt": "2024-12-12 11:40:21"
         //                 }
-        //             )
+        //             ]
         //         }
-        //     ),
+        //     },
         //     ...
         //
         // fetchOpenOrders
         //     {
-        //         "id" => "01JFFG72CBRDP68K179KC9DSTG",
-        //         "direction" => "sell",
-        //         "symbol" => "BTC_USDT",
-        //         "price" => "102.0130000000000000",
-        //         "quantity" => "0.0005000000000000",
-        //         "value" => "0.0510065000000000",
-        //         "filledQuantity" => "0.0000000000000000",
-        //         "filledValue" => "0.0000000000000000",
-        //         "createdAt" => "2024-12-19 09:02:51",
-        //         "clientOrderId" => "987654321",
-        //         "stopLossPrice" => "101.12"
+        //         "id": "01JFFG72CBRDP68K179KC9DSTG",
+        //         "direction": "sell",
+        //         "symbol": "BTC_USDT",
+        //         "price": "102.0130000000000000",
+        //         "quantity": "0.0005000000000000",
+        //         "value": "0.0510065000000000",
+        //         "filledQuantity": "0.0000000000000000",
+        //         "filledValue": "0.0000000000000000",
+        //         "createdAt": "2024-12-19 09:02:51",
+        //         "clientOrderId": "987654321",
+        //         "stopLossPrice": "101.12"
         //     }
         //
         $id = $this->safe_string_2($order, 'order_id', 'id');
@@ -1023,61 +1063,61 @@ class cryptomus extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
-        $response = $this->privateGetV2UserApiExchangeAccountTariffs ($params);
+        $response = $this->privateGetV2UserApiExchangeAccountTariffs($params);
         //
         //     {
-        //         $result => {
-        //             equivalent_currency_code => 'USD',
-        //             current_tariff_step => array(
-        //                 step => '0',
-        //                 from_turnover => '0.00000000',
-        //                 maker_percent => '0.08',
-        //                 taker_percent => '0.1'
-        //             ),
-        //             tariff_steps => array(
-        //                 array(
-        //                     step => '0',
-        //                     from_turnover => '0.00000000',
-        //                     maker_percent => '0.08',
-        //                     taker_percent => '0.1'
-        //                 ),
-        //                 array(
-        //                     step => '1',
-        //                     from_turnover => '100001.00000000',
-        //                     maker_percent => '0.06',
-        //                     taker_percent => '0.095'
-        //                 ),
-        //                 array(
-        //                     step => '2',
-        //                     from_turnover => '250001.00000000',
-        //                     maker_percent => '0.055',
-        //                     taker_percent => '0.085'
-        //                 ),
-        //                 array(
-        //                     step => '3',
-        //                     from_turnover => '500001.00000000',
-        //                     maker_percent => '0.05',
-        //                     taker_percent => '0.075'
-        //                 ),
+        //         result: {
+        //             equivalent_currency_code: 'USD',
+        //             current_tariff_step: {
+        //                 step: '0',
+        //                 from_turnover: '0.00000000',
+        //                 maker_percent: '0.08',
+        //                 taker_percent: '0.1'
+        //             },
+        //             tariff_steps: [
         //                 {
-        //                     step => '4',
-        //                     from_turnover => '2500001.00000000',
-        //                     maker_percent => '0.04',
-        //                     taker_percent => '0.07'
+        //                     step: '0',
+        //                     from_turnover: '0.00000000',
+        //                     maker_percent: '0.08',
+        //                     taker_percent: '0.1'
+        //                 },
+        //                 {
+        //                     step: '1',
+        //                     from_turnover: '100001.00000000',
+        //                     maker_percent: '0.06',
+        //                     taker_percent: '0.095'
+        //                 },
+        //                 {
+        //                     step: '2',
+        //                     from_turnover: '250001.00000000',
+        //                     maker_percent: '0.055',
+        //                     taker_percent: '0.085'
+        //                 },
+        //                 {
+        //                     step: '3',
+        //                     from_turnover: '500001.00000000',
+        //                     maker_percent: '0.05',
+        //                     taker_percent: '0.075'
+        //                 },
+        //                 {
+        //                     step: '4',
+        //                     from_turnover: '2500001.00000000',
+        //                     maker_percent: '0.04',
+        //                     taker_percent: '0.07'
         //                 }
-        //             ),
-        //             daily_turnover => '0.00000000',
-        //             monthly_turnover => '77.52062617',
-        //             circulation_funds => '25.48900443'
+        //             ],
+        //             daily_turnover: '0.00000000',
+        //             monthly_turnover: '77.52062617',
+        //             circulation_funds: '25.48900443'
         //         }
         //     }
         //
@@ -1090,8 +1130,12 @@ class cryptomus extends Exchange {
         $feeTiers = $this->safe_list($data, 'tariff_steps', array());
         $result = array();
         $tiers = $this->parse_fee_tiers($feeTiers);
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        if ($symbols === null) {
+            return $result;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1105,7 +1149,7 @@ class cryptomus extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers($feeTiers, ?array $market = null) {
+    public function parse_fee_tiers(array $feeTiers, ?array $market = null): array {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -1124,7 +1168,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;
@@ -1157,24 +1201,24 @@ class cryptomus extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
-        if (is_array($response) && array_key_exists('code', $response)) {
+        if (is_array($response) && array_key_exists('code' ?? '', $response)) {
             $code = $this->safe_string($response, 'code');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             throw new ExchangeError($feedback);
-        } elseif (is_array($response) && array_key_exists('message', $response)) {
+        } elseif (is_array($response) && array_key_exists('message' ?? '', $response)) {
             //
-            //      array("message":"Minimum amount 15 USDT","state":1)
+            //      {"message":"Minimum amount 15 USDT","state":1}
             //
             $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

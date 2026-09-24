@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.onetrading import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
-from typing import List
+from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -25,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class onetrading(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(onetrading, self).describe(), {
             'id': 'onetrading',
             'name': 'One Trading',
@@ -38,7 +37,7 @@ class onetrading(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': False,
@@ -161,7 +160,7 @@ class onetrading(Exchange, ImplicitAPI):
                 '1M': '1/MONTHS',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
+                'logo': 'https://github.com/user-attachments/assets/341a1b01-7660-402a-9a2b-876391e52f15',
                 'api': {
                     'public': 'https://api.onetrading.com/fast',
                     'private': 'https://api.onetrading.com/fast',
@@ -174,35 +173,46 @@ class onetrading(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',
-                        'candlesticks/{instrument_code}',
-                        'fees',
-                        'instruments',
-                        'order-book/{instrument_code}',
-                        'market-ticker',
-                        'market-ticker/{instrument_code}',
-                        'time',
-                    ],
+                    'get': {
+                        'currencies': {'cost': 1},
+                        'candlesticks/{instrument_code}': {'cost': 1},
+                        'fees': {'cost': 1},
+                        'instruments': {'cost': 1},
+                        'order-book/{instrument_code}': {'cost': 1},
+                        'market-ticker': {'cost': 1},
+                        'market-ticker/{instrument_code}': {'cost': 1},
+                        'time': {'cost': 1},
+                        'funding-rate': {'cost': 1},
+                        'funding-rate/history': {'cost': 1},
+                        'funding-rate/settings': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account/balances',
-                        'account/fees',
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/{order_id}/trades',
-                        'account/trades',
-                        'account/trades/{trade_id}',
-                    ],
-                    'post': [
-                        'account/orders',
-                    ],
-                    'delete': [
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                    ],
+                    'get': {
+                        'account/balances': {'cost': 1},
+                        'account/fees': {'cost': 1},
+                        'account/orders': {'cost': 1},
+                        'account/orders/{order_id}': {'cost': 1},
+                        'account/orders/client/{client_id}': {'cost': 1},
+                        'account/orders/{order_id}/trades': {'cost': 1},
+                        'account/trades': {'cost': 1},
+                        'account/trade/{trade_id}': {'cost': 1},
+                        'account/futures/summary': {'cost': 1},
+                        'account/futures/positions': {'cost': 1},
+                        'account/futures/positions-history': {'cost': 1},
+                        'account/futures/positions/{position_id}/trades': {'cost': 1},
+                        'account/futures/positions/{position_id}/funding-payments': {'cost': 1},
+                        'account/futures/funding-payments': {'cost': 1},
+                    },
+                    'post': {
+                        'account/orders': {'cost': 1},
+                        'subaccounts/transfers': {'cost': 1},
+                    },
+                    'delete': {
+                        'account/orders': {'cost': 1},
+                        'account/orders/{order_id}': {'cost': 1},
+                        'account/orders/client/{client_id}': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -330,6 +340,7 @@ class onetrading(Exchange, ImplicitAPI):
             },
             # exchange-specific options
             'options': {
+                'mica': True,
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
                 },
@@ -365,7 +376,7 @@ class onetrading(Exchange, ImplicitAPI):
                         'marginMode': False,
                         'limit': 100,
                         'daysBack': 100000,  # todo
-                        'untilDays': 100000,  # todo
+                        'untilDays': 30,  # days between start-end
                         'symbolRequired': False,
                     },
                     'fetchOrder': {
@@ -377,6 +388,7 @@ class onetrading(Exchange, ImplicitAPI):
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
+                        'untilDays': 30,  # days between start-end
                         'trigger': False,
                         'trailing': False,
                         'symbolRequired': False,
@@ -387,7 +399,7 @@ class onetrading(Exchange, ImplicitAPI):
                         'limit': 100,
                         'daysBack': 100000,  # todo
                         'daysBackCanceled': 1 / 12,  # todo
-                        'untilDays': 100000,  # todo
+                        'untilDays': 30,  # days between start-end
                         'trigger': False,
                         'trailing': False,
                         'symbolRequired': False,
@@ -407,7 +419,7 @@ class onetrading(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -425,7 +437,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'epoch_millis')
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -446,30 +458,29 @@ class onetrading(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'code')
-            code = self.safe_currency_code(id)
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'name': self.safe_string(currency, 'name'),
-                'info': currency,
-                'active': None,
-                'fee': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
-                'withdraw': None,
-                'deposit': None,
-                'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
-                },
-                'networks': {},
-            })
-        return result
+        return self.parse_currencies(response)
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+        id = self.safe_string(rawCurrency, 'code')
+        code = self.safe_currency_code(id)
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'info': rawCurrency,
+            'active': None,
+            'fee': None,
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision'))),
+            'withdraw': None,
+            'deposit': None,
+            'limits': {
+                'amount': {'min': None, 'max': None},
+                'withdraw': {'min': None, 'max': None},
+            },
+            'networks': {},
+        })
+
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for onetrading
 
@@ -483,8 +494,8 @@ class onetrading(Exchange, ImplicitAPI):
         #     [
         #         {
         #             "state": "ACTIVE",
-        #             "base": {code: "ETH", precision: 8},
-        #             "quote": {code: "CHF", precision: 2},
+        #             "base": { code: "ETH", precision: 8 },
+        #             "quote": { code: "CHF", precision: 2 },
         #             "amount_precision": 4,
         #             "market_precision": 2,
         #             "min_size": "10.0"
@@ -547,7 +558,7 @@ class onetrading(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         if isPerp:
             symbol = symbol + ':' + quote
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -595,9 +606,9 @@ class onetrading(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -611,7 +622,7 @@ class onetrading(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method')
         params = self.omit(params, 'method')
         if method is None:
-            options = self.safe_value(self.options, 'fetchTradingFees', {})
+            options = self.safe_dict(self.options, 'fetchTradingFees', {})
             method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
         if method == 'fetchPrivateTradingFees':
             return self.fetch_private_trading_fees(params)
@@ -620,8 +631,9 @@ class onetrading(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' fetchTradingFees() does not support ' + method + ', fetchPrivateTradingFees and fetchPublicTradingFees are supported')
 
-    def fetch_public_trading_fees(self, params={}):
-        self.load_markets()
+    def fetch_public_trading_fees(self, params: dict = {}) -> dict:
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetFees(params)
         #
         # [
@@ -663,7 +675,7 @@ class onetrading(Exchange, ImplicitAPI):
         #             },
         #         ],
         #     },
-        # ]
+        # ];
         #
         spotFees = self.safe_dict(response, 0, {})
         futuresFees = self.safe_dict(response, 1, {})
@@ -673,11 +685,12 @@ class onetrading(Exchange, ImplicitAPI):
         futuresTiers = self.parse_fee_tiers(futuresFeeTiers)
         firstSpotTier = self.safe_dict(spotTiers, 0, {})
         firstFuturesTier = self.safe_dict(futuresTiers, 0, {})
-        result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
-            tierObject = firstSpotTier if (market['spot']) else firstFuturesTier
+            tierObject = firstSpotTier if (market['spot'] is True) else firstFuturesTier
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -689,8 +702,9 @@ class onetrading(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_private_trading_fees(self, params={}):
-        self.load_markets()
+    def fetch_private_trading_fees(self, params: dict = {}) -> dict:
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountFees(params)
         #
         # {
@@ -730,18 +744,19 @@ class onetrading(Exchange, ImplicitAPI):
         spotTakerFee = self.safe_string(spotFees, 'taker_fee')
         spotMakerFee = Precise.string_div(spotMakerFee, '100')
         spotTakerFee = Precise.string_div(spotTakerFee, '100')
-        # feeTiers = self.safe_value(response, 'fee_tiers')
+        # const feeTiers = this.safeValue (response, 'fee_tiers');
         futuresMakerFee = self.safe_string(futuresFees, 'maker_fee')
         futuresTakerFee = self.safe_string(futuresFees, 'taker_fee')
         futuresMakerFee = Precise.string_div(futuresMakerFee, '100')
         futuresTakerFee = Precise.string_div(futuresTakerFee, '100')
-        result: dict = {}
-        # tiers = self.parse_fee_tiers(feeTiers)
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        result = {}
+        # const tiers = this.parseFeeTiers (feeTiers);
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
-            makerFee = spotMakerFee if (market['spot']) else futuresMakerFee
-            takerFee = spotTakerFee if (market['spot']) else futuresTakerFee
+            makerFee = spotMakerFee if (market['spot'] is True) else futuresMakerFee
+            takerFee = spotTakerFee if (market['spot'] is True) else futuresTakerFee
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -753,7 +768,7 @@ class onetrading(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_fee_tiers(self, feeTiers, market: Market = None):
+    def parse_fee_tiers(self, feeTiers: list[object], market: Market = None) -> dict:
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
@@ -822,7 +837,7 @@ class onetrading(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -832,9 +847,10 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_code': market['id'],
         }
         response = self.publicGetMarketTickerInstrumentCode(self.extend(request, params))
@@ -858,7 +874,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -868,7 +884,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetMarketTicker(params)
         #
@@ -891,14 +908,16 @@ class onetrading(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            ticker = self.parse_ticker(response[i])
+        result = {}
+        rawTickers = self.to_array(response)
+        for i in range(0, len(rawTickers)):
+            ticker = self.parse_ticker(rawTickers[i])
             symbol = ticker['symbol']
-            result[symbol] = ticker
+            if symbol is not None:
+                result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -907,18 +926,19 @@ class onetrading(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_code': market['id'],
             # level 1 means only the best bid and ask
             # level 2 is a compiled order book up to market precision
             # level 3 is a full orderbook
             # if you wish to get regular updates about orderbooks please use the Websocket channel
-            # heavy usage of self endpoint may result in limited access according to rate limits rules
-            # 'level': 3,  # default
+            # heavy usage of this endpoint may result in limited access according to rate limits rules
+            # 'level': 3, // default
         }
         if limit is not None:
             request['depth'] = limit
@@ -981,7 +1001,7 @@ class onetrading(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'time'))
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "instrument_code":"BTC_EUR",
@@ -996,10 +1016,10 @@ class onetrading(Exchange, ImplicitAPI):
         #         "last_sequence":461123
         #     }
         #
-        granularity = self.safe_value(ohlcv, 'granularity')
+        granularity = self.safe_dict(ohlcv, 'granularity')
         unit = self.safe_string(granularity, 'unit')
         period = self.safe_string(granularity, 'period')
-        units: dict = {
+        units = {
             'MINUTES': 'm',
             'HOURS': 'h',
             'DAYS': 'd',
@@ -1007,12 +1027,16 @@ class onetrading(Exchange, ImplicitAPI):
             'MONTHS': 'M',
         }
         lowercaseUnit = self.safe_string(units, unit)
+        if (period is None) or (lowercaseUnit is None):
+            raise ExchangeError(self.id + ' parseOHLCV() missing period/unit')
         timeframe = period + lowercaseUnit
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
         timestamp = self.parse8601(self.safe_string(ohlcv, 'time'))
+        if timestamp is None:
+            raise ExchangeError(self.id + ' parseOHLCV() missing timestamp')
         alignedTimestamp = duration * self.parse_to_int(timestamp / duration)
-        options = self.safe_value(self.options, 'fetchOHLCV', {})
+        options = self.safe_dict(self.options, 'fetchOHLCV', {})
         volumeField = self.safe_string(options, 'volume', 'total_amount')
         return [
             alignedTimestamp,
@@ -1023,7 +1047,7 @@ class onetrading(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeField),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1034,20 +1058,23 @@ class onetrading(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         periodUnit = self.safe_string(self.timeframes, timeframe)
+        if periodUnit is None:
+            raise ExchangeError(self.id + ' fetchOHLCV() missing periodUnit')
         period, unit = periodUnit.split('/')
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
         if limit is None:
             limit = 1500
-        request: dict = {
+        request = {
             'instrument_code': market['id'],
-            # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),
+            # 'from': this.iso8601 (since),
+            # 'to': this.iso8601 (this.milliseconds ()),
             'period': period,
             'unit': unit,
         }
@@ -1071,7 +1098,7 @@ class onetrading(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "instrument_code":"BTC_EUR",
@@ -1084,7 +1111,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         "sequence":603047
         #     }
         #
-        # fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
+        # fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
         #
         #     {
         #         "fee": {
@@ -1108,7 +1135,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        feeInfo = self.safe_value(trade, 'fee', {})
+        feeInfo = self.safe_dict(trade, 'fee', {})
         trade = self.safe_value(trade, 'trade', trade)
         timestamp = self.safe_integer(trade, 'trade_timestamp')
         if timestamp is None:
@@ -1148,9 +1175,9 @@ class onetrading(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def parse_balance(self, response) -> Balances:
-        balances = self.safe_value(response, 'balances', [])
-        result: dict = {'info': response}
+    def parse_balance(self, response: object) -> Balances:
+        balances = self.safe_list(response, 'balances', [])
+        result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
@@ -1158,10 +1185,11 @@ class onetrading(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1170,7 +1198,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountBalances(params)
         #
         #     {
@@ -1191,17 +1220,18 @@ class onetrading(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
-            'FILLED': 'open',
+        statuses = {
+            'OPEN': 'open',
+            'BOOKED': 'open',
+            'FILL': 'open',
+            'MOVED': 'open',
             'FILLED_FULLY': 'closed',
             'FILLED_CLOSED': 'canceled',
             'FILLED_REJECTED': 'rejected',
-            'OPEN': 'open',
-            'REJECTED': 'rejected',
-            'CLOSED': 'canceled',
-            'FAILED': 'failed',
-            'STOP_TRIGGERED': 'triggered',
-            'DONE': 'closed',
+            'CANCELLED': 'canceled',
+            'INSUFFICIENT_FUNDS': 'rejected',
+            'INSUFFICIENT_LIQUIDITY': 'rejected',
+            'RISK_FAILED_OVER_MAX_POSITION': 'rejected',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1243,7 +1273,7 @@ class onetrading(Exchange, ImplicitAPI):
         #             "time_in_force": "GOOD_TILL_CANCELLED",
         #             "time_last_updated": "2019-08-24T14:15:22Z",
         #             "expire_after": "2019-08-24T14:15:22Z",
-        #             "is_post_only": False,
+        #             "is_post_only": false,
         #             "time_triggered": "2019-08-24T14:15:22Z",
         #             "trigger_price": "1234.5678"
         #         },
@@ -1276,8 +1306,7 @@ class onetrading(Exchange, ImplicitAPI):
         id = self.safe_string(rawOrder, 'order_id')
         clientOrderId = self.safe_string(rawOrder, 'client_id')
         timestamp = self.parse8601(self.safe_string(rawOrder, 'time'))
-        rawStatus = self.parse_order_status(self.safe_string(rawOrder, 'status'))
-        status = self.parse_order_status(rawStatus)
+        status = self.parse_order_status(self.safe_string(rawOrder, 'status'))
         marketId = self.safe_string(rawOrder, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_string(rawOrder, 'price')
@@ -1286,8 +1315,8 @@ class onetrading(Exchange, ImplicitAPI):
         side = self.safe_string_lower(rawOrder, 'side')
         type = self.safe_string_lower(rawOrder, 'type')
         timeInForce = self.parse_time_in_force(self.safe_string(rawOrder, 'time_in_force'))
-        postOnly = self.safe_value(rawOrder, 'is_post_only')
-        rawTrades = self.safe_value(order, 'trades', [])
+        postOnly = self.safe_bool(rawOrder, 'is_post_only')
+        rawTrades = self.safe_list(order, 'trades', [])
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1296,7 +1325,7 @@ class onetrading(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': self.parse_order_type(type),
+            'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1308,26 +1337,21 @@ class onetrading(Exchange, ImplicitAPI):
             'filled': filled,
             'remaining': None,
             'status': status,
-            # 'fee': None,
+            # 'fee': undefined,
             'trades': rawTrades,
         }, market)
 
-    def parse_order_type(self, type: Str):
-        types: dict = {
-            'booked': 'limit',
-        }
-        return self.safe_string(types, type, type)
-
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
             'IMMEDIATE_OR_CANCELLED': 'IOC',
             'FILL_OR_KILL': 'FOK',
+            'POST_ONLY': 'PO',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1342,20 +1366,23 @@ class onetrading(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: onetrading only does stop limit orders and does not do stop market
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
-        request: dict = {
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        request = {
             'instrument_code': market['id'],
             'type': uppercaseType,  # LIMIT, MARKET, STOP
             'side': side.upper(),  # or SELL
             'amount': self.amount_to_precision(symbol, amount),
-            # "price": "1234.5678",  # required for LIMIT and STOP orders
-            # "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",  # optional
-            # "time_in_force": "GOOD_TILL_CANCELLED",  # limit orders only, GOOD_TILL_CANCELLED, GOOD_TILL_TIME, IMMEDIATE_OR_CANCELLED and FILL_OR_KILL
-            # "expire_after": "2020-07-02T19:40:13Z",  # required for GOOD_TILL_TIME
-            # "is_post_only": False,  # limit orders only, optional
-            # "trigger_price": "1234.5678"  # required for stop orders
+            # "price": "1234.5678", // required for LIMIT and STOP orders
+            # "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206", // optional
+            # "time_in_force": "GOOD_TILL_CANCELLED", // limit orders only, GOOD_TILL_CANCELLED, GOOD_TILL_TIME, IMMEDIATE_OR_CANCELLED and FILL_OR_KILL
+            # "expire_after": "2020-07-02T19:40:13Z", // required for GOOD_TILL_TIME
+            # "is_post_only": false, // limit orders only, optional
+            # "trigger_price": "1234.5678" // required for stop orders
         }
         priceIsRequired = False
         if uppercaseType == 'LIMIT' or uppercaseType == 'STOP':
@@ -1396,7 +1423,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1404,15 +1431,16 @@ class onetrading(Exchange, ImplicitAPI):
         https://docs.onetrading.com/rest/trading/cancel-order-client-id
 
         :param str id: order id
-        :param str symbol: not used by bitmex cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
         method = 'privateDeleteAccountOrdersOrderId'
-        request: dict = {}
+        request = {}
         if clientOrderId is not None:
             method = 'privateDeleteAccountOrdersClientClientId'
             request['client_id'] = clientOrderId
@@ -1428,18 +1456,19 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
         https://docs.onetrading.com/rest/trading/cancel-all-orders
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_code'] = market['id']
@@ -1451,7 +1480,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -1462,8 +1491,9 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'ids': ','.join(ids),
         }
         response = self.privateDeleteAccountOrders(self.extend(request, params))
@@ -1475,7 +1505,7 @@ class onetrading(Exchange, ImplicitAPI):
         order = self.safe_order({'info': response})
         return [order]
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1486,8 +1516,9 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'order_id': id,
         }
         response = self.privateGetAccountOrdersOrderId(self.extend(request, params))
@@ -1534,38 +1565,41 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
         https://docs.onetrading.com/rest/trading/get-orders
 
         :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [since]: the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest entry to fetch
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
-            # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
+        if self.markets is None:
+            self.load_markets()
+        request = {
+            # 'from': this.iso8601 (since),
+            # 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
             # 'instrument_code': market['id'],
-            # 'with_cancelled_and_rejected': False,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
-            # 'with_just_filled_inactive': False,  # orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
-            # 'with_just_orders': False,  # do not return any trades corresponsing to the orders, it may be significanly faster and should be used if user is not interesting in trade information
+            # 'with_cancelled_and_rejected': false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            # 'with_just_filled_inactive': false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
+            # 'with_just_orders': false, // do not return any trades corresponding to the orders, it may be significantly faster and should be used if user is not interesting in trade information
             # 'max_page_size': 100,
-            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
+            # 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_code'] = market['id']
         if since is not None:
-            to = self.safe_string(params, 'to')
-            if to is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['to'] = self.iso8601(until)
         if limit is not None:
             request['max_page_size'] = limit
         response = self.privateGetAccountOrders(self.extend(request, params))
@@ -1651,24 +1685,25 @@ class onetrading(Exchange, ImplicitAPI):
         orderHistory = self.safe_list(response, 'order_history', [])
         return self.parse_orders(orderHistory, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
         https://docs.onetrading.com/rest/trading/get-orders
 
         :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [since]: the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest entry to fetch
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
-            'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+        request = {
+            'with_cancelled_and_rejected': True,  # default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -1681,11 +1716,12 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'order_id': id,
             # 'max_page_size': 100,
-            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
+            # 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         }
         if limit is not None:
             request['max_page_size'] = limit
@@ -1720,41 +1756,44 @@ class onetrading(Exchange, ImplicitAPI):
         #         "cursor": "string"
         #     }
         #
-        tradeHistory = self.safe_value(response, 'trade_history', [])
+        tradeHistory = self.safe_list(response, 'trade_history', [])
         market = None
         if symbol is not None:
             market = self.market(symbol)
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
         https://docs.onetrading.com/rest/trading/get-trades
 
         :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [since]: the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest entry to fetch
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {
-            # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
+        if self.markets is None:
+            self.load_markets()
+        request = {
+            # 'from': this.iso8601 (since),
+            # 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
             # 'instrument_code': market['id'],
             # 'max_page_size': 100,
-            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
+            # 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_code'] = market['id']
         if since is not None:
-            to = self.safe_string(params, 'to')
-            if to is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['to'] = self.iso8601(until)
         if limit is not None:
             request['max_page_size'] = limit
         response = self.privateGetAccountTrades(self.extend(request, params))
@@ -1791,11 +1830,11 @@ class onetrading(Exchange, ImplicitAPI):
         tradeHistory = self.safe_list(response, 'trade_history', [])
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -1807,11 +1846,11 @@ class onetrading(Exchange, ImplicitAPI):
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
             else:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         #

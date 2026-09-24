@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var cryptocom$1 = require('./abstract/cryptocom.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 /**
@@ -20,7 +20,7 @@ class cryptocom extends cryptocom$1["default"] {
             'name': 'Crypto.com',
             'countries': ['MT'],
             'version': 'v2',
-            'rateLimit': 10,
+            'rateLimit': 10, // 100 requests per second
             'certified': true,
             'pro': true,
             'has': {
@@ -29,7 +29,7 @@ class cryptocom extends cryptocom$1["default"] {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': true,
+                'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -158,167 +158,175 @@ class cryptocom extends cryptocom$1["default"] {
                 'base': {
                     'public': {
                         'get': {
-                            'v1/public/get-announcements': 1, // no description of rate limit
+                            'v1/public/get-announcements': { 'cost': 1 }, // no description of rate limit
                         },
                     },
                 },
                 'v1': {
                     'public': {
                         'get': {
-                            'public/auth': 10 / 3,
-                            'public/get-instruments': 10 / 3,
-                            'public/get-book': 1,
-                            'public/get-candlestick': 1,
-                            'public/get-trades': 1,
-                            'public/get-tickers': 1,
-                            'public/get-valuations': 1,
-                            'public/get-expired-settlement-price': 10 / 3,
-                            'public/get-insurance': 1,
-                            'public/get-announcements': 1,
-                            'public/get-risk-parameters': 1,
+                            'public/auth': { 'cost': 10 / 3 },
+                            'public/get-instruments': { 'cost': 10 / 3 },
+                            'public/get-book': { 'cost': 1 },
+                            'public/get-candlestick': { 'cost': 1 },
+                            'public/get-trades': { 'cost': 1 },
+                            'public/get-tickers': { 'cost': 1 },
+                            'public/get-valuations': { 'cost': 1 },
+                            'public/get-expired-settlement-price': { 'cost': 10 / 3 },
+                            'public/get-insurance': { 'cost': 1 },
+                            'public/get-announcements': { 'cost': 1 },
+                            'public/get-risk-parameters': { 'cost': 1 },
                         },
                         'post': {
-                            'public/staking/get-conversion-rate': 2,
+                            'public/staking/get-conversion-rate': { 'cost': 2 },
                         },
                     },
                     'private': {
                         'post': {
-                            'private/set-cancel-on-disconnect': 10 / 3,
-                            'private/get-cancel-on-disconnect': 10 / 3,
-                            'private/user-balance': 10 / 3,
-                            'private/user-balance-history': 10 / 3,
-                            'private/get-positions': 10 / 3,
-                            'private/create-order': 2 / 3,
-                            'private/amend-order': 4 / 3,
-                            'private/create-order-list': 10 / 3,
-                            'private/cancel-order': 2 / 3,
-                            'private/cancel-order-list': 10 / 3,
-                            'private/cancel-all-orders': 2 / 3,
-                            'private/close-position': 10 / 3,
-                            'private/get-order-history': 100,
-                            'private/get-open-orders': 10 / 3,
-                            'private/get-order-detail': 1 / 3,
-                            'private/get-trades': 100,
-                            'private/change-account-leverage': 10 / 3,
-                            'private/get-transactions': 10 / 3,
-                            'private/create-subaccount-transfer': 10 / 3,
-                            'private/get-subaccount-balances': 10 / 3,
-                            'private/get-order-list': 10 / 3,
-                            'private/create-withdrawal': 10 / 3,
-                            'private/get-currency-networks': 10 / 3,
-                            'private/get-deposit-address': 10 / 3,
-                            'private/get-accounts': 10 / 3,
-                            'private/get-withdrawal-history': 10 / 3,
-                            'private/get-deposit-history': 10 / 3,
-                            'private/get-fee-rate': 2,
-                            'private/get-instrument-fee-rate': 2,
-                            'private/fiat/fiat-deposit-info': 10 / 3,
-                            'private/fiat/fiat-deposit-history': 10 / 3,
-                            'private/fiat/fiat-withdraw-history': 10 / 3,
-                            'private/fiat/fiat-create-withdraw': 10 / 3,
-                            'private/fiat/fiat-transaction-quota': 10 / 3,
-                            'private/fiat/fiat-transaction-limit': 10 / 3,
-                            'private/fiat/fiat-get-bank-accounts': 10 / 3,
-                            'private/staking/stake': 2,
-                            'private/staking/unstake': 2,
-                            'private/staking/get-staking-position': 2,
-                            'private/staking/get-staking-instruments': 2,
-                            'private/staking/get-open-stake': 2,
-                            'private/staking/get-stake-history': 2,
-                            'private/staking/get-reward-history': 2,
-                            'private/staking/convert': 2,
-                            'private/staking/get-open-convert': 2,
-                            'private/staking/get-convert-history': 2,
-                            'private/create-isolated-margin-transfer': 10 / 3,
-                            'private/change-isolated-margin-leverage': 10 / 3,
+                            'private/set-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/get-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/user-balance': { 'cost': 10 / 3 },
+                            'private/user-balance-history': { 'cost': 10 / 3 },
+                            'private/get-positions': { 'cost': 10 / 3 },
+                            'private/create-order': { 'cost': 2 / 3 },
+                            'private/amend-order': { 'cost': 4 / 3 }, // no description of rate limit
+                            'private/create-order-list': { 'cost': 10 / 3 },
+                            'private/cancel-order': { 'cost': 2 / 3 },
+                            'private/cancel-order-list': { 'cost': 10 / 3 },
+                            'private/cancel-all-orders': { 'cost': 2 / 3 },
+                            'private/close-position': { 'cost': 10 / 3 },
+                            'private/get-order-history': { 'cost': 100 },
+                            'private/get-open-orders': { 'cost': 10 / 3 },
+                            'private/get-order-detail': { 'cost': 1 / 3 },
+                            'private/get-trades': { 'cost': 100 },
+                            'private/change-account-leverage': { 'cost': 10 / 3 },
+                            'private/get-transactions': { 'cost': 10 / 3 },
+                            'private/create-subaccount-transfer': { 'cost': 10 / 3 },
+                            'private/get-subaccount-balances': { 'cost': 10 / 3 },
+                            'private/get-order-list': { 'cost': 10 / 3 },
+                            'private/create-withdrawal': { 'cost': 10 / 3 },
+                            'private/get-currency-networks': { 'cost': 10 / 3 },
+                            'private/get-deposit-address': { 'cost': 10 / 3 },
+                            'private/get-accounts': { 'cost': 10 / 3 },
+                            'private/get-withdrawal-history': { 'cost': 10 / 3 },
+                            'private/get-deposit-history': { 'cost': 10 / 3 },
+                            'private/get-fee-rate': { 'cost': 2 },
+                            'private/get-instrument-fee-rate': { 'cost': 2 },
+                            'private/get-fee-credit-balances': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-deposit-info': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-deposit-history': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-withdraw-history': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-create-withdraw': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-transaction-quota': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-transaction-limit': { 'cost': 10 / 3 },
+                            'private/fiat/fiat-get-bank-accounts': { 'cost': 10 / 3 },
+                            'private/staking/stake': { 'cost': 2 },
+                            'private/staking/unstake': { 'cost': 2 },
+                            'private/staking/get-staking-position': { 'cost': 2 },
+                            'private/staking/get-staking-instruments': { 'cost': 2 },
+                            'private/staking/get-open-stake': { 'cost': 2 },
+                            'private/staking/get-stake-history': { 'cost': 2 },
+                            'private/staking/get-reward-history': { 'cost': 2 },
+                            'private/staking/convert': { 'cost': 2 },
+                            'private/staking/get-open-convert': { 'cost': 2 },
+                            'private/staking/get-convert-history': { 'cost': 2 },
+                            'private/create-isolated-margin-transfer': { 'cost': 10 / 3 },
+                            'private/change-isolated-margin-leverage': { 'cost': 10 / 3 },
+                            'private/bot/create-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/update-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/terminate-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/pause-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/resume-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/get-trading-bots': { 'cost': 10 / 3 },
+                            'private/bot/get-trading-bot-executions': { 'cost': 10 / 3 },
                         },
                     },
                 },
                 'v2': {
                     'public': {
                         'get': {
-                            'public/auth': 1,
-                            'public/get-instruments': 1,
-                            'public/get-book': 1,
-                            'public/get-candlestick': 1,
-                            'public/get-ticker': 1,
-                            'public/get-trades': 1,
-                            'public/margin/get-transfer-currencies': 1,
-                            'public/margin/get-load-currenices': 1,
-                            'public/respond-heartbeat': 1,
+                            'public/auth': { 'cost': 1 },
+                            'public/get-instruments': { 'cost': 1 },
+                            'public/get-book': { 'cost': 1 },
+                            'public/get-candlestick': { 'cost': 1 },
+                            'public/get-ticker': { 'cost': 1 },
+                            'public/get-trades': { 'cost': 1 },
+                            'public/margin/get-transfer-currencies': { 'cost': 1 },
+                            'public/margin/get-load-currenices': { 'cost': 1 },
+                            'public/respond-heartbeat': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'post': {
-                            'private/set-cancel-on-disconnect': 10 / 3,
-                            'private/get-cancel-on-disconnect': 10 / 3,
-                            'private/create-withdrawal': 10 / 3,
-                            'private/get-withdrawal-history': 10 / 3,
-                            'private/get-currency-networks': 10 / 3,
-                            'private/get-deposit-history': 10 / 3,
-                            'private/get-deposit-address': 10 / 3,
-                            'private/export/create-export-request': 10 / 3,
-                            'private/export/get-export-requests': 10 / 3,
-                            'private/export/download-export-output': 10 / 3,
-                            'private/get-account-summary': 10 / 3,
-                            'private/create-order': 2 / 3,
-                            'private/cancel-order': 2 / 3,
-                            'private/cancel-all-orders': 2 / 3,
-                            'private/create-order-list': 10 / 3,
-                            'private/get-order-history': 10 / 3,
-                            'private/get-open-orders': 10 / 3,
-                            'private/get-order-detail': 1 / 3,
-                            'private/get-trades': 100,
-                            'private/get-accounts': 10 / 3,
-                            'private/get-subaccount-balances': 10 / 3,
-                            'private/create-subaccount-transfer': 10 / 3,
-                            'private/otc/get-otc-user': 10 / 3,
-                            'private/otc/get-instruments': 10 / 3,
-                            'private/otc/request-quote': 100,
-                            'private/otc/accept-quote': 100,
-                            'private/otc/get-quote-history': 10 / 3,
-                            'private/otc/get-trade-history': 10 / 3,
-                            'private/otc/create-order': 10 / 3,
+                            'private/set-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/get-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/create-withdrawal': { 'cost': 10 / 3 },
+                            'private/get-withdrawal-history': { 'cost': 10 / 3 },
+                            'private/get-currency-networks': { 'cost': 10 / 3 },
+                            'private/get-deposit-history': { 'cost': 10 / 3 },
+                            'private/get-deposit-address': { 'cost': 10 / 3 },
+                            'private/export/create-export-request': { 'cost': 10 / 3 },
+                            'private/export/get-export-requests': { 'cost': 10 / 3 },
+                            'private/export/download-export-output': { 'cost': 10 / 3 },
+                            'private/get-account-summary': { 'cost': 10 / 3 },
+                            'private/create-order': { 'cost': 2 / 3 },
+                            'private/cancel-order': { 'cost': 2 / 3 },
+                            'private/cancel-all-orders': { 'cost': 2 / 3 },
+                            'private/create-order-list': { 'cost': 10 / 3 },
+                            'private/get-order-history': { 'cost': 10 / 3 },
+                            'private/get-open-orders': { 'cost': 10 / 3 },
+                            'private/get-order-detail': { 'cost': 1 / 3 },
+                            'private/get-trades': { 'cost': 100 },
+                            'private/get-accounts': { 'cost': 10 / 3 },
+                            'private/get-subaccount-balances': { 'cost': 10 / 3 },
+                            'private/create-subaccount-transfer': { 'cost': 10 / 3 },
+                            'private/otc/get-otc-user': { 'cost': 10 / 3 },
+                            'private/otc/get-instruments': { 'cost': 10 / 3 },
+                            'private/otc/request-quote': { 'cost': 100 },
+                            'private/otc/accept-quote': { 'cost': 100 },
+                            'private/otc/get-quote-history': { 'cost': 10 / 3 },
+                            'private/otc/get-trade-history': { 'cost': 10 / 3 },
+                            'private/otc/create-order': { 'cost': 10 / 3 },
                         },
                     },
                 },
                 'derivatives': {
                     'public': {
                         'get': {
-                            'public/auth': 10 / 3,
-                            'public/get-instruments': 10 / 3,
-                            'public/get-book': 1,
-                            'public/get-candlestick': 1,
-                            'public/get-trades': 1,
-                            'public/get-tickers': 1,
-                            'public/get-valuations': 1,
-                            'public/get-expired-settlement-price': 10 / 3,
-                            'public/get-insurance': 1,
+                            'public/auth': { 'cost': 10 / 3 },
+                            'public/get-instruments': { 'cost': 10 / 3 },
+                            'public/get-book': { 'cost': 1 },
+                            'public/get-candlestick': { 'cost': 1 },
+                            'public/get-trades': { 'cost': 1 },
+                            'public/get-tickers': { 'cost': 1 },
+                            'public/get-valuations': { 'cost': 1 },
+                            'public/get-expired-settlement-price': { 'cost': 10 / 3 },
+                            'public/get-insurance': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'post': {
-                            'private/set-cancel-on-disconnect': 10 / 3,
-                            'private/get-cancel-on-disconnect': 10 / 3,
-                            'private/user-balance': 10 / 3,
-                            'private/user-balance-history': 10 / 3,
-                            'private/get-positions': 10 / 3,
-                            'private/create-order': 2 / 3,
-                            'private/create-order-list': 10 / 3,
-                            'private/cancel-order': 2 / 3,
-                            'private/cancel-order-list': 10 / 3,
-                            'private/cancel-all-orders': 2 / 3,
-                            'private/close-position': 10 / 3,
-                            'private/convert-collateral': 10 / 3,
-                            'private/get-order-history': 100,
-                            'private/get-open-orders': 10 / 3,
-                            'private/get-order-detail': 1 / 3,
-                            'private/get-trades': 100,
-                            'private/change-account-leverage': 10 / 3,
-                            'private/get-transactions': 10 / 3,
-                            'private/create-subaccount-transfer': 10 / 3,
-                            'private/get-subaccount-balances': 10 / 3,
-                            'private/get-order-list': 10 / 3,
+                            'private/set-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/get-cancel-on-disconnect': { 'cost': 10 / 3 },
+                            'private/user-balance': { 'cost': 10 / 3 },
+                            'private/user-balance-history': { 'cost': 10 / 3 },
+                            'private/get-positions': { 'cost': 10 / 3 },
+                            'private/create-order': { 'cost': 2 / 3 },
+                            'private/create-order-list': { 'cost': 10 / 3 },
+                            'private/cancel-order': { 'cost': 2 / 3 },
+                            'private/cancel-order-list': { 'cost': 10 / 3 },
+                            'private/cancel-all-orders': { 'cost': 2 / 3 },
+                            'private/close-position': { 'cost': 10 / 3 },
+                            'private/convert-collateral': { 'cost': 10 / 3 },
+                            'private/get-order-history': { 'cost': 100 },
+                            'private/get-open-orders': { 'cost': 10 / 3 },
+                            'private/get-order-detail': { 'cost': 1 / 3 },
+                            'private/get-trades': { 'cost': 100 },
+                            'private/change-account-leverage': { 'cost': 10 / 3 },
+                            'private/get-transactions': { 'cost': 10 / 3 },
+                            'private/create-subaccount-transfer': { 'cost': 10 / 3 },
+                            'private/get-subaccount-balances': { 'cost': 10 / 3 },
+                            'private/get-order-list': { 'cost': 10 / 3 },
                         },
                     },
                 },
@@ -371,6 +379,7 @@ class cryptocom extends cryptocom$1["default"] {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                    'ARBITRUM': 'ARB',
                 },
                 'broker': 'CCXT',
             },
@@ -397,7 +406,7 @@ class cryptocom extends cryptocom$1["default"] {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': false,
                         'iceberg': false,
                         'leverage': false,
@@ -480,13 +489,13 @@ class cryptocom extends cryptocom$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '213': errors.InvalidOrder,
+                    '213': errors.InvalidOrder, // { "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" }
                     '219': errors.InvalidOrder,
-                    '306': errors.InsufficientFunds,
-                    '314': errors.InvalidOrder,
-                    '315': errors.InvalidOrder,
-                    '325': errors.InvalidOrder,
-                    '415': errors.InvalidOrder,
+                    '306': errors.InsufficientFunds, // { "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : { "client_oid" : "1753xxx", "order_id" : "6530xxx" } }
+                    '314': errors.InvalidOrder, // { "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : { "client_oid" : "1700xxx", "order_id" : "6530xxx" } }
+                    '315': errors.InvalidOrder, // { "id" : 1769xxx, "method" : "private/create-order", "code" : 315, "message" : "FAR_AWAY_LIMIT_PRICE", "result" : { "client_oid" : "1769xxx", "order_id" : "6530xxx" } }
+                    '325': errors.InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
+                    '415': errors.InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
                     '10001': errors.ExchangeError,
                     '10002': errors.PermissionDenied,
                     '10003': errors.PermissionDenied,
@@ -498,7 +507,7 @@ class cryptocom extends cryptocom$1["default"] {
                     '10009': errors.BadRequest,
                     '20001': errors.BadRequest,
                     '20002': errors.InsufficientFunds,
-                    '20005': errors.AccountNotEnabled,
+                    '20005': errors.AccountNotEnabled, // {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003': errors.BadSymbol,
                     '30004': errors.BadRequest,
                     '30005': errors.BadRequest,
@@ -522,17 +531,17 @@ class cryptocom extends cryptocom$1["default"] {
                     '40006': errors.BadRequest,
                     '40007': errors.BadRequest,
                     '40101': errors.AuthenticationError,
-                    '40102': errors.InvalidNonce,
-                    '40103': errors.AuthenticationError,
-                    '40104': errors.AuthenticationError,
-                    '40107': errors.BadRequest,
+                    '40102': errors.InvalidNonce, // Nonce value differs by more than 60 seconds from server
+                    '40103': errors.AuthenticationError, // IP address not whitelisted
+                    '40104': errors.AuthenticationError, // Disallowed based on user tier
+                    '40107': errors.BadRequest, // Session subscription limit has been exceeded
                     '40401': errors.OrderNotFound,
                     '40801': errors.RequestTimeout,
                     '42901': errors.RateLimitExceeded,
-                    '43005': errors.InvalidOrder,
-                    '43003': errors.InvalidOrder,
-                    '43004': errors.InvalidOrder,
-                    '43012': errors.BadRequest,
+                    '43005': errors.InvalidOrder, // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003': errors.InvalidOrder, // FOK order has not been filled and cancelled
+                    '43004': errors.InvalidOrder, // IOC order has not been filled and cancelled
+                    '43012': errors.BadRequest, // Canceled due to Self Trade Prevention
                     '50001': errors.ExchangeError,
                     '9010001': errors.OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
@@ -565,7 +574,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         catch (e) {
             const erString = this.exceptionMessage(e);
-            if (erString.indexOf('"msg":"SYS_ERROR"') >= 0) {
+            if (erString.indexOf('SYS_ERROR') >= 0) {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
                 return {};
@@ -630,22 +639,24 @@ class cryptocom extends cryptocom$1["default"] {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'network_id');
             const network = this.networkIdToCode(networkId, code);
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': undefined,
-                'deposit': this.safeBool(chain, 'deposit_enabled', false),
-                'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
-                'fee': this.safeNumber(chain, 'withdrawal_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'min_withdrawal_amount'),
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'deposit_enabled', false),
+                    'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
+                    'fee': this.safeNumber(chain, 'withdrawal_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': currency,
@@ -663,20 +674,9 @@ class cryptocom extends cryptocom$1["default"] {
                     'max': undefined,
                 },
             },
-            'type': 'crypto',
+            'type': 'crypto', // only crypto now
             'networks': networks,
         });
-    }
-    addKeyInArrayItems(obj, keyName) {
-        const result = [];
-        const keys = Object.keys(obj);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = obj[key];
-            item[keyName] = key;
-            result.push(item);
-        }
-        return result;
     }
     /**
      * @method
@@ -820,8 +820,8 @@ class cryptocom extends cryptocom$1["default"] {
                 symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType;
                 contract = true;
             }
-            const isLinear = (contract) ? true : undefined;
-            const isInverse = (contract) ? false : undefined;
+            const isLinear = (contract === true) ? true : undefined;
+            const isInverse = (contract === true) ? false : undefined;
             result.push({
                 'id': this.safeString(market, 'symbol'),
                 'symbol': symbol,
@@ -833,7 +833,7 @@ class cryptocom extends cryptocom$1["default"] {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': ((marginBuyEnabled) || (marginSellEnabled)),
+                'margin': ((marginBuyEnabled === true) || (marginSellEnabled === true)),
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -885,7 +885,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbols !== undefined) {
@@ -942,7 +944,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.fetchTickers([symbol], params);
         return this.safeValue(tickers, symbol);
@@ -961,7 +965,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
@@ -1042,7 +1048,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -1103,7 +1111,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1170,15 +1180,17 @@ class cryptocom extends cryptocom$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the number of order book entries to return, max 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
         };
-        if (limit) {
+        if ((limit !== undefined) && (limit !== 0)) {
             request['depth'] = Math.min(limit, 50); // max 50
         }
         const response = await this.v1PublicGetPublicGetBook(this.extend(request, params));
@@ -1202,14 +1214,14 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
-        const orderBook = this.safeValue(data, 0);
+        const orderBook = this.safeDict(data, 0);
         const timestamp = this.safeInteger(orderBook, 't');
         return this.parseOrderBook(orderBook, symbol, timestamp);
     }
     parseBalance(response) {
         const responseResult = this.safeDict(response, 'result', {});
         const data = this.safeList(responseResult, 'data', []);
-        const positionBalances = this.safeValue(data[0], 'position_balances', []);
+        const positionBalances = this.safeList(data[0], 'position_balances', []);
         const result = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];
@@ -1218,7 +1230,9 @@ class cryptocom extends cryptocom$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'quantity');
             account['used'] = this.safeString(balance, 'reserved_qty');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1231,7 +1245,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivatePostPrivateUserBalance(params);
         //
         //     {
@@ -1289,7 +1305,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1335,6 +1353,12 @@ class cryptocom extends cryptocom$1["default"] {
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const request = {
@@ -1373,7 +1397,7 @@ class cryptocom extends cryptocom$1["default"] {
             }
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if ((postOnly) || (timeInForce === 'PO')) {
+        if ((postOnly === true) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1466,7 +1490,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const response = await this.v1PrivatePostPrivateCreateOrder(request);
@@ -1495,7 +1521,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1510,7 +1538,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         const contigency = this.safeString(params, 'contingency_type', 'LIST');
         const request = {
-            'contingency_type': contigency,
+            'contingency_type': contigency, // or OCO
             'order_list': ordersRequests,
         };
         const response = await this.v1PrivatePostPrivateCreateOrderList(this.extend(request, params));
@@ -1564,6 +1592,12 @@ class cryptocom extends cryptocom$1["default"] {
         return this.parseOrders(result);
     }
     createAdvancedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1595,7 +1629,7 @@ class cryptocom extends cryptocom$1["default"] {
             }
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if ((postOnly) || (timeInForce === 'PO')) {
+        if ((postOnly === true) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1711,7 +1745,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = this.editOrderRequest(id, symbol, amount, price, params);
         const response = await this.v1PrivatePostPrivateAmendOrder(request);
         const result = this.safeDict(response, 'result', {});
@@ -1744,12 +1780,14 @@ class cryptocom extends cryptocom$1["default"] {
      * @name cryptocom#cancelAllOrders
      * @description cancel all open orders
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
-     * @param {string} symbol unified market symbol of the orders to cancel
+     * @param {string} [symbol] unified market symbol of the orders to cancel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1770,7 +1808,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1808,7 +1848,9 @@ class cryptocom extends cryptocom$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const orderRequests = [];
         for (let i = 0; i < ids.length; i++) {
@@ -1837,7 +1879,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrdersForSymbols(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orderRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1870,7 +1914,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1933,7 +1979,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2018,7 +2066,9 @@ class cryptocom extends cryptocom$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
         const request = {
             'currency': currency['id'],
@@ -2030,7 +2080,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }
@@ -2064,7 +2114,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
@@ -2105,13 +2157,15 @@ class cryptocom extends cryptocom$1["default"] {
             this.checkAddress(address);
             const networkId = this.safeString(value, 'network');
             const network = this.networkIdToCode(networkId, responseCode);
-            result[network] = {
-                'info': value,
-                'currency': responseCode,
-                'network': network,
-                'address': address,
-                'tag': tag,
-            };
+            if (network !== undefined) {
+                result[network] = {
+                    'info': value,
+                    'currency': responseCode,
+                    'network': network,
+                    'address': address,
+                    'tag': tag,
+                };
+            }
         }
         return result;
     }
@@ -2127,7 +2181,8 @@ class cryptocom extends cryptocom$1["default"] {
     async fetchDepositAddress(code, params = {}) {
         const network = this.safeStringUpper(params, 'network');
         params = this.omit(params, ['network']);
-        const depositAddresses = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, params);
+        const depositAddresses = depositAddressesRaw;
         if (network in depositAddresses) {
             return depositAddresses[network];
         }
@@ -2147,7 +2202,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -2206,7 +2263,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -2290,7 +2349,6 @@ class cryptocom extends cryptocom$1["default"] {
         const timestamp = this.safeInteger(ticker, 't');
         const marketId = this.safeString(ticker, 'i');
         market = this.safeMarket(marketId, market, '_');
-        const quote = this.safeString(market, 'quote');
         const last = this.safeString(ticker, 'a');
         return this.safeTicker({
             'symbol': market['symbol'],
@@ -2311,7 +2369,7 @@ class cryptocom extends cryptocom$1["default"] {
             'percentage': this.safeString(ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'v'),
-            'quoteVolume': (quote === 'USD') ? this.safeString(ticker, 'vv') : undefined,
+            'quoteVolume': (market['quote'] === 'USD') ? this.safeString(ticker, 'vv') : undefined,
             'info': ticker,
         }, market);
     }
@@ -2471,7 +2529,7 @@ class cryptocom extends cryptocom$1["default"] {
         const created = this.safeInteger(order, 'create_time');
         const marketId = this.safeString(order, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
-        const execInst = this.safeValue(order, 'exec_inst');
+        const execInst = this.safeList(order, 'exec_inst');
         let postOnly = undefined;
         if (execInst !== undefined) {
             postOnly = false;
@@ -2681,10 +2739,12 @@ class cryptocom extends cryptocom$1["default"] {
                 const networkId = this.safeString(networkInfo, 'network_id');
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
+                    };
+                }
                 if (networkListLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(networkInfo, 'withdrawal_fee');
                     result['withdraw']['percentage'] = false;
@@ -2703,9 +2763,11 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
-        const data = this.safeValue(response, 'result');
+        const data = this.safeDict(response, 'result');
         const currencyMap = this.safeList(data, 'currency_map');
         return this.parseDepositWithdrawFees(currencyMap, codes, 'full_name');
     }
@@ -2722,7 +2784,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -2863,7 +2927,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivatePostPrivateGetAccounts(params);
         //
         //     {
@@ -2948,7 +3014,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2986,7 +3054,7 @@ class cryptocom extends cryptocom$1["default"] {
         const sorted = this.sortBy(settlements, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    parseSettlement(settlement, market) {
+    parseSettlement(settlement, market = undefined) {
         //
         //     {
         //         "i": "BTCUSD-230526",
@@ -3005,7 +3073,7 @@ class cryptocom extends cryptocom$1["default"] {
             'datetime': this.iso8601(timestamp),
         };
     }
-    parseSettlements(settlements, market) {
+    parseSettlements(settlements, market = undefined) {
         //
         //     [
         //         {
@@ -3032,9 +3100,11 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -3114,14 +3184,16 @@ class cryptocom extends cryptocom$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -3184,7 +3256,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -3226,7 +3300,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         let market = undefined;
@@ -3305,8 +3381,8 @@ class cryptocom extends cryptocom$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'hedged': undefined,
-            'side': Precise["default"].stringGt(amount, '0') ? 'buy' : 'sell',
-            'contracts': Precise["default"].stringAbs(amount),
+            'side': Precise["default"].stringGt(amount, '0') ? 'long' : 'short',
+            'contracts': this.parseNumber(Precise["default"].stringAbs(amount)),
             'contractSize': market['contractSize'],
             'entryPrice': undefined,
             'markPrice': undefined,
@@ -3371,7 +3447,7 @@ class cryptocom extends cryptocom$1["default"] {
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by cryptocom.closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.type] LIMIT or MARKET
@@ -3379,7 +3455,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -3418,7 +3496,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -3451,7 +3531,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivatePostPrivateGetFeeRate(params);
         //
         //   {
@@ -3488,8 +3570,8 @@ class cryptocom extends cryptocom$1["default"] {
             const symbol = this.symbols[i];
             const market = this.market(symbol);
             const isSwap = market['swap'];
-            const takerFeeKey = isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
-            const makerFeeKey = isSwap ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            const takerFeeKey = (isSwap === true) ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
+            const makerFeeKey = (isSwap === true) ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
             const tradingFee = {
                 'info': response,
                 'symbol': symbol,
@@ -3527,7 +3609,7 @@ class cryptocom extends cryptocom$1["default"] {
         let url = this.urls['api'][type] + '/' + path;
         const query = this.omit(params, this.extractParams(path));
         if (access === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -3538,7 +3620,7 @@ class cryptocom extends cryptocom$1["default"] {
             const paramsKeys = Object.keys(requestParams);
             const strSortKey = this.paramsToString(requestParams, 0);
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256);
             const paramsKeysLength = paramsKeys.length;
             body = this.json({
                 'id': nonce,

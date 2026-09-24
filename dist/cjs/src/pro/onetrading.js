@@ -26,7 +26,7 @@ class onetrading extends onetrading$1["default"] {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://streams.onetrading.com/',
+                    'ws': 'wss://streams.fast.onetrading.com',
                 },
             },
             'options': {
@@ -143,7 +143,9 @@ class onetrading extends onetrading$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const subscriptionHash = 'MARKET_TICKER';
@@ -169,7 +171,9 @@ class onetrading extends onetrading$1["default"] {
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         if (symbols === undefined) {
             symbols = [];
@@ -205,7 +209,7 @@ class onetrading extends onetrading$1["default"] {
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        const tickers = this.safeValue(message, 'ticker_updates', []);
+        const tickers = this.safeList(message, 'ticker_updates', []);
         const datetime = this.safeString(message, 'time');
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
@@ -267,7 +271,9 @@ class onetrading extends onetrading$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -302,15 +308,17 @@ class onetrading extends onetrading$1["default"] {
     /**
      * @method
      * @name onetrading#watchOrderBook
-     * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
+     * @see https://docs.onetrading.com/websocket/orderbook/introduction
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -375,7 +383,7 @@ class onetrading extends onetrading$1["default"] {
             orderbook.reset(snapshot);
         }
         else if (type === 'ORDER_BOOK_UPDATE') {
-            const changes = this.safeValue(message, 'changes', []);
+            const changes = this.safeList(message, 'changes', []);
             this.handleDeltas(orderbook, changes);
         }
         else {
@@ -391,7 +399,7 @@ class onetrading extends onetrading$1["default"] {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        const bidAsk = this.parseBidAsk(delta, 1, 2);
+        const bidAsk = this.parseOrderBookBidAsk(delta, 1, 2);
         const type = this.safeString(delta, 0);
         if (type === 'BUY') {
             const bids = orderbook['bids'];
@@ -429,7 +437,9 @@ class onetrading extends onetrading$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -704,7 +714,7 @@ class onetrading extends onetrading$1["default"] {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const rawOrders = this.safeValue(message, 'orders', []);
+        const rawOrders = this.safeList(message, 'orders', []);
         const rawOrdersLength = rawOrders.length;
         if (rawOrdersLength === 0) {
             return;
@@ -715,7 +725,7 @@ class onetrading extends onetrading$1["default"] {
             let symbol = this.safeString(order, 'symbol', '');
             orders.append(order);
             client.resolve(this.orders, 'orders:' + symbol);
-            const rawTrades = this.safeValue(rawOrders[i], 'trades', []);
+            const rawTrades = this.safeList(rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
                 const trade = this.parseTrade(rawTrades[ii]);
                 symbol = this.safeString(trade, 'symbol', symbol);
@@ -958,13 +968,13 @@ class onetrading extends onetrading$1["default"] {
         }
         let symbol = undefined;
         const orders = this.orders;
-        const update = this.safeValue(message, 'update', {});
+        const update = this.safeDict(message, 'update', {});
         const updateType = this.safeString(update, 'type');
         if (updateType === 'ORDER_REJECTED' || updateType === 'ORDER_CLOSED' || updateType === 'STOP_ORDER_TRIGGERED') {
             const orderId = this.safeString(update, 'order_id');
             const datetime = this.safeString2(update, 'time', 'timestamp');
             const previousOrderArray = this.filterByArray(this.orders, 'id', orderId, false);
-            const previousOrder = this.safeValue(previousOrderArray, 0, {});
+            const previousOrder = this.safeDict(previousOrderArray, 0, {});
             symbol = previousOrder['symbol'];
             const filled = this.safeString(update, 'filled_amount');
             let status = this.parseWsOrderStatus(updateType);
@@ -1028,7 +1038,9 @@ class onetrading extends onetrading$1["default"] {
         const account = this.account();
         account['free'] = this.safeString(balance, 'new_available');
         account['used'] = this.safeString(balance, 'new_locked');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
     }
     /**
@@ -1044,13 +1056,15 @@ class onetrading extends onetrading$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
-        const timeframeId = this.safeValue(timeframes, timeframe);
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
+        const timeframeId = this.safeDict(timeframes, timeframe);
         if (timeframeId === undefined) {
             throw new errors.NotSupported(this.id + ' this interval is not supported, please provide one of the supported timeframes');
         }
@@ -1062,9 +1076,9 @@ class onetrading extends onetrading$1["default"] {
         if (client !== undefined) {
             subscription = this.safeValue(client.subscriptions, subscriptionHash);
             if (subscription !== undefined) {
-                const ohlcvMarket = this.safeValue(subscription, marketId, {});
+                const ohlcvMarket = this.safeDict(subscription, marketId, {});
                 const marketSubscribed = this.safeBool(ohlcvMarket, timeframe, false);
-                if (!marketSubscribed) {
+                if (marketSubscribed !== true) {
                     type = 'UPDATE_SUBSCRIPTION';
                     client.subscriptions[subscriptionHash] = undefined;
                 }
@@ -1073,17 +1087,21 @@ class onetrading extends onetrading$1["default"] {
                 subscription = {};
             }
         }
-        const subscriptionMarketId = this.safeValue(subscription, marketId);
+        const subscriptionMarketId = this.safeDict(subscription, marketId);
         if (subscriptionMarketId === undefined) {
-            subscription[marketId] = {};
+            if (marketId !== undefined) {
+                subscription[marketId] = {};
+            }
         }
-        subscription[marketId][timeframe] = true;
+        if ((marketId !== undefined) && (timeframe !== undefined)) {
+            subscription[marketId][timeframe] = true;
+        }
         const properties = [];
         const marketIds = Object.keys(subscription);
         for (let i = 0; i < marketIds.length; i++) {
             const marketIdtimeframes = Object.keys(subscription[marketIds[i]]);
             for (let ii = 0; ii < marketIdtimeframes.length; ii++) {
-                const marketTimeframeId = this.safeValue(timeframes, timeframe);
+                const marketTimeframeId = this.safeDict(timeframes, timeframe);
                 const property = {
                     'instrument_code': marketIds[i],
                     'time_granularity': marketTimeframeId,
@@ -1144,8 +1162,8 @@ class onetrading extends onetrading$1["default"] {
         const marketId = this.safeString(message, 'instrument_code');
         const symbol = this.safeSymbol(marketId);
         const dateTime = this.safeString(message, 'time');
-        const timeframeId = this.safeValue(message, 'granularity');
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframeId = this.safeDict(message, 'granularity');
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframe = this.findTimeframe(timeframeId, timeframes);
         const channel = 'ohlcv.' + symbol + '.' + timeframe;
         const parsed = [
@@ -1156,18 +1174,25 @@ class onetrading extends onetrading$1["default"] {
             this.safeNumber(message, 'close'),
             this.safeNumber(message, 'volume'),
         ];
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
         }
         stored.append(parsed);
-        this.ohlcvs[symbol][timeframe] = stored;
+        if (symbol !== undefined && timeframe !== undefined) {
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
         client.resolve(stored, channel);
     }
     findTimeframe(timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
+        if (timeframes === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' findTimeframe() timeframes is required');
+        }
         const keys = Object.keys(timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1214,12 +1239,12 @@ class onetrading extends onetrading$1["default"] {
         throw new errors.ExchangeError(this.id + ' ' + this.json(message));
     }
     handleMessage(client, message) {
-        const error = this.safeValue(message, 'error');
+        const error = this.safeString(message, 'error');
         if (error !== undefined) {
             this.handleErrorMessage(client, message);
             return;
         }
-        const type = this.safeValue(message, 'type');
+        const type = this.safeString(message, 'type');
         const handlers = {
             'ORDER_BOOK_UPDATE': this.handleOrderBook,
             'ORDER_BOOK_SNAPSHOT': this.handleOrderBook,
@@ -1290,7 +1315,11 @@ class onetrading extends onetrading$1["default"] {
         let marketIds = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
-            marketIds = Object.keys(this.markets_by_id);
+            const marketsById = this.markets_by_id;
+            if (marketsById === undefined) {
+                return [];
+            }
+            marketIds = Object.keys(marketsById);
         }
         else {
             marketIds = this.marketIds(symbols);
@@ -1305,7 +1334,7 @@ class onetrading extends onetrading$1["default"] {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketSubscribed = this.safeBool(subscription, marketId, false);
-                    if (!marketSubscribed) {
+                    if (marketSubscribed !== true) {
                         type = 'UPDATE_SUBSCRIPTION';
                         client.subscriptions[subscriptionHash] = undefined;
                     }
@@ -1328,7 +1357,7 @@ class onetrading extends onetrading$1["default"] {
         const client = this.client(url);
         const messageHash = 'authenticated';
         const future = client.reusableFuture('authenticated');
-        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        const authenticated = this.safeDict(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();
             const request = {

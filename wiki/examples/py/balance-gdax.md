@@ -1,8 +1,5 @@
-- [Balance Gdax](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -21,5 +18,5 @@ gdax = ccxt.gdax({
 gdax.urls['api'] = 'https://api-public.sandbox.gdax.com'
 
 print(gdax.fetch_balance())
- 
+
 ```

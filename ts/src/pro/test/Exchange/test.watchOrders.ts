@@ -8,10 +8,13 @@ async function testWatchOrders (exchange: Exchange, skippedProperties: object, s
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response: any = undefined;
         let success = true;
         try {
             response = await exchange.watchOrders (symbol);
+            if (response === undefined) {
+                throw new Error (exchange.id + ' watch returned undefined response');
+            }
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
@@ -21,6 +24,9 @@ async function testWatchOrders (exchange: Exchange, skippedProperties: object, s
             success = false;
         }
         if (success === true) {
+            if (response === undefined) {
+                throw new Error (exchange.id + ' watch returned undefined response');
+            }
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
             now = exchange.milliseconds ();
             for (let i = 0; i < response.length; i++) {

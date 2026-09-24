@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -18,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class blockchaincom(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(blockchaincom, self).describe(), {
             'id': 'blockchaincom',
             'secret': None,
@@ -77,7 +76,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 'fetchTransfers': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
-                'fetchWithdrawalWhitelist': True,  # fetches exchange specific benficiary-ids needed for withdrawals
+                'fetchWithdrawalWhitelist': True,  # fetches exchange specific beneficiary-ids needed for withdrawals
                 'transfer': False,
                 'withdraw': True,
             },
@@ -101,38 +100,39 @@ class blockchaincom(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'tickers': 1,  # fetchTickers
-                        'tickers/{symbol}': 1,  # fetchTicker
-                        'symbols': 1,  # fetchMarkets
-                        'symbols/{symbol}': 1,  # fetchMarket
-                        'l2/{symbol}': 1,  # fetchL2OrderBook
-                        'l3/{symbol}': 1,  # fetchL3OrderBook
+                        'tickers': {'cost': 1},  # fetchTickers
+                        'tickers/{symbol}': {'cost': 1},  # fetchTicker
+                        'symbols': {'cost': 1},  # fetchMarkets
+                        'symbols/{symbol}': {'cost': 1},  # fetchMarket
+                        'l2/{symbol}': {'cost': 1},  # fetchL2OrderBook
+                        'l3/{symbol}': {'cost': 1},  # fetchL3OrderBook
                     },
                 },
                 'private': {
                     'get': {
-                        'fees': 1,  # fetchFees
-                        'orders': 1,  # fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}': 1,  # fetchOrder(id)
-                        'trades': 1,
-                        'fills': 1,  # fetchMyTrades
-                        'deposits': 1,  # fetchDeposits
-                        'deposits/{depositId}': 1,  # fetchDeposit
-                        'accounts': 1,  # fetchBalance
-                        'accounts/{account}/{currency}': 1,
-                        'whitelist': 1,  # fetchWithdrawalWhitelist
-                        'whitelist/{currency}': 1,  # fetchWithdrawalWhitelistByCurrency
-                        'withdrawals': 1,  # fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}': 1,  # fetchWithdrawalById
+                        'fees': {'cost': 1},  # fetchFees
+                        'internal/orders': {'cost': 1},  # getOrdersInternal
+                        'orders': {'cost': 1},  # fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': {'cost': 1},  # fetchOrder(id)
+                        'trades': {'cost': 1},
+                        'fills': {'cost': 1},  # fetchMyTrades
+                        'deposits': {'cost': 1},  # fetchDeposits
+                        'deposits/{depositId}': {'cost': 1},  # fetchDeposit
+                        'accounts': {'cost': 1},  # fetchBalance
+                        'accounts/{account}/{currency}': {'cost': 1},
+                        'whitelist': {'cost': 1},  # fetchWithdrawalWhitelist
+                        'whitelist/{currency}': {'cost': 1},  # fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': {'cost': 1},  # fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}': {'cost': 1},  # fetchWithdrawalById
                     },
                     'post': {
-                        'orders': 1,  # createOrder
-                        'deposits/{currency}': 1,  # fetchDepositAddress by currency(only crypto supported)
-                        'withdrawals': 1,  # withdraw
+                        'orders': {'cost': 1},  # createOrder
+                        'deposits/{currency}': {'cost': 1},  # fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals': {'cost': 1},  # withdraw
                     },
                     'delete': {
-                        'orders': 1,  # cancelOrders
-                        'orders/{orderId}': 1,  # cancelOrder
+                        'orders': {'cost': 1},  # cancelOrders
+                        'orders/{orderId}': {'cost': 1},  # cancelOrder
                     },
                 },
             },
@@ -189,7 +189,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                     'BCH': 'BCH',
                     'BSV': 'BSV',
                     'BTC': 'BTC',
-                    # 'BEP20': 'BNB',  # todo
+                    # 'BEP20': 'BNB', // todo
                     'DCR': 'DCR',
                     'DESO': 'DESO',
                     'DASH': 'DASH',
@@ -213,7 +213,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                     'XTZ': 'XTZ',
                     'ZEC': 'ZEC',
                     'ZIL': 'ZIL',
-                    # 'THETA': 'THETA',  # todo: possible TFUEL THETA FUEL is also same, but API might have a mistake
+                    # 'THETA': 'THETA', // todo: possible TFUEL THETA FUEL is also same, but API might have a mistake
                     # todo: uncomment below after consensus
                     # 'MOBILECOIN': 'MOB',
                     # 'KIN': 'KIN',
@@ -298,7 +298,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for blockchaincom
 
@@ -334,7 +334,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_value(markets, marketId)
+            market = self.safe_dict(markets, marketId)
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'counter_currency')
             base = self.safe_currency_code(baseId)
@@ -364,14 +364,12 @@ class blockchaincom(Exchange, ImplicitAPI):
             minOrderSize = self.parse_number(minOrderSizePreciseString)
             # maximum order size
             maxOrderSize = None
-            maxOrderSize = self.safe_string(market, 'max_order_size')
-            if maxOrderSize != '0':
+            maxOrderSizeRaw = self.safe_string(market, 'max_order_size')
+            if maxOrderSizeRaw != '0':
                 maxOrderSizeScaleString = self.safe_string(market, 'max_order_size_scale')
                 maxOrderSizeScalePrecisionString = self.parse_precision(maxOrderSizeScaleString)
-                maxOrderSizeString = Precise.string_mul(maxOrderSize, maxOrderSizeScalePrecisionString)
-                maxOrderSize = self.parse_number(maxOrderSizeString)
-            else:
-                maxOrderSize = None
+                maxOrderSizeValueString = Precise.string_mul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString)
+                maxOrderSize = self.parse_number(maxOrderSizeValueString)
             result.append({
                 'info': market,
                 'id': marketId,
@@ -424,7 +422,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -433,11 +431,11 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.fetch_l3_order_book(symbol, limit, params)
 
-    async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -448,9 +446,10 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -458,10 +457,11 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.publicGetL3Symbol(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
-    async def fetch_l2_order_book(self, symbol: str, limit: Int = None, params={}):
-        await self.load_markets()
+    async def fetch_l2_order_book(self, symbol: str, limit: Int = None, params: dict = {}):
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -506,7 +506,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -516,15 +516,16 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetTickersSymbol(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -534,12 +535,13 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         tickers = await self.publicGetTickers(params)
         return self.parse_tickers(tickers, symbols)
 
-    def parse_order_state(self, state):
-        states: dict = {
+    def parse_order_state(self, state: Str) -> Str:
+        states = {
             'OPEN': 'open',
             'REJECTED': 'rejected',
             'FILLED': 'closed',
@@ -605,7 +607,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         })
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -619,13 +621,16 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         orderType = self.safe_string(params, 'ordType', type)
         uppercaseOrderType = orderType.upper()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid16())
         params = self.omit(params, ['ordType', 'clientOrderId', 'clOrdId'])
-        request: dict = {
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        request = {
             # 'stopPx' : limit price
             # 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             # 'expireDate' : expiry date in the format YYYYMMDD
@@ -659,7 +664,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -670,7 +675,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'orderId': id,
         }
         response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
@@ -679,20 +684,21 @@ class blockchaincom(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
         https://api.blockchain.com/v3/#deleteallorders
 
-        :param str symbol: unified market symbol of the market to cancel orders in, all markets are used if None, default is None
+        :param str [symbol]: unified market symbol of the market to cancel orders in, all markets are used if None, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # cancels all open orders if no symbol specified
         # cancels all open orders of specified symbol, if symbol is specified
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'symbol': marketId,
         }
         if symbol is not None:
@@ -708,7 +714,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             }),
         ]
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -717,7 +723,8 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetFees(params)
         #
         #     {
@@ -728,9 +735,10 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         makerFee = self.safe_number(response, 'makerRate')
         takerFee = self.safe_number(response, 'takerRate')
-        result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -739,7 +747,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -754,7 +762,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         state = 'CANCELED'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -769,7 +777,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         state = 'FILLED'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -784,9 +792,10 @@ class blockchaincom(Exchange, ImplicitAPI):
         state = 'OPEN'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
-    async def fetch_orders_by_state(self, state, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        await self.load_markets()
-        request: dict = {
+    async def fetch_orders_by_state(self, state: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'to': unix epoch ms
             # 'from': unix epoch ms
             'status': state,
@@ -815,7 +824,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         orderId = self.safe_string(trade, 'exOrdId')
         tradeId = self.safe_string(trade, 'tradeId')
-        side = self.safe_string(trade, 'side').lower()
+        side = self.safe_string_lower(trade, 'side')
         marketId = self.safe_string(trade, 'symbol')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
@@ -844,7 +853,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -856,8 +865,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         if limit is not None:
             request['limit'] = limit
         market = None
@@ -867,7 +877,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         trades = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit, params)  # need to define
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -877,9 +887,10 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
         response = await self.privatePostDepositsCurrency(self.extend(request, params))
@@ -899,8 +910,8 @@ class blockchaincom(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def parse_transaction_state(self, state):
-        states: dict = {
+    def parse_transaction_state(self, state: Str) -> Str:
+        states = {
             'COMPLETED': 'ok',  #
             'REJECTED': 'failed',
             'PENDING': 'pending',
@@ -928,7 +939,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #     {
         #         "amount":30.0,
         #         "currency":"USDT",
-        #         "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa",  # blockchain specific id
+        #         "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa", // blockchain specific id
         #         "withdrawalId":"99df5ef7-eab6-4033-be49-312930fbd1ea",
         #         "fee":34.005078,
         #         "state":"COMPLETED",
@@ -970,14 +981,14 @@ class blockchaincom(Exchange, ImplicitAPI):
             'type': type,
             'amount': amount,
             'currency': code,
-            'status': self.parse_transaction_state(state),  # 'status':   'pending',   # 'ok', 'failed', 'canceled', string
+            'status': self.parse_transaction_state(state),  # 'status':   'pending',   // 'ok', 'failed', 'canceled', string
             'updated': None,
             'comment': None,
             'internal': None,
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -990,9 +1001,10 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'amount': amount,
             'currency': currency['id'],
             'beneficiary': address,
@@ -1012,7 +1024,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1024,8 +1036,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'from' : integer timestamp in ms
             # 'to' : integer timestamp in ms
         }
@@ -1037,7 +1050,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1048,14 +1061,15 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'withdrawalId': id,
         }
         response = await self.privateGetWithdrawalsWithdrawalId(self.extend(request, params))
         return self.parse_transaction(response)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1067,8 +1081,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'from' : integer timestamp in ms
             # 'to' : integer timestap in ms
         }
@@ -1080,26 +1095,27 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privateGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposit(self, id: str, code: Str = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch information on a deposit
 
         https://api.blockchain.com/v3/#getdepositbyid
 
         :param str id: deposit id
-        :param str code: not used by blockchaincom fetchDeposit()
+        :param str code: not used by fetchDeposit()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         depositId = self.safe_string(params, 'depositId', id)
-        request: dict = {
+        request = {
             'depositId': depositId,
         }
         deposit = await self.privateGetDepositsDepositId(self.extend(request, params))
         return self.parse_transaction(deposit)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1108,10 +1124,11 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountName = self.safe_string(params, 'account', 'primary')
         params = self.omit(params, 'account')
-        request: dict = {
+        request = {
             'account': accountName,
         }
         response = await self.privateGetAccounts(self.extend(request, params))
@@ -1130,10 +1147,10 @@ class blockchaincom(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        balances = self.safe_value(response, accountName)
+        balances = self.safe_list(response, accountName)
         if balances is None:
             raise ExchangeError(self.id + ' fetchBalance() could not find the "' + accountName + '" account')
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(balances)):
             entry = balances[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -1144,7 +1161,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1157,8 +1174,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         """
         # note: only works with exchange-order-id
         # does not work with clientOrderId
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'orderId': id,
         }
         response = await self.privateGetOrdersOrderId(self.extend(request, params))
@@ -1182,12 +1200,12 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestPath = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + requestPath
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -1195,14 +1213,14 @@ class blockchaincom(Exchange, ImplicitAPI):
                 'X-API-Token': self.secret,
             }
             if (method == 'GET'):
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if response is None:
             return None

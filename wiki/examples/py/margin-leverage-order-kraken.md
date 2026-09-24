@@ -1,8 +1,5 @@
-- [Margin Leverage Order Kraken](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -37,5 +34,5 @@ kraken.create_order('BTC/USD', 'market', 'sell', 0.01, None, {'leverage': 3})
 
 # or use a shorthand create_market_sell_order (no "price" param)
 kraken.create_market_sell_order('BTC/USD', 0.01, {'leverage': 3})
- 
+
 ```

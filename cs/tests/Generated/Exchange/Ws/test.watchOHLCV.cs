@@ -10,44 +10,53 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchOHLCV(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchOHLCV";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        object timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
-        assert(getArrayLength(timeframeKeys), add(add(add(exchange.id, " "), method), " - no timeframes found"));
+        string method = "watchOHLCV";
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 15000);
+        List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
+        assert(timeframeKeys.Count > 0, add(add(add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         object chosenTimeframeKey = "1m";
         if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = getValue(timeframeKeys, 0);
+            chosenTimeframeKey = (timeframeKeys != null && 0 < timeframeKeys.Count ? timeframeKeys[0] : null);
         }
-        object limit = 10;
-        object duration = exchange.parseTimeframe(chosenTimeframeKey);
-        object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
-        while (isLessThan(now, ends))
+        int limit = 10;
+        int duration = exchange.parseTimeframe(chosenTimeframeKey);
+        Int64 since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
+        int maxIdleTime = 5000;
+        bool idle = false;
+        while ((isLessThan(now, ends)) && !idle)
         {
             object response = null;
-            object success = true;
+            bool success = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit);
+                response = detypeForComparison(await exchange.WatchOHLCV(((string)symbol),((string)chosenTimeframeKey),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit)));
+                if ((response == null))
+                {
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                }
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            now = exchange.milliseconds();
+            if (((success == true)) && ((response != null)))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                now = exchange.milliseconds();
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                }
+                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                {
+                    idle = true;
                 }
             }
         }

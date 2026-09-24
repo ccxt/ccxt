@@ -675,6 +675,83 @@
                 }
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "public swap tickers include a seconds-based timestamp",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "result": "true",
+                    "data": [
+                        {
+                            "lastTime": 1784884932,
+                            "symbol": "BTCUSDT",
+                            "highestPrice": "65779.1",
+                            "underlyingPrice": "64982.0",
+                            "lowestPrice": "64643.6",
+                            "openPrice": "65682.8",
+                            "positionFeeRate": "0.00004316",
+                            "volume": "8449.6214",
+                            "instrumentStatus": "2",
+                            "markedPrice": "64954.8",
+                            "turnover": "550188178.8443986",
+                            "positionFeeTime": 28800,
+                            "lastPrice": "64950.7",
+                            "nextFeeTime": 1784908800000,
+                            "fundingRate": "0.00004316"
+                        }
+                    ],
+                    "error_code": "0",
+                    "success": true
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1784884932000,
+                        "datetime": "2026-07-24T09:22:12.000Z",
+                        "high": 65779.1,
+                        "low": 64643.6,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 65113.94449512242,
+                        "open": 65682.8,
+                        "close": 64950.7,
+                        "last": 64950.7,
+                        "previousClose": null,
+                        "change": -732.1,
+                        "percentage": -1.1145992558173523,
+                        "average": 65316.7,
+                        "baseVolume": 8449.6214,
+                        "quoteVolume": 550188178.8443986,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "lastTime": 1784884932,
+                            "symbol": "BTCUSDT",
+                            "highestPrice": "65779.1",
+                            "underlyingPrice": "64982.0",
+                            "lowestPrice": "64643.6",
+                            "openPrice": "65682.8",
+                            "positionFeeRate": "0.00004316",
+                            "volume": "8449.6214",
+                            "instrumentStatus": "2",
+                            "markedPrice": "64954.8",
+                            "turnover": "550188178.8443986",
+                            "positionFeeTime": 28800,
+                            "lastPrice": "64950.7",
+                            "nextFeeTime": 1784908800000,
+                            "fundingRate": "0.00004316"
+                        }
+                    }
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "should return updated candle",

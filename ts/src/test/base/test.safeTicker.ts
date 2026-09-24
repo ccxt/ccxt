@@ -1,11 +1,8 @@
 
 
-
 import assert from 'assert';
 import Precise from '../../base/Precise.js';
 import ccxt from '../../../ccxt.js';
-
-
 
 function preciseEqualStr (exchange:any, result: any, key: string, expected: string) {
     return Precise.stringEq (exchange.safeString (result, key), expected);
@@ -38,7 +35,6 @@ function testSafeTicker () {
     assert (preciseEqualStr (exchange, result2, 'average', '5.5'));
     assert (preciseEqualStr (exchange, result2, 'close', '6.0'));
     assert (preciseEqualStr (exchange, result2, 'last', '6.0'));
-
 
     // CASE 3 - by close
     const ticker3 = {
@@ -137,6 +133,34 @@ function testSafeTicker () {
     assert (preciseEqualStr (exchange, result8, 'indexPrice', '5.8'));
     assert (preciseEqualStr (exchange, result8, 'markPrice', '5.9'));
     assert (result8['info'] !== undefined);
+
+    // CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
+    const ticker9 = {
+        'open': 6.0,
+        'close': 6.0,
+        'last': 6.0,
+        'change': 0.0,
+        'percentage': 0.0,
+    };
+    const result9 = exchange.safeTicker (ticker9);
+    assert (preciseEqualStr (exchange, result9, 'change', '0'));
+    assert (preciseEqualStr (exchange, result9, 'percentage', '0'));
+    assert (preciseEqualStr (exchange, result9, 'open', '6.0'));
+    assert (preciseEqualStr (exchange, result9, 'last', '6.0'));
+
+    // CASE 10 - by open and average, the pair that derives close from average
+    const ticker10 = {
+        'open': 5.0,
+        'average': 5.5,
+    };
+    const result10 = exchange.safeTicker (ticker10);
+    assert (preciseEqualStr (exchange, result10, 'close', '6.0'));
+    assert (preciseEqualStr (exchange, result10, 'last', '6.0'));
+    // the supplied average must survive untouched, and this path deliberately
+    // leaves change and percentage underived - pin that boundary
+    assert (preciseEqualStr (exchange, result10, 'average', '5.5'));
+    assert (result10['change'] === undefined);
+    assert (result10['percentage'] === undefined);
 }
 
 export default testSafeTicker;

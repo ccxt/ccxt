@@ -7,286 +7,402 @@
 
 package ccxt
 
-func (this *CoinsphCore) PublicGetOpenapiV1Ping(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiV1Ping", args...)
+// PublicGetOpenapiV1Ping returns a channel that yields a JSON object.
+func (this *Coinsph) PublicGetOpenapiV1Ping(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/ping", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1Time(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiV1Time", args...)
+// PublicGetOpenapiV1Time returns a channel that yields a JSON object.
+func (this *Coinsph) PublicGetOpenapiV1Time(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1UserIp(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiV1UserIp", args...)
+// PublicGetOpenapiV1UserIp returns a channel that yields a JSON object.
+func (this *Coinsph) PublicGetOpenapiV1UserIp(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/user/ip", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Ticker24hr(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1Ticker24hr", args...)
+// PublicGetOpenapiQuoteV1Ticker24hr returns a channel that yields a JSON object or a JSON array.
+func (this *Coinsph) PublicGetOpenapiQuoteV1Ticker24hr(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/quote/v1/ticker/24hr", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1TickerPrice", args...)
+// PublicGetOpenapiQuoteV1TickerPrice returns a channel that yields a JSON object.
+func (this *Coinsph) PublicGetOpenapiQuoteV1TickerPrice(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/quote/v1/ticker/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1TickerBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1TickerBookTicker", args...)
+// PublicGetOpenapiQuoteV1TickerBookTicker returns a channel that yields a JSON array.
+func (this *Coinsph) PublicGetOpenapiQuoteV1TickerBookTicker(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/quote/v1/ticker/bookTicker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1ExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiV1ExchangeInfo", args...)
+// PublicGetOpenapiV1ExchangeInfo returns a channel that yields a JSON object.
+func (this *Coinsph) PublicGetOpenapiV1ExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/exchangeInfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Depth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1Depth", args...)
+// PublicGetOpenapiQuoteV1Depth returns a channel that yields a JSON object.
+func (this *Coinsph) PublicGetOpenapiQuoteV1Depth(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/quote/v1/depth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Klines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1Klines", args...)
+// PublicGetOpenapiQuoteV1Klines returns a channel that yields a JSON array.
+func (this *Coinsph) PublicGetOpenapiQuoteV1Klines(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/quote/v1/klines", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1Trades", args...)
+// PublicGetOpenapiQuoteV1Trades returns a channel that yields a JSON array.
+func (this *Coinsph) PublicGetOpenapiQuoteV1Trades(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/quote/v1/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiV1Pairs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiV1Pairs", args...)
+// PublicGetOpenapiV1Pairs returns a channel that yields a JSON array.
+func (this *Coinsph) PublicGetOpenapiV1Pairs(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/pairs", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PublicGetOpenapiQuoteV1AvgPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOpenapiQuoteV1AvgPrice", args...)
+// PublicGetOpenapiQuoteV1AvgPrice returns a channel that yields a JSON object.
+func (this *Coinsph) PublicGetOpenapiQuoteV1AvgPrice(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/quote/v1/avgPrice", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1CheckSysStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1CheckSysStatus", args...)
+// PrivateGetOpenapiV1CheckSysStatus returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1CheckSysStatus(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/check-sys-status", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1ConfigGetall(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1ConfigGetall", args...)
+// PrivateGetOpenapiWalletV1ConfigGetall returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiWalletV1ConfigGetall(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/wallet/v1/config/getall", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1DepositAddress", args...)
+// PrivateGetOpenapiWalletV1DepositAddress returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiWalletV1DepositAddress(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/wallet/v1/deposit/address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1DepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1DepositHistory", args...)
+// PrivateGetOpenapiWalletV1DepositHistory returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiWalletV1DepositHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/wallet/v1/deposit/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1WithdrawHistory", args...)
+// PrivateGetOpenapiWalletV1WithdrawHistory returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiWalletV1WithdrawHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/wallet/v1/withdraw/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiWalletV1WithdrawAddressWhitelist(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiWalletV1WithdrawAddressWhitelist", args...)
+// PrivateGetOpenapiWalletV1WithdrawAddressWhitelist returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiWalletV1WithdrawAddressWhitelist(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/wallet/v1/withdraw/address-whitelist", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1Account(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1Account", args...)
+// PrivateGetOpenapiV1Account returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV1Account(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1ApiKeys(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1ApiKeys", args...)
+// PrivateGetOpenapiV1ApiKeys returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1ApiKeys(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/api-keys", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1OpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1OpenOrders", args...)
+// PrivateGetOpenapiV1OpenOrders returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1OpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/openOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1AssetTradeFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1AssetTradeFee", args...)
+// PrivateGetOpenapiV1AssetTradeFee returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1AssetTradeFee(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/asset/tradeFee", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1Order", args...)
+// PrivateGetOpenapiV1Order returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV1Order(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1HistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1HistoryOrders", args...)
+// PrivateGetOpenapiV1HistoryOrders returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1HistoryOrders(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/historyOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1MyTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1MyTrades", args...)
+// PrivateGetOpenapiV1MyTrades returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1MyTrades(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/myTrades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1CapitalDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1CapitalDepositHistory", args...)
+// PrivateGetOpenapiV1CapitalDepositHistory returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1CapitalDepositHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/capital/deposit/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1CapitalWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1CapitalWithdrawHistory", args...)
+// PrivateGetOpenapiV1CapitalWithdrawHistory returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1CapitalWithdrawHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/capital/withdraw/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV3PaymentRequestGetPaymentRequest(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV3PaymentRequestGetPaymentRequest", args...)
+// PrivateGetOpenapiV3PaymentRequestGetPaymentRequest returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV3PaymentRequestGetPaymentRequest(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v3/payment-request/get-payment-request", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetMerchantApiV1GetInvoices(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetMerchantApiV1GetInvoices", args...)
+// PrivateGetMerchantApiV1GetInvoices returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetMerchantApiV1GetInvoices(args ...any) <-chan any {
+	return this.Fetch2Async("merchant-api/v1/get-invoices", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiAccountV3CryptoAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiAccountV3CryptoAccounts", args...)
+// PrivateGetOpenapiAccountV3CryptoAccounts returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiAccountV3CryptoAccounts(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/account/v3/crypto-accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiTransferV3TransfersId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiTransferV3TransfersId", args...)
+// PrivateGetOpenapiTransferV3TransfersId returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiTransferV3TransfersId(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/transfer/v3/transfers/{id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountList", args...)
+// PrivateGetOpenapiV1SubAccountList returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV1SubAccountList(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountAsset(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountAsset", args...)
+// PrivateGetOpenapiV1SubAccountAsset returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV1SubAccountAsset(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/asset", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferUniversalTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountTransferUniversalTransferHistory", args...)
+// PrivateGetOpenapiV1SubAccountTransferUniversalTransferHistory returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV1SubAccountTransferUniversalTransferHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/transfer/universal-transfer-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountTransferSubHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountTransferSubHistory", args...)
+// PrivateGetOpenapiV1SubAccountTransferSubHistory returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1SubAccountTransferSubHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/transfer/sub-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountApikeyIpRestriction(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountApikeyIpRestriction", args...)
+// PrivateGetOpenapiV1SubAccountApikeyIpRestriction returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV1SubAccountApikeyIpRestriction(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/apikey/ip-restriction", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountWalletDepositAddress", args...)
+// PrivateGetOpenapiV1SubAccountWalletDepositAddress returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV1SubAccountWalletDepositAddress(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/wallet/deposit/address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1SubAccountWalletDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1SubAccountWalletDepositHistory", args...)
+// PrivateGetOpenapiV1SubAccountWalletDepositHistory returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV1SubAccountWalletDepositHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/wallet/deposit/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1FundCollectGetFundRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1FundCollectGetFundRecord", args...)
+// PrivateGetOpenapiV1FundCollectGetFundRecord returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateGetOpenapiV1FundCollectGetFundRecord(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/fund-collect/get-fund-record", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateGetOpenapiV1AssetTransactionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenapiV1AssetTransactionHistory", args...)
+// PrivateGetOpenapiV1AssetTransactionHistory returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateGetOpenapiV1AssetTransactionHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/asset/transaction/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiWalletV1WithdrawApply(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiWalletV1WithdrawApply", args...)
+// PrivatePostOpenapiWalletV1WithdrawApply returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiWalletV1WithdrawApply(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/wallet/v1/withdraw/apply", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(600)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1OrderTest(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1OrderTest", args...)
+// PrivatePostOpenapiV1OrderTest returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1OrderTest(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/order/test", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1Order", args...)
+// PrivatePostOpenapiV1Order returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1Order(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1CapitalWithdrawApply(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1CapitalWithdrawApply", args...)
+// PrivatePostOpenapiV1OrderCancelReplace returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1OrderCancelReplace(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/order/cancelReplace", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1CapitalDepositApply(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1CapitalDepositApply", args...)
+// PrivatePostOpenapiV1CapitalWithdrawApply returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1CapitalWithdrawApply(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/capital/withdraw/apply", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequests(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestPaymentRequests", args...)
+// PrivatePostOpenapiV1CapitalDepositApply returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1CapitalDepositApply(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/capital/deposit/apply", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestDeletePaymentRequest(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestDeletePaymentRequest", args...)
+// PrivatePostOpenapiV3PaymentRequestPaymentRequests returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV3PaymentRequestPaymentRequests(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v3/payment-request/payment-requests", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV3PaymentRequestPaymentRequestReminder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV3PaymentRequestPaymentRequestReminder", args...)
+// PrivatePostOpenapiV3PaymentRequestDeletePaymentRequest returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV3PaymentRequestDeletePaymentRequest(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v3/payment-request/delete-payment-request", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1UserDataStream(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1UserDataStream", args...)
+// PrivatePostOpenapiV3PaymentRequestPaymentRequestReminder returns a channel that yields a JSON scalar.
+func (this *Coinsph) PrivatePostOpenapiV3PaymentRequestPaymentRequestReminder(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v3/payment-request/payment-request-reminder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostMerchantApiV1Invoices(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMerchantApiV1Invoices", args...)
+// PrivatePostOpenapiV1UserDataStream returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1UserDataStream(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/userDataStream", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostMerchantApiV1InvoicesCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMerchantApiV1InvoicesCancel", args...)
+// PrivatePostMerchantApiV1Invoices returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostMerchantApiV1Invoices(args ...any) <-chan any {
+	return this.Fetch2Async("merchant-api/v1/invoices", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetSupportedTradingPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1GetSupportedTradingPairs", args...)
+// PrivatePostMerchantApiV1InvoicesCancel returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostMerchantApiV1InvoicesCancel(args ...any) <-chan any {
+	return this.Fetch2Async("merchant-api/v1/invoices-cancel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1GetQuote", args...)
+// PrivatePostOpenapiConvertV1GetSupportedTradingPairs returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiConvertV1GetSupportedTradingPairs(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/convert/v1/get-supported-trading-pairs", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1AccpetQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1AccpetQuote", args...)
+// PrivatePostOpenapiConvertV1GetQuote returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiConvertV1GetQuote(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/convert/v1/get-quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1QueryOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1QueryOrderHistory", args...)
+// PrivatePostOpenapiConvertV1AcceptQuote returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiConvertV1AcceptQuote(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/convert/v1/accept-quote", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiFiatV1SupportChannel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiFiatV1SupportChannel", args...)
+// PrivatePostOpenapiConvertV1QueryOrderHistory returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiConvertV1QueryOrderHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/convert/v1/query-order-history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiFiatV1CashOut(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiFiatV1CashOut", args...)
+// PrivatePostOpenapiOtcTradeV1GetSupportedTradingPairs returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiOtcTradeV1GetSupportedTradingPairs(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/otc-trade/v1/get-supported-trading-pairs", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiFiatV1History(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiFiatV1History", args...)
+// PrivatePostOpenapiOtcTradeV1CreateRfq returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiOtcTradeV1CreateRfq(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/otc-trade/v1/create-rfq", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiMigrationV4Sellorder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiMigrationV4Sellorder", args...)
+// PrivatePostOpenapiOtcTradeV1AcceptRfq returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiOtcTradeV1AcceptRfq(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/otc-trade/v1/accept-rfq", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiMigrationV4ValidateField(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiMigrationV4ValidateField", args...)
+// PrivatePostOpenapiOtcTradeV1ManualSettle returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiOtcTradeV1ManualSettle(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/otc-trade/v1/manual-settle", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiTransferV3Transfers(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiTransferV3Transfers", args...)
+// PrivatePostOpenapiOtcTradeV1QueryOrderHistory returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiOtcTradeV1QueryOrderHistory(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/otc-trade/v1/query-order-history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountCreate", args...)
+// PrivatePostOpenapiFiatV1SupportChannel returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiFiatV1SupportChannel(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/fiat/v1/support-channel", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferUniversalTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountTransferUniversalTransfer", args...)
+// PrivatePostOpenapiFiatV1CashOut returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiFiatV1CashOut(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/fiat/v1/cash-out", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountTransferSubToMaster(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountTransferSubToMaster", args...)
+// PrivatePostOpenapiFiatV1History returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiFiatV1History(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/fiat/v1/history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyAddIpRestriction(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountApikeyAddIpRestriction", args...)
+// PrivatePostOpenapiFiatV2History returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiFiatV2History(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/fiat/v2/history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountApikeyDeleteIpRestriction(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction", args...)
+// PrivatePostOpenapiFiatV1CancelQrCode returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiFiatV1CancelQrCode(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/fiat/v1/cancel_qr_code", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiV1FundCollectCollectFromSubAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiV1FundCollectCollectFromSubAccount", args...)
+// PrivatePostOpenapiMigrationV4Sellorder returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiMigrationV4Sellorder(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/migration/v4/sellorder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivatePutOpenapiV1UserDataStream(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutOpenapiV1UserDataStream", args...)
+// PrivatePostOpenapiMigrationV4ValidateField returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiMigrationV4ValidateField(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/migration/v4/validate-field", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateDeleteOpenapiV1Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOpenapiV1Order", args...)
+// PrivatePostOpenapiTransferV3Transfers returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiTransferV3Transfers(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/transfer/v3/transfers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateDeleteOpenapiV1OpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOpenapiV1OpenOrders", args...)
+// PrivatePostOpenapiTransferV4Transfers returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiTransferV4Transfers(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/transfer/v4/transfers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *CoinsphCore) PrivateDeleteOpenapiV1UserDataStream(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOpenapiV1UserDataStream", args...)
+// PrivatePostOpenapiV1SubAccountCreate returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1SubAccountCreate(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
+}
+
+// PrivatePostOpenapiV1SubAccountTransferUniversalTransfer returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1SubAccountTransferUniversalTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/transfer/universal-transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+}
+
+// PrivatePostOpenapiV1SubAccountTransferSubToMaster returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1SubAccountTransferSubToMaster(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/transfer/sub-to-master", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+}
+
+// PrivatePostOpenapiV1SubAccountApikeyAddIpRestriction returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1SubAccountApikeyAddIpRestriction(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/apikey/add-ip-restriction", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
+}
+
+// PrivatePostOpenapiV1SubAccountApikeyDeleteIpRestriction returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1SubAccountApikeyDeleteIpRestriction(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/sub-account/apikey/delete-ip-restriction", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
+}
+
+// PrivatePostOpenapiV1FundCollectCollectFromSubAccount returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePostOpenapiV1FundCollectCollectFromSubAccount(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/fund-collect/collect-from-sub-account", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePutOpenapiV1UserDataStream returns a channel that yields a JSON object.
+func (this *Coinsph) PrivatePutOpenapiV1UserDataStream(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/userDataStream", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteOpenapiV1Order returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateDeleteOpenapiV1Order(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteOpenapiV1OpenOrders returns a channel that yields a JSON array.
+func (this *Coinsph) PrivateDeleteOpenapiV1OpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/openOrders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteOpenapiV1UserDataStream returns a channel that yields a JSON object.
+func (this *Coinsph) PrivateDeleteOpenapiV1UserDataStream(args ...any) <-chan any {
+	return this.Fetch2Async("openapi/v1/userDataStream", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

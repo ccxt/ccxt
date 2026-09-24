@@ -8,9 +8,9 @@ import testSharedMethods from './test.sharedMethods.js';
 function testAccount(exchange, skippedProperties, method, entry) {
     const format = {
         'info': {},
-        'code': 'BTC',
+        'code': 'BTC', // todo
         // 'name': 'account name', // todo
-        'type': 'spot',
+        'type': 'spot', // 'spot', 'margin', 'futures', 'swap'
         'id': '12345', // todo
     };
     const emptyAllowedFor = ['code', 'id'];

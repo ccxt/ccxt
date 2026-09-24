@@ -1,8 +1,5 @@
-- [Binance Fetch Ohlcv Pagination](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import ccxt  # noqa: E402
 
@@ -39,5 +36,5 @@ def main():
         print(table([[exchange.iso8601(o[0])] + o[1:] for o in all_ohlcvs]))
 
 
-main() 
+main()
 ```

@@ -1,8 +1,5 @@
-- [Poloniex Fetch Ohlcv With Pagination](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -43,5 +40,5 @@ while since < now:
         break
 
 print('Fetched', len(all_candles), 'candles since', exchange.iso8601(all_candles[0][0]), 'till', exchange.iso8601(all_candles[-1][0]))
- 
+
 ```

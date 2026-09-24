@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deepcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class deepcoin(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(deepcoin, self).describe(), {
             'id': 'deepcoin',
             'name': 'DeepCoin',
@@ -160,65 +159,81 @@ class deepcoin(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'deepcoin/market/books': 1,
-                        'deepcoin/market/candles': 1,
-                        'deepcoin/market/instruments': 1,
-                        'deepcoin/market/tickers': 1,
-                        'deepcoin/market/index-candles': 1,
-                        'deepcoin/market/trades': 1,
-                        'deepcoin/market/mark-price-candles': 1,
-                        'deepcoin/market/step-margin': 5,
-                        'deepcoin/trade/funding-rate': 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
-                        'deepcoin/trade/fund-rate/history': 5,
+                        'deepcoin/market/books': {'cost': 1},
+                        'deepcoin/market/candles': {'cost': 1},
+                        'deepcoin/market/instruments': {'cost': 1},
+                        'deepcoin/market/tickers': {'cost': 1},
+                        'deepcoin/market/index-candles': {'cost': 1},
+                        'deepcoin/market/trades': {'cost': 1},
+                        'deepcoin/market/mark-price-candles': {'cost': 1},
+                        'deepcoin/market/mark-price': {'cost': 1},
+                        'deepcoin/market/open-interest-volume': {'cost': 1},
+                        'deepcoin/market/long-short-ratio': {'cost': 1},
+                        'deepcoin/market/taker-volume': {'cost': 1},
+                        'deepcoin/market/step-margin': {'cost': 5},
+                        'deepcoin/trade/funding-rate': {'cost': 5},
+                        'deepcoin/trade/fund-rate/current-funding-rate': {'cost': 5},
+                        'deepcoin/trade/fund-rate/history': {'cost': 5},
                     },
                 },
                 'private': {
                     'get': {
-                        'deepcoin/account/balances': 5,
-                        'deepcoin/account/bills': 5,
-                        'deepcoin/account/positions': 5,
-                        'deepcoin/trade/fills': 5,
-                        'deepcoin/trade/orderByID': 5,
-                        'deepcoin/trade/finishOrderByID': 5,
-                        'deepcoin/trade/orders-history': 5,
-                        'deepcoin/trade/v2/orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-history': 5,
-                        'deepcoin/copytrading/support-contracts': 5,
-                        'deepcoin/copytrading/leader-position': 5,
-                        'deepcoin/copytrading/estimate-profit': 5,
-                        'deepcoin/copytrading/history-profit': 5,
-                        'deepcoin/copytrading/follower-rank': 5,
-                        'deepcoin/internal-transfer/support': 5,
-                        'deepcoin/internal-transfer/history-order': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/agents/users': 5,
-                        'deepcoin/agents/users/rebate-list': 5,
-                        'deepcoin/agents/users/rebates': 5,
-                        'deepcoin/asset/deposit-list': 5,
-                        'deepcoin/asset/withdraw-list': 5,
-                        'deepcoin/asset/recharge-chain-list': 5,
-                        'deepcoin/listenkey/acquire': 5,
-                        'deepcoin/listenkey/extend': 5,
+                        'deepcoin/account/balances': {'cost': 5},
+                        'deepcoin/account/all-balances': {'cost': 5},
+                        'deepcoin/account/bills': {'cost': 5},
+                        'deepcoin/account/positions': {'cost': 5},
+                        'deepcoin/account/trade-fee': {'cost': 5},
+                        'deepcoin/account/leverage-info': {'cost': 5},
+                        'deepcoin/account/positions-history': {'cost': 5},
+                        'deepcoin/trade/fills': {'cost': 5},
+                        'deepcoin/trade/orderByID': {'cost': 5},
+                        'deepcoin/trade/order': {'cost': 5},
+                        'deepcoin/trade/finishOrderByID': {'cost': 5},
+                        'deepcoin/trade/orders-history': {'cost': 5},
+                        'deepcoin/trade/v2/orders-pending': {'cost': 5},
+                        'deepcoin/trade/trigger-orders-pending': {'cost': 5},
+                        'deepcoin/trade/trigger-orders-history': {'cost': 5},
+                        'deepcoin/copytrading/support-contracts': {'cost': 5},
+                        'deepcoin/copytrading/leader-position': {'cost': 5},
+                        'deepcoin/copytrading/estimate-profit': {'cost': 5},
+                        'deepcoin/copytrading/history-profit': {'cost': 5},
+                        'deepcoin/copytrading/follower-rank': {'cost': 5},
+                        'deepcoin/internal-transfer/support': {'cost': 5},
+                        'deepcoin/internal-transfer/history-order': {'cost': 5},
+                        'deepcoin/rebate/config': {'cost': 5},
+                        'deepcoin/agents/users': {'cost': 5},
+                        'deepcoin/agents/users/rebate-list': {'cost': 5},
+                        'deepcoin/agents/users/rebates': {'cost': 5},
+                        'deepcoin/asset/deposit-list': {'cost': 5},
+                        'deepcoin/asset/withdraw-list': {'cost': 5},
+                        'deepcoin/asset/recharge-chain-list': {'cost': 5},
+                        'deepcoin/listenkey/acquire': {'cost': 5},
+                        'deepcoin/listenkey/extend': {'cost': 5},
+                        'deepcoin/sub-account/sub-account-apikey': {'cost': 5},
                     },
                     'post': {
-                        'deepcoin/account/set-leverage': 5,
-                        'deepcoin/trade/order': 5,
-                        'deepcoin/trade/replace-order': 5,
-                        'deepcoin/trade/cancel-order': 5,
-                        'deepcoin/trade/batch-cancel-order': 5,
-                        'deepcoin/trade/cancel-trigger-order': 1 / 6,
-                        'deepcoin/trade/swap/cancel-all': 5,
-                        'deepcoin/trade/trigger-order': 5,
-                        'deepcoin/trade/batch-close-position': 5,
-                        'deepcoin/trade/replace-order-sltp': 5,
-                        'deepcoin/trade/close-position-by-ids': 5,
-                        'deepcoin/copytrading/leader-settings': 5,
-                        'deepcoin/copytrading/set-contracts': 5,
-                        'deepcoin/internal-transfer': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/asset/transfer': 5,
+                        'deepcoin/account/set-leverage': {'cost': 5},
+                        'deepcoin/trade/order': {'cost': 5},
+                        'deepcoin/trade/replace-order': {'cost': 5},
+                        'deepcoin/trade/cancel-order': {'cost': 5},
+                        'deepcoin/trade/batch-cancel-order': {'cost': 5},
+                        'deepcoin/trade/cancel-trigger-order': {'cost': 1 / 6},
+                        'deepcoin/trade/swap/cancel-all': {'cost': 5},
+                        'deepcoin/trade/trigger-order': {'cost': 5},
+                        'deepcoin/trade/amend-trigger-order': {'cost': 5},
+                        'deepcoin/trade/batch-close-position': {'cost': 5},
+                        'deepcoin/trade/replace-order-sltp': {'cost': 5},
+                        'deepcoin/trade/close-position-by-ids': {'cost': 5},
+                        'deepcoin/trade/increase-position': {'cost': 5},
+                        'deepcoin/trade/merge-positions': {'cost': 5},
+                        'deepcoin/copytrading/leader-settings': {'cost': 5},
+                        'deepcoin/copytrading/set-contracts': {'cost': 5},
+                        'deepcoin/internal-transfer': {'cost': 5},
+                        'deepcoin/rebate/config': {'cost': 5},
+                        'deepcoin/asset/transfer': {'cost': 5},
+                        'deepcoin/sub-account/create-sub-account': {'cost': 5},
+                        'deepcoin/sub-account/sub-account-apikey': {'cost': 5},
+                        'deepcoin/sub-account/delete-sub-account-apikey': {'cost': 5},
                     },
                 },
             },
@@ -316,7 +331,7 @@ class deepcoin(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BSC': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
@@ -372,7 +387,7 @@ class deepcoin(Exchange, ImplicitAPI):
             },
         })
 
-    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None) -> Any:
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params: dict = {}, defaultValue: object = None) -> object:
         instType = self.safe_string(params, 'instType')
         params = self.omit(params, 'instType')
         type = self.safe_string(params, 'type')
@@ -380,11 +395,11 @@ class deepcoin(Exchange, ImplicitAPI):
             params = self.extend(params, {'type': instType})
         return super(deepcoin, self).handle_market_type_and_params(methodName, market, params, defaultValue)
 
-    def convert_to_instrument_type(self, type):
+    def convert_to_instrument_type(self, type: Str) -> Str:
         exchangeTypes = self.safe_dict(self.options, 'exchangeType', {})
         return self.safe_string(exchangeTypes, type, type)
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
 
         https://www.deepcoin.com/docs/DeepCoinMarket/getBaseInfo
@@ -408,8 +423,8 @@ class deepcoin(Exchange, ImplicitAPI):
             result = self.array_concat(result, promises[i])
         return result
 
-    def fetch_markets_by_type(self, type, params={}):
-        request: dict = {
+    def fetch_markets_by_type(self, type: Str, params: dict = {}) -> list[Market]:
+        request = {
             'instType': self.convert_to_instrument_type(type),
         }
         response = self.publicGetDeepcoinMarketInstruments(self.extend(request, params))
@@ -516,7 +531,7 @@ class deepcoin(Exchange, ImplicitAPI):
         maxAmount = self.parse_number(Precise.string_max(maxMarketSize, maxLimitSize))
         state = self.safe_string(market, 'state')
         isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
-        isInverse = (not isLinear) if swap else None
+        isInverse = (isLinear is not True) if swap else None
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -567,18 +582,19 @@ class deepcoin(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def set_markets(self, markets, currencies=None):
-        markets = super(deepcoin, self).set_markets(markets, currencies)
-        symbols = list(markets.keys())
+    def set_markets(self, markets: object, currencies=None):
+        result = super(deepcoin, self).set_markets(markets, currencies)
+        symbols = list(result.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            market = markets[symbol]
-            if market['swap']:
-                additionalId = market['baseId'] + market['quoteId']
-                self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id+quote
-        return self.markets
+            market = result[symbol]
+            if (market is not None) and (market['swap'] is True):
+                additionalId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
+                if self.markets_by_id is not None:
+                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id as base+quote
+        return result
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -587,13 +603,14 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 400
-        request: dict = {
+        request = {
             'instId': market['id'],
             'sz': limit,
         }
@@ -617,7 +634,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order_book(data, symbol, None, 'bids', 'asks', 0, 1)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -633,9 +650,10 @@ class deepcoin(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         maxLimit = 300
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
@@ -646,7 +664,7 @@ class deepcoin(Exchange, ImplicitAPI):
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
         bar = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'instId': market['id'],
             'bar': bar,
         }
@@ -657,11 +675,11 @@ class deepcoin(Exchange, ImplicitAPI):
             request['after'] = until
             params = self.omit(params, 'until')
         calculateUntil = self.safe_bool(params, 'calculateUntil', False)
-        if calculateUntil:
+        if calculateUntil is True:
             params = self.omit(params, 'calculateUntil')
             if since is not None:
-                # the exchange do not have a since param for self endpoint
-                # we canlculate until(after) for correct pagination
+                # the exchange do not have a since param for this endpoint
+                # we calculate until (after) for correct pagination
                 duration = self.parse_timeframe(timeframe)
                 numberOfCandles = maxLimit if (limit is None) else limit
                 endTime = since + (duration * numberOfCandles) * 1000
@@ -705,7 +723,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -715,12 +733,13 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         market = self.get_market_from_symbols(symbols)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        request: dict = {
+        request = {
             'instType': self.convert_to_instrument_type(marketType),
         }
         response = self.publicGetDeepcoinMarketTickers(self.extend(request, params))
@@ -748,7 +767,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #         "ts": "1760367816000"
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestamp = self.safe_integer_omit_zero(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
@@ -756,7 +775,7 @@ class deepcoin(Exchange, ImplicitAPI):
         open = self.safe_string(ticker, 'open24h')
         quoteVolume = self.safe_string(ticker, 'volCcy24h')
         baseVolume = self.safe_string(ticker, 'vol24h')
-        if market['swap'] and market['inverse']:
+        if (market['swap'] is True) and (market['inverse'] is True):
             temp = baseVolume
             baseVolume = quoteVolume
             quoteVolume = temp
@@ -787,7 +806,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -799,13 +818,14 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         if limit is not None:
-            request['limit'] = min(limit, 2000)
+            request['limit'] = min(limit, 500)
         productGroup = self.get_product_group_from_market(market)
         request['productGroup'] = productGroup
         response = self.publicGetDeepcoinMarketTrades(self.extend(request, params))
@@ -814,8 +834,8 @@ class deepcoin(Exchange, ImplicitAPI):
 
     def get_product_group_from_market(self, market: Market) -> str:
         productGroup = 'Spot'
-        if market['swap']:
-            if market['linear']:
+        if self.safe_bool(market, 'swap') is True:
+            if self.safe_bool(market, 'linear') is True:
                 productGroup = 'SwapU'
             else:
                 productGroup = 'Swap'
@@ -890,7 +910,7 @@ class deepcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, execType, execType)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -900,16 +920,17 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str [params.type]: "spot" or "swap", the market type for the balance
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params, marketType)
-        request: dict = {
+        request = {
             'instType': self.convert_to_instrument_type(marketType),
         }
         response = self.privateGetDeepcoinAccountBalances(self.extend(request, params))
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         #     {
         #         "code": "0",
@@ -924,7 +945,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -941,7 +962,7 @@ class deepcoin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -955,12 +976,13 @@ class deepcoin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'code', None, 1, 50)
-        request: dict = {}
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -976,12 +998,12 @@ class deepcoin(Exchange, ImplicitAPI):
         response = self.privateGetDeepcoinAssetDepositList(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         items = self.safe_list(data, 'data', [])
-        transactionParams: dict = {
+        transactionParams = {
             'type': 'deposit',
         }
         return self.parse_transactions(items, currency, since, limit, transactionParams)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -995,12 +1017,13 @@ class deepcoin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate', False)
+        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'code', None, 1, 50)
-        request: dict = {}
+            return self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'code', None, 1, 50)
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1016,7 +1039,7 @@ class deepcoin(Exchange, ImplicitAPI):
         response = self.privateGetDeepcoinAssetWithdrawList(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         items = self.safe_list(data, 'data', [])
-        transactionParams: dict = {
+        transactionParams = {
             'type': 'withdrawal',
         }
         return self.parse_transactions(items, currency, since, limit, transactionParams)
@@ -1039,7 +1062,7 @@ class deepcoin(Exchange, ImplicitAPI):
         amount = self.safe_number(transaction, 'amount')
         timestamp = self.safe_timestamp(transaction, 'createTime')
         networkId = self.safe_string(transaction, 'chainName')
-        network = self.network_id_to_code(networkId)
+        network = self.network_id_to_code(networkId, code)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         return {
             'info': transaction,
@@ -1068,13 +1091,13 @@ class deepcoin(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'confirming': 'pending',
             'succeed': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
+    def fetch_deposit_addresses(self, codes: Strings = None, params: dict = {}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
 
@@ -1084,7 +1107,8 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if codes is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddresses requires a list with one currency code')
         length = len(codes)
@@ -1092,7 +1116,7 @@ class deepcoin(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchDepositAddresses requires a list with one currency code')
         code = codes[0]
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency_id': currency['id'],
             'lang': 'en',
         }
@@ -1110,7 +1134,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #                     "inNotice": "",
         #                     "actLogo": "",
         #                     "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        #                     "hasMemo": False,
+        #                     "hasMemo": false,
         #                     "memo": "",
         #                     "estimatedTime": 1,
         #                     "fastConfig": {
@@ -1125,12 +1149,12 @@ class deepcoin(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         list = self.safe_list(data, 'list', [])
-        additionalParams: dict = {
+        additionalParams = {
             'currency': code,
         }
         return self.parse_deposit_addresses(list, codes, False, additionalParams)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -1141,11 +1165,12 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str [params.network]: unified network code for deposit chain
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         network = self.safe_string(params, 'network')
         defaultNetworks = self.safe_dict(self.options, 'defaultNetworks', {})
         defaultNetwork = self.safe_string(defaultNetworks, code)
-        network = network if network else defaultNetwork
+        network = network if (network is not None and network != '') else defaultNetwork
         if network is not None:
             params = self.omit(params, 'network')
         addressess = self.fetch_deposit_addresses([code], params)
@@ -1158,7 +1183,7 @@ class deepcoin(Exchange, ImplicitAPI):
                     address = entry
         return address
 
-    def parse_deposit_address(self, response, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, response: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "chain": "TRC20",
@@ -1167,7 +1192,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #         "inNotice": "",
         #         "actLogo": "",
         #         "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        #         "hasMemo": False,
+        #         "hasMemo": false,
         #         "memo": "",
         #         "estimatedTime": 1,
         #         "fastConfig": {
@@ -1180,15 +1205,16 @@ class deepcoin(Exchange, ImplicitAPI):
         chain = self.safe_string(response, 'chain')
         address = self.safe_string(response, 'address')
         self.check_address(address)
+        code = self.safe_string(currency, 'code')
         return {
             'info': response,
             'currency': None,
-            'network': self.network_id_to_code(chain),
+            'network': self.network_id_to_code(chain, code),
             'address': address,
             'tag': self.safe_string(response, 'memo'),
         }
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1202,10 +1228,11 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap', the market type for the ledger(default 'spot')
         :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marketType = 'spot'
         marketType, params = self.handle_market_type_and_params('fetchLedger', None, params, marketType)
-        request: dict = {
+        request = {
             'instType': self.convert_to_instrument_type(marketType),
         }
         currency = None
@@ -1287,8 +1314,8 @@ class deepcoin(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
-        ledgerType: dict = {
+    def parse_ledger_entry_type(self, type: Str) -> Str:
+        ledgerType = {
             '1': 'trade',
             '2': 'trade',
             '3': 'transfer',
@@ -1297,7 +1324,7 @@ class deepcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -1313,15 +1340,16 @@ class deepcoin(Exchange, ImplicitAPI):
         """
         userId = None
         userId, params = self.handle_option_and_params(params, 'transfer', 'userId')
-        userId = userId if userId else self.safe_string(params, 'uid')
+        userId = userId if (userId is not None and userId != '') else self.safe_string(params, 'uid')
         if userId is None:
             raise ArgumentsRequired(self.id + ' transfer() requires a userId parameter')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        request: dict = {
+        request = {
             'currency_id': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'from_id': fromId,
@@ -1344,7 +1372,7 @@ class deepcoin(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount
@@ -1377,7 +1405,7 @@ class deepcoin(Exchange, ImplicitAPI):
             return 'ok'
         return 'failed'
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1402,7 +1430,8 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str [params.marginMode]: *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         triggerPrice = self.safe_string(params, 'triggerPrice')
         request = self.create_order_request(symbol, type, side, amount, price, params)
@@ -1429,25 +1458,29 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
  @ignore
         helper function to build request
         """
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         triggerPrice = self.safe_string(params, 'triggerPrice')
-        # isTriggerOrder = (triggerPrice is not None) or self.safe_string_2(params, 'stopLossPrice', 'takeProfitPrice') is not None
+        # const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
         isTriggerOrder = (triggerPrice is not None)
         cost = self.safe_string(params, 'cost')
         if cost is not None:
-            if not market['spot'] or (triggerPrice is not None):
+            if (market['spot'] is not True) or (triggerPrice is not None):
                 raise BadRequest(self.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only')
         if isTriggerOrder:
             return self.create_trigger_order_request(symbol, type, side, amount, price, params)
         else:
             return self.create_regular_order_request(symbol, type, side, amount, price, params)
 
-    def create_regular_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_regular_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
  @ignore
         helper function to build request
@@ -1467,25 +1500,29 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str [params.marginMode]: *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
         :param str [params.mrgPosition]: *swap only* 'merge' or 'split', the default is 'merge'
         """
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         orderType = type
         orderType, params = self.handle_type_post_only_and_time_in_force(type, params)
-        request: dict = {
+        request = {
             'instId': market['id'],
-            # 'tdMode': 'cash',  # 'cash' for spot, 'cross' or 'isolated' for swap
-            # 'ccy': currency['id'],  # only applicable to cross MARGIN orders in single-currency margin
+            # 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
+            # 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             # 'clOrdId': clientOrderId,
             'side': side,
             'ordType': orderType,
             # 'sz': amount or cost
-            # 'px': price,  # limit orders only
-            # 'reduceOnly': False,  # a mark to reduce the position size for margin and swap orders
-            # 'tgtCcy': 'base_ccy',  # spot only 'base_ccy' or 'quote_ccy', the default is 'base_ccy' for spot orders
-            # 'tpTriggerPx': takeProfitPrice,  # take profit trigger price
-            # 'slTriggerPx': stopLossPrice,  # stop loss trigger price
-            # 'posSide': 'long',  # swap only 'long' or 'short'
-            # 'mrgPosition': 'merge',  # swap only 'merge' or 'split'
-            # 'closePosId': 'id',  # swap only position ID to close, required in split mode
+            # 'px': price, // limit orders only
+            # 'reduceOnly': false, // a mark to reduce the position size for margin and swap orders
+            # 'tgtCcy': 'base_ccy', // spot only 'base_ccy' or 'quote_ccy', the default is 'base_ccy' for spot orders
+            # 'tpTriggerPx': takeProfitPrice, // take profit trigger price
+            # 'slTriggerPx': stopLossPrice, // stop loss trigger price
+            # 'posSide': 'long', // swap only 'long' or 'short'
+            # 'mrgPosition': 'merge', // swap only 'merge' or 'split'
+            # 'closePosId': 'id', // swap only position ID to close, required in split mode
         }
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -1508,7 +1545,7 @@ class deepcoin(Exchange, ImplicitAPI):
             request['px'] = self.price_to_precision(symbol, price)
         elif not isMarketOrder:
             raise BadRequest(self.id + ' createOrder() requires a price argument for limit orders')
-        if market['spot']:
+        if market['spot'] is True:
             cost = self.safe_string(params, 'cost')
             if cost is not None:
                 if not isMarketOrder:
@@ -1529,9 +1566,9 @@ class deepcoin(Exchange, ImplicitAPI):
             mrgPosition = 'merge'
             mrgPosition, params = self.handle_option_and_params(params, 'createOrder', 'mrgPosition', mrgPosition)
             request['mrgPosition'] = mrgPosition
-            posSide: Str = None
+            posSide = None
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-            if reduceOnly:
+            if reduceOnly is True:
                 if side == 'buy':
                     posSide = 'short'
                 elif side == 'sell':
@@ -1544,7 +1581,7 @@ class deepcoin(Exchange, ImplicitAPI):
             request['posSide'] = posSide
         return self.extend(request, params)
 
-    def create_trigger_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_trigger_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
  @ignore
         helper function to build request
@@ -1557,31 +1594,35 @@ class deepcoin(Exchange, ImplicitAPI):
         :param bool [params.reduceOnly]: a mark to reduce the position size for margin orders
         :param str [params.marginMode]: *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
         """
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
             'productGroup': self.capitalize(market['type']),
             'sz': self.amount_to_precision(symbol, amount),
             'side': side,
-            # 'posSide': 'long',  # 'long' or 'short' - required when product type is SWAP
+            # 'posSide': 'long', // 'long' or 'short' - required when product type is SWAP
             # 'price': price,
-            # 'isCrossMargin': 1,  # 1 for cross margin, 0 for isolated margin
+            # 'isCrossMargin': 1, // 1 for cross margin, 0 for isolated margin
             'orderType': type,
             # 'triggerPrice': triggerPrice,
-            # 'mrgPosition': 'merge',  # 'merge' or 'split', the default is 'merge' - required when product type is SWAP
-            # 'tdMode': 'cash',  # 'cash' for spot, 'cross' or 'isolated' for swap
+            # 'mrgPosition': 'merge', // 'merge' or 'split', the default is 'merge' - required when product type is SWAP
+            # 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
         }
         triggerPrice = self.safe_string(params, 'triggerPrice')
-        # takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
-        # stopLossPrice = self.safe_string(params, 'stopLossPrice')
-        # isTpOrSlOrder = (takeProfitPrice is not None) or (stopLossPrice is not None)
-        # if isTpOrSlOrder:
-        #     if takeProfitPrice is not None:
-        #         request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-        #     else:
-        #         request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+        # const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        # const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        # const isTpOrSlOrder = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined);
+        # if (isTpOrSlOrder) {
+        #     if (takeProfitPrice !== undefined) {
+        #         request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+        #     } else {
+        #         request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
         #     }
-        # else:
+        # } else {
         request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         # }
         if price is not None:
@@ -1597,8 +1638,8 @@ class deepcoin(Exchange, ImplicitAPI):
         params = self.omit(params, 'reduceOnly')
         request['isCrossMargin'] = isCrossMargin
         request['tdMode'] = marginMode
-        if market['swap']:
-            if reduceOnly:
+        if market['swap'] is True:
+            if reduceOnly is True:
                 if side == 'buy':
                     request['posSide'] = 'short'
                 elif side == 'sell':
@@ -1613,7 +1654,7 @@ class deepcoin(Exchange, ImplicitAPI):
         request['mrgPosition'] = mrgPosition
         return self.extend(request, params)
 
-    def handle_type_post_only_and_time_in_force(self, type: OrderType, params):
+    def handle_type_post_only_and_time_in_force(self, type: Str, params: dict) -> list:
         postOnly = False
         postOnly, params = self.handle_post_only(type == 'market', type == 'post_only', params)
         if postOnly:
@@ -1624,7 +1665,7 @@ class deepcoin(Exchange, ImplicitAPI):
             type = 'ioc'
         return [type, params]
 
-    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}) -> Order:
         """
         create a market order by providing the symbol, side and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1636,7 +1677,7 @@ class deepcoin(Exchange, ImplicitAPI):
         params = self.extend(params, {'cost': cost})
         return self.create_order(symbol, 'market', side, 0, None, params)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1647,7 +1688,7 @@ class deepcoin(Exchange, ImplicitAPI):
         params = self.extend(params, {'cost': cost})
         return self.create_order(symbol, 'market', 'buy', 0, None, params)
 
-    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market sell order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1658,7 +1699,7 @@ class deepcoin(Exchange, ImplicitAPI):
         params = self.extend(params, {'cost': cost})
         return self.create_order(symbol, 'market', 'sell', 0, None, params)
 
-    def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def fetch_closed_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on a closed order made by the user
 
@@ -1669,11 +1710,12 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
             'ordId': id,
         }
@@ -1688,7 +1730,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #                 "instId": "ETH-USDT",
         #                 "tgtCcy": "",
         #                 "ccy": "",
-        #                 "ordId": "1001434573319675",
+        #                 "ordId": "1001434573319676",
         #                 "clOrdId": "",
         #                 "tag": "",
         #                 "px": "4056.620000000000",
@@ -1728,7 +1770,7 @@ class deepcoin(Exchange, ImplicitAPI):
         entry = self.safe_dict(data, 0, {})
         return self.parse_order(entry, market)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetch an open order by it's id
 
@@ -1739,11 +1781,12 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
             'ordId': id,
         }
@@ -1751,11 +1794,11 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         length = len(data)
         if length == 0:
-            return None
+            raise OrderNotFound(self.id + ' fetchOpenOrder() could not find order id ' + id)
         entry = self.safe_dict(data, 0, {})
         return self.parse_order(entry, market)
 
-    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
@@ -1773,7 +1816,8 @@ class deepcoin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate')
         if paginate:
@@ -1781,8 +1825,8 @@ class deepcoin(Exchange, ImplicitAPI):
         trigger = self.safe_bool(params, 'trigger', False)
         methodName = 'fetchCanceledAndClosedOrders'
         methodName, params = self.handle_param_string(params, 'methodName', methodName)
-        market: Market = None
-        request: dict = {}
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
@@ -1792,7 +1836,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100
         response = None
-        if trigger:
+        if trigger is True:
             if methodName != 'fetchCanceledAndClosedOrders':
                 raise BadRequest(self.id + ' ' + methodName + '() does not support trigger orders')
             if market is None:
@@ -1878,7 +1922,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -1896,7 +1940,7 @@ class deepcoin(Exchange, ImplicitAPI):
         params = self.extend(params, {'state': 'canceled'})
         return self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1914,7 +1958,7 @@ class deepcoin(Exchange, ImplicitAPI):
         params = self.extend(params, {'state': 'filled'})
         return self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1930,19 +1974,20 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str [params.orderType]: *trigger orders only* 'limit' or 'market'
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         market = self.market(symbol)
         index = self.safe_integer(params, 'index', 1)  # todo add pagination handling
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         if limit is not None:
             request['limit'] = limit
         trigger = self.safe_bool(params, 'trigger', False)
         response = None
-        if trigger:
+        if trigger is True:
             params = self.omit(params, 'trigger')
             request['instType'] = self.convert_to_instrument_type(market['type'])
             #
@@ -2029,7 +2074,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit, {'status': 'open'})
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -2041,17 +2086,18 @@ class deepcoin(Exchange, ImplicitAPI):
         :param bool [params.trigger]: whether the order is a trigger/algo order(default False)
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
             'ordId': id,
         }
         response = None
         trigger = self.safe_bool(params, 'trigger', False)
-        if trigger:
+        if trigger is True:
             params = self.omit(params, 'trigger')
             response = self.privatePostDeepcoinTradeCancelTriggerOrder(self.extend(request, params))
         else:
@@ -2059,7 +2105,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -2071,11 +2117,12 @@ class deepcoin(Exchange, ImplicitAPI):
         :param bool [params.merged]: *swap only* True for merged positions, False for split positions(default True)
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' cancelAllOrders() is not supported for spot markets')
         productGroup = self.get_product_group_from_market(market)
         marginMode = self.safe_string(params, 'marginMode')
@@ -2087,7 +2134,7 @@ class deepcoin(Exchange, ImplicitAPI):
         merged = True
         merged, params = self.handle_option_and_params(params, 'cancelAllOrders', 'merged', merged)
         isMergedMode = 1 if merged else 0
-        request: dict = {
+        request = {
             'InstrumentID': market['id'],
             'ProductGroup': productGroup,
             'IsCrossMargin': encodedMarginMode,
@@ -2097,7 +2144,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -2115,14 +2162,15 @@ class deepcoin(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'OrderSysID': id,
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-            if market['spot']:
+            if market['spot'] is True:
                 raise NotSupported(self.id + ' editOrder() is not supported for spot markets')
             symbol = market['symbol']
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
@@ -2133,9 +2181,9 @@ class deepcoin(Exchange, ImplicitAPI):
             if (price is not None) or (amount is not None):
                 raise BadRequest(self.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.')
             if stopLossPrice is not None:
-                request['slTriggerPx'] = self.price_to_precision(symbol, stopLossPrice) if symbol else self.number_to_string(stopLossPrice)
+                request['slTriggerPx'] = self.price_to_precision(symbol, stopLossPrice) if (symbol != '') else self.number_to_string(stopLossPrice)
             if takeProfitPrice is not None:
-                request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitPrice) if symbol else self.number_to_string(takeProfitPrice)
+                request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitPrice) if (symbol != '') else self.number_to_string(takeProfitPrice)
             params = self.omit(params, ['stopLossPrice', 'takeProfitPrice'])
             response = self.privatePostDeepcoinTradeReplaceOrderSltp(self.extend(request, params))
         else:
@@ -2153,7 +2201,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -2161,13 +2209,14 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        market: Market = None
+        if self.markets is None:
+            self.load_markets()
+        market = None
         if symbol is not None:
             market = self.market(symbol)
-            if market['spot']:
+            if market['spot'] is True:
                 raise NotSupported(self.id + ' cancelOrders() is not supported for spot markets')
-        request: dict = {
+        request = {
             'OrderSysIDs': ids,
         }
         response = self.privatePostDeepcoinTradeBatchCancelOrder(self.extend(request, params))
@@ -2284,7 +2333,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'trades': None,
             'fee': fee,
             'reduceOnly': None,
-            'postOnly': (orderType == 'post_only') if orderType else None,
+            'postOnly': (orderType == 'post_only') if (orderType is not None and orderType != '') else None,
             'info': order,
         }, market)
 
@@ -2316,7 +2365,7 @@ class deepcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, type, type)
 
-    def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
+    def fetch_positions_for_symbol(self, symbol: str, params: dict = {}) -> list[Position]:
         """
         fetch open positions for a single market
 
@@ -2327,10 +2376,11 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         instrumentType = self.convert_to_instrument_type(market['type'])
-        request: dict = {
+        request = {
             'instType': instrumentType,
             'instId': market['id'],
         }
@@ -2338,7 +2388,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_positions(data, [market['symbol']])
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2348,16 +2398,17 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         marketType = 'swap'
-        market: Market = None
+        market = None
         if symbols is not None:
             firstSymbol = self.safe_string(symbols, 0)
             market = self.market(firstSymbol)
         marketType, params = self.handle_market_type_and_params('fetchPositions', market, params, marketType)
         instrumentType = self.convert_to_instrument_type(marketType)
-        request: dict = {
+        request = {
             'instType': instrumentType,
         }
         response = self.privateGetDeepcoinAccountPositions(self.extend(request, params))
@@ -2415,20 +2466,20 @@ class deepcoin(Exchange, ImplicitAPI):
             'id': self.safe_string(position, 'posId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'contracts': self.safe_string(position, 'pos'),
+            'contracts': self.safe_number(position, 'pos'),
             'contractSize': None,
             'side': self.safe_string(position, 'posSide'),
             'notional': None,
-            'leverage': self.omit_zero(self.safe_string(position, 'lever')),
+            'leverage': self.parse_number(self.omit_zero(self.safe_string(position, 'lever'))),
             'unrealizedPnl': None,
             'realizedPnl': None,
             'collateral': None,
-            'entryPrice': self.safe_string(position, 'avgPx'),
+            'entryPrice': self.safe_number(position, 'avgPx'),
             'markPrice': None,
-            'liquidationPrice': self.safe_string(position, 'liqPx'),
+            'liquidationPrice': self.safe_number(position, 'liqPx'),
             'marginMode': self.safe_string(position, 'mgnMode'),
             'hedged': True,
-            'maintenanceMargin': self.safe_string(position, 'useMargin'),
+            'maintenanceMargin': self.safe_number(position, 'useMargin'),
             'maintenanceMarginPercentage': None,
             'initialMargin': None,
             'initialMarginPercentage': None,
@@ -2441,7 +2492,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'info': position,
         })
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -2460,7 +2511,8 @@ class deepcoin(Exchange, ImplicitAPI):
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if leverage < 1:
             raise BadRequest(self.id + ' setLeverage() leverage should be minimum 1')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginMode = 'cross'
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, marginMode)
@@ -2470,7 +2522,7 @@ class deepcoin(Exchange, ImplicitAPI):
         mrgPosition, params = self.handle_option_and_params(params, 'setLeverage', 'mrgPosition', mrgPosition)
         if mrgPosition != 'merge' and mrgPosition != 'split':
             raise BadRequest(self.id + ' setLeverage() mrgPosition parameter must be either merge or split')
-        request: dict = {
+        request = {
             'lever': leverage,
             'mgnMode': marginMode,
             'instId': market['id'],
@@ -2493,7 +2545,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
 
@@ -2504,10 +2556,11 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str [params.subType]: "linear" or "inverse"
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, 'swap', True, True, True)
         subType = 'linear'
-        firstMarket: Market = None
+        firstMarket = None
         if symbols is not None:
             firstSymbol = self.safe_string(symbols, 0)
             firstMarket = self.market(firstSymbol)
@@ -2517,7 +2570,7 @@ class deepcoin(Exchange, ImplicitAPI):
             instType = 'Swap'
         elif subType != 'linear':
             raise BadRequest(self.id + ' fetchFundingRates() subType parameter must be either linear or inverse')
-        request: dict = {
+        request = {
             'instType': instType,
         }
         response = self.publicGetDeepcoinTradeFundRateCurrentFundingRate(self.extend(request, params))
@@ -2553,11 +2606,12 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
-        request: dict = {
+        request = {
             'instId': market['id'],
             'instType': self.get_product_group_from_market(market),
         }
@@ -2581,7 +2635,7 @@ class deepcoin(Exchange, ImplicitAPI):
         entry = self.safe_dict(rates, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "instrumentId": "ETHUSDT",
@@ -2611,7 +2665,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -2626,9 +2680,10 @@ class deepcoin(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         if limit is not None:
@@ -2660,7 +2715,7 @@ class deepcoin(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_funding_rate_histories(rows, market, since, limit)
 
-    def parse_funding_rate_history(self, info, market: Market = None):
+    def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "instrumentID": "ETHUSD",
@@ -2680,7 +2735,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2695,17 +2750,18 @@ class deepcoin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = 'spot'
         marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params, marketType)
-        request: dict = {
+        request = {
             'instType': self.convert_to_instrument_type(marketType),
         }
         if market is not None:
@@ -2747,7 +2803,7 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2761,14 +2817,15 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap', the market type for the trades
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marketType = self.safe_string(params, 'type')
         if symbol is None and marketType is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument or a market type in the params')
         params = self.extend({'ordId': id}, params)
         return self.fetch_my_trades(symbol, since, limit, params)
 
-    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -2782,12 +2839,13 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str[]|None [params.positionIds]: list of position ids to close(for batch closing)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         productGroup = self.get_product_group_from_market(market)
         positionId = self.safe_string(params, 'positionId')
         positionIds = self.safe_list(params, 'positionIds')
-        request: dict = {
+        request = {
             'instId': market['id'],
             'productGroup': productGroup,
         }
@@ -2802,11 +2860,11 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_order(data, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestPath = path
         if method == 'GET':
             query = self.urlencode(params)
-            if len(query):
+            if len(query) > 0:
                 requestPath += '?' + query
         url = self.urls['api'][api] + '/' + requestPath
         if api == 'private':
@@ -2828,7 +2886,7 @@ class deepcoin(Exchange, ImplicitAPI):
             headers['DC-ACCESS-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         data = self.safe_dict(response, 'data', {})
         msg = self.safe_string(response, 'msg')
         messageCode = self.safe_string(response, 'code')

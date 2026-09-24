@@ -25,7 +25,7 @@ async function testSetMarketsFromExchange() {
     const exchange2 = new ccxt.Exchange({
         'id': 'primaryEx',
     });
-    assert(Object.keys(exchange1.markets).length > 0, 'Markets should be loaded in exchange1');
+    assert((exchange1.markets !== undefined) && (Object.keys(exchange1.markets).length > 0), 'Markets should be loaded in exchange1');
     // Test error case: exchanges are different
     const differentExchange = new ccxt.Exchange({
         'id': 'secondaryEx',

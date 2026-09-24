@@ -5,6 +5,485 @@
         "uta": false
     },
     "methods": {
+        "fetchCrossBorrowRate": [
+            {
+                "description": "cross borrow rate parses the current rate and leaves timestamp undefined - the response carries no createdAt/timestamp",
+                "method": "fetchCrossBorrowRate",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentRateHourly": "0.00000561",
+                        "currentRateDaily": "0.00013452",
+                        "borrowLimitTotal": "150000000.00000000000000000000",
+                        "borrowLimitTotalHold": "0.00000000000000000000",
+                        "borrowLimitHold": "0.00000000000000000000",
+                        "interestFreeBorrowLimit": "10000.00000000000000000000"
+                    }
+                },
+                "parsedResponse": {
+                    "currency": "USDT",
+                    "rate": 0.00013452,
+                    "period": 86400000,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "currentRateHourly": "0.00000561",
+                        "currentRateDaily": "0.00013452",
+                        "borrowLimitTotal": "150000000.00000000000000000000",
+                        "borrowLimitTotalHold": "0.00000000000000000000",
+                        "borrowLimitHold": "0.00000000000000000000",
+                        "interestFreeBorrowLimit": "10000.00000000000000000000"
+                    }
+                }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates maps known linear and inverse IDs, drops funding index symbols and keeps unresolved contract IDs as raw symbols",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "nextFundingRate": "-0.000004",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.003",
+                            "fundingRateFloor": "-0.003",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        {
+                            "symbol": ".ETHUSDTMFPI8H",
+                            "nextFundingRate": "0.0001",
+                            "fundingTime": 1789315200000,
+                            "currentGranularity": 28800000
+                        },
+                        {
+                            "symbol": "UNKNOWNUSDTM",
+                            "nextFundingRate": "-0.0002",
+                            "fundingTime": 1789315200000,
+                            "currentGranularity": 14400000
+                        },
+                        {
+                            "nextFundingRate": "0.0001"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "nextFundingRate": "-0.000004",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.003",
+                            "fundingRateFloor": "-0.003",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": -0.000004,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    },
+                    "BTC/USD:BTC": {
+                        "info": {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.000092,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    },
+                    "UNKNOWNUSDTM": {
+                        "info": {
+                            "symbol": "UNKNOWNUSDTM",
+                            "nextFundingRate": "-0.0002",
+                            "fundingTime": 1789315200000,
+                            "currentGranularity": 14400000
+                        },
+                        "symbol": "UNKNOWNUSDTM",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": -0.0002,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "4h"
+                    }
+                }
+            },
+            {
+                "description": "fetch all UTA v2 funding rates maps linear and inverse contract IDs",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "nextFundingRate": "-0.000004",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.003",
+                            "fundingRateFloor": "-0.003",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        {
+                            "symbol": "ETHUSDTM",
+                            "nextFundingRate": "0.0001",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00375",
+                            "fundingRateFloor": "-0.00375",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "nextFundingRate": "-0.000004",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.003",
+                            "fundingRateFloor": "-0.003",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": -0.000004,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    },
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "symbol": "ETHUSDTM",
+                            "nextFundingRate": "0.0001",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00375",
+                            "fundingRateFloor": "-0.00375",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.0001,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    },
+                    "BTC/USD:BTC": {
+                        "info": {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.000092,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            },
+            {
+                "description": "fetch funding rates filters a mixed linear and inverse symbol list",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "BTC/USD:BTC"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "nextFundingRate": "-0.000004",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.003",
+                            "fundingRateFloor": "-0.003",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        {
+                            "symbol": "ETHUSDTM",
+                            "nextFundingRate": "0.0001",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00375",
+                            "fundingRateFloor": "-0.00375",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "nextFundingRate": "-0.000004",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.003",
+                            "fundingRateFloor": "-0.003",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": -0.000004,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    },
+                    "BTC/USD:BTC": {
+                        "info": {
+                            "symbol": "XBTUSDM",
+                            "nextFundingRate": "0.000092",
+                            "fundingTime": 1789315200000,
+                            "fundingRateCap": "0.00525",
+                            "fundingRateFloor": "-0.00525",
+                            "currentGranularity": 28800000,
+                            "newGranularity": 28800000,
+                            "newGranularityStartTime": 1750147200000
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.000092,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1750147200000,
+                        "nextFundingDatetime": "2025-06-17T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            },
+            {
+                "description": "fetch funding rates preserves zero and missing optional values",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "ETHUSDTM",
+                            "nextFundingRate": "0",
+                            "fundingTime": 1789315200000,
+                            "currentGranularity": 14400000
+                        },
+                        {
+                            "symbol": "XBTUSDTM"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "symbol": "ETHUSDTM",
+                            "nextFundingRate": "0",
+                            "fundingTime": 1789315200000,
+                            "currentGranularity": 14400000
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "4h"
+                    },
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "XBTUSDTM"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": null,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": null
+                    }
+                }
+            },
+            {
+                "description": "fetch funding rates handles an empty array",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": []
+                },
+                "parsedResponse": {}
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fetch funding rate from uta",
@@ -329,7 +808,8 @@
                             "initialMargin": "3.0603333330273",
                             "mmr": "0.007",
                             "maintenanceMargin": "0.064267",
-                            "creationTime": 1774469753178000000
+                            "creationTime": 1774469753178000000,
+                            "updateTime": 1774469753178000000
                         }
                     ]
                 },
@@ -348,13 +828,14 @@
                         "initialMargin": "3.0603333330273",
                         "mmr": "0.007",
                         "maintenanceMargin": "0.064267",
-                        "creationTime": 1774469753178000000
+                        "creationTime": 1774469753178000000,
+                        "updateTime": 1774469753178000000
                     },
                     "id": "30000000000084351",
                     "symbol": "DOGE/USDT:USDT",
                     "timestamp": 1774469753177,
                     "datetime": "2026-03-25T20:15:53.177Z",
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1774469753177,
                     "initialMargin": 3.0603333330273,
                     "initialMarginPercentage": 0.3333333333,
                     "maintenanceMargin": 0.064267,
@@ -373,7 +854,7 @@
                     "collateral": null,
                     "marginMode": "cross",
                     "side": "long",
-                    "percentage": null,
+                    "percentage": -6.48,
                     "stopLossPrice": null,
                     "takeProfitPrice": null
                 }
@@ -559,6 +1040,35 @@
                 }
             }
         ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin from position",
+                "method": "reduceMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": "0.1"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": "0.1"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": 1,
+                    "total": null,
+                    "code": "USDT",
+                    "status": "ok",
+                    "timestamp": null,
+                    "datetime": null
+                }
+            }
+        ],
         "fetchMarginMode": [
             {
                 "description": "fetch linear swap margin mode",
@@ -696,7 +1206,7 @@
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
-                        "percentage": null,
+                        "percentage": 0.14,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
                     }
@@ -2856,6 +3366,160 @@
         ],
         "fetchTicker": [
             {
+                "description": "uta fetch spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "tradeType": "SPOT",
+                        "ts": 1782828856063000000,
+                        "list": [
+                            {
+                                "symbol": "ETH-USDT",
+                                "name": "ETH-USDT",
+                                "bestBidSize": "2.9647811",
+                                "bestBidPrice": "1573.1",
+                                "bestAskSize": "0.5951856",
+                                "bestAskPrice": "1573.11",
+                                "lastPrice": "1573.1",
+                                "size": "0.458892",
+                                "open": "1561.39",
+                                "high": "1637.4",
+                                "low": "1550.41",
+                                "baseVolume": "102296.24270417747448132256",
+                                "quoteVolume": "162642490.30260675872329459176",
+                                "priceChange": "11.71",
+                                "priceChangePercent": "0.0074"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 1637.4,
+                    "low": 1550.41,
+                    "bid": 1573.1,
+                    "bidVolume": 2.9647811,
+                    "ask": 1573.11,
+                    "askVolume": 0.5951856,
+                    "vwap": 1589.9165600142314,
+                    "open": 1561.39,
+                    "close": 1573.1,
+                    "last": 1573.1,
+                    "previousClose": null,
+                    "change": 11.71,
+                    "percentage": 0.74,
+                    "average": 1567.24,
+                    "baseVolume": 102296.24270417748,
+                    "quoteVolume": 162642490.30260676,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "ETH-USDT",
+                        "name": "ETH-USDT",
+                        "bestBidSize": "2.9647811",
+                        "bestBidPrice": "1573.1",
+                        "bestAskSize": "0.5951856",
+                        "bestAskPrice": "1573.11",
+                        "lastPrice": "1573.1",
+                        "size": "0.458892",
+                        "open": "1561.39",
+                        "high": "1637.4",
+                        "low": "1550.41",
+                        "baseVolume": "102296.24270417747448132256",
+                        "quoteVolume": "162642490.30260675872329459176",
+                        "priceChange": "11.71",
+                        "priceChangePercent": "0.0074"
+                    }
+                }
+            },
+            {
+                "description": "uta fetch swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "tradeType": "FUTURES",
+                        "ts": 1782828835233000000,
+                        "list": [
+                            {
+                                "symbol": "ETHUSDTM",
+                                "bestBidSize": "463",
+                                "bestBidPrice": "1572.39",
+                                "bestAskSize": "1",
+                                "bestAskPrice": "1572.4",
+                                "lastPrice": "1572.2",
+                                "size": "13",
+                                "open": "1560.92",
+                                "high": "1637.08",
+                                "low": "1549.63",
+                                "baseVolume": "285516.2",
+                                "quoteVolume": "454053186.3962",
+                                "priceChange": "11.28",
+                                "priceChangePercent": "0.7227",
+                                "indexPrice": "1572.65",
+                                "markPrice": "1572.2"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 1637.08,
+                    "low": 1549.63,
+                    "bid": 1572.39,
+                    "bidVolume": 463,
+                    "ask": 1572.4,
+                    "askVolume": 1,
+                    "vwap": 1590.2886995420924,
+                    "open": 1560.92,
+                    "close": 1572.2,
+                    "last": 1572.2,
+                    "previousClose": null,
+                    "change": 11.28,
+                    "percentage": 0.7227,
+                    "average": 1566.56,
+                    "baseVolume": 285516.2,
+                    "quoteVolume": 454053186.3962,
+                    "markPrice": 1572.2,
+                    "indexPrice": 1572.65,
+                    "info": {
+                        "symbol": "ETHUSDTM",
+                        "bestBidSize": "463",
+                        "bestBidPrice": "1572.39",
+                        "bestAskSize": "1",
+                        "bestAskPrice": "1572.4",
+                        "lastPrice": "1572.2",
+                        "size": "13",
+                        "open": "1560.92",
+                        "high": "1637.08",
+                        "low": "1549.63",
+                        "baseVolume": "285516.2",
+                        "quoteVolume": "454053186.3962",
+                        "priceChange": "11.28",
+                        "priceChangePercent": "0.7227",
+                        "indexPrice": "1572.65",
+                        "markPrice": "1572.2"
+                    }
+                }
+            },
+            {
                 "description": "fetch ticker for swap",
                 "method": "fetchTicker",
                 "input": [
@@ -2982,78 +3646,253 @@
                         "makerCoefficient": "1"
                     }
                 }
-            },
+            }
+        ],
+        "fetchTickers": [
             {
-                "description": "uta fetch ticker",
-                "method": "fetchTicker",
+                "description": "contract tickers derive positive and negative percentages from last and change, preserving raw ratios",
+                "method": "fetchTickers",
                 "input": [
-                    "BTC/USDT",
+                    null,
                     {
-                        "uta": true,
-                        "tradeType": "SPOT"
+                        "type": "swap"
                     }
                 ],
                 "httpResponse": {
                     "code": "200000",
-                    "data": {
-                        "tradeType": "SPOT",
-                        "ts": 1762061949931,
-                        "list": [
-                            {
-                                "symbol": "BTC-USDT",
-                                "name": "BTC-USDT",
-                                "bestBidSize": "0.56078571",
-                                "bestBidPrice": "110290.4",
-                                "bestAskSize": "0.61175745",
-                                "bestAskPrice": "110290.5",
-                                "lastPrice": "110290.5",
-                                "size": "0.00011243",
-                                "open": "110366.6",
-                                "high": "110838.9",
-                                "low": "109705.5",
-                                "baseVolume": "1892.04447258",
-                                "quoteVolume": "208426563.495947932"
-                            }
-                        ]
-                    }
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 120,
+                            "priceChg": 20,
+                            "priceChgPct": 0.05
+                        },
+                        {
+                            "symbol": "XBTUSDM",
+                            "lastTradePrice": 80,
+                            "priceChg": -20,
+                            "priceChgPct": 0.15
+                        }
+                    ]
                 },
                 "parsedResponse": {
-                    "symbol": "BTC/USDT",
-                    "timestamp": null,
-                    "datetime": null,
-                    "high": 110838.9,
-                    "low": 109705.5,
-                    "bid": 110290.4,
-                    "bidVolume": 0.56078571,
-                    "ask": 110290.5,
-                    "askVolume": 0.61175745,
-                    "vwap": 110159.44208316445,
-                    "open": 110366.6,
-                    "close": 110290.5,
-                    "last": 110290.5,
-                    "previousClose": null,
-                    "change": -76.1,
-                    "percentage": -0.0689520199045725,
-                    "average": 110328.5,
-                    "baseVolume": 1892.04447258,
-                    "quoteVolume": 208426563.49594793,
-                    "markPrice": null,
-                    "info": {
-                        "symbol": "BTC-USDT",
-                        "name": "BTC-USDT",
-                        "bestBidSize": "0.56078571",
-                        "bestBidPrice": "110290.4",
-                        "bestAskSize": "0.61175745",
-                        "bestAskPrice": "110290.5",
-                        "lastPrice": "110290.5",
-                        "size": "0.00011243",
-                        "open": "110366.6",
-                        "high": "110838.9",
-                        "low": "109705.5",
-                        "baseVolume": "1892.04447258",
-                        "quoteVolume": "208426563.495947932"
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 120,
+                        "last": 120,
+                        "previousClose": null,
+                        "change": 20,
+                        "percentage": 20,
+                        "average": 110,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 120,
+                            "priceChg": 20,
+                            "priceChgPct": 0.05
+                        }
                     },
-                    "indexPrice": null
+                    "BTC/USD:BTC": {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 80,
+                        "last": 80,
+                        "previousClose": null,
+                        "change": -20,
+                        "percentage": -20,
+                        "average": 90,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDM",
+                            "lastTradePrice": 80,
+                            "priceChg": -20,
+                            "priceChgPct": 0.15
+                        }
+                    }
+                }
+            },
+            {
+                "description": "contract tickers preserve zero change and fall back to the reported ratio when change is missing",
+                "method": "fetchTickers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 100,
+                            "priceChg": 0,
+                            "priceChgPct": 0.02
+                        },
+                        {
+                            "symbol": "XBTUSDM",
+                            "lastTradePrice": 120,
+                            "priceChgPct": 0.2
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 100,
+                        "last": 100,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 100,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 100,
+                            "priceChg": 0,
+                            "priceChgPct": 0.02
+                        }
+                    },
+                    "BTC/USD:BTC": {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 120,
+                        "last": 120,
+                        "previousClose": null,
+                        "change": 20,
+                        "percentage": 20,
+                        "average": 110,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDM",
+                            "lastTradePrice": 120,
+                            "priceChgPct": 0.2
+                        }
+                    }
+                }
+            },
+            {
+                "description": "contract ticker derives percentage from last and change instead of the rounded ratio",
+                "method": "fetchTickers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 63190,
+                            "bestBidPrice": 63189.9,
+                            "bestBidSize": 1214,
+                            "bestAskPrice": 63190,
+                            "bestAskSize": 3079,
+                            "highPrice": 63362.7,
+                            "lowPrice": 62938.7,
+                            "priceChgPct": 0.0017,
+                            "priceChg": 108.3,
+                            "volumeOf24h": 1252.542,
+                            "turnoverOf24h": 79051949.033,
+                            "markPrice": 63190,
+                            "indexPrice": 63213.08,
+                            "ts": 1786909114532000000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786909114532,
+                        "datetime": "2026-08-16T19:38:34.532Z",
+                        "high": 63362.7,
+                        "low": 62938.7,
+                        "bid": 63189.9,
+                        "bidVolume": 1214,
+                        "ask": 63190,
+                        "askVolume": 3079,
+                        "vwap": 63113.212198074,
+                        "open": 63081.7,
+                        "close": 63190,
+                        "last": 63190,
+                        "previousClose": null,
+                        "change": 108.3,
+                        "percentage": 0.1716821201711431,
+                        "average": 63135.8,
+                        "baseVolume": 1252.542,
+                        "quoteVolume": 79051949.033,
+                        "markPrice": 63190,
+                        "indexPrice": 63213.08,
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 63190,
+                            "bestBidPrice": 63189.9,
+                            "bestBidSize": 1214,
+                            "bestAskPrice": 63190,
+                            "bestAskSize": 3079,
+                            "highPrice": 63362.7,
+                            "lowPrice": 62938.7,
+                            "priceChgPct": 0.0017,
+                            "priceChg": 108.3,
+                            "volumeOf24h": 1252.542,
+                            "turnoverOf24h": 79051949.033,
+                            "markPrice": 63190,
+                            "indexPrice": 63213.08,
+                            "ts": 1786909114532000000
+                        }
+                    }
                 }
             }
         ],
@@ -3330,7 +4169,7 @@
                     "free": 5,
                     "used": 0,
                     "total": 5,
-                    "debt": 0
+                    "debt": null
                   },
                   "free": {
                     "USDT": 5
@@ -3340,9 +4179,6 @@
                   },
                   "total": {
                     "USDT": 5
-                  },
-                  "debt": {
-                    "USDT": 0
                   }
                 }
             },
@@ -3431,14 +4267,12 @@
                     },
                     "timestamp": null,
                     "datetime": null,
-                    "LTC/USDT": {
-                        "LTC":{"free":0,"used":0,"total":0,"debt":0},
-                        "USDT":{"free":5,"used":0,"total":5,"debt":0},
-                        "free":{"LTC":0,"USDT":5},
-                        "used":{"LTC":0,"USDT":0},
-                        "total":{"LTC":0,"USDT":5},
-                        "debt":{"LTC":0,"USDT":0}
-                    }
+                    "LTC":{"free":0,"used":0,"total":0,"debt":0},
+                    "USDT":{"free":5,"used":0,"total":5,"debt":0},
+                    "free":{"LTC":0,"USDT":5},
+                    "used":{"LTC":0,"USDT":0},
+                    "total":{"LTC":0,"USDT":5},
+                    "debt":{"LTC":0,"USDT":0}
                 }
             }
         ],
@@ -5198,7 +6032,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "chainName": "ARBITRUM",
                                     "withdrawalMinSize": "0.0005",
@@ -5220,7 +6054,7 @@
                                 },
                                 "id": "arbitrum",
                                 "name": "ARBITRUM",
-                                "code": "ARBONE",
+                                "code": "ARBITRUM",
                                 "active": null,
                                 "fee": 0.0001,
                                 "deposit": false,
@@ -5622,7 +6456,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "chainName": "ARBITRUM",
                                     "withdrawalMinSize": "0.0004",
@@ -5644,7 +6478,7 @@
                                 },
                                 "id": "arbitrum",
                                 "name": "ARBITRUM",
-                                "code": "ARBONE",
+                                "code": "ARBITRUM",
                                 "active": null,
                                 "fee": 0.0002,
                                 "deposit": true,
@@ -6647,7 +7481,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "chainName": "ARBITRUM",
                                     "withdrawalMinSize": "5",
@@ -6669,7 +7503,7 @@
                                 },
                                 "id": "arbitrum",
                                 "name": "ARBITRUM",
-                                "code": "ARBONE",
+                                "code": "ARBITRUM",
                                 "active": null,
                                 "fee": 1,
                                 "deposit": true,

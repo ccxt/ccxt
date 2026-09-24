@@ -1,8 +1,5 @@
-- [Gateio Watch Balance](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -29,7 +26,7 @@ var_dump('CCXT Version:', $ccxt->version); // eslint-disable-line import/no-name
 
 function main() {
     return Async\async(function () {
-        $exchange = new \ccxt\pro\gateio(array(
+        $exchange = new \ccxt\pro\gate(array(
             'apiKey' => 'YOUR_API_KEY',
             'secret' => 'YOUR_SECRET',
         ));
@@ -49,5 +46,5 @@ function main() {
 
 
 main();
- 
+
 ```

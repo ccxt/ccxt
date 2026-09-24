@@ -1,19 +1,19 @@
 import p2bRest from '../p2b.js';
-import type { Int, OHLCV, OrderBook, Trade, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class p2b extends p2bRest {
     describe(): any;
     /**
      * @ignore
      * @method
-     * @description Connects to a websocket channel
+     * @description connects to a websocket channel
      * @param {string} name name of the channel
      * @param {string} messageHash string to look up in handler
      * @param {string[]|float[]} request endpoint parameters
      * @param {object} [params] extra parameters specific to the p2b api
      * @returns {object} data from the websocket stream
      */
-    subscribe(name: string, messageHash: string, request: any, params?: {}): Promise<any>;
+    subscribe(name: string, messageHash: string, request: any[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name p2b#watchOHLCV
@@ -26,7 +26,7 @@ export default class p2b extends p2bRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name p2b#watchTicker
@@ -38,7 +38,7 @@ export default class p2b extends p2bRest {
      * @param {object} [params.method] 'state' (default) or 'price'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name p2b#watchTickers
@@ -50,7 +50,7 @@ export default class p2b extends p2bRest {
      * @param {object} [params.method] 'state' (default) or 'price'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name p2b#watchTrades
@@ -62,7 +62,7 @@ export default class p2b extends p2bRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name p2b#watchTradesForSymbols
@@ -74,7 +74,7 @@ export default class p2b extends p2bRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name p2b#watchOrderBook
@@ -84,21 +84,17 @@ export default class p2b extends p2bRest {
      * @param {int} [limit] 1-100, default=100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOHLCV(client: Client, message: any): any;
-    handleTrade(client: Client, message: any): any;
-    handleTicker(client: Client, message: any): any;
-    handleOrderBook(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
-    ping(client: Client): {
-        method: string;
-        params: any[];
-        id: number;
-    };
-    handlePong(client: Client, message: any): any;
+    handleOHLCV(client: Client, message: Dict): Dict;
+    handleTrade(client: Client, message: Dict): Dict;
+    handleTicker(client: Client, message: Dict): Dict;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleMessage(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    ping(client: Client): Dict;
+    handlePong(client: Client, message: Dict): Dict;
     onError(client: Client, error: any): void;
     onClose(client: Client, error: any): void;
 }

@@ -23,7 +23,7 @@ Don't write from scratch. Copy a similar exchange that's already certified and a
 |---|---|
 | Spot + futures, signed REST | `ts/src/binance.ts`, `ts/src/okx.ts` |
 | Spot only | `ts/src/kraken.ts`, `ts/src/coinbase.ts` |
-| Derivatives focus | `ts/src/bybit.ts`, `ts/src/bitmex.ts` |
+| Derivatives focus | `ts/src/bybit.ts`, `ts/src/hyperliquid.ts` |
 | Decentralised / on-chain signing | `ts/src/hyperliquid.ts`, `ts/src/dydx.ts` |
 | WebSocket reference | `ts/src/pro/binance.ts`, `ts/src/pro/okx.ts` |
 
@@ -210,25 +210,39 @@ For every fetch method, write a matching parser. The parser is what makes output
 
 Capture a request/response fixture as soon as a method works once. Re-run on every change.
 
+> 🚨 **Never hand-write or invent a static fixture — always capture it with the CLI.**
+> `--static` performs a **real** call and records the actual URL, body and HTTP response. A fabricated fixture
+> asserts what you *assumed* the exchange does, so the test goes green while the integration is broken — and it
+> then becomes the reference every language is verified against. If you cannot reach the endpoint (no
+> credentials, geo-block, venue down), ship no fixture and say so explicitly; do not guess one.
+
 ```bash
-# request fixture (URL/body assertion) — NO HTTP
-node cli.js <id> fetchTicker BTC/USDT --report
-# response fixture (parser assertion) — NO HTTP
-node cli.js <id> fetchTicker BTC/USDT --response
+# capture BOTH the request and the response entry from one live call, and save them
+npm run cli.ts -- <id> fetchTicker BTC/USDT --static --name "spot ticker"
 ```
 
-Paste each `methods.<methodName>` entry into `ts/src/test/static/request/<id>.json` or `ts/src/test/static/response/<id>.json`. Then run:
+`--static` writes a `methods.fetchTicker` entry into both `ts/src/test/static/request/<id>.json` and
+`ts/src/test/static/response/<id>.json`. Details:
+
+- **`--name "…"` auto-saves.** Without it the two entries are only printed, so you can review before saving.
+- `--request` / `--response` capture just one side; `--static` is both.
+- **`watch*` methods:** `--static` records ws frames until you press ctrl+c and writes a
+  `ts/src/test/static/ws/<id>.json` entry. `--recordLimit <n>` keeps only the first n resolutions.
+- Prediction exchanges land in the `static/{request,response}/prediction/` subfolder automatically.
+
+Then run:
 
 ```bash
 npm run request-tests
 npm run response-tests
 ```
 
-These tests run in all five languages and are your primary regression net.
+The *capture* hits the network; the *tests* replay the recording with no HTTP, in every language, and are your
+primary regression net.
 
 ## Step 7 — Verify in all languages
 
-A new exchange means thousands of new lines in Python, PHP, C# and Go. The transpilers must like all of it.
+A new exchange means thousands of new lines in Python, PHP, C#, Go and Java. The transpilers must like all of it.
 
 ```bash
 npm run lint
@@ -289,3 +303,16 @@ Title: `feat(<id>): add <Name> integration`. Description follows the template in
 - [ ] `npm run build-docs` ran, generated wiki entries look correct
 - [ ] User-facing docs reviewed (CLAUDE.md §8) — Manual.md / examples / language skills if anything is non-standard
 - [ ] PR title follows `feat(<id>): ...`; description fills CLAUDE.md §11 template
+
+---
+
+## Prediction-market exchange variant
+
+A prediction-market venue (Polymarket-style: events → markets → binary/categorical outcomes) does **not** extend `Exchange` — it lives in its own namespace. The differences from the checklist above:
+
+1. **File** — `ts/src/prediction/<id>.ts`, `class <id> extends PredictionExchange` (import `Exchange` from `./abstract/prediction/<id>.js`). Read `.claude/rules/prediction-outcomes.md` for the outcome-cache contract and `ts/src/base/PredictionExchange.ts` for the base helpers you inherit (`loadOutcome`/`loadOutcomes`/`fetchOutcome`/`populateOutcomes`/`indexMarketOutcomes`/`safeOutcome`/`outcome`, `setEvents`/`getEvent`/`eventsList`/`applyEventFetchParams`, `parsePredictionTrades`/`parsePredictionOrders`/`parsePredictionPositions`, `safePrediction*`).
+2. **describe()** — `has.prediction: true`; address methods by an `outcome` handle, not a `symbol`. Implement `fetchEvents(params)` (scope-required via `requireEventQuery`) and, if the venue has a single-event endpoint, `fetchEvent(id)`. Return `Prediction*` types from `ts/src/base/types.ts` (never base `Ticker`/`Order`/…). `loadAllOutcomes` defaults to `false` (a cache miss resolves one outcome via the base search-backed `fetchOutcome`); override `fetchOutcome` with a by-id fetch when the venue has one (see kalshi), and set `loadAllOutcomes: true` only when the whole universe is a single cheap request (see hyperliquid). No-arg `fetchTickers()` must throw `ArgumentsRequired` unless the venue has a true all-tickers endpoint.
+3. **Never call the base `parseTrades`/`parseOrders`/`parsePositions`** — they filter by `symbol` and drop prediction rows. Use `parsePredictionTrades`/`Orders`/`Positions`. Never call `buildOHLCVC` (transpiles to a mangled name) — bucket candles inline.
+4. **Registration** — `npm run export-exchanges` adds the id to `exchanges.json` `prediction[]` and wires `ts/ccxt.ts` / the per-language namespaces / README table. `npm run emitAPI` emits `ts/src/abstract/prediction/<id>.ts`. Add a `skip-tests.json` entry with `preferredEventQuery` (the harness's fetchEvents scope) and `preferredPredictionOutcome` (a tradeable handle — validated against the live listing).
+5. **Transpile** — the scoped single-exchange transpilers auto-route a bare prediction-only id (`tsx build/transpile.ts <id>`, `csharpTranspiler.ts <id>`, `goTranspiler.ts <id>`). After editing `PredictionExchange.ts` you must also regen the base per language: `tsx build/{transpile,csharpTranspiler,goTranspiler,javaTranspiler}.ts --baseClass`. Any base→override call (like `fetchOutcome`) must be registered in `VIRTUAL_BASE_METHODS` in `build/goTranspiler.ts` or Go won't dispatch it.
+6. **Test** — `node run-tests <id> --js --prediction --private` (add `--sandbox` for demo hosts like kalshi). Static fixtures live in the normal flat `ts/src/test/static/{request,response}/<id>.json`; the python/php **sync** harness skips prediction (they carry `"asyncOnly": true`).

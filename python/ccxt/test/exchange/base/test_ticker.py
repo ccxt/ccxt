@@ -12,10 +12,24 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
+from ccxt.base.decimal_to_precision import number_to_string  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_ticker(exchange, skipped_properties, method, entry, symbol):
+    # prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+    # books where bid==ask and a stale `last` far from the median are normal — skip the
+    # crypto-oriented price-relationship checks for them. the PredictionTicker type also
+    # omits vwap/previousClose entirely, so their presence must not be asserted
+    if exchange.safe_bool(exchange.has, 'prediction', False):
+        skipped_properties = exchange.extend({
+            'symbol': True,
+            'spread': True,
+            'lastBetweenBidAsk': True,
+            'maxIncrease': True,
+            'vwap': True,
+            'previousClose': True,
+        }, skipped_properties)
     format = {
         'info': {},
         'symbol': 'ETH/BTC',
@@ -53,7 +67,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     is_fetch_ticker_called = method == 'fetchTicker'
     symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
     if symbol_for_market is not None:
-        if symbol_for_market in exchange.markets:
+        if (exchange.markets is not None) and (symbol_for_market in exchange.markets):
             market = exchange.market(symbol_for_market)
         else:
             is_unrecognized_symbol = True
@@ -62,7 +76,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         if market is not None and market['active'] is False:
             return
     if 'skipNonActiveMarkets' in skipped_properties:
-        if market is None or not market['active']:
+        if market is None or (market['active'] is not True):
             return
     # only check "above zero" values if exchange is not supposed to have exotic index markets
     is_standard_market = (market is not None and exchange.in_array(market['type'], ['spot', 'swap', 'future', 'option']))
@@ -99,7 +113,12 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     close = exchange.omit_zero(exchange.safe_string(entry, 'close'))
     if not ('compareQuoteVolumeBaseVolume' in skipped_properties):
         # assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); # No, exchanges might not report both values
-        if (base_volume is not None) and (quote_volume is not None) and (high is not None) and (low is not None):
+        # skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+        # volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+        # far above baseVolume * high), so the spot-derived invariant does not hold there,
+        # see https://github.com/ccxt/ccxt/pull/29563
+        is_inverse = exchange.safe_bool(market, 'inverse', False)
+        if (base_volume is not None) and (quote_volume is not None) and (high is not None) and (low is not None) and (is_inverse is not True):
             base_low = Precise.string_mul(base_volume, low)
             base_high = Precise.string_mul(base_volume, high)
             # to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -116,8 +135,58 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
             # because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
             base_low = Precise.string_div(base_low, tolerance)
             base_high = Precise.string_mul(base_high, tolerance)
+            # some exchanges round quoteVolume before reporting it - aster,
+            # for example, returns 8.07 when the true traded value is 8.0651,
+            # which on micro-price contracts (1000WOJAK etc) is enough to
+            # break the quoteVolume <= baseVolume * high sanity check below.
+            # the reported string reveals its own rounding step (trailing
+            # zeros are padding, so 8.07000000 -> 2 real decimals -> step
+            # 0.01), so we widen the acceptance window by one such step on
+            # each side - big enough to forgive rounding, far too small to
+            # hide a real bug like mismatched units or a wrong-field parse
+            quote_volume_decimals = exchange.precision_from_string(quote_volume)
+            quote_quantum = exchange.parse_precision(exchange.number_to_string(quote_volume_decimals))
+            base_low = Precise.string_sub(base_low, quote_quantum)
+            base_high = Precise.string_add(base_high, quote_quantum)
             assert Precise.string_ge(quote_volume, base_low), 'quoteVolume should be => baseVolume * low' + log_text
             assert Precise.string_le(quote_volume, base_high), 'quoteVolume should be <= baseVolume * high' + log_text
+    #
+    # change & percentage
+    #
+    # the Manual defines both against open: change is `last - open`, and
+    # percentage is `(change/open) * 100`
+    change_string = exchange.safe_string(entry, 'change')
+    percentage_string = exchange.safe_string(entry, 'percentage')
+    if (change_string is not None) and (open is not None) and (close is not None) and not ('compareChange' in skipped_properties):
+        # the window is the larger of two roundings: float residue on a change
+        # safeTicker derived, which needs a part per million of the price, and an
+        # exchange's own rounding, which its reported decimals reveal
+        price_part = Precise.string_div(Precise.string_abs(close), '1000000')
+        change_decimals = exchange.precision_from_string(change_string)
+        # exponent notation ("1e4") makes `precisionFromString` return a negative
+        # count, which `parsePrecision` would turn into a step of 10000 - a string
+        # like that reveals no rounding at all, so fall back to the price part
+        # instead of letting it widen the window
+        change_window = price_part
+        if change_decimals >= 0:
+            change_quantum = exchange.parse_precision(exchange.number_to_string(change_decimals))
+            # a change of "0" prints no decimals, so its apparent step is a whole unit
+            # and accepts anything on a micro-priced asset. a per cent of the price
+            # caps it, and covers whole units on a price in the tens of thousands
+            quantum_cap = Precise.string_div(Precise.string_abs(close), '100')
+            change_quantum = Precise.string_min(change_quantum, quantum_cap)
+            change_window = Precise.string_max(price_part, change_quantum)
+        difference = Precise.string_abs(Precise.string_sub(change_string, Precise.string_sub(close, open)))
+        assert Precise.string_le(difference, change_window), '`change` should be `last - open`' + log_text
+    if (change_string is not None) and (percentage_string is not None) and (open is not None) and not ('comparePercentage' in skipped_properties):
+        derived = Precise.string_mul(Precise.string_div(change_string, open), '100')
+        # exchanges round the percentage, so allow one part in fifty of the derived
+        # value plus a floor for moves near zero. a ratio where a percentage
+        # belongs is out by a hundred and clears that by three orders of magnitude
+        relative = Precise.string_div(Precise.string_abs(derived), '50')
+        allowed = Precise.string_max(relative, '0.01')
+        gap = Precise.string_abs(Precise.string_sub(percentage_string, derived))
+        assert Precise.string_le(gap, allowed), '`percentage` should be `(change/open) * 100`' + log_text
     # open and close should be between High & Low
     if high is not None and low is not None and not ('compareOHLC' in skipped_properties):
         if open is not None:
@@ -144,7 +213,8 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     ask_string = exchange.safe_string(entry, 'ask')
     bid_string = exchange.safe_string(entry, 'bid')
     if (ask_string is not None) and (bid_string is not None) and not ('spread' in skipped_properties):
-        test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'ask', exchange.safe_string(entry, 'bid'))
+        # greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+        test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'ask', exchange.safe_string(entry, 'bid'))
     # last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
     allowed_percentage_variation = '0.01'
     if is_fetch_ticker_called and last_string is not None and bid_string is not None and ask_string is not None and not ('lastBetweenBidAsk' in skipped_properties):
@@ -154,23 +224,32 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         assert Precise.string_ge(last_string, median_low) and Precise.string_le(last_string, median_high), 'last price should be within 1% of the bid/ask median price' + log_text
     percentage = exchange.safe_string(entry, 'percentage')
     change = exchange.safe_string(entry, 'change')
+    # option markets are exempt from the UPPER percentage/change caps only:
+    # expiry-day convexity makes any finite cap wrong - a formerly-OTM
+    # contract moving into the money legitimately gains 1000x+ (observed: a
+    # paradex call at +109055% on its expiry date, mark price equal to
+    # intrinsic). the floors stay: a long option cannot lose more than its
+    # premium, so percentage >= -100 and change >= -open hold for options too
+    is_option_market = exchange.safe_bool(market, 'option', False)
     if not ('maxIncrease' in skipped_properties) and not is_unrecognized_symbol:
         #
         # percentage
         #
-        max_increase = '100'  # for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+        max_increase = '1000'  # if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if percentage is not None:
-            # - should be above -100 and below MAX
+            # - should be above -100 and (for non-options) below MAX
             assert Precise.string_ge(percentage, '-100'), 'percentage should be above -100% ' + log_text
-            assert Precise.string_le(percentage, Precise.string_mul('+100', max_increase)), 'percentage should be below ' + max_increase + '00% ' + log_text
+            if is_option_market is not True:
+                assert Precise.string_le(percentage, Precise.string_mul('+100', max_increase)), 'percentage should be below ' + max_increase + '00% ' + log_text
         #
         # change
         #
         approx_value = exchange.safe_string_n(entry, ['open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose'])
         if change is not None:
-            # - should be between -price & +price*100
+            # - should be above -price and (for non-options) below +price*maxIncrease
             assert Precise.string_ge(change, Precise.string_neg(approx_value)), 'change should be above -price ' + log_text
-            assert Precise.string_le(change, Precise.string_mul(approx_value, max_increase)), 'change should be below ' + max_increase + 'x price ' + log_text
+            if is_option_market is not True:
+                assert Precise.string_le(change, Precise.string_mul(approx_value, max_increase)), 'change should be below ' + max_increase + 'x price ' + log_text
     #
     # ensure all expected values are defined
     #

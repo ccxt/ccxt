@@ -16,13 +16,14 @@ from ccxt.base.decimal_to_precision import ROUND  # noqa E402
 from ccxt.base.decimal_to_precision import ROUND_UP  # noqa E402
 from ccxt.base.decimal_to_precision import ROUND_DOWN  # noqa E402
 import ccxt.async_support as ccxt  # noqa: F402
-from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_round_timeframe():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
     })
     test_date = exchange.parse8601('2019-08-12 13:22:08')
+    if test_date is None:
+        return
     assert exchange.round_timeframe('5m', test_date, ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
     assert exchange.round_timeframe('10m', test_date, ROUND_DOWN) == exchange.parse8601('2019-08-12 13:20:00')
     assert exchange.round_timeframe('30m', test_date, ROUND_DOWN) == exchange.parse8601('2019-08-12 13:00:00')
@@ -32,6 +33,24 @@ def test_round_timeframe():
     assert exchange.round_timeframe('30m', test_date, ROUND_UP) == exchange.parse8601('2019-08-12 13:30:00')
     assert exchange.round_timeframe('1h', test_date, ROUND_UP) == exchange.parse8601('2019-08-12 14:00:00')
     assert exchange.round_timeframe('1d', test_date, ROUND_UP) == exchange.parse8601('2019-08-13 00:00:00')
+    calendar_date = exchange.parse8601('2026-09-02T00:00:00Z')
+    if calendar_date is None:
+        return
+    assert exchange.round_timeframe('1w', calendar_date, ROUND_DOWN) == exchange.parse8601('2026-08-31T00:00:00Z')
+    assert exchange.round_timeframe('1M', calendar_date, ROUND_DOWN) == exchange.parse8601('2026-09-01T00:00:00Z')
+    assert exchange.round_timeframe('1y', calendar_date, ROUND_DOWN) == exchange.parse8601('2026-01-01T00:00:00Z')
+    assert exchange.round_timeframe('1w', calendar_date, ROUND_UP) == exchange.parse8601('2026-09-07T00:00:00Z')
+    assert exchange.round_timeframe('1M', calendar_date, ROUND_UP) == exchange.parse8601('2026-10-01T00:00:00Z')
+    assert exchange.round_timeframe('1y', calendar_date, ROUND_UP) == exchange.parse8601('2027-01-01T00:00:00Z')
+    assert exchange.round_timeframe('2w', calendar_date, ROUND_DOWN) == exchange.parse8601('2026-08-31T00:00:00Z')
+    assert exchange.round_timeframe('3M', calendar_date, ROUND_DOWN) == exchange.parse8601('2026-07-01T00:00:00Z')
+    assert exchange.round_timeframe('2w', calendar_date, ROUND_UP) == exchange.parse8601('2026-09-14T00:00:00Z')
+    assert exchange.round_timeframe('3M', calendar_date, ROUND_UP) == exchange.parse8601('2026-10-01T00:00:00Z')
+    pre_epoch_date = exchange.parse8601('1960-06-15T00:00:00Z')
+    if pre_epoch_date is None:
+        return
+    assert exchange.round_timeframe('2w', pre_epoch_date, ROUND_DOWN) == exchange.parse8601('1960-06-06T00:00:00Z')
+    assert exchange.round_timeframe('2w', pre_epoch_date, ROUND_UP) == exchange.parse8601('1960-06-20T00:00:00Z')
 
 
 def test_parse_timeframe():

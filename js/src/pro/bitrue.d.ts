@@ -1,5 +1,5 @@
 import bitrueRest from '../bitrue.js';
-import type { Int, Str, OrderBook, Order, Balances, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitrue extends bitrueRest {
     describe(): any;
@@ -11,9 +11,9 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
-    parseWSBalances(balances: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
+    parseWSBalances(balances: any[]): void;
     /**
      * @method
      * @name bitrue#watchOrders
@@ -25,13 +25,13 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/?id=order-structure} indexed by market symbols
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrder(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: Dict): void;
     findSwapMarketByWsBaseQuote(wsBaseQuote: string): any;
-    parseContractBidsAsks(bidsAsks: any, symbol: string): any[];
+    parseContractBidsAsks(bidsAsks: any[], symbol: string): List;
     convertFromRawQuantity(symbol: string, rawQuantity: any): any;
     /**
      * @method
@@ -42,11 +42,11 @@ export default class bitrue extends bitrueRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleTrades(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name bitrue#watchOHLCV
@@ -59,9 +59,9 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(tick: any, market?: any): OHLCV;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: Dict): void;
+    parseWsOHLCV(tick: any, market?: Market): OHLCV;
     /**
      * @method
      * @name bitrue#watchTicker
@@ -69,16 +69,16 @@ export default class bitrue extends bitrueRest {
      * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    handleTicker(client: Client, message: any): void;
-    parseWsTicker(tick: any, market: any, timestamp?: Int): Ticker;
-    parseWsOrderType(typeId: any): string;
-    parseWsOrderStatus(status: any): string;
-    handlePing(client: Client, message: any): void;
-    pong(client: any, message: any): Promise<void>;
-    handleMessage(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<any>;
-    keepAliveListenKey(params?: {}): Promise<void>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    handleTicker(client: Client, message: Dict): void;
+    parseWsTicker(tick: Dict, market: any, timestamp?: Int): Ticker;
+    parseWsOrderType(typeId: Str): Str;
+    parseWsOrderStatus(status: Str): Str;
+    handlePing(client: Client, message: Dict): void;
+    pong(client: Client, message: Dict): Promise<void>;
+    handleMessage(client: Client, message: Dict): void;
+    authenticate(params?: Dict): Promise<any>;
+    keepAliveListenKey(params?: Dict): Promise<void>;
 }

@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\lighter as Exchange;
 
 class lighter extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'lighter',
@@ -23,7 +22,7 @@ class lighter extends Exchange {
             'quoteJsonNumbers' => false,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
@@ -139,7 +138,7 @@ class lighter extends Exchange {
             ),
             'hostname' => 'zklighter.elliot.ai',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0',
+                'logo' => 'https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b',
                 'api' => array(
                     'root' => 'https://mainnet.{hostname}',
                     'public' => 'https://mainnet.{hostname}',
@@ -154,7 +153,7 @@ class lighter extends Exchange {
                 'doc' => 'https://apidocs.lighter.xyz/',
                 'fees' => 'https://docs.lighter.xyz/perpetual-futures/fees',
                 'referral' => array(
-                    'url' => 'app.lighter.xyz/?referral=715955W9',
+                    'url' => 'https://app.lighter.xyz/?referral=715955W9',
                     'discount' => 0.1, // user gets 10% of the points
                 ),
             ),
@@ -162,81 +161,96 @@ class lighter extends Exchange {
                 'root' => array(
                     'get' => array(
                         // root
-                        '' => 1, // status
-                        'info' => 1,
+                        '' => array( 'cost' => 1 ), // status
+                        'info' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
                         // account
-                        'account' => 1,
-                        'accountsByL1Address' => 1,
-                        'apikeys' => 1,
+                        'account' => array( 'cost' => 1 ),
+                        'accountsByL1Address' => array( 'cost' => 1 ),
+                        'apikeys' => array( 'cost' => 1 ),
                         // order
-                        'exchangeStats' => 1,
-                        'assetDetails' => 1,
-                        'orderBookDetails' => 1,
-                        'orderBookOrders' => 1,
-                        'orderBooks' => 1,
-                        'recentTrades' => 1,
+                        'exchangeStats' => array( 'cost' => 1 ),
+                        'assetDetails' => array( 'cost' => 1 ),
+                        'orderBookDetails' => array( 'cost' => 1 ),
+                        'orderBookOrders' => array( 'cost' => 1 ),
+                        'orderBooks' => array( 'cost' => 1 ),
+                        'recentTrades' => array( 'cost' => 1 ),
                         // transaction
-                        'blockTxs' => 1,
-                        'nextNonce' => 1,
-                        'tx' => 1,
-                        'txFromL1TxHash' => 1,
-                        'txs' => 1,
+                        'blockTxs' => array( 'cost' => 1 ),
+                        'nextNonce' => array( 'cost' => 1 ),
+                        'tx' => array( 'cost' => 1 ),
+                        'txFromL1TxHash' => array( 'cost' => 1 ),
+                        'txs' => array( 'cost' => 1 ),
                         // announcement
-                        'announcement' => 1,
+                        'announcement' => array( 'cost' => 1 ),
                         // block
-                        'block' => 1,
-                        'blocks' => 1,
-                        'currentHeight' => 1,
+                        'block' => array( 'cost' => 1 ),
+                        'blocks' => array( 'cost' => 1 ),
+                        'currentHeight' => array( 'cost' => 1 ),
                         // candlestick
-                        'candles' => 1,
-                        'fundings' => 1,
+                        'candles' => array( 'cost' => 1 ),
+                        'markPriceCandles' => array( 'cost' => 1 ),
+                        'fundings' => array( 'cost' => 1 ),
                         // bridge
-                        'fastbridge/info' => 1,
+                        'fastbridge/info' => array( 'cost' => 1 ),
                         // funding
-                        'funding-rates' => 1,
+                        'funding-rates' => array( 'cost' => 1 ),
                         // info
-                        'withdrawalDelay' => 1,
+                        'withdrawalDelay' => array( 'cost' => 1 ),
+                        'partnerStats' => array( 'cost' => 1 ),
+                        'syntheticSpotInfo' => array( 'cost' => 1 ),
+                        'tokenlist' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // transaction
-                        'sendTx' => 1,
-                        'sendTxBatch' => 1,
+                        'sendTx' => array( 'cost' => 1 ),
+                        'sendTxBatch' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // account
-                        'accountLimits' => 1,
-                        'accountMetadata' => 1,
-                        'pnl' => 1,
-                        'l1Metadata' => 1,
-                        'liquidations' => 1,
-                        'positionFunding' => 1,
-                        'publicPoolsMetadata' => 1,
+                        'accountLimits' => array( 'cost' => 1 ),
+                        'accountMetadata' => array( 'cost' => 1 ),
+                        'pnl' => array( 'cost' => 1 ),
+                        'l1Metadata' => array( 'cost' => 1 ),
+                        'liquidations' => array( 'cost' => 1 ),
+                        'positionFunding' => array( 'cost' => 1 ),
+                        'publicPoolsMetadata' => array( 'cost' => 1 ),
+                        'getMakerOnlyApiKeys' => array( 'cost' => 1 ),
                         // order
-                        'accountActiveOrders' => 1,
-                        'accountInactiveOrders' => 1,
-                        'export' => 1,
-                        'trades' => 1,
+                        'accountActiveOrders' => array( 'cost' => 1 ),
+                        'accountInactiveOrders' => array( 'cost' => 1 ),
+                        'accountOrders' => array( 'cost' => 1 ),
+                        'export' => array( 'cost' => 1 ),
+                        'export/historicalTrades' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
                         // transaction
-                        'accountTxs' => 1,
-                        'deposit/history' => 1,
-                        'transfer/history' => 1,
-                        'withdraw/history' => 1,
+                        'accountTxs' => array( 'cost' => 1 ),
+                        'deposit/history' => array( 'cost' => 1 ),
+                        'transfer/history' => array( 'cost' => 1 ),
+                        'withdraw/history' => array( 'cost' => 1 ),
                         // referral
-                        'referral/points' => 1,
+                        'referral/points' => array( 'cost' => 1 ),
                         // info
-                        'transferFeeInfo' => 1,
+                        'transferFeeInfo' => array( 'cost' => 1 ),
+                        // rfq
+                        'rfq/get' => array( 'cost' => 1 ),
+                        'rfq/list' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // account
-                        'changeAccountTier' => 1,
+                        'changeAccountTier' => array( 'cost' => 1 ),
+                        'setMakerOnlyApiKeys' => array( 'cost' => 1 ),
                         // notification
-                        'notification/ack' => 1,
+                        'notification/ack' => array( 'cost' => 1 ),
+                        // rfq
+                        'rfq/create' => array( 'cost' => 1 ),
+                        'rfq/respond' => array( 'cost' => 1 ),
+                        'rfq/update' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -302,7 +316,7 @@ class lighter extends Exchange {
                     '21730' => '\\ccxt\\InvalidOrder', // order status is not pending
                     '21731' => '\\ccxt\\InvalidOrder', // order can not be triggered
                     '21732' => '\\ccxt\\InvalidOrder', // reduce only increases position
-                    '21733' => '\\ccxt\\InvalidOrder', // order price flagged accidental price
+                    '21733' => '\\ccxt\\InvalidOrder', // order price flagged as an accidental price
                     '21734' => '\\ccxt\\InvalidOrder', // limit order price is too far from the mark price
                     '21735' => '\\ccxt\\InvalidOrder', // SL/TP order price is too far from the trigger price
                     '21736' => '\\ccxt\\InvalidOrder', // invalid order trigger status
@@ -374,7 +388,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function load_account($chainId, $privateKey, string $apiKeyIndex, string $accountIndex, $params = array ()) {
+    public function load_account(mixed $chainId, mixed $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
         $this->init_auth_object($accountIndex, $apiKeyIndex);
         $cachedAuths = $this->safe_dict($this->options['auths'][$accountIndex], $apiKeyIndex);
         $signer = $this->safe_value($cachedAuths, 'signer');
@@ -406,13 +420,13 @@ class lighter extends Exchange {
     }
 
     public function init_auth_object(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
             $this->options['auths'] = array();
         }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex, $this->options['auths']))) {
+        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
             $this->options['auths'][$strAccountIndex] = array();
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex, $this->options['auths'][$strAccountIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
             $this->options['auths'][$strAccountIndex][$strApiKeyIndex] = array(
                 'signer' => null,
                 'lighterPrivateKey' => null,
@@ -423,22 +437,22 @@ class lighter extends Exchange {
     }
 
     public function get_lighter_private_key(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
             return null;
         }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex, $this->options['auths']))) {
+        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
             return null;
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex, $this->options['auths'][$strAccountIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
             return null;
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex][$strApiKeyIndex]) && array_key_exists('lighterPrivateKey', $this->options['auths'][$strAccountIndex][$strApiKeyIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex][$strApiKeyIndex]) && array_key_exists('lighterPrivateKey' ?? '', $this->options['auths'][$strAccountIndex][$strApiKeyIndex]))) {
             return null;
         }
         return $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'];
     }
 
-    public function pre_load_lighter_library($params = array ()) {
+    public function pre_load_lighter_library($params = array()): bool {
         /**
          * if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -463,18 +477,18 @@ class lighter extends Exchange {
         return ($signer !== null);
     }
 
-    public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null): array {
+    public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): array {
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
         if (($apiKeyIndex === null) || ($apiKeyIndex < 4) || ($apiKeyIndex > 254)) {
-            // $apiKeyIndex = $this->rand_number(2);
+            // apiKeyIndex = this.randNumber (2);
             $apiKeyIndex = 254;
             $this->options['apiKeyIndex'] = $apiKeyIndex; // default to a value to avoid overriding other keys
         }
         return array( $this->parse_to_int($apiKeyIndex), $params );
     }
 
-    public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null): array {
+    public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): array {
         $accountIndex = null;
         list($accountIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
         if ($accountIndex === null) {
@@ -488,28 +502,28 @@ class lighter extends Exchange {
             if ($walletAddress === null || $walletAddress === '') {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . '/' . $optionName2 . ' parameter or $walletAddress to fetch $accountIndex-> Alternatively set privateKey in credentials to enable automatic $walletAddress detection.');
             }
-            $res = $this->publicGetAccountsByL1Address (array( 'l1_address' => $walletAddress ));
+            $res = $this->publicGetAccountsByL1Address(array( 'l1_address' => $walletAddress ));
             //
             // {
-            //     "code" => 200,
-            //     "l1_address" => "0xaaaabbbb....ccccdddd",
-            //     "sub_accounts" => array(
+            //     "code": 200,
+            //     "l1_address": "0xaaaabbbb....ccccdddd",
+            //     "sub_accounts": [
             //         {
-            //             "code" => 0,
-            //             "account_type" => 0,
-            //             "index" => 666666,
-            //             "l1_address" => "0xaaaabbbb....ccccdddd",
-            //             "cancel_all_time" => 0,
-            //             "total_order_count" => 0,
-            //             "total_isolated_order_count" => 0,
-            //             "pending_order_count" => 0,
-            //             "available_balance" => "",
-            //             "status" => 0,
-            //             "collateral" => "40",
-            //             "transaction_time" => 0,
-            //             "account_trading_mode" => 0
+            //             "code": 0,
+            //             "account_type": 0,
+            //             "index": 666666,
+            //             "l1_address": "0xaaaabbbb....ccccdddd",
+            //             "cancel_all_time": 0,
+            //             "total_order_count": 0,
+            //             "total_isolated_order_count": 0,
+            //             "pending_order_count": 0,
+            //             "available_balance": "",
+            //             "status": 0,
+            //             "collateral": "40",
+            //             "transaction_time": 0,
+            //             "account_trading_mode": 0
             //         }
-            //     )
+            //     ]
             // }
             //
             $subAccounts = $this->safe_list($res, 'sub_accounts');
@@ -525,7 +539,7 @@ class lighter extends Exchange {
         return array( $this->parse_to_int($accountIndex), $params );
     }
 
-    public function create_sub_account(string $name, $params = array ()) {
+    public function create_sub_account(string $name, $params = array()): array {
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'createSubAccount', 'apiKeyIndex', 'api_key_index');
         $accountIndex = null;
@@ -544,11 +558,11 @@ class lighter extends Exchange {
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        return $this->publicPostSendTx ($request);
+        return $this->publicPostSendTx($request);
     }
 
-    public function create_auth($params = array ()) {
-        // don't omit [$accountIndex, $apiKeyIndex], $request may need them
+    public function create_auth($params = array()): ?string {
+        // don't omit [accountIndex, apiKeyIndex], request may need them
         $apiKeyIndex = $this->safe_string_2($params, 'apiKeyIndex', 'api_key_index');
         if ($apiKeyIndex === null) {
             $res = $this->handle_option_and_params_2(array(), 'createAuth', 'apiKeyIndex', 'api_key_index');
@@ -564,12 +578,12 @@ class lighter extends Exchange {
         $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex);
         $cachedDeadline = $this->safe_integer($cachedAuth, 'deadline');
         if ($cachedDeadline !== null) {
-            $minimumDeadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineMinimumRemaining');
+            $minimumDeadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineMinimumRemaining', 60);
             if ($cachedDeadline >= $minimumDeadline) {
                 return $this->safe_string($cachedAuth, 'token');
             }
         }
-        $deadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineExpiry');
+        $deadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineExpiry', 28800);
         $request = array(
             'deadline' => $deadline,
             'api_key_index' => $this->parse_to_int($apiKeyIndex),
@@ -608,7 +622,7 @@ class lighter extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -617,7 +631,7 @@ class lighter extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_l1_and_prepare_tx_info($txInfo, $message, $privateKey) {
+    public function sign_l1_and_prepare_tx_info(mixed $txInfo, mixed $message, mixed $privateKey) {
         $hashMessage = $this->hash_message($message);
         $signature = $this->sign_hash($hashMessage, $privateKey);
         $decTxInfo = $this->parse_json($txInfo);
@@ -627,11 +641,11 @@ class lighter extends Exchange {
 
     public function handle_builder_fee_approval(float $accountIndex, float $apiKeyIndex) {
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if (!$buildFee) {
+        if ($buildFee !== true) {
             return false;
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee) {
+        if ($approvedBuilderFee === true) {
             return true;
         }
         try {
@@ -646,7 +660,7 @@ class lighter extends Exchange {
         return true;
     }
 
-    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, array $params = array ()) {
+    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()): array {
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
@@ -667,11 +681,11 @@ class lighter extends Exchange {
             'tx_type' => $txType,
             'tx_info' => $newTxInfo,
         );
-        $response = $this->publicPostSendTx ($request);
+        $response = $this->publicPostSendTx($request);
         return $response;
     }
 
-    public function change_api_key(array $params = array ()) {
+    public function change_api_key($params = array()) {
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'changeApiKey', 'apiKeyIndex', 'api_key_index');
         $accountIndex = null;
@@ -695,9 +709,9 @@ class lighter extends Exchange {
             'tx_type' => $txType,
             'tx_info' => $newTxInfo,
         );
-        $this->publicPostSendTx ($request);
+        $this->publicPostSendTx($request);
         $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'] = $privateKey;
-        $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['signer'] = $signer; // reassign $signer in go
+        $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['signer'] = $signer; // reassign signer in go
         $this->handle_builder_fee_approval($accountIndex, $apiKeyIndex);
         return $signer;
     }
@@ -708,7 +722,13 @@ class lighter extends Exchange {
         $this->options['chainId'] = $enable ? 300 : 304;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build the $request
@@ -750,11 +770,11 @@ class lighter extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $stopLoss = $this->safe_value($params, 'stopLoss');
-        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
-        $isConditional = ($stopLossPrice || $takeProfitPrice);
+        $isConditional = (($stopLossPrice !== null) || ($takeProfitPrice !== null));
         $isMarketOrder = ($orderType === 'MARKET');
         $timeInForce = $this->safe_string_lower($params, 'timeInForce', 'gtt');
         $postOnly = $this->is_post_only($isMarketOrder, null, $params);
@@ -774,6 +794,7 @@ class lighter extends Exchange {
         }
         if ($postOnly) {
             $timeInForceNum = 2;
+            $orderExpiry = -1;
         } else {
             if (!$isMarketOrder) {
                 if ($timeInForce === 'ioc') {
@@ -785,7 +806,7 @@ class lighter extends Exchange {
                 }
             }
         }
-        $marketInfo = $this->safe_dict($market, 'info');
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $amountStr = null;
         $priceStr = $this->price_to_precision($symbol, $price);
         $amountScale = $this->pow('10', $marketInfo['size_decimals']);
@@ -817,7 +838,7 @@ class lighter extends Exchange {
         $request['order_expiry'] = $orderExpiry;
         $request['order_type'] = $orderTypeNum;
         $request['time_in_force'] = $timeInForceNum;
-        $request['reduce_only'] = ($reduceOnly) ? 1 : 0;
+        $request['reduce_only'] = ($reduceOnly === true) ? 1 : 0;
         $request['client_order_index'] = $clientOrderId;
         $request['base_amount'] = $this->parse_to_int(Precise::string_mul($amountStr, $amountScale));
         $request['avg_execution_price'] = $this->parse_to_int(Precise::string_mul($priceStr, $priceScale));
@@ -838,13 +859,13 @@ class lighter extends Exchange {
             } else {
                 $triggerOrderSide = 'buy';
             }
-            $stopLossOrderTriggerPrice = $this->safe_number_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
+            $stopLossOrderTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
             $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
-            $stopLossOrderLimitPrice = $this->safe_number_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
-            $takeProfitOrderTriggerPrice = $this->safe_number_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
+            $stopLossOrderLimitPrice = $this->safe_number_2($stopLoss, 'price', 'stopLossPrice', $stopLossOrderTriggerPrice);
+            $takeProfitOrderTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
             $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
-            $takeProfitOrderLimitPrice = $this->safe_number_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
-            // $amount should be 0 for child $orders
+            $takeProfitOrderLimitPrice = $this->safe_number_2($takeProfit, 'price', 'takeProfitPrice', $takeProfitOrderTriggerPrice);
+            // amount should be 0 for child orders
             if ($stopLoss !== null) {
                 $orderObj = $this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, 0, $stopLossOrderLimitPrice, $this->extend($params, array(
                     'stopLossPrice' => $stopLossOrderTriggerPrice,
@@ -865,55 +886,38 @@ class lighter extends Exchange {
         return $orders;
     }
 
-    public function fetch_nonce($accountIndex, $apiKeyIndex, $params = array ()) {
+    public function fetch_nonce(mixed $accountIndex, mixed $apiKeyIndex, $params = array()): ?int {
         if (($accountIndex === null) || ($apiKeyIndex === null)) {
             throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
         }
-        if (is_array($params) && array_key_exists('nonce', $params)) {
+        if (is_array($params) && array_key_exists('nonce' ?? '', $params)) {
             return $this->safe_integer($params, 'nonce');
         }
         $nonceInOptions = $this->safe_integer($this->options, 'nonce');
         if ($nonceInOptions !== null) {
             return $nonceInOptions;
         }
-        // avoid $skipNonce for l1 operations
+        // avoid skipNonce for l1 operations
         $skipNonce = true;
         list($skipNonce, $params) = $this->handle_option_and_params($params, 'fetchNonce', 'skipNonce', true);
         if ($skipNonce) {
             return $this->milliseconds();
         }
-        $response = $this->publicGetNextNonce (array( 'account_index' => $accountIndex, 'api_key_index' => $apiKeyIndex ));
+        $response = $this->publicGetNextNonce(array( 'account_index' => $accountIndex, 'api_key_index' => $apiKeyIndex ));
         return $this->safe_integer($response, 'nonce');
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
-        /**
-         * create a trade $order
-         * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->timeInForce] 'GTT' or 'IOC', default is 'GTT'
-         * @param {int} [$params->clientOrderId] client $order id, should be unique for each $order, default is a random number
-         * @param {string} [$params->triggerPrice] trigger $price for stop loss or take profit orders, in units of the quote currency
-         * @param {boolean} [$params->reduceOnly] whether the $order is reduce only, default false
-         * @param {int} [$params->nonce] nonce for the account
-         * @param {int} [$params->apiKeyIndex] $apiKeyIndex
-         * @param {int} [$params->accountIndex] $accountIndex
-         * @param {int} [$params->orderExpiry] orderExpiry
-         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
-         */
-        $this->load_markets();
+    public function sign_and_create_order(string $method, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $accountIndex = null;
-        list($accountIndex, $params) = $this->handle_account_index($params, 'createOrder', 'accountIndex', 'account_index');
+        list($accountIndex, $params) = $this->handle_account_index($params, $method, 'accountIndex', 'account_index');
         $params['accountIndex'] = $accountIndex;
         $market = $this->market($symbol);
         $groupingType = null;
-        list($groupingType, $params) = $this->handle_option_and_params($params, 'createOrder', 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        list($groupingType, $params) = $this->handle_option_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        // for php
         $totalOrderRequests = count($orderRequests);
         $apiKeyIndex = null;
         $order = null;
@@ -929,7 +933,6 @@ class lighter extends Exchange {
             $order['nonce'] = $this->fetch_nonce($accountIndex, $apiKeyIndex);
         }
         $txType = null;
-        $txInfo = null;
         if ($totalOrderRequests < 2) {
             list($txType, $txInfo) = $this->lighter_sign_create_order($signer, $order);
         } else {
@@ -947,23 +950,46 @@ class lighter extends Exchange {
             }
             list($txType, $txInfo) = $this->lighter_sign_create_grouped_orders($signer, $signingPayload);
         }
+        return array( $txType, $txInfo, $order, $market );
+    }
+
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+        /**
+         * create a trade $order
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->timeInForce] 'GTT' or 'IOC', default is 'GTT'
+         * @param {int} [$params->clientOrderId] client $order id, should be unique for each $order, default is a random number
+         * @param {string} [$params->triggerPrice] trigger $price for stop loss or take profit orders, in units of the quote currency
+         * @param {boolean} [$params->reduceOnly] whether the $order is reduce only, default false
+         * @param {int} [$params->nonce] nonce for the account
+         * @param {int} [$params->apiKeyIndex] apiKeyIndex
+         * @param {int} [$params->accountIndex] accountIndex
+         * @param {int} [$params->orderExpiry] orderExpiry
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
+         */
+        list($txType, $txInfo, $order, $market) = $this->sign_and_create_order('createOrder', $symbol, $type, $side, $amount, $price, $params);
         $request = array(
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        $response = $this->publicPostSendTx ($request);
+        $response = $this->publicPostSendTx($request);
         //
         // {
-        //     "code" => 200,
-        //     "message" => "array(\"ratelimit\" => \"didn't use volume quota\")",
-        //     "tx_hash" => "txhash",
-        //     "predicted_execution_time_ms" => 1766088500120
+        //     "code": 200,
+        //     "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+        //     "tx_hash": "txhash",
+        //     "predicted_execution_time_ms": 1766088500120
         // }
         //
         return $this->parse_order($this->deep_extend($response, $order), $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * cancels an order and places a new order
          * @param {string} $id order $id
@@ -977,7 +1003,9 @@ class lighter extends Exchange {
          * @param {string} [$params->apiKeyIndex] api key index
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'editOrder', 'apiKeyIndex', 'api_key_index');
         $accountIndex = null;
@@ -986,7 +1014,7 @@ class lighter extends Exchange {
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
         $market = $this->market($symbol);
-        $marketInfo = $this->safe_dict($market, 'info');
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $amountScale = $this->pow('10', $marketInfo['size_decimals']);
         $priceScale = $this->pow('10', $marketInfo['price_decimals']);
         $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
@@ -1010,20 +1038,22 @@ class lighter extends Exchange {
             'nonce' => $nonce,
             'api_key_index' => $apiKeyIndex,
             'account_index' => $accountIndex,
-            'integrator_account_index' => $this->options['integratorAccountIndex'],
-            'integrator_taker_fee' => $this->options['integratorTakerFee'],
-            'integrator_maker_fee' => $this->options['integratorMakerFee'],
         );
+        if ($this->safe_bool($this->options, 'builderFee', true)) {
+            $signRaw['integrator_account_index'] = $this->options['integratorAccountIndex'];
+            $signRaw['integrator_taker_fee'] = $this->options['integratorTakerFee'];
+            $signRaw['integrator_maker_fee'] = $this->options['integratorMakerFee'];
+        }
         list($txType, $txInfo) = $this->lighter_sign_modify_order($signer, $this->extend($signRaw, $params));
         $request = array(
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        $response = $this->publicPostSendTx ($request);
+        $response = $this->publicPostSendTx($request);
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1032,17 +1062,17 @@ class lighter extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
-        $response = $this->rootGet ($params);
+        $response = $this->rootGet($params);
         //
         //     {
-        //         "status" => "1",
-        //         "network_id" => "1",
-        //         "timestamp" => "1717777777"
+        //         "status": "1",
+        //         "network_id": "1",
+        //         "timestamp": "1717777777"
         //     }
         //
         $status = $this->safe_string($response, 'status');
         return array(
-            'status' => ($status === '200') ? 'ok' : 'error', // if there's no Errors, $status = 'ok'
+            'status' => ($status === '200') ? 'ok' : 'error', // if there's no Errors, status = 'ok'
             'updated' => null,
             'eta' => null,
             'url' => null,
@@ -1050,7 +1080,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -1059,18 +1089,18 @@ class lighter extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->rootGet ($params);
+        $response = $this->rootGet($params);
         //
         //     {
-        //         "status" => "1",
-        //         "network_id" => "1",
-        //         "timestamp" => "1717777777"
+        //         "status": "1",
+        //         "network_id": "1",
+        //         "timestamp": "1717777777"
         //     }
         //
         return $this->safe_timestamp($response, 'timestamp');
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for lighter
          *
@@ -1079,85 +1109,85 @@ class lighter extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->publicGetOrderBookDetails ($params);
+        $response = $this->publicGetOrderBookDetails($params);
         //
         //    {
-        //        "code" => "200",
-        //        "message" => "string",
-        //        "order_book_details" => array(
+        //        "code": "200",
+        //        "message": "string",
+        //        "order_book_details": [
         //            {
-        //                "symbol" => "ETH",
-        //                "market_id" => 0,
-        //                "market_type" => "perp",
-        //                "base_asset_id" => 0,
-        //                "quote_asset_id" => 0,
-        //                "status" => "active",
-        //                "taker_fee" => "0.0001",
-        //                "maker_fee" => "0.0000",
-        //                "liquidation_fee" => "0.01",
-        //                "min_base_amount" => "0.01",
-        //                "min_quote_amount" => "0.1",
-        //                "supported_size_decimals" => "4",
-        //                "supported_price_decimals" => "4",
-        //                "supported_quote_decimals" => "4",
-        //                "order_quote_limit" => "281474976.710655",
-        //                "size_decimals" => "4",
-        //                "price_decimals" => "4",
-        //                "quote_multiplier" => "10000",
-        //                "default_initial_margin_fraction" => "100",
-        //                "min_initial_margin_fraction" => "100",
-        //                "maintenance_margin_fraction" => "50",
-        //                "closeout_margin_fraction" => "100",
-        //                "last_trade_price" => "3024.66",
-        //                "daily_trades_count" => "68",
-        //                "daily_base_token_volume" => "235.25",
-        //                "daily_quote_token_volume" => "93566.25",
-        //                "daily_price_low" => "3014.66",
-        //                "daily_price_high" => "3024.66",
-        //                "daily_price_change" => "3.66",
-        //                "open_interest" => "93.0",
-        //                "daily_chart" => "array(1640995200:3024.66)",
-        //                "market_config" => array(
-        //                    "market_margin_mode" => 0,
-        //                    "insurance_fund_account_index" => 281474976710655,
-        //                    "liquidation_mode" => 0,
-        //                    "force_reduce_only" => false,
-        //                    "funding_fee_discounts_enabled" => true,
-        //                    "trading_hours" => "",
-        //                    "hidden" => true
-        //                ),
-        //                "strategy_index" => 0
+        //                "symbol": "ETH",
+        //                "market_id": 0,
+        //                "market_type": "perp",
+        //                "base_asset_id": 0,
+        //                "quote_asset_id": 0,
+        //                "status": "active",
+        //                "taker_fee": "0.0001",
+        //                "maker_fee": "0.0000",
+        //                "liquidation_fee": "0.01",
+        //                "min_base_amount": "0.01",
+        //                "min_quote_amount": "0.1",
+        //                "supported_size_decimals": "4",
+        //                "supported_price_decimals": "4",
+        //                "supported_quote_decimals": "4",
+        //                "order_quote_limit": "281474976.710655",
+        //                "size_decimals": "4",
+        //                "price_decimals": "4",
+        //                "quote_multiplier": "10000",
+        //                "default_initial_margin_fraction": "100",
+        //                "min_initial_margin_fraction": "100",
+        //                "maintenance_margin_fraction": "50",
+        //                "closeout_margin_fraction": "100",
+        //                "last_trade_price": "3024.66",
+        //                "daily_trades_count": "68",
+        //                "daily_base_token_volume": "235.25",
+        //                "daily_quote_token_volume": "93566.25",
+        //                "daily_price_low": "3014.66",
+        //                "daily_price_high": "3024.66",
+        //                "daily_price_change": "3.66",
+        //                "open_interest": "93.0",
+        //                "daily_chart": "{1640995200:3024.66}",
+        //                "market_config": {
+        //                    "market_margin_mode": 0,
+        //                    "insurance_fund_account_index": 281474976710655,
+        //                    "liquidation_mode": 0,
+        //                    "force_reduce_only": false,
+        //                    "funding_fee_discounts_enabled": true,
+        //                    "trading_hours": "",
+        //                    "hidden": true
+        //                },
+        //                "strategy_index": 0
         //            }
-        //        ),
-        //        "spot_order_book_details" => array(
+        //        ],
+        //        "spot_order_book_details": [
         //            {
-        //                "symbol" => "ETH/USDC",
-        //                "market_id" => 2048,
-        //                "market_type" => "spot",
-        //                "base_asset_id" => 1,
-        //                "quote_asset_id" => 3,
-        //                "status" => "active",
-        //                "taker_fee" => "0.0000",
-        //                "maker_fee" => "0.0000",
-        //                "liquidation_fee" => "0.0000",
-        //                "min_base_amount" => "0.0001",
-        //                "min_quote_amount" => "0.000001",
-        //                "order_quote_limit" => "2500000.000000",
-        //                "supported_size_decimals" => 4,
-        //                "supported_price_decimals" => 2,
-        //                "supported_quote_decimals" => 6,
-        //                "size_decimals" => 4,
-        //                "price_decimals" => 2,
-        //                "last_trade_price" => 2731.79,
-        //                "daily_trades_count" => 126993,
-        //                "daily_base_token_volume" => 1203.0962,
-        //                "daily_quote_token_volume" => 3516374.947553,
-        //                "daily_price_low" => 2717.47,
-        //                "daily_price_high" => 3044.21,
-        //                "daily_price_change" => -10.2389493724579,
-        //                "daily_chart" => "array(1640995200:3024.66)"
+        //                "symbol": "ETH/USDC",
+        //                "market_id": 2048,
+        //                "market_type": "spot",
+        //                "base_asset_id": 1,
+        //                "quote_asset_id": 3,
+        //                "status": "active",
+        //                "taker_fee": "0.0000",
+        //                "maker_fee": "0.0000",
+        //                "liquidation_fee": "0.0000",
+        //                "min_base_amount": "0.0001",
+        //                "min_quote_amount": "0.000001",
+        //                "order_quote_limit": "2500000.000000",
+        //                "supported_size_decimals": 4,
+        //                "supported_price_decimals": 2,
+        //                "supported_quote_decimals": 6,
+        //                "size_decimals": 4,
+        //                "price_decimals": 2,
+        //                "last_trade_price": 2731.79,
+        //                "daily_trades_count": 126993,
+        //                "daily_base_token_volume": 1203.0962,
+        //                "daily_quote_token_volume": 3516374.947553,
+        //                "daily_price_low": 2717.47,
+        //                "daily_price_high": 3044.21,
+        //                "daily_price_change": -10.2389493724579,
+        //                "daily_chart": "{1640995200:3024.66}"
         //            }
-        //        )
+        //        ]
         //    }
         //
         $spotMarkets = $this->safe_list($response, 'spot_order_book_details', array());
@@ -1242,7 +1272,7 @@ class lighter extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -1251,26 +1281,26 @@ class lighter extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicGetAssetDetails ($params);
+        $response = $this->publicGetAssetDetails($params);
         if ($this->check_required_credentials(false)) {
             $this->pre_load_lighter_library();
         }
         //
         //     {
-        //         "code" => 200,
-        //         "asset_details" => array(
+        //         "code": 200,
+        //         "asset_details": [
         //             {
-        //                 "asset_id" => 3,
-        //                 "symbol" => "USDC",
-        //                 "l1_decimals" => 6,
-        //                 "decimals" => 6,
-        //                 "min_transfer_amount" => "1.000000",
-        //                 "min_withdrawal_amount" => "1.000000",
-        //                 "margin_mode" => "enabled",
-        //                 "index_price" => "1.000000",
-        //                 "l1_address" => "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
+        //                 "asset_id": 3,
+        //                 "symbol": "USDC",
+        //                 "l1_decimals": 6,
+        //                 "decimals": 6,
+        //                 "min_transfer_amount": "1.000000",
+        //                 "min_withdrawal_amount": "1.000000",
+        //                 "margin_mode": "enabled",
+        //                 "index_price": "1.000000",
+        //                 "l1_address": "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'asset_details', array());
@@ -1313,7 +1343,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -1322,48 +1352,50 @@ class lighter extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market_id' => $market['id'],
             'limit' => 100,
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 100);
+            $request['limit'] = min($limit, 100);
         }
-        $response = $this->publicGetOrderBookOrders ($this->extend($request, $params));
+        $response = $this->publicGetOrderBookOrders($this->extend($request, $params));
         //
         //     {
-        //         "code" => 200,
-        //         "total_asks" => 1,
-        //         "asks" => array(
+        //         "code": 200,
+        //         "total_asks": 1,
+        //         "asks": [
         //             {
-        //                 "order_index" => 281475565888172,
-        //                 "order_id" => "281475565888172",
-        //                 "owner_account_index" => 134436,
-        //                 "initial_base_amount" => "0.2000",
-        //                 "remaining_base_amount" => "0.2000",
-        //                 "price" => "3430.00",
-        //                 "order_expiry" => 1765419046808
+        //                 "order_index": 281475565888172,
+        //                 "order_id": "281475565888172",
+        //                 "owner_account_index": 134436,
+        //                 "initial_base_amount": "0.2000",
+        //                 "remaining_base_amount": "0.2000",
+        //                 "price": "3430.00",
+        //                 "order_expiry": 1765419046808
         //             }
-        //         ),
-        //         "total_bids" => 1,
-        //         "bids" => array(
+        //         ],
+        //         "total_bids": 1,
+        //         "bids": [
         //             {
-        //                 "order_index" => 562949401225099,
-        //                 "order_id" => "562949401225099",
-        //                 "owner_account_index" => 314236,
-        //                 "initial_base_amount" => "1.7361",
-        //                 "remaining_base_amount" => "1.3237",
-        //                 "price" => "3429.80",
-        //                 "order_expiry" => 1765419047587
+        //                 "order_index": 562949401225099,
+        //                 "order_id": "562949401225099",
+        //                 "owner_account_index": 314236,
+        //                 "initial_base_amount": "1.7361",
+        //                 "remaining_base_amount": "1.3237",
+        //                 "price": "3429.80",
+        //                 "order_expiry": 1765419047587
         //             }
-        //         )
+        //         ]
         //     }
         //
         $result = $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'remaining_base_amount');
@@ -1374,61 +1406,61 @@ class lighter extends Exchange {
         //
         // fetchTicker, fetchTickers
         //     {
-        //         "symbol" => "ETH",
-        //         "market_id" => 0,
-        //         "status" => "active",
-        //         "taker_fee" => "0.0000",
-        //         "maker_fee" => "0.0000",
-        //         "liquidation_fee" => "1.0000",
-        //         "min_base_amount" => "0.0050",
-        //         "min_quote_amount" => "10.000000",
-        //         "order_quote_limit" => "",
-        //         "supported_size_decimals" => 4,
-        //         "supported_price_decimals" => 2,
-        //         "supported_quote_decimals" => 6,
-        //         "size_decimals" => 4,
-        //         "price_decimals" => 2,
-        //         "quote_multiplier" => 1,
-        //         "default_initial_margin_fraction" => 500,
-        //         "min_initial_margin_fraction" => 200,
-        //         "maintenance_margin_fraction" => 120,
-        //         "closeout_margin_fraction" => 80,
-        //         "last_trade_price" => 3550.69,
-        //         "daily_trades_count" => 1197349,
-        //         "daily_base_token_volume" => 481297.3509,
-        //         "daily_quote_token_volume" => 1671431095.263844,
-        //         "daily_price_low" => 3402.41,
-        //         "daily_price_high" => 3571.45,
-        //         "daily_price_change" => 0.5294300840859545,
-        //         "open_interest" => 39559.3278,
-        //         "daily_chart" => array(),
-        //         "market_config" => {
-        //             "market_margin_mode" => 0,
-        //             "insurance_fund_account_index" => 281474976710654,
-        //             "liquidation_mode" => 0,
-        //             "force_reduce_only" => false,
-        //             "trading_hours" => ""
+        //         "symbol": "ETH",
+        //         "market_id": 0,
+        //         "status": "active",
+        //         "taker_fee": "0.0000",
+        //         "maker_fee": "0.0000",
+        //         "liquidation_fee": "1.0000",
+        //         "min_base_amount": "0.0050",
+        //         "min_quote_amount": "10.000000",
+        //         "order_quote_limit": "",
+        //         "supported_size_decimals": 4,
+        //         "supported_price_decimals": 2,
+        //         "supported_quote_decimals": 6,
+        //         "size_decimals": 4,
+        //         "price_decimals": 2,
+        //         "quote_multiplier": 1,
+        //         "default_initial_margin_fraction": 500,
+        //         "min_initial_margin_fraction": 200,
+        //         "maintenance_margin_fraction": 120,
+        //         "closeout_margin_fraction": 80,
+        //         "last_trade_price": 3550.69,
+        //         "daily_trades_count": 1197349,
+        //         "daily_base_token_volume": 481297.3509,
+        //         "daily_quote_token_volume": 1671431095.263844,
+        //         "daily_price_low": 3402.41,
+        //         "daily_price_high": 3571.45,
+        //         "daily_price_change": 0.5294300840859545,
+        //         "open_interest": 39559.3278,
+        //         "daily_chart": {},
+        //         "market_config": {
+        //             "market_margin_mode": 0,
+        //             "insurance_fund_account_index": 281474976710654,
+        //             "liquidation_mode": 0,
+        //             "force_reduce_only": false,
+        //             "trading_hours": ""
         //         }
         //     }
         //
         // watchTicker, watchTickers
         //     {
-        //         "market_id" => 0,
-        //         "index_price" => "3015.56",
-        //         "mark_price" => "3013.91",
-        //         "open_interest" => "122736286.659423",
-        //         "open_interest_limit" => "72057594037927936.000000",
-        //         "funding_clamp_small" => "0.0500",
-        //         "funding_clamp_big" => "4.0000",
-        //         "last_trade_price" => "3013.13",
-        //         "current_funding_rate" => "0.0012",
-        //         "funding_rate" => "0.0012",
-        //         "funding_timestamp" => 1763532000004,
-        //         "daily_base_token_volume" => 643235.2763,
-        //         "daily_quote_token_volume" => 1983505435.673896,
-        //         "daily_price_low" => 2977.42,
-        //         "daily_price_high" => 3170.81,
-        //         "daily_price_change" => -0.3061987051035322
+        //         "market_id": 0,
+        //         "index_price": "3015.56",
+        //         "mark_price": "3013.91",
+        //         "open_interest": "122736286.659423",
+        //         "open_interest_limit": "72057594037927936.000000",
+        //         "funding_clamp_small": "0.0500",
+        //         "funding_clamp_big": "4.0000",
+        //         "last_trade_price": "3013.13",
+        //         "current_funding_rate": "0.0012",
+        //         "funding_rate": "0.0012",
+        //         "funding_timestamp": 1763532000004,
+        //         "daily_base_token_volume": 643235.2763,
+        //         "daily_quote_token_volume": 1983505435.673896,
+        //         "daily_price_low": 2977.42,
+        //         "daily_price_high": 3170.81,
+        //         "daily_price_change": -0.3061987051035322
         //     }
         //
         $marketId = $this->safe_string($ticker, 'market_id');
@@ -1468,7 +1500,7 @@ class lighter extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1481,54 +1513,56 @@ class lighter extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchTicker() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market_id' => $market['id'],
         );
-        $response = $this->publicGetOrderBookDetails ($this->extend($request, $params));
+        $response = $this->publicGetOrderBookDetails($this->extend($request, $params));
         //
         //     {
-        //         "code" => 200,
-        //         "order_book_details" => array(
+        //         "code": 200,
+        //         "order_book_details": [
         //             {
-        //                 "symbol" => "ETH",
-        //                 "market_id" => 0,
-        //                 "status" => "active",
-        //                 "taker_fee" => "0.0000",
-        //                 "maker_fee" => "0.0000",
-        //                 "liquidation_fee" => "1.0000",
-        //                 "min_base_amount" => "0.0050",
-        //                 "min_quote_amount" => "10.000000",
-        //                 "order_quote_limit" => "",
-        //                 "supported_size_decimals" => 4,
-        //                 "supported_price_decimals" => 2,
-        //                 "supported_quote_decimals" => 6,
-        //                 "size_decimals" => 4,
-        //                 "price_decimals" => 2,
-        //                 "quote_multiplier" => 1,
-        //                 "default_initial_margin_fraction" => 500,
-        //                 "min_initial_margin_fraction" => 200,
-        //                 "maintenance_margin_fraction" => 120,
-        //                 "closeout_margin_fraction" => 80,
-        //                 "last_trade_price" => 3550.69,
-        //                 "daily_trades_count" => 1197349,
-        //                 "daily_base_token_volume" => 481297.3509,
-        //                 "daily_quote_token_volume" => 1671431095.263844,
-        //                 "daily_price_low" => 3402.41,
-        //                 "daily_price_high" => 3571.45,
-        //                 "daily_price_change" => 0.5294300840859545,
-        //                 "open_interest" => 39559.3278,
-        //                 "daily_chart" => array(),
-        //                 "market_config" => {
-        //                     "market_margin_mode" => 0,
-        //                     "insurance_fund_account_index" => 281474976710655,
-        //                     "liquidation_mode" => 0,
-        //                     "force_reduce_only" => false,
-        //                     "trading_hours" => ""
+        //                 "symbol": "ETH",
+        //                 "market_id": 0,
+        //                 "status": "active",
+        //                 "taker_fee": "0.0000",
+        //                 "maker_fee": "0.0000",
+        //                 "liquidation_fee": "1.0000",
+        //                 "min_base_amount": "0.0050",
+        //                 "min_quote_amount": "10.000000",
+        //                 "order_quote_limit": "",
+        //                 "supported_size_decimals": 4,
+        //                 "supported_price_decimals": 2,
+        //                 "supported_quote_decimals": 6,
+        //                 "size_decimals": 4,
+        //                 "price_decimals": 2,
+        //                 "quote_multiplier": 1,
+        //                 "default_initial_margin_fraction": 500,
+        //                 "min_initial_margin_fraction": 200,
+        //                 "maintenance_margin_fraction": 120,
+        //                 "closeout_margin_fraction": 80,
+        //                 "last_trade_price": 3550.69,
+        //                 "daily_trades_count": 1197349,
+        //                 "daily_base_token_volume": 481297.3509,
+        //                 "daily_quote_token_volume": 1671431095.263844,
+        //                 "daily_price_low": 3402.41,
+        //                 "daily_price_high": 3571.45,
+        //                 "daily_price_change": 0.5294300840859545,
+        //                 "open_interest": 39559.3278,
+        //                 "daily_chart": {},
+        //                 "market_config": {
+        //                     "market_margin_mode": 0,
+        //                     "insurance_fund_account_index": 281474976710655,
+        //                     "liquidation_mode": 0,
+        //                     "force_reduce_only": false,
+        //                     "trading_hours": ""
         //                 }
         //             }
-        //         )
+        //         ]
         //     }
         //
         $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
@@ -1538,7 +1572,7 @@ class lighter extends Exchange {
         return $this->parse_ticker($first, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -1548,30 +1582,32 @@ class lighter extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetOrderBookDetails ($params);
+        $response = $this->publicGetOrderBookDetails($params);
         $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
         $swapTickers = $this->safe_list($response, 'order_book_details', array());
         $tickers = $this->array_concat($spotTickers, $swapTickers);
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // {
-        //     "t" => 1767700500000,
-        //     "o" => 3236.86,
-        //     "h" => 3237.78,
-        //     "l" => 3235.36,
-        //     "c" => 3235.39,
-        //     "v" => 55.1632,
-        //     "V" => 178530.793575,
-        //     "i" => 779870452,
-        //     "C" => "string",
-        //     "H" => "string",
-        //     "L" => "string",
-        //     "O" => "string"
+        //     "t": 1767700500000,
+        //     "o": 3236.86,
+        //     "h": 3237.78,
+        //     "l": 3235.36,
+        //     "c": 3235.39,
+        //     "v": 55.1632,
+        //     "V": 178530.793575,
+        //     "i": 779870452,
+        //     "C": "string",
+        //     "H": "string",
+        //     "L": "string",
+        //     "O": "string"
         // }
         //
         return array(
@@ -1584,7 +1620,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1596,12 +1632,14 @@ class lighter extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, array( 'until' ));
@@ -1634,40 +1672,40 @@ class lighter extends Exchange {
             'start_timestamp' => $startTs,
             'end_timestamp' => $endTs,
         );
-        $response = $this->publicGetCandles ($this->extend($request, $params));
+        $response = $this->publicGetCandles($this->extend($request, $params));
         //
         // {
-        //     "code" => 200,
-        //     "r" => "1m",
-        //     "c" => array(
+        //     "code": 200,
+        //     "r": "1m",
+        //     "c": [
         //         {
-        //             "t" => 1767700500000,
-        //             "o" => 3236.86,
-        //             "h" => 3237.78,
-        //             "l" => 3235.36,
-        //             "c" => 3235.39,
-        //             "v" => 55.1632,
-        //             "V" => 178530.793575,
-        //             "i" => 779870452,
-        //             "C" => "string",
-        //             "H" => "string",
-        //             "L" => "string",
-        //             "O" => "string"
+        //             "t": 1767700500000,
+        //             "o": 3236.86,
+        //             "h": 3237.78,
+        //             "l": 3235.36,
+        //             "c": 3235.39,
+        //             "v": 55.1632,
+        //             "V": 178530.793575,
+        //             "i": 779870452,
+        //             "C": "string",
+        //             "H": "string",
+        //             "L": "string",
+        //             "O": "string"
         //         }
-        //     )
+        //     ]
         // }
         //
         $ohlcvs = $this->safe_list($response, 'c', array());
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
-        //         "market_id" => 0,
-        //         "exchange" => "lighter",
-        //         "symbol" => "ETH",
-        //         "rate" => 0.00009599999999999999
+        //         "market_id": 0,
+        //         "exchange": "lighter",
+        //         "symbol": "ETH",
+        //         "rate": 0.00009599999999999999
         //     }
         //
         $marketId = $this->safe_string($contract, 'market_id');
@@ -1693,7 +1731,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * fetch the current funding rate for multiple $symbols
          *
@@ -1703,19 +1741,21 @@ class lighter extends Exchange {
          * @param {array} [$params] extra parameters specific to the $exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
-        $this->load_markets();
-        $response = $this->publicGetFundingRates ($this->extend($params));
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetFundingRates($this->extend($params));
         //
         //     {
-        //         "code" => 200,
-        //         "funding_rates" => array(
+        //         "code": 200,
+        //         "funding_rates": [
         //             {
-        //                 "market_id" => 0,
-        //                 "exchange" => "lighter",
-        //                 "symbol" => "ETH",
-        //                 "rate" => 0.00009599999999999999
+        //                 "market_id": 0,
+        //                 "exchange": "lighter",
+        //                 "symbol": "ETH",
+        //                 "rate": 0.00009599999999999999
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'funding_rates', array());
@@ -1729,7 +1769,7 @@ class lighter extends Exchange {
         return $this->parse_funding_rates($result, $symbols);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for $balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1741,7 +1781,9 @@ class lighter extends Exchange {
          * @param {string} [$params->type] 'spot', 'swap', default is 'swap'
          * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $accountIndex = null;
         list($accountIndex, $params) = $this->handle_account_index($params, 'fetchBalance', 'accountIndex', 'account_index');
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
@@ -1750,49 +1792,49 @@ class lighter extends Exchange {
             'by' => $this->safe_string($params, 'by', 'index'),
             'value' => $accountIndex,
         );
-        $response = $this->publicGetAccount ($this->extend($request, $params));
+        $response = $this->publicGetAccount($this->extend($request, $params));
         //
         //     {
-        //         "code" => "200",
-        //         "total" => "1",
-        //         "accounts" => array(
+        //         "code": "200",
+        //         "total": "1",
+        //         "accounts": [
         //             {
-        //                 "code" => "0",
-        //                 "account_type" => "0",
-        //                 "index" => "1077",
-        //                 "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-        //                 "cancel_all_time" => "0",
-        //                 "total_order_count" => "1",
-        //                 "total_isolated_order_count" => "0",
-        //                 "pending_order_count" => "0",
-        //                 "available_balance" => "7996.489834",
-        //                 "status" => "1",
-        //                 "collateral" => "9000.000000",
-        //                 "account_index" => "1077",
-        //                 "name" => "",
-        //                 "description" => "",
-        //                 "can_invite" => true,
-        //                 "referral_points_percentage" => "",
-        //                 "positions" => array(),
-        //                 "assets" => array(
-        //                     array(
-        //                         "symbol" => "ETH",
-        //                         "asset_id" => "1",
-        //                         "balance" => "3.00000000",
-        //                         "locked_balance" => "0.00000000"
-        //                     ),
+        //                 "code": "0",
+        //                 "account_type": "0",
+        //                 "index": "1077",
+        //                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "cancel_all_time": "0",
+        //                 "total_order_count": "1",
+        //                 "total_isolated_order_count": "0",
+        //                 "pending_order_count": "0",
+        //                 "available_balance": "7996.489834",
+        //                 "status": "1",
+        //                 "collateral": "9000.000000",
+        //                 "account_index": "1077",
+        //                 "name": "",
+        //                 "description": "",
+        //                 "can_invite": true,
+        //                 "referral_points_percentage": "",
+        //                 "positions": [],
+        //                 "assets": [
         //                     {
-        //                         "symbol" => "USDC",
-        //                         "asset_id" => "3",
-        //                         "balance" => "1000.000000",
-        //                         "locked_balance" => "0.000000"
+        //                         "symbol": "ETH",
+        //                         "asset_id": "1",
+        //                         "balance": "3.00000000",
+        //                         "locked_balance": "0.00000000"
+        //                     },
+        //                     {
+        //                         "symbol": "USDC",
+        //                         "asset_id": "3",
+        //                         "balance": "1000.000000",
+        //                         "locked_balance": "0.000000"
         //                     }
-        //                 ),
-        //                 "total_asset_value" => "9536.789088",
-        //                 "cross_asset_value" => "9536.789088",
-        //                 "shares" => array()
+        //                 ],
+        //                 "total_asset_value": "9536.789088",
+        //                 "cross_asset_value": "9536.789088",
+        //                 "shares": []
         //             }
-        //         )
+        //         ]
         //     }
         //
         $result = array( 'info' => $response );
@@ -1808,21 +1850,25 @@ class lighter extends Exchange {
                     $balance = $this->safe_dict($result, $code, $this->account());
                     $balance['total'] = Precise::string_add($balance['total'], $this->safe_string($asset, 'balance'));
                     $balance['used'] = Precise::string_add($balance['used'], $this->safe_string($asset, 'locked_balance'));
-                    $result[$code] = $balance;
+                    if ($code !== null) {
+                        $result[$code] = $balance;
+                    }
                 }
             } else {
                 $perpBalance = $this->safe_dict($result, 'USDC', $this->account());
-                $perpUSDCTotal = $this->safe_string($account, 'collateral');
-                $perpUSDCFree = $this->safe_string($account, 'available_balance');
-                $perpBalance['total'] = Precise::string_add($perpBalance['total'], $perpUSDCTotal);
-                $perpBalance['free'] = Precise::string_add($perpBalance['free'], $perpUSDCFree);
+                $perpTotal = $this->safe_string($perpBalance, 'total', '0');
+                $perpFree = $this->safe_string($perpBalance, 'free', '0');
+                $perpUSDCTotal = $this->safe_string($account, 'collateral', '0');
+                $perpUSDCFree = $this->safe_string($account, 'available_balance', '0');
+                $perpBalance['total'] = Precise::string_add($perpTotal, $perpUSDCTotal);
+                $perpBalance['free'] = Precise::string_add($perpFree, $perpUSDCFree);
                 $result['USDC'] = $perpBalance;
             }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open position
          *
@@ -1838,7 +1884,7 @@ class lighter extends Exchange {
         return $this->safe_dict($positions, 0, array());
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open $positions
          *
@@ -1850,61 +1896,63 @@ class lighter extends Exchange {
          * @param {string} [$params->value] fetch balance value, $account index or l1 address
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $accountIndex = null;
         list($accountIndex, $params) = $this->handle_account_index($params, 'fetchPositions', 'accountIndex', 'account_index');
         $request = array(
             'by' => $this->safe_string($params, 'by', 'index'),
             'value' => $accountIndex,
         );
-        $response = $this->publicGetAccount ($this->extend($request, $params));
+        $response = $this->publicGetAccount($this->extend($request, $params));
         //
         //     {
-        //         "code" => 200,
-        //         "total" => 2,
-        //         "accounts" => array(
+        //         "code": 200,
+        //         "total": 2,
+        //         "accounts": [
         //             {
-        //                 "code" => 0,
-        //                 "account_type" => 0,
-        //                 "index" => 1077,
-        //                 "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-        //                 "cancel_all_time" => 0,
-        //                 "total_order_count" => 0,
-        //                 "total_isolated_order_count" => 0,
-        //                 "pending_order_count" => 0,
-        //                 "available_balance" => "12582.743947",
-        //                 "status" => 1,
-        //                 "collateral" => "9100.242706",
-        //                 "account_index" => 1077,
-        //                 "name" => "",
-        //                 "description" => "",
-        //                 "can_invite" => true,
-        //                 "referral_points_percentage" => "",
-        //                 "positions" => array(
+        //                 "code": 0,
+        //                 "account_type": 0,
+        //                 "index": 1077,
+        //                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "cancel_all_time": 0,
+        //                 "total_order_count": 0,
+        //                 "total_isolated_order_count": 0,
+        //                 "pending_order_count": 0,
+        //                 "available_balance": "12582.743947",
+        //                 "status": 1,
+        //                 "collateral": "9100.242706",
+        //                 "account_index": 1077,
+        //                 "name": "",
+        //                 "description": "",
+        //                 "can_invite": true,
+        //                 "referral_points_percentage": "",
+        //                 "positions": [
         //                     {
-        //                         "market_id" => 0,
-        //                         "symbol" => "ETH",
-        //                         "initial_margin_fraction" => "5.00",
-        //                         "open_order_count" => 0,
-        //                         "pending_order_count" => 0,
-        //                         "position_tied_order_count" => 0,
-        //                         "sign" => 1,
-        //                         "position" => "18.0193",
-        //                         "avg_entry_price" => "2669.84",
-        //                         "position_value" => "54306.566340",
-        //                         "unrealized_pnl" => "6197.829558",
-        //                         "realized_pnl" => "0.000000",
-        //                         "liquidation_price" => "2191.1107231380406",
-        //                         "margin_mode" => 0,
-        //                         "allocated_margin" => "0.000000"
+        //                         "market_id": 0,
+        //                         "symbol": "ETH",
+        //                         "initial_margin_fraction": "5.00",
+        //                         "open_order_count": 0,
+        //                         "pending_order_count": 0,
+        //                         "position_tied_order_count": 0,
+        //                         "sign": 1,
+        //                         "position": "18.0193",
+        //                         "avg_entry_price": "2669.84",
+        //                         "position_value": "54306.566340",
+        //                         "unrealized_pnl": "6197.829558",
+        //                         "realized_pnl": "0.000000",
+        //                         "liquidation_price": "2191.1107231380406",
+        //                         "margin_mode": 0,
+        //                         "allocated_margin": "0.000000"
         //                     }
-        //                 ),
-        //                 "assets" => array(),
-        //                 "total_asset_value" => "15298.072264000002",
-        //                 "cross_asset_value" => "15298.072264000002",
-        //                 "shares" => array()
+        //                 ],
+        //                 "assets": [],
+        //                 "total_asset_value": "15298.072264000002",
+        //                 "cross_asset_value": "15298.072264000002",
+        //                 "shares": []
         //             }
-        //         )
+        //         ]
         //     }
         //
         $allPositions = array();
@@ -1919,24 +1967,24 @@ class lighter extends Exchange {
         return $this->parse_positions($allPositions, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         "market_id" => 0,
-        //         "symbol" => "ETH",
-        //         "initial_margin_fraction" => "5.00",
-        //         "open_order_count" => 0,
-        //         "pending_order_count" => 0,
-        //         "position_tied_order_count" => 0,
-        //         "sign" => 1,
-        //         "position" => "18.0193",
-        //         "avg_entry_price" => "2669.84",
-        //         "position_value" => "54306.566340",
-        //         "unrealized_pnl" => "6197.829558",
-        //         "realized_pnl" => "0.000000",
-        //         "liquidation_price" => "2191.1107231380406",
-        //         "margin_mode" => 0,
-        //         "allocated_margin" => "0.000000"
+        //         "market_id": 0,
+        //         "symbol": "ETH",
+        //         "initial_margin_fraction": "5.00",
+        //         "open_order_count": 0,
+        //         "pending_order_count": 0,
+        //         "position_tied_order_count": 0,
+        //         "sign": 1,
+        //         "position": "18.0193",
+        //         "avg_entry_price": "2669.84",
+        //         "position_value": "54306.566340",
+        //         "unrealized_pnl": "6197.829558",
+        //         "realized_pnl": "0.000000",
+        //         "liquidation_price": "2191.1107231380406",
+        //         "margin_mode": 0,
+        //         "allocated_margin": "0.000000"
         //     }
         //
         $marketId = $this->safe_string($position, 'market_id');
@@ -1986,7 +2034,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function fetch_accounts($params = array ()): array {
+    public function fetch_accounts($params = array()): array {
         /**
          * fetch all the $accounts associated with a profile
          *
@@ -1997,73 +2045,75 @@ class lighter extends Exchange {
          * @param {string} [$params->value] fetch balance value, account index or l1 address
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$accounts-structure account structures~ indexed by the account type
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $accountIndex = null;
         list($accountIndex, $params) = $this->handle_account_index($params, 'fetchAccounts', 'accountIndex', 'account_index');
         $request = array(
             'by' => $this->safe_string($params, 'by', 'index'),
             'value' => $accountIndex,
         );
-        $response = $this->publicGetAccount ($this->extend($request, $params));
+        $response = $this->publicGetAccount($this->extend($request, $params));
         //
         //     {
-        //         "code" => "200",
-        //         "total" => "1",
-        //         "accounts" => array(
+        //         "code": "200",
+        //         "total": "1",
+        //         "accounts": [
         //             {
-        //                 "code" => "0",
-        //                 "account_type" => "0",
-        //                 "index" => "1077",
-        //                 "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-        //                 "cancel_all_time" => "0",
-        //                 "total_order_count" => "1",
-        //                 "total_isolated_order_count" => "0",
-        //                 "pending_order_count" => "0",
-        //                 "available_balance" => "7996.489834",
-        //                 "status" => "1",
-        //                 "collateral" => "9000.000000",
-        //                 "account_index" => "1077",
-        //                 "name" => "",
-        //                 "description" => "",
-        //                 "can_invite" => true,
-        //                 "referral_points_percentage" => "",
-        //                 "positions" => array(),
-        //                 "assets" => array(),
-        //                 "total_asset_value" => "9536.789088",
-        //                 "cross_asset_value" => "9536.789088",
-        //                 "shares" => array()
+        //                 "code": "0",
+        //                 "account_type": "0",
+        //                 "index": "1077",
+        //                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "cancel_all_time": "0",
+        //                 "total_order_count": "1",
+        //                 "total_isolated_order_count": "0",
+        //                 "pending_order_count": "0",
+        //                 "available_balance": "7996.489834",
+        //                 "status": "1",
+        //                 "collateral": "9000.000000",
+        //                 "account_index": "1077",
+        //                 "name": "",
+        //                 "description": "",
+        //                 "can_invite": true,
+        //                 "referral_points_percentage": "",
+        //                 "positions": [],
+        //                 "assets": [],
+        //                 "total_asset_value": "9536.789088",
+        //                 "cross_asset_value": "9536.789088",
+        //                 "shares": []
         //             }
-        //         )
+        //         ]
         //     }
         //
         $accounts = $this->safe_list($response, 'accounts', array());
         return $this->parse_accounts($accounts, $params);
     }
 
-    public function parse_account($account) {
+    public function parse_account(array $account): array {
         //
         //     {
-        //         "code" => "0",
-        //         "account_type" => "0",
-        //         "index" => "1077",
-        //         "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-        //         "cancel_all_time" => "0",
-        //         "total_order_count" => "1",
-        //         "total_isolated_order_count" => "0",
-        //         "pending_order_count" => "0",
-        //         "available_balance" => "7996.489834",
-        //         "status" => "1",
-        //         "collateral" => "9000.000000",
-        //         "account_index" => "1077",
-        //         "name" => "",
-        //         "description" => "",
-        //         "can_invite" => true,
-        //         "referral_points_percentage" => "",
-        //         "positions" => array(),
-        //         "assets" => array(),
-        //         "total_asset_value" => "9536.789088",
-        //         "cross_asset_value" => "9536.789088",
-        //         "shares" => array()
+        //         "code": "0",
+        //         "account_type": "0",
+        //         "index": "1077",
+        //         "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //         "cancel_all_time": "0",
+        //         "total_order_count": "1",
+        //         "total_isolated_order_count": "0",
+        //         "pending_order_count": "0",
+        //         "available_balance": "7996.489834",
+        //         "status": "1",
+        //         "collateral": "9000.000000",
+        //         "account_index": "1077",
+        //         "name": "",
+        //         "description": "",
+        //         "can_invite": true,
+        //         "referral_points_percentage": "",
+        //         "positions": [],
+        //         "assets": [],
+        //         "total_asset_value": "9536.789088",
+        //         "cross_asset_value": "9536.789088",
+        //         "shares": []
         //     }
         //
         $accountType = $this->safe_string($account, 'account_type');
@@ -2075,7 +2125,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -2091,7 +2141,9 @@ class lighter extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $accountIndex = null;
         list($accountIndex, $params) = $this->handle_account_index($params, 'fetchOpenOrders', 'accountIndex', 'account_index');
         $apiKeyIndex = null;
@@ -2104,54 +2156,54 @@ class lighter extends Exchange {
             'market_id' => $market['id'],
             'account_index' => $accountIndex,
         );
-        $response = $this->privateGetAccountActiveOrders ($this->extend($request, $params));
+        $response = $this->privateGetAccountActiveOrders($this->extend($request, $params));
         //
         //     {
-        //         "code" => 200,
-        //         "orders" => array(
+        //         "code": 200,
+        //         "orders": [
         //             {
-        //                 "order_index" => 281474977354074,
-        //                 "client_order_index" => 0,
-        //                 "order_id" => "281474977354074",
-        //                 "client_order_id" => "0",
-        //                 "market_index" => 0,
-        //                 "owner_account_index" => 1077,
-        //                 "initial_base_amount" => "36.0386",
-        //                 "price" => "2221.60",
-        //                 "nonce" => 643418,
-        //                 "remaining_base_amount" => "0.0000",
-        //                 "is_ask" => true,
-        //                 "base_size" => 0,
-        //                 "base_price" => 222160,
-        //                 "filled_base_amount" => "0.0000",
-        //                 "filled_quote_amount" => "0.000000",
-        //                 "side" => "",
-        //                 "type" => "market",
-        //                 "time_in_force" => "immediate-or-cancel",
-        //                 "reduce_only" => false,
-        //                 "trigger_price" => "0.00",
-        //                 "order_expiry" => 0,
-        //                 "status" => "canceled-margin-not-allowed",
-        //                 "trigger_status" => "na",
-        //                 "trigger_time" => 0,
-        //                 "parent_order_index" => 0,
-        //                 "parent_order_id" => "0",
-        //                 "to_trigger_order_id_0" => "0",
-        //                 "to_trigger_order_id_1" => "0",
-        //                 "to_cancel_order_id_0" => "0",
-        //                 "block_height" => 102202,
-        //                 "timestamp" => 1766387932,
-        //                 "created_at" => 1766387932,
-        //                 "updated_at" => 1766387932
+        //                 "order_index": 281474977354074,
+        //                 "client_order_index": 0,
+        //                 "order_id": "281474977354074",
+        //                 "client_order_id": "0",
+        //                 "market_index": 0,
+        //                 "owner_account_index": 1077,
+        //                 "initial_base_amount": "36.0386",
+        //                 "price": "2221.60",
+        //                 "nonce": 643418,
+        //                 "remaining_base_amount": "0.0000",
+        //                 "is_ask": true,
+        //                 "base_size": 0,
+        //                 "base_price": 222160,
+        //                 "filled_base_amount": "0.0000",
+        //                 "filled_quote_amount": "0.000000",
+        //                 "side": "",
+        //                 "type": "market",
+        //                 "time_in_force": "immediate-or-cancel",
+        //                 "reduce_only": false,
+        //                 "trigger_price": "0.00",
+        //                 "order_expiry": 0,
+        //                 "status": "canceled-margin-not-allowed",
+        //                 "trigger_status": "na",
+        //                 "trigger_time": 0,
+        //                 "parent_order_index": 0,
+        //                 "parent_order_id": "0",
+        //                 "to_trigger_order_id_0": "0",
+        //                 "to_trigger_order_id_1": "0",
+        //                 "to_cancel_order_id_0": "0",
+        //                 "block_height": 102202,
+        //                 "timestamp": 1766387932,
+        //                 "created_at": 1766387932,
+        //                 "updated_at": 1766387932
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'orders', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently closed orders
          *
@@ -2167,7 +2219,9 @@ class lighter extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $accountIndex = null;
         list($accountIndex, $params) = $this->handle_account_index($params, 'fetchClosedOrders', 'accountIndex', 'account_index');
         $apiKeyIndex = null;
@@ -2182,49 +2236,49 @@ class lighter extends Exchange {
             'limit' => 100, // required, max 100
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 100);
+            $request['limit'] = min($limit, 100);
         }
-        $response = $this->privateGetAccountInactiveOrders ($this->extend($request, $params));
+        $response = $this->privateGetAccountInactiveOrders($this->extend($request, $params));
         //
         //     {
-        //         "code" => 200,
-        //         "orders" => array(
+        //         "code": 200,
+        //         "orders": [
         //             {
-        //                 "order_index" => 281474977354074,
-        //                 "client_order_index" => 0,
-        //                 "order_id" => "281474977354074",
-        //                 "client_order_id" => "0",
-        //                 "market_index" => 0,
-        //                 "owner_account_index" => 1077,
-        //                 "initial_base_amount" => "36.0386",
-        //                 "price" => "2221.60",
-        //                 "nonce" => 643418,
-        //                 "remaining_base_amount" => "0.0000",
-        //                 "is_ask" => true,
-        //                 "base_size" => 0,
-        //                 "base_price" => 222160,
-        //                 "filled_base_amount" => "0.0000",
-        //                 "filled_quote_amount" => "0.000000",
-        //                 "side" => "",
-        //                 "type" => "market",
-        //                 "time_in_force" => "immediate-or-cancel",
-        //                 "reduce_only" => false,
-        //                 "trigger_price" => "0.00",
-        //                 "order_expiry" => 0,
-        //                 "status" => "canceled-margin-not-allowed",
-        //                 "trigger_status" => "na",
-        //                 "trigger_time" => 0,
-        //                 "parent_order_index" => 0,
-        //                 "parent_order_id" => "0",
-        //                 "to_trigger_order_id_0" => "0",
-        //                 "to_trigger_order_id_1" => "0",
-        //                 "to_cancel_order_id_0" => "0",
-        //                 "block_height" => 102202,
-        //                 "timestamp" => 1766387932,
-        //                 "created_at" => 1766387932,
-        //                 "updated_at" => 1766387932
+        //                 "order_index": 281474977354074,
+        //                 "client_order_index": 0,
+        //                 "order_id": "281474977354074",
+        //                 "client_order_id": "0",
+        //                 "market_index": 0,
+        //                 "owner_account_index": 1077,
+        //                 "initial_base_amount": "36.0386",
+        //                 "price": "2221.60",
+        //                 "nonce": 643418,
+        //                 "remaining_base_amount": "0.0000",
+        //                 "is_ask": true,
+        //                 "base_size": 0,
+        //                 "base_price": 222160,
+        //                 "filled_base_amount": "0.0000",
+        //                 "filled_quote_amount": "0.000000",
+        //                 "side": "",
+        //                 "type": "market",
+        //                 "time_in_force": "immediate-or-cancel",
+        //                 "reduce_only": false,
+        //                 "trigger_price": "0.00",
+        //                 "order_expiry": 0,
+        //                 "status": "canceled-margin-not-allowed",
+        //                 "trigger_status": "na",
+        //                 "trigger_time": 0,
+        //                 "parent_order_index": 0,
+        //                 "parent_order_id": "0",
+        //                 "to_trigger_order_id_0": "0",
+        //                 "to_trigger_order_id_1": "0",
+        //                 "to_cancel_order_id_0": "0",
+        //                 "block_height": 102202,
+        //                 "timestamp": 1766387932,
+        //                 "created_at": 1766387932,
+        //                 "updated_at": 1766387932
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'orders', array());
@@ -2234,39 +2288,39 @@ class lighter extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "order_index" => 281474977354074,
-        //         "client_order_index" => 0,
-        //         "order_id" => "281474977354074",
-        //         "client_order_id" => "0",
-        //         "market_index" => 0,
-        //         "owner_account_index" => 1077,
-        //         "initial_base_amount" => "36.0386",
-        //         "price" => "2221.60",
-        //         "nonce" => 643418,
-        //         "remaining_base_amount" => "0.0000",
-        //         "is_ask" => true,
-        //         "base_size" => 0,
-        //         "base_price" => 222160,
-        //         "filled_base_amount" => "0.0000",
-        //         "filled_quote_amount" => "0.000000",
-        //         "side" => "",
-        //         "type" => "market",
-        //         "time_in_force" => "immediate-or-cancel",
-        //         "reduce_only" => false,
-        //         "trigger_price" => "0.00",
-        //         "order_expiry" => 0,
-        //         "status" => "canceled-margin-not-allowed",
-        //         "trigger_status" => "na",
-        //         "trigger_time" => 0,
-        //         "parent_order_index" => 0,
-        //         "parent_order_id" => "0",
-        //         "to_trigger_order_id_0" => "0",
-        //         "to_trigger_order_id_1" => "0",
-        //         "to_cancel_order_id_0" => "0",
-        //         "block_height" => 102202,
-        //         "timestamp" => 1766387932,
-        //         "created_at" => 1766387932,
-        //         "updated_at" => 1766387932
+        //         "order_index": 281474977354074,
+        //         "client_order_index": 0,
+        //         "order_id": "281474977354074",
+        //         "client_order_id": "0",
+        //         "market_index": 0,
+        //         "owner_account_index": 1077,
+        //         "initial_base_amount": "36.0386",
+        //         "price": "2221.60",
+        //         "nonce": 643418,
+        //         "remaining_base_amount": "0.0000",
+        //         "is_ask": true,
+        //         "base_size": 0,
+        //         "base_price": 222160,
+        //         "filled_base_amount": "0.0000",
+        //         "filled_quote_amount": "0.000000",
+        //         "side": "",
+        //         "type": "market",
+        //         "time_in_force": "immediate-or-cancel",
+        //         "reduce_only": false,
+        //         "trigger_price": "0.00",
+        //         "order_expiry": 0,
+        //         "status": "canceled-margin-not-allowed",
+        //         "trigger_status": "na",
+        //         "trigger_time": 0,
+        //         "parent_order_index": 0,
+        //         "parent_order_id": "0",
+        //         "to_trigger_order_id_0": "0",
+        //         "to_trigger_order_id_1": "0",
+        //         "to_cancel_order_id_0": "0",
+        //         "block_height": 102202,
+        //         "timestamp": 1766387932,
+        //         "created_at": 1766387932,
+        //         "updated_at": 1766387932
         //     }
         //
         $marketId = $this->safe_string($order, 'market_index');
@@ -2299,7 +2353,7 @@ class lighter extends Exchange {
                 $takeProfitPrice = $triggerPrice;
             }
         }
-        // Try to parse to integer first, because parsing an integer to a string wouldn't result in null
+        // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         $tif = null;
         $tifAsInteger = $this->safe_integer($order, 'time_in_force');
         if ($tifAsInteger !== null) {
@@ -2318,7 +2372,7 @@ class lighter extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
-            'clientOrderId' => $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'client_order_index')),
+            'clientOrderId' => $this->omit_zero(($this->safe_string_2($order, 'client_order_id', 'client_order_index'))),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -2366,7 +2420,7 @@ class lighter extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(mixed $type) {
         $types = array(
             'limit' => 'limit',
             'market' => 'market',
@@ -2381,7 +2435,7 @@ class lighter extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order_type_integer($typeInteger) {
+    public function parse_order_type_integer(mixed $typeInteger) {
         if ($typeInteger === null) {
             return null;
         }
@@ -2399,7 +2453,7 @@ class lighter extends Exchange {
         return $this->safe_string($types, (string) $typeInteger);
     }
 
-    public function parse_order_time_in_force($tif) {
+    public function parse_order_time_in_force(mixed $tif) {
         $timeInForces = array(
             'immediate-or-cancel' => 'IOC',
             'good-till-time' => 'GTC',
@@ -2409,7 +2463,7 @@ class lighter extends Exchange {
         return $this->safe_string($timeInForces, $tif, $tif);
     }
 
-    public function parse_order_time_in_force_integer($tifInteger) {
+    public function parse_order_time_in_force_integer(mixed $tifInteger) {
         $timeInForces = array(
             '0' => 'immediate-or-cancel',
             '1' => 'good-till-time',
@@ -2418,7 +2472,7 @@ class lighter extends Exchange {
         return $this->safe_string($timeInForces, (string) $tifInteger);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -2432,7 +2486,9 @@ class lighter extends Exchange {
          * @param {string} [$params->memo] hex encoding $memo
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'transfer', 'apiKeyIndex', 'api_key_index');
         $accountIndex = null;
@@ -2450,7 +2506,7 @@ class lighter extends Exchange {
         } else {
             throw new ExchangeError($this->id . ' transfer() only supports USDC and ETH transfers');
         }
-        $fromRouteType = ($fromAccount === 'perp') ? 0 : 1; // 0 => perp, 1 => spot
+        $fromRouteType = ($fromAccount === 'perp') ? 0 : 1; // 0: perp, 1: spot
         $toRouteType = ($toAccount === 'perp') ? 0 : 1;
         $memo = $this->safe_string($params, 'memo', '0x000000000000000000000000000000');
         $params = $this->omit($params, array( 'memo' ));
@@ -2472,11 +2528,11 @@ class lighter extends Exchange {
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        $response = $this->publicPostSendTx ($request);
+        $response = $this->publicPostSendTx($request);
         return $this->parse_transfer($response);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of internal transfers made on an account
          *
@@ -2490,7 +2546,9 @@ class lighter extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
         if ($paginate) {
@@ -2510,28 +2568,28 @@ class lighter extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->privateGetTransferHistory ($this->extend($request, $params));
+        $response = $this->privateGetTransferHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => 200,
-        //         "transfers" => array(
+        //         "code": 200,
+        //         "transfers": [
         //             {
-        //                 "id" => "3085014",
-        //                 "asset_id" => 3,
-        //                 "amount" => "11.000000",
-        //                 "fee" => "0.000000",
-        //                 "timestamp" => 1766387292752,
-        //                 "type" => "L2TransferOutflow",
-        //                 "from_l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-        //                 "to_l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-        //                 "from_account_index" => 1077,
-        //                 "to_account_index" => 281474976710608,
-        //                 "from_route" => "spot",
-        //                 "to_route" => "spot",
-        //                 "tx_hash" => "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
+        //                 "id": "3085014",
+        //                 "asset_id": 3,
+        //                 "amount": "11.000000",
+        //                 "fee": "0.000000",
+        //                 "timestamp": 1766387292752,
+        //                 "type": "L2TransferOutflow",
+        //                 "from_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "to_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "from_account_index": 1077,
+        //                 "to_account_index": 281474976710608,
+        //                 "from_route": "spot",
+        //                 "to_route": "spot",
+        //                 "tx_hash": "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
         //             }
-        //         ),
-        //         "cursor" => "eyJpbmRleCI6MzA4NDkxNX0="
+        //         ],
+        //         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
         //     }
         //
         $rows = $this->safe_list($response, 'transfers', array());
@@ -2546,19 +2604,19 @@ class lighter extends Exchange {
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
-        //         "id" => "3085014",
-        //         "asset_id" => 3,
-        //         "amount" => "11.000000",
-        //         "fee" => "0.000000",
-        //         "timestamp" => 1766387292752,
-        //         "type" => "L2TransferOutflow",
-        //         "from_l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-        //         "to_l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-        //         "from_account_index" => 1077,
-        //         "to_account_index" => 281474976710608,
-        //         "from_route" => "spot",
-        //         "to_route" => "spot",
-        //         "tx_hash" => "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
+        //         "id": "3085014",
+        //         "asset_id": 3,
+        //         "amount": "11.000000",
+        //         "fee": "0.000000",
+        //         "timestamp": 1766387292752,
+        //         "type": "L2TransferOutflow",
+        //         "from_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //         "to_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //         "from_account_index": 1077,
+        //         "to_account_index": 281474976710608,
+        //         "from_route": "spot",
+        //         "to_route": "spot",
+        //         "tx_hash": "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
         //     }
         //
         $currencyId = $this->safe_string($transfer, 'asset_id');
@@ -2579,7 +2637,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -2594,7 +2652,9 @@ class lighter extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
         if ($paginate) {
@@ -2621,21 +2681,21 @@ class lighter extends Exchange {
             $currency = $this->currency($code);
             $request['coin'] = $currency['id'];
         }
-        $response = $this->privateGetDepositHistory ($this->extend($request, $params));
+        $response = $this->privateGetDepositHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => 200,
-        //         "deposits" => array(
+        //         "code": 200,
+        //         "deposits": [
         //             {
-        //                 "id" => "2901843",
-        //                 "asset_id" => 5,
-        //                 "amount" => "100000.0",
-        //                 "timestamp" => 1766112729741,
-        //                 "status" => "completed",
-        //                 "l1_tx_hash" => "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d"
+        //                 "id": "2901843",
+        //                 "asset_id": 5,
+        //                 "amount": "100000.0",
+        //                 "timestamp": 1766112729741,
+        //                 "status": "completed",
+        //                 "l1_tx_hash": "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d"
         //             }
-        //         ),
-        //         "cursor" => "eyJpbmRleCI6MjkwMTg0MH0="
+        //         ],
+        //         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
         //     }
         //
         $data = $this->safe_list($response, 'deposits', array());
@@ -2647,7 +2707,7 @@ class lighter extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -2668,7 +2728,9 @@ class lighter extends Exchange {
         }
         $accountIndex = null;
         list($accountIndex, $params) = $this->handle_account_index($params, 'fetchWithdrawals', 'accountIndex', 'account_index');
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'account_index' => $accountIndex,
         );
@@ -2682,22 +2744,22 @@ class lighter extends Exchange {
             $currency = $this->currency($code);
             $request['coin'] = $currency['id'];
         }
-        $response = $this->privateGetWithdrawHistory ($this->extend($request, $params));
+        $response = $this->privateGetWithdrawHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => "200",
-        //         "message" => "string",
-        //         "withdraws" => array(
+        //         "code": "200",
+        //         "message": "string",
+        //         "withdraws": [
         //             {
-        //                 "id" => "string",
-        //                 "amount" => "0.1",
-        //                 "timestamp" => "1640995200",
-        //                 "status" => "failed",
-        //                 "type" => "secure",
-        //                 "l1_tx_hash" => "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+        //                 "id": "string",
+        //                 "amount": "0.1",
+        //                 "timestamp": "1640995200",
+        //                 "status": "failed",
+        //                 "type": "secure",
+        //                 "l1_tx_hash": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
         //             }
-        //         ),
-        //         "cursor" => "string"
+        //         ],
+        //         "cursor": "string"
         //     }
         //
         $data = $this->safe_list($response, 'withdraws', array());
@@ -2713,22 +2775,22 @@ class lighter extends Exchange {
         //
         // fetchDeposits
         //     {
-        //         "id" => "2901843",
-        //         "asset_id" => 5,
-        //         "amount" => "100000.0",
-        //         "timestamp" => 1766112729741,
-        //         "status" => "completed",
-        //         "l1_tx_hash" => "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d",
+        //         "id": "2901843",
+        //         "asset_id": 5,
+        //         "amount": "100000.0",
+        //         "timestamp": 1766112729741,
+        //         "status": "completed",
+        //         "l1_tx_hash": "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d",
         //     }
         //
         // fetchWithdrawals
         //     {
-        //         "id" => "string",
-        //         "amount" => "0.1",
-        //         "timestamp" => "1640995200",
-        //         "status" => "failed",
-        //         "type" => "secure",
-        //         "l1_tx_hash" => "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+        //         "id": "string",
+        //         "amount": "0.1",
+        //         "timestamp": "1640995200",
+        //         "status": "failed",
+        //         "type": "secure",
+        //         "l1_tx_hash": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
         //     }
         //
         $type = $this->safe_string($transaction, 'type');
@@ -2773,7 +2835,7 @@ class lighter extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2786,7 +2848,9 @@ class lighter extends Exchange {
          * @param {int} [$params->routeType] wallet type, 0 => perp, 1 => spot, default is 0
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'withdraw', 'apiKeyIndex', 'api_key_index');
         $accountIndex = null;
@@ -2802,7 +2866,7 @@ class lighter extends Exchange {
         } else {
             throw new ExchangeError($this->id . ' withdraw() only supports USDC and ETH transfers');
         }
-        $routeType = $this->safe_integer($params, 'routeType', 0); // 0 => perp, 1 => spot
+        $routeType = $this->safe_integer($params, 'routeType', 0); // 0: perp, 1: spot
         $params = $this->omit($params, 'routeType');
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $params);
         $signRaw = array(
@@ -2818,11 +2882,11 @@ class lighter extends Exchange {
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        $response = $this->publicPostSendTx ($request);
+        $response = $this->publicPostSendTx($request);
         return $this->parse_transaction($response);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -2837,7 +2901,9 @@ class lighter extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
@@ -2856,7 +2922,7 @@ class lighter extends Exchange {
             'account_index' => $accountIndex,
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 100);
+            $request['limit'] = min($limit, 100);
         }
         $until = null;
         list($until, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'until', 'from');
@@ -2868,36 +2934,36 @@ class lighter extends Exchange {
             $market = $this->market($symbol);
             $request['market_id'] = $market['id'];
         }
-        $response = $this->privateGetTrades ($this->extend($request, $params));
+        $response = $this->privateGetTrades($this->extend($request, $params));
         //
         //     {
-        //         "code" => 200,
-        //         "trades" => array(
+        //         "code": 200,
+        //         "trades": [
         //             {
-        //                 "trade_id" => 17609,
-        //                 "tx_hash" => "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
-        //                 "type" => "trade",
-        //                 "market_id" => 0,
-        //                 "size" => "10.2304",
-        //                 "price" => "2958.75",
-        //                 "usd_amount" => "30269.196000",
-        //                 "ask_id" => 281474977339869,
-        //                 "bid_id" => 562949952870533,
-        //                 "ask_client_id" => 0,
-        //                 "bid_client_id" => 0,
-        //                 "ask_account_id" => 20,
-        //                 "bid_account_id" => 1077,
-        //                 "is_maker_ask" => true,
-        //                 "block_height" => 102070,
-        //                 "timestamp" => 1766386112741,
-        //                 "taker_position_size_before" => "0.0000",
-        //                 "taker_entry_quote_before" => "0.000000",
-        //                 "taker_position_sign_changed" => true,
-        //                 "maker_position_size_before" => "-1856.8547",
-        //                 "maker_entry_quote_before" => "5491685.069325",
-        //                 "maker_initial_margin_fraction_before" => 500
+        //                 "trade_id": 17609,
+        //                 "tx_hash": "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "10.2304",
+        //                 "price": "2958.75",
+        //                 "usd_amount": "30269.196000",
+        //                 "ask_id": 281474977339869,
+        //                 "bid_id": 562949952870533,
+        //                 "ask_client_id": 0,
+        //                 "bid_client_id": 0,
+        //                 "ask_account_id": 20,
+        //                 "bid_account_id": 1077,
+        //                 "is_maker_ask": true,
+        //                 "block_height": 102070,
+        //                 "timestamp": 1766386112741,
+        //                 "taker_position_size_before": "0.0000",
+        //                 "taker_entry_quote_before": "0.000000",
+        //                 "taker_position_sign_changed": true,
+        //                 "maker_position_size_before": "-1856.8547",
+        //                 "maker_entry_quote_before": "5491685.069325",
+        //                 "maker_initial_margin_fraction_before": 500
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'trades', array());
@@ -2915,28 +2981,28 @@ class lighter extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "trade_id" => 17609,
-        //         "tx_hash" => "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
-        //         "type" => "trade",
-        //         "market_id" => 0,
-        //         "size" => "10.2304",
-        //         "price" => "2958.75",
-        //         "usd_amount" => "30269.196000",
-        //         "ask_id" => 281474977339869,
-        //         "bid_id" => 562949952870533,
-        //         "ask_client_id" => 0,
-        //         "bid_client_id" => 0,
-        //         "ask_account_id" => 20,
-        //         "bid_account_id" => 1077,
-        //         "is_maker_ask" => true,
-        //         "block_height" => 102070,
-        //         "timestamp" => 1766386112741,
-        //         "taker_position_size_before" => "0.0000",
-        //         "taker_entry_quote_before" => "0.000000",
-        //         "taker_position_sign_changed" => true,
-        //         "maker_position_size_before" => "-1856.8547",
-        //         "maker_entry_quote_before" => "5491685.069325",
-        //         "maker_initial_margin_fraction_before" => 500
+        //         "trade_id": 17609,
+        //         "tx_hash": "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
+        //         "type": "trade",
+        //         "market_id": 0,
+        //         "size": "10.2304",
+        //         "price": "2958.75",
+        //         "usd_amount": "30269.196000",
+        //         "ask_id": 281474977339869,
+        //         "bid_id": 562949952870533,
+        //         "ask_client_id": 0,
+        //         "bid_client_id": 0,
+        //         "ask_account_id": 20,
+        //         "bid_account_id": 1077,
+        //         "is_maker_ask": true,
+        //         "block_height": 102070,
+        //         "timestamp": 1766386112741,
+        //         "taker_position_size_before": "0.0000",
+        //         "taker_entry_quote_before": "0.000000",
+        //         "taker_position_sign_changed": true,
+        //         "maker_position_size_before": "-1856.8547",
+        //         "maker_entry_quote_before": "5491685.069325",
+        //         "maker_initial_margin_fraction_before": 500
         //     }
         //
         $marketId = $this->safe_string($trade, 'market_id');
@@ -2979,7 +3045,7 @@ class lighter extends Exchange {
         ), $market);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a market
          * @param {float} $leverage the rate of $leverage
@@ -3001,7 +3067,7 @@ class lighter extends Exchange {
         return $this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params);
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): array {
         /**
          * set margin mode to 'cross' or 'isolated'
          * @param {string} $marginMode 'cross' or 'isolated'
@@ -3016,15 +3082,17 @@ class lighter extends Exchange {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $marginMode parameter');
         }
         $leverage = null;
-        list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', 'leverage');
+        list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage');
         if ($leverage === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $leverage parameter');
         }
         return $this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params);
     }
 
-    public function modify_leverage_and_margin_mode(int $leverage, string $marginMode, ?string $symbol = null, $params = array ()) {
-        $this->load_markets();
+    public function modify_leverage_and_margin_mode(int $leverage, string $marginMode, ?string $symbol = null, $params = array()): array {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' modifyLeverageAndMarginMode() requires a $marginMode parameter that must be either cross or isolated');
         }
@@ -3043,7 +3111,7 @@ class lighter extends Exchange {
         $signRaw = array(
             'market_index' => $this->parse_to_int($market['id']),
             'initial_margin_fraction' => $this->parse_to_int(10000 / $leverage),
-            'margin_mode' => ($marginMode === 'cross') ? 0 : 1, // 0 => CROSS, 1 => ISOLATED
+            'margin_mode' => ($marginMode === 'cross') ? 0 : 1, // 0: CROSS, 1: ISOLATED
             'nonce' => $nonce,
             'api_key_index' => $apiKeyIndex,
             'account_index' => $accountIndex,
@@ -3053,30 +3121,23 @@ class lighter extends Exchange {
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        return $this->publicPostSendTx ($request);
+        return $this->publicPostSendTx($request);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->accountIndex] account index
-         * @param {string} [$params->apiKeyIndex] api key index
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-         */
-        $this->load_markets();
-        $apiKeyIndex = null;
-        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+    public function sign_and_cancel_order(string $method, string $id, ?string $symbol = null, $params = array()): array {
+        if ($this->markets === null) {
+            $this->load_markets();
         }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires a $symbol argument');
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, $method, 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = $this->handle_account_index($params, $method, 'accountIndex', 'account_index');
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'client_order_index', 'clientOrderId');
         $params = $this->omit($params, array( 'client_order_index', 'clientOrderId' ));
-        $accountIndex = null;
-        list($accountIndex, $params) = $this->handle_account_index($params, 'cancelOrder', 'accountIndex', 'account_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
@@ -3092,18 +3153,55 @@ class lighter extends Exchange {
         } elseif ($id !== null) {
             $signRaw['order_index'] = $this->parse_to_int($id);
         } else {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires order $id or client order id');
+            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires order $id or client order id');
         }
         list($txType, $txInfo) = $this->lighter_sign_cancel_order($signer, $this->extend($signRaw, $params));
+        return array( $txType, $txInfo, $market );
+    }
+
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        list($txType, $txInfo, $market) = $this->sign_and_cancel_order('cancelOrder', $id, $symbol, $params);
         $request = array(
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        $response = $this->publicPostSendTx ($request);
+        $response = $this->publicPostSendTx($request);
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function sign_and_cancel_all_orders(string $method, ?string $symbol = null, $params = array()): array {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, $method, 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = $this->handle_account_index($params, $method, 'accountIndex', 'account_index');
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
+        $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $params);
+        $signRaw = array(
+            'time_in_force' => 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            'time' => 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        list($txType, $txInfo) = $this->lighter_sign_cancel_all_orders($signer, $this->extend($signRaw, $params));
+        return array( $txType, $txInfo );
+    }
+
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
@@ -3112,39 +3210,25 @@ class lighter extends Exchange {
          * @param {string} [$params->apiKeyIndex] api key index
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
-        $apiKeyIndex = null;
-        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
-        $accountIndex = null;
-        list($accountIndex, $params) = $this->handle_account_index($params, 'cancelAllOrders', 'accountIndex', 'account_index');
-        $strAccountIndex = $this->number_to_string($accountIndex);
-        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
-        $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $params);
-        $signRaw = array(
-            'time_in_force' => 0, // 0 => IMMEDIATE 1 => SCHEDULED 2 => ABORT
-            'time' => 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
-            'nonce' => $nonce,
-            'api_key_index' => $apiKeyIndex,
-            'account_index' => $accountIndex,
-        );
-        list($txType, $txInfo) = $this->lighter_sign_cancel_all_orders($signer, $this->extend($signRaw, $params));
+        list($txType, $txInfo) = $this->sign_and_cancel_all_orders('cancelAllOrdersWs', $symbol, $params);
         $request = array(
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        $response = $this->publicPostSendTx ($request);
+        $response = $this->publicPostSendTx($request);
         return $this->parse_orders(array( $response ));
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()): array {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} the api result
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if (($timeout < 300000) || ($timeout > 1296000000)) {
             throw new BadRequest($this->id . ' $timeout should be between 5 minutes and 15 days.');
         }
@@ -3157,7 +3241,7 @@ class lighter extends Exchange {
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $params);
         $signRaw = array(
-            'time_in_force' => 1, // 0 => IMMEDIATE 1 => SCHEDULED 2 => ABORT
+            'time_in_force' => 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
             'time' => $this->milliseconds() . $timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
             'nonce' => $nonce,
             'api_key_index' => $apiKeyIndex,
@@ -3168,11 +3252,11 @@ class lighter extends Exchange {
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        $response = $this->publicPostSendTx ($request);
+        $response = $this->publicPostSendTx($request);
         return $response;
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * add margin
          * @param {string} $symbol unified market $symbol
@@ -3186,7 +3270,7 @@ class lighter extends Exchange {
         return $this->set_margin($symbol, $amount, $this->extend($request, $params));
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
@@ -3200,17 +3284,19 @@ class lighter extends Exchange {
         return $this->set_margin($symbol, $amount, $this->extend($request, $params));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()): array {
+    public function set_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
-         * @param {array} [$params] parameters specific to the bingx api endpoint
+         * @param {array} [$params] parameters specific to the exchange API endpoint
          * @param {string} [$params->accountIndex] account index
          * @param {string} [$params->apiKeyIndex] api key index
          * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'setMargin', 'apiKeyIndex', 'api_key_index');
         $direction = $this->safe_integer($params, 'direction'); // 1 increase margin 0 decrease margin
@@ -3243,7 +3329,7 @@ class lighter extends Exchange {
             'tx_type' => $txType,
             'tx_info' => $txInfo,
         );
-        $response = $this->publicPostSendTx ($request);
+        $response = $this->publicPostSendTx($request);
         return $this->parse_margin_modification($response, $market);
     }
 
@@ -3263,7 +3349,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = null;
         if ($api === 'root') {
             $url = $this->implode_hostname($this->urls['api']['public']);
@@ -3275,7 +3361,7 @@ class lighter extends Exchange {
                 'Authorization' => $this->create_auth($params),
             );
         }
-        if ($params) {
+        if (count($params) > 0) {
             if ($method === 'POST') {
                 $headers = array(
                     'Content-Type' => 'multipart/form-data',
@@ -3288,14 +3374,14 @@ class lighter extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
-        if (!$response) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }
         //
         //     {
-        //         "code" => "200",
-        //         "message" => "string"
+        //         "code": "200",
+        //         "message": "string"
         //     }
         //
         $code = $this->safe_string($response, 'code');
@@ -3304,7 +3390,7 @@ class lighter extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

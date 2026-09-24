@@ -118,35 +118,35 @@ public partial class BaseTest
             // check batch
             //
             object defaultNetworkCodeReplacements = getValue(exchange.options, "defaultNetworkCodeReplacements");
-            object allNetworkCodes = new List<object>() {"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBONE", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"};
-            object allCurrencyCodes = new List<object>() {"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"};
-            for (object i = 0; isLessThan(i, getArrayLength(allNetworkCodes)); postFixIncrement(ref i))
+            List<object> allNetworkCodes = new List<object>() {"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBITRUM", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"};
+            List<object> allCurrencyCodes = new List<object>() {"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"};
+            for (int i = 0; i < (allNetworkCodes?.Count ?? 0); i++)
             {
-                object randomNetworkCode = getValue(allNetworkCodes, i);
-                for (object j = 0; isLessThan(j, getArrayLength(allCurrencyCodes)); postFixIncrement(ref j))
+                string? randomNetworkCode = ((string)allNetworkCodes[i]);
+                for (int j = 0; j < (allCurrencyCodes?.Count ?? 0); j++)
                 {
-                    object randomCurrencyCode = getValue(allCurrencyCodes, j);
+                    string? randomCurrencyCode = ((string)allCurrencyCodes[j]);
                     object result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
-                    object keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
-                    for (object k = 0; isLessThan(k, getArrayLength(keys)); postFixIncrement(ref k))
+                    List<object> keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
+                    for (int k = 0; k < keys.Count; k++)
                     {
-                        object chainBaseCoin = getValue(keys, k);
+                        string? chainBaseCoin = ((string)keys[k]);
                         object chainMapping = getValue(defaultNetworkCodeReplacements, chainBaseCoin);
                         object primaryNetworkCode = getValue(chainMapping, "primary");
                         object secondaryNetworkCode = getValue(chainMapping, "secondary");
-                        object msg = add(add(add(add(add(add("network protocol test failed for networkCode:", randomNetworkCode), " & currencyCode: "), randomCurrencyCode), ", result: "), result), ", expected: ");
-                        if (isTrue(isEqual(randomNetworkCode, primaryNetworkCode)))
+                        object msg = (((((("network protocol test failed for networkCode:" + randomNetworkCode) + " & currencyCode: ") + randomCurrencyCode) + ", result: ") + (result)) + ", expected: ");
+                        if (isEqual(randomNetworkCode, primaryNetworkCode))
                         {
-                            if (isTrue(isEqual(randomCurrencyCode, chainBaseCoin)))
+                            if ((randomCurrencyCode == chainBaseCoin))
                             {
                                 Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
                             } else
                             {
                                 Assert(isEqual(result, secondaryNetworkCode), add(msg, secondaryNetworkCode));
                             }
-                        } else if (isTrue(isEqual(randomNetworkCode, secondaryNetworkCode)))
+                        } else if (isEqual(randomNetworkCode, secondaryNetworkCode))
                         {
-                            if (isTrue(isEqual(randomCurrencyCode, chainBaseCoin)))
+                            if ((randomCurrencyCode == chainBaseCoin))
                             {
                                 Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
                             } else
@@ -187,13 +187,13 @@ public partial class BaseTest
         public void testNetworkMethods()
         {
             // both below dicts should end with "same" results
-            object dict1 = new Dictionary<string, object>() {
+            Dictionary<string, object> dict1 = new Dictionary<string, object>() {
                 { "BTC", "Bitcoin" },
                 { "BRC20", "Brc_20" },
                 { "TRC20", "Tron" },
                 { "ETH", "Ether" },
             };
-            object dict2 = new Dictionary<string, object>() {
+            Dictionary<string, object> dict2 = new Dictionary<string, object>() {
                 { "BTC", "Bitcoin" },
                 { "BRC20", "Brc_20" },
                 { "TRC20", "Tron" },

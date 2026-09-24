@@ -8,6 +8,57 @@
     ],
     "options": {},
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [],
+                "output": "{\"incomeType\":\"position_funding\"}"
+            },
+            {
+                "description": "fetch funding history with since and until",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1786612835613,
+                    10,
+                    {
+                        "until": 1789204835613
+                    }
+                ],
+                "output": "{\"incomeType\":\"position_funding\",\"symbol\":\"ETHUSDT\",\"startTime\":1786612835613,\"limit\":10,\"endTime\":1789204835613}"
+            },
+            {
+                "description": "fetch funding history with since defaults the end time",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1786612835613
+                ],
+                "output": "{\"incomeType\":\"position_funding\",\"symbol\":\"ETHUSDT\",\"startTime\":1786612835613,\"endTime\":1789204839567}"
+            },
+            {
+                "description": "fetch funding history for a symbol",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"incomeType\":\"position_funding\",\"symbol\":\"ETHUSDT\"}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api-spot.weex.com/api/v3/coins",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrderWithTakeProfitAndStopLoss": [
             {
                 "description": "create swap order with take profit and stop loss",
@@ -210,6 +261,18 @@
                     "DOGE/USDT:USDT"
                 ],
                 "output": null
+            },
+            {
+                "description": "fetch positions for symbol in sandbox mode",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api-contract.weex.com/capi/v3/sim/position/allPosition",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null,
+                "options": {
+                    "sandboxMode": true
+                }
             }
         ],
         "fetchPositions": [
@@ -241,6 +304,16 @@
                 "url": "https://api-contract.weex.com/capi/v3/account/position/allPosition",
                 "input": [],
                 "output": null
+            },
+            {
+                "description": "fetch positions in sandbox mode",
+                "method": "fetchPositions",
+                "url": "https://api-contract.weex.com/capi/v3/sim/position/allPosition",
+                "input": [],
+                "output": null,
+                "options": {
+                    "sandboxMode": true
+                }
             }
         ],
         "fetchOrderTrades": [
@@ -303,6 +376,18 @@
                     "DOGE/USDT"
                 ],
                 "output": null
+            },
+            {
+                "description": "fetch closed swap orders in sandbox mode",
+                "method": "fetchClosedOrders",
+                "url": "https://api-contract.weex.com/capi/v3/sim/order/history?symbol=BTCSUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null,
+                "options": {
+                    "sandboxMode": true
+                }
             }
         ],
         "fetchCanceledAndClosedOrders": [
@@ -318,6 +403,20 @@
             }
         ],
         "fetchLedger": [
+            {
+                "description": "fetch ledger for contract without a code",
+                "method": "fetchLedger",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{}"
+            },
             {
                 "description": "fetch ledger for funding",
                 "method": "fetchLedger",
@@ -622,6 +721,62 @@
                     299
                 ],
                 "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":\"299\",\"newClientOrderId\":\"b-WEEX111125-740eca9d6e3d4aa2ab31fe\"}"
+            },
+            {
+                "description": "create swap limit buy order in sandbox mode",
+                "method": "createOrder",
+                "url": "https://api-contract.weex.com/capi/v3/sim/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    60000
+                ],
+                "output": "{\"symbol\":\"BTCSUSDT\",\"side\":\"BUY\",\"quantity\":\"0.001\",\"type\":\"LIMIT\",\"price\":\"60000\",\"positionSide\":\"LONG\",\"timeInForce\":\"GTC\",\"newClientOrderId\":\"b-WEEX111125-a0c63bf17ecb4e5c959a5b\"}",
+                "options": {
+                    "sandboxMode": true
+                }
+            },
+            {
+                "description": "create trigger order with attached take profit and stop loss",
+                "method": "createOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.13,
+                    {
+                        "triggerPrice": 0.14,
+                        "takeProfit": {
+                            "triggerPrice": 0.2
+                        },
+                        "stopLoss": {
+                            "triggerPrice": 0.02
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"STOP\",\"price\":\"0.13\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"b-WEEX111125-5b08e54a32294fc7a8123d\",\"presetStopLossPrice\":\"0.02\",\"presetTakeProfitPrice\":\"0.2\",\"triggerPrice\":\"0.14\"}"
+            },
+            {
+                "description": "create swap limit order with attached stop loss via stopPrice alias",
+                "method": "createOrder",
+                "url": "https://api-contract.weex.com/capi/v3/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.03,
+                    {
+                        "stopLoss": {
+                            "stopPrice": 0.02
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"LIMIT\",\"price\":\"0.03\",\"positionSide\":\"LONG\",\"timeInForce\":\"GTC\",\"newClientOrderId\":\"b-WEEX111125-29bd77c2b6d94b9581e6e4\",\"slTriggerPrice\":\"0.02\"}"
             }
         ],
         "fetchTransfers": [
@@ -651,6 +806,30 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "fetch contract balance in sandbox mode",
+                "method": "fetchBalance",
+                "url": "https://api-contract.weex.com/capi/v3/sim/balance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null,
+                "options": {
+                    "sandboxMode": true
+                }
+            },
+            {
+                "description": "fetch balance without params defaults to swap in sandbox mode",
+                "method": "fetchBalance",
+                "url": "https://api-contract.weex.com/capi/v3/sim/balance",
+                "input": [],
+                "output": null,
+                "options": {
+                    "sandboxMode": true
+                }
             }
         ],
         "fetchFundingRateHistory": [
@@ -710,13 +889,13 @@
                 "output": null
             },
             {
-                "description": "fetch spot trades",
+                "description": "spot +since +limit",
                 "method": "fetchTrades",
-                "url": "https://api-spot.weex.com/api/v3/market/trades?symbol=ETHUSDT&limit=1",
+                "url": "https://api-spot.weex.com/api/v3/market/trades?symbol=ETHUSDT&limit=5",
                 "input": [
                     "ETH/USDT",
-                    null,
-                    1
+                    1770000000000,
+                    5
                 ],
                 "output": null
             }
@@ -918,7 +1097,90 @@
                 "input": [],
                 "output": null
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set margin mode to cross",
+                "method": "setMarginMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/marginType",
+                "input": [
+                    "cross",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"marginType\":\"CROSSED\"}"
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices",
+                "method": "fetchLastPrices",
+                "url": "https://api-spot.weex.com/api/v3/market/ticker/price",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetch mark price",
+                "method": "fetchMarkPrice",
+                "url": "https://api-contract.weex.com/capi/v3/market/symbolPrice?symbol=ETHUSDT&priceType=MARK",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch index price via priceType param",
+                "method": "fetchMarkPrice",
+                "url": "https://api-contract.weex.com/capi/v3/market/symbolPrice?symbol=ETHUSDT&priceType=INDEX",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "priceType": "INDEX"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetch mark prices",
+                "method": "fetchMarkPrices",
+                "url": "https://api-contract.weex.com/capi/v3/market/premiumIndex",
+                "input": [],
+                "output": null
+            }
+        ],
+        "createTriggerOrder": [
+            {
+                "description": "create trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.13,
+                    0.14
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"STOP\",\"price\":\"0.13\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"b-WEEX111125-f476448c55af482c883dd6\",\"triggerPrice\":\"0.14\"}"
+            },
+            {
+                "description": "create market trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    0.14
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"STOP_MARKET\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"b-WEEX111125-f476448c55af482c883dd6\",\"triggerPrice\":\"0.14\"}"
+            }
         ]
-  },
+    },
     "outputType": "both"
 }

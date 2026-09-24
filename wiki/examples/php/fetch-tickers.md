@@ -1,8 +1,5 @@
-- [Fetch Tickers](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 // ##########################################
 // for asynchronous (async/await) version check: https://github.com/ccxt/ccxt/blob/master/examples/php/async-await.php
 // ##########################################
@@ -42,5 +39,5 @@ try {
 } catch (Exception $e) {
     echo '[Error] ' . $e->getMessage() . "\n";
 }
- 
+
 ```

@@ -1,5 +1,5 @@
 import { Any, AnySDKType } from "../../../google/protobuf/any.js";
-import { SignMode } from "../signing/v1beta1/signing";
+import { SignMode } from "../signing/v1beta1/signing.js";
 import { CompactBitArray, CompactBitArraySDKType } from "../../crypto/multisig/v1beta1/multisig.js";
 import { Coin, CoinSDKType } from "../../base/v1beta1/coin.js";
 import _m0 from "protobufjs/minimal.js";

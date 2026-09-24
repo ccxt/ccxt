@@ -1,8 +1,5 @@
-- [Create Order Position With Takeprofit Stoploss](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 var_dump('CCXT Version:', $ccxt->version);
 
 
@@ -86,5 +82,5 @@ function example() {
 
 
 \React\Async\await(example());
- 
+
 ```

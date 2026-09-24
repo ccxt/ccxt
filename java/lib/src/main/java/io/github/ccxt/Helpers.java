@@ -10,7 +10,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,6 +19,15 @@ import io.github.ccxt.base.JsonHelper;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Helpers {
 
+    /**
+     * Converts a raw List<Object> into a typed List<T>; used by the committed
+     * TypedSurface / PredictionTypedSurface default methods and by the exchange
+     * dumps the pipeline does not regenerate (java STATIC_RESPONSE/request tiers).
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
+        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
+    }
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -48,7 +56,7 @@ public class Helpers {
      * the original typed exception (preserving class, message, stack trace,
      * and any subclass-specific fields).
      */
-    public static Object joinUnwrapped(CompletableFuture<Object> future) {
+    public static <T> T joinUnwrapped(CompletableFuture<T> future) {
         try {
             return future.join();
         } catch (CompletionException ce) {
@@ -110,87 +118,6 @@ public class Helpers {
             return Long.valueOf(((Integer) a).longValue());
         }
         return a;
-    }
-
-    // C# had "ref object a" + returns new value; in Java we mimic with AtomicReference<Object>
-    public static Object postFixIncrement(AtomicReference<Object> a) {
-        Object val = a.get();
-        if (val instanceof Long) {
-            a.set(((Long) val) + 1L);
-        } else if (val instanceof Integer) {
-            a.set(((Integer) val) + 1);
-        } else if (val instanceof Double) {
-            a.set(((Double) val) + 1.0);
-        } else if (val instanceof String) {
-            a.set(((String) val) + 1);
-        } else {
-            return null;
-        }
-        return a.get();
-    }
-
-    public static Object postFixDecrement(AtomicReference<Object> a) {
-        Object val = a.get();
-        if (val instanceof Long) {
-            a.set(((Long) val) - 1L);
-        } else if (val instanceof Integer) {
-            a.set(((Integer) val) - 1);
-        } else if (val instanceof Double) {
-            a.set(((Double) val) - 1.0);
-        } else {
-            return null;
-        }
-        return a.get();
-    }
-
-    public static Object prefixUnaryNeg(AtomicReference<Object> a) {
-        Object val = a.get();
-        if (val instanceof Long) {
-            a.set(-((Long) val));
-        } else if (val instanceof Integer) {
-            a.set(-((Integer) val));
-        } else if (val instanceof Double) {
-            a.set(-((Double) val));
-        } else if (val instanceof String) {
-            return null;
-        } else {
-            return null;
-        }
-        return a.get();
-    }
-
-    public static Object prefixUnaryPlus(AtomicReference<Object> a) {
-        Object val = a.get();
-        if (val instanceof Long) {
-            a.set(+((Long) val));
-        } else if (val instanceof Integer) {
-            a.set(+((Integer) val));
-        } else if (val instanceof Double) {
-            a.set(+((Double) val));
-        } else if (val instanceof String) {
-            return null;
-        } else {
-            return null;
-        }
-        return a.get();
-    }
-
-    public static Object plusEqual(Object a, Object value) {
-        a = normalizeIntIfNeeded(a);
-        value = normalizeIntIfNeeded(value);
-
-        if (value == null) return null;
-        if (a instanceof Long && value instanceof Long) {
-            return (Long) a + (Long) value;
-        } else if (a instanceof Integer && value instanceof Integer) {
-            return (Integer) a + (Integer) value;
-        } else if (a instanceof Double && value instanceof Double) {
-            return (Double) a + (Double) value;
-        } else if (a instanceof String && value instanceof String) {
-            return ((String) a) + ((String) value);
-        } else {
-            return null;
-        }
     }
 
     // In Java, wire up your preferred JSON lib and return Map/List accordingly.
@@ -255,27 +182,6 @@ public class Helpers {
      */
     public static boolean isArray(Object a) {
         return isArrayJs(a);
-    }
-
-    /**
-     * JS-style truthy `typeof o === 'object'` check. The TS source uses this
-     * to assert "I got back something object-shaped" without caring whether
-     * it's a Map, an array, or a typed wrapper. The ast-transpiler maps it
-     * to Java `instanceof java.util.Map` which is too strict — typed return
-     * types like WsOrderBook and Trade aren't Maps but ARE objects in the
-     * JS sense. Match the loose JS semantics: anything non-null and not a
-     * primitive boxed type or string.
-     *
-     * Used as a post-transpile rewrite target so the 150+ test assertion
-     * sites become permissive in one place.
-     */
-    public static boolean isObject(Object o) {
-        if (o == null) return false;
-        if (o instanceof String) return false;
-        if (o instanceof Number) return false;
-        if (o instanceof Boolean) return false;
-        if (o instanceof Character) return false;
-        return true;
     }
 
     public static boolean isEqual(Object a, Object b) {
@@ -508,7 +414,7 @@ public class Helpers {
         }
     }
 
-    public static Object parseInt(Object a) {
+    public static Long parseInt(Object a) {
         try {
             return toLong(a);
         } catch (Exception ignored) {
@@ -516,7 +422,7 @@ public class Helpers {
         }
     }
 
-    public static Object parseFloat(Object a) {
+    public static Double parseFloat(Object a) {
         try {
             return toDouble(a);
         } catch (Exception ignored) {
@@ -640,23 +546,6 @@ public class Helpers {
         return bd.doubleValue();
     }
 
-    // public static Object callDynamically(Object obj, Object methodName, Object[] args) {
-    //     if (args == null) args = new Object[]{};
-    //     if (args.length == 0) {
-    //         // C# code injected a null arg to help binder; Java doesn't need it.
-    //         // But to mirror behavior, we won't add a null here.
-    //     }
-    //     String name = (String) methodName;
-    //     Method m = findMethod(obj.getClass(), name, args.length);
-    //     try {
-    //         m.setAccessible(true);
-    //         return m.invoke(obj, args);
-    //     } catch (Exception e) {
-    //         throw new RuntimeException(e);
-    //     }
-    // }
-
-
 public static Object callDynamically(Object obj, Object methodName, Object[] args) {
     if (args == null) args = new Object[]{};
 
@@ -746,22 +635,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     invokeArgs[fixedCount] = varArray;
     return invokeArgs;
 }
-
-    public static Object callDynamicallyAsync(Object obj, Object methodName, Object[] args) {
-        if (args == null) args = new Object[]{};
-        String name = (String) methodName;
-        Method m = findMethod(obj.getClass(), name, args.length);
-        try {
-            m.setAccessible(true);
-            Object res = m.invoke(obj, args);
-            if (res instanceof CompletableFuture) {
-                return ((CompletableFuture<?>) res).get();
-            }
-            return res;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public static boolean inOp(Object obj, Object key) { return InOp(obj, key); }
 
@@ -876,6 +749,13 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         if (o instanceof BigDecimal) return ((BigDecimal) o).longValue();
         if (o instanceof String) return Long.parseLong((String) o);
         return Long.parseLong(String.valueOf(o));
+    }
+
+    // Public primitive coercion used by the Java transpiler to make `for`-loop
+    // indices that start from an Object-typed local (e.g. a running offset
+    // reassigned from this.sum(...)) usable with `++`. Returns a primitive long.
+    public static long toInt64(Object o) {
+        return toLong(o);
     }
 
     private static int toInt(Object o) {

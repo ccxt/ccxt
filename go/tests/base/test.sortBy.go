@@ -7,12 +7,13 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func TestSortBy1() {
 	// todo: other argument checks
+
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var arr any = []any{map[string]any{
+	var arr []any = []any{map[string]any{
 		"x": 5,
 	}, map[string]any{
 		"x": 2,
@@ -25,7 +26,7 @@ func TestSortBy1() {
 	}, map[string]any{
 		"x": 3,
 	}}
-	var newArray any = exchange.SortBy(arr, "x")
+	var newArray []any = exchange.SortBy(arr, "x")
 	AssertDeepEqual(exchange, nil, "sortBy", newArray, []any{map[string]any{
 		"x": 0,
 	}, map[string]any{
@@ -39,7 +40,7 @@ func TestSortBy1() {
 	}, map[string]any{
 		"x": 5,
 	}})
-	var newArrayDescending any = exchange.SortBy(arr, "x", true)
+	var newArrayDescending []any = exchange.SortBy(arr, "x", true)
 	AssertDeepEqual(exchange, nil, "sortBy", newArrayDescending, []any{map[string]any{
 		"x": 5,
 	}, map[string]any{
@@ -53,8 +54,114 @@ func TestSortBy1() {
 	}, map[string]any{
 		"x": 0,
 	}})
-	var emptyArray any = exchange.SortBy([]any{}, "x")
+	var emptyArray []any = exchange.SortBy([]any{}, "x")
 	AssertDeepEqual(exchange, nil, "sortBy", emptyArray, []any{})
+	// regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+	var arrTwoDigits []any = []any{map[string]any{
+		"x": 10,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}, map[string]any{
+		"x": 7,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 9,
+	}, map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 8,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 6,
+	}}
+	var sortedTwoDigits []any = exchange.SortBy(arrTwoDigits, "x")
+	AssertDeepEqual(exchange, nil, "sortBy", sortedTwoDigits, []any{map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 3,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 6,
+	}, map[string]any{
+		"x": 7,
+	}, map[string]any{
+		"x": 8,
+	}, map[string]any{
+		"x": 9,
+	}, map[string]any{
+		"x": 10,
+	}})
+	// immutability - original array should not be modified (ascending)
+	var original []any = []any{map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 0,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}}
+	exchange.SortBy(original, "x")
+	AssertDeepEqual(exchange, nil, "sortBy", original, []any{map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 0,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}})
+	// immutability - original array should not be modified (descending)
+	var originalDescending []any = []any{map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 0,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}}
+	exchange.SortBy(originalDescending, "x", true)
+	AssertDeepEqual(exchange, nil, "sortBy", originalDescending, []any{map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 0,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}})
+	// immutability - array rows (orderbook-style numeric keys) should not be modified
+	var originalRows []any = []any{[]any{3000.5, 1}, []any{2900.5, 2}, []any{2950.5, 3}}
+	exchange.SortBy(originalRows, 0)
+	AssertDeepEqual(exchange, nil, "sortBy", originalRows, []any{[]any{3000.5, 1}, []any{2900.5, 2}, []any{2950.5, 3}})
+	exchange.SortBy(originalRows, 0, true)
+	AssertDeepEqual(exchange, nil, "sortBy", originalRows, []any{[]any{3000.5, 1}, []any{2900.5, 2}, []any{2950.5, 3}})
 }
 func TestSortBy2() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -63,7 +170,7 @@ func TestSortBy2() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// sort ascending by key1, then key2 (key1 values are all distinct here)
-	var arr any = []any{map[string]any{
+	var arr []any = []any{map[string]any{
 		"x": 3,
 		"y": 1,
 	}, map[string]any{
@@ -76,7 +183,7 @@ func TestSortBy2() {
 		"x": 0,
 		"y": 4,
 	}}
-	var sorted any = exchange.SortBy2(arr, "x", "y")
+	var sorted []any = exchange.SortBy2(arr, "x", "y")
 	AssertDeepEqual(exchange, nil, "sortBy2", sorted, []any{map[string]any{
 		"x": 0,
 		"y": 4,
@@ -91,7 +198,7 @@ func TestSortBy2() {
 		"y": 1,
 	}})
 	// sort descending by key1
-	var arr2 any = []any{map[string]any{
+	var arr2 []any = []any{map[string]any{
 		"x": 3,
 		"y": 1,
 	}, map[string]any{
@@ -104,7 +211,7 @@ func TestSortBy2() {
 		"x": 0,
 		"y": 4,
 	}}
-	var sortedDescending any = exchange.SortBy2(arr2, "x", "y", true)
+	var sortedDescending []any = exchange.SortBy2(arr2, "x", "y", true)
 	AssertDeepEqual(exchange, nil, "sortBy2", sortedDescending, []any{map[string]any{
 		"x": 3,
 		"y": 1,
@@ -119,7 +226,7 @@ func TestSortBy2() {
 		"y": 4,
 	}})
 	// when key1 values are equal, sort by key2 ascending
-	var arr3 any = []any{map[string]any{
+	var arr3 []any = []any{map[string]any{
 		"x": 1,
 		"y": 5,
 	}, map[string]any{
@@ -132,7 +239,7 @@ func TestSortBy2() {
 		"x": 1,
 		"y": 1,
 	}}
-	var sortedByKey2 any = exchange.SortBy2(arr3, "x", "y")
+	var sortedByKey2 []any = exchange.SortBy2(arr3, "x", "y")
 	AssertDeepEqual(exchange, nil, "sortBy2", sortedByKey2, []any{map[string]any{
 		"x": 1,
 		"y": 1,
@@ -147,7 +254,7 @@ func TestSortBy2() {
 		"y": 9,
 	}})
 	// when key1 values are equal, sort by key2 descending
-	var arr4 any = []any{map[string]any{
+	var arr4 []any = []any{map[string]any{
 		"x": 1,
 		"y": 5,
 	}, map[string]any{
@@ -160,7 +267,7 @@ func TestSortBy2() {
 		"x": 1,
 		"y": 1,
 	}}
-	var sortedByKey2Descending any = exchange.SortBy2(arr4, "x", "y", true)
+	var sortedByKey2Descending []any = exchange.SortBy2(arr4, "x", "y", true)
 	AssertDeepEqual(exchange, nil, "sortBy2", sortedByKey2Descending, []any{map[string]any{
 		"x": 1,
 		"y": 9,
@@ -175,7 +282,7 @@ func TestSortBy2() {
 		"y": 1,
 	}})
 	// mixed: sort by key1 first, then key2 as tiebreaker
-	var arr5 any = []any{map[string]any{
+	var arr5 []any = []any{map[string]any{
 		"x": 2,
 		"y": 3,
 	}, map[string]any{
@@ -191,7 +298,7 @@ func TestSortBy2() {
 		"x": 2,
 		"y": 2,
 	}}
-	var sortedMixed any = exchange.SortBy2(arr5, "x", "y")
+	var sortedMixed []any = exchange.SortBy2(arr5, "x", "y")
 	AssertDeepEqual(exchange, nil, "sortBy2", sortedMixed, []any{map[string]any{
 		"x": 1,
 		"y": 2,
@@ -209,8 +316,64 @@ func TestSortBy2() {
 		"y": 3,
 	}})
 	// empty array
-	var emptyArray any = exchange.SortBy2([]any{}, "x", "y")
+	var emptyArray []any = exchange.SortBy2([]any{}, "x", "y")
 	AssertDeepEqual(exchange, nil, "sortBy2", emptyArray, []any{})
+	// immutability - original array should not be modified (ascending)
+	var original []any = []any{map[string]any{
+		"x": 3,
+		"y": 1,
+	}, map[string]any{
+		"x": 1,
+		"y": 2,
+	}, map[string]any{
+		"x": 2,
+		"y": 3,
+	}, map[string]any{
+		"x": 0,
+		"y": 4,
+	}}
+	exchange.SortBy2(original, "x", "y")
+	AssertDeepEqual(exchange, nil, "sortBy2", original, []any{map[string]any{
+		"x": 3,
+		"y": 1,
+	}, map[string]any{
+		"x": 1,
+		"y": 2,
+	}, map[string]any{
+		"x": 2,
+		"y": 3,
+	}, map[string]any{
+		"x": 0,
+		"y": 4,
+	}})
+	// immutability - original array should not be modified (descending)
+	var originalDescending []any = []any{map[string]any{
+		"x": 3,
+		"y": 1,
+	}, map[string]any{
+		"x": 1,
+		"y": 2,
+	}, map[string]any{
+		"x": 2,
+		"y": 3,
+	}, map[string]any{
+		"x": 0,
+		"y": 4,
+	}}
+	exchange.SortBy2(originalDescending, "x", "y", true)
+	AssertDeepEqual(exchange, nil, "sortBy2", originalDescending, []any{map[string]any{
+		"x": 3,
+		"y": 1,
+	}, map[string]any{
+		"x": 1,
+		"y": 2,
+	}, map[string]any{
+		"x": 2,
+		"y": 3,
+	}, map[string]any{
+		"x": 0,
+		"y": 4,
+	}})
 }
 func TestSortBy() {
 	TestSortBy1()

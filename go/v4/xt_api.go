@@ -7,614 +7,1007 @@
 
 package ccxt
 
-func (this *XtCore) PublicSpotGetCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetCurrencies", args...)
+// PublicSpotGetCurrencies returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetCurrencies(args ...any) <-chan any {
+	return this.Fetch2Async("currencies", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetDepth", args...)
+// PublicSpotGetDepth returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetDepth(args ...any) <-chan any {
+	return this.Fetch2Async("depth", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *XtCore) PublicSpotGetKline(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetKline", args...)
+// PublicSpotGetKline returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetKline(args ...any) <-chan any {
+	return this.Fetch2Async("kline", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetSymbol", args...)
+// PublicSpotGetSymbol returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("symbol", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTicker", args...)
+// PublicSpotGetTicker returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetTicker(args ...any) <-chan any {
+	return this.Fetch2Async("ticker", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetTickerBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTickerBook", args...)
+// PublicSpotGetTickerBook returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetTickerBook(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/book", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTickerPrice", args...)
+// PublicSpotGetTickerPrice returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetTickerPrice(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/price", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetTicker24h(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTicker24h", args...)
+// PublicSpotGetTicker24h returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetTicker24h(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/24h", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTime", args...)
+// PublicSpotGetTime returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetTime(args ...any) <-chan any {
+	return this.Fetch2Async("time", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTradeHistory", args...)
+// PublicSpotGetTradeHistory returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetTradeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("trade/history", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetTradeRecent(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTradeRecent", args...)
+// PublicSpotGetTradeRecent returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetTradeRecent(args ...any) <-chan any {
+	return this.Fetch2Async("trade/recent", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicSpotGetWalletSupportCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetWalletSupportCurrency", args...)
+// PublicSpotGetWalletSupportCurrency returns a channel that yields a JSON object.
+func (this *Xt) PublicSpotGetWalletSupportCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("wallet/support/currency", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicContractRiskBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicContractRiskBalance", args...)
+// PublicLinearGetFutureMarketV1PublicContractRiskBalance returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicContractRiskBalance(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/contract/risk-balance", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicContractOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicContractOpenInterest", args...)
+// PublicLinearGetFutureMarketV1PublicContractOpenInterest returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicContractOpenInterest(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/contract/open-interest", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicLeverageBracketDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicLeverageBracketDetail", args...)
+// PublicLinearGetFutureMarketV1PublicLeverageBracketDetail returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicLeverageBracketDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/leverage/bracket/detail", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicLeverageBracketList(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicLeverageBracketList", args...)
+// PublicLinearGetFutureMarketV1PublicLeverageBracketList returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicLeverageBracketList(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/leverage/bracket/list", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQAggTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQAggTicker", args...)
+// PublicLinearGetFutureMarketV1PublicQAggTicker returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQAggTicker(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/agg-ticker", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQAggTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQAggTickers", args...)
+// PublicLinearGetFutureMarketV1PublicQAggTickers returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQAggTickers(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/agg-tickers", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQDeal(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQDeal", args...)
+// PublicLinearGetFutureMarketV1PublicQDeal returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQDeal(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/deal", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQDepth", args...)
+// PublicLinearGetFutureMarketV1PublicQDepth returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQDepth(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/depth", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQFundingRate", args...)
+// PublicLinearGetFutureMarketV1PublicQFundingRate returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQFundingRate(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/funding-rate", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQFundingRateRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQFundingRateRecord", args...)
+// PublicLinearGetFutureMarketV1PublicQFundingRateRecord returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQFundingRateRecord(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/funding-rate-record", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQIndexPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQIndexPrice", args...)
+// PublicLinearGetFutureMarketV1PublicQIndexPrice returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQIndexPrice(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/index-price", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQKline(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQKline", args...)
+// PublicLinearGetFutureMarketV1PublicQKline returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQKline(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/kline", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQMarkPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQMarkPrice", args...)
+// PublicLinearGetFutureMarketV1PublicQMarkPrice returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQMarkPrice(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/mark-price", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQSymbolIndexPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQSymbolIndexPrice", args...)
+// PublicLinearGetFutureMarketV1PublicQSymbolIndexPrice returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQSymbolIndexPrice(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/symbol-index-price", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQSymbolMarkPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQSymbolMarkPrice", args...)
+// PublicLinearGetFutureMarketV1PublicQSymbolMarkPrice returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQSymbolMarkPrice(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/symbol-mark-price", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQTicker", args...)
+// PublicLinearGetFutureMarketV1PublicQTicker returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQTicker(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/ticker", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicQTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQTickers", args...)
+// PublicLinearGetFutureMarketV1PublicQTickerBooks returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQTickerBooks(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/ticker/books", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan any {
+// PublicLinearGetFutureMarketV1PublicQTickers returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicQTickers(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/tickers", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicLinearGetFutureMarketV1PublicSymbolCoins returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolCoins", args...)
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan any {
+// PublicLinearGetFutureMarketV1PublicSymbolDetail returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolDetail", args...)
 }
 
-func (this *XtCore) PublicLinearGetFutureMarketV1PublicSymbolList(args ...any) <-chan any {
-	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolList", args...)
+// PublicLinearGetFutureMarketV1PublicSymbolList returns a channel that yields a JSON object.
+func (this *Xt) PublicLinearGetFutureMarketV1PublicSymbolList(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/symbol/list", []string{"public", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicContractRiskBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicContractRiskBalance", args...)
+// PublicInverseGetFutureMarketV1PublicContractRiskBalance returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicContractRiskBalance(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/contract/risk-balance", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicContractOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicContractOpenInterest", args...)
+// PublicInverseGetFutureMarketV1PublicContractOpenInterest returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicContractOpenInterest(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/contract/open-interest", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicLeverageBracketDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicLeverageBracketDetail", args...)
+// PublicInverseGetFutureMarketV1PublicLeverageBracketDetail returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicLeverageBracketDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/leverage/bracket/detail", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicLeverageBracketList(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicLeverageBracketList", args...)
+// PublicInverseGetFutureMarketV1PublicLeverageBracketList returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicLeverageBracketList(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/leverage/bracket/list", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQAggTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQAggTicker", args...)
+// PublicInverseGetFutureMarketV1PublicQAggTicker returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQAggTicker(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/agg-ticker", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQAggTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQAggTickers", args...)
+// PublicInverseGetFutureMarketV1PublicQAggTickers returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQAggTickers(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/agg-tickers", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQDeal(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQDeal", args...)
+// PublicInverseGetFutureMarketV1PublicQDeal returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQDeal(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/deal", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQDepth", args...)
+// PublicInverseGetFutureMarketV1PublicQDepth returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQDepth(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/depth", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQFundingRate", args...)
+// PublicInverseGetFutureMarketV1PublicQFundingRate returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQFundingRate(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/funding-rate", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQFundingRateRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQFundingRateRecord", args...)
+// PublicInverseGetFutureMarketV1PublicQFundingRateRecord returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQFundingRateRecord(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/funding-rate-record", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQIndexPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQIndexPrice", args...)
+// PublicInverseGetFutureMarketV1PublicQIndexPrice returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQIndexPrice(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/index-price", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQKline(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQKline", args...)
+// PublicInverseGetFutureMarketV1PublicQKline returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQKline(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/kline", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQMarkPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQMarkPrice", args...)
+// PublicInverseGetFutureMarketV1PublicQMarkPrice returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQMarkPrice(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/mark-price", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQSymbolIndexPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQSymbolIndexPrice", args...)
+// PublicInverseGetFutureMarketV1PublicQSymbolIndexPrice returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQSymbolIndexPrice(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/symbol-index-price", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQSymbolMarkPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQSymbolMarkPrice", args...)
+// PublicInverseGetFutureMarketV1PublicQSymbolMarkPrice returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQSymbolMarkPrice(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/symbol-mark-price", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQTicker", args...)
+// PublicInverseGetFutureMarketV1PublicQTicker returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQTicker(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/ticker", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicQTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQTickers", args...)
+// PublicInverseGetFutureMarketV1PublicQTickerBooks returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQTickerBooks(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/ticker/books", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan any {
+// PublicInverseGetFutureMarketV1PublicQTickers returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicQTickers(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/q/tickers", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicInverseGetFutureMarketV1PublicSymbolCoins returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolCoins", args...)
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan any {
+// PublicInverseGetFutureMarketV1PublicSymbolDetail returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolDetail", args...)
 }
 
-func (this *XtCore) PublicInverseGetFutureMarketV1PublicSymbolList(args ...any) <-chan any {
-	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolList", args...)
+// PublicInverseGetFutureMarketV1PublicSymbolList returns a channel that yields a JSON object.
+func (this *Xt) PublicInverseGetFutureMarketV1PublicSymbolList(args ...any) <-chan any {
+	return this.Fetch2Async("future/market/v1/public/symbol/list", []string{"public", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetBalance", args...)
+// PrivateSpotGetBalance returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetBalance(args ...any) <-chan any {
+	return this.Fetch2Async("balance", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetBalances", args...)
+// PrivateSpotGetBalances returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetBalances(args ...any) <-chan any {
+	return this.Fetch2Async("balances", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetBatchOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetBatchOrder", args...)
+// PrivateSpotGetBatchOrder returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetBatchOrder(args ...any) <-chan any {
+	return this.Fetch2Async("batch-order", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetDepositAddress", args...)
+// PrivateSpotGetDepositAddress returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetDepositAddress(args ...any) <-chan any {
+	return this.Fetch2Async("deposit/address", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetDepositHistory", args...)
+// PrivateSpotGetDepositHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetDepositHistory(args ...any) <-chan any {
+	return this.Fetch2Async("deposit/history", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetHistoryOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetHistoryOrder", args...)
+// PrivateSpotGetHistoryOrder returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetHistoryOrder(args ...any) <-chan any {
+	return this.Fetch2Async("history-order", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetOpenOrder", args...)
+// PrivateSpotGetOpenOrder returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetOpenOrder(args ...any) <-chan any {
+	return this.Fetch2Async("open-order", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetOrder", args...)
+// PrivateSpotGetOrder returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetOrderOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetOrderOrderId", args...)
+// PrivateSpotGetOrderOrderId returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetOrderOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("order/{orderId}", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetTrade", args...)
+// PrivateSpotGetTrade returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetTrade(args ...any) <-chan any {
+	return this.Fetch2Async("trade", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotGetWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetWithdrawHistory", args...)
+// PrivateSpotGetWithdrawHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotGetWithdrawHistory(args ...any) <-chan any {
+	return this.Fetch2Async("withdraw/history", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotPostOrder(args ...any) <-chan any {
+// PrivateSpotPostOrder returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotPostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostOrder", args...)
 }
 
-func (this *XtCore) PrivateSpotPostWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostWithdraw", args...)
+// PrivateSpotPostWithdraw returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotPostWithdraw(args ...any) <-chan any {
+	return this.Fetch2Async("withdraw", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *XtCore) PrivateSpotPostBalanceTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostBalanceTransfer", args...)
+// PrivateSpotPostBalanceTransfer returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotPostBalanceTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("balance/transfer", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotPostBalanceAccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostBalanceAccountTransfer", args...)
+// PrivateSpotPostBalanceAccountTransfer returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotPostBalanceAccountTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("balance/account/transfer", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotPostWsToken(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostWsToken", args...)
+// PrivateSpotPostWsToken returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotPostWsToken(args ...any) <-chan any {
+	return this.Fetch2Async("ws-token", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotDeleteBatchOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotDeleteBatchOrder", args...)
+// PrivateSpotDeleteBatchOrder returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotDeleteBatchOrder(args ...any) <-chan any {
+	return this.Fetch2Async("batch-order", []string{"private", "spot"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotDeleteOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotDeleteOpenOrder", args...)
+// PrivateSpotDeleteOpenOrder returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotDeleteOpenOrder(args ...any) <-chan any {
+	return this.Fetch2Async("open-order", []string{"private", "spot"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotDeleteOrderOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotDeleteOrderOrderId", args...)
+// PrivateSpotDeleteOrderOrderId returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotDeleteOrderOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("order/{orderId}", []string{"private", "spot"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateSpotPutOrderOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPutOrderOrderId", args...)
+// PrivateSpotPutOrderOrderId returns a channel that yields a JSON object.
+func (this *Xt) PrivateSpotPutOrderOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("order/{orderId}", []string{"private", "spot"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustPlanDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustPlanDetail", args...)
+// PrivateLinearGetFutureCopytradeUserV1CopyTradeCurrentFollowingV2 returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureCopytradeUserV1CopyTradeCurrentFollowingV2(args ...any) <-chan any {
+	return this.Fetch2Async("future/copytrade/user/v1/copy-trade/current-following-v2", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustPlanList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustPlanList", args...)
+// PrivateLinearGetFutureCopytradeUserV1CopyTradeFollowerBalanceBill returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureCopytradeUserV1CopyTradeFollowerBalanceBill(args ...any) <-chan any {
+	return this.Fetch2Async("future/copytrade/user/v1/copy-trade/follower-balance-bill", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustPlanListHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustPlanListHistory", args...)
+// PrivateLinearGetFutureCopytradeUserV1CopyTradeFollowerPosition returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureCopytradeUserV1CopyTradeFollowerPosition(args ...any) <-chan any {
+	return this.Fetch2Async("future/copytrade/user/v1/copy-trade/follower-position", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustProfitDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustProfitDetail", args...)
+// PrivateLinearGetFutureTradeV1EntrustPlanDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustPlanDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/plan-detail", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustProfitList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustProfitList", args...)
+// PrivateLinearGetFutureTradeV1EntrustPlanList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustPlanList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/plan-list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureTradeV1OrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderDetail", args...)
+// PrivateLinearGetFutureTradeV1EntrustPlanListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustPlanListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/plan-list-history", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureTradeV1OrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderList", args...)
+// PrivateLinearGetFutureTradeV1EntrustProfitDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustProfitDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/profit-detail", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureTradeV1OrderListHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderListHistory", args...)
+// PrivateLinearGetFutureTradeV1EntrustProfitList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustProfitList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/profit-list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureTradeV1OrderTradeList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderTradeList", args...)
+// PrivateLinearGetFutureTradeV1EntrustProfitListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustProfitListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/profit-list-history", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureUserV1AccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureUserV1AccountInfo", args...)
+// PrivateLinearGetFutureTradeV1EntrustReversePlanList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustReversePlanList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/reverse-plan-list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureUserV1BalanceBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureUserV1BalanceBills", args...)
+// PrivateLinearGetFutureTradeV1EntrustReversePlanListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustReversePlanListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/reverse-plan-list-history", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureUserV1BalanceDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureUserV1BalanceDetail", args...)
+// PrivateLinearGetFutureTradeV1EntrustTrackDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustTrackDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/track-detail", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureUserV1BalanceFundingRateList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureUserV1BalanceFundingRateList", args...)
+// PrivateLinearGetFutureTradeV1EntrustTrackList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustTrackList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/track-list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureUserV1BalanceList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureUserV1BalanceList", args...)
+// PrivateLinearGetFutureTradeV1EntrustTrackListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1EntrustTrackListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/track-list-history", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureUserV1PositionAdl(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureUserV1PositionAdl", args...)
+// PrivateLinearGetFutureTradeV1OrderEntrustList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1OrderEntrustList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order-entrust/list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureUserV1PositionList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureUserV1PositionList", args...)
+// PrivateLinearGetFutureTradeV1OrderDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1OrderDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/detail", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureUserV1UserCollectionList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureUserV1UserCollectionList", args...)
+// PrivateLinearGetFutureTradeV1OrderList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1OrderList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearGetFutureUserV1UserListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearGetFutureUserV1UserListenKey", args...)
+// PrivateLinearGetFutureTradeV1OrderListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1OrderListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/list-history", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelAllPlan(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelAllPlan", args...)
+// PrivateLinearGetFutureTradeV1OrderTradeHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1OrderTradeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/trade-history", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelAllProfitStop(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelAllProfitStop", args...)
+// PrivateLinearGetFutureTradeV1PositionListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1PositionListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/position/list-history", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelPlan(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelPlan", args...)
+// PrivateLinearGetFutureTradeV1PositionCrossMarginSymbol returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1PositionCrossMarginSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/position/cross-margin/{symbol}", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelProfitStop(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelProfitStop", args...)
+// PrivateLinearGetFutureTradeV1PositionLeverageList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1PositionLeverageList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/position/leverage/list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCreatePlan(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCreatePlan", args...)
+// PrivateLinearGetFutureTradeV1PositionListActive returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1PositionListActive(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/position/list/active", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCreateProfit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCreateProfit", args...)
+// PrivateLinearGetFutureTradeV1OrderTradeList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1OrderTradeList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/trade-list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustUpdateProfitStop(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustUpdateProfitStop", args...)
+// PrivateLinearGetFutureTradeV1OrderTradeListAll returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureTradeV1OrderTradeListAll(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/trade-list-all", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1OrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderCancel", args...)
+// PrivateLinearGetFutureUserV1AccountInfo returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1AccountInfo(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/account/info", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1OrderCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderCancelAll", args...)
+// PrivateLinearGetFutureUserV1AutoDeleverageHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1AutoDeleverageHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/auto-deleverage/history", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1OrderCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderCreate", args...)
+// PrivateLinearGetFutureUserV1BalanceBills returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1BalanceBills(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/balance/bills", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1OrderCreateBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderCreateBatch", args...)
+// PrivateLinearGetFutureUserV1BalanceDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1BalanceDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/balance/detail", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureTradeV1OrderUpdate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderUpdate", args...)
+// PrivateLinearGetFutureUserV1BalanceFundingRateList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1BalanceFundingRateList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/balance/funding-rate-list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureUserV1AccountOpen(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureUserV1AccountOpen", args...)
+// PrivateLinearGetFutureUserV1BalanceList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1BalanceList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/balance/list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureUserV1PositionAdjustLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionAdjustLeverage", args...)
+// PrivateLinearGetFutureUserV1CompatBalanceCoin returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1CompatBalanceCoin(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/compat/balance/{coin}", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureUserV1PositionAutoMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionAutoMargin", args...)
+// PrivateLinearGetFutureUserV1PositionAdl returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1PositionAdl(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/adl", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureUserV1PositionCloseAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionCloseAll", args...)
+// PrivateLinearGetFutureUserV1PositionBreakList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1PositionBreakList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/break-list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureUserV1PositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionMargin", args...)
+// PrivateLinearGetFutureUserV1PositionList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1PositionList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureUserV1UserCollectionAdd(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureUserV1UserCollectionAdd", args...)
+// PrivateLinearGetFutureUserV1TakerOverList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1TakerOverList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/taker-over/list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureUserV1UserCollectionCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureUserV1UserCollectionCancel", args...)
+// PrivateLinearGetFutureUserV1UserStepRate returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1UserStepRate(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/step-rate", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateLinearPostFutureUserV1PositionChangeType(args ...any) <-chan any {
-	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionChangeType", args...)
+// PrivateLinearGetFutureUserV1UserCollectionList returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1UserCollectionList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/collection/list", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustPlanDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustPlanDetail", args...)
+// PrivateLinearGetFutureUserV1UserListenKey returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearGetFutureUserV1UserListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/listen-key", []string{"private", "linear"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustPlanList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustPlanList", args...)
+// PrivateLinearPostFutureTradeV1EntrustCancelAllPlan returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustCancelAllPlan(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-all-plan", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustPlanListHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustPlanListHistory", args...)
+// PrivateLinearPostFutureTradeV1EntrustCancelAllProfitStop returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustCancelAllProfitStop(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-all-profit-stop", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustProfitDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustProfitDetail", args...)
+// PrivateLinearPostFutureTradeV1EntrustCancelAllTrack returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustCancelAllTrack(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-all-track", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustProfitList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustProfitList", args...)
+// PrivateLinearPostFutureTradeV1EntrustCancelPlan returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustCancelPlan(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-plan", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureTradeV1OrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderDetail", args...)
+// PrivateLinearPostFutureTradeV1EntrustCancelProfitStop returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustCancelProfitStop(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-profit-stop", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureTradeV1OrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderList", args...)
+// PrivateLinearPostFutureTradeV1EntrustCreatePlan returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustCreatePlan(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/create-plan", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureTradeV1OrderListHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderListHistory", args...)
+// PrivateLinearPostFutureTradeV1EntrustCancelTrack returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustCancelTrack(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-track", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureTradeV1OrderTradeList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderTradeList", args...)
+// PrivateLinearPostFutureTradeV1EntrustCreateProfit returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustCreateProfit(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/create-profit", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureUserV1AccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureUserV1AccountInfo", args...)
+// PrivateLinearPostFutureTradeV1EntrustCreateTrack returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustCreateTrack(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/create-track", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureUserV1BalanceBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureUserV1BalanceBills", args...)
+// PrivateLinearPostFutureTradeV1EntrustUpdateProfitStop returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1EntrustUpdateProfitStop(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/update-profit-stop", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureUserV1BalanceDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureUserV1BalanceDetail", args...)
+// PrivateLinearPostFutureTradeV1OrderCancel returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1OrderCancel(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/cancel", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureUserV1BalanceFundingRateList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureUserV1BalanceFundingRateList", args...)
+// PrivateLinearPostFutureTradeV1OrderCancelAll returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1OrderCancelAll(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/cancel-all", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureUserV1BalanceList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureUserV1BalanceList", args...)
+// PrivateLinearPostFutureTradeV1OrderCreate returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1OrderCreate(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/create", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureUserV1PositionAdl(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureUserV1PositionAdl", args...)
+// PrivateLinearPostFutureTradeV1OrderCreateBatch returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1OrderCreateBatch(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/create-batch", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureUserV1PositionList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureUserV1PositionList", args...)
+// PrivateLinearPostFutureTradeV1OrderUpdate returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureTradeV1OrderUpdate(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/update", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureUserV1UserCollectionList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureUserV1UserCollectionList", args...)
+// PrivateLinearPostFutureUserV1AccountOpen returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureUserV1AccountOpen(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/account/open", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInverseGetFutureUserV1UserListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInverseGetFutureUserV1UserListenKey", args...)
+// PrivateLinearPostFutureUserV1PositionAdjustLeverage returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureUserV1PositionAdjustLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/adjust-leverage", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelAllPlan(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelAllPlan", args...)
+// PrivateLinearPostFutureUserV1PositionAutoMargin returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureUserV1PositionAutoMargin(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/auto-margin", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelAllProfitStop(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelAllProfitStop", args...)
+// PrivateLinearPostFutureUserV1PositionCloseAll returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureUserV1PositionCloseAll(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/close-all", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelPlan(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelPlan", args...)
+// PrivateLinearPostFutureUserV1PositionMargin returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureUserV1PositionMargin(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/margin", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelProfitStop(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelProfitStop", args...)
+// PrivateLinearPostFutureUserV1UserCollectionAdd returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureUserV1UserCollectionAdd(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/collection/add", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCreatePlan(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCreatePlan", args...)
+// PrivateLinearPostFutureUserV1UserCollectionCancel returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureUserV1UserCollectionCancel(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/collection/cancel", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCreateProfit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCreateProfit", args...)
+// PrivateLinearPostFutureUserV1PositionChangeType returns a channel that yields a JSON object.
+func (this *Xt) PrivateLinearPostFutureUserV1PositionChangeType(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/change-type", []string{"private", "linear"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1EntrustUpdateProfitStop(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustUpdateProfitStop", args...)
+// PrivateInverseGetFutureTradeV1EntrustPlanDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustPlanDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/plan-detail", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1OrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderCancel", args...)
+// PrivateInverseGetFutureTradeV1EntrustPlanList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustPlanList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/plan-list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1OrderCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderCancelAll", args...)
+// PrivateInverseGetFutureTradeV1EntrustPlanListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustPlanListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/plan-list-history", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1OrderCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderCreate", args...)
+// PrivateInverseGetFutureTradeV1EntrustProfitDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustProfitDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/profit-detail", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1OrderCreateBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderCreateBatch", args...)
+// PrivateInverseGetFutureTradeV1EntrustProfitList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustProfitList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/profit-list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureTradeV1OrderUpdate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderUpdate", args...)
+// PrivateInverseGetFutureTradeV1EntrustProfitListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustProfitListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/profit-list-history", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureUserV1AccountOpen(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureUserV1AccountOpen", args...)
+// PrivateInverseGetFutureTradeV1EntrustReversePlanList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustReversePlanList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/reverse-plan-list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureUserV1PositionAdjustLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureUserV1PositionAdjustLeverage", args...)
+// PrivateInverseGetFutureTradeV1EntrustReversePlanListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustReversePlanListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/reverse-plan-list-history", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureUserV1PositionAutoMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureUserV1PositionAutoMargin", args...)
+// PrivateInverseGetFutureTradeV1EntrustTrackDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustTrackDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/track-detail", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureUserV1PositionCloseAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureUserV1PositionCloseAll", args...)
+// PrivateInverseGetFutureTradeV1EntrustTrackList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustTrackList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/track-list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureUserV1PositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureUserV1PositionMargin", args...)
+// PrivateInverseGetFutureTradeV1EntrustTrackListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1EntrustTrackListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/track-list-history", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureUserV1UserCollectionAdd(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureUserV1UserCollectionAdd", args...)
+// PrivateInverseGetFutureTradeV1OrderEntrustList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1OrderEntrustList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order-entrust/list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateInversePostFutureUserV1UserCollectionCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateInversePostFutureUserV1UserCollectionCancel", args...)
+// PrivateInverseGetFutureTradeV1OrderDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1OrderDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/detail", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateUserGetUserAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateUserGetUserAccount", args...)
+// PrivateInverseGetFutureTradeV1OrderList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1OrderList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateUserGetUserAccountApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateUserGetUserAccountApiKey", args...)
+// PrivateInverseGetFutureTradeV1OrderListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1OrderListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/list-history", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateUserPostUserAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateUserPostUserAccount", args...)
+// PrivateInverseGetFutureTradeV1OrderTradeHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1OrderTradeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/trade-history", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateUserPostUserAccountApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateUserPostUserAccountApiKey", args...)
+// PrivateInverseGetFutureTradeV1PositionListHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1PositionListHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/position/list-history", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateUserPutUserAccountApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateUserPutUserAccountApiKey", args...)
+// PrivateInverseGetFutureTradeV1PositionCrossMarginSymbol returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1PositionCrossMarginSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/position/cross-margin/{symbol}", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *XtCore) PrivateUserDeleteUserAccountApiKeyId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateUserDeleteUserAccountApiKeyId", args...)
+// PrivateInverseGetFutureTradeV1PositionLeverageList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1PositionLeverageList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/position/leverage/list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureTradeV1PositionListActive returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1PositionListActive(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/position/list/active", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureTradeV1OrderTradeList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1OrderTradeList(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/trade-list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureTradeV1OrderTradeListAll returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureTradeV1OrderTradeListAll(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/trade-list-all", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1AccountInfo returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1AccountInfo(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/account/info", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1AutoDeleverageHistory returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1AutoDeleverageHistory(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/auto-deleverage/history", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1BalanceBills returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1BalanceBills(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/balance/bills", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1BalanceDetail returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1BalanceDetail(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/balance/detail", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1BalanceFundingRateList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1BalanceFundingRateList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/balance/funding-rate-list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1BalanceList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1BalanceList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/balance/list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1CompatBalanceCoin returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1CompatBalanceCoin(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/compat/balance/{coin}", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1PositionAdl returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1PositionAdl(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/adl", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1PositionBreakList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1PositionBreakList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/break-list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1PositionList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1PositionList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1TakerOverList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1TakerOverList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/taker-over/list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1UserStepRate returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1UserStepRate(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/step-rate", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1UserCollectionList returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1UserCollectionList(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/collection/list", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInverseGetFutureUserV1UserListenKey returns a channel that yields a JSON object.
+func (this *Xt) PrivateInverseGetFutureUserV1UserListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/listen-key", []string{"private", "inverse"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustCancelAllPlan returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustCancelAllPlan(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-all-plan", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustCancelAllProfitStop returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustCancelAllProfitStop(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-all-profit-stop", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustCancelAllTrack returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustCancelAllTrack(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-all-track", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustCancelPlan returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustCancelPlan(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-plan", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustCancelProfitStop returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustCancelProfitStop(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-profit-stop", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustCreatePlan returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustCreatePlan(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/create-plan", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustCancelTrack returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustCancelTrack(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/cancel-track", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustCreateProfit returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustCreateProfit(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/create-profit", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustCreateTrack returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustCreateTrack(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/create-track", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1EntrustUpdateProfitStop returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1EntrustUpdateProfitStop(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/entrust/update-profit-stop", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1OrderCancel returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1OrderCancel(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/cancel", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1OrderCancelAll returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1OrderCancelAll(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/cancel-all", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1OrderCreate returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1OrderCreate(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/create", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1OrderCreateBatch returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1OrderCreateBatch(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/create-batch", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureTradeV1OrderUpdate returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureTradeV1OrderUpdate(args ...any) <-chan any {
+	return this.Fetch2Async("future/trade/v1/order/update", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureUserV1AccountOpen returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureUserV1AccountOpen(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/account/open", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureUserV1PositionAdjustLeverage returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureUserV1PositionAdjustLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/adjust-leverage", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureUserV1PositionAutoMargin returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureUserV1PositionAutoMargin(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/auto-margin", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureUserV1PositionCloseAll returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureUserV1PositionCloseAll(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/close-all", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureUserV1PositionMargin returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureUserV1PositionMargin(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/margin", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureUserV1UserCollectionAdd returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureUserV1UserCollectionAdd(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/collection/add", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureUserV1UserCollectionCancel returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureUserV1UserCollectionCancel(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/user/collection/cancel", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateInversePostFutureUserV1PositionChangeType returns a channel that yields a JSON object.
+func (this *Xt) PrivateInversePostFutureUserV1PositionChangeType(args ...any) <-chan any {
+	return this.Fetch2Async("future/user/v1/position/change-type", []string{"private", "inverse"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateUserGetUserAccount returns a channel that yields a JSON object.
+func (this *Xt) PrivateUserGetUserAccount(args ...any) <-chan any {
+	return this.Fetch2Async("user/account", []string{"private", "user"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateUserGetUserAccountApiKey returns a channel that yields a JSON object.
+func (this *Xt) PrivateUserGetUserAccountApiKey(args ...any) <-chan any {
+	return this.Fetch2Async("user/account/api-key", []string{"private", "user"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateUserPostUserAccount returns a channel that yields a JSON object.
+func (this *Xt) PrivateUserPostUserAccount(args ...any) <-chan any {
+	return this.Fetch2Async("user/account", []string{"private", "user"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateUserPostUserAccountApiKey returns a channel that yields a JSON object.
+func (this *Xt) PrivateUserPostUserAccountApiKey(args ...any) <-chan any {
+	return this.Fetch2Async("user/account/api-key", []string{"private", "user"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateUserPutUserAccountApiKey returns a channel that yields a JSON object.
+func (this *Xt) PrivateUserPutUserAccountApiKey(args ...any) <-chan any {
+	return this.Fetch2Async("user/account/api-key", []string{"private", "user"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateUserDeleteUserAccountApiKeyId returns a channel that yields a JSON object.
+func (this *Xt) PrivateUserDeleteUserAccountApiKeyId(args ...any) <-chan any {
+	return this.Fetch2Async("user/account/{apiKeyId}", []string{"private", "user"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

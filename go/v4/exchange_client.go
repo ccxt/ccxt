@@ -30,13 +30,14 @@ type ClientInterface interface {
 	Future(messageHash any) <-chan any
 	ReusableFuture(messageHash any) *Future
 	Reject(err any, messageHash ...any)
-	Send(message any) <-chan any
+	SendAsync(message any) <-chan any
 	Reset(err any)
 	OnPong()
 	GetError() error
 	SetError(err error)
 	GetUrl() string
-	GetSubscriptions() map[string]any
+	GetSubscriptions() any
+	GetRejections() map[string]any
 	GetLastPong() any
 	SetLastPong(lastPong any)
 	GetKeepAlive() any
@@ -49,7 +50,7 @@ type ClientInterface interface {
 // Each Subscribe call returns a receive-only channel that the caller reads updates from.
 type Client struct {
 	Futures   map[string]any
-	FuturesMu sync.RWMutex // protects Futures map
+	FuturesMu sync.RWMutex // protects Futures map and Rejections
 	Url       string
 
 	Connection   *websocket.Conn
@@ -57,10 +58,9 @@ type Client struct {
 
 	PongSetMu sync.RWMutex // protects LastPong set
 
-	Subscriptions   map[string]any // map[string]chan any
-	SubscriptionsMu sync.RWMutex
-	ConnectMu       sync.RWMutex // protects Connect calls
-	ReadLoopClosed  chan struct{}
+	Subscriptions  *sync.Map    // map[string]chan any - concurrency-safe, no external mutex required
+	ConnectMu      sync.RWMutex // protects Connect calls
+	ReadLoopClosed chan struct{}
 
 	Error error // last error, nil if connection considered healthy
 
@@ -71,6 +71,8 @@ type Client struct {
 	ConnectionTimeout     any            // e.g. *time.Timer or context.CancelFunc
 	Verbose               bool           // default false
 	DecompressBinary      bool
+	IsMock                bool                          // static ws tests: transport is stubbed, sends are recorded
+	MockSentMessages      []any                         // frames recorded in mock mode
 	ConnectionTimer       any                           // e.g. *time.Timer or custom timer
 	LastPong              any                           // time or timestamp type recommended
 	MaxPingPongMisses     any                           // int or counter type
@@ -90,7 +92,9 @@ type Client struct {
 }
 
 func (this *Client) Resolve(data any, subHash any) any {
-	hash, ok := subHash.(string)
+	// message hashes are built in generated WS code from Safe* values, so they
+	// arrive pointer-carried; normalize before asserting
+	hash, ok := derefScalar(subHash).(string)
 	if !ok {
 		panic(fmt.Sprintf("subHash must be a string, got %T: %v", subHash, subHash))
 	}
@@ -117,17 +121,24 @@ func (this *Client) ReusableFuture(messageHash any) *Future {
 }
 
 func (this *Client) NewFuture(messageHash any) *Future {
-	hash, _ := messageHash.(string)
+	hash, _ := derefScalar(messageHash).(string)
 	this.FuturesMu.Lock()
+	// a retained rejection fails this consumer fast. the spent future stays
+	// out of the map so the next consumer is not poisoned by the old error.
+	// Rejections shares FuturesMu (the unlocked read and delete here was a
+	// concurrent map access race with Reject)
+	if err, ok := this.Rejections[hash]; ok {
+		delete(this.Rejections, hash)
+		this.FuturesMu.Unlock()
+		future := NewFuture()
+		future.Reject(err.(error))
+		return future
+	}
 	if _, ok := this.Futures[hash]; !ok {
 		this.Futures[hash] = NewFuture()
 	}
 	future := this.Futures[hash]
 	this.FuturesMu.Unlock()
-	if err, ok := this.Rejections[hash]; ok {
-		future.(*Future).Reject(err.(error))
-		delete(this.Rejections, hash)
-	}
 	return future.(*Future)
 }
 
@@ -145,7 +156,15 @@ func (this *Client) Reject(err any, messageHash ...any) {
 	hash := messageHash[0]
 	if fut, ok := this.Futures[hash.(string)]; ok {
 		fut.(*Future).Reject(err.(error))
-		delete(this.Futures, hash.(string))
+		delete(this.Futures, derefScalar(hash).(string))
+	} else {
+		// ts parity: an error arriving while no consumer future exists is
+		// retained so the next NewFuture fails fast instead of the error
+		// being dropped
+		if this.Rejections == nil {
+			this.Rejections = map[string]any{}
+		}
+		this.Rejections[derefScalar(hash).(string)] = err
 	}
 	this.FuturesMu.Unlock()
 }
@@ -181,7 +200,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 		"Protocols":             nil,
 		"Options":               nil,
 		"Futures":               make(map[string]any),
-		"Subscriptions":         make(map[string]any), // map[string]chan any
+		"Subscriptions":         &sync.Map{}, // map[string]chan any
 		"Rejections":            make(map[string]any),
 		"Connected":             nil,
 		"Error":                 nil,
@@ -215,9 +234,9 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 	c := &Client{
 		Url:                 url,
 		Futures:             finalConfig["Futures"].(map[string]any),
-		Subscriptions:       finalConfig["Subscriptions"].(map[string]any), // map[string]chan any
+		Subscriptions:       finalConfig["Subscriptions"].(*sync.Map), // map[string]chan any
 		Rejections:          finalConfig["Rejections"].(map[string]any),
-		Verbose:             finalConfig["Verbose"].(bool),
+		Verbose:             derefScalar(finalConfig["Verbose"]).(bool),
 		KeepAlive:           ParseInt(finalConfig["keepAlive"]),
 		MaxPingPongMisses:   finalConfig["MaxPingPongMisses"],
 		IsConnected:         finalConfig["IsConnected"],
@@ -244,57 +263,12 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 		ReadLoopClosed:        make(chan struct{}),
 		Connected:             NewFuture(),
 		Disconnected:          NewFuture(),
-		DecompressBinary:      finalConfig["DecompressBinary"].(bool),
+		DecompressBinary:      derefScalar(finalConfig["DecompressBinary"]).(bool),
 	}
 
 	return c
 }
 
-// func (this *Client) readLoop() {
-// 	defer close(this.ReadLoopClosed)
-// 	defer func() {
-// 		// Call onCloseCallback when read loop exits
-// 		if this.OnCloseCallback != nil {
-// 			this.OnCloseCallback()
-// 		}
-// 	}()
-
-// 	for {
-// 		if this.Connection == nil {
-// 			return
-// 		}
-// 		_, data, err := this.Connection.ReadMessage()
-// 		if err != nil {
-// 			this.Err = err
-// 			this.IsConnected = false
-
-// 			// Call onErrorCallback if provided
-// 			if this.OnErrorCallback != nil {
-// 				this.OnErrorCallback(err)
-// 			}
-
-// 			_ = this.Close()
-// 			return
-// 		}
-
-// 		// Call onMessageCallback if provided
-// 		if this.OnMessageCallback != nil {
-// 			this.OnMessageCallback(data)
-// 		}
-
-// 		// forward decoded JSON frames to exchange.HandleMessage
-// 		if this.Owner != nil {
-// 			var msg any
-// 			if err := json.Unmarshal(data, &msg); err == nil {
-// 				if h, ok := this.Owner.(interface{ HandleMessage(client any, message any) }); ok {
-// 					h.HandleMessage(this, msg)
-// 				}
-// 			}
-// 		}
-// 	}
-// }
-
-// updates the LastPong timestamp and optionally logs the event when the client is running in verbose mode
 func (this *Client) OnPong() {
 	this.PongSetMu.Lock()
 	defer this.PongSetMu.Unlock()
@@ -335,7 +309,7 @@ func (this *Client) IsOpen() (any, error) {
 }
 
 func (this *Client) OnConnectionTimeout() {
-	if !this.IsConnected.(bool) {
+	if !derefScalar(this.IsConnected).(bool) {
 		err := RequestTimeout("Connection to " + this.Url + " failed due to a connection timeout")
 		this.OnError(err)
 		if this.Connection != nil {
@@ -420,7 +394,7 @@ func (this *Client) OnUpgrade(message any) {
 	}
 }
 
-func (this *Client) Send(message any) <-chan any {
+func (this *Client) SendAsync(message any) <-chan any {
 	var msgStr string
 	if str, ok := message.(string); ok {
 		msgStr = str
@@ -438,9 +412,20 @@ func (this *Client) Send(message any) <-chan any {
 	go func() {
 		this.ConnectionMu.Lock()
 		// ? if (isNode)
-		if this.Connection == nil {
+		if this.IsMock {
+			// static ws tests: record the outgoing frame so the test can assert it
+			var parsed any
+			if err := json.Unmarshal([]byte(msgStr), &parsed); err == nil {
+				this.MockSentMessages = append(this.MockSentMessages, parsed)
+			}
+			future.Resolve(true)
+			ch <- true
+		} else if this.Connection == nil {
 			err := NetworkError("not connected to " + this.Url)
 			future.Reject(err)
+			// the caller receives on ch (see Exchange.watch); without sending here
+			// it would block forever when the connection is not established
+			ch <- err
 		} else {
 			err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
 			if err != nil {
@@ -501,11 +486,11 @@ func (this *Client) OnMessage(messageEvent any) {
 		messageStr = str
 	} else if bytes, ok := message.([]byte); ok {
 		// Handle binary data
-		if this.Gunzip != nil && this.Gunzip.(bool) {
+		if this.Gunzip != nil && derefScalar(this.Gunzip).(bool) {
 			// Would need to implement gzip decompression
 			gunzipOut, _ := gunzipData(bytes)
 			messageStr = string(gunzipOut)
-		} else if this.Inflate != nil && this.Inflate.(bool) {
+		} else if this.Inflate != nil && derefScalar(this.Inflate).(bool) {
 			// Would need to implement zlib inflation
 			messageStr = string(bytes)
 		} else {
@@ -577,8 +562,15 @@ func (this *Client) GetUrl() string {
 	return this.Url
 }
 
-func (this *Client) GetSubscriptions() map[string]any {
+// GetSubscriptions returns the live *sync.Map of subscriptions (by reference), so callers
+// (and the *sync.Map-aware helpers like Remove/AddElementToObject/ObjectKeys) mutate the
+// real subscriptions. It is concurrency-safe: sync.Map handles concurrent access internally.
+func (this *Client) GetSubscriptions() any {
 	return this.Subscriptions
+}
+
+func (this *Client) GetRejections() map[string]any {
+	return this.Rejections
 }
 
 func (this *Client) GetLastPong() any {

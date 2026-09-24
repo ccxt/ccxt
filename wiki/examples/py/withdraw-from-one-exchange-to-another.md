@@ -1,8 +1,5 @@
-- [Withdraw From One Exchange To Another](./examples/py/)
-
-
- ```python
- import ccxt
+```python
+import ccxt
 import sys
 from pprint import pprint
 
@@ -44,5 +41,5 @@ withdrawal = kucoin.withdraw(code, amount, deposit['address'], deposit['tag'], p
 print('-----------------------------------------------------------')
 
 pprint(withdrawal)
- 
+
 ```

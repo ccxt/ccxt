@@ -8,33 +8,37 @@ namespace Tests;
 public partial class testMainClass : BaseTest
 {
     // ----------------------------------------------------------------------------
-    public static object tcoDebug(Exchange exchange, object symbol, object message)
+    public static object tcoDebug(BaseExchange exchange, object symbol, object message)
     {
         // just for debugging purposes
-        object debugCreateOrder = true;
-        if (isTrue(debugCreateOrder))
+        bool debugCreateOrder = true;
+        if (debugCreateOrder)
         {
             // for c# fix, extra step to convert them to string
-            object msg = add(add(add(add(add(" >>>>> testCreateOrder [", ((object)(getValue(exchange, "id"))).ToString()), " : "), symbol), "] "), message);
+            string msg = (((((" >>>>> testCreateOrder [" + ((object)(getValue(exchange, "id"))).ToString()) + " : ") + (symbol)) + "] ") + (message));
             Console.WriteLine(msg);
         }
         return true;
     }
     // ----------------------------------------------------------------------------
-    async static public Task<object> testCreateOrder(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testCreateOrder(BaseExchange exchange, object skippedProperties, object symbol)
     {
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
-        assert(isTrue(isTrue(getValue(exchange.has, "cancelOrder")) || isTrue(getValue(exchange.has, "cancelOrders"))) || isTrue(getValue(exchange.has, "cancelAllOrders")), add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
+        bool hasCancelOrder = (!isEqual(getValue(exchange.has, "cancelOrder"), null)) && (!isEqual(getValue(exchange.has, "cancelOrder"), false));
+        bool hasCancelOrders = (!isEqual(getValue(exchange.has, "cancelOrders"), null)) && (!isEqual(getValue(exchange.has, "cancelOrders"), false));
+        bool hasCancelAllOrders = (!isEqual(getValue(exchange.has, "cancelAllOrders"), null)) && (!isEqual(getValue(exchange.has, "cancelAllOrders"), false));
+        assert(hasCancelOrder || hasCancelOrders || hasCancelAllOrders, add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         // pre-define some coefficients, which will be used down below
-        object limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
+        double limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         object market = exchange.market(symbol);
-        object isSwapFuture = isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"));
-        assert(getValue(exchange.has, "fetchBalance"), add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
-        object balance = await exchange.fetchBalance();
+        bool isSwapFuture = (isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true));
+        bool hasFetchBalance = (!isEqual(getValue(exchange.has, "fetchBalance"), null)) && (!isEqual(getValue(exchange.has, "fetchBalance"), false));
+        assert(hasFetchBalance, add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
+        object balance = await invokeExchangeDynamically(exchange, "fetchBalance");
         object initialBaseBalance = getValue(getValue(balance, getValue(market, "base")), "free");
         object initialQuoteBalance = getValue(getValue(balance, getValue(market, "quote")), "free");
-        assert(!isEqual(initialQuoteBalance, null), add(add(add(logPrefix, " - testing account not have balance of"), getValue(market, "quote")), " in fetchBalance() which is required to test"));
-        tcoDebug(exchange, symbol, add(add(add(add(add(add(add(add(add("fetched balance for ", symbol), " : "), ((object)initialBaseBalance).ToString()), " "), getValue(market, "base")), "/"), initialQuoteBalance), " "), getValue(market, "quote")));
+        assert((initialQuoteBalance != null), add(add(add(logPrefix, " - testing account not have balance of"), getValue(market, "quote")), " in fetchBalance() which is required to test"));
+        tcoDebug(exchange, symbol, ((((((((("fetched balance for " + (symbol)) + " : ") + ((object)initialBaseBalance).ToString()) + " ") + (getValue(market, "base"))) + "/") + (initialQuoteBalance)) + " ") + (getValue(market, "quote"))));
         var bestBidbestAskVariable = await testSharedMethods.fetchBestBidAsk(exchange, "createOrder", symbol);
         var bestBid = ((IList<object>) bestBidbestAskVariable)[0];
         var bestAsk = ((IList<object>) bestBidbestAskVariable)[1];
@@ -42,7 +46,7 @@ public partial class testMainClass : BaseTest
         tcoDebug(exchange, symbol, "### SCENARIO 1 ###");
         // create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
         await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy");
-        if (isTrue(isSwapFuture))
+        if (isSwapFuture)
         {
             // for swap markets, we test sell orders too
             await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell");
@@ -52,7 +56,7 @@ public partial class testMainClass : BaseTest
         tcoDebug(exchange, symbol, "### SCENARIO 2 ###");
         // create an order which IS GUARANTEED to have a fill (full or partial)
         await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy");
-        if (isTrue(isSwapFuture))
+        if (isSwapFuture)
         {
             // for swap markets, we test sell orders too
             await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell");
@@ -62,7 +66,7 @@ public partial class testMainClass : BaseTest
         return true;
     }
     // ----------------------------------------------------------------------------
-    async static public Task<object> tcoCreateUnfillableOrder(Exchange exchange, object market, object logPrefix, object skippedProperties, object bestBid, object bestAsk, object limitPriceSafetyMultiplierFromMedian, object buyOrSell, object predefinedAmount = null)
+    async static public Task<object> tcoCreateUnfillableOrder(BaseExchange exchange, object market, object logPrefix, object skippedProperties, object bestBid, object bestAsk, object limitPriceSafetyMultiplierFromMedian, object buyOrSell, object predefinedAmount = null)
     {
         try
         {
@@ -73,17 +77,17 @@ public partial class testMainClass : BaseTest
             // below we set limit price, where the order will not be completed.
             // We do not use the extreme "limits" values for that market, because, even though min purchase amount for BTC/USDT can be 0.01 BTC, it means with 10$ you can buy 1000 BTC, which leads to unrealistic outcome. So, we just use around 5%-10% far price from the current price.
             object limitBuyPrice_nonFillable = divide(bestBid, limitPriceSafetyMultiplierFromMedian);
-            if (isTrue(isTrue(!isEqual(minimumPrice, null)) && isTrue(isLessThan(limitBuyPrice_nonFillable, minimumPrice))))
+            if ((minimumPrice != null) && isLessThan(limitBuyPrice_nonFillable, minimumPrice))
             {
                 limitBuyPrice_nonFillable = minimumPrice;
             }
             object limitSellPrice_nonFillable = multiply(bestAsk, limitPriceSafetyMultiplierFromMedian);
-            if (isTrue(isTrue(!isEqual(maximumPrice, null)) && isTrue(isGreaterThan(limitSellPrice_nonFillable, maximumPrice))))
+            if ((maximumPrice != null) && isGreaterThan(limitSellPrice_nonFillable, maximumPrice))
             {
                 limitSellPrice_nonFillable = maximumPrice;
             }
             object createdOrder = null;
-            if (isTrue(isEqual(buyOrSell, "buy")))
+            if (isEqual(buyOrSell, "buy"))
             {
                 object orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
                 createdOrder = await tcoCreateOrderSafe(exchange, symbol, "limit", "buy", orderAmount, limitBuyPrice_nonFillable, new Dictionary<string, object>() {}, skippedProperties);
@@ -94,7 +98,7 @@ public partial class testMainClass : BaseTest
             }
             object fetchedOrder = await testSharedMethods.fetchOrder(exchange, symbol, getValue(createdOrder, "id"), skippedProperties);
             // test fetched order object
-            if (isTrue(!isEqual(fetchedOrder, null)))
+            if ((fetchedOrder != null))
             {
                 testOrder(exchange, skippedProperties, "createOrder", fetchedOrder, symbol, exchange.milliseconds());
             }
@@ -111,16 +115,16 @@ public partial class testMainClass : BaseTest
         }
         return true;
     }
-    async static public Task<object> tcoCreateFillableOrder(Exchange exchange, object market, object logPrefix, object skippedProperties, object bestBid, object bestAsk, object limitPriceSafetyMultiplierFromMedian, object buyOrSellString, object predefinedAmount = null)
+    async static public Task<object> tcoCreateFillableOrder(BaseExchange exchange, object market, object logPrefix, object skippedProperties, object bestBid, object bestAsk, object limitPriceSafetyMultiplierFromMedian, object buyOrSellString, object predefinedAmount = null)
     {
         try
         {
-            object isSwapFuture = isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"));
-            object isBuy = (isEqual(buyOrSellString, "buy"));
-            object entrySide = ((bool) isTrue(isBuy)) ? "buy" : "sell";
-            object exitSide = ((bool) isTrue(isBuy)) ? "sell" : "buy";
-            object entryorderPrice = ((bool) isTrue(isBuy)) ? multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : divide(bestBid, limitPriceSafetyMultiplierFromMedian);
-            object exitorderPrice = ((bool) isTrue(isBuy)) ? divide(bestBid, limitPriceSafetyMultiplierFromMedian) : multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
+            bool isSwapFuture = (isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true));
+            bool isBuy = (isEqual(buyOrSellString, "buy"));
+            string entrySide = isBuy ? "buy" : "sell";
+            string exitSide = isBuy ? "sell" : "buy";
+            object entryorderPrice = isBuy ? multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : divide(bestBid, limitPriceSafetyMultiplierFromMedian);
+            object exitorderPrice = isBuy ? divide(bestBid, limitPriceSafetyMultiplierFromMedian) : multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
             //
             //
             object symbol = getValue(market, "symbol");
@@ -135,32 +139,33 @@ public partial class testMainClass : BaseTest
             // ### close the traded position ###
             //
             object amountToClose = exchange.parseToNumeric(exchange.safeString(entryorderFetched, "filled"));
-            object parameters = new Dictionary<string, object>() {};
+            Dictionary<string, object> parameters = new Dictionary<string, object>() {};
             // as we want to close position, we should use 'reduceOnly' to ensure we don't open a margined position accidentally, because some exchanges might have automatically enabled margin-mode (on spot) or hedge-mode (on contracts)
-            if (isTrue(isSwapFuture))
+            if (isSwapFuture)
             {
                 ((IDictionary<string,object>)parameters)["reduceOnly"] = true;
             }
-            object exitorderFilled = await tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, (((bool) isTrue(getValue(market, "spot"))) ? null : exitorderPrice), parameters, skippedProperties);
+            object exitorderPriceArg = (isEqual(getValue(market, "spot"), true)) ? null : exitorderPrice;
+            object exitorderFilled = await tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties);
             object exitorderFetched = await testSharedMethods.fetchOrder(exchange, symbol, getValue(exitorderFilled, "id"), skippedProperties);
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         } catch(Exception e)
         {
-            throw new Exception ((string)add("failed for Scenario 2: ", ((object)e).ToString())) ;
+            throw new Exception ((string)("failed for Scenario 2: " + ((object)e).ToString())) ;
         }
         return true;
     }
-    public static object tcoAssertFilledOrder(Exchange exchange, object market, object logPrefix, object skippedProperties, object createdOrder, object fetchedOrder, object requestedSide, object requestedAmount)
+    public static object tcoAssertFilledOrder(BaseExchange exchange, object market, object logPrefix, object skippedProperties, object createdOrder, object fetchedOrder, object requestedSide, object requestedAmount)
     {
         // test filled amount
         object precisionAmount = exchange.safeString(getValue(market, "precision"), "amount");
         object entryorderAmountString = exchange.numberToString(requestedAmount);
         object filledString = exchange.safeString(fetchedOrder, "filled");
-        assert(!isEqual(filledString, null), add(add(logPrefix, " order should be filled, but it is not. "), exchange.json(fetchedOrder)));
+        assert((filledString != null), add(add(logPrefix, " order should be filled, but it is not. "), exchange.json(fetchedOrder)));
         // filled amount should be whithin the expected range i.e. if you buy 100 DOGECOIN and amount-precision is 1,
         // and also considering possible roundings in implementation, then filled amount should be between 99 and 101
-        object maxExpectedFilledAmount = Precise.stringAdd(entryorderAmountString, precisionAmount);
-        object minExpectedFilledAmount = Precise.stringSub(entryorderAmountString, precisionAmount);
+        string? maxExpectedFilledAmount = Precise.stringAdd(entryorderAmountString, precisionAmount);
+        string? minExpectedFilledAmount = Precise.stringSub(entryorderAmountString, precisionAmount);
         assert(Precise.stringLe(filledString, maxExpectedFilledAmount), add(add(logPrefix, " filled amount is more than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
         assert(Precise.stringGe(filledString, minExpectedFilledAmount), add(add(logPrefix, " filled amount is less than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
         // order state should be "closed"
@@ -172,24 +177,24 @@ public partial class testMainClass : BaseTest
         return true;
     }
     // ----------------------------------------------------------------------------
-    async static public Task<object> tcoCancelOrder(Exchange exchange, object symbol, object orderId = null)
+    async static public Task<object> tcoCancelOrder(BaseExchange exchange, object symbol, object orderId = null)
     {
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
-        object usedMethod = "";
+        string usedMethod = "";
         object cancelResult = null;
-        if (isTrue(isTrue(getValue(exchange.has, "cancelOrder")) && isTrue(!isEqual(orderId, null))))
+        if ((!isEqual(getValue(exchange.has, "cancelOrder"), null)) && (!isEqual(getValue(exchange.has, "cancelOrder"), false)) && ((orderId != null)))
         {
             usedMethod = "cancelOrder";
-            cancelResult = await exchange.cancelOrder(orderId, symbol);
-        } else if (isTrue(getValue(exchange.has, "cancelAllOrders")))
+            cancelResult = await invokeExchangeDynamically(exchange, "cancelOrder", orderId, symbol);
+        } else if ((!isEqual(getValue(exchange.has, "cancelAllOrders"), null)) && (!isEqual(getValue(exchange.has, "cancelAllOrders"), false)))
         {
             usedMethod = "cancelAllOrders";
-            cancelResult = await exchange.cancelAllOrders(symbol);
-        } else if (isTrue(getValue(exchange.has, "cancelOrders")))
+            cancelResult = await invokeExchangeDynamically(exchange, "cancelAllOrders", symbol);
+        } else if ((!isEqual(getValue(exchange.has, "cancelOrders"), null)) && (!isEqual(getValue(exchange.has, "cancelOrders"), false)))
         {
             throw new Exception ((string)add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
         }
-        tcoDebug(exchange, symbol, add(add(add("canceled order using ", usedMethod), ":"), getValue(cancelResult, "id")));
+        tcoDebug(exchange, symbol, ((("canceled order using " + usedMethod) + ":") + (getValue(cancelResult, "id"))));
         // todo:
         // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
         // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
@@ -197,18 +202,18 @@ public partial class testMainClass : BaseTest
     }
     // ----------------------------------------------------------------------------
     // ----------------------------------------------------------------------------
-    async static public Task<object> tcoCreateOrderSafe(Exchange exchange, object symbol, object orderType, object side, object amount, object price = null, object parameters = null, object skippedProperties = null)
+    async static public Task<object> tcoCreateOrderSafe(BaseExchange exchange, object symbol, object orderType, object side, object amount, object price = null, object parameters = null, object skippedProperties = null)
     {
         parameters ??= new Dictionary<string, object>();
         skippedProperties ??= new Dictionary<string, object>();
-        tcoDebug(exchange, symbol, add(add(add(add(add(add(add(add(add("Executing createOrder ", orderType), " "), side), " "), amount), " "), price), " "), exchange.json(parameters)));
-        object order = await exchange.createOrder(symbol, orderType, side, amount, price, parameters);
+        tcoDebug(exchange, symbol, ((((((((("Executing createOrder " + (orderType)) + " ") + (side)) + " ") + (amount)) + " ") + (price)) + " ") + (exchange.json(parameters))));
+        object order = await invokeExchangeDynamically(exchange, "createOrder", symbol, orderType, side, amount, price, parameters);
         try
         {
             testOrder(exchange, skippedProperties, "createOrder", order, symbol, (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds());
         } catch(Exception e)
         {
-            if (isTrue(!isEqual(orderType, "market")))
+            if (!isEqual(orderType, "market"))
             {
                 // if it was limit order, try to cancel it before exiting the script
                 await tcoTryCancelOrder(exchange, symbol, order, skippedProperties);
@@ -217,21 +222,21 @@ public partial class testMainClass : BaseTest
         }
         return order;
     }
-    public static object tcoMininumAmount(Exchange exchange, object market)
+    public static object tcoMininumAmount(BaseExchange exchange, object market)
     {
         object amountValues = exchange.safeDict(getValue(market, "limits"), "amount", new Dictionary<string, object>() {});
         object amountMin = exchange.safeNumber(amountValues, "min");
-        assert(!isEqual(amountMin, null), add(add(add(exchange.id, " "), getValue(market, "symbol")), " can not determine minimum amount for order"));
+        assert((amountMin != null), add(add(add(exchange.id, " "), getValue(market, "symbol")), " can not determine minimum amount for order"));
         return amountMin;
     }
-    public static object tcoMininumCost(Exchange exchange, object market)
+    public static object tcoMininumCost(BaseExchange exchange, object market)
     {
         object costValues = exchange.safeDict(getValue(market, "limits"), "cost", new Dictionary<string, object>() {});
         object costMin = exchange.safeNumber(costValues, "min");
-        assert(!isEqual(costMin, null), add(add(add(exchange.id, " "), getValue(market, "symbol")), " can not determine minimum cost for order"));
+        assert((costMin != null), add(add(add(exchange.id, " "), getValue(market, "symbol")), " can not determine minimum cost for order"));
         return costMin;
     }
-    public static object tcoGetMinimumAmountForLimitPrice(Exchange exchange, object market, object price, object predefinedAmount = null)
+    public static object tcoGetMinimumAmountForLimitPrice(BaseExchange exchange, object market, object price, object predefinedAmount = null)
     {
         // this method calculates the minimum realistic order amount:
         // at first it checks the "minimum hardcap limit" (i.e. 7 DOGE), however, if exchange also has "minimum cost" limits,
@@ -240,29 +245,29 @@ public partial class testMainClass : BaseTest
         object minimumAmount = tcoMininumAmount(exchange, market);
         object minimumCost = tcoMininumCost(exchange, market);
         object finalAmount = minimumAmount;
-        if (isTrue(!isEqual(minimumCost, null)))
+        if ((minimumCost != null))
         {
-            if (isTrue(isLessThan(multiply(finalAmount, price), minimumCost)))
+            if (isLessThan(multiply(finalAmount, price), minimumCost))
             {
                 finalAmount = divide(minimumCost, price);
             }
         }
-        if (isTrue(!isEqual(predefinedAmount, null)))
+        if ((predefinedAmount != null))
         {
             finalAmount = mathMax(finalAmount, predefinedAmount);
         }
         // because it's possible that calculated value might get truncated down in "createOrder" (i.e. 0.129 -> 0.12), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
         object amountPrecision = exchange.safeNumber(getValue(market, "precision"), "amount");
-        object isTickSizePrecision = isEqual(exchange.precisionMode, 4);
-        if (isTrue(isEqual(amountPrecision, null)))
+        bool isTickSizePrecision = isEqual(exchange.precisionMode, 4);
+        if ((amountPrecision == null))
         {
             amountPrecision = 1e-15; // todo: revise this for better way in future
         } else
         {
             // todo: remove after TICK_SIZE unification
-            if (!isTrue(isTickSizePrecision))
+            if (!isTickSizePrecision)
             {
-                amountPrecision = divide(1, Math.Pow(Convert.ToDouble(10), Convert.ToDouble(amountPrecision))); // this converts DECIMAL_PRECISION into TICK_SIZE
+                amountPrecision = (1 / Math.Pow(Convert.ToDouble(10), Convert.ToDouble(amountPrecision))); // this converts DECIMAL_PRECISION into TICK_SIZE
             }
         }
         finalAmount = add(finalAmount, amountPrecision);
@@ -270,12 +275,16 @@ public partial class testMainClass : BaseTest
         finalAmount = parseFloat(exchange.decimalToPrecision(finalAmount, 2, getValue(getValue(market, "precision"), "amount"), exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
         return finalAmount;
     }
-    async static public Task<object> tcoTryCancelOrder(Exchange exchange, object symbol, object order, object skippedProperties)
+    async static public Task<object> tcoTryCancelOrder(BaseExchange exchange, object symbol, object order, object skippedProperties)
     {
         object orderFetched = await testSharedMethods.fetchOrder(exchange, symbol, getValue(order, "id"), skippedProperties);
+        if ((orderFetched == null))
+        {
+            return true;
+        }
         object needsCancel = exchange.inArray(getValue(orderFetched, "status"), new List<object>() {"open", "pending", null});
         // if it was not reported as closed/filled, then try to cancel it
-        if (isTrue(needsCancel))
+        if (isEqual(needsCancel, true))
         {
             tcoDebug(exchange, symbol, "trying to cancel the remaining amount of partially filled order...");
             try
@@ -284,7 +293,7 @@ public partial class testMainClass : BaseTest
             } catch(Exception e)
             {
                 // order might have been closed/filled already, before 'cancelOrder' call reaches server, so it is tolerable, we don't throw exception
-                tcoDebug(exchange, symbol, add(" a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: ", ((object)e).ToString()));
+                tcoDebug(exchange, symbol, (" a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: " + ((object)e).ToString()));
             }
         } else
         {

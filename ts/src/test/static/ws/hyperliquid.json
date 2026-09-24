@@ -1,0 +1,1266 @@
+{
+    "exchange": "hyperliquid",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "swap ticker",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "url": "wss://api.hyperliquid.xyz/ws",
+                "messages": [
+                    {
+                        "channel": "subscriptionResponse",
+                        "data": {
+                            "method": "subscribe",
+                            "subscription": {
+                                "type": "activeAssetCtx",
+                                "coin": "BTC"
+                            }
+                        }
+                    },
+                    {
+                        "channel": "activeAssetCtx",
+                        "data": {
+                            "coin": "BTC",
+                            "ctx": {
+                                "funding": "0.0000125",
+                                "openInterest": "38485.06546",
+                                "prevDayPx": "64299.0",
+                                "dayNtlVlm": "1692146864.1761949062",
+                                "premium": "-0.0003293628",
+                                "oraclePx": "64063.1",
+                                "markPx": "64040.0",
+                                "midPx": "64041.5",
+                                "impactPxs": [
+                                    "64041.0",
+                                    "64042.0"
+                                ],
+                                "dayBaseVlm": "26501.0297399999"
+                            }
+                        }
+                    },
+                    {
+                        "channel": "activeAssetCtx",
+                        "data": {
+                            "coin": "BTC",
+                            "ctx": {
+                                "funding": "0.0000125",
+                                "openInterest": "38485.06546",
+                                "prevDayPx": "64299.0",
+                                "dayNtlVlm": "1692146864.1761949062",
+                                "premium": "-0.0003293628",
+                                "oraclePx": "64063.1",
+                                "markPx": "64040.0",
+                                "midPx": "64041.5",
+                                "impactPxs": [
+                                    "64041.0",
+                                    "64042.0"
+                                ],
+                                "dayBaseVlm": "26501.0297399999"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "subscription": {
+                            "type": "activeAssetCtx",
+                            "coin": "BTC"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "previousClose": 64299,
+                        "close": 64041.5,
+                        "last": 64041.5,
+                        "bid": 64041,
+                        "ask": 64042,
+                        "quoteVolume": 1692146864.176195,
+                        "info": {
+                            "funding": "0.0000125",
+                            "openInterest": "38485.06546",
+                            "prevDayPx": "64299.0",
+                            "dayNtlVlm": "1692146864.1761949062",
+                            "premium": "-0.0003293628",
+                            "oraclePx": "64063.1",
+                            "markPx": "64040.0",
+                            "midPx": "64041.5",
+                            "impactPxs": [
+                                "64041.0",
+                                "64042.0"
+                            ],
+                            "dayBaseVlm": "26501.0297399999"
+                        },
+                        "bidVolume": null,
+                        "askVolume": null,
+                        "high": null,
+                        "low": null,
+                        "open": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": null,
+                        "baseVolume": null,
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    {
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "previousClose": 64299,
+                        "close": 64041.5,
+                        "last": 64041.5,
+                        "bid": 64041,
+                        "ask": 64042,
+                        "quoteVolume": 1692146864.176195,
+                        "info": {
+                            "funding": "0.0000125",
+                            "openInterest": "38485.06546",
+                            "prevDayPx": "64299.0",
+                            "dayNtlVlm": "1692146864.1761949062",
+                            "premium": "-0.0003293628",
+                            "oraclePx": "64063.1",
+                            "markPx": "64040.0",
+                            "midPx": "64041.5",
+                            "impactPxs": [
+                                "64041.0",
+                                "64042.0"
+                            ],
+                            "dayBaseVlm": "26501.0297399999"
+                        },
+                        "bidVolume": null,
+                        "askVolume": null,
+                        "high": null,
+                        "low": null,
+                        "open": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": null,
+                        "baseVolume": null,
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "swap ohlcv 1m",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m"
+                ],
+                "url": "wss://api.hyperliquid.xyz/ws",
+                "messages": [
+                    {
+                        "channel": "subscriptionResponse",
+                        "data": {
+                            "method": "subscribe",
+                            "subscription": {
+                                "type": "candle",
+                                "interval": "1m",
+                                "coin": "BTC"
+                            }
+                        }
+                    },
+                    {
+                        "channel": "candle",
+                        "data": {
+                            "t": 1786539540000,
+                            "T": 1786539599999,
+                            "s": "BTC",
+                            "i": "1m",
+                            "o": "64082.0",
+                            "c": "64099.0",
+                            "h": "64100.0",
+                            "l": "64082.0",
+                            "v": "6.39125",
+                            "n": 124
+                        }
+                    },
+                    {
+                        "channel": "candle",
+                        "data": {
+                            "t": 1786539540000,
+                            "T": 1786539599999,
+                            "s": "BTC",
+                            "i": "1m",
+                            "o": "64082.0",
+                            "c": "64100.0",
+                            "h": "64100.0",
+                            "l": "64082.0",
+                            "v": "6.392",
+                            "n": 125
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "subscription": {
+                            "type": "candle",
+                            "coin": "BTC",
+                            "interval": "1m"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786539540000,
+                            64082,
+                            64100,
+                            64082,
+                            64099,
+                            6.39125
+                        ]
+                    ],
+                    [
+                        [
+                            1786539540000,
+                            64082,
+                            64100,
+                            64082,
+                            64100,
+                            6.392
+                        ]
+                    ]
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "swap trades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "url": "wss://api.hyperliquid.xyz/ws",
+                "messages": [
+                    {
+                        "channel": "subscriptionResponse",
+                        "data": {
+                            "method": "subscribe",
+                            "subscription": {
+                                "type": "trades",
+                                "coin": "BTC"
+                            }
+                        }
+                    },
+                    {
+                        "channel": "trades",
+                        "data": [
+                            {
+                                "coin": "BTC",
+                                "side": "B",
+                                "px": "64097.0",
+                                "sz": "0.00033",
+                                "time": 1786539552700,
+                                "hash": "0x289c2bb40fdc2e512a15044201cee80202550099aadf4d23cc64d706ced0083b",
+                                "tid": "604438142537043",
+                                "users": [
+                                    "0x3c7a9f4b7ec840b1879c28acb8b02371b8db7b2d",
+                                    "0x01535f0ffbf18d084366c4dc846e58bb915fdd09"
+                                ]
+                            },
+                            {
+                                "coin": "BTC",
+                                "side": "A",
+                                "px": "64096.0",
+                                "sz": "0.00023",
+                                "time": 1786539553004,
+                                "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                                "tid": "153378402400855",
+                                "users": [
+                                    "0xea0e878d5da1f786c035355cd7a8d381a6276766",
+                                    "0x8d4aedc569f341b5f7d829332f1777cb9f38d366"
+                                ]
+                            },
+                            {
+                                "coin": "BTC",
+                                "side": "A",
+                                "px": "64096.0",
+                                "sz": "0.0312",
+                                "time": 1786539553102,
+                                "hash": "0x80e2093225a5589f825b044201ceed0201e10017c0a8777124aab484e4a9328a",
+                                "tid": "663834423078060",
+                                "users": [
+                                    "0xea0e878d5da1f786c035355cd7a8d381a6276766",
+                                    "0x2365dda016d6917bb25e8005eb6165a677b8c8d3"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "trades",
+                        "data": [
+                            {
+                                "coin": "BTC",
+                                "side": "A",
+                                "px": "64096.0",
+                                "sz": "0.06683",
+                                "time": 1786539555782,
+                                "hash": "0x4e9fef919a58c0235019044201cf1502019c0077355bdef5f2689ae4595c9a0d",
+                                "tid": "237378239638384",
+                                "users": [
+                                    "0xea0e878d5da1f786c035355cd7a8d381a6276766",
+                                    "0x459a26d40a9969b4532adf3375efb985fcd4c23b"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "subscription": {
+                            "type": "trades",
+                            "coin": "BTC"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "coin": "BTC",
+                                "side": "B",
+                                "px": "64097.0",
+                                "sz": "0.00033",
+                                "time": 1786539552700,
+                                "hash": "0x289c2bb40fdc2e512a15044201cee80202550099aadf4d23cc64d706ced0083b",
+                                "tid": "604438142537043",
+                                "users": [
+                                    "0x3c7a9f4b7ec840b1879c28acb8b02371b8db7b2d",
+                                    "0x01535f0ffbf18d084366c4dc846e58bb915fdd09"
+                                ]
+                            },
+                            "timestamp": 1786539552700,
+                            "datetime": "2026-08-12T12:59:12.700Z",
+                            "symbol": "BTC/USDC:USDC",
+                            "id": "604438142537043",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 64097,
+                            "amount": 0.00033,
+                            "cost": 21.15201,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "coin": "BTC",
+                                "side": "A",
+                                "px": "64096.0",
+                                "sz": "0.00023",
+                                "time": 1786539553004,
+                                "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                                "tid": "153378402400855",
+                                "users": [
+                                    "0xea0e878d5da1f786c035355cd7a8d381a6276766",
+                                    "0x8d4aedc569f341b5f7d829332f1777cb9f38d366"
+                                ]
+                            },
+                            "timestamp": 1786539553004,
+                            "datetime": "2026-08-12T12:59:13.004Z",
+                            "symbol": "BTC/USDC:USDC",
+                            "id": "153378402400855",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64096,
+                            "amount": 0.00023,
+                            "cost": 14.74208,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "coin": "BTC",
+                                "side": "A",
+                                "px": "64096.0",
+                                "sz": "0.0312",
+                                "time": 1786539553102,
+                                "hash": "0x80e2093225a5589f825b044201ceed0201e10017c0a8777124aab484e4a9328a",
+                                "tid": "663834423078060",
+                                "users": [
+                                    "0xea0e878d5da1f786c035355cd7a8d381a6276766",
+                                    "0x2365dda016d6917bb25e8005eb6165a677b8c8d3"
+                                ]
+                            },
+                            "timestamp": 1786539553102,
+                            "datetime": "2026-08-12T12:59:13.102Z",
+                            "symbol": "BTC/USDC:USDC",
+                            "id": "663834423078060",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64096,
+                            "amount": 0.0312,
+                            "cost": 1999.7952,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "coin": "BTC",
+                                "side": "A",
+                                "px": "64096.0",
+                                "sz": "0.06683",
+                                "time": 1786539555782,
+                                "hash": "0x4e9fef919a58c0235019044201cf1502019c0077355bdef5f2689ae4595c9a0d",
+                                "tid": "237378239638384",
+                                "users": [
+                                    "0xea0e878d5da1f786c035355cd7a8d381a6276766",
+                                    "0x459a26d40a9969b4532adf3375efb985fcd4c23b"
+                                ]
+                            },
+                            "timestamp": 1786539555782,
+                            "datetime": "2026-08-12T12:59:15.782Z",
+                            "symbol": "BTC/USDC:USDC",
+                            "id": "237378239638384",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64096,
+                            "amount": 0.06683,
+                            "cost": 4283.53568,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ],
+                "disabledGO": "go newUpdates tail returns the full cache instead of only the new trades - same family as the bitget/binance disabledGO entries"
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "swap orderbook",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "url": "wss://api.hyperliquid.xyz/ws",
+                "messages": [
+                    {
+                        "channel": "subscriptionResponse",
+                        "data": {
+                            "method": "subscribe",
+                            "subscription": {
+                                "type": "l2Book",
+                                "coin": "BTC",
+                                "nSigFigs": null,
+                                "mantissa": null,
+                                "fast": false
+                            }
+                        }
+                    },
+                    {
+                        "channel": "l2Book",
+                        "data": {
+                            "coin": "BTC",
+                            "time": 1786539643751,
+                            "levels": [
+                                [
+                                    {
+                                        "px": "64094.0",
+                                        "sz": "12.29409",
+                                        "n": 30
+                                    },
+                                    {
+                                        "px": "64093.0",
+                                        "sz": "5.30722",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64092.0",
+                                        "sz": "0.19502",
+                                        "n": 3
+                                    },
+                                    {
+                                        "px": "64091.0",
+                                        "sz": "0.81791",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64090.0",
+                                        "sz": "7.78311",
+                                        "n": 9
+                                    },
+                                    {
+                                        "px": "64089.0",
+                                        "sz": "2.00409",
+                                        "n": 2
+                                    },
+                                    {
+                                        "px": "64088.0",
+                                        "sz": "4.58058",
+                                        "n": 6
+                                    },
+                                    {
+                                        "px": "64087.0",
+                                        "sz": "4.20206",
+                                        "n": 8
+                                    },
+                                    {
+                                        "px": "64086.0",
+                                        "sz": "8.23498",
+                                        "n": 8
+                                    },
+                                    {
+                                        "px": "64085.0",
+                                        "sz": "20.34036",
+                                        "n": 6
+                                    },
+                                    {
+                                        "px": "64084.0",
+                                        "sz": "1.31088",
+                                        "n": 6
+                                    },
+                                    {
+                                        "px": "64083.0",
+                                        "sz": "4.71888",
+                                        "n": 7
+                                    },
+                                    {
+                                        "px": "64082.0",
+                                        "sz": "9.28139",
+                                        "n": 7
+                                    },
+                                    {
+                                        "px": "64081.0",
+                                        "sz": "1.94702",
+                                        "n": 6
+                                    },
+                                    {
+                                        "px": "64080.0",
+                                        "sz": "19.16741",
+                                        "n": 7
+                                    },
+                                    {
+                                        "px": "64079.0",
+                                        "sz": "2.97255",
+                                        "n": 5
+                                    },
+                                    {
+                                        "px": "64078.0",
+                                        "sz": "6.35129",
+                                        "n": 8
+                                    },
+                                    {
+                                        "px": "64077.0",
+                                        "sz": "13.13443",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64076.0",
+                                        "sz": "17.2186",
+                                        "n": 5
+                                    },
+                                    {
+                                        "px": "64075.0",
+                                        "sz": "6.3175",
+                                        "n": 7
+                                    }
+                                ],
+                                [
+                                    {
+                                        "px": "64095.0",
+                                        "sz": "2.37411",
+                                        "n": 13
+                                    },
+                                    {
+                                        "px": "64096.0",
+                                        "sz": "0.01401",
+                                        "n": 2
+                                    },
+                                    {
+                                        "px": "64097.0",
+                                        "sz": "0.16186",
+                                        "n": 3
+                                    },
+                                    {
+                                        "px": "64098.0",
+                                        "sz": "1.7322",
+                                        "n": 2
+                                    },
+                                    {
+                                        "px": "64099.0",
+                                        "sz": "0.00205",
+                                        "n": 1
+                                    },
+                                    {
+                                        "px": "64100.0",
+                                        "sz": "2.96839",
+                                        "n": 3
+                                    },
+                                    {
+                                        "px": "64101.0",
+                                        "sz": "4.87512",
+                                        "n": 7
+                                    },
+                                    {
+                                        "px": "64102.0",
+                                        "sz": "4.48918",
+                                        "n": 5
+                                    },
+                                    {
+                                        "px": "64103.0",
+                                        "sz": "1.80881",
+                                        "n": 9
+                                    },
+                                    {
+                                        "px": "64104.0",
+                                        "sz": "2.78308",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64105.0",
+                                        "sz": "1.66232",
+                                        "n": 3
+                                    },
+                                    {
+                                        "px": "64106.0",
+                                        "sz": "5.10864",
+                                        "n": 10
+                                    },
+                                    {
+                                        "px": "64107.0",
+                                        "sz": "1.73821",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64108.0",
+                                        "sz": "0.05099",
+                                        "n": 2
+                                    },
+                                    {
+                                        "px": "64109.0",
+                                        "sz": "3.46244",
+                                        "n": 6
+                                    },
+                                    {
+                                        "px": "64110.0",
+                                        "sz": "1.27715",
+                                        "n": 6
+                                    },
+                                    {
+                                        "px": "64111.0",
+                                        "sz": "3.70816",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64112.0",
+                                        "sz": "2.81183",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64113.0",
+                                        "sz": "5.27525",
+                                        "n": 5
+                                    },
+                                    {
+                                        "px": "64114.0",
+                                        "sz": "5.83788",
+                                        "n": 8
+                                    }
+                                ]
+                            ]
+                        }
+                    },
+                    {
+                        "channel": "l2Book",
+                        "data": {
+                            "coin": "BTC",
+                            "time": 1786539646983,
+                            "levels": [
+                                [
+                                    {
+                                        "px": "64093.0",
+                                        "sz": "0.09932",
+                                        "n": 1
+                                    },
+                                    {
+                                        "px": "64091.0",
+                                        "sz": "0.01016",
+                                        "n": 2
+                                    },
+                                    {
+                                        "px": "64090.0",
+                                        "sz": "1.57495",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64089.0",
+                                        "sz": "4.32428",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64088.0",
+                                        "sz": "2.70216",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64087.0",
+                                        "sz": "2.45768",
+                                        "n": 5
+                                    },
+                                    {
+                                        "px": "64086.0",
+                                        "sz": "4.15145",
+                                        "n": 6
+                                    },
+                                    {
+                                        "px": "64085.0",
+                                        "sz": "17.51465",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64084.0",
+                                        "sz": "3.67058",
+                                        "n": 7
+                                    },
+                                    {
+                                        "px": "64083.0",
+                                        "sz": "4.21994",
+                                        "n": 8
+                                    },
+                                    {
+                                        "px": "64082.0",
+                                        "sz": "11.97718",
+                                        "n": 11
+                                    },
+                                    {
+                                        "px": "64081.0",
+                                        "sz": "1.62526",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64080.0",
+                                        "sz": "3.56313",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64079.0",
+                                        "sz": "1.75252",
+                                        "n": 3
+                                    },
+                                    {
+                                        "px": "64078.0",
+                                        "sz": "2.31353",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64077.0",
+                                        "sz": "12.32163",
+                                        "n": 8
+                                    },
+                                    {
+                                        "px": "64076.0",
+                                        "sz": "18.72068",
+                                        "n": 7
+                                    },
+                                    {
+                                        "px": "64075.0",
+                                        "sz": "6.98152",
+                                        "n": 7
+                                    },
+                                    {
+                                        "px": "64074.0",
+                                        "sz": "19.21259",
+                                        "n": 9
+                                    },
+                                    {
+                                        "px": "64073.0",
+                                        "sz": "2.94287",
+                                        "n": 5
+                                    }
+                                ],
+                                [
+                                    {
+                                        "px": "64094.0",
+                                        "sz": "20.92904",
+                                        "n": 84
+                                    },
+                                    {
+                                        "px": "64095.0",
+                                        "sz": "5.04365",
+                                        "n": 11
+                                    },
+                                    {
+                                        "px": "64096.0",
+                                        "sz": "1.02905",
+                                        "n": 3
+                                    },
+                                    {
+                                        "px": "64097.0",
+                                        "sz": "3.38115",
+                                        "n": 8
+                                    },
+                                    {
+                                        "px": "64098.0",
+                                        "sz": "2.70168",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64099.0",
+                                        "sz": "1.47614",
+                                        "n": 3
+                                    },
+                                    {
+                                        "px": "64100.0",
+                                        "sz": "3.96399",
+                                        "n": 5
+                                    },
+                                    {
+                                        "px": "64101.0",
+                                        "sz": "5.33497",
+                                        "n": 7
+                                    },
+                                    {
+                                        "px": "64102.0",
+                                        "sz": "3.31054",
+                                        "n": 2
+                                    },
+                                    {
+                                        "px": "64103.0",
+                                        "sz": "1.23536",
+                                        "n": 5
+                                    },
+                                    {
+                                        "px": "64104.0",
+                                        "sz": "0.11701",
+                                        "n": 1
+                                    },
+                                    {
+                                        "px": "64105.0",
+                                        "sz": "3.95389",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64106.0",
+                                        "sz": "3.08836",
+                                        "n": 11
+                                    },
+                                    {
+                                        "px": "64107.0",
+                                        "sz": "4.78461",
+                                        "n": 6
+                                    },
+                                    {
+                                        "px": "64108.0",
+                                        "sz": "3.38062",
+                                        "n": 6
+                                    },
+                                    {
+                                        "px": "64109.0",
+                                        "sz": "5.42169",
+                                        "n": 8
+                                    },
+                                    {
+                                        "px": "64110.0",
+                                        "sz": "0.97109",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64111.0",
+                                        "sz": "4.07106",
+                                        "n": 4
+                                    },
+                                    {
+                                        "px": "64112.0",
+                                        "sz": "6.14604",
+                                        "n": 8
+                                    },
+                                    {
+                                        "px": "64113.0",
+                                        "sz": "3.36834",
+                                        "n": 4
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "subscription": {
+                            "type": "l2Book",
+                            "coin": "BTC"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                64094,
+                                12.29409
+                            ],
+                            [
+                                64093,
+                                5.30722
+                            ],
+                            [
+                                64092,
+                                0.19502
+                            ],
+                            [
+                                64091,
+                                0.81791
+                            ],
+                            [
+                                64090,
+                                7.78311
+                            ],
+                            [
+                                64089,
+                                2.00409
+                            ],
+                            [
+                                64088,
+                                4.58058
+                            ],
+                            [
+                                64087,
+                                4.20206
+                            ],
+                            [
+                                64086,
+                                8.23498
+                            ],
+                            [
+                                64085,
+                                20.34036
+                            ],
+                            [
+                                64084,
+                                1.31088
+                            ],
+                            [
+                                64083,
+                                4.71888
+                            ],
+                            [
+                                64082,
+                                9.28139
+                            ],
+                            [
+                                64081,
+                                1.94702
+                            ],
+                            [
+                                64080,
+                                19.16741
+                            ],
+                            [
+                                64079,
+                                2.97255
+                            ],
+                            [
+                                64078,
+                                6.35129
+                            ],
+                            [
+                                64077,
+                                13.13443
+                            ],
+                            [
+                                64076,
+                                17.2186
+                            ],
+                            [
+                                64075,
+                                6.3175
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64095,
+                                2.37411
+                            ],
+                            [
+                                64096,
+                                0.01401
+                            ],
+                            [
+                                64097,
+                                0.16186
+                            ],
+                            [
+                                64098,
+                                1.7322
+                            ],
+                            [
+                                64099,
+                                0.00205
+                            ],
+                            [
+                                64100,
+                                2.96839
+                            ],
+                            [
+                                64101,
+                                4.87512
+                            ],
+                            [
+                                64102,
+                                4.48918
+                            ],
+                            [
+                                64103,
+                                1.80881
+                            ],
+                            [
+                                64104,
+                                2.78308
+                            ],
+                            [
+                                64105,
+                                1.66232
+                            ],
+                            [
+                                64106,
+                                5.10864
+                            ],
+                            [
+                                64107,
+                                1.73821
+                            ],
+                            [
+                                64108,
+                                0.05099
+                            ],
+                            [
+                                64109,
+                                3.46244
+                            ],
+                            [
+                                64110,
+                                1.27715
+                            ],
+                            [
+                                64111,
+                                3.70816
+                            ],
+                            [
+                                64112,
+                                2.81183
+                            ],
+                            [
+                                64113,
+                                5.27525
+                            ],
+                            [
+                                64114,
+                                5.83788
+                            ]
+                        ],
+                        "timestamp": 1786539643751,
+                        "datetime": "2026-08-12T13:00:43.751Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDC:USDC"
+                    },
+                    {
+                        "bids": [
+                            [
+                                64093,
+                                0.09932
+                            ],
+                            [
+                                64091,
+                                0.01016
+                            ],
+                            [
+                                64090,
+                                1.57495
+                            ],
+                            [
+                                64089,
+                                4.32428
+                            ],
+                            [
+                                64088,
+                                2.70216
+                            ],
+                            [
+                                64087,
+                                2.45768
+                            ],
+                            [
+                                64086,
+                                4.15145
+                            ],
+                            [
+                                64085,
+                                17.51465
+                            ],
+                            [
+                                64084,
+                                3.67058
+                            ],
+                            [
+                                64083,
+                                4.21994
+                            ],
+                            [
+                                64082,
+                                11.97718
+                            ],
+                            [
+                                64081,
+                                1.62526
+                            ],
+                            [
+                                64080,
+                                3.56313
+                            ],
+                            [
+                                64079,
+                                1.75252
+                            ],
+                            [
+                                64078,
+                                2.31353
+                            ],
+                            [
+                                64077,
+                                12.32163
+                            ],
+                            [
+                                64076,
+                                18.72068
+                            ],
+                            [
+                                64075,
+                                6.98152
+                            ],
+                            [
+                                64074,
+                                19.21259
+                            ],
+                            [
+                                64073,
+                                2.94287
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64094,
+                                20.92904
+                            ],
+                            [
+                                64095,
+                                5.04365
+                            ],
+                            [
+                                64096,
+                                1.02905
+                            ],
+                            [
+                                64097,
+                                3.38115
+                            ],
+                            [
+                                64098,
+                                2.70168
+                            ],
+                            [
+                                64099,
+                                1.47614
+                            ],
+                            [
+                                64100,
+                                3.96399
+                            ],
+                            [
+                                64101,
+                                5.33497
+                            ],
+                            [
+                                64102,
+                                3.31054
+                            ],
+                            [
+                                64103,
+                                1.23536
+                            ],
+                            [
+                                64104,
+                                0.11701
+                            ],
+                            [
+                                64105,
+                                3.95389
+                            ],
+                            [
+                                64106,
+                                3.08836
+                            ],
+                            [
+                                64107,
+                                4.78461
+                            ],
+                            [
+                                64108,
+                                3.38062
+                            ],
+                            [
+                                64109,
+                                5.42169
+                            ],
+                            [
+                                64110,
+                                0.97109
+                            ],
+                            [
+                                64111,
+                                4.07106
+                            ],
+                            [
+                                64112,
+                                6.14604
+                            ],
+                            [
+                                64113,
+                                3.36834
+                            ]
+                        ],
+                        "timestamp": 1786539646983,
+                        "datetime": "2026-08-12T13:00:46.983Z",
+                        "nonce": null,
+                        "symbol": "BTC/USDC:USDC"
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,3 +1,3 @@
-import { Exchange, OrderBook } from "../../../../ccxt";
+import { Exchange, OrderBook } from "../../../../ccxt.js";
 declare function testOrderBook(exchange: Exchange, skippedProperties: object, method: string, orderbook: OrderBook, symbol: string | undefined): void;
 export default testOrderBook;

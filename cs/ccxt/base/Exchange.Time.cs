@@ -1,6 +1,6 @@
 namespace ccxt;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public Int64 milliseconds()
@@ -24,6 +24,18 @@ public partial class Exchange
         // return res;
 
 
+    }
+
+    public virtual void setLastRestRequestTimestamp()
+    {
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+
+    public virtual void setLastRequest(object request)
+    {
+        this.last_request_headers = getValue(request, "headers");
+        this.last_request_body = getValue(request, "body");
+        this.last_request_url = getValue(request, "url");
     }
 
     public long microseconds()
@@ -63,22 +75,42 @@ public partial class Exchange
         {
             return null;
         }
-        Int64 startdatetime;
+        if (ts is string s)
+        {
+            // only plain-integer strings are accepted, e.g. "1755432123456" (not "123abc" or "")
+            if (!System.Text.RegularExpressions.Regex.IsMatch(s, "^[0-9]+$"))
+            {
+                return null;
+            }
+        }
+        double milliseconds;
         try
         {
-            startdatetime = Convert.ToInt64(ts);
+            milliseconds = Convert.ToDouble(ts, System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception e)
         {
             return null;
         }
-        if (startdatetime < 0)
+        if (double.IsNaN(milliseconds) || double.IsInfinity(milliseconds))
         {
             return null;
         }
-        var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
-        return date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-
+        // non-integer numbers are floored (e.g. 514862627559.9 -> 514862627559)
+        Int64 startdatetime = (Int64)Math.Floor(milliseconds);
+        if (startdatetime < 0 || startdatetime > 8640000000000000L)
+        {
+            return null;
+        }
+        try
+        {
+            var date = (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).AddMilliseconds(startdatetime);
+            return date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
     }
 
     public string iso8601(object ts = null)
@@ -138,21 +170,7 @@ public partial class Exchange
         return date;
     }
 
-    public object ymd(object ts, object infix = null)
-    {
-        if (infix == null)
-        {
-            infix = "-";
-        }
-        // check this
-        if (ts == null)
-        {
-            return null;
-        }
-        var startdatetime = Convert.ToInt64(ts);
-        var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
-        return date.ToString("yyyy" + infix + "MM" + infix + "dd");
-    }
+    public object ymd(object ts, object infix = null) => yyyymmdd(ts, infix);
 
     public Int64? parse8601(object datetime2 = null)
     {
@@ -164,14 +182,10 @@ public partial class Exchange
         Int64 timestamp;
         try
         {
-            if (datetime.IndexOf("+0") > -1)
-            {
-                // "2023-05-08T17:04:43+0000"
-                // dates like this aren't correctly mapped to UTC
-                var parts = datetime.Split('+');
-                datetime = parts[0];
-            }
-            timestamp = (long)DateTime.Parse(datetime, null, System.Globalization.DateTimeStyles.RoundtripKind).Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            // DateTimeOffset honours the offset the string declares instead of resolving it
+            // against the host clock; AssumeUniversal reads a zoneless string as UTC and
+            // AdjustToUniversal normalises both cases to UTC.
+            timestamp = System.DateTimeOffset.Parse(datetime, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal).ToUnixTimeMilliseconds();
         }
         catch (Exception e)
         {

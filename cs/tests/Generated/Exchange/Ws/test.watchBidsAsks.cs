@@ -17,23 +17,26 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchBidsAsksHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
-        object method = "watchBidsAsks";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        string method = "watchBidsAsks";
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 15000);
+        int maxIdleTime = 5000;
+        bool idle = false;
+        while ((isLessThan(now, ends)) && !idle)
         {
-            object success = true;
-            object shouldReturn = false;
-            object response = null;
+            bool success = true;
+            bool shouldReturn = false;
+            object response = new Dictionary<string, object>() {};
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchBidsAsks(argSymbols, argParams);
+                response = detypeForComparison(await exchange.WatchBidsAsks(argSymbols, argParams));
             } catch(Exception e)
             {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
                 // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
                 // because tests will make a second call of this method with symbols array
-                if (isTrue(isTrue((e is ArgumentsRequired)) && isTrue((isTrue(isEqual(argSymbols, null)) || isTrue(isEqual(getArrayLength(argSymbols), 0))))))
+                if ((e is ArgumentsRequired) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
                 {
                     // todo: provide random symbols to try
                     // return false;
@@ -42,30 +45,32 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (isTrue(shouldReturn))
+            now = exchange.milliseconds();
+            if (shouldReturn)
             {
                 return false;
             }
-            if (isTrue(isEqual(success, true)))
+            if ((success == true))
             {
-                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
-                object values = new List<object>(((IDictionary<string,object>)response).Values);
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
+                List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
-                if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
+                if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
                 {
                     checkedSymbol = getValue(argSymbols, 0);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+                for (int i = 0; i < values.Count; i++)
                 {
-                    object ticker = getValue(values, i);
+                    object ticker = values[i];
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
-                now = exchange.milliseconds();
+                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

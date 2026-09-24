@@ -7,100 +7,376 @@ namespace ccxt\abstract;
 
 
 abstract class cryptomus extends \ccxt\Exchange {
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_v2_user_api_exchange_markets($params = array()) {
         return $this->request('v2/user-api/exchange/markets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_v2_user_api_exchange_market_price($params = array()) {
         return $this->request('v2/user-api/exchange/market/price', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_v2_user_api_exchange_markets_price($params = array()) {
+        return $this->request('v2/user-api/exchange/markets/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_v1_exchange_market_assets($params = array()) {
         return $this->request('v1/exchange/market/assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_v1_exchange_market_order_book_currencypair($params = array()) {
         return $this->request('v1/exchange/market/order-book/{currencyPair}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_v1_exchange_market_tickers($params = array()) {
         return $this->request('v1/exchange/market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_v1_exchange_market_trades_currencypair($params = array()) {
         return $this->request('v1/exchange/market/trades/{currencyPair}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_v2_user_api_exchange_orders($params = array()) {
         return $this->request('v2/user-api/exchange/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_v2_user_api_exchange_orders_history($params = array()) {
         return $this->request('v2/user-api/exchange/orders/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_v2_user_api_exchange_account_balance($params = array()) {
         return $this->request('v2/user-api/exchange/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_v2_user_api_exchange_account_tariffs($params = array()) {
         return $this->request('v2/user-api/exchange/account/tariffs', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_v2_user_api_payment_services($params = array()) {
         return $this->request('v2/user-api/payment/services', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_v2_user_api_payout_services($params = array()) {
         return $this->request('v2/user-api/payout/services', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_v2_user_api_transaction_list($params = array()) {
         return $this->request('v2/user-api/transaction/list', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_v2_user_api_balance($params = array()) {
+        return $this->request('v2/user-api/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_v2_user_api_convert_direction_list($params = array()) {
+        return $this->request('v2/user-api/convert/direction-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_v2_user_api_convert_order_list($params = array()) {
+        return $this->request('v2/user-api/convert/order-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_v2_user_api_aml_check_balance($params = array()) {
+        return $this->request('v2/user-api/aml/check/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_v2_user_api_aml_check_currencies($params = array()) {
+        return $this->request('v2/user-api/aml/check/currencies', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_v2_user_api_aml_check_packages($params = array()) {
+        return $this->request('v2/user-api/aml/check/packages', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_v2_user_api_aml_check_request($params = array()) {
+        return $this->request('v2/user-api/aml/check/request', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_v2_user_api_aml_check_request_id($params = array()) {
+        return $this->request('v2/user-api/aml/check/request/{id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_v2_user_api_exchange_orders($params = array()) {
         return $this->request('v2/user-api/exchange/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_v2_user_api_exchange_orders_market($params = array()) {
         return $this->request('v2/user-api/exchange/orders/market', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_v2_user_api_convert($params = array()) {
+        return $this->request('v2/user-api/convert', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_v2_user_api_convert_calculate($params = array()) {
+        return $this->request('v2/user-api/convert/calculate', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_v2_user_api_convert_limit($params = array()) {
+        return $this->request('v2/user-api/convert/limit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_v2_user_api_aml_check_request($params = array()) {
+        return $this->request('v2/user-api/aml/check/request', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_v2_user_api_aml_check_request_id_report_send($params = array()) {
+        return $this->request('v2/user-api/aml/check/request/{id}/report/send', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_v2_user_api_exchange_orders_orderid($params = array()) {
         return $this->request('v2/user-api/exchange/orders/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_v2_user_api_convert_orderuuid($params = array()) {
+        return $this->request('v2/user-api/convert/{orderUuid}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetV2UserApiExchangeMarkets($params = array()) {
         return $this->request('v2/user-api/exchange/markets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetV2UserApiExchangeMarketPrice($params = array()) {
         return $this->request('v2/user-api/exchange/market/price', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetV2UserApiExchangeMarketsPrice($params = array()) {
+        return $this->request('v2/user-api/exchange/markets/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetV1ExchangeMarketAssets($params = array()) {
         return $this->request('v1/exchange/market/assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetV1ExchangeMarketOrderBookCurrencyPair($params = array()) {
         return $this->request('v1/exchange/market/order-book/{currencyPair}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetV1ExchangeMarketTickers($params = array()) {
         return $this->request('v1/exchange/market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetV1ExchangeMarketTradesCurrencyPair($params = array()) {
         return $this->request('v1/exchange/market/trades/{currencyPair}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetV2UserApiExchangeOrders($params = array()) {
         return $this->request('v2/user-api/exchange/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetV2UserApiExchangeOrdersHistory($params = array()) {
         return $this->request('v2/user-api/exchange/orders/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetV2UserApiExchangeAccountBalance($params = array()) {
         return $this->request('v2/user-api/exchange/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetV2UserApiExchangeAccountTariffs($params = array()) {
         return $this->request('v2/user-api/exchange/account/tariffs', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetV2UserApiPaymentServices($params = array()) {
         return $this->request('v2/user-api/payment/services', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetV2UserApiPayoutServices($params = array()) {
         return $this->request('v2/user-api/payout/services', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetV2UserApiTransactionList($params = array()) {
         return $this->request('v2/user-api/transaction/list', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetV2UserApiBalance($params = array()) {
+        return $this->request('v2/user-api/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetV2UserApiConvertDirectionList($params = array()) {
+        return $this->request('v2/user-api/convert/direction-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetV2UserApiConvertOrderList($params = array()) {
+        return $this->request('v2/user-api/convert/order-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetV2UserApiAmlCheckBalance($params = array()) {
+        return $this->request('v2/user-api/aml/check/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetV2UserApiAmlCheckCurrencies($params = array()) {
+        return $this->request('v2/user-api/aml/check/currencies', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetV2UserApiAmlCheckPackages($params = array()) {
+        return $this->request('v2/user-api/aml/check/packages', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetV2UserApiAmlCheckRequest($params = array()) {
+        return $this->request('v2/user-api/aml/check/request', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetV2UserApiAmlCheckRequestId($params = array()) {
+        return $this->request('v2/user-api/aml/check/request/{id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostV2UserApiExchangeOrders($params = array()) {
         return $this->request('v2/user-api/exchange/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostV2UserApiExchangeOrdersMarket($params = array()) {
         return $this->request('v2/user-api/exchange/orders/market', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostV2UserApiConvert($params = array()) {
+        return $this->request('v2/user-api/convert', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostV2UserApiConvertCalculate($params = array()) {
+        return $this->request('v2/user-api/convert/calculate', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostV2UserApiConvertLimit($params = array()) {
+        return $this->request('v2/user-api/convert/limit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostV2UserApiAmlCheckRequest($params = array()) {
+        return $this->request('v2/user-api/aml/check/request', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostV2UserApiAmlCheckRequestIdReportSend($params = array()) {
+        return $this->request('v2/user-api/aml/check/request/{id}/report/send', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteV2UserApiExchangeOrdersOrderId($params = array()) {
         return $this->request('v2/user-api/exchange/orders/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteV2UserApiConvertOrderUuid($params = array()) {
+        return $this->request('v2/user-api/convert/{orderUuid}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
 }

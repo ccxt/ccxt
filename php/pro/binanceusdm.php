@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class binanceusdm extends \ccxt\pro\binance {
-
     public function describe(): mixed {
         // eslint-disable-next-line new-cap
-        $restInstance = new \ccxt\async\binanceusdm ();
-        $restDescribe = $restInstance->describe ();
-        $extended = $this->deep_extend(parent::describe(), $restDescribe);
+        $restInstance = new \ccxt\async\binanceusdm();
+        $restDescribe = $restInstance->describe();
+        $parentWsDescribe = parent::describe_data();
+        $extended = $this->deep_extend($restDescribe, $parentWsDescribe);
         return $this->deep_extend($extended, array(
             'id' => 'binanceusdm',
             'name' => 'Binance USDⓈ-M',
@@ -31,9 +31,9 @@ class binanceusdm extends \ccxt\pro\binance {
             // https://developers.binance.com/docs/derivatives/usds-margined-futures/error-code
             'exceptions' => array(
                 'exact' => array(
-                    '-5021' => '\\ccxt\\InvalidOrder', // array("code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected.")
-                    '-5022' => '\\ccxt\\InvalidOrder', // array("code":-5022,"msg":"Due to the order could not be executed, the Post Only order will be rejected.")
-                    '-5028' => '\\ccxt\\InvalidOrder', // array("code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow.")
+                    '-5021' => '\\ccxt\\InvalidOrder', // {"code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected."}
+                    '-5022' => '\\ccxt\\InvalidOrder', // {"code":-5022,"msg":"Due to the order could not be executed as maker, the Post Only order will be rejected."}
+                    '-5028' => '\\ccxt\\InvalidOrder', // {"code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow."}
                 ),
             ),
         ));

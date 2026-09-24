@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -21,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bit2c(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bit2c, self).describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
@@ -135,37 +134,40 @@ class bit2c(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'Exchanges/{pair}/Ticker',
-                        'Exchanges/{pair}/orderbook',
-                        'Exchanges/{pair}/trades',
-                        'Exchanges/{pair}/lasttrades',
-                    ],
+                    'get': {
+                        'Exchanges/{pair}/Ticker': {'cost': 1},
+                        'Exchanges/{pair}/orderbook': {'cost': 1},
+                        'Exchanges/{pair}/orderbook-top': {'cost': 1},
+                        'Exchanges/{pair}/trades': {'cost': 1},
+                        'Exchanges/{pair}/lasttrades': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'Merchant/CreateCheckout',
-                        'Funds/AddCoinFundsRequest',
-                        'Order/AddFund',
-                        'Order/AddOrder',
-                        'Order/GetById',
-                        'Order/AddOrderMarketPriceBuy',
-                        'Order/AddOrderMarketPriceSell',
-                        'Order/CancelOrder',
-                        'Order/AddCoinFundsRequest',
-                        'Order/AddStopOrder',
-                        'Payment/GetMyId',
-                        'Payment/Send',
-                        'Payment/Pay',
-                    ],
-                    'get': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
-                        'Order/MyOrders',
-                        'Order/GetById',
-                        'Order/AccountHistory',
-                        'Order/OrderHistory',
-                    ],
+                    'post': {
+                        'Merchant/CreateCheckout': {'cost': 1},
+                        'Funds/AddCoinFundsRequest': {'cost': 1},
+                        'Funds/WithdrawCoin': {'cost': 1},
+                        'Order/AddFund': {'cost': 1},
+                        'Order/AddOrder': {'cost': 1},
+                        'Order/GetById': {'cost': 1},
+                        'Order/AddOrderMarketPriceBuy': {'cost': 1},
+                        'Order/AddOrderMarketPriceSell': {'cost': 1},
+                        'Order/CancelOrder': {'cost': 1},
+                        'Order/AddCoinFundsRequest': {'cost': 1},
+                        'Order/AddStopOrder': {'cost': 1},
+                        'Payment/GetMyId': {'cost': 1},
+                        'Payment/Send': {'cost': 1},
+                        'Payment/Pay': {'cost': 1},
+                    },
+                    'get': {
+                        'Account/Balance': {'cost': 1},
+                        'Account/Balance/v2': {'cost': 1},
+                        'Order/MyOrders': {'cost': 1},
+                        'Order/GetById': {'cost': 1},
+                        'Order/AccountHistory': {'cost': 1},
+                        'Order/OrderHistory': {'cost': 1},
+                        'Order/HistoryByOrderId': {'cost': 1},
+                    },
                 },
             },
             'markets': {
@@ -213,7 +215,9 @@ class bit2c(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
+                'fetchTrades': {
+                    'method': 'public_get_exchanges_pair_trades',
+                },
             },
             'features': {
                 'spot': {
@@ -277,20 +281,20 @@ class bit2c(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Please provide valid APIkey': AuthenticationError,  # {"error" : "Please provide valid APIkey"}
-                    'No order found.': OrderNotFound,  # {"Error" : "No order found."}
+                    'Please provide valid APIkey': AuthenticationError,  # { "error" : "Please provide valid APIkey" }
+                    'No order found.': OrderNotFound,  # { "Error" : "No order found." }
                 },
                 'broad': {
-                    # {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
-                    # {"error": "Please provide valid nonce in Request UInt64.TryParse failed for nonce :"}
+                    # { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
+                    # { "error": "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" }
                     'Please provide valid nonce': InvalidNonce,
-                    'please approve new terms of use on site': PermissionDenied,  # {"error" : "please approve new terms of use on site."}
+                    'please approve new terms of use on site': PermissionDenied,  # { "error" : "please approve new terms of use on site." }
                 },
             },
         })
 
-    def parse_balance(self, response) -> Balances:
-        result: dict = {
+    def parse_balance(self, response: object) -> Balances:
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -307,7 +311,7 @@ class bit2c(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -316,7 +320,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetAccountBalanceV2(params)
         #
         #     {
@@ -348,21 +353,21 @@ class bit2c(Exchange, ImplicitAPI):
         #         "GRIN": 0.0,
         #         "LOCKED_GRIN": 0.0,
         #         "Fees": {
-        #             "BtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "EthNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "BchabcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "LtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "EtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "BtgNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "LtcBtc": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "BchsvNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "GrinNis": {"FeeMaker": 1.0, "FeeTaker": 1.0}
+        #             "BtcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "EthNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "BchabcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "LtcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "EtcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "BtgNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "LtcBtc": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "BchsvNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "GrinNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 }
         #         }
         #     }
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -371,15 +376,38 @@ class bit2c(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol)
+        # the full orderbook.json snapshot can contain dead orders - rows
+        # published with a zero amount at their limit price, hours-stable and
+        # sometimes crossing the real market. per the api docs the endpoint
+        # contains open orders only, and the venue's own orderbook-top.json ui
+        # feed filters these rows out, so a non-positive amount is a dead order
+        # their full snapshot failed to purge - it is removed here, which also
+        # uncrosses the book. rows are positional price and amount pairs
+        rawBids = self.safe_list(orderbook, 'bids', [])
+        rawAsks = self.safe_list(orderbook, 'asks', [])
+        bids = []
+        asks = []
+        for i in range(0, len(rawBids)):
+            bidRow = rawBids[i]
+            bidAmount = self.safe_string(bidRow, 1)
+            if Precise.string_gt(bidAmount, '0'):
+                bids.append(bidRow)
+        for i in range(0, len(rawAsks)):
+            askRow = rawAsks[i]
+            askAmount = self.safe_string(askRow, 1)
+            if Precise.string_gt(askAmount, '0'):
+                asks.append(askRow)
+        filtered = {'bids': bids, 'asks': asks}
+        return self.parse_order_book(filtered, symbol)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
@@ -409,7 +437,7 @@ class bit2c(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -419,15 +447,16 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicGetExchangesPairTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -440,33 +469,39 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        method = self.options['fetchTradesMethod']  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
-        request: dict = {
+        optionValue = self.safe_string(self.options, 'fetchTradesMethod')  # kept here for backward compatibility #29154
+        method = self.handle_option('fetchTrades', 'method', optionValue)  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        request = {
             'pair': market['id'],
         }
         if since is not None:
             request['date'] = self.parse_to_int(since)
         if limit is not None:
             request['limit'] = limit  # max 100000
-        response = None
+        responseList = []
         if method == 'public_get_exchanges_pair_trades':
             response = await self.publicGetExchangesPairTrades(self.extend(request, params))
+            #
+            #     [
+            #         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+            #         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+            #         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+            #     ]
+            #
+            if isinstance(response, str):
+                raise ExchangeError(response)
+            responseList = self.to_array(response)
         else:
             response = await self.publicGetExchangesPairLasttrades(self.extend(request, params))
-        #
-        #     [
-        #         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-        #         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-        #         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-        #     ]
-        #
-        if isinstance(response, str):
-            raise ExchangeError(response)
-        return self.parse_trades(response, market, since, limit)
+            if isinstance(response, str):
+                raise ExchangeError(response)
+            responseList = self.to_array(response)
+        return self.parse_trades(responseList, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -475,7 +510,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetAccountBalance(params)
         #
         #     {
@@ -487,19 +523,19 @@ class bit2c(Exchange, ImplicitAPI):
         #         "LOCKED_BTC": 0.0,
         #         ...
         #         "Fees": {
-        #             "BtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "EthNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
+        #             "BtcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "EthNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
         #             ...
         #         }
         #     }
         #
-        fees = self.safe_value(response, 'Fees', {})
+        fees = self.safe_dict(response, 'Fees', {})
         keys = list(fees.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(keys)):
             marketId = keys[i]
             symbol = self.safe_symbol(marketId)
-            fee = self.safe_value(fees, marketId)
+            fee = self.safe_dict(fees, marketId)
             makerString = self.safe_string(fee, 'FeeMaker')
             takerString = self.safe_string(fee, 'FeeTaker')
             maker = self.parse_number(Precise.string_div(makerString, '100'))
@@ -514,7 +550,7 @@ class bit2c(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -528,25 +564,29 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        method = 'privatePostOrderAddOrder'
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'Amount': amount,
             'Pair': market['id'],
         }
+        response = None
         if type == 'market':
-            method += 'MarketPrice' + self.capitalize(side)
+            if side == 'buy':
+                response = await self.privatePostOrderAddOrderMarketPriceBuy(self.extend(request, params))
+            else:
+                response = await self.privatePostOrderAddOrderMarketPriceSell(self.extend(request, params))
         else:
             request['Price'] = price
             amountString = self.number_to_string(amount)
             priceString = self.number_to_string(price)
             request['Total'] = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
             request['IsBid'] = (side == 'buy')
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostOrderAddOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -557,13 +597,13 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'id': id,
         }
         response = await self.privatePostOrderCancelOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -577,18 +617,19 @@ class bit2c(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.privateGetOrderMyOrders(self.extend(request, params))
-        orders = self.safe_value(response, market['id'], {})
-        asks = self.safe_value(orders, 'ask', [])
+        orders = self.safe_dict(response, market['id'], {})
+        asks = self.safe_list(orders, 'ask', [])
         bids = self.safe_list(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -599,9 +640,10 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'id': id,
         }
         response = await self.privateGetOrderGetById(self.extend(request, params))
@@ -667,7 +709,7 @@ class bit2c(Exchange, ImplicitAPI):
         # 0 = New
         # 1 = Open
         # 5 = Completed
-        status: str
+        status = None
         if isNewOrder:
             tempStatus = self.safe_integer(orderUnified, 'status_type')
             if tempStatus == 0 or tempStatus == 1:
@@ -727,7 +769,7 @@ class bit2c(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -739,9 +781,10 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['take'] = limit
         request['take'] = limit
@@ -790,9 +833,12 @@ class bit2c(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_trades(response, market, since, limit)
+        responseList = []
+        if response is not None:
+            responseList = self.to_array(response)
+        return self.parse_trades(responseList, market, since, limit)
 
-    def remove_comma_from_value(self, str):
+    def remove_comma_from_value(self, str: object):
         newString = ''
         strParts = str.split(',')
         for i in range(0, len(strParts)):
@@ -851,9 +897,9 @@ class bit2c(Exchange, ImplicitAPI):
             marketId = self.safe_string(trade, 'pair')
             market = self.safe_market(marketId, market)
             market = self.safe_market(reference_parts[0], market)
-            isMaker = self.safe_value(trade, 'isMaker')
-            makerOrTaker = 'maker' if isMaker else 'taker'
-            orderId = reference_parts[2] if isMaker else reference_parts[1]
+            isMaker = self.safe_bool(trade, 'isMaker')
+            makerOrTaker = 'maker' if (isMaker is True) else 'taker'
+            orderId = reference_parts[2] if (isMaker is True) else reference_parts[1]
             action = self.safe_integer(trade, 'action')
             if action == 0:
                 side = 'buy'
@@ -872,7 +918,7 @@ class bit2c(Exchange, ImplicitAPI):
             amount = self.safe_string(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
-                if side:
+                if (side is not None) and (side != ''):
                     side = 'buy'
                 else:
                     side = 'sell'
@@ -893,10 +939,10 @@ class bit2c(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def is_fiat(self, code):
+    def is_fiat(self, code: Str) -> bool:
         return code == 'NIS'
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -906,11 +952,12 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fetchDepositAddress() does not support fiat currencies')
-        request: dict = {
+        request = {
             'Coin': currency['id'],
         }
         response = await self.privatePostFundsAddCoinFundsRequest(self.extend(request, params))
@@ -922,7 +969,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -940,10 +987,10 @@ class bit2c(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'
@@ -955,7 +1002,7 @@ class bit2c(Exchange, ImplicitAPI):
             }, params)
             auth = self.urlencode(query)
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + auth
             else:
                 body = auth
@@ -967,13 +1014,13 @@ class bit2c(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #
-        #     {"error" : "please approve new terms of use on site."}
-        #     {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
-        #     {"Error" : "No order found."}
+        #     { "error" : "please approve new terms of use on site." }
+        #     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
+        #     { "Error" : "No order found." }
         #
         error = self.safe_string(response, 'error')
         if error is None:

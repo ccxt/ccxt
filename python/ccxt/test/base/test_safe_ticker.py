@@ -135,3 +135,29 @@ def test_safe_ticker():
     assert precise_equal_str(exchange, result8, 'indexPrice', '5.8')
     assert precise_equal_str(exchange, result8, 'markPrice', '5.9')
     assert result8['info'] is not None
+    # CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
+    ticker9 = {
+        'open': 6,
+        'close': 6,
+        'last': 6,
+        'change': 0,
+        'percentage': 0,
+    }
+    result9 = exchange.safe_ticker(ticker9)
+    assert precise_equal_str(exchange, result9, 'change', '0')
+    assert precise_equal_str(exchange, result9, 'percentage', '0')
+    assert precise_equal_str(exchange, result9, 'open', '6.0')
+    assert precise_equal_str(exchange, result9, 'last', '6.0')
+    # CASE 10 - by open and average, the pair that derives close from average
+    ticker10 = {
+        'open': 5,
+        'average': 5.5,
+    }
+    result10 = exchange.safe_ticker(ticker10)
+    assert precise_equal_str(exchange, result10, 'close', '6.0')
+    assert precise_equal_str(exchange, result10, 'last', '6.0')
+    # the supplied average must survive untouched, and this path deliberately
+    # leaves change and percentage underived - pin that boundary
+    assert precise_equal_str(exchange, result10, 'average', '5.5')
+    assert result10['change'] is None
+    assert result10['percentage'] is None

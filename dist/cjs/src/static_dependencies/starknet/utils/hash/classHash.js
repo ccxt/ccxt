@@ -2,19 +2,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var index$1 = require('../../../scure-starknet/index.js');
+var starknet = require('@scure/starknet');
 var constants = require('../../constants.js');
 var index = require('../calldata/index.js');
 var cairo = require('../calldata/cairo.js');
-require('../../../scure-base/index.js');
+require('@scure/base');
 var num = require('../num.js');
 
 // ----------------------------------------------------------------------------
 function computePedersenHash(a, b) {
-    return index$1.pedersen(BigInt(a), BigInt(b));
+    return starknet.pedersen(BigInt(a), BigInt(b));
 }
 function computePoseidonHash(a, b) {
-    return num.toHex(index$1.poseidonHash(BigInt(a), BigInt(b)));
+    return num.toHex(starknet.poseidonHash(BigInt(a), BigInt(b)));
 }
 /**
  * Compute pedersen hash from data
@@ -22,12 +22,12 @@ function computePoseidonHash(a, b) {
  */
 function computeHashOnElements(data) {
     return [...data, data.length]
-        .reduce((x, y) => index$1.pedersen(BigInt(x), BigInt(y)), 0)
+        .reduce((x, y) => starknet.pedersen(BigInt(x), BigInt(y)), 0)
         .toString();
 }
 const computePedersenHashOnElements = computeHashOnElements;
 function computePoseidonHashOnElements(data) {
-    return num.toHex(index$1.poseidonHashMany(data.map((x) => BigInt(x))));
+    return num.toHex(starknet.poseidonHashMany(data.map((x) => BigInt(x))));
 }
 /**
  * Calculate contract address from class hash

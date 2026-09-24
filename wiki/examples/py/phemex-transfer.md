@@ -1,8 +1,5 @@
-- [Phemex Transfer](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -102,5 +99,5 @@ main_account_transfer()
 # transfer_between_main_and_sub_accounts()
 # sub_account_transfer()
 # sub_swap_to_main_swap()
- 
+
 ```

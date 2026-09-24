@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitbank as Exchange;
 
 class bitbank extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbank',
@@ -70,6 +69,7 @@ class bitbank extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
+                'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
@@ -137,44 +137,45 @@ class bitbank extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        '{pair}/ticker' => 1,
-                        'tickers' => 1,
-                        'tickers_jpy' => 1,
-                        '{pair}/depth' => 1,
-                        '{pair}/transactions' => 1,
-                        '{pair}/transactions/{yyyymmdd}' => 1,
-                        '{pair}/candlestick/{candletype}/{yyyymmdd}' => 1,
-                        '{pair}/circuit_break_info' => 1,
+                        '{pair}/ticker' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'tickers_jpy' => array( 'cost' => 1 ),
+                        '{pair}/depth' => array( 'cost' => 1 ),
+                        '{pair}/transactions' => array( 'cost' => 1 ),
+                        '{pair}/transactions/{yyyymmdd}' => array( 'cost' => 1 ),
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}' => array( 'cost' => 1 ),
+                        '{pair}/circuit_break_info' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'user/assets' => 1,
-                        'user/spot/order' => 1,
-                        'user/spot/active_orders' => 1,
-                        'user/margin/positions' => 1,
-                        'user/spot/trade_history' => 1,
-                        'user/deposit_history' => 1,
-                        'user/unconfirmed_deposits' => 1,
-                        'user/deposit_originators' => 1,
-                        'user/withdrawal_account' => 1,
-                        'user/withdrawal_history' => 1,
-                        'spot/status' => 1,
-                        'spot/pairs' => 1,
+                        'user/assets' => array( 'cost' => 1 ),
+                        'user/spot/order' => array( 'cost' => 1 ),
+                        'user/spot/active_orders' => array( 'cost' => 1 ),
+                        'user/margin/status' => array( 'cost' => 1 ),
+                        'user/margin/positions' => array( 'cost' => 1 ),
+                        'user/spot/trade_history' => array( 'cost' => 1 ),
+                        'user/deposit_history' => array( 'cost' => 1 ),
+                        'user/unconfirmed_deposits' => array( 'cost' => 1 ),
+                        'user/deposit_originators' => array( 'cost' => 1 ),
+                        'user/withdrawal_account' => array( 'cost' => 1 ),
+                        'user/withdrawal_history' => array( 'cost' => 1 ),
+                        'spot/status' => array( 'cost' => 1 ),
+                        'spot/pairs' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'user/spot/order' => 1.66,
-                        'user/spot/cancel_order' => 1.66,
-                        'user/spot/cancel_orders' => 1.66,
-                        'user/spot/orders_info' => 1.66,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits' => 1.66,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits_all' => 1.66,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/request_withdrawal' => 1.66,
+                        'user/spot/order' => array( 'cost' => 1.66 ),
+                        'user/spot/cancel_order' => array( 'cost' => 1.66 ),
+                        'user/spot/cancel_orders' => array( 'cost' => 1.66 ),
+                        'user/spot/orders_info' => array( 'cost' => 1.66 ),  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits' => array( 'cost' => 1.66 ),  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all' => array( 'cost' => 1.66 ),  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/request_withdrawal' => array( 'cost' => 1.66 ),
                     ),
                 ),
                 'markets' => array(
                     'get' => array(
-                        'spot/pairs' => 1,
+                        'spot/pairs' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -192,7 +193,7 @@ class bitbank extends Exchange {
                         'timeInForce' => array(
                             'IOC' => false,
                             'FOK' => false,
-                            'PO' => true, // todo => implement
+                            'PO' => true, // todo: implement
                             'GTD' => false,
                         ),
                         'hedged' => false,
@@ -262,7 +263,7 @@ class bitbank extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves $data on all markets for bitbank
          *
@@ -271,46 +272,46 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
-        $response = $this->marketsGetSpotPairs ($params);
+        $response = $this->marketsGetSpotPairs($params);
         //
         //     {
-        //       "success" => 1,
-        //       "data" => {
-        //         "pairs" => array(
+        //       "success": 1,
+        //       "data": {
+        //         "pairs": [
         //           {
-        //             "name" => "btc_jpy",
-        //             "base_asset" => "btc",
-        //             "quote_asset" => "jpy",
-        //             "maker_fee_rate_base" => "0",
-        //             "taker_fee_rate_base" => "0",
-        //             "maker_fee_rate_quote" => "-0.0002",
-        //             "taker_fee_rate_quote" => "0.0012",
-        //             "unit_amount" => "0.0001",
-        //             "limit_max_amount" => "1000",
-        //             "market_max_amount" => "10",
-        //             "market_allowance_rate" => "0.2",
-        //             "price_digits" => 0,
-        //             "amount_digits" => 4,
-        //             "is_enabled" => true,
-        //             "stop_order" => false,
-        //             "stop_order_and_cancel" => false
+        //             "name": "btc_jpy",
+        //             "base_asset": "btc",
+        //             "quote_asset": "jpy",
+        //             "maker_fee_rate_base": "0",
+        //             "taker_fee_rate_base": "0",
+        //             "maker_fee_rate_quote": "-0.0002",
+        //             "taker_fee_rate_quote": "0.0012",
+        //             "unit_amount": "0.0001",
+        //             "limit_max_amount": "1000",
+        //             "market_max_amount": "10",
+        //             "market_allowance_rate": "0.2",
+        //             "price_digits": 0,
+        //             "amount_digits": 4,
+        //             "is_enabled": true,
+        //             "stop_order": false,
+        //             "stop_order_and_cancel": false
         //           }
-        //         )
+        //         ]
         //       }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
-        $pairs = $this->safe_value($data, 'pairs', array());
+        $data = $this->safe_dict($response, 'data');
+        $pairs = $this->safe_list($data, 'pairs', array());
         return $this->parse_markets($pairs);
     }
 
-    public function parse_market($entry): array {
+    public function parse_market(array $entry): array {
         $id = $this->safe_string($entry, 'name');
         $baseId = $this->safe_string($entry, 'base_asset');
         $quoteId = $this->safe_string($entry, 'quote_asset');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -325,7 +326,7 @@ class bitbank extends Exchange {
             'swap' => false,
             'future' => false,
             'option' => false,
-            'active' => $this->safe_value($entry, 'is_enabled'),
+            'active' => $this->safe_bool($entry, 'is_enabled'),
             'contract' => false,
             'linear' => null,
             'inverse' => null,
@@ -360,7 +361,7 @@ class bitbank extends Exchange {
             ),
             'created' => null,
             'info' => $entry,
-        );
+        ));
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -391,7 +392,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -401,17 +402,19 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetPairTicker ($this->extend($request, $params));
+        $response = $this->publicGetPairTicker($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -420,15 +423,17 @@ class bitbank extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetPairDepth ($this->extend($request, $params));
-        $orderbook = $this->safe_value($response, 'data', array());
+        $response = $this->publicGetPairDepth($this->extend($request, $params));
+        $orderbook = $this->safe_dict($response, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
@@ -438,11 +443,11 @@ class bitbank extends Exchange {
         // fetchTrades
         //
         //    {
-        //        "transaction_id" => "1143247037",
-        //        "side" => "buy",
-        //        "price" => "3836025",
-        //        "amount" => "0.0005",
-        //        "executed_at" => "1694249441593"
+        //        "transaction_id": "1143247037",
+        //        "side": "buy",
+        //        "price": "3836025",
+        //        "amount": "0.0005",
+        //        "executed_at": "1694249441593"
         //    }
         //
         $timestamp = $this->safe_integer($trade, 'executed_at');
@@ -479,7 +484,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
@@ -491,18 +496,20 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetPairTransactions ($this->extend($request, $params));
-        $data = $this->safe_value($response, 'data', array());
+        $response = $this->publicGetPairTransactions($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
         $trades = $this->safe_list($data, 'transactions', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -511,38 +518,40 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
          */
-        $this->load_markets();
-        $response = $this->marketsGetSpotPairs ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->marketsGetSpotPairs($params);
         //
         //     {
-        //         "success" => "1",
-        //         "data" => {
-        //           "pairs" => array(
-        //             array(
-        //               "name" => "btc_jpy",
-        //               "base_asset" => "btc",
-        //               "quote_asset" => "jpy",
-        //               "maker_fee_rate_base" => "0",
-        //               "taker_fee_rate_base" => "0",
-        //               "maker_fee_rate_quote" => "-0.0002",
-        //               "taker_fee_rate_quote" => "0.0012",
-        //               "unit_amount" => "0.0001",
-        //               "limit_max_amount" => "1000",
-        //               "market_max_amount" => "10",
-        //               "market_allowance_rate" => "0.2",
-        //               "price_digits" => "0",
-        //               "amount_digits" => "4",
-        //               "is_enabled" => true,
-        //               "stop_order" => false,
-        //               "stop_order_and_cancel" => false
-        //             ),
+        //         "success": "1",
+        //         "data": {
+        //           "pairs": [
+        //             {
+        //               "name": "btc_jpy",
+        //               "base_asset": "btc",
+        //               "quote_asset": "jpy",
+        //               "maker_fee_rate_base": "0",
+        //               "taker_fee_rate_base": "0",
+        //               "maker_fee_rate_quote": "-0.0002",
+        //               "taker_fee_rate_quote": "0.0012",
+        //               "unit_amount": "0.0001",
+        //               "limit_max_amount": "1000",
+        //               "market_max_amount": "10",
+        //               "market_allowance_rate": "0.2",
+        //               "price_digits": "0",
+        //               "amount_digits": "4",
+        //               "is_enabled": true,
+        //               "stop_order": false,
+        //               "stop_order_and_cancel": false
+        //             },
         //             ...
-        //           )
+        //           ]
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $pairs = $this->safe_value($data, 'pairs', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $pairs = $this->safe_list($data, 'pairs', array());
         $result = array();
         for ($i = 0; $i < count($pairs); $i++) {
             $pair = $pairs[$i];
@@ -561,16 +570,16 @@ class bitbank extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         "0.02501786",
         //         "0.02501786",
         //         "0.02501786",
         //         "0.02501786",
         //         "0.0000",
         //         1591488000000
-        //     )
+        //     ]
         //
         return array(
             $this->safe_integer($ohlcv, 5),
@@ -582,7 +591,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical $candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -593,7 +602,7 @@ class bitbank extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($since === null) {
             if ($limit === null) {
@@ -602,14 +611,16 @@ class bitbank extends Exchange {
             $duration = $this->parse_timeframe($timeframe);
             $since = $this->milliseconds() - $duration * 1000 * $limit;
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'candletype' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'yyyymmdd' => $this->yyyymmdd($since, ''),
         );
-        $response = $this->publicGetPairCandlestickCandletypeYyyymmdd ($this->extend($request, $params));
+        $response = $this->publicGetPairCandlestickCandletypeYyyymmdd($this->extend($request, $params));
         //
         //     {
         //         "success":1,
@@ -628,21 +639,21 @@ class bitbank extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $candlestick = $this->safe_value($data, 'candlestick', array());
-        $first = $this->safe_value($candlestick, 0, array());
+        $data = $this->safe_dict($response, 'data', array());
+        $candlestick = $this->safe_list($data, 'candlestick', array());
+        $first = $this->safe_dict($candlestick, 0, array());
         $ohlcv = $this->safe_list($first, 'ohlcv', array());
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
             'datetime' => null,
         );
-        $data = $this->safe_value($response, 'data', array());
-        $assets = $this->safe_value($data, 'assets', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $assets = $this->safe_list($data, 'assets', array());
         for ($i = 0; $i < count($assets); $i++) {
             $balance = $assets[$i];
             $currencyId = $this->safe_string($balance, 'asset');
@@ -651,12 +662,14 @@ class bitbank extends Exchange {
             $account['free'] = $this->safe_string($balance, 'free_amount');
             $account['used'] = $this->safe_string($balance, 'locked_amount');
             $account['total'] = $this->safe_string($balance, 'onhand_amount');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -665,38 +678,40 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = $this->privateGetUserAssets ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateGetUserAssets($params);
         //
         //     {
-        //       "success" => "1",
-        //       "data" => {
-        //         "assets" => array(
+        //       "success": "1",
+        //       "data": {
+        //         "assets": [
         //           {
-        //             "asset" => "jpy",
-        //             "amount_precision" => "4",
-        //             "onhand_amount" => "0.0000",
-        //             "locked_amount" => "0.0000",
-        //             "free_amount" => "0.0000",
-        //             "stop_deposit" => false,
-        //             "stop_withdrawal" => false,
-        //             "withdrawal_fee" => array(
-        //               "threshold" => "30000.0000",
-        //               "under" => "550.0000",
-        //               "over" => "770.0000"
+        //             "asset": "jpy",
+        //             "amount_precision": "4",
+        //             "onhand_amount": "0.0000",
+        //             "locked_amount": "0.0000",
+        //             "free_amount": "0.0000",
+        //             "stop_deposit": false,
+        //             "stop_withdrawal": false,
+        //             "withdrawal_fee": {
+        //               "threshold": "30000.0000",
+        //               "under": "550.0000",
+        //               "over": "770.0000"
         //             }
-        //           ),
-        //           array(
-        //             "asset" => "btc",
-        //             "amount_precision" => "8",
-        //             "onhand_amount" => "0.00000000",
-        //             "locked_amount" => "0.00000000",
-        //             "free_amount" => "0.00000000",
-        //             "stop_deposit" => false,
-        //             "stop_withdrawal" => false,
-        //             "withdrawal_fee" => "0.00060000"
-        //           ),
-        //         )
+        //           },
+        //           {
+        //             "asset": "btc",
+        //             "amount_precision": "8",
+        //             "onhand_amount": "0.00000000",
+        //             "locked_amount": "0.00000000",
+        //             "free_amount": "0.00000000",
+        //             "stop_deposit": false,
+        //             "stop_withdrawal": false,
+        //             "withdrawal_fee": "0.00060000"
+        //           },
+        //         ]
         //       }
         //     }
         //
@@ -752,7 +767,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -766,7 +781,9 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -777,12 +794,12 @@ class bitbank extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostUserSpotOrder ($this->extend($request, $params));
+        $response = $this->privatePostUserSpotOrder($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -793,33 +810,35 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privatePostUserSpotCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostUserSpotCancelOrder($this->extend($request, $params));
         //
         //    {
-        //        "success" => 1,
-        //        "data" => {
-        //            "order_id" => 0,
-        //            "pair" => "string",
-        //            "side" => "string",
-        //            "type" => "string",
-        //            "start_amount" => "string",
-        //            "remaining_amount" => "string",
-        //            "executed_amount" => "string",
-        //            "price" => "string",
-        //            "post_only" => false,
-        //            "average_price" => "string",
-        //            "ordered_at" => 0,
-        //            "expire_at" => 0,
-        //            "canceled_at" => 0,
-        //            "triggered_at" => 0,
-        //            "trigger_price" => "string",
-        //            "status" => "string"
+        //        "success": 1,
+        //        "data": {
+        //            "order_id": 0,
+        //            "pair": "string",
+        //            "side": "string",
+        //            "type": "string",
+        //            "start_amount": "string",
+        //            "remaining_amount": "string",
+        //            "executed_amount": "string",
+        //            "price": "string",
+        //            "post_only": false,
+        //            "average_price": "string",
+        //            "ordered_at": 0,
+        //            "expire_at": 0,
+        //            "canceled_at": 0,
+        //            "triggered_at": 0,
+        //            "trigger_price": "string",
+        //            "status": "string"
         //        }
         //    }
         //
@@ -827,7 +846,7 @@ class bitbank extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -838,32 +857,34 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privateGetUserSpotOrder ($this->extend($request, $params));
+        $response = $this->privateGetUserSpotOrder($this->extend($request, $params));
         //
         //    {
-        //        "success" => 1,
-        //        "data" => {
-        //          "order_id" => 0,
-        //          "pair" => "string",
-        //          "side" => "string",
-        //          "type" => "string",
-        //          "start_amount" => "string",
-        //          "remaining_amount" => "string",
-        //          "executed_amount" => "string",
-        //          "price" => "string",
-        //          "post_only" => false,
-        //          "average_price" => "string",
-        //          "ordered_at" => 0,
-        //          "expire_at" => 0,
-        //          "triggered_at" => 0,
-        //          "triger_price" => "string",
-        //          "status" => "string"
+        //        "success": 1,
+        //        "data": {
+        //          "order_id": 0,
+        //          "pair": "string",
+        //          "side": "string",
+        //          "type": "string",
+        //          "start_amount": "string",
+        //          "remaining_amount": "string",
+        //          "executed_amount": "string",
+        //          "price": "string",
+        //          "post_only": false,
+        //          "average_price": "string",
+        //          "ordered_at": 0,
+        //          "expire_at": 0,
+        //          "triggered_at": 0,
+        //          "triger_price": "string",
+        //          "status": "string"
         //        }
         //    }
         //
@@ -871,7 +892,7 @@ class bitbank extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open $orders
          *
@@ -883,7 +904,9 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -894,13 +917,13 @@ class bitbank extends Exchange {
         if ($since !== null) {
             $request['since'] = $this->parse_to_int($since / 1000);
         }
-        $response = $this->privateGetUserSpotActiveOrders ($this->extend($request, $params));
-        $data = $this->safe_value($response, 'data', array());
+        $response = $this->privateGetUserSpotActiveOrders($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -912,7 +935,9 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -925,13 +950,13 @@ class bitbank extends Exchange {
         if ($since !== null) {
             $request['since'] = $this->parse_to_int($since / 1000);
         }
-        $response = $this->privateGetUserSpotTradeHistory ($this->extend($request, $params));
-        $data = $this->safe_value($response, 'data', array());
+        $response = $this->privateGetUserSpotTradeHistory($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
         $trades = $this->safe_list($data, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          *
@@ -941,16 +966,18 @@ class bitbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
-        $response = $this->privateGetUserWithdrawalAccount ($this->extend($request, $params));
-        $data = $this->safe_value($response, 'data', array());
+        $response = $this->privateGetUserWithdrawalAccount($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
         // Not sure about this if there could be more than one account...
-        $accounts = $this->safe_value($data, 'accounts', array());
-        $firstAccount = $this->safe_value($accounts, 0, array());
+        $accounts = $this->safe_list($data, 'accounts', array());
+        $firstAccount = $this->safe_dict($accounts, 0, array());
         $address = $this->safe_string($firstAccount, 'address');
         return array(
             'info' => $response,
@@ -961,7 +988,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -975,30 +1002,32 @@ class bitbank extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        if (!(is_array($params) && array_key_exists('uuid', $params))) {
+        if (!(is_array($params) && array_key_exists('uuid' ?? '', $params))) {
             throw new ExchangeError($this->id . ' uuid is required for withdrawal');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
             'amount' => $amount,
         );
-        $response = $this->privatePostUserRequestWithdrawal ($this->extend($request, $params));
+        $response = $this->privatePostUserRequestWithdrawal($this->extend($request, $params));
         //
         //     {
-        //         "success" => 1,
-        //         "data" => {
-        //             "uuid" => "string",
-        //             "asset" => "btc",
-        //             "amount" => 0,
-        //             "account_uuid" => "string",
-        //             "fee" => 0,
-        //             "status" => "DONE",
-        //             "label" => "string",
-        //             "txid" => "string",
-        //             "address" => "string",
-        //             "requested_at" => 0
+        //         "success": 1,
+        //         "data": {
+        //             "uuid": "string",
+        //             "asset": "btc",
+        //             "amount": 0,
+        //             "account_uuid": "string",
+        //             "fee": 0,
+        //             "status": "DONE",
+        //             "label": "string",
+        //             "txid": "string",
+        //             "address": "string",
+        //             "requested_at": 0
         //         }
         //     }
         //
@@ -1011,16 +1040,16 @@ class bitbank extends Exchange {
         // withdraw
         //
         //     {
-        //         "uuid" => "string",
-        //         "asset" => "btc",
-        //         "amount" => 0,
-        //         "account_uuid" => "string",
-        //         "fee" => 0,
-        //         "status" => "DONE",
-        //         "label" => "string",
-        //         "txid" => "string",
-        //         "address" => "string",
-        //         "requested_at" => 0
+        //         "uuid": "string",
+        //         "asset": "btc",
+        //         "amount": 0,
+        //         "account_uuid": "string",
+        //         "fee": 0,
+        //         "status": "DONE",
+        //         "label": "string",
+        //         "txid": "string",
+        //         "address": "string",
+        //         "requested_at": 0
         //     }
         //
         $txid = $this->safe_string($transaction, 'txid');
@@ -1049,29 +1078,42 @@ class bitbank extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
         if (($api === 'public') || ($api === 'markets')) {
             $url .= $this->implode_params($path, $params);
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
+            // bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+            // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            $authMethod = $this->safe_string($this->options, 'authMethod', 'timeWindow');
+            $isTimeWindow = ($authMethod === 'timeWindow');
+            $requestTime = (string) $this->milliseconds();
+            $timeWindow = $this->safe_string($this->options, 'timeWindow', '5000');
             $nonce = (string) $this->nonce();
-            $auth = $nonce;
+            $auth = null;
+            if ($isTimeWindow) {
+                $auth = $requestTime . $timeWindow;
+            } else {
+                $auth = $nonce;
+            }
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {
                 $body = $this->json($query);
                 $auth .= $body;
             } else {
                 $auth .= '/' . $this->version . '/' . $path;
-                if ($query) {
+                if (count($query) > 0) {
                     $query = $this->urlencode($query);
                     $url .= '?' . $query;
                     $auth .= '?' . $query;
@@ -1080,20 +1122,25 @@ class bitbank extends Exchange {
             $headers = array(
                 'Content-Type' => 'application/json',
                 'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-NONCE' => $nonce,
                 'ACCESS-SIGNATURE' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
+            if ($isTimeWindow) {
+                $headers['ACCESS-REQUEST-TIME'] = $requestTime;
+                $headers['ACCESS-TIME-WINDOW'] = $timeWindow;
+            } else {
+                $headers['ACCESS-NONCE'] = $nonce;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
         $success = $this->safe_integer($response, 'success');
         $data = $this->safe_value($response, 'data');
-        if (!$success || !$data) {
+        if (($success === null || $success === 0) || ($data === null)) {
             $errorMessages = array(
                 '10000' => 'URL does not exist',
                 '10001' => 'A system error occurred. Please contact support',
@@ -1150,11 +1197,11 @@ class bitbank extends Exchange {
                 '70001' => 'A system error occurred. Please contact support',
                 '70002' => 'A system error occurred. Please contact support',
                 '70003' => 'A system error occurred. Please contact support',
-                '70004' => 'We are unable to accept orders transaction is currently suspended',
+                '70004' => 'We are unable to accept orders as the transaction is currently suspended',
                 '70005' => 'Order can not be accepted because purchase order is currently suspended',
                 '70006' => 'We can not accept orders because we are currently unsubscribed ',
                 '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
-                '70010' => 'We are temporarily raising the minimum order quantity system load is now rising.',
+                '70010' => 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             );
             $code = $this->safe_string($data, 'code');
             $message = $this->safe_string($errorMessages, $code, 'Error');

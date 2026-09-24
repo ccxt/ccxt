@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import { Dictionary, IndexType } from '../types.js';
-import { isObject, isNumber, isDictionary, isArray } from './type.js';
+import { isNumber, isDict, isArray } from './type.js';
 
 // ----------------------------------------------------------------------------
 
@@ -24,22 +24,30 @@ const arrayConcat = (a: any[], b: any[]) => a.concat (b);
 
 const inArray = (needle: any, haystack: any[]) => haystack.includes (needle);
 
-const toArray = (object: Dictionary<any>|any[]) => Object.values (object);
+const toArray = (object: Dictionary<any> | any[] | undefined | null) => {
+    if ((object === undefined) || (object === null)) {
+        return [];
+    }
+    return Object.values (object);
+};
 
-const isEmpty = (object: any[] | Dictionary<any>) => {
+const isEmpty = (object: any[] | Dictionary<any> | null | undefined) => {
     if (object === null || object === undefined) {
         return true;
     }
     if (Array.isArray (object)) {
         return object.length < 1;
     }
-    if (isDictionary (object)) {
+    if (isDict (object)) {
         return Object.keys (object).length < 1;
     }
     return false;
 };
 
-const keysort = (x: Dictionary<any>, out: Dictionary<any> = {}) => {
+const keysort = (x: Dictionary<any> | undefined, out: Dictionary<any> = {}) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const k of keys (x).sort ()) {
         out[k] = x[k];
     }
@@ -51,7 +59,6 @@ const sort = (array: string[]| any) => {
     newArray.sort();
     return newArray;
 }
-
 
 /*
     Accepts a map/array of objects and a key name to be used as an index:
@@ -69,7 +76,10 @@ const sort = (array: string[]| any) => {
     }
 */
 
-const groupBy = (x: Dictionary<any>, k: string, out: Dictionary<any> = {}) => {
+const groupBy = (x: Dictionary<any> | undefined, k: string, out: Dictionary<any> = {}) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const v of values (x)) {
         if (k in v) {
             const p = v[k];
@@ -80,8 +90,10 @@ const groupBy = (x: Dictionary<any>, k: string, out: Dictionary<any> = {}) => {
     return out;
 };
 
-const indexBy = (x: Dictionary<any>, k: IndexType, out: Dictionary<any> = {}) => {
-
+const indexBy = (x: Dictionary<any> | undefined, k: IndexType, out: Dictionary<any> = {}) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const v of values (x)) {
         if (k in v) {
             out[v[k]] = v;
@@ -90,8 +102,10 @@ const indexBy = (x: Dictionary<any>, k: IndexType, out: Dictionary<any> = {}) =>
     return out;
 };
 
-const filterBy = (x: Dictionary<any>, k: string, value: any = undefined, out: Dictionary<any>[] = []) => {
-
+const filterBy = (x: Dictionary<any> | undefined, k: string, value: any = undefined, out: Dictionary<any>[] = []) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const v of values (x)) {
         if (v[k] === value) {
             out.push (v);
@@ -100,7 +114,7 @@ const filterBy = (x: Dictionary<any>, k: string, value: any = undefined, out: Di
     return out;
 };
 
-const sortBy = (array: any[], key: IndexType, descending = false, defaultValue:any = 0, direction = descending ? -1 : 1) => array.sort ((a: Dictionary<any>, b: Dictionary<any>) => {
+const sortBy = (array: any[], key: IndexType, descending = false, defaultValue:any = 0, direction = descending ? -1 : 1) => array.slice().sort ((a: Dictionary<any>, b: Dictionary<any>) => {
     const first = (key in a) ? a[key] : defaultValue;
     const second = (key in b) ? b[key] : defaultValue;
     if (first < second) {
@@ -112,7 +126,7 @@ const sortBy = (array: any[], key: IndexType, descending = false, defaultValue:a
     }
 });
 
-const sortBy2 = (array: any[], key1: IndexType, key2: IndexType, descending = false, direction = descending ? -1 : 1) => array.sort ((a: Dictionary<any>, b: Dictionary<any>) => {
+const sortBy2 = (array: any[], key1: IndexType, key2: IndexType, descending = false, direction = descending ? -1 : 1) => array.slice().sort ((a: Dictionary<any>, b: Dictionary<any>) => {
     if (a[key1] < b[key1]) {
         return -direction;
     } else if (a[key1] > b[key1]) {
@@ -142,8 +156,10 @@ const flatten = function flatten (x: any[], out: any[] = []) {
 
 const pluck = (x: Dictionary<any>, k: any) => values (x).filter ((v) => k in v).map ((v) => v[k]);
 
-const omit = (x: Dictionary<any>, ...args: any) => {
-
+const omit = (x: Dictionary<any> | undefined, ...args: any) => {
+    if (x === undefined) {
+        return x;
+    }
     if (!Array.isArray (x)) {
 
         const out = clone (x);
@@ -209,7 +225,6 @@ const deepExtend = function (...args: any) {
     return result;
 }
 
-// better "merge" func resides in static_dependencies/qs/utils.js
 const merge = (target: Dictionary<any>, ...args: any) => {
     // doesn't overwrite defined keys with undefined
     const overwrite: Dictionary<any> = {};

@@ -10,10 +10,12 @@ using MiniMessagePack;
 using dict = Dictionary<string, object>;
 using list = List<object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
-    public object base16ToBinary(object str2)
+    // every return path hands back ConvertHexStringToByteArray's byte[] (the two stubs above
+    // are comments only), so the declared type names the box the value already has
+    public byte[] base16ToBinary(object str2)
     {
         // return (string)str; // stub
         // return Convert.FromHexString((string)str);
@@ -196,7 +198,7 @@ public partial class Exchange
 
     public string binaryToBase16(object buff2)
     {
-        var buff = (byte[])buff2;
+        var buff = buff2 is string ? Encoding.UTF8.GetBytes((string)buff2) : (byte[])buff2;
         return binaryToHex(buff);
     }
 
@@ -230,8 +232,6 @@ public partial class Exchange
         return Convert.ToBase64String(buff);
     }
 
-
-
     public byte[] stringToBinary(string buff) => StringToBinary(buff);
 
     public static byte[] StringToBinary(string buff)
@@ -261,6 +261,13 @@ public partial class Exchange
 
     public string intToBase16(object number)
     {
+        if (number is System.Numerics.BigInteger)
+        {
+            // BigInteger is not IConvertible; also trim the sign-guard nibble BigInteger
+            // prepends so the output matches the JS number.toString(16) form
+            var hex = ((System.Numerics.BigInteger)number).ToString("x").TrimStart('0');
+            return (hex.Length > 0) ? hex : "0";
+        }
         var n = Convert.ToInt64(number);
         return n.ToString("x");
     }

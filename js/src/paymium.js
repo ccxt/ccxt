@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/paymium.js';
 import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class paymium
@@ -68,40 +68,41 @@ export default class paymium extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'countries',
-                        'currencies',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
-                    ],
+                    'get': {
+                        'countries': { 'cost': 1 },
+                        'currencies': { 'cost': 1 },
+                        'data/{currency}/ticker': { 'cost': 1 },
+                        'data/{currency}/trades': { 'cost': 1 },
+                        'data/{currency}/depth': { 'cost': 1 },
+                        'bitcoin_charts/{id}/trades': { 'cost': 1 },
+                        'bitcoin_charts/{id}/depth': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
-                    ],
-                    'post': [
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
-                    ],
-                    'delete': [
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
-                    ],
+                    'get': {
+                        'user': { 'cost': 1 },
+                        'user/addresses': { 'cost': 1 },
+                        'user/addresses/{address}': { 'cost': 1 },
+                        'user/orders': { 'cost': 1 },
+                        'user/orders/{uuid}': { 'cost': 1 },
+                        'user/price_alerts': { 'cost': 1 },
+                        'user/withdrawals': { 'cost': 1 },
+                        'merchant/get_payment/{uuid}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'user/addresses': { 'cost': 1 },
+                        'user/orders': { 'cost': 1 },
+                        'user/withdrawals': { 'cost': 1 },
+                        'user/email_transfers': { 'cost': 1 },
+                        'user/payment_requests': { 'cost': 1 },
+                        'user/price_alerts': { 'cost': 1 },
+                        'merchant/create_payment': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'user/orders/{uuid}': { 'cost': 1 },
+                        'user/orders/{uuid}/cancel': { 'cost': 1 },
+                        'user/price_alerts/{id}': { 'cost': 1 },
+                    },
                 },
             },
             'markets': {
@@ -134,17 +135,17 @@ export default class paymium extends Exchange {
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': true, // todo
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': undefined,
-                    'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
-                    'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchOrder': undefined, // todo
+                    'fetchOpenOrders': undefined, // todo
+                    'fetchOrders': undefined, // todo
+                    'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': undefined, // todo
                 },
                 'swap': {
@@ -185,7 +186,9 @@ export default class paymium extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetUser(params);
         return this.parseBalance(response);
     }
@@ -197,10 +200,12 @@ export default class paymium extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['id'],
@@ -266,7 +271,9 @@ export default class paymium extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['id'],
@@ -328,7 +335,9 @@ export default class paymium extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['id'],
@@ -346,7 +355,9 @@ export default class paymium extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostUserAddresses(params);
         //
         //     {
@@ -368,7 +379,9 @@ export default class paymium extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'address': code,
         };
@@ -393,7 +406,9 @@ export default class paymium extends Exchange {
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddresses(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetUserAddresses(params);
         //
         //     [
@@ -405,7 +420,7 @@ export default class paymium extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositAddresses(response, codes);
+        return this.parseDepositAddresses(response, codes, false);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -440,7 +455,9 @@ export default class paymium extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'type': this.capitalize(type) + 'Order',
@@ -454,7 +471,7 @@ export default class paymium extends Exchange {
         const response = await this.privatePostUserOrders(this.extend(request, params));
         return this.safeOrder({
             'info': response,
-            'id': response['uuid'],
+            'id': this.safeString(response, 'uuid'),
         }, market);
     }
     /**
@@ -463,7 +480,7 @@ export default class paymium extends Exchange {
      * @description cancels an open order
      * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
      * @param {string} id order id
-     * @param {string} symbol not used by paymium cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -489,7 +506,9 @@ export default class paymium extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         if (toAccount.indexOf('@') < 0) {
             throw new ExchangeError(this.id + ' transfer() only allows transfers to an email address');
@@ -574,8 +593,8 @@ export default class paymium extends Exchange {
         const currencyId = this.safeString(transfer, 'currency');
         const updatedAt = this.safeString(transfer, 'updated_at');
         const timetstamp = this.parseDate(updatedAt);
-        const accountOperations = this.safeValue(transfer, 'account_operations');
-        const firstOperation = this.safeValue(accountOperations, 0, {});
+        const accountOperations = this.safeList(transfer, 'account_operations');
+        const firstOperation = this.safeDict(accountOperations, 0, {});
         const status = this.safeString(transfer, 'state');
         return {
             'info': transfer,
@@ -600,7 +619,7 @@ export default class paymium extends Exchange {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -613,14 +632,14 @@ export default class paymium extends Exchange {
                 'Api-Nonce': nonce,
             };
             if (method === 'POST') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     auth += body;
                     headers['Content-Type'] = 'application/json';
                 }
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     const queryString = this.urlencode(query);
                     auth += queryString;
                     url += '?' + queryString;

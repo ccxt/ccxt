@@ -1,15 +1,8 @@
 
 // @ts-nocheck
-// ----------------------------------------------------------------------------
-// There's been a lot of messing with this code...
-// The problem is to satisfy the following requirements:
-// - properly detect isNode == true on server side and isNode == false in the browser (on client side)
-// - make sure create-react-app, react-starter-kit and other react frameworks work
-// - make sure it does not break the browserified version (when linked into a html from a cdn)
-// - make sure it does not break the webpacking and babel-transpiled scripts
-// - make sure it works in Electron
-// - make sure it works with Angular.js
-// - make sure it does not break other possible usage scenarios
+// fragile: these checks must detect isNode correctly on the server and in the browser
+// while staying compatible with react frameworks (create-react-app, react-starter-kit),
+// the browserified cdn build, rspack/babel bundling, Electron and Angular.js
 
 const isBrowser = typeof window !== 'undefined'
 
@@ -23,6 +16,11 @@ const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
 const isDeno = typeof Deno !== 'undefined'
 
+// bun is node-compatible (isNode stays true there), but its native fetch differs (e.g. built-in `proxy` option)
+const isBun = typeof process !== 'undefined' &&
+              typeof process.versions !== 'undefined' &&
+              typeof process.versions.bun !== 'undefined'
+
 const isNode = !(isBrowser || isWebWorker || isDeno)
 
 // ----------------------------------------------------------------------------
@@ -33,5 +31,6 @@ export {
     isWebWorker,
     isNode,
     isDeno,
+    isBun,
     isWindows,
 }

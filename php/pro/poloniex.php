@@ -8,14 +8,17 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class poloniex extends \ccxt\async\poloniex {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -82,513 +85,570 @@ class poloniex extends \ccxt\async\poloniex {
         ));
     }
 
-    public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            /**
-             * @ignore
-             * authenticates the user to access private web socket channels
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/authentication
-             *
-             * @return {array} response from exchange
-             */
-            $this->check_required_credentials();
-            $timestamp = $this->number_to_string($this->milliseconds());
-            $url = $this->urls['api']['ws']['private'];
-            $messageHash = 'authenticated';
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $accessPath = '/ws';
-                $requestString = 'GET\n' . $accessPath . '\nsignTimestamp=' . $timestamp;
-                $signature = $this->hmac($this->encode($requestString), $this->encode($this->secret), 'sha256', 'base64');
-                $request = array(
-                    'event' => 'subscribe',
-                    'channel' => array( 'auth' ),
-                    'params' => array(
-                        'key' => $this->apiKey,
-                        'signTimestamp' => $timestamp,
-                        'signature' => $signature,
-                        'signatureMethod' => 'HmacSHA256',  // optional
-                        'signatureVersion' => '2',          // optional
-                    ),
-                );
-                $message = $this->extend($request, $params);
-                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-                //
-                //    {
-                //        "data" => array(
-                //            "success" => true,
-                //            "ts" => 1645597033915
-                //        ),
-                //        "channel" => "auth"
-                //    }
-                //
-                //    # Failure to return results
-                //
-                //    {
-                //        "data" => array(
-                //            "success" => false,
-                //            "message" => "Authentication failed!",
-                //            "ts" => 1646276295075
-                //        ),
-                //        "channel" => "auth"
-                //    }
-                //
-                $client->subscriptions[$messageHash] = $future;
-            }
-            return $future;
-        }) ();
+    public function authenticate($params = array()) {
+        return Async\async(self::do_authenticate(...))($params);
     }
 
-    public function subscribe(string $name, string $messageHash, bool $isPrivate, ?array $symbols = null, $params = array ()) {
-        return Async\async(function () use ($name, $messageHash, $isPrivate, $symbols, $params) {
-            /**
-             * @ignore
-             * Connects to a websocket channel
-             * @param {string} $name name of the channel
-             * @param {string} $messageHash unique identifier for the message
-             * @param {boolean} $isPrivate true for the authenticated $url, false for the public $url
-             * @param {string[]} [$symbols] CCXT market $symbols
-             * @param {array} [$params] extra parameters specific to the poloniex api
-             * @return {array} data from the websocket stream
-             */
-            $publicOrPrivate = $isPrivate ? 'private' : 'public';
-            $url = $this->urls['api']['ws'][$publicOrPrivate];
-            $subscribe = array(
+    private function do_authenticate($params = array()) {
+        /**
+         * @ignore
+         * authenticates the user to access private web socket channels
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/authentication
+         *
+         * @return {array} response from exchange
+         */
+        $this->check_required_credentials();
+        $timestamp = $this->number_to_string($this->milliseconds());
+        $url = $this->urls['api']['ws']['private'];
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $accessPath = '/ws';
+            $requestString = 'GET\n' . $accessPath . '\nsignTimestamp=' . $timestamp;
+            $signature = $this->hmac($this->encode($requestString), $this->encode($this->secret), 'sha256', 'base64');
+            $request = array(
                 'event' => 'subscribe',
-                'channel' => array(
-                    $name,
+                'channel' => array( 'auth' ),
+                'params' => array(
+                    'key' => $this->apiKey,
+                    'signTimestamp' => $timestamp,
+                    'signature' => $signature,
+                    'signatureMethod' => 'HmacSHA256',  // optional
+                    'signatureVersion' => '2',          // optional
                 ),
             );
-            $marketIds = [ ];
-            if ($this->is_empty($symbols)) {
-                $marketIds[] = 'all';
-            } else {
-                $messageHash = $messageHash . '::' . implode(',', $symbols);
-                $marketIds = $this->market_ids($symbols);
-            }
-            if ($name !== 'balances') {
-                $subscribe['symbols'] = $marketIds;
-            }
-            $request = $this->extend($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        }) ();
+            $message = $this->extend($request, $params);
+            $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            //
+            //    {
+            //        "data": {
+            //            "success": true,
+            //            "ts": 1645597033915
+            //        },
+            //        "channel": "auth"
+            //    }
+            //
+            //    # Failure to return results
+            //
+            //    {
+            //        "data": {
+            //            "success": false,
+            //            "message": "Authentication failed!",
+            //            "ts": 1646276295075
+            //        },
+            //        "channel": "auth"
+            //    }
+            //
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
-    public function trade_request(string $name, $params = array ()) {
-        return Async\async(function () use ($name, $params) {
-            /**
-             * @ignore
-             * Connects to a websocket channel
-             * @param {string} $name name of the channel
-             * @param {array} [$params] extra parameters specific to the poloniex api
-             * @return {array} data from the websocket stream
-             */
-            $url = $this->urls['api']['ws']['private'];
-            $messageHash = (string) $this->nonce();
-            $subscribe = array(
-                'id' => $messageHash,
-                'event' => $name,
-                'params' => $params,
-            );
-            return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
-        }) ();
+    public function subscribe(string $name, string $messageHash, bool $isPrivate, ?array $symbols = null, $params = array()) {
+        return Async\async(self::do_subscribe(...))($name, $messageHash, $isPrivate, $symbols, $params);
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#create-$order
-             *
-             * create a trade $order
-             * @param {string} $symbol unified $symbol of the $market to create an $order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market $orders
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @param {string} [$params->timeInForce] GTC (default), IOC, FOK
-             * @param {string} [$params->clientOrderId] Maximum 64-character length.*
-             * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
-             *
-             * EXCHANGE SPECIFIC PARAMETERS
-             * @param {string} [$params->amount] quote units for the $order
-             * @param {boolean} [$params->allowBorrow] allow $order to be placed by borrowing funds (Default => false)
-             * @param {string} [$params->stpMode] self-trade prevention, defaults to expire_taker, none => enable self-trade; expire_taker => taker $order will be canceled when self-trade happens
-             * @param {string} [$params->slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
-             */
+    private function do_subscribe(string $name, string $messageHash, bool $isPrivate, ?array $symbols = null, $params = array()) {
+        /**
+         * @ignore
+         * Connects to a websocket channel
+         * @param {string} $name name of the channel
+         * @param {string} $messageHash unique identifier for the message
+         * @param {boolean} $isPrivate true for the authenticated $url, false for the public $url
+         * @param {string[]} [$symbols] CCXT market $symbols
+         * @param {array} [$params] extra parameters specific to the poloniex api
+         * @return {array} data from the websocket stream
+         */
+        $publicOrPrivate = $isPrivate ? 'private' : 'public';
+        $url = $this->urls['api']['ws'][$publicOrPrivate];
+        $subscribe = array(
+            'event' => 'subscribe',
+            'channel' => array(
+                $name,
+            ),
+        );
+        $marketIds = array();
+        if ($this->is_empty($symbols)) {
+            $marketIds[] = 'all';
+        } else {
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' $subscribe() $symbols is required');
+            }
+            $messageHash = $messageHash . '::' . implode(',', $symbols);
+            $ids = $this->market_ids($symbols);
+            $marketIds = ($ids === null) ? array() : $ids;
+        }
+        if ($name !== 'balances') {
+            $subscribe['symbols'] = $marketIds;
+        }
+        $request = $this->extend($subscribe, $params);
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+    }
+
+    public function trade_request(string $name, $params = array()) {
+        return Async\async(self::do_trade_request(...))($name, $params);
+    }
+
+    private function do_trade_request(string $name, $params = array()) {
+        /**
+         * @ignore
+         * Connects to a websocket channel
+         * @param {string} $name name of the channel
+         * @param {array} [$params] extra parameters specific to the poloniex api
+         * @return {array} data from the websocket stream
+         */
+        $url = $this->urls['api']['ws']['private'];
+        $messageHash = (string) $this->nonce();
+        $subscribe = array(
+            'id' => $messageHash,
+            'event' => $name,
+            'params' => $params,
+        );
+        return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
+    }
+
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#create-$order
+         *
+         * create a trade $order
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market $orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->timeInForce] GTC (default), IOC, FOK
+         * @param {string} [$params->clientOrderId] Maximum 64-character length.*
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [$params->amount] quote units for the $order
+         * @param {boolean} [$params->allowBorrow] allow $order to be placed by borrowing funds (Default => false)
+         * @param {string} [$params->stpMode] self-trade prevention, defaults to expire_taker, none => enable self-trade; expire_taker => taker $order will be canceled when self-trade happens
+         * @param {string} [$params->slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            Async\await($this->authenticate());
-            $market = $this->market($symbol);
-            $uppercaseType = strtoupper($type);
-            $uppercaseSide = strtoupper($side);
-            $isPostOnly = $this->is_post_only($uppercaseType === 'MARKET', $uppercaseType === 'LIMIT_MAKER', $params);
-            if ($isPostOnly) {
-                $uppercaseType = 'LIMIT_MAKER';
-            }
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => strtoupper($side),
-                'type' => strtoupper($type),
-            );
-            if (($uppercaseType === 'MARKET') && ($uppercaseSide === 'BUY')) {
-                $quoteAmount = null;
-                $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                $cost = $this->safe_number($params, 'cost');
-                $params = $this->omit($params, 'cost');
-                if ($cost !== null) {
-                    $quoteAmount = $this->cost_to_precision($symbol, $cost);
-                } elseif ($createMarketBuyOrderRequiresPrice) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy $orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $costRequest = Precise::string_mul($amountString, $priceString);
-                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
-                    }
+        }
+        Async\await($this->authenticate());
+        $market = $this->market($symbol);
+        $uppercaseType = strtoupper($type);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrderWs() $side is required');
+        }
+        $uppercaseSide = strtoupper($side);
+        $isPostOnly = $this->is_post_only($uppercaseType === 'MARKET', $uppercaseType === 'LIMIT_MAKER', $params);
+        if ($isPostOnly) {
+            $uppercaseType = 'LIMIT_MAKER';
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => strtoupper($side),
+            'type' => strtoupper($type),
+        );
+        if (($uppercaseType === 'MARKET') && ($uppercaseSide === 'BUY')) {
+            $quoteAmount = null;
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            $cost = $this->safe_number($params, 'cost');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $quoteAmount = $this->cost_to_precision($symbol, $cost);
+            } elseif ($createMarketBuyOrderRequiresPrice) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy $orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                 } else {
-                    $quoteAmount = $this->cost_to_precision($symbol, $amount);
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $costRequest = Precise::string_mul($amountString, $priceString);
+                    $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                 }
-                $request['amount'] = $quoteAmount;
             } else {
-                $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
-                if ($price !== null) {
-                    $request['price'] = $this->price_to_precision($symbol, $price);
-                }
+                $quoteAmount = $this->cost_to_precision($symbol, $amount);
             }
-            $orders = Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
-            $order = $this->safe_dict($orders, 0);
-            return $order;
-        }) ();
-    }
-
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-$orders
-             *
-             * cancel multiple $orders
-             * @param {string} $id $order $id
-             * @param {string} [$symbol] unified market $symbol
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @param {string} [$params->clientOrderId] client $order $id
-             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
-             */
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $clientOrderIds = $this->safe_value($params, 'clientOrderId', array());
-                $params['clientOrderIds'] = $this->array_concat($clientOrderIds, array( $clientOrderId ));
+            $request['amount'] = $quoteAmount;
+        } else {
+            $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $orders = Async\await($this->cancel_orders_ws(array( $id ), $symbol, $params));
-            $order = $this->safe_dict($orders, 0);
-            return $order;
-        }) ();
+        }
+        $orders = Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
+        $order = $this->safe_dict($orders, 0);
+        return $order;
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($ids, $symbol, $params) {
-            /**
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#cancel-multiple-orders
-             *
-             * cancel multiple orders
-             * @param {string[]} $ids order $ids
-             * @param {string} $symbol unified market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @param {string[]} [$params->clientOrderIds] client order $ids
-             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
-             */
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-$orders
+         *
+         * cancel multiple $orders
+         * @param {string} $id $order $id
+         * @param {string} [$symbol] unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client $order $id
+         * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
+         */
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $clientOrderIds = $this->safe_value($params, 'clientOrderId', array());
+            $params['clientOrderIds'] = $this->array_concat($clientOrderIds, array( $clientOrderId ));
+        }
+        $orders = Async\await($this->cancel_orders_ws(array( $id ), $symbol, $params));
+        $order = $this->safe_dict($orders, 0);
+        return $order;
+    }
+
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_orders_ws(...))($ids, $symbol, $params);
+    }
+
+    private function do_cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#cancel-multiple-orders
+         *
+         * cancel multiple orders
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified market $symbol, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] client order $ids
+         * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            Async\await($this->authenticate());
-            $request = array(
-                'orderIds' => $ids,
-            );
-            return Async\await($this->trade_request('cancelOrders', $this->extend($request, $params)));
-        }) ();
+        }
+        Async\await($this->authenticate());
+        $request = array(
+            'orderIds' => $ids,
+        );
+        return Async\await($this->trade_request('cancelOrders', $this->extend($request, $params)));
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
-             *
-             * cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
-             * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
-             */
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
+         *
+         * cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
+         * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            Async\await($this->authenticate());
-            return Async\await($this->trade_request('cancelAllOrders', $params));
-        }) ();
+        }
+        Async\await($this->authenticate());
+        return Async\await($this->trade_request('cancelAllOrders', $params));
     }
 
-    public function handle_order_request(Client $client, $message) {
+    public function handle_order_request(Client $client, array $message) {
         //
         //    {
-        //        "id" => "1234567",
-        //        "data" => [array(
-        //           "orderId" => 205343650954092544,
-        //           "clientOrderId" => "",
-        //           "message" => "",
-        //           "code" => 200
-        //        )]
+        //        "id": "1234567",
+        //        "data": [{
+        //           "orderId": 205343650954092544,
+        //           "clientOrderId": "",
+        //           "message": "",
+        //           "code": 200
+        //        }]
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $orders = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $data[$i];
             $parsedOrder = $this->parse_ws_order($order);
             $orders[] = $parsedOrder;
         }
-        $client->resolve ($orders, $messageHash);
+        $client->resolve($orders, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $timeframes = $this->safe_value($this->options, 'timeframes', array());
-            $channel = $this->safe_string($timeframes, $timeframe, $timeframe);
-            if ($channel === null) {
-                throw new BadRequest($this->id . ' watchOHLCV cannot take a $timeframe of ' . $timeframe);
-            }
-            $ohlcv = Async\await($this->subscribe($channel, $channel, false, array( $symbol ), $params));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
+        }
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+        $channel = $this->safe_string($timeframes, $timeframe, $timeframe);
+        if ($channel === null) {
+            throw new BadRequest($this->id . ' watchOHLCV cannot take a $timeframe of ' . $timeframe);
+        }
+        $ohlcv = Async\await($this->subscribe($channel, $channel, false, array( $symbol ), $params));
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+    }
+
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbol = $this->symbol($symbol);
+        $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+        return $this->safe_value($tickers, $symbol);
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+         *
+         * @param {string[]} $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $name = 'ticker';
+        $symbols = $this->market_symbols($symbols);
+        $newTickers = Async\await($this->subscribe($name, $name, false, $symbols, $params));
+        if ($this->newUpdates) {
+            return $newTickers;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+    }
+
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a list of $symbols
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#$trades
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $name = 'trades';
+        $url = $this->urls['api']['ws']['public'];
+        $marketIds = $this->market_ids($symbols);
+        $subscribe = array(
+            'event' => 'subscribe',
+            'channel' => array(
+                $name,
+            ),
+            'symbols' => $marketIds,
+        );
+        $request = $this->extend($subscribe, $params);
+        $messageHashes = array();
+        if ($symbols !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $messageHashes[] = $name . '::' . $symbols[$i];
+            }
+        }
+        $trades = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
+        if ($this->newUpdates) {
+            $first = $this->safe_value($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] not used by poloniex watchOrderBook
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $watchOrderBookOptions = $this->safe_dict($this->options, 'watchOrderBook');
+        $name = $this->safe_string($watchOrderBookOptions, 'name', 'book_lv2');
+        list($name, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'name', $name);
+        $orderbook = Async\await($this->subscribe($name, $name, false, array( $symbol ), $params));
+        return $orderbook->limit();
+    }
+
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/order
+         *
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {int} [$since] not used by poloniex watchOrders
+         * @param {int} [$limit] not used by poloniex watchOrders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $name = 'orders';
+        Async\await($this->authenticate());
+        if ($symbol !== null) {
             $symbol = $this->symbol($symbol);
-            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
-            return $this->safe_value($tickers, $symbol);
-        }) ();
+        }
+        $symbols = ($symbol === null) ? null : array( $symbol );
+        $orders = Async\await($this->subscribe($name, $name, true, $symbols, $params));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
-             *
-             * @param {string[]} $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user using orders stream
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/order
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] not used by poloniex watchMyTrades
+         * @param {int} [$limit] not used by poloniex watchMyTrades
+         * @param {array} [$params] extra parameters specific to the poloniex strean
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $name = 'ticker';
-            $symbols = $this->market_symbols($symbols);
-            $newTickers = Async\await($this->subscribe($name, $name, false, $symbols, $params));
-            if ($this->newUpdates) {
-                return $newTickers;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        }
+        $name = 'orders';
+        $messageHash = 'myTrades';
+        Async\await($this->authenticate());
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+        }
+        $symbols = ($symbol === null) ? null : array( $symbol );
+        $trades = Async\await($this->subscribe($name, $messageHash, true, $symbols, $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        }) ();
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a list of $symbols
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/market-data#$trades
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://api-docs.poloniex.com/spot/websocket/balance
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false, true, true);
-            $name = 'trades';
-            $url = $this->urls['api']['ws']['public'];
-            $marketIds = $this->market_ids($symbols);
-            $subscribe = array(
-                'event' => 'subscribe',
-                'channel' => array(
-                    $name,
-                ),
-                'symbols' => $marketIds,
-            );
-            $request = $this->extend($subscribe, $params);
-            $messageHashes = array();
-            if ($symbols !== null) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $messageHashes[] = $name . '::' . $symbols[$i];
-                }
-            }
-            $trades = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit ($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        }
+        $name = 'balances';
+        Async\await($this->authenticate());
+        return Async\await($this->subscribe($name, $name, true, null, $params));
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] not used by poloniex watchOrderBook
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
-             */
-            Async\await($this->load_markets());
-            $watchOrderBookOptions = $this->safe_value($this->options, 'watchOrderBook');
-            $name = $this->safe_string($watchOrderBookOptions, 'name', 'book_lv2');
-            list($name, $params) = $this->handle_option_and_params($params, 'method', 'name', $name);
-            $orderbook = Async\await($this->subscribe($name, $name, false, array( $symbol ), $params));
-            return $orderbook->limit ();
-        }) ();
-    }
-
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/order
-             *
-             * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int} [$since] not used by poloniex watchOrders
-             * @param {int} [$limit] not used by poloniex watchOrders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await($this->load_markets());
-            $name = 'orders';
-            Async\await($this->authenticate());
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-            }
-            $symbols = ($symbol === null) ? null : array( $symbol );
-            $orders = Async\await($this->subscribe($name, $name, true, $symbols, $params));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
-        }) ();
-    }
-
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user using orders stream
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/order
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] not used by poloniex watchMyTrades
-             * @param {int} [$limit] not used by poloniex watchMyTrades
-             * @param {array} [$params] extra parameters specific to the poloniex strean
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            Async\await($this->load_markets());
-            $name = 'orders';
-            $messageHash = 'myTrades';
-            Async\await($this->authenticate());
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-            }
-            $symbols = ($symbol === null) ? null : array( $symbol );
-            $trades = Async\await($this->subscribe($name, $messageHash, true, $symbols, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
-    }
-
-    public function watch_balance($params = array ()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://api-docs.poloniex.com/spot/websocket/balance
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            Async\await($this->load_markets());
-            $name = 'balances';
-            Async\await($this->authenticate());
-            return Async\await($this->subscribe($name, $name, true, null, $params));
-        }) ();
-    }
-
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
-        //        "symbol" => "BTC_USDT",
-        //        "amount" => "840.7240416",
-        //        "high" => "24832.35",
-        //        "quantity" => "0.033856",
-        //        "tradeCount" => 1,
-        //        "low" => "24832.35",
-        //        "closeTime" => 1676942519999,
-        //        "startTime" => 1676942460000,
-        //        "close" => "24832.35",
-        //        "open" => "24832.35",
-        //        "ts" => 1676942492072
+        //        "symbol": "BTC_USDT",
+        //        "amount": "840.7240416",
+        //        "high": "24832.35",
+        //        "quantity": "0.033856",
+        //        "tradeCount": 1,
+        //        "low": "24832.35",
+        //        "closeTime": 1676942519999,
+        //        "startTime": 1676942460000,
+        //        "close": "24832.35",
+        //        "open": "24832.35",
+        //        "ts": 1676942492072
         //    }
         //
         return array(
@@ -601,25 +661,25 @@ class poloniex extends \ccxt\async\poloniex {
         );
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, array $message): array {
         //
         //    {
-        //        "channel" => "candles_minute_1",
-        //        "data" => array(
+        //        "channel": "candles_minute_1",
+        //        "data": [
         //            {
-        //                "symbol" => "BTC_USDT",
-        //                "amount" => "840.7240416",
-        //                "high" => "24832.35",
-        //                "quantity" => "0.033856",
-        //                "tradeCount" => 1,
-        //                "low" => "24832.35",
-        //                "closeTime" => 1676942519999,
-        //                "startTime" => 1676942460000,
-        //                "close" => "24832.35",
-        //                "open" => "24832.35",
-        //                "ts" => 1676942492072
+        //                "symbol": "BTC_USDT",
+        //                "amount": "840.7240416",
+        //                "high": "24832.35",
+        //                "quantity": "0.033856",
+        //                "tradeCount": 1,
+        //                "low": "24832.35",
+        //                "closeTime": 1676942519999,
+        //                "startTime": 1676942460000,
+        //                "close": "24832.35",
+        //                "open": "24832.35",
+        //                "ts": 1676942492072
         //            }
-        //        )
+        //        ]
         //    }
         //
         $data = $this->safe_value($message, 'data');
@@ -628,43 +688,45 @@ class poloniex extends \ccxt\async\poloniex {
         $marketId = $this->safe_string($data, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($symbol);
-        $timeframes = $this->safe_value($this->options, 'timeframes', array());
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($channel, $timeframes);
         $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = ($timeframe === null) ? null : $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($symbol !== null) {
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
+                $stored = new ArrayCacheByTimestamp($limit);
+                if ($symbol !== null && $timeframe !== null) {
+                    $this->ohlcvs[$symbol][$timeframe] = $stored;
+                }
             }
-            $stored->append ($parsed);
-            $client->resolve ($stored, $messageHash);
+            $stored->append($parsed);
+            $client->resolve($stored, $messageHash);
         }
         return $message;
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, array $message): array {
         //
         //    {
-        //        "channel" => "trades",
-        //        "data" => array(
+        //        "channel": "trades",
+        //        "data": [
         //            {
-        //                "symbol" => "BTC_USDT",
-        //                "amount" => "13.41634893",
-        //                "quantity" => "0.000537",
-        //                "takerSide" => "buy",
-        //                "createTime" => 1676950548834,
-        //                "price" => "24983.89",
-        //                "id" => "62486976",
-        //                "ts" => 1676950548839
+        //                "symbol": "BTC_USDT",
+        //                "amount": "13.41634893",
+        //                "quantity": "0.000537",
+        //                "takerSide": "buy",
+        //                "createTime": 1676950548834,
+        //                "price": "24983.89",
+        //                "id": "62486976",
+        //                "ts": 1676950548839
         //            }
-        //        )
+        //        ]
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $item = $data[$i];
             $marketId = $this->safe_string($item, 'symbol');
@@ -673,35 +735,37 @@ class poloniex extends \ccxt\async\poloniex {
                 $symbol = $trade['symbol'];
                 $type = 'trades';
                 $messageHash = $type . '::' . $symbol;
-                $tradesArray = $this->safe_value($this->trades, $symbol);
+                $tradesArray = ($symbol === null) ? null : $this->safe_value($this->trades, $symbol);
                 if ($tradesArray === null) {
                     $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                    $tradesArray = new ArrayCache ($tradesLimit);
-                    $this->trades[$symbol] = $tradesArray;
+                    $tradesArray = new ArrayCache($tradesLimit);
+                    if ($symbol !== null) {
+                        $this->trades[$symbol] = $tradesArray;
+                    }
                 }
-                $tradesArray->append ($trade);
-                $client->resolve ($tradesArray, $messageHash);
+                $tradesArray->append($trade);
+                $client->resolve($tradesArray, $messageHash);
             }
         }
         return $message;
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // handleTrade
         //
         //    {
-        //        "symbol" => "BTC_USDT",
-        //        "amount" => "13.41634893",
-        //        "quantity" => "0.000537",
-        //        "takerSide" => "buy",
-        //        "createTime" => 1676950548834,
-        //        "price" => "24983.89",
-        //        "id" => "62486976",
-        //        "ts" => 1676950548839
+        //        "symbol": "BTC_USDT",
+        //        "amount": "13.41634893",
+        //        "quantity": "0.000537",
+        //        "takerSide": "buy",
+        //        "createTime": 1676950548834,
+        //        "price": "24983.89",
+        //        "id": "62486976",
+        //        "ts": 1676950548839
         //    }
         //
-        // private $trade
+        // private trade
         //    {
         //        "orderId":"186250258089635840",
         //        "tradeId":"62036513",
@@ -754,7 +818,7 @@ class poloniex extends \ccxt\async\poloniex {
         ), $market);
     }
 
-    public function parse_status($status) {
+    public function parse_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -767,33 +831,33 @@ class poloniex extends \ccxt\async\poloniex {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order_trade($trade, $market = null) {
+    public function parse_ws_order_trade(array $trade, ?array $market = null) {
         //
         //    {
-        //        "symbol" => "BTC_USDT",
-        //        "type" => "LIMIT",
-        //        "quantity" => "1",
-        //        "orderId" => "32471407854219264",
-        //        "tradeFee" => "0",
-        //        "clientOrderId" => "",
-        //        "accountType" => "SPOT",
-        //        "feeCurrency" => "",
-        //        "eventType" => "place",
-        //        "source" => "API",
-        //        "side" => "BUY",
-        //        "filledQuantity" => "0",
-        //        "filledAmount" => "0",
-        //        "matchRole" => "MAKER",
-        //        "state" => "NEW",
-        //        "tradeTime" => 0,
-        //        "tradeAmount" => "0",
-        //        "orderAmount" => "0",
-        //        "createTime" => 1648708186922,
-        //        "price" => "47112.1",
-        //        "tradeQty" => "0",
-        //        "tradePrice" => "0",
-        //        "tradeId" => "0",
-        //        "ts" => 1648708187469
+        //        "symbol": "BTC_USDT",
+        //        "type": "LIMIT",
+        //        "quantity": "1",
+        //        "orderId": "32471407854219264",
+        //        "tradeFee": "0",
+        //        "clientOrderId": "",
+        //        "accountType": "SPOT",
+        //        "feeCurrency": "",
+        //        "eventType": "place",
+        //        "source": "API",
+        //        "side": "BUY",
+        //        "filledQuantity": "0",
+        //        "filledAmount": "0",
+        //        "matchRole": "MAKER",
+        //        "state": "NEW",
+        //        "tradeTime": 0,
+        //        "tradeAmount": "0",
+        //        "orderAmount": "0",
+        //        "createTime": 1648708186922,
+        //        "price": "47112.1",
+        //        "tradeQty": "0",
+        //        "tradePrice": "0",
+        //        "tradeId": "0",
+        //        "ts": 1648708187469
         //    }
         //
         $timestamp = $this->safe_integer($trade, 'tradeTime');
@@ -819,66 +883,73 @@ class poloniex extends \ccxt\async\poloniex {
         ), $market);
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, array $message): array {
         //
         // Order is created
         //
         //    {
-        //        "channel" => "orders",
-        //        "data" => array(
+        //        "channel": "orders",
+        //        "data": [
         //            {
-        //                "symbol" => "BTC_USDT",
-        //                "type" => "LIMIT",
-        //                "quantity" => "1",
-        //                "orderId" => "32471407854219264",
-        //                "tradeFee" => "0",
-        //                "clientOrderId" => "",
-        //                "accountType" => "SPOT",
-        //                "feeCurrency" => "",
-        //                "eventType" => "place",
-        //                "source" => "API",
-        //                "side" => "BUY",
-        //                "filledQuantity" => "0",
-        //                "filledAmount" => "0",
-        //                "matchRole" => "MAKER",
-        //                "state" => "NEW",
-        //                "tradeTime" => 0,
-        //                "tradeAmount" => "0",
-        //                "orderAmount" => "0",
-        //                "createTime" => 1648708186922,
-        //                "price" => "47112.1",
-        //                "tradeQty" => "0",
-        //                "tradePrice" => "0",
-        //                "tradeId" => "0",
-        //                "ts" => 1648708187469
+        //                "symbol": "BTC_USDT",
+        //                "type": "LIMIT",
+        //                "quantity": "1",
+        //                "orderId": "32471407854219264",
+        //                "tradeFee": "0",
+        //                "clientOrderId": "",
+        //                "accountType": "SPOT",
+        //                "feeCurrency": "",
+        //                "eventType": "place",
+        //                "source": "API",
+        //                "side": "BUY",
+        //                "filledQuantity": "0",
+        //                "filledAmount": "0",
+        //                "matchRole": "MAKER",
+        //                "state": "NEW",
+        //                "tradeTime": 0,
+        //                "tradeAmount": "0",
+        //                "orderAmount": "0",
+        //                "createTime": 1648708186922,
+        //                "price": "47112.1",
+        //                "tradeQty": "0",
+        //                "tradePrice": "0",
+        //                "tradeId": "0",
+        //                "ts": 1648708187469
         //            }
-        //        )
+        //        ]
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $orders = $this->orders;
         if ($orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
-            $orders = new ArrayCacheBySymbolById ($limit);
+            $orders = new ArrayCacheBySymbolById($limit);
             $this->orders = $orders;
         }
         $marketIds = array();
         for ($i = 0; $i < count($data); $i++) {
-            $order = $this->safe_value($data, $i);
+            $order = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($order, 'symbol');
             $eventType = $this->safe_string($order, 'eventType');
             if ($marketId !== null) {
                 $symbol = $this->safe_symbol($marketId);
-                $orderId = $this->safe_string($order, 'orderId');
-                $clientOrderId = $this->safe_string($order, 'clientOrderId');
+                $orderId = $this->safe_string($order, 'orderId', '');
+                $clientOrderId = $this->safe_string($order, 'clientOrderId', '');
                 if ($eventType === 'place' || $eventType === 'canceled') {
                     $parsed = $this->parse_ws_order($order);
-                    $orders->append ($parsed);
+                    $orders->append($parsed);
                 } else {
-                    $previousOrders = $this->safe_value($orders->hashmap, $symbol, array());
-                    $previousOrder = $this->safe_value_2($previousOrders, $orderId, $clientOrderId);
+                    $previousOrders = $this->safe_dict($orders->hashmap, $symbol, array());
+                    $previousOrder = $this->safe_dict_2($previousOrders, $orderId, $clientOrderId);
                     $trade = $this->parse_ws_trade($order);
                     $this->handle_my_trades($client, $trade);
+                    if ($previousOrder === null) {
+                        // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        $parsedOrder = $this->parse_ws_order($order);
+                        $orders->append($parsedOrder);
+                        $marketIds[] = $marketId;
+                        continue;
+                    }
                     if ($previousOrder['trades'] === null) {
                         $previousOrder['trades'] = array();
                     }
@@ -912,19 +983,19 @@ class poloniex extends \ccxt\async\poloniex {
                         $previousOrder['fee'] = array(
                             'rate' => null,
                             'cost' => 0,
-                            'currency' => $trade['fee']['currency'],
+                            'currency' => $this->safe_string($trade['fee'], 'currency'),
                         );
                     }
-                    if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
+                    if (($previousOrder['fee']['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
                         $stringOrderCost = $this->number_to_string($previousOrder['fee']['cost']);
-                        $stringTradeCost = $this->number_to_string($trade['fee']['cost']);
+                        $stringTradeCost = $this->number_to_string($this->safe_number($trade['fee'], 'cost'));
                         $previousOrder['fee']['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
                     }
                     $rawState = $this->safe_string($order, 'state');
                     $state = $this->parse_status($rawState);
                     $previousOrder['status'] = $state;
                     // update the newUpdates count
-                    $orders->append ($previousOrder);
+                    $orders->append($previousOrder);
                 }
                 $marketIds[] = $marketId;
             }
@@ -934,39 +1005,39 @@ class poloniex extends \ccxt\async\poloniex {
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
             $messageHash = 'orders::' . $symbol;
-            $client->resolve ($orders, $messageHash);
+            $client->resolve($orders, $messageHash);
         }
-        $client->resolve ($orders, 'orders');
+        $client->resolve($orders, 'orders');
         return $message;
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //    {
-        //        "symbol" => "BTC_USDT",
-        //        "type" => "LIMIT",
-        //        "quantity" => "1",
-        //        "orderId" => "32471407854219264",
-        //        "tradeFee" => "0",
-        //        "clientOrderId" => "",
-        //        "accountType" => "SPOT",
-        //        "feeCurrency" => "",
-        //        "eventType" => "place",
-        //        "source" => "API",
-        //        "side" => "BUY",
-        //        "filledQuantity" => "0",
-        //        "filledAmount" => "0",
-        //        "matchRole" => "MAKER",
-        //        "state" => "NEW",
-        //        "tradeTime" => 0,
-        //        "tradeAmount" => "0",
-        //        "orderAmount" => "0",
-        //        "createTime" => 1648708186922,
-        //        "price" => "47112.1",
-        //        "tradeQty" => "0",
-        //        "tradePrice" => "0",
-        //        "tradeId" => "0",
-        //        "ts" => 1648708187469
+        //        "symbol": "BTC_USDT",
+        //        "type": "LIMIT",
+        //        "quantity": "1",
+        //        "orderId": "32471407854219264",
+        //        "tradeFee": "0",
+        //        "clientOrderId": "",
+        //        "accountType": "SPOT",
+        //        "feeCurrency": "",
+        //        "eventType": "place",
+        //        "source": "API",
+        //        "side": "BUY",
+        //        "filledQuantity": "0",
+        //        "filledAmount": "0",
+        //        "matchRole": "MAKER",
+        //        "state": "NEW",
+        //        "tradeTime": 0,
+        //        "tradeAmount": "0",
+        //        "orderAmount": "0",
+        //        "createTime": 1648708186922,
+        //        "price": "47112.1",
+        //        "tradeQty": "0",
+        //        "tradePrice": "0",
+        //        "tradeId": "0",
+        //        "ts": 1648708187469
         //    }
         //
         $id = $this->safe_string($order, 'orderId');
@@ -1011,30 +1082,30 @@ class poloniex extends \ccxt\async\poloniex {
         ));
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         //    {
-        //        "channel" => "ticker",
-        //        "data" => array(
+        //        "channel": "ticker",
+        //        "data": [
         //            {
-        //                "symbol" => "BTC_USDT",
-        //                "startTime" => 1677280800000,
-        //                "open" => "23154.32",
-        //                "high" => "23212.21",
-        //                "low" => "22761.01",
-        //                "close" => "23148.86",
-        //                "quantity" => "105.179566",
-        //                "amount" => "2423161.17436702",
-        //                "tradeCount" => 17582,
-        //                "dailyChange" => "-0.0002",
-        //                "markPrice" => "23151.09",
-        //                "closeTime" => 1677367197924,
-        //                "ts" => 1677367251090
+        //                "symbol": "BTC_USDT",
+        //                "startTime": 1677280800000,
+        //                "open": "23154.32",
+        //                "high": "23212.21",
+        //                "low": "22761.01",
+        //                "close": "23148.86",
+        //                "quantity": "105.179566",
+        //                "amount": "2423161.17436702",
+        //                "tradeCount": 17582,
+        //                "dailyChange": "-0.0002",
+        //                "markPrice": "23151.09",
+        //                "closeTime": 1677367197924,
+        //                "ts": 1677367251090
         //            }
-        //        )
+        //        ]
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $newTickers = array();
         for ($i = 0; $i < count($data); $i++) {
             $item = $data[$i];
@@ -1042,8 +1113,12 @@ class poloniex extends \ccxt\async\poloniex {
             if ($marketId !== null) {
                 $ticker = $this->parse_ticker($item);
                 $symbol = $ticker['symbol'];
-                $this->tickers[$symbol] = $ticker;
-                $newTickers[$symbol] = $ticker;
+                if ($symbol !== null) {
+                    $this->tickers[$symbol] = $ticker;
+                }
+                if ($symbol !== null) {
+                    $newTickers[$symbol] = $ticker;
+                }
             }
         }
         $messageHashes = $this->find_message_hashes($client, 'ticker::');
@@ -1054,62 +1129,62 @@ class poloniex extends \ccxt\async\poloniex {
             $symbols = explode(',', $symbolsString);
             $tickers = $this->filter_by_array($newTickers, 'symbol', $symbols);
             if (!$this->is_empty($tickers)) {
-                $client->resolve ($tickers, $messageHash);
+                $client->resolve($tickers, $messageHash);
             }
         }
-        $client->resolve ($newTickers, 'ticker');
+        $client->resolve($newTickers, 'ticker');
         return $message;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
-        // $snapshot
+        // snapshot
         //
         //    {
-        //        "channel" => "book_lv2",
-        //        "data" => [
+        //        "channel": "book_lv2",
+        //        "data": [
         //            {
-        //                "symbol" => "BTC_USDT",
-        //                "createTime" => 1677368876253,
-        //                "asks" => [
+        //                "symbol": "BTC_USDT",
+        //                "createTime": 1677368876253,
+        //                "asks": [
         //                    ["5.65", "0.02"],
         //                    ...
         //                ],
-        //                "bids" => [
+        //                "bids": [
         //                    ["6.16", "0.6"],
         //                    ...
         //                ],
-        //                "lastId" => 164148724,
-        //                "id" => 164148725,
-        //                "ts" => 1677368876316
+        //                "lastId": 164148724,
+        //                "id": 164148725,
+        //                "ts": 1677368876316
         //            }
         //        ],
-        //        "action" => "snapshot"
+        //        "action": "snapshot"
         //    }
         //
-        // $update
+        // update
         //
         //    {
-        //        "channel" => "book_lv2",
-        //        "data" => [
+        //        "channel": "book_lv2",
+        //        "data": [
         //            {
-        //                "symbol" => "BTC_USDT",
-        //                "createTime" => 1677368876882,
-        //                "asks" => [
+        //                "symbol": "BTC_USDT",
+        //                "createTime": 1677368876882,
+        //                "asks": [
         //                    ["6.35", "3"]
         //                ],
-        //                "bids" => [
+        //                "bids": [
         //                    ["5.65", "0.02"]
         //                ],
-        //                "lastId" => 164148725,
-        //                "id" => 164148726,
-        //                "ts" => 1677368876890
+        //                "lastId": 164148725,
+        //                "id": 164148726,
+        //                "ts": 1677368876890
         //            }
         //        ],
-        //        "action" => "update"
+        //        "action": "update"
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $type = $this->safe_string($message, 'action');
         $snapshot = $type === 'snapshot';
         $update = $type === 'update';
@@ -1120,86 +1195,90 @@ class poloniex extends \ccxt\async\poloniex {
             $symbol = $market['symbol'];
             $name = 'book_lv2';
             $messageHash = $name . '::' . $symbol;
-            $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+            $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');
             $timestamp = $this->safe_integer($item, 'ts');
-            $asks = $this->safe_value($item, 'asks');
-            $bids = $this->safe_value($item, 'bids');
+            $asks = $this->safe_list($item, 'asks');
+            $bids = $this->safe_list($item, 'bids');
             if ($snapshot || $update) {
                 if ($snapshot) {
                     $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
                 }
+                if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                    // a delta can arrive before the snapshot, it cannot be applied without a book
+                    continue;
+                }
                 $orderbook = $this->orderbooks[$symbol];
                 if ($bids !== null) {
                     for ($j = 0; $j < count($bids); $j++) {
-                        $bid = $this->safe_value($bids, $j);
+                        $bid = $this->safe_list($bids, $j);
                         $price = $this->safe_number($bid, 0);
                         $amount = $this->safe_number($bid, 1);
                         $bidsSide = $orderbook['bids'];
-                        $bidsSide->store ($price, $amount);
+                        $bidsSide->store($price, $amount);
                     }
                 }
                 if ($asks !== null) {
                     for ($j = 0; $j < count($asks); $j++) {
-                        $ask = $this->safe_value($asks, $j);
+                        $ask = $this->safe_list($asks, $j);
                         $price = $this->safe_number($ask, 0);
                         $amount = $this->safe_number($ask, 1);
                         $asksSide = $orderbook['asks'];
-                        $asksSide->store ($price, $amount);
+                        $asksSide->store($price, $amount);
                     }
                 }
                 $orderbook['symbol'] = $symbol;
                 $orderbook['timestamp'] = $timestamp;
                 $orderbook['datetime'] = $this->iso8601($timestamp);
-                $client->resolve ($orderbook, $messageHash);
+                $client->resolve($orderbook, $messageHash);
             }
         }
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //    {
-        //       "channel" => "balances",
-        //       "data" => array(
+        //       "channel": "balances",
+        //       "data": [
         //            {
-        //                "changeTime" => 1657312008411,
-        //                "accountId" => "1234",
-        //                "accountType" => "SPOT",
-        //                "eventType" => "place_order",
-        //                "available" => "9999999983.668",
-        //                "currency" => "BTC",
-        //                "id" => 60018450912695040,
-        //                "userId" => 12345,
-        //                "hold" => "16.332",
-        //                "ts" => 1657312008443
+        //                "changeTime": 1657312008411,
+        //                "accountId": "1234",
+        //                "accountType": "SPOT",
+        //                "eventType": "place_order",
+        //                "available": "9999999983.668",
+        //                "currency": "BTC",
+        //                "id": 60018450912695040,
+        //                "userId": 12345,
+        //                "hold": "16.332",
+        //                "ts": 1657312008443
         //            }
-        //        )
+        //        ]
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $messageHash = 'balances';
         $this->balance = $this->parse_ws_balance($data);
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
-    public function parse_ws_balance($response) {
+    public function parse_ws_balance(array $response): array {
         //
-        //    array(
+        //    [
         //        {
-        //            "changeTime" => 1657312008411,
-        //            "accountId" => "1234",
-        //            "accountType" => "SPOT",
-        //            "eventType" => "place_order",
-        //            "available" => "9999999983.668",
-        //            "currency" => "BTC",
-        //            "id" => 60018450912695040,
-        //            "userId" => 12345,
-        //            "hold" => "16.332",
-        //            "ts" => 1657312008443
+        //            "changeTime": 1657312008411,
+        //            "accountId": "1234",
+        //            "accountType": "SPOT",
+        //            "eventType": "place_order",
+        //            "available": "9999999983.668",
+        //            "currency": "BTC",
+        //            "id": 60018450912695040,
+        //            "userId": 12345,
+        //            "hold": "16.332",
+        //            "ts": 1657312008443
         //        }
-        //    )
+        //    ]
         //
-        $firstBalance = $this->safe_value($response, 0, array());
+        $firstBalance = $this->safe_dict($response, 0, array());
         $timestamp = $this->safe_integer($firstBalance, 'ts');
         $result = array(
             'info' => $response,
@@ -1207,38 +1286,40 @@ class poloniex extends \ccxt\async\poloniex {
             'datetime' => $this->iso8601($timestamp),
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_value($response, $i);
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $newAccount = $this->account();
             $newAccount['free'] = $this->safe_string($balance, 'available');
             $newAccount['used'] = $this->safe_string($balance, 'hold');
-            $result[$code] = $newAccount;
+            if ($code !== null) {
+                $result[$code] = $newAccount;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function handle_my_trades(Client $client, $parsedTrade) {
+    public function handle_my_trades(Client $client, array $parsedTrade) {
         // emulated using the orders' stream
         $messageHash = 'myTrades';
         $symbol = $parsedTrade['symbol'];
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $trades = $this->myTrades;
-        $trades->append ($parsedTrade);
-        $client->resolve ($trades, $messageHash);
+        $trades->append($parsedTrade);
+        $client->resolve($trades, $messageHash);
         $symbolMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($trades, $symbolMessageHash);
+        $client->resolve($trades, $symbolMessageHash);
     }
 
     public function handle_pong(Client $client) {
         $client->lastPong = $this->milliseconds();
     }
 
-    public function handle_message(Client $client, $message) {
-        if ($this->handle_error_message($client, $message)) {
+    public function handle_message(Client $client, array $message) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $type = $this->safe_string($message, 'channel');
@@ -1272,13 +1353,13 @@ class poloniex extends \ccxt\async\poloniex {
             'cancelAllOrders' => array($this, 'handle_order_request'),
             'auth' => array($this, 'handle_authenticate'),
         );
-        $method = $this->safe_value($methods, $type);
+        $method = ($type === null) ? null : $this->safe_value($methods, $type);
         if ($type === 'auth') {
             $this->handle_authenticate($client, $message);
         } elseif ($type === null) {
             $this->handle_order_request($client, $message);
         } else {
-            $data = $this->safe_value($message, 'data', array());
+            $data = $this->safe_list($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength > 0) {
                 $method($client, $message);
@@ -1286,34 +1367,34 @@ class poloniex extends \ccxt\async\poloniex {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
-        //        $message => 'Invalid channel value ["ordersss"]',
-        //        $event => 'error'
+        //        message: 'Invalid channel value ["ordersss"]',
+        //        event: 'error'
         //    }
         //
         //    {
-        //        "orderId" => 0,
-        //        "clientOrderId" => null,
-        //        "message" => "Currency trade disabled",
-        //        "code" => 21352
+        //        "orderId": 0,
+        //        "clientOrderId": null,
+        //        "message": "Currency trade disabled",
+        //        "code": 21352
         //    }
         //
         //    {
-        //       "event" => "error",
-        //       "message" => "Platform in maintenance mode"
+        //       "event": "error",
+        //       "message": "Platform in maintenance mode"
         //    }
         //    {
         //       "id":"1722386782048",
-        //       "data":array(
+        //       "data":[
         //          {
         //             "orderId":0,
         //             "clientOrderId":null,
         //             "message":"available insufficient",
         //             "code":21721
         //          }
-        //       )
+        //       ]
         //    }
         //
         $id = $this->safe_string($message, 'id');
@@ -1332,12 +1413,12 @@ class poloniex extends \ccxt\async\poloniex {
             } catch (Exception $e) {
                 if ($e instanceof AuthenticationError) {
                     $messageHash = 'authenticated';
-                    $client->reject ($e, $messageHash);
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    $client->reject($e, $messageHash);
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$messageHash]);
                     }
                 } else {
-                    $client->reject ($e, $id);
+                    $client->reject($e, $id);
                 }
                 return true;
             }
@@ -1345,31 +1426,31 @@ class poloniex extends \ccxt\async\poloniex {
         return false;
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, array $message): array {
         //
         //    {
-        //        "success" => true,
-        //        "ret_msg" => '',
-        //        "op" => "auth",
-        //        "conn_id" => "ce3dpomvha7dha97tvp0-2xh"
+        //        "success": true,
+        //        "ret_msg": '',
+        //        "op": "auth",
+        //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        $data = $this->safe_value($message, 'data');
-        $success = $this->safe_value($data, 'success');
+        $data = $this->safe_dict($message, 'data');
+        $success = $this->safe_bool($data, 'success');
         $messageHash = 'authenticated';
-        if ($success) {
-            $client->resolve ($message, $messageHash);
+        if ($success === true) {
+            $client->resolve($message, $messageHash);
         } else {
-            $error = new AuthenticationError ($this->id . ' ' . $this->json($message));
-            $client->reject ($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            $error = new AuthenticationError($this->id . ' ' . $this->json($message));
+            $client->reject($error, $messageHash);
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
         return $message;
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         return array(
             'event' => 'ping',
         );

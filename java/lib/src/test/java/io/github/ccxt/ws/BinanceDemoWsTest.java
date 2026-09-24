@@ -1,6 +1,7 @@
 package io.github.ccxt.ws;
 
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Helpers;
 
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class BinanceDemoWsTest {
 
-    static Exchange exchange;
+    static BaseExchange exchange;
     static final String SYMBOL = "BTC/USDT";
     static final int TIMEOUT_SEC = 20;
     static int passed = 0;

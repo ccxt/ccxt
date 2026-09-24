@@ -1,7 +1,7 @@
 # CCXT – CryptoCurrency eXchange Trading Library (Full Reference)
 
 > Unified cryptocurrency trading API for 100+ exchanges.
-> JavaScript/TypeScript, Python, PHP, C#, Go. REST and WebSocket.
+> JavaScript/TypeScript, Python, PHP, C#, Go, Java. REST and WebSocket.
 
 CCXT provides a single, consistent API to interact with cryptocurrency exchanges for market data, trading, and account management. The same code structure works across all supported languages and exchanges.
 
@@ -181,12 +181,16 @@ $exchange->load_markets()->then(function() use ($exchange) {
 ```php
 require_once 'vendor/autoload.php';
 
+use React\Async;
+
 $exchange = new \ccxt\pro\binance();
-while (true) {
-    $ticker = $exchange->watch_ticker('BTC/USDT');
-    echo $ticker['last'] . "\n";
-}
-$exchange->close();
+
+Async\async(function () use ($exchange) {
+    while (true) {
+        $ticker = Async\await($exchange->watch_ticker('BTC/USDT'));
+        echo $ticker['last'] . "\n";
+    }
+})();
 ```
 
 ### C# (REST)

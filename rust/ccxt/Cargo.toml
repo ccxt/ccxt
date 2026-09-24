@@ -1,0 +1,145 @@
+[package]
+name = "ccxt"
+version = "4.5.83"
+edition = "2021"
+description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed unified-method API (re-exports the ccxt-base engine)"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+homepage = "https://ccxt.com"
+documentation = "https://docs.rs/ccxt"
+readme = "README.md"
+keywords = ["cryptocurrency", "exchange", "trading", "bitcoin", "ccxt"]
+categories = ["api-bindings", "asynchronous", "finance"]
+
+[lib]
+name = "ccxt"
+path = "src/lib.rs"
+
+[features]
+# `all` (the default) keeps today's behaviour: every REST venue compiles.
+# Pick venues instead to cut build time and memory by two orders of magnitude:
+#   ccxt = { version = "…", default-features = false, features = ["binance", "kraken"] }
+default = ["all"]
+# BEGIN GENERATED FEATURES (emitted by build/generateRustWrappers.ts)
+alpaca = ["ccxt-base/alpaca"]
+apex = ["ccxt-base/apex"]
+aster = ["ccxt-base/aster"]
+backpack = ["ccxt-base/backpack"]
+bequant = ["ccxt-base/bequant"]
+bigone = ["ccxt-base/bigone"]
+binance = ["ccxt-base/binance"]
+binancecoinm = ["ccxt-base/binancecoinm"]
+binanceus = ["ccxt-base/binanceus"]
+binanceusdm = ["ccxt-base/binanceusdm"]
+bingx = ["ccxt-base/bingx"]
+bit2c = ["ccxt-base/bit2c"]
+bitbank = ["ccxt-base/bitbank"]
+bitbns = ["ccxt-base/bitbns"]
+bitfinex = ["ccxt-base/bitfinex"]
+bitflyer = ["ccxt-base/bitflyer"]
+bitget = ["ccxt-base/bitget"]
+bithumb = ["ccxt-base/bithumb"]
+bitopro = ["ccxt-base/bitopro"]
+bitrue = ["ccxt-base/bitrue"]
+bitso = ["ccxt-base/bitso"]
+bitstamp = ["ccxt-base/bitstamp"]
+bitteam = ["ccxt-base/bitteam"]
+bittrade = ["ccxt-base/bittrade"]
+bitvavo = ["ccxt-base/bitvavo"]
+blockchaincom = ["ccxt-base/blockchaincom"]
+blofin = ["ccxt-base/blofin"]
+btcbox = ["ccxt-base/btcbox"]
+btcmarkets = ["ccxt-base/btcmarkets"]
+btcturk = ["ccxt-base/btcturk"]
+btse = ["ccxt-base/btse"]
+bullish = ["ccxt-base/bullish"]
+bybit = ["ccxt-base/bybit"]
+bybiteu = ["ccxt-base/bybiteu"]
+bybitid = ["ccxt-base/bybitid"]
+bydfi = ["ccxt-base/bydfi"]
+cex = ["ccxt-base/cex"]
+coinbase = ["ccxt-base/coinbase"]
+coinbaseexchange = ["ccxt-base/coinbaseexchange"]
+coinbaseinternational = ["ccxt-base/coinbaseinternational"]
+coincheck = ["ccxt-base/coincheck"]
+coinex = ["ccxt-base/coinex"]
+coinmate = ["ccxt-base/coinmate"]
+coinone = ["ccxt-base/coinone"]
+coinsph = ["ccxt-base/coinsph"]
+coinspot = ["ccxt-base/coinspot"]
+cryptocom = ["ccxt-base/cryptocom"]
+cryptomus = ["ccxt-base/cryptomus"]
+deepcoin = ["ccxt-base/deepcoin"]
+delta = ["ccxt-base/delta"]
+deribit = ["ccxt-base/deribit"]
+derive = ["ccxt-base/derive"]
+digifinex = ["ccxt-base/digifinex"]
+dydx = ["ccxt-base/dydx"]
+extended = ["ccxt-base/extended"]
+fmfwio = ["ccxt-base/fmfwio"]
+foxbit = ["ccxt-base/foxbit"]
+gate = ["ccxt-base/gate"]
+gateeu = ["ccxt-base/gateeu"]
+gemini = ["ccxt-base/gemini"]
+grvt = ["ccxt-base/grvt"]
+hashkey = ["ccxt-base/hashkey"]
+hibachi = ["ccxt-base/hibachi"]
+hitbtc = ["ccxt-base/hitbtc"]
+hollaex = ["ccxt-base/hollaex"]
+htx = ["ccxt-base/htx"]
+hyperliquid = ["ccxt-base/hyperliquid"]
+independentreserve = ["ccxt-base/independentreserve"]
+indodax = ["ccxt-base/indodax"]
+kraken = ["ccxt-base/kraken"]
+krakenfutures = ["ccxt-base/krakenfutures"]
+kucoin = ["ccxt-base/kucoin"]
+kucoinfutures = ["ccxt-base/kucoinfutures"]
+latoken = ["ccxt-base/latoken"]
+lbank = ["ccxt-base/lbank"]
+lighter = ["ccxt-base/lighter"]
+luno = ["ccxt-base/luno"]
+mercado = ["ccxt-base/mercado"]
+mexc = ["ccxt-base/mexc"]
+modetrade = ["ccxt-base/modetrade"]
+mudrex = ["ccxt-base/mudrex"]
+myokx = ["ccxt-base/myokx"]
+nado = ["ccxt-base/nado"]
+ndax = ["ccxt-base/ndax"]
+okx = ["ccxt-base/okx"]
+okxus = ["ccxt-base/okxus"]
+onetrading = ["ccxt-base/onetrading"]
+p2b = ["ccxt-base/p2b"]
+pacifica = ["ccxt-base/pacifica"]
+paradex = ["ccxt-base/paradex"]
+paymium = ["ccxt-base/paymium"]
+phemex = ["ccxt-base/phemex"]
+poloniex = ["ccxt-base/poloniex"]
+revolutx = ["ccxt-base/revolutx"]
+tokocrypto = ["ccxt-base/tokocrypto"]
+toobit = ["ccxt-base/toobit"]
+upbit = ["ccxt-base/upbit"]
+weex = ["ccxt-base/weex"]
+whitebit = ["ccxt-base/whitebit"]
+woo = ["ccxt-base/woo"]
+woofipro = ["ccxt-base/woofipro"]
+xt = ["ccxt-base/xt"]
+zaif = ["ccxt-base/zaif"]
+zebpay = ["ccxt-base/zebpay"]
+all = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bit2c", "bitbank", "bitbns", "bitfinex", "bitflyer", "bitget", "bithumb", "bitopro", "bitrue", "bitso", "bitstamp", "bitteam", "bittrade", "bitvavo", "blockchaincom", "blofin", "btcbox", "btcmarkets", "btcturk", "btse", "bullish", "bybit", "bybiteu", "bybitid", "bydfi", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinex", "coinmate", "coinone", "coinsph", "coinspot", "cryptocom", "cryptomus", "deepcoin", "delta", "deribit", "derive", "digifinex", "dydx", "extended", "fmfwio", "foxbit", "gate", "gateeu", "gemini", "grvt", "hashkey", "hibachi", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "indodax", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "latoken", "lbank", "lighter", "luno", "mercado", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "paymium", "phemex", "poloniex", "revolutx", "tokocrypto", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt", "zaif", "zebpay"]
+# END GENERATED FEATURES
+
+[dependencies]
+# The untyped engine. The per-exchange typed wrappers wrap its REST/prediction
+# Cores and base method surface. Kept a separate crate so no single rustc
+# invocation compiles the whole generated surface at once (CI memory ceiling).
+# This `ccxt` crate re-exports ccxt-base at its root, so `ccxt::Value`,
+# `ccxt::exchanges::…`, `ccxt::runtime::…` resolve alongside the typed wrappers.
+ccxt-base = { path = "../ccxt-base", version = "4.5.83", features = ["engine"] }
+
+# The generated typed wrappers (`src/exchanges/*_typed.rs`, `typed.rs`, emitted
+# by build/generateRustWrappers.ts) reference exactly one external crate
+# directly: `#[async_trait::async_trait]` on the `TypedExchange` trait. Every
+# other external type (tokio, serde_json, Decimal, IndexMap, chrono, …) is
+# reached through the `ccxt_base::*` re-exports above, so it is not
+# re-declared here.
+async-trait = "0.1"

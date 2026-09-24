@@ -7,234 +7,322 @@
 
 package ccxt
 
-func (this *LbankCore) SpotPublicGetCurrencyPairs(args ...any) <-chan any {
+// SpotPublicGetCurrencyPairs returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetCurrencyPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetCurrencyPairs", args...)
 }
 
-func (this *LbankCore) SpotPublicGetAccuracy(args ...any) <-chan any {
+// SpotPublicGetAccuracy returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetAccuracy(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetAccuracy", args...)
 }
 
-func (this *LbankCore) SpotPublicGetUsdToCny(args ...any) <-chan any {
+// SpotPublicGetUsdToCny returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetUsdToCny(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetUsdToCny", args...)
 }
 
-func (this *LbankCore) SpotPublicGetAssetConfigs(args ...any) <-chan any {
+// SpotPublicGetAssetConfigs returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetAssetConfigs(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetAssetConfigs", args...)
 }
 
-func (this *LbankCore) SpotPublicGetWithdrawConfigs(args ...any) <-chan any {
+// SpotPublicGetWithdrawConfigs returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetWithdrawConfigs(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetWithdrawConfigs", args...)
 }
 
-func (this *LbankCore) SpotPublicGetTimestamp(args ...any) <-chan any {
+// SpotPublicGetTimestamp returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetTimestamp(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetTimestamp", args...)
 }
 
-func (this *LbankCore) SpotPublicGetTicker24hr(args ...any) <-chan any {
+// SpotPublicGetTicker24hr returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetTicker24hr", args...)
 }
 
-func (this *LbankCore) SpotPublicGetTicker(args ...any) <-chan any {
+// SpotPublicGetTicker returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetTicker", args...)
 }
 
-func (this *LbankCore) SpotPublicGetDepth(args ...any) <-chan any {
+// SpotPublicGetDepth returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetDepth", args...)
 }
 
-func (this *LbankCore) SpotPublicGetIncrDepth(args ...any) <-chan any {
+// SpotPublicGetIncrDepth returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetIncrDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetIncrDepth", args...)
 }
 
-func (this *LbankCore) SpotPublicGetTrades(args ...any) <-chan any {
+// SpotPublicGetTrades returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetTrades", args...)
 }
 
-func (this *LbankCore) SpotPublicGetKline(args ...any) <-chan any {
+// SpotPublicGetKline returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetKline(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetKline", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementSystemPing(args ...any) <-chan any {
+// SpotPublicGetSupplementSystemPing returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetSupplementSystemPing(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetSupplementSystemPing", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementIncrDepth(args ...any) <-chan any {
+// SpotPublicGetSupplementIncrDepth returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetSupplementIncrDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetSupplementIncrDepth", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementTrades(args ...any) <-chan any {
+// SpotPublicGetSupplementTrades returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetSupplementTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetSupplementTrades", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementTickerPrice(args ...any) <-chan any {
+// SpotPublicGetSupplementTickerPrice returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetSupplementTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetSupplementTickerPrice", args...)
 }
 
-func (this *LbankCore) SpotPublicGetSupplementTickerBookTicker(args ...any) <-chan any {
+// SpotPublicGetSupplementTickerBookTicker returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicGetSupplementTickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetSupplementTickerBookTicker", args...)
 }
 
-func (this *LbankCore) SpotPublicPostSupplementSystemStatus(args ...any) <-chan any {
+// SpotPublicPostSupplementSystemStatus returns a channel that yields a JSON object.
+func (this *Lbank) SpotPublicPostSupplementSystemStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicPostSupplementSystemStatus", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostUserInfo(args ...any) <-chan any {
+// SpotPrivatePostUserInfo returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostUserInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostUserInfo", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSubscribeGetKey(args ...any) <-chan any {
+// SpotPrivatePostSubscribeGetKey returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSubscribeGetKey(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSubscribeGetKey", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSubscribeRefreshKey(args ...any) <-chan any {
+// SpotPrivatePostSubscribeRefreshKey returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSubscribeRefreshKey(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSubscribeRefreshKey", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSubscribeDestroyKey(args ...any) <-chan any {
+// SpotPrivatePostSubscribeDestroyKey returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSubscribeDestroyKey(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSubscribeDestroyKey", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostGetDepositAddress(args ...any) <-chan any {
+// SpotPrivatePostGetDepositAddress returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostGetDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostGetDepositAddress", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostDepositHistory(args ...any) <-chan any {
+// SpotPrivatePostDepositHistory returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostDepositHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostCreateOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostCreateOrder", args...)
+// SpotPrivatePostCreateOrder returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostCreateOrder(args ...any) <-chan any {
+	return this.Fetch2Async("create_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *LbankCore) SpotPrivatePostBatchCreateOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostBatchCreateOrder", args...)
+// SpotPrivatePostBatchCreateOrder returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostBatchCreateOrder(args ...any) <-chan any {
+	return this.Fetch2Async("batch_create_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *LbankCore) SpotPrivatePostCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostCancelOrder", args...)
+// SpotPrivatePostCancelOrder returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostCancelOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cancel_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *LbankCore) SpotPrivatePostCancelClientOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostCancelClientOrders", args...)
+// SpotPrivatePostCancelClientOrders returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostCancelClientOrders(args ...any) <-chan any {
+	return this.Fetch2Async("cancel_clientOrders", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *LbankCore) SpotPrivatePostOrdersInfo(args ...any) <-chan any {
+// SpotPrivatePostOrdersInfo returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostOrdersInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostOrdersInfo", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostOrdersInfoHistory(args ...any) <-chan any {
+// SpotPrivatePostOrdersInfoHistory returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostOrdersInfoHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostOrdersInfoHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostOrderTransactionDetail(args ...any) <-chan any {
+// SpotPrivatePostOrderTransactionDetail returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostOrderTransactionDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostOrderTransactionDetail", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostTransactionHistory(args ...any) <-chan any {
+// SpotPrivatePostTransactionHistory returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostTransactionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostTransactionHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostOrdersInfoNoDeal(args ...any) <-chan any {
+// SpotPrivatePostOrdersInfoNoDeal returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostOrdersInfoNoDeal(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostOrdersInfoNoDeal", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostWithdraw(args ...any) <-chan any {
+// SpotPrivatePostWithdraw returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostWithdraw", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostWithdrawCancel(args ...any) <-chan any {
+// SpotPrivatePostWithdrawCancel returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostWithdrawCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostWithdrawCancel", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostWithdraws(args ...any) <-chan any {
+// SpotPrivatePostWithdraws returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostWithdraws(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostWithdraws", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementUserInfo(args ...any) <-chan any {
+// SpotPrivatePostSupplementUserInfo returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementUserInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementUserInfo", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementWithdraw(args ...any) <-chan any {
+// SpotPrivatePostSupplementWithdraw returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementWithdraw", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementDepositHistory(args ...any) <-chan any {
+// SpotPrivatePostSupplementDepositHistory returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementDepositHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementWithdraws(args ...any) <-chan any {
+// SpotPrivatePostSupplementWithdraws returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementWithdraws(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementWithdraws", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementGetDepositAddress(args ...any) <-chan any {
+// SpotPrivatePostSupplementGetDepositAddress returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementGetDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementGetDepositAddress", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementAssetDetail(args ...any) <-chan any {
+// SpotPrivatePostSupplementAddDepositAddress returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementAddDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivatePostSupplementAddDepositAddress", args...)
+}
+
+// SpotPrivatePostSupplementAssetDetail returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementAssetDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementAssetDetail", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCustomerTradeFee(args ...any) <-chan any {
+// SpotPrivatePostSupplementCustomerTradeFee returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementCustomerTradeFee(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementCustomerTradeFee", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementApiRestrictions(args ...any) <-chan any {
+// SpotPrivatePostSupplementApiRestrictions returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementApiRestrictions(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementApiRestrictions", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementSystemPing(args ...any) <-chan any {
+// SpotPrivatePostSupplementSystemPing returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementSystemPing(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementSystemPing", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCreateOrderTest(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostSupplementCreateOrderTest", args...)
+// SpotPrivatePostSupplementCreateOrderTest returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementCreateOrderTest(args ...any) <-chan any {
+	return this.Fetch2Async("supplement/create_order_test", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCreateOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostSupplementCreateOrder", args...)
+// SpotPrivatePostSupplementCreateOrder returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementCreateOrder(args ...any) <-chan any {
+	return this.Fetch2Async("supplement/create_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostSupplementCancelOrder", args...)
+// SpotPrivatePostSupplementCancelOrder returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementCancelOrder(args ...any) <-chan any {
+	return this.Fetch2Async("supplement/cancel_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementCancelOrderBySymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("spotPrivatePostSupplementCancelOrderBySymbol", args...)
+// SpotPrivatePostSupplementCancelOrderBySymbol returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementCancelOrderBySymbol(args ...any) <-chan any {
+	return this.Fetch2Async("supplement/cancel_order_by_symbol", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementOrdersInfo(args ...any) <-chan any {
+// SpotPrivatePostSupplementOrdersInfo returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementOrdersInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfo", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementOrdersInfoNoDeal(args ...any) <-chan any {
+// SpotPrivatePostSupplementOrdersInfoNoDeal returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementOrdersInfoNoDeal(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfoNoDeal", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementOrdersInfoHistory(args ...any) <-chan any {
+// SpotPrivatePostSupplementOrdersInfoHistory returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementOrdersInfoHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfoHistory", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementUserInfoAccount(args ...any) <-chan any {
+// SpotPrivatePostSupplementUserInfoAccount returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementUserInfoAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementUserInfoAccount", args...)
 }
 
-func (this *LbankCore) SpotPrivatePostSupplementTransactionHistory(args ...any) <-chan any {
+// SpotPrivatePostSupplementTransactionHistory returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSupplementTransactionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostSupplementTransactionHistory", args...)
 }
 
-func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubGetTime(args ...any) <-chan any {
+// SpotPrivatePostSpotWalletWithdraw returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSpotWalletWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivatePostSpotWalletWithdraw", args...)
+}
+
+// SpotPrivatePostSpotWalletDepositHistory returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSpotWalletDepositHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivatePostSpotWalletDepositHistory", args...)
+}
+
+// SpotPrivatePostSpotWalletWithdraws returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSpotWalletWithdraws(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivatePostSpotWalletWithdraws", args...)
+}
+
+// SpotPrivatePostSpotTradeOrdersInfo returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSpotTradeOrdersInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivatePostSpotTradeOrdersInfo", args...)
+}
+
+// SpotPrivatePostSpotTradeOrdersInfoHistory returns a channel that yields a JSON object.
+func (this *Lbank) SpotPrivatePostSpotTradeOrdersInfoHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivatePostSpotTradeOrdersInfoHistory", args...)
+}
+
+// ContractPublicGetCfdOpenApiV1PubGetTime returns a channel that yields a JSON object.
+func (this *Lbank) ContractPublicGetCfdOpenApiV1PubGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubGetTime", args...)
 }
 
-func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubInstrument(args ...any) <-chan any {
+// ContractPublicGetCfdOpenApiV1PubInstrument returns a channel that yields a JSON object.
+func (this *Lbank) ContractPublicGetCfdOpenApiV1PubInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubInstrument", args...)
 }
 
-func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubMarketData(args ...any) <-chan any {
+// ContractPublicGetCfdOpenApiV1PubMarketData returns a channel that yields a JSON object.
+func (this *Lbank) ContractPublicGetCfdOpenApiV1PubMarketData(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubMarketData", args...)
 }
 
-func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubMarketOrder(args ...any) <-chan any {
+// ContractPublicGetCfdOpenApiV1PubMarketOrder returns a channel that yields a JSON object.
+func (this *Lbank) ContractPublicGetCfdOpenApiV1PubMarketOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubMarketOrder", args...)
 }

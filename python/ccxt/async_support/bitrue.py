@@ -8,8 +8,7 @@ from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -34,7 +33,7 @@ from ccxt.base.precise import Precise
 
 class bitrue(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitrue, self).describe(), {
             'id': 'bitrue',
             'name': 'Bitrue',
@@ -191,51 +190,51 @@ class bitrue(Exchange, ImplicitAPI):
                     'kline': {
                         'public': {
                             'get': {
-                                'public.json': 0.24,
-                                'public{currency}.json': 0.24,
+                                'public.json': {'cost': 0.24},
+                                'public{currency}.json': {'cost': 0.24},
                             },
                         },
                     },
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'exchangeInfo': 0.24,
+                                'ping': {'cost': 0.24},
+                                'time': {'cost': 0.24},
+                                'exchangeInfo': {'cost': 0.24},
                                 'depth': {'cost': 1, 'byLimit': [[100, 0.24], [500, 1.2], [1000, 2.4]]},
-                                'trades': 0.24,
-                                'historicalTrades': 1.2,
-                                'aggTrades': 0.24,
+                                'trades': {'cost': 0.24},
+                                'historicalTrades': {'cost': 1.2},
+                                'aggTrades': {'cost': 0.24},
                                 'ticker/24hr': {'cost': 0.24, 'noSymbol': 9.6},
-                                'ticker/price': 0.24,
-                                'ticker/bookTicker': 0.24,
-                                'market/kline': 0.24,
+                                'ticker/price': {'cost': 0.24},
+                                'ticker/bookTicker': {'cost': 0.24},
+                                'market/kline': {'cost': 0.24},
                             },
                         },
                         'private': {
                             'get': {
-                                'order': 5,
-                                'openOrders': 5,
-                                'allOrders': 25,
-                                'account': 25,
-                                'myTrades': 25,
-                                'etf/net-value/{symbol}': 0.24,
-                                'withdraw/history': 120,
-                                'deposit/history': 120,
+                                'order': {'cost': 5},
+                                'openOrders': {'cost': 5},
+                                'allOrders': {'cost': 25},
+                                'account': {'cost': 25},
+                                'myTrades': {'cost': 25},
+                                'etf/net-value/{symbol}': {'cost': 0.24},
+                                'withdraw/history': {'cost': 120},
+                                'deposit/history': {'cost': 120},
                             },
                             'post': {
-                                'order': 5,
-                                'withdraw/commit': 120,
+                                'order': {'cost': 5},
+                                'withdraw/commit': {'cost': 120},
                             },
                             'delete': {
-                                'order': 5,
+                                'order': {'cost': 5},
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 1.2,
+                                'myTrades': {'cost': 1.2},
                             },
                         },
                     },
@@ -244,34 +243,34 @@ class bitrue(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'contracts': 0.24,
-                                'depth': 0.24,
-                                'ticker': 0.24,
-                                'klines': 0.24,
+                                'ping': {'cost': 0.24},
+                                'time': {'cost': 0.24},
+                                'contracts': {'cost': 0.24},
+                                'depth': {'cost': 0.24},
+                                'ticker': {'cost': 0.24},
+                                'klines': {'cost': 0.24},
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
-                                'openOrders': 5,
-                                'order': 5,
-                                'account': 5,
-                                'leverageBracket': 5,
-                                'commissionRate': 5,
-                                'futures_transfer_history': 5,
-                                'forceOrdersHistory': 5,
+                                'myTrades': {'cost': 5},
+                                'openOrders': {'cost': 5},
+                                'order': {'cost': 5},
+                                'account': {'cost': 5},
+                                'leverageBracket': {'cost': 5},
+                                'commissionRate': {'cost': 5},
+                                'futures_transfer_history': {'cost': 5},
+                                'forceOrdersHistory': {'cost': 5},
                             },
                             'post': {
-                                'positionMargin': 5,
-                                'level_edit': 5,
-                                'cancel': 5,
-                                'order': 25,
-                                'allOpenOrders': 5,
-                                'futures_transfer': 5,
+                                'positionMargin': {'cost': 5},
+                                'level_edit': {'cost': 5},
+                                'cancel': {'cost': 5},
+                                'order': {'cost': 25},
+                                'allOpenOrders': {'cost': 5},
+                                'futures_transfer': {'cost': 5},
                             },
                         },
                     },
@@ -280,34 +279,34 @@ class bitrue(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 0.24,
-                                'time': 0.24,
-                                'contracts': 0.24,
-                                'depth': 0.24,
-                                'ticker': 0.24,
-                                'klines': 0.24,
+                                'ping': {'cost': 0.24},
+                                'time': {'cost': 0.24},
+                                'contracts': {'cost': 0.24},
+                                'depth': {'cost': 0.24},
+                                'ticker': {'cost': 0.24},
+                                'klines': {'cost': 0.24},
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
-                                'openOrders': 5,
-                                'order': 5,
-                                'account': 5,
-                                'leverageBracket': 5,
-                                'commissionRate': 5,
-                                'futures_transfer_history': 5,
-                                'forceOrdersHistory': 5,
+                                'myTrades': {'cost': 5},
+                                'openOrders': {'cost': 5},
+                                'order': {'cost': 5},
+                                'account': {'cost': 5},
+                                'leverageBracket': {'cost': 5},
+                                'commissionRate': {'cost': 5},
+                                'futures_transfer_history': {'cost': 5},
+                                'forceOrdersHistory': {'cost': 5},
                             },
                             'post': {
-                                'positionMargin': 5,
-                                'level_edit': 5,
-                                'cancel': 5,
-                                'order': 5,
-                                'allOpenOrders': 5,
-                                'futures_transfer': 5,
+                                'positionMargin': {'cost': 5},
+                                'level_edit': {'cost': 5},
+                                'cancel': {'cost': 5},
+                                'order': {'cost': 5},
+                                'allOpenOrders': {'cost': 5},
+                                'futures_transfer': {'cost': 5},
                             },
                         },
                     },
@@ -394,21 +393,23 @@ class bitrue(Exchange, ImplicitAPI):
             },
             # exchange-specific options
             'options': {
-                'createMarketBuyOrderRequiresPrice': True,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': True,
+                },
                 'fetchMarkets': {
                     'types': ['spot', 'linear', 'inverse'],
                 },
-                # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
+                # 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'recvWindow': 5 * 1000,  # 5 sec, binance default
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'recvWindow': 5 * 1000,  # 5 sec, the exchange default
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
                 'newOrderRespType': {
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-                    'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL'(returns immediately if limit is not hit)
+                    'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -466,7 +467,6 @@ class bitrue(Exchange, ImplicitAPI):
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -607,7 +607,7 @@ class bitrue(Exchange, ImplicitAPI):
                 'exact': {
                     'System is under maintenance.': OnMaintenance,  # {"code":1,"msg":"System is under maintenance."}
                     'System abnormality': ExchangeError,  # {"code":-1000,"msg":"System abnormality"}
-                    'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
+                    'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute this request."}
                     'API key does not exist': AuthenticationError,
                     'Order would trigger immediately.': OrderImmediatelyFillable,
                     'Stop price would trigger immediately.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Stop price would trigger immediately."}
@@ -620,22 +620,22 @@ class bitrue(Exchange, ImplicitAPI):
                     'quantity less then minQty': InvalidOrder,  # {"code":-1111,"msg":"quantity less then minQty.","data":null}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
-                    '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
+                    '-1002': AuthenticationError,  # 'You are not authorized to execute this request.'
                     '-1003': RateLimitExceeded,  # {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
                     '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                     '-1015': RateLimitExceeded,  # 'Too many new orders; current limit is %s orders per %s.'
                     '-1016': ExchangeNotAvailable,  # 'This service is no longer available.',
                     '-1020': BadRequest,  # 'This operation is not supported.'
                     '-1021': InvalidNonce,  # 'your time is ahead of server'
-                    '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
+                    '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for this request is not valid."}
                     '-1100': BadRequest,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101': BadRequest,  # Too many parameters; expected %s and received %s.
-                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty  # {"code":-1102,"msg":"timestamp IllegalArgumentException.","data":null}
+                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty // {"code":-1102,"msg":"timestamp IllegalArgumentException.","data":null}
                     '-1103': BadRequest,  # An unknown parameter was sent.
                     '-1104': BadRequest,  # Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105': BadRequest,  # Parameter %s was empty.
                     '-1106': BadRequest,  # Parameter %s sent when not required.
-                    '-1111': BadRequest,  # Precision is over the maximum defined for self asset.
+                    '-1111': BadRequest,  # Precision is over the maximum defined for this asset.
                     '-1112': InvalidOrder,  # No orders on book for symbol.
                     '-1114': BadRequest,  # TimeInForce parameter sent when not required.
                     '-1115': BadRequest,  # Invalid timeInForce.
@@ -656,8 +656,8 @@ class bitrue(Exchange, ImplicitAPI):
                     '-2008': AuthenticationError,  # {"code":-2008,"msg":"Invalid Api-Key ID."}
                     '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                     '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                    '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
-                    '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
+                    '-2013': OrderNotFound,  # fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
+                    '-2014': AuthenticationError,  # { "code":-2014, "msg": "API-key format invalid." }
                     '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
                     '-2017': InsufficientFunds,  # {code":"-2017","msg":"Insufficient balance","data":null}
                     '-2019': InsufficientFunds,  # {"code":-2019,"msg":"Margin is insufficient."}
@@ -682,10 +682,10 @@ class bitrue(Exchange, ImplicitAPI):
             },
         })
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -702,7 +702,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         keys = list(response.keys())
         keysLength = len(keys)
-        formattedStatus = 'maintenance' if keysLength else 'ok'
+        formattedStatus = 'maintenance' if (keysLength > 0) else 'ok'
         return {
             'status': formattedStatus,
             'updated': None,
@@ -711,7 +711,7 @@ class bitrue(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -728,7 +728,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -766,12 +766,12 @@ class bitrue(Exchange, ImplicitAPI):
         #           {
         #               "coin": "near",
         #               "coinFulName": "NEAR Protocol",
-        #               "chains": ["BEP20",],
+        #               "chains": [ "BEP20", ],
         #               "chainDetail": [
         #                 {
         #                     "chain": "BEP20",
-        #                     "enableWithdraw": True,
-        #                     "enableDeposit": False,
+        #                     "enableWithdraw": true,
+        #                     "enableDeposit": false,
         #                     "withdrawFee": "0.2000",
         #                     "minWithdraw": "5.0000",
         #                     "maxWithdraw": "1000000000000000.0000",
@@ -784,32 +784,33 @@ class bitrue(Exchange, ImplicitAPI):
         coins = self.safe_list(response, 'coins', [])
         return self.parse_currencies(coins)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coin')
         name = self.safe_string(rawCurrency, 'coinFulName')
         code = self.safe_currency_code(id)
         networkDetails = self.safe_list(rawCurrency, 'chainDetail', [])
-        networks: dict = {}
+        networks = {}
         for j in range(0, len(networkDetails)):
             entry = networkDetails[j]
             networkId = self.safe_string(entry, 'chain')
             network = self.network_id_to_code(networkId, code)
-            networks[network] = {
-                'info': entry,
-                'id': networkId,
-                'network': network,
-                'deposit': self.safe_bool(entry, 'enableDeposit'),
-                'withdraw': self.safe_bool(entry, 'enableWithdraw'),
-                'active': None,
-                'fee': self.safe_number(entry, 'withdrawFee'),
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(entry, 'minWithdraw'),
-                        'max': self.safe_number(entry, 'maxWithdraw'),
+            if network is not None:
+                networks[network] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': network,
+                    'deposit': self.safe_bool(entry, 'enableDeposit'),
+                    'withdraw': self.safe_bool(entry, 'enableWithdraw'),
+                    'active': None,
+                    'fee': self.safe_number(entry, 'withdrawFee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(entry, 'minWithdraw'),
+                            'max': self.safe_number(entry, 'maxWithdraw'),
+                        },
                     },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': id,
             'name': name,
@@ -831,7 +832,7 @@ class bitrue(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bitrue
 
@@ -839,7 +840,7 @@ class bitrue(Exchange, ImplicitAPI):
         https://www.bitrue.com/api-docs#current-open-contract
         https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
 
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         promisesRaw = []
@@ -862,7 +863,7 @@ class bitrue(Exchange, ImplicitAPI):
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = await asyncio.gather(*promisesRaw)
-        spotMarkets = self.safe_value(self.safe_value(promises, 0), 'symbols', [])
+        spotMarkets = self.safe_list(self.safe_dict(promises, 0), 'symbols', [])
         futureMarkets = self.safe_value(promises, 1)
         deliveryMarkets = self.safe_value(promises, 2)
         markets = spotMarkets
@@ -922,7 +923,7 @@ class bitrue(Exchange, ImplicitAPI):
         #           "multiplier": 6,
         #           "minOrderVolume": 1,
         #           "maxMarketMoney": 10000000,
-        #           "type": "H",  # E: perpetual contract, S: test contract, others are mixed contract
+        #           "type": "H", // E: perpetual contract, S: test contract, others are mixed contract
         #           "maxLimitVolume": 1000000,
         #           "maxValidOrder": 20,
         #           "multiplierCoin": "HT",
@@ -932,15 +933,15 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
-        id = self.safe_string(market, 'symbol')
+        id = self.safe_string(market, 'symbol', '')
         lowercaseId = self.safe_string_lower(market, 'symbol')
-        side = self.safe_integer(market, 'side')  # 1 linear, 0 inverse, None spot
-        type = None
+        side = self.safe_integer(market, 'side')  # 1 linear, 0 inverse, undefined spot
+        type = 'spot'
         isLinear = None
         isInverse = None
         if side is None:
@@ -958,7 +959,7 @@ class bitrue(Exchange, ImplicitAPI):
             symbolSplit = id.split('-')
             baseId = self.safe_string(symbolSplit, 1)
             quoteId = self.safe_string(symbolSplit, 2)
-            if isLinear:
+            if isLinear is True:
                 settleId = quoteId
             else:
                 settleId = baseId
@@ -985,7 +986,7 @@ class bitrue(Exchange, ImplicitAPI):
         if minCost is None:
             minCost = self.safe_number(market, 'minOrderMoney')
         isSpot = (type == 'spot')
-        return {
+        return self.safe_market_structure({
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -1034,9 +1035,9 @@ class bitrue(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         # spot
         #
@@ -1083,11 +1084,11 @@ class bitrue(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {
+        result = {
             'info': response,
         }
         timestamp = self.safe_integer(response, 'updateTime')
-        balances = self.safe_value_2(response, 'balances', 'account', [])
+        balances = self.safe_list_2(response, 'balances', 'account', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string_2(balance, 'asset', 'marginCoin')
@@ -1095,12 +1096,13 @@ class bitrue(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string_2(balance, 'free', 'accountNormal')
             account['used'] = self.safe_string_2(balance, 'locked', 'accountLock')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1113,7 +1115,8 @@ class bitrue(Exchange, ImplicitAPI):
         :param str [params.subType]: 'linear', 'inverse'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         subType = None
@@ -1209,7 +1212,7 @@ class bitrue(Exchange, ImplicitAPI):
             #
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1220,25 +1223,26 @@ class bitrue(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        response = None
-        if market['swap']:
-            request: dict = {
+        response = {}
+        if market['swap'] is True:
+            request = {
                 'contractName': market['id'],
             }
             if limit is not None:
                 if limit > 100:
                     limit = 100
                 request['limit'] = limit  # default 100, max 100, see https://www.bitrue.com/api-docs#order-book
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV1PublicGetDepth(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV1PublicGetDepth(self.extend(request, params))
-        elif market['spot']:
-            request: dict = {
+        elif market['spot'] is True:
+            request = {
                 'symbol': market['id'],
             }
             if limit is not None:
@@ -1318,7 +1322,7 @@ class bitrue(Exchange, ImplicitAPI):
         last = self.safe_string_2(ticker, 'lastPrice', 'last')
         timestamp = self.safe_integer(ticker, 'time')
         percentage = None
-        if market['swap']:
+        if self.safe_bool(market, 'swap') is True:
             percentage = Precise.string_mul(self.safe_string(ticker, 'rose'), '100')
         else:
             percentage = self.safe_string(ticker, 'priceChangePercent')
@@ -1345,7 +1349,7 @@ class bitrue(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1357,21 +1361,22 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         response = None
-        data = None
-        if market['swap']:
-            request: dict = {
+        data = {}
+        if market['swap'] is True:
+            request = {
                 'contractName': market['id'],
             }
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV1PublicGetTicker(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV1PublicGetTicker(self.extend(request, params))
             data = response
-        elif market['spot']:
-            request: dict = {
+        elif market['spot'] is True:
+            request = {
                 'symbol': market['id'],
             }
             response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
@@ -1418,7 +1423,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(data, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1431,30 +1436,31 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch transfers for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         response = None
-        data = None
-        if market['swap']:
+        data = []
+        if market['swap'] is True:
             timeframesFuture = self.safe_dict(timeframes, 'future', {})
-            request: dict = {
+            request = {
                 'contractName': market['id'],
                 # 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
                 'interval': self.safe_string(timeframesFuture, timeframe, '1min'),
             }
             if limit is not None:
                 request['limit'] = limit
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV1PublicGetKlines(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV1PublicGetKlines(self.extend(request, params))
             data = response
-        elif market['spot']:
+        elif market['spot'] is True:
             timeframesSpot = self.safe_dict(timeframes, 'spot', {})
-            request: dict = {
+            request = {
                 'symbol': market['id'],
                 # 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
                 'scale': self.safe_string(timeframesSpot, timeframe, '1m'),
@@ -1503,7 +1509,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         # spot
         #
@@ -1540,7 +1546,7 @@ class bitrue(Exchange, ImplicitAPI):
             self.safe_number_2(ohlcv, 'v', 'vol'),
         ]
 
-    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
@@ -1552,21 +1558,22 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         first = self.safe_string(symbols, 0)
         market = self.market(first)
         response = None
-        if market['swap']:
-            request: dict = {
+        if market['swap'] is True:
+            request = {
                 'contractName': market['id'],
             }
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV1PublicGetTicker(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV1PublicGetTicker(self.extend(request, params))
-        elif market['spot']:
-            request: dict = {
+        elif market['spot'] is True:
+            request = {
                 'symbol': market['id'],
             }
             response = await self.spotV1PublicGetTickerBookTicker(self.extend(request, params))
@@ -1596,11 +1603,11 @@ class bitrue(Exchange, ImplicitAPI):
         #         "time": 1699348013000
         #     }
         #
-        data: dict = {}
-        data[market['id']] = response
+        data = {}
+        data[(market['id'])] = response
         return self.parse_tickers(data, symbols)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1612,20 +1619,21 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        response = None
-        data = None
-        request: dict = {}
+        response = []
+        data = []
+        request = {}
         type = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
             market = self.market(first)
-            if market['swap']:
+            if market['swap'] is True:
                 raise NotSupported(self.id + ' fetchTickers does not support swap markets, please use fetchTicker instead')
-            elif market['spot']:
+            elif market['spot'] is True:
                 response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
-                data = response
+                data = self.to_array(response)
             else:
                 raise NotSupported(self.id + ' fetchTickers only support spot & swap markets')
         else:
@@ -1633,7 +1641,7 @@ class bitrue(Exchange, ImplicitAPI):
             if type != 'spot':
                 raise NotSupported(self.id + ' fetchTickers only support spot when symbols are not proved')
             response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
-            data = response
+            data = self.to_array(response)
         #
         # spot
         #
@@ -1675,11 +1683,16 @@ class bitrue(Exchange, ImplicitAPI):
         # the exchange returns market ids with an underscore from the tickers endpoint
         # the market ids do not have an underscore, so it has to be removed
         # https://github.com/ccxt/ccxt/issues/13856
-        tickers: dict = {}
+        tickers = {}
         for i in range(0, len(data)):
             ticker = self.safe_dict(data, i, {})
-            market = self.safe_market(self.safe_string(ticker, 'symbol'))
-            tickers[market['id']] = ticker
+            # skip entries without a symbol: an undefined market id would become a null
+            # dictionary key here, which crashes fetchTickers in the C# build
+            marketId = self.safe_string(ticker, 'symbol')
+            if marketId is None:
+                continue
+            market = self.safe_market(marketId)
+            tickers[(market['id'])] = ticker
         return self.parse_tickers(tickers, symbols)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -1690,9 +1703,9 @@ class bitrue(Exchange, ImplicitAPI):
         #         "id": 28457,
         #         "price": "4.00000100",
         #         "qty": "12.00000000",
-        #         "time": 1499865549590,  # Actual timestamp of trade
-        #         "isBuyerMaker": True,
-        #         "isBestMatch": True
+        #         "time": 1499865549590,  // Actual timestamp of trade
+        #         "isBuyerMaker": true,
+        #         "isBestMatch": true
         #     }
         #
         # fetchTrades - spot
@@ -1744,7 +1757,7 @@ class bitrue(Exchange, ImplicitAPI):
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'
         if isBuyer is not None:
-            side = 'buy' if isBuyer else 'sell'  # self is a True side
+            side = 'buy' if isBuyer else 'sell'  # this is a true side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -1771,7 +1784,7 @@ class bitrue(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1783,13 +1796,14 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        response = None
-        if market['spot']:
-            request: dict = {
+        response = []
+        if market['spot'] is True:
+            request = {
                 'symbol': market['id'],
-                # 'limit': 100,  # default 100, max = 1000
+                # 'limit': 100, // default 100, max = 1000
             }
             if limit is not None:
                 request['limit'] = limit  # default 100, max 1000
@@ -1805,15 +1819,15 @@ class bitrue(Exchange, ImplicitAPI):
         #             "price": "4.00000100",
         #             "qty": "12.00000000",
         #             "time": 1499865549590,
-        #             "isBuyerMaker": True,
-        #             "isBestMatch": True
+        #             "isBuyerMaker": true,
+        #             "isBestMatch": true
         #         }
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'INIT': 'open',
             'PENDING_CREATE': 'open',
             'NEW': 'open',
@@ -1902,7 +1916,7 @@ class bitrue(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'origQty')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
-        #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
+        #   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
         cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
@@ -1938,7 +1952,7 @@ class bitrue(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -1950,14 +1964,15 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports swap orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1979,28 +1994,29 @@ class bitrue(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param decimal [params.icebergQty]:
         :param long [params.recvWindow]:
-        :param float [params.cost]: *swap market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *swap market buy only* the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         response = None
-        data = None
+        data = {}
         uppercaseType = type.upper()
-        request: dict = {
+        request = {
             'side': side.upper(),
             'type': uppercaseType,
             # 'timeInForce': '',
-            # 'price': self.price_to_precision(symbol, price),
-            # 'newClientOrderId': clientOrderId,  # automatically generated if not sent
-            # 'stopPrice': self.price_to_precision(symbol, 'stopPrice'),
-            # 'icebergQty': self.amount_to_precision(symbol, icebergQty),
+            # 'price': this.priceToPrecision (symbol, price),
+            # 'newClientOrderId': clientOrderId, // automatically generated if not sent
+            # 'stopPrice': this.priceToPrecision (symbol, 'stopPrice'),
+            # 'icebergQty': this.amountToPrecision (symbol, icebergQty),
         }
         if uppercaseType == 'LIMIT':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument')
             request['price'] = self.price_to_precision(symbol, price)
-        if market['swap']:
+        if market['swap'] is True:
             isMarket = uppercaseType == 'MARKET'
             timeInForce = self.safe_string_lower(params, 'timeInForce')
             postOnly = self.is_post_only(isMarket, None, params)
@@ -2017,7 +2033,7 @@ class bitrue(Exchange, ImplicitAPI):
                 cost = self.safe_string(params, 'cost')
                 params = self.omit(params, 'cost')
                 if price is None and cost is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with swap market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument (the exchange-specific behaviour)')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
@@ -2029,17 +2045,17 @@ class bitrue(Exchange, ImplicitAPI):
                 request['amount'] = self.parse_to_numeric(amount)
                 request['volume'] = self.parse_to_numeric(amount)
             request['positionType'] = 1
-            reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
-            request['open'] = 'CLOSE' if reduceOnly else 'OPEN'
+            reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
+            request['open'] = 'CLOSE' if (reduceOnly is True) else 'OPEN'
             leverage = self.safe_string(params, 'leverage', '1')
             request['leverage'] = self.parse_to_numeric(leverage)
             params = self.omit(params, ['leverage', 'reduceOnly', 'reduce_only', 'timeInForce'])
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivatePostOrder(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivatePostOrder(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
-        elif market['spot']:
+        elif market['spot'] is True:
             request['symbol'] = market['id']
             request['quantity'] = self.amount_to_precision(symbol, amount)
             validOrderTypes = self.safe_value(market['info'], 'orderTypes')
@@ -2049,7 +2065,7 @@ class bitrue(Exchange, ImplicitAPI):
             if clientOrderId is not None:
                 params = self.omit(params, ['newClientOrderId', 'clientOrderId'])
                 request['newClientOrderId'] = clientOrderId
-            triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
             if triggerPrice is not None:
                 params = self.omit(params, ['triggerPrice', 'stopPrice'])
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
@@ -2080,7 +2096,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_order(data, market)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -2094,28 +2110,29 @@ class bitrue(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
+        origClientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         response = None
-        data = None
-        request: dict = {}
+        data = {}
+        request = {}
         if origClientOrderId is None:
             request['orderId'] = id
         else:
-            if market['swap']:
+            if market['swap'] is True:
                 request['clientOrderId'] = origClientOrderId
             else:
                 request['origClientOrderId'] = origClientOrderId
-        if market['swap']:
+        if market['swap'] is True:
             request['contractName'] = market['id']
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivateGetOrder(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivateGetOrder(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
-        elif market['spot']:
+        elif market['spot'] is True:
             request['orderId'] = id  # spot market id is mandatory
             request['symbol'] = market['id']
             response = await self.spotV1PrivateGetOrder(self.extend(request, params))
@@ -2141,7 +2158,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         "icebergQty": "0.0",
         #         "time": 1499827319559,
         #         "updateTime": 1499827319559,
-        #         "isWorking": True
+        #         "isWorking": true
         #     }
         #
         # swap
@@ -2167,7 +2184,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_order(data, market)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2181,16 +2198,17 @@ class bitrue(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' fetchClosedOrders only support spot markets')
-        request: dict = {
+        request = {
             'symbol': market['id'],
-            # 'orderId': 123445,  # long
+            # 'orderId': 123445, // long
             # 'startTime': since,
-            # 'endTime': self.milliseconds(),
-            # 'limit': limit,  # default 100, max 1000
+            # 'endTime': this.milliseconds (),
+            # 'limit': limit, // default 100, max 1000
         }
         if since is not None:
             request['startTime'] = since
@@ -2215,13 +2233,13 @@ class bitrue(Exchange, ImplicitAPI):
         #             "icebergQty": "0.0",
         #             "time": 1499827319559,
         #             "updateTime": 1499827319559,
-        #             "isWorking": True
+        #             "isWorking": true
         #         }
         #     ]
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2236,19 +2254,20 @@ class bitrue(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         response = None
-        data = None
-        request: dict = {}
-        if market['swap']:
+        data = []
+        request = {}
+        if market['swap'] is True:
             request['contractName'] = market['id']
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivateGetOpenOrders(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivateGetOpenOrders(self.extend(request, params))
             data = self.safe_list(response, 'data', [])
-        elif market['spot']:
+        elif market['spot'] is True:
             request['symbol'] = market['id']
             response = await self.spotV1PrivateGetOpenOrders(self.extend(request, params))
             data = response
@@ -2302,7 +2321,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_orders(data, market, since, limit)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -2317,28 +2336,29 @@ class bitrue(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
+        origClientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         response = None
-        data = None
-        request: dict = {}
+        data = {}
+        request = {}
         if origClientOrderId is None:
             request['orderId'] = id
         else:
-            if market['swap']:
+            if market['swap'] is True:
                 request['clientOrderId'] = origClientOrderId
             else:
                 request['origClientOrderId'] = origClientOrderId
-        if market['swap']:
+        if market['swap'] is True:
             request['contractName'] = market['id']
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivatePostCancel(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivatePostCancel(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
-        elif market['spot']:
+        elif market['spot'] is True:
             request['symbol'] = market['id']
             response = await self.spotV1PrivateDeleteOrder(self.extend(request, params))
             data = response
@@ -2366,29 +2386,30 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_order(data, market)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
         https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
         https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
 
-        :param str symbol: unified market symbol of the market to cancel orders in
+        :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         response = None
-        data = None
-        if market['swap']:
-            request: dict = {
+        data = []
+        if market['swap'] is True:
+            request = {
                 'contractName': market['id'],
             }
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivatePostAllOpenOrders(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivatePostAllOpenOrders(self.extend(request, params))
             data = self.safe_list(response, 'data', [])
         else:
@@ -2404,7 +2425,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_orders(data, market)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2417,27 +2438,28 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         market = self.market(symbol)
         response = None
-        data = None
-        request: dict = {}
+        data = []
+        request = {}
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             if limit > 1000:
                 limit = 1000
             request['limit'] = limit
-        if market['swap']:
+        if market['swap'] is True:
             request['contractName'] = market['id']
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivateGetMyTrades(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivateGetMyTrades(self.extend(request, params))
             data = self.safe_list(response, 'data', [])
-        elif market['spot']:
+        elif market['spot'] is True:
             request['symbol'] = market['id']
             response = await self.spotV2PrivateGetMyTrades(self.extend(request, params))
             data = response
@@ -2490,7 +2512,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2504,19 +2526,20 @@ class bitrue(Exchange, ImplicitAPI):
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a code argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'status': 1,  # 0 init, 1 finished, default 0
             # 'offset': 0,
-            # 'limit': limit,  # default 10, max 1000
+            # 'limit': limit, // default 10, max 1000
             # 'startTime': since,
-            # 'endTime': self.milliseconds(),
+            # 'endTime': this.milliseconds (),
         }
         if since is not None:
             request['startTime'] = since
-            # request['endTime'] = self.sum(since, 7776000000)
+            # request['endTime'] = this.sum (since, 7776000000);
         if limit is not None:
             request['limit'] = limit
         response = await self.spotV1PrivateGetDepositHistory(self.extend(request, params))
@@ -2559,7 +2582,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2573,19 +2596,20 @@ class bitrue(Exchange, ImplicitAPI):
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a code argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'status': 5,  # 0 init, 5 finished, 6 canceled, default 0
             # 'offset': 0,
-            # 'limit': limit,  # default 10, max 1000
+            # 'limit': limit, // default 10, max 1000
             # 'startTime': since,
-            # 'endTime': self.milliseconds(),
+            # 'endTime': this.milliseconds (),
         }
         if since is not None:
             request['startTime'] = since
-            # request['endTime'] = self.sum(since, 7776000000)
+            # request['endTime'] = this.sum (since, 7776000000);
         if limit is not None:
             request['limit'] = limit
         response = await self.spotV1PrivateGetWithdrawHistory(self.extend(request, params))
@@ -2615,8 +2639,8 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency)
 
-    def parse_transaction_status_by_type(self, status, type=None):
-        statusesByType: dict = {
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None) -> Str:
+        statusesByType = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -2750,7 +2774,7 @@ class bitrue(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2765,21 +2789,22 @@ class bitrue(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'amount': amount,
             'addressTo': address,
-            # 'chainName': chainName,  # 'ERC20', 'TRC20', 'SOL'
-            # 'addressMark': '',  # mark of address
-            # 'addrType': '',  # type of address
+            # 'chainName': chainName, // 'ERC20', 'TRC20', 'SOL'
+            # 'addressMark': '', // mark of address
+            # 'addrType': '', // type of address
             # 'tag': tag,
         }
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chainName'] = self.network_code_to_id(networkCode)
+            request['chainName'] = self.network_code_to_id(networkCode, currency['code'])
         if tag is not None:
             request['tag'] = tag
         response = await self.spotV1PrivatePostWithdrawCommit(self.extend(request, params))
@@ -2801,18 +2826,18 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #   {
         #       "coin": "adx",
         #       "coinFulName": "Ambire AdEx",
-        #       "chains": ["BSC"],
-        #       "chainDetail": [[Object]]
+        #       "chains": [ "BSC" ],
+        #       "chainDetail": [ [Object] ]
         #   }
         #
         chainDetails = self.safe_list(fee, 'chainDetail', [])
         chainDetailLength = len(chainDetails)
-        result: dict = {
+        result = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -2830,16 +2855,17 @@ class bitrue(Exchange, ImplicitAPI):
                 networkId = self.safe_string(chainDetail, 'chain')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
-                result['networks'][networkCode] = {
-                    'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False},
-                }
+                if networkCode is not None:
+                    result['networks'][networkCode] = {
+                        'deposit': {'fee': None, 'percentage': None},
+                        'withdraw': {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False},
+                    }
                 if chainDetailLength == 1:
                     result['withdraw']['fee'] = self.safe_number(chainDetail, 'withdrawFee')
                     result['withdraw']['percentage'] = False
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -2849,12 +2875,13 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.spotV1PublicGetExchangeInfo(params)
         coins = self.safe_list(response, 'coins')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     fetchTransfers
         #
@@ -2890,7 +2917,7 @@ class bitrue(Exchange, ImplicitAPI):
             'status': 'ok',
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2905,9 +2932,10 @@ class bitrue(Exchange, ImplicitAPI):
         :param str [params.type]: transfer type wallet_to_contract or contract_to_wallet
         :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = self.safe_string_2(params, 'type', 'transferType')
-        request: dict = {
+        request = {
             'transferType': type,
         }
         currency = None
@@ -2941,7 +2969,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transfers(data, currency, since, limit)
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -2955,12 +2983,13 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         accountTypes = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
         toId = self.safe_string(accountTypes, toAccount, toAccount)
-        request: dict = {
+        request = {
             'coinSymbol': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'transferType': fromId + '_to_' + toId,
@@ -2976,7 +3005,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transfer(data, currency)
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -2992,22 +3021,23 @@ class bitrue(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if (leverage < 1) or (leverage > 125):
             raise BadRequest(self.id + ' leverage should be between 1 and 125')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        response = None
-        request: dict = {
+        response = {}
+        request = {
             'contractName': market['id'],
             'leverage': leverage,
         }
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' setLeverage only support swap markets')
-        if market['linear']:
+        if market['linear'] is True:
             response = await self.fapiV2PrivatePostLevelEdit(self.extend(request, params))
-        elif market['inverse']:
+        elif market['inverse'] is True:
             response = await self.dapiV2PrivatePostLevelEdit(self.extend(request, params))
         return response
 
-    def parse_margin_modification(self, data, market=None) -> MarginModification:
+    def parse_margin_modification(self, data: object, market: Market = None) -> MarginModification:
         #
         # setMargin
         #
@@ -3019,7 +3049,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'marginMode': 'isolated',
             'amount': None,
@@ -3042,18 +3072,19 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: parameters specific to the exchange API endpoint
         :returns dict: A `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' setMargin only support swap markets')
         response = None
-        request: dict = {
+        request = {
             'contractName': market['id'],
             'amount': self.parse_to_numeric(amount),
         }
-        if market['linear']:
+        if market['linear'] is True:
             response = await self.fapiV2PrivatePostPositionMargin(self.extend(request, params))
-        elif market['inverse']:
+        elif market['inverse'] is True:
             response = await self.dapiV2PrivatePostPositionMargin(self.extend(request, params))
         #
         #     {
@@ -3064,7 +3095,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         type = self.safe_string(api, 0)
         version = self.safe_string(api, 1)
         access = self.safe_string(api, 2)
@@ -3128,15 +3159,15 @@ class bitrue(Exchange, ImplicitAPI):
                         'X-CH-TS': timestamp,
                     }
         else:
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
-        # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
-        # following block cointains legacy checks against message patterns in "msg" property
+        # error response in a form: { "code": -1013, "msg": "Invalid quantity." }
+        # following block contains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
         if code >= 400:
             if body.find('Price * QTY is zero or less') >= 0:
@@ -3144,13 +3175,13 @@ class bitrue(Exchange, ImplicitAPI):
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
-                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
+                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision (symbol, amount) ' + body)
         if response is None:
             return None  # fallback to default error handler
         # check success value for wapi endpoints
-        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+        # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             messageInner = self.safe_string(response, 'msg')
             parsedMessage = None
             if messageInner is not None:
@@ -3175,23 +3206,23 @@ class bitrue(Exchange, ImplicitAPI):
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+            if (error == '-2015') and (self.options['hasAlreadyAuthenticatedSuccessfully'] is True):
                 raise DDoSProtection(self.id + ' temporary banned: ' + body)
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
-        if not success:
+        if success is not True:
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('byLimit' in config) and ('limit' in params):
             limit = params['limit']
-            byLimit = config['byLimit']
+            byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
                 if limit <= entry[0]:
                     return entry[1]
-        return self.safe_value(config, 'cost', 1)
+        return self.safe_number(config, 'cost', 1)

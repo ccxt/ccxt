@@ -6,11 +6,11 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.precise import Precise
@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class poloniex(ccxt.async_support.poloniex):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(poloniex, self).describe(), {
             'has': {
                 'ws': True,
@@ -83,7 +83,7 @@ class poloniex(ccxt.async_support.poloniex):
             },
         })
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}):
         """
  @ignore
         authenticates the user to access private web socket channels
@@ -102,7 +102,7 @@ class poloniex(ccxt.async_support.poloniex):
             accessPath = '/ws'
             requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp
             signature = self.hmac(self.encode(requestString), self.encode(self.secret), hashlib.sha256, 'base64')
-            request: dict = {
+            request = {
                 'event': 'subscribe',
                 'channel': ['auth'],
                 'params': {
@@ -118,7 +118,7 @@ class poloniex(ccxt.async_support.poloniex):
             #
             #    {
             #        "data": {
-            #            "success": True,
+            #            "success": true,
             #            "ts": 1645597033915
             #        },
             #        "channel": "auth"
@@ -128,7 +128,7 @@ class poloniex(ccxt.async_support.poloniex):
             #
             #    {
             #        "data": {
-            #            "success": False,
+            #            "success": false,
             #            "message": "Authentication failed!",
             #            "ts": 1646276295075
             #        },
@@ -138,7 +138,7 @@ class poloniex(ccxt.async_support.poloniex):
             client.subscriptions[messageHash] = future
         return future
 
-    async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: Strings = None, params={}):
+    async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: Strings = None, params: dict = {}):
         """
  @ignore
         Connects to a websocket channel
@@ -151,7 +151,7 @@ class poloniex(ccxt.async_support.poloniex):
         """
         publicOrPrivate = 'private' if isPrivate else 'public'
         url = self.urls['api']['ws'][publicOrPrivate]
-        subscribe: dict = {
+        subscribe = {
             'event': 'subscribe',
             'channel': [
                 name,
@@ -161,14 +161,17 @@ class poloniex(ccxt.async_support.poloniex):
         if self.is_empty(symbols):
             marketIds.append('all')
         else:
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' subscribe() symbols is required')
             messageHash = messageHash + '::' + ','.join(symbols)
-            marketIds = self.market_ids(symbols)
+            ids = self.market_ids(symbols)
+            marketIds = [] if (ids is None) else ids
         if name != 'balances':
             subscribe['symbols'] = marketIds
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def trade_request(self, name: str, params={}):
+    async def trade_request(self, name: str, params: dict = {}):
         """
  @ignore
         Connects to a websocket channel
@@ -178,14 +181,14 @@ class poloniex(ccxt.async_support.poloniex):
         """
         url = self.urls['api']['ws']['private']
         messageHash = str(self.nonce())
-        subscribe: dict = {
+        subscribe = {
             'id': messageHash,
             'event': name,
             'params': params,
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
 
         https://api-docs.poloniex.com/spot/websocket/trade-request#create-order
@@ -196,10 +199,10 @@ class poloniex(ccxt.async_support.poloniex):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: GTC(default), IOC, FOK
         :param str [params.clientOrderId]: Maximum 64-character length.*
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.amount]: quote units for the order
@@ -208,15 +211,18 @@ class poloniex(ccxt.async_support.poloniex):
         :param str [params.slippageTolerance]: used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         uppercaseType = type.upper()
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrderWs() side is required')
         uppercaseSide = side.upper()
         isPostOnly = self.is_post_only(uppercaseType == 'MARKET', uppercaseType == 'LIMIT_MAKER', params)
         if isPostOnly:
             uppercaseType = 'LIMIT_MAKER'
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': side.upper(),
             'type': type.upper(),
@@ -231,7 +237,7 @@ class poloniex(ccxt.async_support.poloniex):
                 quoteAmount = self.cost_to_precision(symbol, cost)
             elif createMarketBuyOrderRequiresPrice:
                 if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend (quote quantity) in the amount argument')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
@@ -248,7 +254,7 @@ class poloniex(ccxt.async_support.poloniex):
         order = self.safe_dict(orders, 0)
         return order
 
-    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
@@ -256,7 +262,7 @@ class poloniex(ccxt.async_support.poloniex):
         cancel multiple orders
         :param str id: order id
         :param str [symbol]: unified market symbol
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id
         :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -268,7 +274,7 @@ class poloniex(ccxt.async_support.poloniex):
         order = self.safe_dict(orders, 0)
         return order
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
@@ -276,32 +282,34 @@ class poloniex(ccxt.async_support.poloniex):
         cancel multiple orders
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.clientOrderIds]: client order ids
         :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
-        request: dict = {
+        request = {
             'orderIds': ids,
         }
         return await self.trade_request('cancelOrders', self.extend(request, params))
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
 
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         return await self.trade_request('cancelAllOrders', params)
 
-    def handle_order_request(self, client: Client, message):
+    def handle_order_request(self, client: Client, message: dict):
         #
         #    {
         #        "id": "1234567",
@@ -314,7 +322,7 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         messageHash = self.safe_string(message, 'id')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         orders = []
         for i in range(0, len(data)):
             order = data[i]
@@ -322,7 +330,7 @@ class poloniex(ccxt.async_support.poloniex):
             orders.append(parsedOrder)
         client.resolve(orders, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -333,10 +341,11 @@ class poloniex(ccxt.async_support.poloniex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        await self.load_markets()
-        timeframes = self.safe_value(self.options, 'timeframes', {})
+        if self.markets is None:
+            await self.load_markets()
+        timeframes = self.safe_dict(self.options, 'timeframes', {})
         channel = self.safe_string(timeframes, timeframe, timeframe)
         if channel is None:
             raise BadRequest(self.id + ' watchOHLCV cannot take a timeframe of ' + timeframe)
@@ -345,7 +354,7 @@ class poloniex(ccxt.async_support.poloniex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -355,12 +364,13 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         tickers = await self.watch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -370,7 +380,8 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'ticker'
         symbols = self.market_symbols(symbols)
         newTickers = await self.subscribe(name, name, False, symbols, params)
@@ -378,7 +389,7 @@ class poloniex(ccxt.async_support.poloniex):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -390,9 +401,9 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
@@ -404,12 +415,13 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, True)
         name = 'trades'
         url = self.urls['api']['ws']['public']
         marketIds = self.market_ids(symbols)
-        subscribe: dict = {
+        subscribe = {
             'event': 'subscribe',
             'channel': [
                 name,
@@ -428,7 +440,7 @@ class poloniex(ccxt.async_support.poloniex):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -437,16 +449,17 @@ class poloniex(ccxt.async_support.poloniex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniex watchOrderBook
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
-        watchOrderBookOptions = self.safe_value(self.options, 'watchOrderBook')
+        if self.markets is None:
+            await self.load_markets()
+        watchOrderBookOptions = self.safe_dict(self.options, 'watchOrderBook')
         name = self.safe_string(watchOrderBookOptions, 'name', 'book_lv2')
-        name, params = self.handle_option_and_params(params, 'method', 'name', name)
+        name, params = self.handle_option_and_params(params, 'watchOrderBook', 'name', name)
         orderbook = await self.subscribe(name, name, False, [symbol], params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -458,7 +471,8 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'orders'
         await self.authenticate()
         if symbol is not None:
@@ -469,7 +483,7 @@ class poloniex(ccxt.async_support.poloniex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user using orders stream
 
@@ -481,7 +495,8 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the poloniex strean
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'orders'
         messageHash = 'myTrades'
         await self.authenticate()
@@ -493,7 +508,7 @@ class poloniex(ccxt.async_support.poloniex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -502,12 +517,13 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'balances'
         await self.authenticate()
         return await self.subscribe(name, name, True, None, params)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #    {
         #        "symbol": "BTC_USDT",
@@ -532,7 +548,7 @@ class poloniex(ccxt.async_support.poloniex):
             self.safe_number(ohlcv, 'quantity'),
         ]
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
         #    {
         #        "channel": "candles_minute_1",
@@ -559,22 +575,23 @@ class poloniex(ccxt.async_support.poloniex):
         marketId = self.safe_string(data, 'symbol')
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(symbol)
-        timeframes = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframe = self.find_timeframe(channel, timeframes)
         messageHash = channel + '::' + symbol
         parsed = self.parse_ws_ohlcv(data, market)
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
+        stored = None if (timeframe is None) else self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         if symbol is not None:
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol][timeframe] = stored
+                if symbol is not None and timeframe is not None:
+                    self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
             client.resolve(stored, messageHash)
         return message
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: dict) -> dict:
         #
         #    {
         #        "channel": "trades",
@@ -592,7 +609,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
@@ -601,16 +618,17 @@ class poloniex(ccxt.async_support.poloniex):
                 symbol = trade['symbol']
                 type = 'trades'
                 messageHash = type + '::' + symbol
-                tradesArray = self.safe_value(self.trades, symbol)
+                tradesArray = None if (symbol is None) else self.safe_value(self.trades, symbol)
                 if tradesArray is None:
                     tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
                     tradesArray = ArrayCache(tradesLimit)
-                    self.trades[symbol] = tradesArray
+                    if symbol is not None:
+                        self.trades[symbol] = tradesArray
                 tradesArray.append(trade)
                 client.resolve(tradesArray, messageHash)
         return message
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         # handleTrade
         #
@@ -677,8 +695,8 @@ class poloniex(ccxt.async_support.poloniex):
             },
         }, market)
 
-    def parse_status(self, status):
-        statuses: dict = {
+    def parse_status(self, status: Str) -> Str:
+        statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -689,7 +707,7 @@ class poloniex(ccxt.async_support.poloniex):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order_trade(self, trade, market=None):
+    def parse_ws_order_trade(self, trade: dict, market: Market = None):
         #
         #    {
         #        "symbol": "BTC_USDT",
@@ -740,7 +758,7 @@ class poloniex(ccxt.async_support.poloniex):
             },
         }, market)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: dict) -> dict:
         #
         # Order is created
         #
@@ -776,7 +794,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         orders = self.orders
         if orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
@@ -784,21 +802,27 @@ class poloniex(ccxt.async_support.poloniex):
             self.orders = orders
         marketIds = []
         for i in range(0, len(data)):
-            order = self.safe_value(data, i)
+            order = self.safe_dict(data, i)
             marketId = self.safe_string(order, 'symbol')
             eventType = self.safe_string(order, 'eventType')
             if marketId is not None:
                 symbol = self.safe_symbol(marketId)
-                orderId = self.safe_string(order, 'orderId')
-                clientOrderId = self.safe_string(order, 'clientOrderId')
+                orderId = self.safe_string(order, 'orderId', '')
+                clientOrderId = self.safe_string(order, 'clientOrderId', '')
                 if eventType == 'place' or eventType == 'canceled':
                     parsed = self.parse_ws_order(order)
                     orders.append(parsed)
                 else:
-                    previousOrders = self.safe_value(orders.hashmap, symbol, {})
-                    previousOrder = self.safe_value_2(previousOrders, orderId, clientOrderId)
+                    previousOrders = self.safe_dict(orders.hashmap, symbol, {})
+                    previousOrder = self.safe_dict_2(previousOrders, orderId, clientOrderId)
                     trade = self.parse_ws_trade(order)
                     self.handle_my_trades(client, trade)
+                    if previousOrder is None:
+                        # fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        parsedOrder = self.parse_ws_order(order)
+                        orders.append(parsedOrder)
+                        marketIds.append(marketId)
+                        continue
                     if previousOrder['trades'] is None:
                         previousOrder['trades'] = []
                     previousOrder['trades'].append(trade)
@@ -827,11 +851,11 @@ class poloniex(ccxt.async_support.poloniex):
                         previousOrder['fee'] = {
                             'rate': None,
                             'cost': 0,
-                            'currency': trade['fee']['currency'],
+                            'currency': self.safe_string(trade['fee'], 'currency'),
                         }
-                    if (previousOrder['fee']['cost'] is not None) and (trade['fee']['cost'] is not None):
+                    if (previousOrder['fee']['cost'] is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
                         stringOrderCost = self.number_to_string(previousOrder['fee']['cost'])
-                        stringTradeCost = self.number_to_string(trade['fee']['cost'])
+                        stringTradeCost = self.number_to_string(self.safe_number(trade['fee'], 'cost'))
                         previousOrder['fee']['cost'] = Precise.string_add(stringOrderCost, stringTradeCost)
                     rawState = self.safe_string(order, 'state')
                     state = self.parse_status(rawState)
@@ -848,7 +872,7 @@ class poloniex(ccxt.async_support.poloniex):
         client.resolve(orders, 'orders')
         return message
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order: object, market: Market = None):
         #
         #    {
         #        "symbol": "BTC_USDT",
@@ -917,7 +941,7 @@ class poloniex(ccxt.async_support.poloniex):
             'trades': trades,
         })
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: dict) -> dict:
         #
         #    {
         #        "channel": "ticker",
@@ -940,16 +964,18 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
-        newTickers: dict = {}
+        data = self.safe_list(message, 'data', [])
+        newTickers = {}
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
             if marketId is not None:
                 ticker = self.parse_ticker(item)
                 symbol = ticker['symbol']
-                self.tickers[symbol] = ticker
-                newTickers[symbol] = ticker
+                if symbol is not None:
+                    self.tickers[symbol] = ticker
+                if symbol is not None:
+                    newTickers[symbol] = ticker
         messageHashes = self.find_message_hashes(client, 'ticker::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -962,7 +988,7 @@ class poloniex(ccxt.async_support.poloniex):
         client.resolve(newTickers, 'ticker')
         return message
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # snapshot
         #
@@ -1010,7 +1036,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        "action": "update"
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         type = self.safe_string(message, 'action')
         snapshot = type == 'snapshot'
         update = type == 'update'
@@ -1021,25 +1047,28 @@ class poloniex(ccxt.async_support.poloniex):
             symbol = market['symbol']
             name = 'book_lv2'
             messageHash = name + '::' + symbol
-            subscription = self.safe_value(client.subscriptions, messageHash, {})
+            subscription = self.safe_dict(client.subscriptions, messageHash, {})
             limit = self.safe_integer(subscription, 'limit')
             timestamp = self.safe_integer(item, 'ts')
-            asks = self.safe_value(item, 'asks')
-            bids = self.safe_value(item, 'bids')
+            asks = self.safe_list(item, 'asks')
+            bids = self.safe_list(item, 'bids')
             if snapshot or update:
                 if snapshot:
                     self.orderbooks[symbol] = self.order_book({}, limit)
+                if not (symbol in self.orderbooks):
+                    # a delta can arrive before the snapshot, it cannot be applied without a book
+                    continue
                 orderbook = self.orderbooks[symbol]
                 if bids is not None:
                     for j in range(0, len(bids)):
-                        bid = self.safe_value(bids, j)
+                        bid = self.safe_list(bids, j)
                         price = self.safe_number(bid, 0)
                         amount = self.safe_number(bid, 1)
                         bidsSide = orderbook['bids']
                         bidsSide.store(price, amount)
                 if asks is not None:
                     for j in range(0, len(asks)):
-                        ask = self.safe_value(asks, j)
+                        ask = self.safe_list(asks, j)
                         price = self.safe_number(ask, 0)
                         amount = self.safe_number(ask, 1)
                         asksSide = orderbook['asks']
@@ -1049,7 +1078,7 @@ class poloniex(ccxt.async_support.poloniex):
                 orderbook['datetime'] = self.iso8601(timestamp)
                 client.resolve(orderbook, messageHash)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: dict):
         #
         #    {
         #       "channel": "balances",
@@ -1069,12 +1098,12 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         messageHash = 'balances'
         self.balance = self.parse_ws_balance(data)
         client.resolve(self.balance, messageHash)
 
-    def parse_ws_balance(self, response):
+    def parse_ws_balance(self, response: list) -> Balances:
         #
         #    [
         #        {
@@ -1091,24 +1120,25 @@ class poloniex(ccxt.async_support.poloniex):
         #        }
         #    ]
         #
-        firstBalance = self.safe_value(response, 0, {})
+        firstBalance = self.safe_dict(response, 0, {})
         timestamp = self.safe_integer(firstBalance, 'ts')
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
         for i in range(0, len(response)):
-            balance = self.safe_value(response, i)
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             newAccount = self.account()
             newAccount['free'] = self.safe_string(balance, 'available')
             newAccount['used'] = self.safe_string(balance, 'hold')
-            result[code] = newAccount
+            if code is not None:
+                result[code] = newAccount
         return self.safe_balance(result)
 
-    def handle_my_trades(self, client: Client, parsedTrade):
+    def handle_my_trades(self, client: Client, parsedTrade: Trade):
         # emulated using the orders' stream
         messageHash = 'myTrades'
         symbol = parsedTrade['symbol']
@@ -1124,14 +1154,14 @@ class poloniex(ccxt.async_support.poloniex):
     def handle_pong(self, client: Client):
         client.lastPong = self.milliseconds()
 
-    def handle_message(self, client: Client, message):
-        if self.handle_error_message(client, message):
+    def handle_message(self, client: Client, message: dict):
+        if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'channel')
         event = self.safe_string(message, 'event')
         if event == 'pong':
             client.lastPong = self.milliseconds()
-        methods: dict = {
+        methods = {
             'candles_minute_1': self.handle_ohlcv,
             'candles_minute_5': self.handle_ohlcv,
             'candles_minute_10': self.handle_ohlcv,
@@ -1157,18 +1187,18 @@ class poloniex(ccxt.async_support.poloniex):
             'cancelAllOrders': self.handle_order_request,
             'auth': self.handle_authenticate,
         }
-        method = self.safe_value(methods, type)
+        method = None if (type is None) else self.safe_value(methods, type)
         if type == 'auth':
             self.handle_authenticate(client, message)
         elif type is None:
             self.handle_order_request(client, message)
         else:
-            data = self.safe_value(message, 'data', [])
+            data = self.safe_list(message, 'data', [])
             dataLength = len(data)
             if dataLength > 0:
                 method(client, message)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #    {
         #        message: 'Invalid channel value ["ordersss"]',
@@ -1222,19 +1252,19 @@ class poloniex(ccxt.async_support.poloniex):
                 return True
         return False
 
-    def handle_authenticate(self, client: Client, message):
+    def handle_authenticate(self, client: Client, message: dict) -> dict:
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "ret_msg": '',
         #        "op": "auth",
         #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         #    }
         #
-        data = self.safe_value(message, 'data')
-        success = self.safe_value(data, 'success')
+        data = self.safe_dict(message, 'data')
+        success = self.safe_bool(data, 'success')
         messageHash = 'authenticated'
-        if success:
+        if success is True:
             client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))
@@ -1243,7 +1273,7 @@ class poloniex(ccxt.async_support.poloniex):
                 del client.subscriptions[messageHash]
         return message
 
-    def ping(self, client: Client):
+    def ping(self, client: Client) -> dict:
         return {
             'event': 'ping',
         }

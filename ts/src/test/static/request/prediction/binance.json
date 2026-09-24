@@ -1,0 +1,242 @@
+{
+    "exchange": "binance",
+    "asyncOnly": true,
+    "skipKeys": [
+		"timestamp",
+		"signature"
+	],
+    "outputType": "urlencoded",
+    "options": {
+		"loadAllOutcomes": true,
+		"wallet": {
+			"walletAddress": "0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
+			"walletId": 12345678
+		}
+	},
+    "methods": {
+		"createOrder": [
+			{
+				"description": "createOrder limit buy (GTC) quotes with a priceLimit and share amountIn",
+				"method": "createOrder",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/trade/get-quote",
+				"input": [
+					"FED_RATE_HIKE_2026:NO",
+					"limit",
+					"buy",
+					1000,
+					0.01,
+					{"accountType": "SPOT"}
+				],
+				"output": "timestamp=1785936243497&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8&orderType=LIMIT&slippageBps=500&priceLimit=0.01&tokenId=29193512788410035077160621265655953593161318406168685671276005587233150887532&side=BUY&amountIn=10000000000000000000&signature=4e8d5937b229e78b5e2d8c18c55c7752f66e7bd5c7d6d7dfcd689d0cd1dbed97"
+			},
+			{
+				"description": "createOrder limit sell (GTC) quotes the share amount of the sold outcome token",
+				"method": "createOrder",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/trade/get-quote",
+				"input": [
+					"FED_RATE_HIKE_2026:YES",
+					"limit",
+					"sell",
+					50,
+					0.75,
+					{"accountType": "SPOT"}
+				],
+				"output": "timestamp=1785936244503&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8&orderType=LIMIT&slippageBps=500&priceLimit=0.75&tokenId=33343582238002842848411378798219742328595215582814312977455608183150188680006&side=SELL&amountIn=50000000000000000000&signature=541cc61cdd63620870362192e962b5d38433ea25aa8b22147579baf44481f521"
+			},
+			{
+				"description": "createOrder market buy with params.cost quotes the USDT amountIn",
+				"method": "createOrder",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/trade/get-quote",
+				"input": [
+					"FED_RATE_HIKE_2026:YES",
+					"market",
+					"buy",
+					2,
+					null,
+					{"cost": "2", "accountType": "SPOT"}
+				],
+				"output": "timestamp=1785936245504&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8&orderType=MARKET&slippageBps=500&tokenId=33343582238002842848411378798219742328595215582814312977455608183150188680006&side=BUY&amountIn=2000000000000000000&signature=2b500ae0f7011177e1ae7dcacf89d6d6e35d3043ac515968a6e2a3828548e4ff"
+			},
+			{
+				"description": "createOrder market sell quotes the share amountIn of the sold outcome token",
+				"method": "createOrder",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/trade/get-quote",
+				"input": [
+					"FED_RATE_HIKE_2026:NO",
+					"market",
+					"sell",
+					3.92,
+					null,
+					{"accountType": "SPOT"}
+				],
+				"output": "timestamp=1785936246506&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8&orderType=MARKET&slippageBps=500&tokenId=29193512788410035077160621265655953593161318406168685671276005587233150887532&side=SELL&amountIn=3920000000000000000&signature=8158cfc5e00419b5bcb7ac0aa0f7f528849d3310ea733d88e5051ff89182f01a"
+			}
+		],
+		"createMarketOrderWithCost": [
+			{
+				"description": "createMarketOrderWithCost forwards the cost as the market buy amountIn",
+				"method": "createMarketOrderWithCost",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/trade/get-quote",
+				"input": [
+					"FED_RATE_HIKE_2026:YES",
+					"buy",
+					5,
+					{"accountType": "SPOT"}
+				],
+				"output": "timestamp=1785936247506&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8&orderType=MARKET&slippageBps=500&tokenId=33343582238002842848411378798219742328595215582814312977455608183150188680006&side=BUY&amountIn=5000000000000000000&signature=cc935a5666470000ea872a8de31ed4ec6c06247f1e7b9fcea1ad0fd2fb1511b4"
+			}
+		],
+		"cancelOrders": [
+			{
+				"description": "cancelOrders flattens the order ids into indexed cancelInfoList params",
+				"method": "cancelOrders",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/trade/batch-cancel",
+				"input": [
+					["54124", "54125"],
+					"FED_RATE_HIKE_2026:YES"
+				],
+				"output": "timestamp=1785936248508&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8&walletId=12345678&cancelInfoList[0].orderId=54124&cancelInfoList[1].orderId=54125&signature=256c74b676cec580d4b4904ee0ae8a7fb4ad31b0402add66b4b4c6a6e6c9a9f0"
+			}
+		],
+		"fetchOrderBook": [
+			{
+				"description": "fetch orderbook by outcome label",
+				"method": "fetchOrderBook",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order-book?timestamp=1784640076532&vendor=PREDICT_FUN&marketId=5992559&tokenId=111320514734107489769832633008728755658539627048951651727730916027834170490912&signature=xxxxxxxxxxx",
+				"input": [
+					"FED_DECISION_JULY_181_50_BPS_HIKE:YES"
+				],
+				"output": null
+			}
+		],
+		"fetchTicker": [
+			{
+				"description": "fetch ticker by outcome label",
+				"method": "fetchTicker",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order-book/last-trade-price?timestamp=1784640076532&&marketId=5992559&signature=xxxxxxxxxxx",
+				"input": [
+					"FED_DECISION_JULY_181_50_BPS_HIKE:YES"
+				],
+				"output": null
+			}
+		],
+		"fetchEvents": [
+			{
+				"description": "fetch events by query",
+				"method": "fetchEvents",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/search?timestamp=1784640076532&query=FED&topK=25&signature=xxxxxxxxxxx",
+				"input": [
+					{
+						"query": "FED"
+					}
+				],
+				"output": null
+			},
+			{
+				"description": "fetch events by eventid",
+				"method": "fetchEvents",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/detail?timestamp=1784640076532&&marketTopicId=12345678&signature=xxxxxxxxxxx",
+				"input": [
+					{
+						"eventId": 12345678
+					}
+				],
+				"output": null
+			},
+			{
+				"description": "fetch events",
+				"method": "fetchEvents",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/list?timestamp=1784640076532&&offset=0&limit=25&signature=xxxxxxxxxxx",
+				"input": [],
+				"output": null
+			}
+		],
+		"fetchEvent": [
+			{
+				"description": "fetch event",
+				"method": "fetchEvent",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/detail?timestamp=1784640076532&&marketTopicId=12345678&signature=xxxxxxxxxxx",
+				"input": [
+					12345678
+				],
+				"output": null
+			}
+		],
+		"fetchBalance": [
+			{
+				"description": "fetch balance",
+				"method": "fetchBalance",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/balance/payment-options?timestamp=1784640076532&signature=xxxxxxxxxxx",
+				"input": [],
+				"output": null
+			}
+		],
+		"fetchOpenOrders": [
+			{
+				"description": "fetch open orders",
+				"method": "fetchOpenOrders",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order/list?timestamp=1784640076532&signature=xxxxxxxxxxx&marketId=5992559&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
+				"input": [
+					"FED_DECISION_JULY_181_50_BPS_HIKE:YES"
+				],
+				"output": null
+			},
+			{
+				"description": "fetch open orders with outcome",
+				"method": "fetchOpenOrders",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order/list?timestamp=1784640076532&signature=xxxxxxxxxxx&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
+				"input": [],
+				"output": null
+			}
+		],
+		"fetchOrders": [
+			{
+				"description": "fetch orders",
+				"method": "fetchOrders",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order/history?timestamp=1784640076532&signature=xxxxxxxxxxx&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
+				"input": [],
+				"output": null
+			}
+		],
+		"fetchPositions": [
+			{
+				"description": "fetch positions",
+				"method": "fetchPositions",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/position/list?timestamp=1784640076532&signature=xxxxxxxxxxx&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
+				"input": [],
+				"output": null
+			}
+		],
+		"fetchPosition": [
+			{
+				"description": "fetch position",
+				"method": "fetchPosition",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/position/filter?timestamp=1784640076532&marketTopicId=4209994&signature=xxxxxxxxxxx&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
+				"input": [
+					"FED_DECISION_JULY_181_50_BPS_HIKE:YES"
+				],
+				"output": null
+			}
+		],
+		"fetchMyTrades": [
+			{
+				"description": "fetch my trades",
+				"method": "fetchMyTrades",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order/history?timestamp=1784640076532&signature=xxxxxxxxxxx&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8&status=FILLED",
+				"input": [],
+				"output": null
+			}
+		],
+		"cancelOrder": [
+			{
+				"description": "cancel order",
+				"method": "cancelOrder",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/trade/batch-cancel",
+				"input": [
+					12345567
+				],
+				"output": "timestamp=1785327231918&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8&walletId=12345678&cancelInfoList[0].orderId=12345567&signature=xxxxxxx"
+			}
+		]
+    }
+}

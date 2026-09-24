@@ -3,11 +3,12 @@
 
 import binance from './binance.js';
 import { InvalidOrder } from './base/errors.js';
+import type { Dict, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class binanceusdm extends binance {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
@@ -52,12 +53,12 @@ export default class binanceusdm extends binance {
         });
     }
 
-    async transferIn (code: string, amount, params = {}) {
+    async transferIn (code: string, amount: number, params: Dict = {}): Promise<TransferEntry> {
         // transfer from spot wallet to usdm futures wallet
         return await this.futuresTransfer (code, amount, 1, params);
     }
 
-    async transferOut (code: string, amount, params = {}) {
+    async transferOut (code: string, amount: number, params: Dict = {}): Promise<TransferEntry> {
         // transfer from usdm futures wallet to spot wallet
         return await this.futuresTransfer (code, amount, 2, params);
     }

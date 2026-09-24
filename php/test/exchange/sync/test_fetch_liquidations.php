@@ -11,7 +11,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_liquidation.php';
 
 function test_fetch_liquidations($exchange, $skipped_properties, $code) {
     $method = 'fetchLiquidations';
-    if (!$exchange->has['fetchLiquidations']) {
+    if ($exchange->has['fetchLiquidations'] === null || $exchange->has['fetchLiquidations'] === false) {
         return true;
     }
     $items = $exchange->fetch_liquidations($code);

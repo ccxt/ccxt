@@ -1,0 +1,385 @@
+{
+    "exchange": "coinbase",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTrades": [
+            {
+                "description": "spot trades",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://advanced-trade-ws.coinbase.com",
+                "messages": [
+                    {
+                        "channel": "market_trades",
+                        "timestamp": "2026-08-12T19:27:48.098821666Z",
+                        "sequence_num": 0,
+                        "events": [
+                            {
+                                "type": "snapshot",
+                                "trades": [
+                                    {
+                                        "product_id": "BTC-USD",
+                                        "trade_id": "1069726291",
+                                        "price": "63310.25",
+                                        "size": "0.00000043",
+                                        "time": "2026-08-12T19:27:47.532655Z",
+                                        "side": "BUY"
+                                    },
+                                    {
+                                        "product_id": "BTC-USD",
+                                        "trade_id": "1069726290",
+                                        "price": "63310.25",
+                                        "size": "0.00000019",
+                                        "time": "2026-08-12T19:27:47.184047Z",
+                                        "side": "BUY"
+                                    },
+                                    {
+                                        "product_id": "BTC-USD",
+                                        "trade_id": "1069726289",
+                                        "price": "63310.25",
+                                        "size": "0.00000008",
+                                        "time": "2026-08-12T19:27:46.445071Z",
+                                        "side": "BUY"
+                                    },
+                                    {
+                                        "product_id": "BTC-USD",
+                                        "trade_id": "1069726288",
+                                        "price": "63310.25",
+                                        "size": "0.00631442",
+                                        "time": "2026-08-12T19:27:45.928708Z",
+                                        "side": "BUY"
+                                    },
+                                    {
+                                        "product_id": "BTC-USD",
+                                        "trade_id": "1069726287",
+                                        "price": "63310.25",
+                                        "size": "0.00000015",
+                                        "time": "2026-08-12T19:27:45.873162Z",
+                                        "side": "BUY"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "subscriptions",
+                        "timestamp": "2026-08-12T19:27:48.098899106Z",
+                        "sequence_num": 1,
+                        "events": [
+                            {
+                                "subscriptions": {
+                                    "market_trades": [
+                                        "BTC-USD"
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "market_trades",
+                        "timestamp": "2026-08-12T19:27:48.364886251Z",
+                        "sequence_num": 2,
+                        "events": [
+                            {
+                                "type": "update",
+                                "trades": [
+                                    {
+                                        "product_id": "BTC-USD",
+                                        "trade_id": "1069726293",
+                                        "price": "63310.25",
+                                        "size": "0.00000012",
+                                        "time": "2026-08-12T19:27:48.298771Z",
+                                        "side": "BUY"
+                                    },
+                                    {
+                                        "product_id": "BTC-USD",
+                                        "trade_id": "1069726292",
+                                        "price": "63310.25",
+                                        "size": "0.00000012",
+                                        "time": "2026-08-12T19:27:48.266642Z",
+                                        "side": "BUY"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "subscribe",
+                        "product_ids": [
+                            "BTC-USD"
+                        ],
+                        "channel": "market_trades"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "product_id": "BTC-USD",
+                                "trade_id": "1069726287",
+                                "price": "63310.25",
+                                "size": "0.00000015",
+                                "time": "2026-08-12T19:27:45.873162Z",
+                                "side": "BUY"
+                            },
+                            "id": "1069726287",
+                            "order": null,
+                            "timestamp": 1786562865873,
+                            "datetime": "2026-08-12T19:27:45.873162Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63310.25,
+                            "amount": 1.5e-07,
+                            "cost": 0.0094965375,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "product_id": "BTC-USD",
+                                "trade_id": "1069726288",
+                                "price": "63310.25",
+                                "size": "0.00631442",
+                                "time": "2026-08-12T19:27:45.928708Z",
+                                "side": "BUY"
+                            },
+                            "id": "1069726288",
+                            "order": null,
+                            "timestamp": 1786562865928,
+                            "datetime": "2026-08-12T19:27:45.928708Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63310.25,
+                            "amount": 0.00631442,
+                            "cost": 399.767508805,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "product_id": "BTC-USD",
+                                "trade_id": "1069726289",
+                                "price": "63310.25",
+                                "size": "0.00000008",
+                                "time": "2026-08-12T19:27:46.445071Z",
+                                "side": "BUY"
+                            },
+                            "id": "1069726289",
+                            "order": null,
+                            "timestamp": 1786562866445,
+                            "datetime": "2026-08-12T19:27:46.445071Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63310.25,
+                            "amount": 8e-08,
+                            "cost": 0.00506482,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "product_id": "BTC-USD",
+                                "trade_id": "1069726290",
+                                "price": "63310.25",
+                                "size": "0.00000019",
+                                "time": "2026-08-12T19:27:47.184047Z",
+                                "side": "BUY"
+                            },
+                            "id": "1069726290",
+                            "order": null,
+                            "timestamp": 1786562867184,
+                            "datetime": "2026-08-12T19:27:47.184047Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63310.25,
+                            "amount": 1.9e-07,
+                            "cost": 0.0120289475,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "product_id": "BTC-USD",
+                                "trade_id": "1069726291",
+                                "price": "63310.25",
+                                "size": "0.00000043",
+                                "time": "2026-08-12T19:27:47.532655Z",
+                                "side": "BUY"
+                            },
+                            "id": "1069726291",
+                            "order": null,
+                            "timestamp": 1786562867532,
+                            "datetime": "2026-08-12T19:27:47.532655Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 63310.25,
+                            "amount": 4.3e-07,
+                            "cost": 0.0272234075,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ],
+                "disabledCS": "the replayed coinbase frames do not resolve the watch future in c# - message routing parity, investigate separately"
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://advanced-trade-ws.coinbase.com",
+                "messages": [
+                    {
+                        "channel": "ticker",
+                        "timestamp": "2026-08-12T19:27:33.489674268Z",
+                        "sequence_num": 0,
+                        "events": [
+                            {
+                                "type": "snapshot",
+                                "tickers": [
+                                    {
+                                        "type": "ticker",
+                                        "product_id": "BTC-USD",
+                                        "price": "63320.73",
+                                        "volume_24_h": "6629.927726",
+                                        "low_24_h": "63235.88",
+                                        "high_24_h": "64416.3",
+                                        "low_52_w": "57717.55",
+                                        "high_52_w": "126296",
+                                        "price_percent_chg_24_h": "0.03813791548644",
+                                        "best_bid": "63320.73",
+                                        "best_ask": "63320.74",
+                                        "best_bid_quantity": "0.12636254",
+                                        "best_ask_quantity": "0.49679101"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "subscriptions",
+                        "timestamp": "2026-08-12T19:27:33.489690582Z",
+                        "sequence_num": 1,
+                        "events": [
+                            {
+                                "subscriptions": {
+                                    "ticker": [
+                                        "BTC-USD"
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "ticker",
+                        "timestamp": "2026-08-12T19:27:33.829058895Z",
+                        "sequence_num": 2,
+                        "events": [
+                            {
+                                "type": "update",
+                                "tickers": [
+                                    {
+                                        "type": "ticker",
+                                        "product_id": "BTC-USD",
+                                        "price": "63320.73",
+                                        "volume_24_h": "6629.927726",
+                                        "low_24_h": "63235.88",
+                                        "high_24_h": "64416.3",
+                                        "low_52_w": "57717.55",
+                                        "high_52_w": "126296",
+                                        "price_percent_chg_24_h": "0.03813791548644",
+                                        "best_bid": "63318.86",
+                                        "best_ask": "63318.87",
+                                        "best_bid_quantity": "0.2275291",
+                                        "best_ask_quantity": "0.49990114"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "subscribe",
+                        "product_ids": [
+                            "BTC-USD"
+                        ],
+                        "channel": "ticker"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "type": "ticker",
+                            "product_id": "BTC-USD",
+                            "price": "63320.73",
+                            "volume_24_h": "6629.927726",
+                            "low_24_h": "63235.88",
+                            "high_24_h": "64416.3",
+                            "low_52_w": "57717.55",
+                            "high_52_w": "126296",
+                            "price_percent_chg_24_h": "0.03813791548644",
+                            "best_bid": "63320.73",
+                            "best_ask": "63320.74",
+                            "best_bid_quantity": "0.12636254",
+                            "best_ask_quantity": "0.49679101"
+                        },
+                        "symbol": "BTC/USD",
+                        "timestamp": 1786562853489,
+                        "datetime": "2026-08-12T19:27:33.489674268Z",
+                        "high": 64416.3,
+                        "low": 63235.88,
+                        "bid": 63320.73,
+                        "bidVolume": 0.12636254,
+                        "ask": 63320.74,
+                        "askVolume": 0.49679101,
+                        "vwap": null,
+                        "open": 63296.590000000004,
+                        "close": 63320.73,
+                        "last": 63320.73,
+                        "previousClose": null,
+                        "change": 24.139999999998434,
+                        "percentage": 0.03813791548644,
+                        "average": 63308.66,
+                        "baseVolume": 6629.927726,
+                        "quoteVolume": null,
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "disabledCS": "the replayed coinbase frames do not resolve the watch future in c# - message routing parity, investigate separately"
+            }
+        ]
+    }
+}

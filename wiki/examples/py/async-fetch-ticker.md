@@ -1,10 +1,10 @@
-- [Async Fetch Ticker](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
+from importlib import import_module
+from importlib.util import find_spec
 
- ```python
- # -*- coding: utf-8 -*-
-
-import asyncio
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 from pprint import pprint
@@ -12,6 +12,6 @@ from pprint import pprint
 
 import ccxt.async_support as ccxt  # noqa: E402
 
-pprint(asyncio.run(ccxt.binance().fetch_ticker('ETH/BTC')))
- 
+pprint(run(ccxt.binance().fetch_ticker('ETH/BTC')))
+
 ```

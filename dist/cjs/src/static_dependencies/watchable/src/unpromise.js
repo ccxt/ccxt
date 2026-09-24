@@ -54,6 +54,7 @@ const NOOP = () => { };
  *
  */
 class Unpromise {
+    static { _a = Symbol.toStringTag; }
     constructor(arg) {
         /** Promises expecting eventual settlement (unless unsubscribed first). This list is deleted
          * after the original promise settles - no further notifications will be issued. */
@@ -260,7 +261,6 @@ class Unpromise {
         }
     }
 }
-_a = Symbol.toStringTag;
 /** Promises a 1-tuple containing the original promise when it resolves. Allows
  * awaiting the eventual Promise ***reference*** (easy to destructure and
  * exactly compare with ===). Avoids resolving to the Promise ***value*** (which

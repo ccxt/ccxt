@@ -37,7 +37,7 @@ async function initFileSystem() {
     if (platform.isNode) {
         if (fsSyncModule === null) {
             try {
-                // Dynamic import with webpackIgnore to prevent bundling
+                // Dynamic import with rspackIgnore to prevent bundling
                 fsSyncModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:fs')); });
             }
             catch (e) { } // Silent fail in browser or if fs is unavailable
@@ -106,12 +106,16 @@ function ensureWhitelistedFile(filePath) {
  * @returns File contents as string, or undefined in browser
  */
 function readFile(path, encoding = 'utf8') {
+    // encoding null → Node returns Buffer (binary); default 'utf8' returns string
     if (!platform.isNode || fsSyncModule === null) {
         // Sync module not initialized yet
         return undefined;
     }
     ensureWhitelistedFile(path);
     try {
+        if (encoding === null) {
+            return fsSyncModule.readFileSync(path);
+        }
         return fsSyncModule.readFileSync(path, encoding);
     }
     catch (e) {

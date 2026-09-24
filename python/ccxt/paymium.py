@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.paymium import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -15,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class paymium(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(paymium, self).describe(), {
             'id': 'paymium',
             'name': 'Paymium',
@@ -67,40 +66,41 @@ class paymium(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'countries',
-                        'currencies',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
-                    ],
+                    'get': {
+                        'countries': {'cost': 1},
+                        'currencies': {'cost': 1},
+                        'data/{currency}/ticker': {'cost': 1},
+                        'data/{currency}/trades': {'cost': 1},
+                        'data/{currency}/depth': {'cost': 1},
+                        'bitcoin_charts/{id}/trades': {'cost': 1},
+                        'bitcoin_charts/{id}/depth': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
-                    ],
-                    'post': [
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
-                    ],
-                    'delete': [
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
-                    ],
+                    'get': {
+                        'user': {'cost': 1},
+                        'user/addresses': {'cost': 1},
+                        'user/addresses/{address}': {'cost': 1},
+                        'user/orders': {'cost': 1},
+                        'user/orders/{uuid}': {'cost': 1},
+                        'user/price_alerts': {'cost': 1},
+                        'user/withdrawals': {'cost': 1},
+                        'merchant/get_payment/{uuid}': {'cost': 1},
+                    },
+                    'post': {
+                        'user/addresses': {'cost': 1},
+                        'user/orders': {'cost': 1},
+                        'user/withdrawals': {'cost': 1},
+                        'user/email_transfers': {'cost': 1},
+                        'user/payment_requests': {'cost': 1},
+                        'user/price_alerts': {'cost': 1},
+                        'merchant/create_payment': {'cost': 1},
+                    },
+                    'delete': {
+                        'user/orders/{uuid}': {'cost': 1},
+                        'user/orders/{uuid}/cancel': {'cost': 1},
+                        'user/price_alerts/{id}': {'cost': 1},
+                    },
                 },
             },
             'markets': {
@@ -157,8 +157,8 @@ class paymium(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+    def parse_balance(self, response: object) -> Balances:
+        result = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
             code = currencies[i]
@@ -173,7 +173,7 @@ class paymium(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -182,11 +182,12 @@ class paymium(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetUser(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -195,11 +196,12 @@ class paymium(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['id'],
         }
         response = self.publicGetDataCurrencyDepth(self.extend(request, params))
@@ -253,7 +255,7 @@ class paymium(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -263,9 +265,10 @@ class paymium(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['id'],
         }
         ticker = self.publicGetDataCurrencyTicker(self.extend(request, params))
@@ -313,7 +316,7 @@ class paymium(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -325,15 +328,16 @@ class paymium(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['id'],
         }
         response = self.publicGetDataCurrencyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -343,7 +347,8 @@ class paymium(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privatePostUserAddresses(params)
         #
         #     {
@@ -355,7 +360,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -365,8 +370,9 @@ class paymium(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'address': code,
         }
         response = self.privateGetUserAddressesAddress(self.extend(request, params))
@@ -380,7 +386,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
+    def fetch_deposit_addresses(self, codes: Strings = None, params: dict = {}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
 
@@ -390,7 +396,8 @@ class paymium(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetUserAddresses(params)
         #
         #     [
@@ -402,9 +409,9 @@ class paymium(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_deposit_addresses(response, codes)
+        return self.parse_deposit_addresses(response, codes, False)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -423,7 +430,7 @@ class paymium(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -437,9 +444,10 @@ class paymium(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'type': self.capitalize(type) + 'Order',
             'currency': market['id'],
             'direction': side,
@@ -450,21 +458,21 @@ class paymium(Exchange, ImplicitAPI):
         response = self.privatePostUserOrders(self.extend(request, params))
         return self.safe_order({
             'info': response,
-            'id': response['uuid'],
+            'id': self.safe_string(response, 'uuid'),
         }, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
         https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
 
         :param str id: order id
-        :param str symbol: not used by paymium cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'uuid': id,
         }
         response = self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
@@ -472,7 +480,7 @@ class paymium(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -485,13 +493,14 @@ class paymium(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         if toAccount.find('@') < 0:
             raise ExchangeError(self.id + ' transfer() only allows transfers to an email address')
         if code != 'BTC' and code != 'EUR':
             raise ExchangeError(self.id + ' transfer() only allows BTC or EUR')
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'email': toAccount,
@@ -525,7 +534,7 @@ class paymium(Exchange, ImplicitAPI):
         #                 "name": "account_operation",
         #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
         #                 "tx_hash": "string",
-        #                 "is_trading_account": True
+        #                 "is_trading_account": true
         #             }
         #         ]
         #     }
@@ -560,7 +569,7 @@ class paymium(Exchange, ImplicitAPI):
         #                 "name": "account_operation",
         #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
         #                 "tx_hash": "string",
-        #                 "is_trading_account": True
+        #                 "is_trading_account": true
         #             }
         #         ]
         #     }
@@ -568,8 +577,8 @@ class paymium(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transfer, 'currency')
         updatedAt = self.safe_string(transfer, 'updated_at')
         timetstamp = self.parse_date(updatedAt)
-        accountOperations = self.safe_value(transfer, 'account_operations')
-        firstOperation = self.safe_value(accountOperations, 0, {})
+        accountOperations = self.safe_list(transfer, 'account_operations')
+        firstOperation = self.safe_dict(accountOperations, 0, {})
         status = self.safe_string(transfer, 'state')
         return {
             'info': transfer,
@@ -584,17 +593,17 @@ class paymium(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'executed': 'ok',
             # what are the other statuses?
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -605,19 +614,19 @@ class paymium(Exchange, ImplicitAPI):
                 'Api-Nonce': nonce,
             }
             if method == 'POST':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     auth += body
                     headers['Content-Type'] = 'application/json'
             else:
-                if query:
+                if len(query) > 0:
                     queryString = self.urlencode(query)
                     auth += queryString
                     url += '?' + queryString
             headers['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         errors = self.safe_value(response, 'errors')

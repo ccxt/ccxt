@@ -117,6 +117,41 @@
                 ]
             }
         ],
+        "fetchOrderBook": [
+            {
+                "description": "incident replay 2026-08-17 - a signed ws-style aggregate leaked into the rest snapshot: negative and zero quantity ghosts must be dropped, real levels and positive dust must survive",
+                "method": "fetchOrderBook",
+                "url": "https://api.latoken.com/v2/book/92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5?limit=1000",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "ask": [
+                        {"price": "63040.75", "quantity": "-0.1791852", "cost": "0", "accumulated": "0"},
+                        {"price": "63555.66", "quantity": "0.1934343", "cost": "12293.844603138", "accumulated": "12293.844603138"},
+                        {"price": "63565.97", "quantity": "0", "cost": "0", "accumulated": "12293.844603138"}
+                    ],
+                    "bid": [
+                        {"price": "62400.0", "quantity": "0.0000127", "cost": "0.79248", "accumulated": "0.79248"},
+                        {"price": "62399.5", "quantity": "-0.5", "cost": "0", "accumulated": "0.79248"}
+                    ],
+                    "totalAsk": "12293.844603138",
+                    "totalBid": "0.79248"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [62400, 0.0000127]
+                    ],
+                    "asks": [
+                        [63555.66, 0.1934343]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": null
+                }
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "public spot ticker",

@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitteam as Exchange;
 
 class bitteam extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitteam',
@@ -172,41 +171,42 @@ class bitteam extends Exchange {
             'api' => array(
                 'history' => array(
                     'get' => array(
-                        'api/tw/history/{pairName}/{resolution}' => 1,
+                        'api/tw/history/{pairName}/{resolution}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'trade/api/asset' => 1, // not unified
-                        'trade/api/currencies' => 1,
-                        'trade/api/orderbooks/{symbol}' => 1, // not unified
-                        'trade/api/orders' => 1, // not unified
-                        'trade/api/pair/{name}' => 1,
-                        'trade/api/pairs' => 1, // not unified
-                        'trade/api/pairs/precisions' => 1, // not unified
-                        'trade/api/rates' => 1, // not unified
-                        'trade/api/trade/{id}' => 1, // not unified
-                        'trade/api/trades' => 1, // not unified
-                        'trade/api/ccxt/pairs' => 1,
-                        'trade/api/cmc/assets' => 1,
-                        'trade/api/cmc/orderbook/{pair}' => 1,
-                        'trade/api/cmc/summary' => 1,
-                        'trade/api/cmc/ticker' => 1, // not unified
-                        'trade/api/cmc/trades/{pair}' => 1,
+                        'trade/api/asset' => array( 'cost' => 1 ), // not unified
+                        'trade/api/currencies' => array( 'cost' => 1 ),
+                        'trade/api/orderbooks/{symbol}' => array( 'cost' => 1 ), // not unified
+                        'trade/api/orders' => array( 'cost' => 1 ), // not unified
+                        'trade/api/pair/{name}' => array( 'cost' => 1 ),
+                        'trade/api/pairs' => array( 'cost' => 1 ), // not unified
+                        'trade/api/pairs/precisions' => array( 'cost' => 1 ), // not unified
+                        'trade/api/rates' => array( 'cost' => 1 ), // not unified
+                        'trade/api/stats' => array( 'cost' => 1 ), // not unified
+                        'trade/api/trade/{id}' => array( 'cost' => 1 ), // not unified
+                        'trade/api/trades' => array( 'cost' => 1 ), // not unified
+                        'trade/api/ccxt/pairs' => array( 'cost' => 1 ),
+                        'trade/api/cmc/assets' => array( 'cost' => 1 ),
+                        'trade/api/cmc/orderbook/{pair}' => array( 'cost' => 1 ),
+                        'trade/api/cmc/summary' => array( 'cost' => 1 ),
+                        'trade/api/cmc/ticker' => array( 'cost' => 1 ), // not unified
+                        'trade/api/cmc/trades/{pair}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'trade/api/ccxt/balance' => 1,
-                        'trade/api/ccxt/order/{id}' => 1,
-                        'trade/api/ccxt/ordersOfUser' => 1,
-                        'trade/api/ccxt/tradesOfUser' => 1,
-                        'trade/api/transactionsOfUser' => 1,
+                        'trade/api/ccxt/balance' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/order/{id}' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/ordersOfUser' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/tradesOfUser' => array( 'cost' => 1 ),
+                        'trade/api/transactionsOfUser' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'trade/api/ccxt/cancel-all-order' => 1,
-                        'trade/api/ccxt/cancelorder' => 1,
-                        'trade/api/ccxt/ordercreate' => 1,
+                        'trade/api/ccxt/cancel-all-order' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/cancelorder' => array( 'cost' => 1 ),
+                        'trade/api/ccxt/ordercreate' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -242,9 +242,11 @@ class bitteam extends Exchange {
                     'ufobject' => 'ufobject',
                     'tonchain' => 'tonchain',
                 ),
-                'currenciesValuedInUsd' => array(
-                    'USDT' => true,
-                    'BUSD' => true,
+                'fetchMarkets' => array(
+                    'currenciesValuedInUsd' => array(
+                        'USDT' => true,
+                        'BUSD' => true,
+                    ),
                 ),
             ),
             'features' => array(
@@ -327,127 +329,127 @@ class bitteam extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    '400002' => '\\ccxt\\BadSymbol', // array("ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair")
-                    '401000' => '\\ccxt\\AuthenticationError', // array("ok":false,"code":401000,"data" => array(),"message" => "Missing authentication")
-                    '403002' => '\\ccxt\\BadRequest', // array("ok":false,"code":403002,"data":array(),"message":"Order cannot be deleted, status does not match")
-                    '404200' => '\\ccxt\\BadSymbol', // array("ok":false,"code":404200,"data":array(),"message":"Pair was not found")
+                    '400002' => '\\ccxt\\BadSymbol', // {"ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair"}
+                    '401000' => '\\ccxt\\AuthenticationError', // {"ok":false,"code":401000,"data": {},"message": "Missing authentication"}
+                    '403002' => '\\ccxt\\BadRequest', // {"ok":false,"code":403002,"data":{},"message":"Order cannot be deleted, status does not match"}
+                    '404200' => '\\ccxt\\BadSymbol', // {"ok":false,"code":404200,"data":{},"message":"Pair was not found"}
                 ),
                 'broad' => array(
-                    'is not allowed' => '\\ccxt\\BadRequest', // array("message":"\"createdAt\" is not allowed","path":["createdAt"],"type":"object.unknown","context":array("child":"createdAt","label":"createdAt","value":"DESC","key":"createdAt"))
-                    'Insufficient funds' => '\\ccxt\\InsufficientFunds', // array("ok":false,"code":450000,"data":null,"message":"Insufficient funds")
-                    'Invalid request params input' => '\\ccxt\\BadRequest', // array("ok":false,"code":400000,"data":array(),"message":"Invalid request params input")
-                    'must be a number' => '\\ccxt\\BadRequest', // [ExchangeError] bitteam array("message":"\"currency\" must be a number","path":["currency"],"type":"number.base","context":array("label":"currency","value":"adsf","key":"currency"))
-                    'must be a string' => '\\ccxt\\BadRequest', // array("message":"\"pairId\" must be a string","path":["pairId"],"type":"string.base","context":array("label":"pairId","value":87,"key":"pairId"))
-                    'must be of type' => '\\ccxt\\BadRequest', // array("message":"\"order\" must be of type object","path":["order"],"type":"object.base","context":array("type":"object","label":"order","value":"107218781","key":"order"))
-                    'must be one of' => '\\ccxt\\BadRequest', // array("message":"\"resolution\" must be one of [1, 5, 15, 60, 1D]","path":["resolution"],"type":"any.only","context":array("valids":["1","5","15","60","1D"],"label":"resolution","value":"1d","key":"resolution"))
-                    'Order not found' => '\\ccxt\\OrderNotFound', // array("ok":false,"code":404300,"data":array(),"message":"Order not found")
-                    'Pair with pair name' => '\\ccxt\\BadSymbol', // array("ok":false,"code":404000,"data":array("pairName":"ETH_USasdf"),"msg":"Pair with pair name ETH_USasdf was not found")
-                    'pairName' => '\\ccxt\\BadSymbol', // array("message":"\"pairName\" length must be at least 7 characters long","path":["pairName"],"type":"string.min","context":array("limit":7,"value":"ETH_US","label":"pairName","key":"pairName"))
-                    'Service Unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("message":"Service Unavailable","code":403000,"ok":false)
-                    'Symbol ' => '\\ccxt\\BadSymbol', // array("ok":false,"code":404000,"data":array(),"message":"Symbol asdfasdfas was not found")
+                    'is not allowed' => '\\ccxt\\BadRequest', // {"message":"\"createdAt\" is not allowed","path":["createdAt"],"type":"object.unknown","context":{"child":"createdAt","label":"createdAt","value":"DESC","key":"createdAt"}}
+                    'Insufficient funds' => '\\ccxt\\InsufficientFunds', // {"ok":false,"code":450000,"data":null,"message":"Insufficient funds"}
+                    'Invalid request params input' => '\\ccxt\\BadRequest', // {"ok":false,"code":400000,"data":{},"message":"Invalid request params input"}
+                    'must be a number' => '\\ccxt\\BadRequest', // [ExchangeError] bitteam {"message":"\"currency\" must be a number","path":["currency"],"type":"number.base","context":{"label":"currency","value":"adsf","key":"currency"}}
+                    'must be a string' => '\\ccxt\\BadRequest', // {"message":"\"pairId\" must be a string","path":["pairId"],"type":"string.base","context":{"label":"pairId","value":87,"key":"pairId"}}
+                    'must be of type' => '\\ccxt\\BadRequest', // {"message":"\"order\" must be of type object","path":["order"],"type":"object.base","context":{"type":"object","label":"order","value":"107218781","key":"order"}}
+                    'must be one of' => '\\ccxt\\BadRequest', // {"message":"\"resolution\" must be one of [1, 5, 15, 60, 1D]","path":["resolution"],"type":"any.only","context":{"valids":["1","5","15","60","1D"],"label":"resolution","value":"1d","key":"resolution"}}
+                    'Order not found' => '\\ccxt\\OrderNotFound', // {"ok":false,"code":404300,"data":{},"message":"Order not found"}
+                    'Pair with pair name' => '\\ccxt\\BadSymbol', // {"ok":false,"code":404000,"data":{"pairName":"ETH_USasdf"},"msg":"Pair with pair name ETH_USasdf was not found"}
+                    'pairName' => '\\ccxt\\BadSymbol', // {"message":"\"pairName\" length must be at least 7 characters long","path":["pairName"],"type":"string.min","context":{"limit":7,"value":"ETH_US","label":"pairName","key":"pairName"}}
+                    'Service Unavailable' => '\\ccxt\\ExchangeNotAvailable', // {"message":"Service Unavailable","code":403000,"ok":false}
+                    'Symbol ' => '\\ccxt\\BadSymbol', // {"ok":false,"code":404000,"data":{},"message":"Symbol asdfasdfas was not found"}
                 ),
             ),
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for bitteam
          *
          * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
          *
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetTradeApiCcxtPairs ($params);
+        $response = $this->publicGetTradeApiCcxtPairs($params);
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 28,
-        //             "pairs" => array(
-        //                 array(
-        //                     "id" => 2,
-        //                     "name" => "eth_usdt",
-        //                     "baseAssetId" => 2,
-        //                     "quoteAssetId" => 3,
-        //                     "fullName" => "ETH USDT",
-        //                     "description" => "ETH   USDT",
-        //                     "lastBuy" => 1964.665001,
-        //                     "lastSell" => 1959.835005,
-        //                     "lastPrice" => 1964.665001,
-        //                     "change24" => 1.41,
-        //                     "volume24" => 28.22627543,
-        //                     "volume24USD" => 55662.35636401598,
-        //                     "active" => true,
-        //                     "baseStep" => 8,
-        //                     "quoteStep" => 6,
-        //                     "status" => 1,
-        //                     "settings" => array(
-        //                         "limit_usd" => "0.1",
-        //                         "price_max" => "10000000000000",
-        //                         "price_min" => "1",
-        //                         "price_tick" => "1",
-        //                         "pricescale" => 10000,
-        //                         "lot_size_max" => "1000000000000000",
-        //                         "lot_size_min" => "1",
-        //                         "lot_size_tick" => "1",
-        //                         "price_view_min" => 6,
-        //                         "default_slippage" => 10,
-        //                         "lot_size_view_min" => 6
-        //                     ),
-        //                     "updateId" => "50620",
-        //                     "timeStart" => "2021-01-28T09:19:30.706Z",
-        //                     "makerFee" => 200,
-        //                     "takerFee" => 200,
-        //                     "quoteVolume24" => 54921.93404134529,
-        //                     "lowPrice24" => 1919.355,
-        //                     "highPrice24" => 1971.204995
-        //                 ),
+        //         "ok": true,
+        //         "result": {
+        //             "count": 28,
+        //             "pairs": [
         //                 {
-        //                     "id" => 27,
-        //                     "name" => "ltc_usdt",
-        //                     "baseAssetId" => 13,
-        //                     "quoteAssetId" => 3,
-        //                     "fullName" => "LTC USDT",
-        //                     "description" => "This is LTC USDT",
-        //                     "lastBuy" => 53.14,
-        //                     "lastSell" => 53.58,
-        //                     "lastPrice" => 53.58,
-        //                     "change24" => -6.72,
-        //                     "volume24" => 0,
-        //                     "volume24USD" => null,
-        //                     "active" => true,
-        //                     "baseStep" => 8,
-        //                     "quoteStep" => 6,
-        //                     "status" => 0,
-        //                     "settings" => array(
-        //                         "limit_usd" => "0.1",
-        //                         "price_max" => "1000000000000",
-        //                         "price_min" => "1",
-        //                         "price_tick" => "1",
-        //                         "pricescale" => 10000,
-        //                         "lot_size_max" => "1000000000000",
-        //                         "lot_size_min" => "1",
-        //                         "lot_size_tick" => "1",
-        //                         "price_view_min" => 6,
-        //                         "default_slippage" => 10,
-        //                         "lot_size_view_min" => 6
-        //                     ),
-        //                     "updateId" => "30",
-        //                     "timeStart" => "2021-10-13T12:11:05.359Z",
-        //                     "makerFee" => 200,
-        //                     "takerFee" => 200,
-        //                     "quoteVolume24" => 0,
-        //                     "lowPrice24" => null,
-        //                     "highPrice24" => null
+        //                     "id": 2,
+        //                     "name": "eth_usdt",
+        //                     "baseAssetId": 2,
+        //                     "quoteAssetId": 3,
+        //                     "fullName": "ETH USDT",
+        //                     "description": "ETH   USDT",
+        //                     "lastBuy": 1964.665001,
+        //                     "lastSell": 1959.835005,
+        //                     "lastPrice": 1964.665001,
+        //                     "change24": 1.41,
+        //                     "volume24": 28.22627543,
+        //                     "volume24USD": 55662.35636401598,
+        //                     "active": true,
+        //                     "baseStep": 8,
+        //                     "quoteStep": 6,
+        //                     "status": 1,
+        //                     "settings": {
+        //                         "limit_usd": "0.1",
+        //                         "price_max": "10000000000000",
+        //                         "price_min": "1",
+        //                         "price_tick": "1",
+        //                         "pricescale": 10000,
+        //                         "lot_size_max": "1000000000000000",
+        //                         "lot_size_min": "1",
+        //                         "lot_size_tick": "1",
+        //                         "price_view_min": 6,
+        //                         "default_slippage": 10,
+        //                         "lot_size_view_min": 6
+        //                     },
+        //                     "updateId": "50620",
+        //                     "timeStart": "2021-01-28T09:19:30.706Z",
+        //                     "makerFee": 200,
+        //                     "takerFee": 200,
+        //                     "quoteVolume24": 54921.93404134529,
+        //                     "lowPrice24": 1919.355,
+        //                     "highPrice24": 1971.204995
+        //                 },
+        //                 {
+        //                     "id": 27,
+        //                     "name": "ltc_usdt",
+        //                     "baseAssetId": 13,
+        //                     "quoteAssetId": 3,
+        //                     "fullName": "LTC USDT",
+        //                     "description": "This is LTC USDT",
+        //                     "lastBuy": 53.14,
+        //                     "lastSell": 53.58,
+        //                     "lastPrice": 53.58,
+        //                     "change24": -6.72,
+        //                     "volume24": 0,
+        //                     "volume24USD": null,
+        //                     "active": true,
+        //                     "baseStep": 8,
+        //                     "quoteStep": 6,
+        //                     "status": 0,
+        //                     "settings": {
+        //                         "limit_usd": "0.1",
+        //                         "price_max": "1000000000000",
+        //                         "price_min": "1",
+        //                         "price_tick": "1",
+        //                         "pricescale": 10000,
+        //                         "lot_size_max": "1000000000000",
+        //                         "lot_size_min": "1",
+        //                         "lot_size_tick": "1",
+        //                         "price_view_min": 6,
+        //                         "default_slippage": 10,
+        //                         "lot_size_view_min": 6
+        //                     },
+        //                     "updateId": "30",
+        //                     "timeStart": "2021-10-13T12:11:05.359Z",
+        //                     "makerFee": 200,
+        //                     "takerFee": 200,
+        //                     "quoteVolume24": 0,
+        //                     "lowPrice24": null,
+        //                     "highPrice24": null
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
-        $markets = $this->safe_value($result, 'pairs', array());
+        $result = $this->safe_dict($response, 'result', array());
+        $markets = $this->safe_list($result, 'pairs', array());
         return $this->parse_markets($markets);
     }
 
@@ -459,14 +461,14 @@ class bitteam extends Exchange {
         $quoteId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $active = $this->safe_value($market, 'active');
+        $active = $this->safe_bool($market, 'active');
         $timeStart = $this->safe_string($market, 'timeStart');
         $created = $this->parse8601($timeStart);
         $minCost = null;
-        $currenciesValuedInUsd = $this->safe_value($this->options, 'currenciesValuedInUsd', array());
+        $currenciesValuedInUsd = $this->handle_option('fetchMarkets', 'currenciesValuedInUsd', array());
         $quoteInUsd = $this->safe_bool($currenciesValuedInUsd, $quote, false);
-        if ($quoteInUsd) {
-            $settings = $this->safe_value($market, 'settings', array());
+        if ($quoteInUsd === true) {
+            $settings = $this->safe_dict($market, 'settings', array());
             $minCost = $this->safe_number($settings, 'limit_usd');
         }
         return $this->safe_market_structure(array(
@@ -521,128 +523,128 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available $currencies on an exchange
          *
          * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
          *
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->publicGetTradeApiCurrencies ($params);
+        $response = $this->publicGetTradeApiCurrencies($params);
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 24,
-        //             "currencies" => array(
+        //         "ok": true,
+        //         "result": {
+        //             "count": 24,
+        //             "currencies": [
         //                 {
-        //                     "txLimits" => array(
-        //                         "minDeposit" => "0.0001",
-        //                         "minWithdraw" => "0.02",
-        //                         "maxWithdraw" => "10000",
-        //                         "withdrawCommissionPercentage" => "NaN",
-        //                         "withdrawCommissionFixed" => "0.005"
-        //                     ),
-        //                     "id" => 2,
-        //                     "status" => 1,
-        //                     "symbol" => "eth",
-        //                     "title" => "Ethereum",
-        //                     "logoURL" => "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-        //                     "isDiscount" => false,
-        //                     "address" => "https://ethereum.org/",
-        //                     "description" => "Ethereum ETH",
-        //                     "decimals" => 18,
-        //                     "blockChain" => "Ethereum",
-        //                     "precision" => 8,
-        //                     "currentRate" => null,
-        //                     "active" => true,
-        //                     "timeStart" => "2021-01-28T08:57:41.719Z",
-        //                     "type" => "crypto",
-        //                     "typeNetwork" => "internalGW",
-        //                     "idSorting" => 2,
-        //                     "links" => array(
-        //                         array(
-        //                             "tx" => "https://etherscan.io/tx/",
-        //                             "address" => "https://etherscan.io/address/",
-        //                             "blockChain" => "Ethereum"
-        //                         }
-        //                     )
-        //                 ),
-        //                 {
-        //                     "txLimits" => {
-        //                         "minDeposit" => "0.001",
-        //                         "minWithdraw" => "1",
-        //                         "maxWithdraw" => "100000",
-        //                         "withdrawCommissionPercentage" => "NaN",
-        //                         "withdrawCommissionFixed" => array(
-        //                             "Tron" => "2",
-        //                             "Binance" => "2",
-        //                             "Ethereum" => "20"
-        //                         }
-        //                     ),
-        //                     "id" => 3,
-        //                     "status" => 1,
-        //                     "symbol" => "usdt",
-        //                     "title" => "Tether USD",
-        //                     "logoURL" => "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-        //                     "isDiscount" => false,
-        //                     "address" => "https://tether.to/",
-        //                     "description" => "Tether USD",
-        //                     "decimals" => 6,
-        //                     "blockChain" => "",
-        //                     "precision" => 6,
-        //                     "currentRate" => null,
-        //                     "active" => true,
-        //                     "timeStart" => "2021-01-28T09:04:17.170Z",
-        //                     "type" => "crypto",
-        //                     "typeNetwork" => "internalGW",
-        //                     "idSorting" => 0,
-        //                     "links" => array(
-        //                         array(
-        //                             "tx" => "https://etherscan.io/tx/",
-        //                             "address" => "https://etherscan.io/address/",
-        //                             "blockChain" => "Ethereum"
-        //                         ),
-        //                         array(
-        //                             "tx" => "https://tronscan.org/#/transaction/",
-        //                             "address" => "https://tronscan.org/#/address/",
-        //                             "blockChain" => "Tron"
-        //                         ),
+        //                     "txLimits": {
+        //                         "minDeposit": "0.0001",
+        //                         "minWithdraw": "0.02",
+        //                         "maxWithdraw": "10000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": "0.005"
+        //                     },
+        //                     "id": 2,
+        //                     "status": 1,
+        //                     "symbol": "eth",
+        //                     "title": "Ethereum",
+        //                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+        //                     "isDiscount": false,
+        //                     "address": "https://ethereum.org/",
+        //                     "description": "Ethereum ETH",
+        //                     "decimals": 18,
+        //                     "blockChain": "Ethereum",
+        //                     "precision": 8,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T08:57:41.719Z",
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "idSorting": 2,
+        //                     "links": [
         //                         {
-        //                             "tx" => "https://bscscan.com/tx/",
-        //                             "address" => "https://bscscan.com/address/",
-        //                             "blockChain" => "Binance"
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
         //                         }
-        //                     )
+        //                     ]
+        //                 },
+        //                 {
+        //                     "txLimits": {
+        //                         "minDeposit": "0.001",
+        //                         "minWithdraw": "1",
+        //                         "maxWithdraw": "100000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2",
+        //                             "Binance": "2",
+        //                             "Ethereum": "20"
+        //                         }
+        //                     },
+        //                     "id": 3,
+        //                     "status": 1,
+        //                     "symbol": "usdt",
+        //                     "title": "Tether USD",
+        //                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+        //                     "isDiscount": false,
+        //                     "address": "https://tether.to/",
+        //                     "description": "Tether USD",
+        //                     "decimals": 6,
+        //                     "blockChain": "",
+        //                     "precision": 6,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T09:04:17.170Z",
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "idSorting": 0,
+        //                     "links": [
+        //                         {
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         },
+        //                         {
+        //                             "tx": "https://tronscan.org/#/transaction/",
+        //                             "address": "https://tronscan.org/#/address/",
+        //                             "blockChain": "Tron"
+        //                         },
+        //                         {
+        //                             "tx": "https://bscscan.com/tx/",
+        //                             "address": "https://bscscan.com/address/",
+        //                             "blockChain": "Binance"
+        //                         }
+        //                     ]
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
-        $responseResult = $this->safe_value($response, 'result', array());
-        $currencies = $this->safe_value($responseResult, 'currencies', array());
-        // usding another endpoint to fetch statuses of deposits and withdrawals
-        $statusesResponse = $this->publicGetTradeApiCmcAssets ();
+        $responseResult = $this->safe_dict($response, 'result', array());
+        $currencies = $this->safe_list($responseResult, 'currencies', array());
+        // using another endpoint to fetch statuses of deposits and withdrawals
+        $statusesResponse = $this->publicGetTradeApiCmcAssets();
         //
         //     {
-        //         "ZNX" => array(
-        //             "name" => "ZeNeX Coin",
-        //             "unified_cryptoasset_id" => 30,
-        //             "withdrawStatus" => true,
-        //             "depositStatus" => true,
-        //             "min_withdraw" => 0.00001,
-        //             "max_withdraw" => 10000
-        //         ),
-        //         "USDT" => array(
-        //             "name" => "Tether USD",
-        //             "unified_cryptoasset_id" => 3,
-        //             "withdrawStatus" => true,
-        //             "depositStatus" => true,
-        //             "min_withdraw" => 1,
-        //             "max_withdraw" => 100000
-        //         ),
+        //         "ZNX": {
+        //             "name": "ZeNeX Coin",
+        //             "unified_cryptoasset_id": 30,
+        //             "withdrawStatus": true,
+        //             "depositStatus": true,
+        //             "min_withdraw": 0.00001,
+        //             "max_withdraw": 10000
+        //         },
+        //         "USDT": {
+        //             "name": "Tether USD",
+        //             "unified_cryptoasset_id": 3,
+        //             "withdrawStatus": true,
+        //             "depositStatus": true,
+        //             "min_withdraw": 1,
+        //             "max_withdraw": 100000
+        //         },
         //     }
         //
         $statusesResponse = $this->index_by($statusesResponse, 'unified_cryptoasset_id');
@@ -653,30 +655,30 @@ class bitteam extends Exchange {
     }
 
     public function parse_currency(array $currency): array {
-        $statusesResponse = $this->safe_value($this->options, '_temp_currencies_statuses', array());
+        $statusesResponse = $this->safe_dict($this->options, '_temp_currencies_statuses', array());
         $id = $this->safe_string($currency, 'symbol');
         $numericId = $this->safe_integer($currency, 'id');
         $code = $this->safe_currency_code($id);
         $active = $this->safe_bool($currency, 'active', false);
         $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
-        $txLimits = $this->safe_value($currency, 'txLimits', array());
+        $txLimits = $this->safe_dict($currency, 'txLimits', array());
         $minWithdraw = $this->safe_string($txLimits, 'minWithdraw');
         $maxWithdraw = $this->safe_string($txLimits, 'maxWithdraw');
         $minDeposit = $this->safe_string($txLimits, 'minDeposit');
         $fee = null;
-        $withdrawCommissionFixed = $this->safe_value($txLimits, 'withdrawCommissionFixed', array());
+        $withdrawCommissionFixed = $this->safe_dict($txLimits, 'withdrawCommissionFixed', array());
         $feesByNetworkId = array();
         $blockChain = $this->safe_string($currency, 'blockChain');
-        // if only one $blockChain
+        // if only one blockChain
         if (($blockChain !== null) && ($blockChain !== '')) {
             $fee = $this->parse_number($withdrawCommissionFixed);
             $feesByNetworkId[$blockChain] = $fee;
         } else {
             $feesByNetworkId = $withdrawCommissionFixed;
         }
-        $statuses = $this->safe_value($statusesResponse, $numericId, array());
-        $deposit = $this->safe_value($statuses, 'depositStatus');
-        $withdraw = $this->safe_value($statuses, 'withdrawStatus');
+        $statuses = $this->safe_dict($statusesResponse, $numericId, array());
+        $deposit = $this->safe_bool($statuses, 'depositStatus');
+        $withdraw = $this->safe_bool($statuses, 'withdrawStatus');
         $networkIds = is_array($feesByNetworkId) ? array_keys($feesByNetworkId) : array();
         $networks = array();
         $networkPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
@@ -685,30 +687,32 @@ class bitteam extends Exchange {
             $networkId = $networkIds[$j];
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkFee = $this->safe_number($feesByNetworkId, $networkId);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'active' => $active,
-                'fee' => $networkFee,
-                'precision' => $networkPrecision,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'active' => $active,
+                    'fee' => $networkFee,
+                    'precision' => $networkPrecision,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->parse_number($minWithdraw),
+                            'max' => $this->parse_number($maxWithdraw),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($minDeposit),
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->parse_number($minWithdraw),
-                        'max' => $this->parse_number($maxWithdraw),
-                    ),
-                    'deposit' => array(
-                        'min' => $this->parse_number($minDeposit),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $currency,
-            );
+                    'info' => $currency,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -740,66 +744,68 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'pairName' => $market['id'],
             'resolution' => $resolution,
         );
-        $response = $this->historyGetApiTwHistoryPairNameResolution ($this->extend($request, $params));
+        $response = $this->historyGetApiTwHistoryPairNameResolution($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 364,
-        //             "data" => array(
-        //                 array(
-        //                     "t" => 1669593600,
-        //                     "o" => 16211.259266,
-        //                     "h" => 16476.985001,
-        //                     "l" => 16023.714999,
-        //                     "c" => 16430.636894,
-        //                     "v" => 2.60150368999999
-        //                 ),
-        //                 array(
-        //                     "t" => 1669680000,
-        //                     "o" => 16430.636894,
-        //                     "h" => 17065.229582,
-        //                     "l" => 16346.114155,
-        //                     "c" => 16882.297736,
-        //                     "v" => 3.0872548400000115
-        //                 ),
+        //         "ok": true,
+        //         "result": {
+        //             "count": 364,
+        //             "data": [
+        //                 {
+        //                     "t": 1669593600,
+        //                     "o": 16211.259266,
+        //                     "h": 16476.985001,
+        //                     "l": 16023.714999,
+        //                     "c": 16430.636894,
+        //                     "v": 2.60150368999999
+        //                 },
+        //                 {
+        //                     "t": 1669680000,
+        //                     "o": 16430.636894,
+        //                     "h": 17065.229582,
+        //                     "l": 16346.114155,
+        //                     "c": 16882.297736,
+        //                     "v": 3.0872548400000115
+        //                 },
         //                 ...
-        //             )
+        //             ]
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
-        //         "t" => 1669680000,
-        //         "o" => 16430.636894,
-        //         "h" => 17065.229582,
-        //         "l" => 16346.114155,
-        //         "c" => 16882.297736,
-        //         "v" => 3.0872548400000115
-        //     ),
+        //     {
+        //         "t": 1669680000,
+        //         "o": 16430.636894,
+        //         "h": 17065.229582,
+        //         "l": 16346.114155,
+        //         "c": 16882.297736,
+        //         "v": 3.0872548400000115
+        //     },
         //
         return array(
             $this->safe_timestamp($ohlcv, 't'),
@@ -811,7 +817,7 @@ class bitteam extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -819,40 +825,42 @@ class bitteam extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradeApiCmcOrderbookPair ($this->extend($request, $params));
+        $response = $this->publicGetTradeApiCmcOrderbookPair($this->extend($request, $params));
         //
         //     {
-        //         "timestamp" => 1701166703284,
-        //         "bids" => array(
-        //             array(
+        //         "timestamp": 1701166703284,
+        //         "bids": [
+        //             [
         //                 2019.334988,
         //                 0.09048525
-        //             ),
-        //             array(
+        //             ],
+        //             [
         //                 1999.860002,
         //                 0.0225
-        //             ),
+        //             ],
         //             ...
-        //         ),
-        //         "asks" => array(
-        //             array(
+        //         ],
+        //         "asks": [
+        //             [
         //                 2019.334995,
         //                 0.00899078
-        //             ),
-        //             array(
+        //             ],
+        //             [
         //                 2019.335013,
         //                 0.09833052
-        //             ),
+        //             ],
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
@@ -860,7 +868,7 @@ class bitteam extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -869,11 +877,13 @@ class bitteam extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve (default 10)
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $type = $this->safe_string($params, 'type', 'all');
         $request = array(
             'type' => $type,
@@ -886,106 +896,108 @@ class bitteam extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTradeApiCcxtOrdersOfUser ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiCcxtOrdersOfUser($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 3,
-        //             "orders" => array(
-        //                 array(
-        //                     "id" => 106733026,
-        //                     "orderId" => null,
-        //                     "userId" => 21639,
-        //                     "pair" => "btc_usdt",
-        //                     "pairId" => 22,
-        //                     "quantity" => "0.00001",
-        //                     "price" => "40",
-        //                     "executedPrice" => "0",
-        //                     "fee" => null,
-        //                     "orderCid" => null,
-        //                     "executed" => "0",
-        //                     "expires" => null,
-        //                     "baseDecimals" => 8,
-        //                     "quoteDecimals" => 6,
-        //                     "timestamp" => 1700594804,
-        //                     "status" => "inactive",
-        //                     "side" => "buy",
-        //                     "type" => "limit",
-        //                     "createdAt" => "2023-11-21T19:26:43.868Z",
-        //                     "updatedAt" => "2023-11-21T19:26:43.868Z"
-        //                 ),
-        //                 array(
-        //                     "id" => 106733308,
-        //                     "orderId" => "13074362",
-        //                     "userId" => 21639,
-        //                     "pair" => "btc_usdt",
-        //                     "pairId" => 22,
-        //                     "quantity" => "0.00001",
-        //                     "price" => "50000",
-        //                     "executedPrice" => "37017.495008",
-        //                     "fee" => array(
-        //                         "amount" => "0.00000002",
-        //                         "symbol" => "btc",
-        //                         "userId" => 21639,
-        //                         "decimals" => 8,
-        //                         "symbolId" => 11
-        //                     ),
-        //                     "orderCid" => null,
-        //                     "executed" => "0.00001",
-        //                     "expires" => null,
-        //                     "baseDecimals" => 8,
-        //                     "quoteDecimals" => 6,
-        //                     "timestamp" => 1700594959,
-        //                     "status" => "executed",
-        //                     "side" => "buy",
-        //                     "type" => "limit",
-        //                     "createdAt" => "2023-11-21T19:29:19.946Z",
-        //                     "updatedAt" => "2023-11-21T19:29:19.946Z"
-        //                 ),
+        //         "ok": true,
+        //         "result": {
+        //             "count": 3,
+        //             "orders": [
         //                 {
-        //                     "id" => 106734455,
-        //                     "orderId" => "13248984",
-        //                     "userId" => 21639,
-        //                     "pair" => "eth_usdt",
-        //                     "pairId" => 2,
-        //                     "quantity" => "0.001",
-        //                     "price" => "1750",
-        //                     "executedPrice" => "0",
-        //                     "fee" => null,
-        //                     "orderCid" => null,
-        //                     "executed" => "0",
-        //                     "expires" => null,
-        //                     "baseDecimals" => 18,
-        //                     "quoteDecimals" => 6,
-        //                     "timestamp" => 1700595523,
-        //                     "status" => "accepted",
-        //                     "side" => "buy",
-        //                     "type" => "limit",
-        //                     "createdAt" => "2023-11-21T19:38:43.530Z",
-        //                     "updatedAt" => "2023-11-21T19:38:43.530Z"
+        //                     "id": 106733026,
+        //                     "orderId": null,
+        //                     "userId": 21639,
+        //                     "pair": "btc_usdt",
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "40",
+        //                     "executedPrice": "0",
+        //                     "fee": null,
+        //                     "orderCid": null,
+        //                     "executed": "0",
+        //                     "expires": null,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700594804,
+        //                     "status": "inactive",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:26:43.868Z",
+        //                     "updatedAt": "2023-11-21T19:26:43.868Z"
+        //                 },
+        //                 {
+        //                     "id": 106733308,
+        //                     "orderId": "13074362",
+        //                     "userId": 21639,
+        //                     "pair": "btc_usdt",
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "50000",
+        //                     "executedPrice": "37017.495008",
+        //                     "fee": {
+        //                         "amount": "0.00000002",
+        //                         "symbol": "btc",
+        //                         "userId": 21639,
+        //                         "decimals": 8,
+        //                         "symbolId": 11
+        //                     },
+        //                     "orderCid": null,
+        //                     "executed": "0.00001",
+        //                     "expires": null,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700594959,
+        //                     "status": "executed",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:29:19.946Z",
+        //                     "updatedAt": "2023-11-21T19:29:19.946Z"
+        //                 },
+        //                 {
+        //                     "id": 106734455,
+        //                     "orderId": "13248984",
+        //                     "userId": 21639,
+        //                     "pair": "eth_usdt",
+        //                     "pairId": 2,
+        //                     "quantity": "0.001",
+        //                     "price": "1750",
+        //                     "executedPrice": "0",
+        //                     "fee": null,
+        //                     "orderCid": null,
+        //                     "executed": "0",
+        //                     "expires": null,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700595523,
+        //                     "status": "accepted",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:38:43.530Z",
+        //                     "updatedAt": "2023-11-21T19:38:43.530Z"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $orders = $this->safe_list($result, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order
          *
          * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
          *
          * @param {int|string} $id order $id
-         * @param {string} $symbol not used by bitteam fetchOrder ()
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {string} $symbol not used by fetchOrder ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
@@ -993,49 +1005,49 @@ class bitteam extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = $this->privateGetTradeApiCcxtOrderId ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiCcxtOrderId($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "id" => 106494347,
-        //             "orderId" => "13214332",
-        //             "userId" => 15912,
-        //             "pair" => "eth_usdt",
-        //             "pairId" => 2,
-        //             "quantity" => "0.00448598",
-        //             "price" => "2015.644995",
-        //             "executedPrice" => "2015.644995",
-        //             "fee" => array(
-        //                 "amount" => "0",
-        //                 "symbol" => "eth",
-        //                 "userId" => 15912,
-        //                 "decimals" => 18,
-        //                 "symbolId" => 2,
-        //                 "discountAmount" => "0",
-        //                 "discountSymbol" => "btt",
-        //                 "discountDecimals" => 18,
-        //                 "discountSymbolId" => 5
-        //             ),
-        //             "orderCid" => null,
-        //             "executed" => "0.00448598",
-        //             "expires" => null,
-        //             "baseDecimals" => 18,
-        //             "quoteDecimals" => 6,
-        //             "timestamp" => 1700470476,
-        //             "status" => "executed",
-        //             "side" => "buy",
-        //             "type" => "limit",
-        //             "stopPrice" => null,
-        //             "slippage" => null
+        //         "ok": true,
+        //         "result": {
+        //             "id": 106494347,
+        //             "orderId": "13214332",
+        //             "userId": 15912,
+        //             "pair": "eth_usdt",
+        //             "pairId": 2,
+        //             "quantity": "0.00448598",
+        //             "price": "2015.644995",
+        //             "executedPrice": "2015.644995",
+        //             "fee": {
+        //                 "amount": "0",
+        //                 "symbol": "eth",
+        //                 "userId": 15912,
+        //                 "decimals": 18,
+        //                 "symbolId": 2,
+        //                 "discountAmount": "0",
+        //                 "discountSymbol": "btt",
+        //                 "discountDecimals": 18,
+        //                 "discountSymbolId": 5
+        //             },
+        //             "orderCid": null,
+        //             "executed": "0.00448598",
+        //             "expires": null,
+        //             "baseDecimals": 18,
+        //             "quoteDecimals": 6,
+        //             "timestamp": 1700470476,
+        //             "status": "executed",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "stopPrice": null,
+        //             "slippage": null
         //         }
         //     }
         //
-        $result = $this->safe_dict($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_order($result, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1044,17 +1056,19 @@ class bitteam extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve (default 10)
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'type' => 'active',
         );
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -1063,17 +1077,19 @@ class bitteam extends Exchange {
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of closed order structures to retrieve (default 10)
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'type' => 'closed',
         );
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -1082,17 +1098,19 @@ class bitteam extends Exchange {
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of canceled order structures to retrieve (default 10)
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'type' => 'cancelled',
         );
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade $order
          *
@@ -1103,13 +1121,15 @@ class bitteam extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
-            'pairId' => (string) $market['numericId'],
+            'pairId' => $this->safe_string($market, 'numericId'),
             'type' => $type,
             'side' => $side,
             'amount' => $this->amount_to_precision($symbol, $amount),
@@ -1121,27 +1141,27 @@ class bitteam extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $response = $this->privatePostTradeApiCcxtOrdercreate ($this->extend($request, $params));
+        $response = $this->privatePostTradeApiCcxtOrdercreate($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "id" => 106733308,
-        //             "userId" => 21639,
-        //             "quantity" => "0.00001",
-        //             "pair" => "btc_usdt",
-        //             "side" => "buy",
-        //             "price" => "50000",
-        //             "executed" => "0",
-        //             "executedPrice" => "0",
-        //             "status" => "created",
-        //             "baseDecimals" => 8,
-        //             "quoteDecimals" => 6,
-        //             "pairId" => 22,
-        //             "type" => "limit",
-        //             "stopPrice" => null,
-        //             "slippage" => null,
-        //             "timestamp" => "1700594959"
+        //         "ok": true,
+        //         "result": {
+        //             "id": 106733308,
+        //             "userId": 21639,
+        //             "quantity": "0.00001",
+        //             "pair": "btc_usdt",
+        //             "side": "buy",
+        //             "price": "50000",
+        //             "executed": "0",
+        //             "executedPrice": "0",
+        //             "status": "created",
+        //             "baseDecimals": 8,
+        //             "quoteDecimals": 6,
+        //             "pairId": 22,
+        //             "type": "limit",
+        //             "stopPrice": null,
+        //             "slippage": null,
+        //             "timestamp": "1700594959"
         //         }
         //     }
         //
@@ -1149,27 +1169,29 @@ class bitteam extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
          * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by bitteam cancelOrder ()
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {string} $symbol not used by cancelOrder ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
-        $response = $this->privatePostTradeApiCcxtCancelorder ($this->extend($request, $params));
+        $response = $this->privatePostTradeApiCcxtCancelorder($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "message" => "The $request to cancel your order was received"
+        //         "ok": true,
+        //         "result": {
+        //             "message": "The request to cancel your order was received"
         //         }
         //     }
         //
@@ -1177,35 +1199,37 @@ class bitteam extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel open $orders of $market
          *
          * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
          *
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['pairId'] = (string) $market['numericId'];
+            $request['pairId'] = $this->safe_string($market, 'numericId');
         } else {
             $request['pairId'] = '0'; // '0' for all markets
         }
-        $response = $this->privatePostTradeApiCcxtCancelAllOrder ($this->extend($request, $params));
+        $response = $this->privatePostTradeApiCcxtCancelAllOrder($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "message":"The $request to cancel all your $orders was received"
+        //         "ok": true,
+        //         "result": {
+        //             "message":"The request to cancel all your orders was received"
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $orders = array( $result );
         return $this->parse_orders($orders, $market);
     }
@@ -1213,87 +1237,87 @@ class bitteam extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrders
-        //     array(
-        //         "id" => 106733308,
-        //         "orderId" => "13074362",
-        //         "userId" => 21639,
-        //         "pair" => "btc_usdt",
-        //         "pairId" => 22,
-        //         "quantity" => "0.00001",
-        //         "price" => "50000",
-        //         "executedPrice" => "37017.495008",
-        //         "fee" => array(
-        //             "amount" => "0.00000002",
-        //             "symbol" => "btc",
-        //             "userId" => 21639,
-        //             "decimals" => 8,
-        //             "symbolId" => 11
-        //         ),
-        //         "orderCid" => null,
-        //         "executed" => "0.00001",
-        //         "expires" => null,
-        //         "baseDecimals" => 8,
-        //         "quoteDecimals" => 6,
-        //         "timestamp" => 1700594959,
-        //         "status" => "executed",
-        //         "side" => "buy",
-        //         "type" => "limit",
-        //         "createdAt" => "2023-11-21T19:29:19.946Z",
-        //         "updatedAt" => "2023-11-21T19:29:19.946Z"
-        //     ),
+        //     {
+        //         "id": 106733308,
+        //         "orderId": "13074362",
+        //         "userId": 21639,
+        //         "pair": "btc_usdt",
+        //         "pairId": 22,
+        //         "quantity": "0.00001",
+        //         "price": "50000",
+        //         "executedPrice": "37017.495008",
+        //         "fee": {
+        //             "amount": "0.00000002",
+        //             "symbol": "btc",
+        //             "userId": 21639,
+        //             "decimals": 8,
+        //             "symbolId": 11
+        //         },
+        //         "orderCid": null,
+        //         "executed": "0.00001",
+        //         "expires": null,
+        //         "baseDecimals": 8,
+        //         "quoteDecimals": 6,
+        //         "timestamp": 1700594959,
+        //         "status": "executed",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "createdAt": "2023-11-21T19:29:19.946Z",
+        //         "updatedAt": "2023-11-21T19:29:19.946Z"
+        //     },
         //
         // fetchOrder
         //     {
-        //         "id" => 106494347,
-        //         "orderId" => "13214332",
-        //         "userId" => 15912,
-        //         "pair" => "eth_usdt",
-        //         "pairId" => 2,
-        //         "quantity" => "0.00448598",
-        //         "price" => "2015.644995",
-        //         "executedPrice" => "2015.644995",
-        //         "fee" => array(
-        //             "amount" => "0",
-        //             "symbol" => "eth",
-        //             "userId" => 15912,
-        //             "decimals" => 18,
-        //             "symbolId" => 2,
-        //             "discountAmount" => "0",
-        //             "discountSymbol" => "btt",
-        //             "discountDecimals" => 18,
-        //             "discountSymbolId" => 5
-        //         ),
-        //         "orderCid" => null,
-        //         "executed" => "0.00448598",
-        //         "expires" => null,
-        //         "baseDecimals" => 18,
-        //         "quoteDecimals" => 6,
-        //         "timestamp" => 1700470476,
-        //         "status" => "executed",
-        //         "side" => "buy",
-        //         "type" => "limit",
-        //         "stopPrice" => null,
-        //         "slippage" => null
+        //         "id": 106494347,
+        //         "orderId": "13214332",
+        //         "userId": 15912,
+        //         "pair": "eth_usdt",
+        //         "pairId": 2,
+        //         "quantity": "0.00448598",
+        //         "price": "2015.644995",
+        //         "executedPrice": "2015.644995",
+        //         "fee": {
+        //             "amount": "0",
+        //             "symbol": "eth",
+        //             "userId": 15912,
+        //             "decimals": 18,
+        //             "symbolId": 2,
+        //             "discountAmount": "0",
+        //             "discountSymbol": "btt",
+        //             "discountDecimals": 18,
+        //             "discountSymbolId": 5
+        //         },
+        //         "orderCid": null,
+        //         "executed": "0.00448598",
+        //         "expires": null,
+        //         "baseDecimals": 18,
+        //         "quoteDecimals": 6,
+        //         "timestamp": 1700470476,
+        //         "status": "executed",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "stopPrice": null,
+        //         "slippage": null
         //     }
         //
         // createOrder
         //     {
-        //         "id" => 106733308,
-        //         "userId" => 21639,
-        //         "quantity" => "0.00001",
-        //         "pair" => "btc_usdt",
-        //         "side" => "buy",
-        //         "price" => "50000",
-        //         "executed" => "0",
-        //         "executedPrice" => "0",
-        //         "status" => "created",
-        //         "baseDecimals" => 8,
-        //         "quoteDecimals" => 6,
-        //         "pairId" => 22,
-        //         "type" => "limit",
-        //         "stopPrice" => null,
-        //         "slippage" => null,
-        //         "timestamp" => "1700594959"
+        //         "id": 106733308,
+        //         "userId": 21639,
+        //         "quantity": "0.00001",
+        //         "pair": "btc_usdt",
+        //         "side": "buy",
+        //         "price": "50000",
+        //         "executed": "0",
+        //         "executedPrice": "0",
+        //         "status": "created",
+        //         "baseDecimals": 8,
+        //         "quoteDecimals": 6,
+        //         "pairId": 22,
+        //         "type": "limit",
+        //         "stopPrice": null,
+        //         "slippage": null,
+        //         "timestamp": "1700594959"
         //     }
         //
         $id = $this->safe_string($order, 'id');
@@ -1312,7 +1336,7 @@ class bitteam extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->parse_order_type($this->safe_string($order, 'type'));
         $side = $this->safe_string($order, 'side');
-        $feeRaw = $this->safe_value($order, 'fee');
+        $feeRaw = $this->safe_dict($order, 'fee');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'executed');
@@ -1366,7 +1390,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             'market' => 'market',
             'limit' => 'limit',
@@ -1374,7 +1398,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_value_to_pricision($valueObject, $valueKey, $preciseObject, $precisionKey) {
+    public function parse_value_to_pricision(array $valueObject, string $valueKey, mixed $preciseObject, string $precisionKey) {
         $valueRawString = $this->safe_string($valueObject, $valueKey);
         $precisionRawString = $this->safe_string($preciseObject, $precisionKey);
         if ($valueRawString === null || $precisionRawString === null) {
@@ -1384,261 +1408,266 @@ class bitteam extends Exchange {
         return Precise::string_mul($valueRawString, $precisionString);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          *
          * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
          */
-        $this->load_markets();
-        $response = $this->publicGetTradeApiCmcSummary ();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetTradeApiCmcSummary();
         //
-        //     array(
-        //         array(
-        //             "trading_pairs" => "BTC_USDT",
-        //             "base_currency" => "BTC",
-        //             "quote_currency" => "USDT",
-        //             "last_price" => 37669.955001,
-        //             "lowest_ask" => 37670.055,
-        //             "highest_bid" => 37669.955,
-        //             "base_volume" => 6.81156888,
-        //             "quote_volume" => 257400.516878529,
-        //             "price_change_percent_24h" => -0.29,
-        //             "highest_price_24h" => 38389.994463,
-        //             "lowest_price_24h" => 37574.894999
-        //         ),
-        //         array(
-        //             "trading_pairs" => "BNB_USDT",
-        //             "base_currency" => "BNB",
-        //             "quote_currency" => "USDT",
-        //             "last_price" => 233.525142,
-        //             "lowest_ask" => 233.675,
-        //             "highest_bid" => 233.425,
-        //             "base_volume" => 245.0199339,
-        //             "quote_volume" => 57356.91823827642,
-        //             "price_change_percent_24h" => -0.32,
-        //             "highest_price_24h" => 236.171123,
-        //             "lowest_price_24h" => 231.634637
-        //         ),
+        //     [
+        //         {
+        //             "trading_pairs": "BTC_USDT",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USDT",
+        //             "last_price": 37669.955001,
+        //             "lowest_ask": 37670.055,
+        //             "highest_bid": 37669.955,
+        //             "base_volume": 6.81156888,
+        //             "quote_volume": 257400.516878529,
+        //             "price_change_percent_24h": -0.29,
+        //             "highest_price_24h": 38389.994463,
+        //             "lowest_price_24h": 37574.894999
+        //         },
+        //         {
+        //             "trading_pairs": "BNB_USDT",
+        //             "base_currency": "BNB",
+        //             "quote_currency": "USDT",
+        //             "last_price": 233.525142,
+        //             "lowest_ask": 233.675,
+        //             "highest_bid": 233.425,
+        //             "base_volume": 245.0199339,
+        //             "quote_volume": 57356.91823827642,
+        //             "price_change_percent_24h": -0.32,
+        //             "highest_price_24h": 236.171123,
+        //             "lowest_price_24h": 231.634637
+        //         },
         //         ...
-        //     )
+        //     ]
         //
         $tickers = array();
-        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
-            $response = array();
+        $rawTickers = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $rawTickers = $response;
         }
-        for ($i = 0; $i < count($response); $i++) {
-            $rawTicker = $response[$i];
+        for ($i = 0; $i < count($rawTickers); $i++) {
+            $rawTicker = $rawTickers[$i];
             $ticker = $this->parse_ticker($rawTicker);
             $tickers[] = $ticker;
         }
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
          * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'name' => $market['id'],
         );
-        $response = $this->publicGetTradeApiPairName ($this->extend($request, $params));
+        $response = $this->publicGetTradeApiPairName($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "pair" => {
-        //                 "id" => 2,
-        //                 "name" => "eth_usdt",
-        //                 "baseAssetId" => 2,
-        //                 "quoteAssetId" => 3,
-        //                 "fullName" => "ETH USDT",
-        //                 "description" => "ETH   USDT",
-        //                 "lastBuy" => "1976.715012",
-        //                 "lastSell" => "1971.995006",
-        //                 "lastPrice" => "1976.715012",
-        //                 "change24" => "1.02",
-        //                 "volume24" => 24.0796457,
-        //                 "volume24USD" => 44282.347995912205,
-        //                 "active" => true,
-        //                 "baseStep" => 8,
-        //                 "quoteStep" => 6,
-        //                 "status" => 1,
-        //                 "settings" => array(
-        //                     "limit_usd" => "0.1",
-        //                     "price_max" => "10000000000000",
-        //                     "price_min" => "1",
-        //                     "price_tick" => "1",
-        //                     "pricescale" => 10000,
-        //                     "lot_size_max" => "1000000000000000",
-        //                     "lot_size_min" => "1",
-        //                     "lot_size_tick" => "1",
-        //                     "price_view_min" => 6,
-        //                     "default_slippage" => 10,
-        //                     "lot_size_view_min" => 6
-        //                 ),
-        //                 "asks" => array(
-        //                     array(
-        //                     "price" => "1976.405003",
-        //                     "quantity" => "0.0051171",
-        //                     "amount" => "10.1134620408513"
-        //                     ),
-        //                     array(
-        //                     "price" => "1976.405013",
-        //                     "quantity" => "0.09001559",
-        //                     "amount" => "177.90726332415267"
-        //                     ),
+        //         "ok": true,
+        //         "result": {
+        //             "pair": {
+        //                 "id": 2,
+        //                 "name": "eth_usdt",
+        //                 "baseAssetId": 2,
+        //                 "quoteAssetId": 3,
+        //                 "fullName": "ETH USDT",
+        //                 "description": "ETH   USDT",
+        //                 "lastBuy": "1976.715012",
+        //                 "lastSell": "1971.995006",
+        //                 "lastPrice": "1976.715012",
+        //                 "change24": "1.02",
+        //                 "volume24": 24.0796457,
+        //                 "volume24USD": 44282.347995912205,
+        //                 "active": true,
+        //                 "baseStep": 8,
+        //                 "quoteStep": 6,
+        //                 "status": 1,
+        //                 "settings": {
+        //                     "limit_usd": "0.1",
+        //                     "price_max": "10000000000000",
+        //                     "price_min": "1",
+        //                     "price_tick": "1",
+        //                     "pricescale": 10000,
+        //                     "lot_size_max": "1000000000000000",
+        //                     "lot_size_min": "1",
+        //                     "lot_size_tick": "1",
+        //                     "price_view_min": 6,
+        //                     "default_slippage": 10,
+        //                     "lot_size_view_min": 6
+        //                 },
+        //                 "asks": [
         //                     {
-        //                     "price" => "2010.704988",
-        //                     "quantity" => "0.00127892",
-        //                     "amount" => "2.57153082325296"
-        //                     }
-        //                 ),
-        //                 "bids" => array(
-        //                     array(
-        //                     "price" => "1976.404988",
-        //                     "quantity" => "0.09875861",
-        //                     "amount" => "195.18700941194668"
-        //                     ),
-        //                     array(
-        //                     "price" => "1905.472973",
-        //                     "quantity" => "0.00263591",
-        //                     "amount" => "5.02265526426043"
-        //                     ),
+        //                     "price": "1976.405003",
+        //                     "quantity": "0.0051171",
+        //                     "amount": "10.1134620408513"
+        //                     },
         //                     {
-        //                     "price" => "1904.274973",
-        //                     "quantity" => "0.09425304",
-        //                     "amount" => "179.48370520116792"
+        //                     "price": "1976.405013",
+        //                     "quantity": "0.09001559",
+        //                     "amount": "177.90726332415267"
+        //                     },
+        //                     {
+        //                     "price": "2010.704988",
+        //                     "quantity": "0.00127892",
+        //                     "amount": "2.57153082325296"
         //                     }
-        //                 ),
-        //                 "updateId" => "78",
-        //                 "timeStart" => "2021-01-28T09:19:30.706Z",
-        //                 "makerFee" => 200,
-        //                 "takerFee" => 200,
-        //                 "quoteVolume24" => 49125.1374009045,
-        //                 "lowPrice24" => 1966.704999,
-        //                 "highPrice24" => 2080.354997,
-        //                 "baseCurrency" => {
-        //                     "id" => 2,
-        //                     "status" => 1,
-        //                     "symbol" => "eth",
-        //                     "title" => "Ethereum",
-        //                     "logoURL" => "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-        //                     "isDiscount" => false,
-        //                     "address" => "https://ethereum.org/",
-        //                     "description" => "Ethereum ETH",
-        //                     "decimals" => 18,
-        //                     "blockChain" => "Ethereum",
-        //                     "precision" => 8,
-        //                     "currentRate" => null,
-        //                     "active" => true,
-        //                     "timeStart" => "2021-01-28T08:57:41.719Z",
-        //                     "txLimits" => array(
-        //                         "minDeposit" => "100000000000000",
-        //                         "maxWithdraw" => "10000000000000000000000",
-        //                         "minWithdraw" => "20000000000000000",
-        //                         "withdrawCommissionFixed" => "5000000000000000",
-        //                         "withdrawCommissionPercentage" => "NaN"
-        //                     ),
-        //                     "type" => "crypto",
-        //                     "typeNetwork" => "internalGW",
-        //                     "icon" => "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTQuOTU1NyAxOS45NzM5TDkgMTYuMzUwOUwxNC45NTIxIDI1TDIwLjkxMDkgMTYuMzUwOUwxNC45NTIxIDE5Ljk3MzlIMTQuOTU1N1pNMTUuMDQ0MyA1TDkuMDkwOTUgMTUuMTg1M0wxNS4wNDQzIDE4LjgxNDZMMjEgMTUuMTg5MUwxNS4wNDQzIDVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
-        //                     "idSorting" => 2,
-        //                     "links" => array(
+        //                 ],
+        //                 "bids": [
+        //                     {
+        //                     "price": "1976.404988",
+        //                     "quantity": "0.09875861",
+        //                     "amount": "195.18700941194668"
+        //                     },
+        //                     {
+        //                     "price": "1905.472973",
+        //                     "quantity": "0.00263591",
+        //                     "amount": "5.02265526426043"
+        //                     },
+        //                     {
+        //                     "price": "1904.274973",
+        //                     "quantity": "0.09425304",
+        //                     "amount": "179.48370520116792"
+        //                     }
+        //                 ],
+        //                 "updateId": "78",
+        //                 "timeStart": "2021-01-28T09:19:30.706Z",
+        //                 "makerFee": 200,
+        //                 "takerFee": 200,
+        //                 "quoteVolume24": 49125.1374009045,
+        //                 "lowPrice24": 1966.704999,
+        //                 "highPrice24": 2080.354997,
+        //                 "baseCurrency": {
+        //                     "id": 2,
+        //                     "status": 1,
+        //                     "symbol": "eth",
+        //                     "title": "Ethereum",
+        //                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+        //                     "isDiscount": false,
+        //                     "address": "https://ethereum.org/",
+        //                     "description": "Ethereum ETH",
+        //                     "decimals": 18,
+        //                     "blockChain": "Ethereum",
+        //                     "precision": 8,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T08:57:41.719Z",
+        //                     "txLimits": {
+        //                         "minDeposit": "100000000000000",
+        //                         "maxWithdraw": "10000000000000000000000",
+        //                         "minWithdraw": "20000000000000000",
+        //                         "withdrawCommissionFixed": "5000000000000000",
+        //                         "withdrawCommissionPercentage": "NaN"
+        //                     },
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTQuOTU1NyAxOS45NzM5TDkgMTYuMzUwOUwxNC45NTIxIDI1TDIwLjkxMDkgMTYuMzUwOUwxNC45NTIxIDE5Ljk3MzlIMTQuOTU1N1pNMTUuMDQ0MyA1TDkuMDkwOTUgMTUuMTg1M0wxNS4wNDQzIDE4LjgxNDZMMjEgMTUuMTg5MUwxNS4wNDQzIDVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+        //                     "idSorting": 2,
+        //                     "links": [
         //                         {
-        //                             "tx" => "https://etherscan.io/tx/",
-        //                             "address" => "https://etherscan.io/address/",
-        //                             "blockChain" => "Ethereum"
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
         //                         }
-        //                     ),
-        //                     "clientTxLimits" => array(
-        //                         "minDeposit" => "0.0001",
-        //                         "minWithdraw" => "0.02",
-        //                         "maxWithdraw" => "10000",
-        //                         "withdrawCommissionPercentage" => "NaN",
-        //                         "withdrawCommissionFixed" => "0.005"
+        //                     ],
+        //                     "clientTxLimits": {
+        //                         "minDeposit": "0.0001",
+        //                         "minWithdraw": "0.02",
+        //                         "maxWithdraw": "10000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": "0.005"
         //                     }
-        //                 ),
-        //                 "quoteCurrency" => {
-        //                     "id" => 3,
-        //                     "status" => 1,
-        //                     "symbol" => "usdt",
-        //                     "title" => "Tether USD",
-        //                     "logoURL" => "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-        //                     "isDiscount" => false,
-        //                     "address" => "https://tether.to/",
-        //                     "description" => "Tether USD",
-        //                     "decimals" => 6,
-        //                     "blockChain" => "",
-        //                     "precision" => 6,
-        //                     "currentRate" => null,
-        //                     "active" => true,
-        //                     "timeStart" => "2021-01-28T09:04:17.170Z",
-        //                     "txLimits" => array(
-        //                         "minDeposit" => "1000",
-        //                         "maxWithdraw" => "100000000000",
-        //                         "minWithdraw" => "1000000",
-        //                         "withdrawCommissionFixed" => array(
-        //                             "Tron" => "2000000",
-        //                             "Binance" => "2000000000000000000",
-        //                             "Ethereum" => "20000000"
-        //                         ),
-        //                         "withdrawCommissionPercentage" => "NaN"
-        //                     ),
-        //                     "type" => "crypto",
-        //                     "typeNetwork" => "internalGW",
-        //                     "icon" => "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSIjNkZBNjg4Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjMgN0g3VjExSDEzVjEyLjA2MkM4Ljk5MjAyIDEyLjMxNDYgNiAxMy4zMTAyIDYgMTQuNUM2IDE1LjY4OTggOC45OTIwMiAxNi42ODU0IDEzIDE2LjkzOFYyM0gxN1YxNi45MzhDMjEuMDA4IDE2LjY4NTQgMjQgMTUuNjg5OCAyNCAxNC41QzI0IDEzLjMxMDIgMjEuMDA4IDEyLjMxNDYgMTcgMTIuMDYyVjExSDIzVjdaTTcuNSAxNC41QzcuNSAxMy40NjA2IDkuMzMzMzMgMTIuMzY4IDEzIDEyLjA3NTZWMTUuNUgxN1YxMi4wNzU5QzIwLjkzODQgMTIuMzkyNyAyMi41IDEzLjYzMzkgMjIuNSAxNC41QzIyLjUgMTUuMzIyIDIwLjAwMDggMTUuODA2MSAxNyAxNS45NTI1QzE1LjcwODIgMTYuMDQ2MiAxMy43OTUxIDE1Ljk4MjYgMTMgMTUuOTM5MUM5Ljk5OTIxIDE1Ljc1NTkgNy41IDE1LjE4MDkgNy41IDE0LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
-        //                     "idSorting" => 0,
-        //                     "links" => array(
-        //                         array(
-        //                             "tx" => "https://etherscan.io/tx/",
-        //                             "address" => "https://etherscan.io/address/",
-        //                             "blockChain" => "Ethereum"
-        //                         ),
-        //                         array(
-        //                             "tx" => "https://tronscan.org/#/transaction/",
-        //                             "address" => "https://tronscan.org/#/address/",
-        //                             "blockChain" => "Tron"
-        //                         ),
+        //                 },
+        //                 "quoteCurrency": {
+        //                     "id": 3,
+        //                     "status": 1,
+        //                     "symbol": "usdt",
+        //                     "title": "Tether USD",
+        //                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+        //                     "isDiscount": false,
+        //                     "address": "https://tether.to/",
+        //                     "description": "Tether USD",
+        //                     "decimals": 6,
+        //                     "blockChain": "",
+        //                     "precision": 6,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T09:04:17.170Z",
+        //                     "txLimits": {
+        //                         "minDeposit": "1000",
+        //                         "maxWithdraw": "100000000000",
+        //                         "minWithdraw": "1000000",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2000000",
+        //                             "Binance": "2000000000000000000",
+        //                             "Ethereum": "20000000"
+        //                         },
+        //                         "withdrawCommissionPercentage": "NaN"
+        //                     },
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSIjNkZBNjg4Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjMgN0g3VjExSDEzVjEyLjA2MkM4Ljk5MjAyIDEyLjMxNDYgNiAxMy4zMTAyIDYgMTQuNUM2IDE1LjY4OTggOC45OTIwMiAxNi42ODU0IDEzIDE2LjkzOFYyM0gxN1YxNi45MzhDMjEuMDA4IDE2LjY4NTQgMjQgMTUuNjg5OCAyNCAxNC41QzI0IDEzLjMxMDIgMjEuMDA4IDEyLjMxNDYgMTcgMTIuMDYyVjExSDIzVjdaTTcuNSAxNC41QzcuNSAxMy40NjA2IDkuMzMzMzMgMTIuMzY4IDEzIDEyLjA3NTZWMTUuNUgxN1YxMi4wNzU5QzIwLjkzODQgMTIuMzkyNyAyMi41IDEzLjYzMzkgMjIuNSAxNC41QzIyLjUgMTUuMzIyIDIwLjAwMDggMTUuODA2MSAxNyAxNS45NTI1QzE1LjcwODIgMTYuMDQ2MiAxMy43OTUxIDE1Ljk4MjYgMTMgMTUuOTM5MUM5Ljk5OTIxIDE1Ljc1NTkgNy41IDE1LjE4MDkgNy41IDE0LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+        //                     "idSorting": 0,
+        //                     "links": [
         //                         {
-        //                             "tx" => "https://bscscan.com/tx/",
-        //                             "address" => "https://bscscan.com/address/",
-        //                             "blockChain" => "Binance"
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         },
+        //                         {
+        //                             "tx": "https://tronscan.org/#/transaction/",
+        //                             "address": "https://tronscan.org/#/address/",
+        //                             "blockChain": "Tron"
+        //                         },
+        //                         {
+        //                             "tx": "https://bscscan.com/tx/",
+        //                             "address": "https://bscscan.com/address/",
+        //                             "blockChain": "Binance"
         //                         }
-        //                     ),
-        //                     "clientTxLimits" => {
-        //                         "minDeposit" => "0.001",
-        //                         "minWithdraw" => "1",
-        //                         "maxWithdraw" => "100000",
-        //                         "withdrawCommissionPercentage" => "NaN",
-        //                         "withdrawCommissionFixed" => array(
-        //                             "Tron" => "2",
-        //                             "Binance" => "2",
-        //                             "Ethereum" => "20"
+        //                     ],
+        //                     "clientTxLimits": {
+        //                         "minDeposit": "0.001",
+        //                         "minWithdraw": "1",
+        //                         "maxWithdraw": "100000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2",
+        //                             "Binance": "2",
+        //                             "Ethereum": "20"
         //                         }
         //                     }
-        //                 ),
-        //                 "quantities" => {
-        //                     "asks" => "5.58760757",
-        //                     "bids" => "2226.98663823032198"
+        //                 },
+        //                 "quantities": {
+        //                     "asks": "5.58760757",
+        //                     "bids": "2226.98663823032198"
         //                 }
         //             }
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $pair = $this->safe_dict($result, 'pair', array());
         return $this->parse_ticker($pair, $market);
     }
@@ -1647,81 +1676,81 @@ class bitteam extends Exchange {
         //
         // fetchTicker
         //     {
-        //         "id" => 2,
-        //         "name" => "eth_usdt",
-        //         "baseAssetId" => 2,
-        //         "quoteAssetId" => 3,
-        //         "fullName" => "ETH USDT",
-        //         "description" => "ETH   USDT",
-        //         "lastBuy" => "1976.715012",
-        //         "lastSell" => "1971.995006",
-        //         "lastPrice" => "1976.715012",
-        //         "change24" => "1.02",
-        //         "volume24" => 24.0796457,
-        //         "volume24USD" => 44282.347995912205,
-        //         "active" => true,
-        //         "baseStep" => 8,
-        //         "quoteStep" => 6,
-        //         "status" => 1,
-        //         "asks" => array(
-        //             array(
-        //             "price" => "1976.405003",
-        //             "quantity" => "0.0051171",
-        //             "amount" => "10.1134620408513"
-        //             ),
-        //             array(
-        //             "price" => "1976.405013",
-        //             "quantity" => "0.09001559",
-        //             "amount" => "177.90726332415267"
-        //             ),
+        //         "id": 2,
+        //         "name": "eth_usdt",
+        //         "baseAssetId": 2,
+        //         "quoteAssetId": 3,
+        //         "fullName": "ETH USDT",
+        //         "description": "ETH   USDT",
+        //         "lastBuy": "1976.715012",
+        //         "lastSell": "1971.995006",
+        //         "lastPrice": "1976.715012",
+        //         "change24": "1.02",
+        //         "volume24": 24.0796457,
+        //         "volume24USD": 44282.347995912205,
+        //         "active": true,
+        //         "baseStep": 8,
+        //         "quoteStep": 6,
+        //         "status": 1,
+        //         "asks": [
         //             {
-        //             "price" => "2010.704988",
-        //             "quantity" => "0.00127892",
-        //             "amount" => "2.57153082325296"
+        //             "price": "1976.405003",
+        //             "quantity": "0.0051171",
+        //             "amount": "10.1134620408513"
+        //             },
+        //             {
+        //             "price": "1976.405013",
+        //             "quantity": "0.09001559",
+        //             "amount": "177.90726332415267"
+        //             },
+        //             {
+        //             "price": "2010.704988",
+        //             "quantity": "0.00127892",
+        //             "amount": "2.57153082325296"
         //             }
         //                ...
-        //         ),
-        //         "bids" => array(
-        //             array(
-        //             "price" => "1976.404988",
-        //             "quantity" => "0.09875861",
-        //             "amount" => "195.18700941194668"
-        //             ),
-        //             array(
-        //             "price" => "1905.472973",
-        //             "quantity" => "0.00263591",
-        //             "amount" => "5.02265526426043"
-        //             ),
+        //         ],
+        //         "bids": [
         //             {
-        //             "price" => "1904.274973",
-        //             "quantity" => "0.09425304",
-        //             "amount" => "179.48370520116792"
+        //             "price": "1976.404988",
+        //             "quantity": "0.09875861",
+        //             "amount": "195.18700941194668"
+        //             },
+        //             {
+        //             "price": "1905.472973",
+        //             "quantity": "0.00263591",
+        //             "amount": "5.02265526426043"
+        //             },
+        //             {
+        //             "price": "1904.274973",
+        //             "quantity": "0.09425304",
+        //             "amount": "179.48370520116792"
         //             }
         //                ...
-        //         ),
-        //         "updateId" => "78",
-        //         "timeStart" => "2021-01-28T09:19:30.706Z",
-        //         "makerFee" => 200,
-        //         "takerFee" => 200,
-        //         "quoteVolume24" => 49125.1374009045,
-        //         "lowPrice24" => 1966.704999,
-        //         "highPrice24" => 2080.354997,
+        //         ],
+        //         "updateId": "78",
+        //         "timeStart": "2021-01-28T09:19:30.706Z",
+        //         "makerFee": 200,
+        //         "takerFee": 200,
+        //         "quoteVolume24": 49125.1374009045,
+        //         "lowPrice24": 1966.704999,
+        //         "highPrice24": 2080.354997,
         //         ...
         //     }
         //
         // fetchTickers
         //     {
-        //         "trading_pairs" => "BTC_USDT",
-        //         "base_currency" => "BTC",
-        //         "quote_currency" => "USDT",
-        //         "last_price" => 37669.955001,
-        //         "lowest_ask" => 37670.055,
-        //         "highest_bid" => 37669.955,
-        //         "base_volume" => 6.81156888,
-        //         "quote_volume" => 257400.516878529,
-        //         "price_change_percent_24h" => -0.29,
-        //         "highest_price_24h" => 38389.994463,
-        //         "lowest_price_24h" => 37574.894999
+        //         "trading_pairs": "BTC_USDT",
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USDT",
+        //         "last_price": 37669.955001,
+        //         "lowest_ask": 37670.055,
+        //         "highest_bid": 37669.955,
+        //         "base_volume": 6.81156888,
+        //         "quote_volume": 257400.516878529,
+        //         "price_change_percent_24h": -0.29,
+        //         "highest_price_24h": 38389.994463,
+        //         "lowest_price_24h": 37574.894999
         //     }
         $marketId = $this->safe_string_lower($ticker, 'trading_pairs');
         $market = $this->safe_market($marketId, $market);
@@ -1729,13 +1758,13 @@ class bitteam extends Exchange {
         $bestAskPrice = null;
         $bestBidVolume = null;
         $bestAskVolume = null;
-        $bids = $this->safe_value($ticker, 'bids');
-        $asks = $this->safe_value($ticker, 'asks');
+        $bids = $this->safe_list($ticker, 'bids');
+        $asks = $this->safe_list($ticker, 'asks');
         if (($bids !== null) && ((gettype($bids) === 'array' && array_keys($bids) === array_keys(array_keys($bids)))) && ($asks !== null) && ((gettype($asks) === 'array' && array_keys($asks) === array_keys(array_keys($asks))))) {
-            $bestBid = $this->safe_value($bids, 0, array());
+            $bestBid = $this->safe_dict($bids, 0, array());
             $bestBidPrice = $this->safe_string($bestBid, 'price');
             $bestBidVolume = $this->safe_string($bestBid, 'quantity');
-            $bestAsk = $this->safe_value($asks, 0, array());
+            $bestAsk = $this->safe_dict($asks, 0, array());
             $bestAskPrice = $this->safe_string($bestAsk, 'price');
             $bestAskVolume = $this->safe_string($bestAsk, 'quantity');
         } else {
@@ -1771,7 +1800,7 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1780,40 +1809,42 @@ class bitteam extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradeApiCmcTradesPair ($this->extend($request, $params));
+        $response = $this->publicGetTradeApiCmcTradesPair($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "trade_id" => 34970337,
-        //             "price" => 37769.994793,
-        //             "base_volume" => 0.00119062,
-        //             "quote_volume" => 44.96971120044166,
-        //             "timestamp" => 1700827234000,
-        //             "type" => "buy"
-        //         ),
-        //         array(
-        //             "trade_id" => 34970347,
-        //             "price" => 37769.634497,
-        //             "base_volume" => 0.00104009,
-        //             "quote_volume" => 39.28381914398473,
-        //             "timestamp" => 1700827248000,
-        //             "type" => "buy"
-        //         ),
+        //     [
+        //         {
+        //             "trade_id": 34970337,
+        //             "price": 37769.994793,
+        //             "base_volume": 0.00119062,
+        //             "quote_volume": 44.96971120044166,
+        //             "timestamp": 1700827234000,
+        //             "type": "buy"
+        //         },
+        //         {
+        //             "trade_id": 34970347,
+        //             "price": 37769.634497,
+        //             "base_volume": 0.00104009,
+        //             "quote_volume": 39.28381914398473,
+        //             "timestamp": 1700827248000,
+        //             "type": "buy"
+        //         },
         //         ...
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -1822,10 +1853,12 @@ class bitteam extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve (default 10)
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1835,141 +1868,141 @@ class bitteam extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTradeApiCcxtTradesOfUser ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiCcxtTradesOfUser($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 3,
-        //             "trades" => array(
-        //                 array(
-        //                     "id" => 34880724,
-        //                     "tradeId" => "4368041",
-        //                     "makerOrderId" => 106742914,
-        //                     "takerOrderId" => 106761614,
-        //                     "pairId" => 2,
-        //                     "quantity" => "0.00955449",
-        //                     "price" => "1993.674994",
-        //                     "isBuyerMaker" => true,
-        //                     "baseDecimals" => 18,
-        //                     "quoteDecimals" => 6,
-        //                     "side" => "sell",
-        //                     "timestamp" => 1700615250,
-        //                     "rewarded" => true,
-        //                     "makerUserId" => 21639,
-        //                     "takerUserId" => 15913,
-        //                     "baseCurrencyId" => 2,
-        //                     "quoteCurrencyId" => 3,
-        //                     "feeMaker" => array(
-        //                         "amount" => "0.0000191",
-        //                         "symbol" => "eth",
-        //                         "userId" => 21639,
-        //                         "decimals" => 18,
-        //                         "symbolId" => 2
-        //                     ),
-        //                     "feeTaker" => array(
-        //                         "amount" => "0",
-        //                         "symbol" => "usdt",
-        //                         "userId" => 15913,
-        //                         "decimals" => 6,
-        //                         "symbolId" => 3,
-        //                         "discountAmount" => "0",
-        //                         "discountSymbol" => "btt",
-        //                         "discountDecimals" => 18,
-        //                         "discountSymbolId" => 5
-        //                     ),
-        //                     "pair" => "eth_usdt",
-        //                     "createdAt" => "2023-11-22T01:07:30.593Z",
-        //                     "updatedAt" => "2023-11-22T01:10:00.117Z",
-        //                     "isCurrentSide" => "maker"
-        //                 ),
-        //                 array(
-        //                     "id" => 34875793,
-        //                     "tradeId" => "4368010",
-        //                     "makerOrderId" => 106742914,
-        //                     "takerOrderId" => 106745926,
-        //                     "pairId" => 2,
-        //                     "quantity" => "0.0027193",
-        //                     "price" => "1993.674994",
-        //                     "isBuyerMaker" => true,
-        //                     "baseDecimals" => 18,
-        //                     "quoteDecimals" => 6,
-        //                     "side" => "sell",
-        //                     "timestamp" => 1700602983,
-        //                     "rewarded" => true,
-        //                     "makerUserId" => 21639,
-        //                     "takerUserId" => 15912,
-        //                     "baseCurrencyId" => 2,
-        //                     "quoteCurrencyId" => 3,
-        //                     "feeMaker" => array(
-        //                         "amount" => "0.00000543",
-        //                         "symbol" => "eth",
-        //                         "userId" => 21639,
-        //                         "decimals" => 18,
-        //                         "symbolId" => 2
-        //                     ),
-        //                     "feeTaker" => array(
-        //                         "amount" => "0",
-        //                         "symbol" => "usdt",
-        //                         "userId" => 15912,
-        //                         "decimals" => 6,
-        //                         "symbolId" => 3,
-        //                         "discountAmount" => "0",
-        //                         "discountSymbol" => "btt",
-        //                         "discountDecimals" => 18,
-        //                         "discountSymbolId" => 5
-        //                     ),
-        //                     "pair" => "eth_usdt",
-        //                     "createdAt" => "2023-11-21T21:43:02.758Z",
-        //                     "updatedAt" => "2023-11-21T21:45:00.147Z",
-        //                     "isCurrentSide" => "maker"
-        //                 ),
+        //         "ok": true,
+        //         "result": {
+        //             "count": 3,
+        //             "trades": [
         //                 {
-        //                     "id" => 34871727,
-        //                     "tradeId" => "3441840",
-        //                     "makerOrderId" => 106733299,
-        //                     "takerOrderId" => 106733308,
-        //                     "pairId" => 22,
-        //                     "quantity" => "0.00001",
-        //                     "price" => "37017.495008",
-        //                     "isBuyerMaker" => false,
-        //                     "baseDecimals" => 8,
-        //                     "quoteDecimals" => 6,
-        //                     "side" => "buy",
-        //                     "timestamp" => 1700594960,
-        //                     "rewarded" => true,
-        //                     "makerUserId" => 15909,
-        //                     "takerUserId" => 21639,
-        //                     "baseCurrencyId" => 11,
-        //                     "quoteCurrencyId" => 3,
-        //                     "feeMaker" => array(
-        //                         "amount" => "0",
-        //                         "symbol" => "usdt",
-        //                         "userId" => 15909,
-        //                         "decimals" => 6,
-        //                         "symbolId" => 3,
-        //                         "discountAmount" => "0",
-        //                         "discountSymbol" => "btt",
-        //                         "discountDecimals" => 18,
-        //                         "discountSymbolId" => 5
-        //                     ),
-        //                     "feeTaker" => array(
-        //                         "amount" => "0.00000002",
-        //                         "symbol" => "btc",
-        //                         "userId" => 21639,
-        //                         "decimals" => 8,
-        //                         "symbolId" => 11
-        //                     ),
-        //                     "pair" => "btc_usdt",
-        //                     "createdAt" => "2023-11-21T19:29:20.092Z",
-        //                     "updatedAt" => "2023-11-21T19:30:00.159Z"
-        //                     "isCurrentSide" => "taker"
+        //                     "id": 34880724,
+        //                     "tradeId": "4368041",
+        //                     "makerOrderId": 106742914,
+        //                     "takerOrderId": 106761614,
+        //                     "pairId": 2,
+        //                     "quantity": "0.00955449",
+        //                     "price": "1993.674994",
+        //                     "isBuyerMaker": true,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "side": "sell",
+        //                     "timestamp": 1700615250,
+        //                     "rewarded": true,
+        //                     "makerUserId": 21639,
+        //                     "takerUserId": 15913,
+        //                     "baseCurrencyId": 2,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0.0000191",
+        //                         "symbol": "eth",
+        //                         "userId": 21639,
+        //                         "decimals": 18,
+        //                         "symbolId": 2
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15913,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "pair": "eth_usdt",
+        //                     "createdAt": "2023-11-22T01:07:30.593Z",
+        //                     "updatedAt": "2023-11-22T01:10:00.117Z",
+        //                     "isCurrentSide": "maker"
+        //                 },
+        //                 {
+        //                     "id": 34875793,
+        //                     "tradeId": "4368010",
+        //                     "makerOrderId": 106742914,
+        //                     "takerOrderId": 106745926,
+        //                     "pairId": 2,
+        //                     "quantity": "0.0027193",
+        //                     "price": "1993.674994",
+        //                     "isBuyerMaker": true,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "side": "sell",
+        //                     "timestamp": 1700602983,
+        //                     "rewarded": true,
+        //                     "makerUserId": 21639,
+        //                     "takerUserId": 15912,
+        //                     "baseCurrencyId": 2,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0.00000543",
+        //                         "symbol": "eth",
+        //                         "userId": 21639,
+        //                         "decimals": 18,
+        //                         "symbolId": 2
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15912,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "pair": "eth_usdt",
+        //                     "createdAt": "2023-11-21T21:43:02.758Z",
+        //                     "updatedAt": "2023-11-21T21:45:00.147Z",
+        //                     "isCurrentSide": "maker"
+        //                 },
+        //                 {
+        //                     "id": 34871727,
+        //                     "tradeId": "3441840",
+        //                     "makerOrderId": 106733299,
+        //                     "takerOrderId": 106733308,
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "37017.495008",
+        //                     "isBuyerMaker": false,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "side": "buy",
+        //                     "timestamp": 1700594960,
+        //                     "rewarded": true,
+        //                     "makerUserId": 15909,
+        //                     "takerUserId": 21639,
+        //                     "baseCurrencyId": 11,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15909,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0.00000002",
+        //                         "symbol": "btc",
+        //                         "userId": 21639,
+        //                         "decimals": 8,
+        //                         "symbolId": 11
+        //                     },
+        //                     "pair": "btc_usdt",
+        //                     "createdAt": "2023-11-21T19:29:20.092Z",
+        //                     "updatedAt": "2023-11-21T19:30:00.159Z"
+        //                     "isCurrentSide": "taker"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_list($result, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -1977,56 +2010,56 @@ class bitteam extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
-        //     array(
-        //         "trade_id" => 34970337,
-        //         "price" => 37769.994793,
-        //         "base_volume" => 0.00119062,
-        //         "quote_volume" => 44.96971120044166,
-        //         "timestamp" => 1700827234000,
-        //         "type" => "buy"
-        //     ),
+        //     {
+        //         "trade_id": 34970337,
+        //         "price": 37769.994793,
+        //         "base_volume": 0.00119062,
+        //         "quote_volume": 44.96971120044166,
+        //         "timestamp": 1700827234000,
+        //         "type": "buy"
+        //     },
         //
         // fetchMyTrades
         //     {
-        //         "id" => 34875793,
-        //         "tradeId" => "4368010",
-        //         "makerOrderId" => 106742914,
-        //         "takerOrderId" => 106745926,
-        //         "pairId" => 2,
-        //         "quantity" => "0.0027193",
-        //         "price" => "1993.674994",
-        //         "isBuyerMaker" => true,
-        //         "baseDecimals" => 18,
-        //         "quoteDecimals" => 6,
-        //         "side" => "sell",
-        //         "timestamp" => 1700602983,
-        //         "rewarded" => true,
-        //         "makerUserId" => 21639,
-        //         "takerUserId" => 15912,
-        //         "baseCurrencyId" => 2,
-        //         "quoteCurrencyId" => 3,
-        //         "feeMaker" => array(
-        //             "amount" => "0.00000543",
-        //             "symbol" => "eth",
-        //             "userId" => 21639,
-        //             "decimals" => 18,
-        //             "symbolId" => 2
-        //         ),
-        //         "feeTaker" => array(
-        //             "amount" => "0",
-        //             "symbol" => "usdt",
-        //             "userId" => 15912,
-        //             "decimals" => 6,
-        //             "symbolId" => 3,
-        //             "discountAmount" => "0",
-        //             "discountSymbol" => "btt",
-        //             "discountDecimals" => 18,
-        //             "discountSymbolId" => 5
-        //         ),
-        //         "pair" => "eth_usdt",
-        //         "createdAt" => "2023-11-21T21:43:02.758Z",
-        //         "updatedAt" => "2023-11-21T21:45:00.147Z",
-        //         "isCurrentSide" => "maker"
+        //         "id": 34875793,
+        //         "tradeId": "4368010",
+        //         "makerOrderId": 106742914,
+        //         "takerOrderId": 106745926,
+        //         "pairId": 2,
+        //         "quantity": "0.0027193",
+        //         "price": "1993.674994",
+        //         "isBuyerMaker": true,
+        //         "baseDecimals": 18,
+        //         "quoteDecimals": 6,
+        //         "side": "sell",
+        //         "timestamp": 1700602983,
+        //         "rewarded": true,
+        //         "makerUserId": 21639,
+        //         "takerUserId": 15912,
+        //         "baseCurrencyId": 2,
+        //         "quoteCurrencyId": 3,
+        //         "feeMaker": {
+        //             "amount": "0.00000543",
+        //             "symbol": "eth",
+        //             "userId": 21639,
+        //             "decimals": 18,
+        //             "symbolId": 2
+        //         },
+        //         "feeTaker": {
+        //             "amount": "0",
+        //             "symbol": "usdt",
+        //             "userId": 15912,
+        //             "decimals": 6,
+        //             "symbolId": 3,
+        //             "discountAmount": "0",
+        //             "discountSymbol": "btt",
+        //             "discountDecimals": 18,
+        //             "discountSymbolId": 5
+        //         },
+        //         "pair": "eth_usdt",
+        //         "createdAt": "2023-11-21T21:43:02.758Z",
+        //         "updatedAt": "2023-11-21T21:45:00.147Z",
+        //         "isCurrentSide": "maker"
         //     }
         //
         $marketId = $this->safe_string($trade, 'pair');
@@ -2041,7 +2074,7 @@ class bitteam extends Exchange {
         if ($takerOrMaker !== null) {
             $timestamp = Precise::string_mul($timestamp, '1000');
         }
-        // the exchange returns the $side of the taker
+        // the exchange returns the side of the taker
         $side = $this->safe_string_2($trade, 'side', 'type');
         $feeInfo = null;
         $order = null;
@@ -2052,10 +2085,10 @@ class bitteam extends Exchange {
                 $side = 'sell';
             }
             $order = $this->safe_string($trade, 'makerOrderId');
-            $feeInfo = $this->safe_value($trade, 'feeMaker', array());
+            $feeInfo = $this->safe_dict($trade, 'feeMaker', array());
         } elseif ($takerOrMaker === 'taker') {
             $order = $this->safe_string($trade, 'takerOrderId');
-            $feeInfo = $this->safe_value($trade, 'feeTaker', array());
+            $feeInfo = $this->safe_dict($trade, 'feeTaker', array());
         }
         $feeCurrencyId = $this->safe_string($feeInfo, 'symbol');
         $feeCost = $this->safe_string($feeInfo, 'amount');
@@ -2081,88 +2114,91 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
          * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
          *
-         * @param {array} [$params] extra parameters specific to the betteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
-        $this->load_markets();
-        $response = $this->privateGetTradeApiCcxtBalance ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateGetTradeApiCcxtBalance($params);
         return $this->parse_balance($response);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "free" => array(
-        //                 "USDT" => "0",
-        //                 "DEL" => "0",
-        //                 "BTC" => "0",
+        //         "ok": true,
+        //         "result": {
+        //             "free": {
+        //                 "USDT": "0",
+        //                 "DEL": "0",
+        //                 "BTC": "0",
         //                 ...
-        //             ),
-        //                 "used" => array(
-        //                 "USDT" => "0",
-        //                 "DEL" => "0",
-        //                 "BTC" => "0",
+        //             },
+        //                 "used": {
+        //                 "USDT": "0",
+        //                 "DEL": "0",
+        //                 "BTC": "0",
         //                 ...
-        //             ),
-        //             "total" => array(
-        //                 "USDT" => "0",
-        //                 "DEL" => "0",
-        //                 "BTC" => "0",
+        //             },
+        //             "total": {
+        //                 "USDT": "0",
+        //                 "DEL": "0",
+        //                 "BTC": "0",
         //                 ...
-        //             ),
-        //             "USDT" => array(
-        //                 "free" => "0",
-        //                 "used" => "0",
-        //                 "total" => "0",
-        //             ),
-        //             "DEL" => array(
-        //                 "free" => "0",
-        //                 "used" => "0",
-        //                 "total" => "0",
-        //             ),
-        //             "BTC" => {
-        //                 "free" => "0",
-        //                 "used" => "0",
-        //                 "total" => "0",
+        //             },
+        //             "USDT": {
+        //                 "free": "0",
+        //                 "used": "0",
+        //                 "total": "0",
+        //             },
+        //             "DEL": {
+        //                 "free": "0",
+        //                 "used": "0",
+        //                 "total": "0",
+        //             },
+        //             "BTC": {
+        //                 "free": "0",
+        //                 "used": "0",
+        //                 "total": "0",
         //             }
         //             ...
         //         }
         //     }
         //
-        $timestamp = $this->milliseconds();
         $balance = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $balanceByCurrencies = $this->omit($result, array( 'free', 'used', 'total' ));
         $rawCurrencyIds = is_array($balanceByCurrencies) ? array_keys($balanceByCurrencies) : array();
         for ($i = 0; $i < count($rawCurrencyIds); $i++) {
             $rawCurrencyId = $rawCurrencyIds[$i];
-            $currencyBalance = $this->safe_value($result, $rawCurrencyId);
+            $currencyBalance = $this->safe_dict($result, $rawCurrencyId);
             $free = $this->safe_string($currencyBalance, 'free');
             $used = $this->safe_string($currencyBalance, 'used');
             $total = $this->safe_string($currencyBalance, 'total');
             $currencyCode = $this->safe_currency_code(strtolower($rawCurrencyId));
-            $balance[$currencyCode] = array(
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            if ($currencyCode !== null) {
+                $balance[$currencyCode] = array(
+                    'free' => $free,
+                    'used' => $used,
+                    'total' => $total,
+                );
+            }
         }
         return $this->safe_balance($balance);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
          *
@@ -2171,10 +2207,12 @@ class bitteam extends Exchange {
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal
          * @param {int} [$limit] max number of deposit/withdrawals to return (default 10)
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array();
         if ($code !== null) {
@@ -2184,96 +2222,96 @@ class bitteam extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTradeApiTransactionsOfUser ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiTransactionsOfUser($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 2,
-        //             "transactions" => array(
+        //         "ok": true,
+        //         "result": {
+        //             "count": 2,
+        //             "transactions": [
         //                 {
-        //                     "id" => 1329686,
-        //                     "orderId" => "2f060ad5-30f7-4f2b-ac5f-1bb8f5fd34dc",
-        //                     "transactionCoreId" => "561863",
-        //                     "userId" => 21639,
-        //                     "recipient" => "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-        //                     "sender" => "0x6894a93B6fea044584649278621723cac51443Cd",
-        //                     "symbolId" => 2,
-        //                     "CommissionId" => 17571,
-        //                     "amount" => "44000000000000000",
-        //                     "params" => array(),
-        //                     "reason" => null,
-        //                     "timestamp" => 1700715341743,
-        //                     "status" => "approving",
-        //                     "statusDescription" => null,
-        //                     "type" => "withdraw",
-        //                     "message" => null,
-        //                     "blockChain" => "",
-        //                     "before" => null,
-        //                     "after" => null,
-        //                     "currency" => {
-        //                         "symbol" => "eth",
-        //                         "decimals" => 18,
-        //                         "blockChain" => "Ethereum",
-        //                         "links" => array(
-        //                             array(
-        //                                 "tx" => "https://etherscan.io/tx/",
-        //                                 "address" => "https://etherscan.io/address/",
-        //                                 "blockChain" => "Ethereum"
-        //                             }
-        //                         )
-        //                     }
-        //                 ),
-        //                 {
-        //                     "id" => 1329229,
-        //                     "orderId" => null,
-        //                     "transactionCoreId" => "561418",
-        //                     "userId" => 21639,
-        //                     "recipient" => "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
-        //                     "sender" => null,
-        //                     "symbolId" => 3,
-        //                     "CommissionId" => null,
-        //                     "amount" => "100000000",
-        //                     "params" => array(
-        //                         "tx_id" => "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
-        //                     ),
-        //                     "reason" => null,
-        //                     "timestamp" => 1700594180417,
-        //                     "status" => "success",
-        //                     "statusDescription" => null,
-        //                     "type" => "deposit",
-        //                     "message" => null,
-        //                     "blockChain" => "Ethereum",
-        //                     "before" => 0,
-        //                     "after" => 100000000,
-        //                     "currency" => {
-        //                         "symbol" => "usdt",
-        //                         "decimals" => 6,
-        //                         "blockChain" => "",
-        //                         "links" => array(
-        //                             array(
-        //                                 "tx" => "https://etherscan.io/tx/",
-        //                                 "address" => "https://etherscan.io/address/",
-        //                                 "blockChain" => "Ethereum"
-        //                             ),
-        //                             array(
-        //                                 "tx" => "https://tronscan.org/#/transaction/",
-        //                                 "address" => "https://tronscan.org/#/address/",
-        //                                 "blockChain" => "Tron"
-        //                             ),
+        //                     "id": 1329686,
+        //                     "orderId": "2f060ad5-30f7-4f2b-ac5f-1bb8f5fd34dc",
+        //                     "transactionCoreId": "561863",
+        //                     "userId": 21639,
+        //                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "sender": "0x6894a93B6fea044584649278621723cac51443Cd",
+        //                     "symbolId": 2,
+        //                     "CommissionId": 17571,
+        //                     "amount": "44000000000000000",
+        //                     "params": {},
+        //                     "reason": null,
+        //                     "timestamp": 1700715341743,
+        //                     "status": "approving",
+        //                     "statusDescription": null,
+        //                     "type": "withdraw",
+        //                     "message": null,
+        //                     "blockChain": "",
+        //                     "before": null,
+        //                     "after": null,
+        //                     "currency": {
+        //                         "symbol": "eth",
+        //                         "decimals": 18,
+        //                         "blockChain": "Ethereum",
+        //                         "links": [
         //                             {
-        //                                 "tx" => "https://bscscan.com/tx/",
-        //                                 "address" => "https://bscscan.com/address/",
-        //                                 "blockChain" => "Binance"
+        //                                 "tx": "https://etherscan.io/tx/",
+        //                                 "address": "https://etherscan.io/address/",
+        //                                 "blockChain": "Ethereum"
         //                             }
-        //                         )
+        //                         ]
+        //                     }
+        //                 },
+        //                 {
+        //                     "id": 1329229,
+        //                     "orderId": null,
+        //                     "transactionCoreId": "561418",
+        //                     "userId": 21639,
+        //                     "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
+        //                     "sender": null,
+        //                     "symbolId": 3,
+        //                     "CommissionId": null,
+        //                     "amount": "100000000",
+        //                     "params": {
+        //                         "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
+        //                     },
+        //                     "reason": null,
+        //                     "timestamp": 1700594180417,
+        //                     "status": "success",
+        //                     "statusDescription": null,
+        //                     "type": "deposit",
+        //                     "message": null,
+        //                     "blockChain": "Ethereum",
+        //                     "before": 0,
+        //                     "after": 100000000,
+        //                     "currency": {
+        //                         "symbol": "usdt",
+        //                         "decimals": 6,
+        //                         "blockChain": "",
+        //                         "links": [
+        //                             {
+        //                                 "tx": "https://etherscan.io/tx/",
+        //                                 "address": "https://etherscan.io/address/",
+        //                                 "blockChain": "Ethereum"
+        //                             },
+        //                             {
+        //                                 "tx": "https://tronscan.org/#/transaction/",
+        //                                 "address": "https://tronscan.org/#/address/",
+        //                                 "blockChain": "Tron"
+        //                             },
+        //                             {
+        //                                 "tx": "https://bscscan.com/tx/",
+        //                                 "address": "https://bscscan.com/address/",
+        //                                 "blockChain": "Binance"
+        //                             }
+        //                         ]
         //                     }
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $transactions = $this->safe_list($result, 'transactions', array());
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
@@ -2281,62 +2319,62 @@ class bitteam extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
-        //         "id" => 1329229,
-        //         "orderId" => null,
-        //         "transactionCoreId" => "561418",
-        //         "userId" => 21639,
-        //         "recipient" => "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
-        //         "sender" => null,
-        //         "symbolId" => 3,
-        //         "CommissionId" => null,
-        //         "amount" => "100000000",
-        //         "params" => array(
-        //             "tx_id" => "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
-        //         ),
-        //         "reason" => null,
-        //         "timestamp" => 1700594180417,
-        //         "status" => "success",
-        //         "statusDescription" => null,
-        //         "type" => "deposit",
-        //         "message" => null,
-        //         "blockChain" => "Ethereum",
-        //         "before" => 0,
-        //         "after" => 100000000,
-        //         "currency" => {
-        //             "symbol" => "usdt",
-        //             "decimals" => 6,
-        //             "blockChain" => "",
-        //             "links" => array(
-        //                 array(
-        //                     "tx" => "https://etherscan.io/tx/",
-        //                     "address" => "https://etherscan.io/address/",
-        //                     "blockChain" => "Ethereum"
-        //                 ),
-        //                 array(
-        //                     "tx" => "https://tronscan.org/#/transaction/",
-        //                     "address" => "https://tronscan.org/#/address/",
-        //                     "blockChain" => "Tron"
-        //                 ),
+        //         "id": 1329229,
+        //         "orderId": null,
+        //         "transactionCoreId": "561418",
+        //         "userId": 21639,
+        //         "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
+        //         "sender": null,
+        //         "symbolId": 3,
+        //         "CommissionId": null,
+        //         "amount": "100000000",
+        //         "params": {
+        //             "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
+        //         },
+        //         "reason": null,
+        //         "timestamp": 1700594180417,
+        //         "status": "success",
+        //         "statusDescription": null,
+        //         "type": "deposit",
+        //         "message": null,
+        //         "blockChain": "Ethereum",
+        //         "before": 0,
+        //         "after": 100000000,
+        //         "currency": {
+        //             "symbol": "usdt",
+        //             "decimals": 6,
+        //             "blockChain": "",
+        //             "links": [
         //                 {
-        //                     "tx" => "https://bscscan.com/tx/",
-        //                     "address" => "https://bscscan.com/address/",
-        //                     "blockChain" => "Binance"
+        //                     "tx": "https://etherscan.io/tx/",
+        //                     "address": "https://etherscan.io/address/",
+        //                     "blockChain": "Ethereum"
+        //                 },
+        //                 {
+        //                     "tx": "https://tronscan.org/#/transaction/",
+        //                     "address": "https://tronscan.org/#/address/",
+        //                     "blockChain": "Tron"
+        //                 },
+        //                 {
+        //                     "tx": "https://bscscan.com/tx/",
+        //                     "address": "https://bscscan.com/address/",
+        //                     "blockChain": "Binance"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
-        $currencyObject = $this->safe_value($transaction, 'currency');
+        $currencyObject = $this->safe_dict($transaction, 'currency');
         $currencyId = $this->safe_string($currencyObject, 'symbol');
         $code = $this->safe_currency_code($currencyId, $currency);
         $id = $this->safe_string($transaction, 'id');
-        $params = $this->safe_value($transaction, 'params');
+        $params = $this->safe_dict($transaction, 'params');
         $txid = $this->safe_string($params, 'tx_id');
         $timestamp = $this->safe_integer($transaction, 'timestamp');
         $networkId = $this->safe_string($transaction, 'blockChain');
         if ($networkId === null) {
-            $links = $this->safe_value($currencyObject, 'links', array());
-            $blockChain = $this->safe_value($links, 0, array());
+            $links = $this->safe_list($currencyObject, 'links', array());
+            $blockChain = $this->safe_dict($links, 0, array());
             $networkId = $this->safe_string($blockChain, 'blockChain');
         }
         $addressFrom = $this->safe_string($transaction, 'sender');
@@ -2344,14 +2382,14 @@ class bitteam extends Exchange {
         $tag = $this->safe_string($transaction, 'message');
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         $amount = $this->parse_value_to_pricision($transaction, 'amount', $currencyObject, 'decimals');
-        $status = $this->parse_transaction_status($this->safe_value($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'addressFrom' => $addressFrom,
             'address' => null,
             'addressTo' => $addressTo,
@@ -2369,7 +2407,7 @@ class bitteam extends Exchange {
         );
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'deposit' => 'deposit',
             'withdraw' => 'withdrawal',
@@ -2385,7 +2423,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
@@ -2410,7 +2448,7 @@ class bitteam extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

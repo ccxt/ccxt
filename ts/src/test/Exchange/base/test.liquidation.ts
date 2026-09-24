@@ -3,7 +3,7 @@ import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
 
-function testLiquidation (exchange, skippedProperties, method, entry, symbol) {
+function testLiquidation (exchange: any, skippedProperties: any, method: string, entry: object, symbol: string) {
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',
@@ -29,9 +29,9 @@ function testLiquidation (exchange, skippedProperties, method, entry, symbol) {
     const contractSize = exchange.safeString (entry, 'contractSize');
     const price = exchange.safeString (entry, 'price');
     const baseValue = exchange.safeString (entry, 'baseValue');
-    if (contracts && contractSize) {
+    if ((contracts !== undefined) && (contracts !== '') && (contractSize !== undefined) && (contractSize !== '')) {
         assert (Precise.stringEq (baseValue, Precise.stringMul (contracts, contractSize)), 'baseValue == contracts * contractSize' + logText);
-        if (price) {
+        if ((price !== undefined) && (price !== '')) {
             assert (Precise.stringEq (baseValue, Precise.stringMul (Precise.stringMul (contracts, contractSize), price)), 'quoteValue == contracts * contractSize * price' + logText);
         }
     }

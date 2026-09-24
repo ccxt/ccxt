@@ -5,14 +5,13 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 
 
 class paradex(ccxt.async_support.paradex):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(paradex, self).describe(), {
             'has': {
                 'ws': True,
@@ -49,7 +48,7 @@ class paradex(ccxt.async_support.paradex):
         self.options['requestId'] = requestId
         return requestId
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
@@ -57,7 +56,7 @@ class paradex(ccxt.async_support.paradex):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             token = await self.authenticateRest()
-            request: dict = {
+            request = {
                 'jsonrpc': '2.0',
                 'id': self.request_id(),
                 'method': 'auth',
@@ -68,22 +67,22 @@ class paradex(ccxt.async_support.paradex):
             self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         return await future
 
-    def handle_authentication_message(self, client: Client, message):
+    def handle_authentication_message(self, client: Client, message: dict):
         #
         #     {
         #         "jsonrpc": "2.0",
         #         "id": 1,
-        #         "result": {"node_id": "73cf456f7cb78d59"}
+        #         "result": { "node_id": "73cf456f7cb78d59" }
         #     }
         #
         result = self.safe_dict(message, 'result')
         if result is not None:
-            # client.resolve(True, messageHash)
+            # client.resolve (true, messageHash);
             future = self.safe_value(client.futures, 'authenticated')
             if future is not None:
                 future.resolve(True)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -95,7 +94,8 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'trades.'
         if symbol is not None:
             market = self.market(symbol)
@@ -103,7 +103,7 @@ class paradex(ccxt.async_support.paradex):
         else:
             messageHash += 'ALL'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -115,7 +115,7 @@ class paradex(ccxt.async_support.paradex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -147,7 +147,7 @@ class paradex(ccxt.async_support.paradex):
         client.resolve(stored, messageHash)
         return message
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -156,13 +156,14 @@ class paradex(ccxt.async_support.paradex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -172,7 +173,7 @@ class paradex(ccxt.async_support.paradex):
         orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -215,7 +216,7 @@ class paradex(ccxt.async_support.paradex):
             'asks': [],
         }
         inserts = self.safe_list(data, 'inserts')
-        for i in range(0, len(inserts)):
+        for i in range(0, len((inserts))):
             insert = self.safe_dict(inserts, i)
             side = self.safe_string(insert, 'side')
             price = self.safe_string(insert, 'price')
@@ -231,7 +232,7 @@ class paradex(ccxt.async_support.paradex):
         messageHash = self.safe_string(params, 'channel')
         client.resolve(orderbook, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -241,11 +242,12 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         channel = 'markets_summary'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -255,7 +257,7 @@ class paradex(ccxt.async_support.paradex):
         messageHash = channel + '.' + symbol
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -265,11 +267,12 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'markets_summary'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -285,12 +288,12 @@ class paradex(ccxt.async_support.paradex):
             messageHashes.append(channel)
         newTicker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -302,7 +305,8 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         messageHash = 'orders'
         channel = 'orders.'
@@ -314,7 +318,7 @@ class paradex(ccxt.async_support.paradex):
         else:
             channel += 'ALL'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -326,7 +330,7 @@ class paradex(ccxt.async_support.paradex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: dict):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -368,7 +372,7 @@ class paradex(ccxt.async_support.paradex):
             symbolMessageHash = messageHash + ':' + symbol
             client.resolve(self.orders, symbolMessageHash)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -406,7 +410,7 @@ class paradex(ccxt.async_support.paradex):
         client.resolve(ticker, messageHash)
         return message
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         watch the current funding rate for a symbol
 
@@ -416,11 +420,12 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         channel = 'funding_data'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -430,7 +435,7 @@ class paradex(ccxt.async_support.paradex):
         messageHash = channel + '.' + symbol
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def watch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    async def watch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         watch the funding rate for multiple markets
 
@@ -440,11 +445,12 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'funding_data'
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': {
@@ -464,12 +470,12 @@ class paradex(ccxt.async_support.paradex):
             messageHashes.append(channel)
         newFundingRates = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newFundingRates['symbol']] = newFundingRates
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbols)
 
-    def handle_funding_rate(self, client: Client, message):
+    def handle_funding_rate(self, client: Client, message: dict):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -497,7 +503,7 @@ class paradex(ccxt.async_support.paradex):
         messageHash = channel + '.' + symbol
         client.resolve(fundingRate, messageHash)
 
-    def parse_funding_rate_ws(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate_ws(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "market": "TRUMP-USD-PERP",
@@ -534,7 +540,7 @@ class paradex(ccxt.async_support.paradex):
             'interval': fundingPeriod + 'h',
         }
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -562,8 +568,8 @@ class paradex(ccxt.async_support.paradex):
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
             return False
 
-    def handle_message(self, client: Client, message):
-        if not self.handle_error_message(client, message):
+    def handle_message(self, client: Client, message: dict):
+        if self.handle_error_message(client, message) is not True:
             return
         #
         # auth response
@@ -571,7 +577,7 @@ class paradex(ccxt.async_support.paradex):
         #     {
         #         "jsonrpc": "2.0",
         #         "id": 1,
-        #         "result": {"node_id": "73cf456f7cb78d59"}
+        #         "result": { "node_id": "73cf456f7cb78d59" }
         #     }
         #
         # subscription message
@@ -593,7 +599,7 @@ class paradex(ccxt.async_support.paradex):
         #         }
         #     }
         #
-        result = self.safe_value(message, 'result')
+        result = self.safe_dict(message, 'result')
         if result is not None:
             self.handle_authentication_message(client, message)
             return
@@ -602,7 +608,7 @@ class paradex(ccxt.async_support.paradex):
             channel = self.safe_string(data, 'channel')
             parts = channel.split('.')
             name = self.safe_string(parts, 0)
-            methods: dict = {
+            methods = {
                 'trades': self.handle_trade,
                 'order_book': self.handle_order_book,
                 'markets_summary': self.handle_ticker,

@@ -1,8 +1,6 @@
 // @ts-nocheck
 import ccxt from '../../js/ccxt.js';
 
-// AUTO-TRANSPILE //
-
 console.log ('CCXT Version:', ccxt.version);
 
 // ------------------------------------------------------------------------------

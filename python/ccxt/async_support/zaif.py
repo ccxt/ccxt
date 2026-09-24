@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.zaif import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -16,12 +15,12 @@ from ccxt.base.precise import Precise
 
 class zaif(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(zaif, self).describe(), {
             'id': 'zaif',
             'name': 'Zaif',
             'countries': ['JP'],
-            # 10 requests per second = 1000ms / 10 = 100ms between requests(public market endpoints)
+            # 10 requests per second = 1000ms / 10 = 100ms between requests (public market endpoints)
             'rateLimit': 100,
             'version': '1',
             'has': {
@@ -84,7 +83,7 @@ class zaif(Exchange, ImplicitAPI):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e',
                 'api': {
                     'rest': 'https://api.zaif.jp',
                 },
@@ -108,56 +107,59 @@ class zaif(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'depth/{pair}': 1,
-                        'currencies/{pair}': 1,
-                        'currencies/all': 1,
-                        'currency_pairs/{pair}': 1,
-                        'currency_pairs/all': 1,
-                        'last_price/{pair}': 1,
-                        'ticker/{pair}': 1,
-                        'trades/{pair}': 1,
+                        'depth/{pair}': {'cost': 1},
+                        'currencies/{pair}': {'cost': 1},
+                        'currencies/all': {'cost': 1},
+                        'currency_pairs/{pair}': {'cost': 1},
+                        'currency_pairs/all': {'cost': 1},
+                        'last_price/{pair}': {'cost': 1},
+                        'ticker/{pair}': {'cost': 1},
+                        'trades/{pair}': {'cost': 1},
+                        'vasp_info/{vasp_master_id}': {'cost': 1},
+                        'country_info/{code}': {'cost': 1},
+                        'corp_type_id_info/{id}': {'cost': 1},
                     },
                 },
                 'private': {
                     'post': {
-                        'active_orders': 5,  # 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
-                        'cancel_order': 5,
-                        'deposit_history': 5,
-                        'get_id_info': 5,
-                        'get_info': 10,  # 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
-                        'get_info2': 5,  # 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
-                        'get_personal_info': 5,
-                        'trade': 5,
-                        'trade_history': 50,  # 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
-                        'withdraw': 5,
-                        'withdraw_history': 5,
+                        'active_orders': {'cost': 5},  # 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': {'cost': 5},
+                        'deposit_history': {'cost': 5},
+                        'get_id_info': {'cost': 5},
+                        'get_info': {'cost': 10},  # 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': {'cost': 5},  # 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': {'cost': 5},
+                        'trade': {'cost': 5},
+                        'trade_history': {'cost': 50},  # 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': {'cost': 5},
+                        'withdraw_history': {'cost': 5},
                     },
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': 1,  # unverified
-                        'getInvoice': 1,
-                        'getInvoiceIdsByOrderNumber': 1,
-                        'cancelInvoice': 1,
+                        'createInvoice': {'cost': 1},  # unverified
+                        'getInvoice': {'cost': 1},
+                        'getInvoiceIdsByOrderNumber': {'cost': 1},
+                        'cancelInvoice': {'cost': 1},
                     },
                 },
                 'tlapi': {
                     'post': {
-                        'get_positions': 66,  # 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
-                        'position_history': 66,  # 10 in 60 seconds
-                        'active_positions': 5,  # 20 in 10 seconds
-                        'create_position': 33,  # 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
-                        'change_position': 33,  # 3 in 10 seconds
-                        'cancel_position': 33,  # 3 in 10 seconds
+                        'get_positions': {'cost': 66},  # 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': {'cost': 66},  # 10 in 60 seconds
+                        'active_positions': {'cost': 5},  # 20 in 10 seconds
+                        'create_position': {'cost': 33},  # 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': {'cost': 33},  # 3 in 10 seconds
+                        'cancel_position': {'cost': 33},  # 3 in 10 seconds
                     },
                 },
                 'fapi': {
                     'get': {
-                        'groups/{group_id}': 1,  # testing
-                        'last_price/{group_id}/{pair}': 1,
-                        'ticker/{group_id}/{pair}': 1,
-                        'trades/{group_id}/{pair}': 1,
-                        'depth/{group_id}/{pair}': 1,
+                        'groups/{group_id}': {'cost': 1},  # testing
+                        'last_price/{group_id}/{pair}': {'cost': 1},
+                        'ticker/{group_id}/{pair}': {'cost': 1},
+                        'trades/{group_id}/{pair}': {'cost': 1},
+                        'depth/{group_id}/{pair}': {'cost': 1},
                     },
                 },
             },
@@ -230,7 +232,7 @@ class zaif(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
@@ -250,7 +252,7 @@ class zaif(Exchange, ImplicitAPI):
         #             "item_unit_min": 0.001,
         #             "event_number": 0,
         #             "currency_pair": "btc_jpy",
-        #             "is_token": False,
+        #             "is_token": false,
         #             "aux_unit_min": 5.0,
         #             "aux_japanese": "\u65e5\u672c\u5186",
         #             "id": 1,
@@ -266,11 +268,13 @@ class zaif(Exchange, ImplicitAPI):
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'currency_pair')
         name = self.safe_string(market, 'name')
+        if name is None:
+            raise ExchangeError(self.id + ' parseMarket() missing name')
         baseId, quoteId = name.split('/')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -318,17 +322,17 @@ class zaif(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
-    def parse_balance(self, response) -> Balances:
-        balances = self.safe_value(response, 'return', {})
-        deposit = self.safe_value(balances, 'deposit')
-        result: dict = {
+    def parse_balance(self, response: object) -> Balances:
+        balances = self.safe_dict(response, 'return', {})
+        deposit = self.safe_dict(balances, 'deposit')
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
         }
-        funds = self.safe_value(balances, 'funds', {})
+        funds = self.safe_dict(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -340,10 +344,11 @@ class zaif(Exchange, ImplicitAPI):
             if deposit is not None:
                 if currencyId in deposit:
                     account['total'] = self.safe_string(deposit, currencyId)
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
@@ -352,11 +357,12 @@ class zaif(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privatePostGetInfo(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
@@ -365,11 +371,12 @@ class zaif(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicGetDepthPair(self.extend(request, params))
@@ -415,7 +422,7 @@ class zaif(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
@@ -425,9 +432,10 @@ class zaif(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         ticker = await self.publicGetTickerPair(self.extend(request, params))
@@ -446,7 +454,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "date": 1648559414,
@@ -481,7 +489,7 @@ class zaif(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
@@ -493,9 +501,10 @@ class zaif(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicGetTradesPair(self.extend(request, params))
@@ -511,14 +520,15 @@ class zaif(Exchange, ImplicitAPI):
         #          }, ...
         #      ]
         #
-        numTrades = len(response)
+        trades = self.to_array(response)
+        numTrades = len(trades)
         if numTrades == 1:
-            firstTrade = response[0]
-            if not firstTrade:
-                response = []
-        return self.parse_trades(response, market, since, limit)
+            firstTrade = self.safe_dict(trades, 0, {})
+            if len(firstTrade) == 0:
+                trades = []
+        return self.parse_trades(trades, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
@@ -532,34 +542,36 @@ class zaif(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency_pair': market['id'],
             'action': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
             'price': price,
         }
         response = await self.privatePostTrade(self.extend(request, params))
+        data = self.safe_dict(response, 'return', {})
         return self.safe_order({
             'info': response,
-            'id': str(response['return']['order_id']),
+            'id': str(data['order_id']),
         }, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
 
         cancels an open order
         :param str id: order id
-        :param str symbol: not used by zaif cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = await self.privatePostCancelOrder(self.extend(request, params))
@@ -577,7 +589,7 @@ class zaif(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_dict(response, 'return')
+        data = self.safe_dict(response, 'return', {})
         return self.parse_order(data)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -635,7 +647,7 @@ class zaif(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
@@ -647,19 +659,21 @@ class zaif(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        market: Market = None
-        request: dict = {
-            # 'is_token': False,
-            # 'is_token_both': False,
+        if self.markets is None:
+            await self.load_markets()
+        market = None
+        request = {
+            # 'is_token': false,
+            # 'is_token_both': false,
         }
         if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
-        return self.parse_orders(response['return'], market, since, limit)
+        data = self.safe_dict(response, 'return', {})
+        return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
@@ -671,9 +685,10 @@ class zaif(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        market: Market = None
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        market = None
+        request = {
             # 'from': 0,
             # 'count': 1000,
             # 'from_id': 0,
@@ -681,15 +696,20 @@ class zaif(Exchange, ImplicitAPI):
             # 'order': 'DESC',
             # 'since': 1503821051,
             # 'end': 1503821051,
-            # 'is_token': False,
+            # 'is_token': false,
         }
         if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
+        if since is not None:
+            request['since'] = self.parse_to_int(since / 1000)
+        if limit is not None:
+            request['count'] = min(limit, 1000)
         response = await self.privatePostTradeHistory(self.extend(request, params))
-        return self.parse_orders(response['return'], market, since, limit)
+        data = self.safe_dict(response, 'return', {})
+        return self.parse_orders(data, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
@@ -704,16 +724,17 @@ class zaif(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         if code == 'JPY':
             raise ExchangeError(self.id + ' withdraw() does not allow ' + code + ' withdrawals')
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-            # 'message': 'Hi!',  # XEM and others
-            # 'opt_fee': 0.003,  # BTC and MONA only
+            # 'message': 'Hi!', // XEM and others
+            # 'opt_fee': 0.003, // BTC and MONA only
         }
         if tag is not None:
             request['message'] = tag
@@ -734,7 +755,7 @@ class zaif(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        returnData = self.safe_dict(result, 'return')
+        returnData = self.safe_dict(result, 'return', {})
         return self.parse_transaction(returnData, currency)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -753,7 +774,7 @@ class zaif(Exchange, ImplicitAPI):
         #
         currency = self.safe_currency(None, currency)
         fee = None
-        feeCost = self.safe_value(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -787,7 +808,7 @@ class zaif(Exchange, ImplicitAPI):
         nonce = float(num)
         return format(nonce, '.8f')
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api']['rest'] + '/'
         if api == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
@@ -813,7 +834,7 @@ class zaif(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         #
@@ -826,6 +847,6 @@ class zaif(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             raise ExchangeError(feedback)
         return None

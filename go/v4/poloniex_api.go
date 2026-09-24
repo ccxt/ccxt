@@ -7,406 +7,527 @@
 
 package ccxt
 
-func (this *PoloniexCore) PublicGetMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarkets", args...)
+// PublicGetMarkets returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsSymbol", args...)
+// PublicGetMarketsSymbol returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetMarketsSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrencies", args...)
+// PublicGetCurrencies returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetCurrencies(args ...any) <-chan any {
+	return this.Fetch2Async("currencies", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PublicGetCurrenciesCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrenciesCurrency", args...)
+// PublicGetCurrenciesCurrency returns a channel that yields a JSON object.
+func (this *Poloniex) PublicGetCurrenciesCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("currencies/{currency}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PublicGetV2Currencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV2Currencies", args...)
+// PublicGetV2Currencies returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetV2Currencies(args ...any) <-chan any {
+	return this.Fetch2Async("v2/currencies", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PublicGetV2CurrenciesCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV2CurrenciesCurrency", args...)
+// PublicGetV2CurrenciesCurrency returns a channel that yields a JSON object.
+func (this *Poloniex) PublicGetV2CurrenciesCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("v2/currencies/{currency}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PublicGetTimestamp(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTimestamp", args...)
+// PublicGetTimestamp returns a channel that yields a JSON object.
+func (this *Poloniex) PublicGetTimestamp(args ...any) <-chan any {
+	return this.Fetch2Async("timestamp", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsPrice", args...)
+// PublicGetMarketsPrice returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetMarketsPrice(args ...any) <-chan any {
+	return this.Fetch2Async("markets/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsSymbolPrice", args...)
+// PublicGetMarketsSymbolPrice returns a channel that yields a JSON object.
+func (this *Poloniex) PublicGetMarketsSymbolPrice(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{symbol}/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsMarkPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsMarkPrice", args...)
+// PublicGetMarketsMarkPrice returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetMarketsMarkPrice(args ...any) <-chan any {
+	return this.Fetch2Async("markets/markPrice", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolMarkPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsSymbolMarkPrice", args...)
+// PublicGetMarketsSymbolMarkPrice returns a channel that yields a JSON object.
+func (this *Poloniex) PublicGetMarketsSymbolMarkPrice(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{symbol}/markPrice", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolMarkPriceComponents(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsSymbolMarkPriceComponents", args...)
+// PublicGetMarketsSymbolMarkPriceComponents returns a channel that yields a JSON object.
+func (this *Poloniex) PublicGetMarketsSymbolMarkPriceComponents(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{symbol}/markPriceComponents", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolOrderBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsSymbolOrderBook", args...)
+// PublicGetMarketsSymbolOrderBook returns a channel that yields a JSON object.
+func (this *Poloniex) PublicGetMarketsSymbolOrderBook(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{symbol}/orderBook", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsSymbolCandles", args...)
+// PublicGetMarketsSymbolCandles returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetMarketsSymbolCandles(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{symbol}/candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsSymbolTrades", args...)
+// PublicGetMarketsSymbolTrades returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetMarketsSymbolTrades(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{symbol}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsTicker24h(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsTicker24h", args...)
+// PublicGetMarketsTicker24h returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetMarketsTicker24h(args ...any) <-chan any {
+	return this.Fetch2Async("markets/ticker24h", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolTicker24h(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsSymbolTicker24h", args...)
+// PublicGetMarketsSymbolTicker24h returns a channel that yields a JSON object.
+func (this *Poloniex) PublicGetMarketsSymbolTicker24h(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{symbol}/ticker24h", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsCollateralInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsCollateralInfo", args...)
+// PublicGetMarketsCollateralInfo returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetMarketsCollateralInfo(args ...any) <-chan any {
+	return this.Fetch2Async("markets/collateralInfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsCurrencyCollateralInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsCurrencyCollateralInfo", args...)
+// PublicGetMarketsCurrencyCollateralInfo returns a channel that yields a JSON object.
+func (this *Poloniex) PublicGetMarketsCurrencyCollateralInfo(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{currency}/collateralInfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PublicGetMarketsBorrowRatesInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketsBorrowRatesInfo", args...)
+// PublicGetMarketsBorrowRatesInfo returns a channel that yields a JSON array.
+func (this *Poloniex) PublicGetMarketsBorrowRatesInfo(args ...any) <-chan any {
+	return this.Fetch2Async("markets/borrowRatesInfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PrivateGetAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccounts", args...)
+// PrivateGetAccounts returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetAccounts(args ...any) <-chan any {
+	return this.Fetch2Async("accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetAccountsBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountsBalances", args...)
+// PrivateGetAccountsBalances returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetAccountsBalances(args ...any) <-chan any {
+	return this.Fetch2Async("accounts/balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetAccountsIdBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountsIdBalances", args...)
+// PrivateGetAccountsIdBalances returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetAccountsIdBalances(args ...any) <-chan any {
+	return this.Fetch2Async("accounts/{id}/balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetAccountsActivity(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountsActivity", args...)
+// PrivateGetAccountsActivity returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetAccountsActivity(args ...any) <-chan any {
+	return this.Fetch2Async("accounts/activity", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetAccountsTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountsTransfer", args...)
+// PrivateGetAccountsTransfer returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetAccountsTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("accounts/transfer", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetAccountsTransferId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountsTransferId", args...)
+// PrivateGetAccountsTransferId returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetAccountsTransferId(args ...any) <-chan any {
+	return this.Fetch2Async("accounts/transfer/{id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetFeeinfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFeeinfo", args...)
+// PrivateGetFeeinfo returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetFeeinfo(args ...any) <-chan any {
+	return this.Fetch2Async("feeinfo", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetAccountsInterestHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountsInterestHistory", args...)
+// PrivateGetAccountsInterestHistory returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetAccountsInterestHistory(args ...any) <-chan any {
+	return this.Fetch2Async("accounts/interest/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-func (this *PoloniexCore) PrivateGetSubaccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubaccounts", args...)
+// PrivateGetSubaccounts returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetSubaccounts(args ...any) <-chan any {
+	return this.Fetch2Async("subaccounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetSubaccountsBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubaccountsBalances", args...)
+// PrivateGetSubaccountsBalances returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetSubaccountsBalances(args ...any) <-chan any {
+	return this.Fetch2Async("subaccounts/balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetSubaccountsIdBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubaccountsIdBalances", args...)
+// PrivateGetSubaccountsIdBalances returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetSubaccountsIdBalances(args ...any) <-chan any {
+	return this.Fetch2Async("subaccounts/{id}/balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetSubaccountsTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubaccountsTransfer", args...)
+// PrivateGetSubaccountsTransfer returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetSubaccountsTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("subaccounts/transfer", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetSubaccountsTransferId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubaccountsTransferId", args...)
+// PrivateGetSubaccountsTransferId returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetSubaccountsTransferId(args ...any) <-chan any {
+	return this.Fetch2Async("subaccounts/transfer/{id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetWalletsAddresses(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletsAddresses", args...)
+// PrivateGetWalletsAddresses returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetWalletsAddresses(args ...any) <-chan any {
+	return this.Fetch2Async("wallets/addresses", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetWalletsAddressesCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletsAddressesCurrency", args...)
+// PrivateGetWalletsAddressesCurrency returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetWalletsAddressesCurrency(args ...any) <-chan any {
+	return this.Fetch2Async("wallets/addresses/{currency}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetWalletsActivity(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWalletsActivity", args...)
+// PrivateGetWalletsActivity returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetWalletsActivity(args ...any) <-chan any {
+	return this.Fetch2Async("wallets/activity", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetMarginAccountMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetMarginAccountMargin", args...)
+// PrivateGetMarginAccountMargin returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetMarginAccountMargin(args ...any) <-chan any {
+	return this.Fetch2Async("margin/accountMargin", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetMarginBorrowStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetMarginBorrowStatus", args...)
+// PrivateGetMarginBorrowStatus returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetMarginBorrowStatus(args ...any) <-chan any {
+	return this.Fetch2Async("margin/borrowStatus", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetMarginMaxSize(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetMarginMaxSize", args...)
+// PrivateGetMarginMaxSize returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetMarginMaxSize(args ...any) <-chan any {
+	return this.Fetch2Async("margin/maxSize", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrders", args...)
+// PrivateGetOrders returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetOrders(args ...any) <-chan any {
+	return this.Fetch2Async("orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersId", args...)
+// PrivateGetOrdersId returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetOrdersId(args ...any) <-chan any {
+	return this.Fetch2Async("orders/{id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetOrdersKillSwitchStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersKillSwitchStatus", args...)
+// PrivateGetOrdersKillSwitchStatus returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetOrdersKillSwitchStatus(args ...any) <-chan any {
+	return this.Fetch2Async("orders/killSwitchStatus", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetSmartorders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSmartorders", args...)
+// PrivateGetSmartorders returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetSmartorders(args ...any) <-chan any {
+	return this.Fetch2Async("smartorders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetSmartordersId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSmartordersId", args...)
+// PrivateGetSmartordersId returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetSmartordersId(args ...any) <-chan any {
+	return this.Fetch2Async("smartorders/{id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateGetOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersHistory", args...)
+// PrivateGetOrdersHistory returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateGetOrdersHistory(args ...any) <-chan any {
+	return this.Fetch2Async("orders/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetSmartordersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSmartordersHistory", args...)
+// PrivateGetSmartordersHistory returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetSmartordersHistory(args ...any) <-chan any {
+	return this.Fetch2Async("smartorders/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTrades", args...)
+// PrivateGetTrades returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetTrades(args ...any) <-chan any {
+	return this.Fetch2Async("trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateGetOrdersIdTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersIdTrades", args...)
+// PrivateGetOrdersIdTrades returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateGetOrdersIdTrades(args ...any) <-chan any {
+	return this.Fetch2Async("orders/{id}/trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivatePostAccountsTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountsTransfer", args...)
+// PrivatePostAccountsTransfer returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePostAccountsTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("accounts/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivatePostSubaccountsTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSubaccountsTransfer", args...)
+// PrivatePostSubaccountsTransfer returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePostSubaccountsTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("subaccounts/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivatePostWalletsAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWalletsAddress", args...)
+// PrivatePostWalletsAddress returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePostWalletsAddress(args ...any) <-chan any {
+	return this.Fetch2Async("wallets/address", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivatePostWalletsWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWalletsWithdraw", args...)
+// PrivatePostWalletsWithdraw returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePostWalletsWithdraw(args ...any) <-chan any {
+	return this.Fetch2Async("wallets/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivatePostV2WalletsWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2WalletsWithdraw", args...)
+// PrivatePostV2WalletsWithdraw returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePostV2WalletsWithdraw(args ...any) <-chan any {
+	return this.Fetch2Async("v2/wallets/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivatePostOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrders", args...)
+// PrivatePostOrders returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePostOrders(args ...any) <-chan any {
+	return this.Fetch2Async("orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivatePostOrdersBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersBatch", args...)
+// PrivatePostOrdersBatch returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePostOrdersBatch(args ...any) <-chan any {
+	return this.Fetch2Async("orders/batch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivatePostOrdersKillSwitch(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersKillSwitch", args...)
+// PrivatePostOrdersKillSwitch returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePostOrdersKillSwitch(args ...any) <-chan any {
+	return this.Fetch2Async("orders/killSwitch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivatePostSmartorders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSmartorders", args...)
+// PrivatePostSmartorders returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePostSmartorders(args ...any) <-chan any {
+	return this.Fetch2Async("smartorders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateDeleteOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrdersId", args...)
+// PrivateDeleteOrdersId returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateDeleteOrdersId(args ...any) <-chan any {
+	return this.Fetch2Async("orders/{id}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateDeleteOrdersCancelByIds(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrdersCancelByIds", args...)
+// PrivateDeleteOrdersCancelByIds returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateDeleteOrdersCancelByIds(args ...any) <-chan any {
+	return this.Fetch2Async("orders/cancelByIds", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateDeleteOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrders", args...)
+// PrivateDeleteOrders returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateDeleteOrders(args ...any) <-chan any {
+	return this.Fetch2Async("orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateDeleteSmartordersId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteSmartordersId", args...)
+// PrivateDeleteSmartordersId returns a channel that yields a JSON object.
+func (this *Poloniex) PrivateDeleteSmartordersId(args ...any) <-chan any {
+	return this.Fetch2Async("smartorders/{id}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) PrivateDeleteSmartordersCancelByIds(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteSmartordersCancelByIds", args...)
+// PrivateDeleteSmartordersCancelByIds returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateDeleteSmartordersCancelByIds(args ...any) <-chan any {
+	return this.Fetch2Async("smartorders/cancelByIds", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivateDeleteSmartorders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteSmartorders", args...)
+// PrivateDeleteSmartorders returns a channel that yields a JSON array.
+func (this *Poloniex) PrivateDeleteSmartorders(args ...any) <-chan any {
+	return this.Fetch2Async("smartorders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivatePutOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutOrdersId", args...)
+// PrivatePutOrdersId returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePutOrdersId(args ...any) <-chan any {
+	return this.Fetch2Async("orders/{id}", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) PrivatePutSmartordersId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePutSmartordersId", args...)
+// PrivatePutSmartordersId returns a channel that yields a JSON object.
+func (this *Poloniex) PrivatePutSmartordersId(args ...any) <-chan any {
+	return this.Fetch2Async("smartorders/{id}", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketAllInstruments(args ...any) <-chan any {
+// SwapPublicGetV3MarketAllInstruments returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketAllInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketAllInstruments", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketInstruments(args ...any) <-chan any {
+// SwapPublicGetV3MarketInstruments returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketInstruments", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketOrderBook(args ...any) <-chan any {
+// SwapPublicGetV3MarketOrderBook returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketOrderBook(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketOrderBook", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPublicGetV3MarketCandles", args...)
+// SwapPublicGetV3MarketCandles returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketCandles(args ...any) <-chan any {
+	return this.Fetch2Async("v3/market/candles", "swapPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketIndexPriceCandlesticks(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPublicGetV3MarketIndexPriceCandlesticks", args...)
+// SwapPublicGetV3MarketIndexPriceCandlesticks returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketIndexPriceCandlesticks(args ...any) <-chan any {
+	return this.Fetch2Async("v3/market/indexPriceCandlesticks", "swapPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketPremiumIndexCandlesticks(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPublicGetV3MarketPremiumIndexCandlesticks", args...)
+// SwapPublicGetV3MarketPremiumIndexCandlesticks returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketPremiumIndexCandlesticks(args ...any) <-chan any {
+	return this.Fetch2Async("v3/market/premiumIndexCandlesticks", "swapPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketMarkPriceCandlesticks(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPublicGetV3MarketMarkPriceCandlesticks", args...)
+// SwapPublicGetV3MarketMarkPriceCandlesticks returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketMarkPriceCandlesticks(args ...any) <-chan any {
+	return this.Fetch2Async("v3/market/markPriceCandlesticks", "swapPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketTrades(args ...any) <-chan any {
+// SwapPublicGetV3MarketTrades returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketTrades", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketLiquidationOrder(args ...any) <-chan any {
+// SwapPublicGetV3MarketLiquidationOrder returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketLiquidationOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketLiquidationOrder", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketTickers(args ...any) <-chan any {
+// SwapPublicGetV3MarketTickers returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketTickers", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketMarkPrice(args ...any) <-chan any {
+// SwapPublicGetV3MarketMarkPrice returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketMarkPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketMarkPrice", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketIndexPrice(args ...any) <-chan any {
+// SwapPublicGetV3MarketIndexPrice returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketIndexPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketIndexPrice", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketIndexPriceComponents(args ...any) <-chan any {
+// SwapPublicGetV3MarketIndexPriceComponents returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketIndexPriceComponents(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketIndexPriceComponents", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketFundingRate(args ...any) <-chan any {
+// SwapPublicGetV3MarketFundingRate returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketFundingRate", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketOpenInterest(args ...any) <-chan any {
+// SwapPublicGetV3MarketFundingRateHistory returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketFundingRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketFundingRateHistory", args...)
+}
+
+// SwapPublicGetV3MarketOpenInterest returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketOpenInterest", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketInsurance(args ...any) <-chan any {
+// SwapPublicGetV3MarketInsurance returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketInsurance(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketInsurance", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketRiskLimit(args ...any) <-chan any {
+// SwapPublicGetV3MarketRiskLimit returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketRiskLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketRiskLimit", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3AccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateGetV3AccountBalance", args...)
+// SwapPublicGetV3MarketLimitPrice returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPublicGetV3MarketLimitPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketLimitPrice", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3AccountBills(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateGetV3AccountBills", args...)
+// SwapPrivateGetV3AccountBalance returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3AccountBalance(args ...any) <-chan any {
+	return this.Fetch2Async("v3/account/balance", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradeOrderOpens(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateGetV3TradeOrderOpens", args...)
+// SwapPrivateGetV3AccountBills returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3AccountBills(args ...any) <-chan any {
+	return this.Fetch2Async("v3/account/bills", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradeOrderTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateGetV3TradeOrderTrades", args...)
+// SwapPrivateGetV3TradeOrderOpens returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3TradeOrderOpens(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/order/opens", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradeOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateGetV3TradeOrderHistory", args...)
+// SwapPrivateGetV3TradeOrderTrades returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3TradeOrderTrades(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/order/trades", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradePositionOpens(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateGetV3TradePositionOpens", args...)
+// SwapPrivateGetV3TradeOrderHistory returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3TradeOrderHistory(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/order/history", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradePositionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateGetV3TradePositionHistory", args...)
+// SwapPrivateGetV3TradeOrderDetails returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3TradeOrderDetails(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/order/details", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3PositionLeverages(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateGetV3PositionLeverages", args...)
+// SwapPrivateGetV3TradePositionOpens returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3TradePositionOpens(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/position/opens", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3PositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateGetV3PositionMode", args...)
+// SwapPrivateGetV3TradePositionHistory returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3TradePositionHistory(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/position/history", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivatePostV3TradeOrder", args...)
+// SwapPrivateGetV3PositionLeverages returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3PositionLeverages(args ...any) <-chan any {
+	return this.Fetch2Async("v3/position/leverages", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivatePostV3TradeOrders", args...)
+// SwapPrivateGetV3PositionMode returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3PositionMode(args ...any) <-chan any {
+	return this.Fetch2Async("v3/position/mode", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivatePostV3TradePosition", args...)
+// SwapPrivateGetV3PositionRiskLimit returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateGetV3PositionRiskLimit(args ...any) <-chan any {
+	return this.Fetch2Async("v3/position/riskLimit", "swapPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradePositionAll(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivatePostV3TradePositionAll", args...)
+// SwapPrivatePostV3TradeOrder returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivatePostV3TradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/order", "swapPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3PositionLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivatePostV3PositionLeverage", args...)
+// SwapPrivatePostV3TradeOrders returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivatePostV3TradeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/orders", "swapPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3PositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivatePostV3PositionMode", args...)
+// SwapPrivatePostV3TradePosition returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivatePostV3TradePosition(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/position", "swapPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradePositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivatePostV3TradePositionMargin", args...)
+// SwapPrivatePostV3TradePositionAll returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivatePostV3TradePositionAll(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/positionAll", "swapPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
-func (this *PoloniexCore) SwapPrivateDeleteV3TradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateDeleteV3TradeOrder", args...)
+// SwapPrivatePostV3PositionLeverage returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivatePostV3PositionLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("v3/position/leverage", "swapPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivateDeleteV3TradeBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateDeleteV3TradeBatchOrders", args...)
+// SwapPrivatePostV3PositionMode returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivatePostV3PositionMode(args ...any) <-chan any {
+	return this.Fetch2Async("v3/position/mode", "swapPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
-func (this *PoloniexCore) SwapPrivateDeleteV3TradeAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapPrivateDeleteV3TradeAllOrders", args...)
+// SwapPrivatePostV3TradePositionMargin returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivatePostV3TradePositionMargin(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/position/margin", "swapPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// SwapPrivateDeleteV3TradeOrder returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateDeleteV3TradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/order", "swapPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// SwapPrivateDeleteV3TradeBatchOrders returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateDeleteV3TradeBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/batchOrders", "swapPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// SwapPrivateDeleteV3TradeAllOrders returns a channel that yields a JSON object.
+func (this *Poloniex) SwapPrivateDeleteV3TradeAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trade/allOrders", "swapPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }

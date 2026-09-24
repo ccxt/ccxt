@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\zaif as Exchange;
 
 class zaif extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'zaif',
@@ -78,7 +77,7 @@ class zaif extends Exchange {
                 'withdraw' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e',
                 'api' => array(
                     'rest' => 'https://api.zaif.jp',
                 ),
@@ -102,56 +101,59 @@ class zaif extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'depth/{pair}' => 1,
-                        'currencies/{pair}' => 1,
-                        'currencies/all' => 1,
-                        'currency_pairs/{pair}' => 1,
-                        'currency_pairs/all' => 1,
-                        'last_price/{pair}' => 1,
-                        'ticker/{pair}' => 1,
-                        'trades/{pair}' => 1,
+                        'depth/{pair}' => array( 'cost' => 1 ),
+                        'currencies/{pair}' => array( 'cost' => 1 ),
+                        'currencies/all' => array( 'cost' => 1 ),
+                        'currency_pairs/{pair}' => array( 'cost' => 1 ),
+                        'currency_pairs/all' => array( 'cost' => 1 ),
+                        'last_price/{pair}' => array( 'cost' => 1 ),
+                        'ticker/{pair}' => array( 'cost' => 1 ),
+                        'trades/{pair}' => array( 'cost' => 1 ),
+                        'vasp_info/{vasp_master_id}' => array( 'cost' => 1 ),
+                        'country_info/{code}' => array( 'cost' => 1 ),
+                        'corp_type_id_info/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'active_orders' => 5, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
-                        'cancel_order' => 5,
-                        'deposit_history' => 5,
-                        'get_id_info' => 5,
-                        'get_info' => 10, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
-                        'get_info2' => 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
-                        'get_personal_info' => 5,
-                        'trade' => 5,
-                        'trade_history' => 50, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
-                        'withdraw' => 5,
-                        'withdraw_history' => 5,
+                        'active_orders' => array( 'cost' => 5 ), // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order' => array( 'cost' => 5 ),
+                        'deposit_history' => array( 'cost' => 5 ),
+                        'get_id_info' => array( 'cost' => 5 ),
+                        'get_info' => array( 'cost' => 10 ), // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2' => array( 'cost' => 5 ), // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info' => array( 'cost' => 5 ),
+                        'trade' => array( 'cost' => 5 ),
+                        'trade_history' => array( 'cost' => 50 ), // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw' => array( 'cost' => 5 ),
+                        'withdraw_history' => array( 'cost' => 5 ),
                     ),
                 ),
                 'ecapi' => array(
                     'post' => array(
-                        'createInvoice' => 1, // unverified
-                        'getInvoice' => 1,
-                        'getInvoiceIdsByOrderNumber' => 1,
-                        'cancelInvoice' => 1,
+                        'createInvoice' => array( 'cost' => 1 ), // unverified
+                        'getInvoice' => array( 'cost' => 1 ),
+                        'getInvoiceIdsByOrderNumber' => array( 'cost' => 1 ),
+                        'cancelInvoice' => array( 'cost' => 1 ),
                     ),
                 ),
                 'tlapi' => array(
                     'post' => array(
-                        'get_positions' => 66, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
-                        'position_history' => 66, // 10 in 60 seconds
-                        'active_positions' => 5, // 20 in 10 seconds
-                        'create_position' => 33, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
-                        'change_position' => 33, // 3 in 10 seconds
-                        'cancel_position' => 33, // 3 in 10 seconds
+                        'get_positions' => array( 'cost' => 66 ), // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history' => array( 'cost' => 66 ), // 10 in 60 seconds
+                        'active_positions' => array( 'cost' => 5 ), // 20 in 10 seconds
+                        'create_position' => array( 'cost' => 33 ), // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position' => array( 'cost' => 33 ), // 3 in 10 seconds
+                        'cancel_position' => array( 'cost' => 33 ), // 3 in 10 seconds
                     ),
                 ),
                 'fapi' => array(
                     'get' => array(
-                        'groups/{group_id}' => 1, // testing
-                        'last_price/{group_id}/{pair}' => 1,
-                        'ticker/{group_id}/{pair}' => 1,
-                        'trades/{group_id}/{pair}' => 1,
-                        'depth/{group_id}/{pair}' => 1,
+                        'groups/{group_id}' => array( 'cost' => 1 ), // testing
+                        'last_price/{group_id}/{pair}' => array( 'cost' => 1 ),
+                        'ticker/{group_id}/{pair}' => array( 'cost' => 1 ),
+                        'trades/{group_id}/{pair}' => array( 'cost' => 1 ),
+                        'depth/{group_id}/{pair}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -217,7 +219,7 @@ class zaif extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
-                    'unsupported currency_pair' => '\\ccxt\\BadRequest', // array("error" => "unsupported currency_pair")
+                    'unsupported currency_pair' => '\\ccxt\\BadRequest', // {"error": "unsupported currency_pair"}
                 ),
                 'broad' => array(
                 ),
@@ -225,7 +227,7 @@ class zaif extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
@@ -234,27 +236,27 @@ class zaif extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $markets = $this->publicGetCurrencyPairsAll ($params);
+        $markets = $this->publicGetCurrencyPairsAll($params);
         //
-        //     array(
+        //     [
         //         {
-        //             "aux_unit_point" => 0,
-        //             "item_japanese" => "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3",
-        //             "aux_unit_step" => 5.0,
-        //             "description" => "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3\u30fb\u65e5\u672c\u5186\u306e\u53d6\u5f15\u3092\u884c\u3046\u3053\u3068\u304c\u3067\u304d\u307e\u3059",
-        //             "item_unit_min" => 0.001,
-        //             "event_number" => 0,
-        //             "currency_pair" => "btc_jpy",
-        //             "is_token" => false,
-        //             "aux_unit_min" => 5.0,
-        //             "aux_japanese" => "\u65e5\u672c\u5186",
-        //             "id" => 1,
-        //             "item_unit_step" => 0.0001,
-        //             "name" => "BTC/JPY",
-        //             "seq" => 0,
-        //             "title" => "BTC/JPY"
+        //             "aux_unit_point": 0,
+        //             "item_japanese": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3",
+        //             "aux_unit_step": 5.0,
+        //             "description": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3\u30fb\u65e5\u672c\u5186\u306e\u53d6\u5f15\u3092\u884c\u3046\u3053\u3068\u304c\u3067\u304d\u307e\u3059",
+        //             "item_unit_min": 0.001,
+        //             "event_number": 0,
+        //             "currency_pair": "btc_jpy",
+        //             "is_token": false,
+        //             "aux_unit_min": 5.0,
+        //             "aux_japanese": "\u65e5\u672c\u5186",
+        //             "id": 1,
+        //             "item_unit_step": 0.0001,
+        //             "name": "BTC/JPY",
+        //             "seq": 0,
+        //             "title": "BTC/JPY"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_markets($markets);
     }
@@ -262,11 +264,14 @@ class zaif extends Exchange {
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'currency_pair');
         $name = $this->safe_string($market, 'name');
+        if ($name === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing name');
+        }
         list($baseId, $quoteId) = explode('/', $name);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -314,18 +319,18 @@ class zaif extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
-    public function parse_balance($response): array {
-        $balances = $this->safe_value($response, 'return', array());
-        $deposit = $this->safe_value($balances, 'deposit');
+    public function parse_balance(mixed $response): array {
+        $balances = $this->safe_dict($response, 'return', array());
+        $deposit = $this->safe_dict($balances, 'deposit');
         $result = array(
             'info' => $response,
             'timestamp' => null,
             'datetime' => null,
         );
-        $funds = $this->safe_value($balances, 'funds', array());
+        $funds = $this->safe_dict($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -335,16 +340,18 @@ class zaif extends Exchange {
             $account['free'] = $balance;
             $account['total'] = $balance;
             if ($deposit !== null) {
-                if (is_array($deposit) && array_key_exists($currencyId, $deposit)) {
+                if (is_array($deposit) && array_key_exists($currencyId ?? '', $deposit)) {
                     $account['total'] = $this->safe_string($deposit, $currencyId);
                 }
             }
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
@@ -353,12 +360,14 @@ class zaif extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = $this->privatePostGetInfo ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostGetInfo($params);
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
@@ -367,27 +376,29 @@ class zaif extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetDepthPair ($this->extend($request, $params));
+        $response = $this->publicGetDepthPair($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol']);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
-        //     "last" => 9e-08,
-        //     "high" => 1e-07,
-        //     "low" => 9e-08,
-        //     "vwap" => 0.0,
-        //     "volume" => 135250.0,
-        //     "bid" => 9e-08,
-        //     "ask" => 1e-07
+        //     "last": 9e-08,
+        //     "high": 1e-07,
+        //     "low": 9e-08,
+        //     "vwap": 0.0,
+        //     "volume": 135250.0,
+        //     "bid": 9e-08,
+        //     "ask": 1e-07
         // }
         //
         $symbol = $this->safe_symbol(null, $market);
@@ -419,7 +430,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
@@ -429,21 +440,23 @@ class zaif extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $ticker = $this->publicGetTickerPair ($this->extend($request, $params));
+        $ticker = $this->publicGetTickerPair($this->extend($request, $params));
         //
         // {
-        //     "last" => 9e-08,
-        //     "high" => 1e-07,
-        //     "low" => 9e-08,
-        //     "vwap" => 0.0,
-        //     "volume" => 135250.0,
-        //     "bid" => 9e-08,
-        //     "ask" => 1e-07
+        //     "last": 9e-08,
+        //     "high": 1e-07,
+        //     "low": 9e-08,
+        //     "vwap": 0.0,
+        //     "volume": 135250.0,
+        //     "bid": 9e-08,
+        //     "ask": 1e-07
         // }
         //
         return $this->parse_ticker($ticker, $market);
@@ -454,12 +467,12 @@ class zaif extends Exchange {
         // fetchTrades (public)
         //
         //      {
-        //          "date" => 1648559414,
-        //          "price" => 5880375.0,
-        //          "amount" => 0.017,
-        //          "tid" => 176126557,
-        //          "currency_pair" => "btc_jpy",
-        //          "trade_type" => "ask"
+        //          "date": 1648559414,
+        //          "price": 5880375.0,
+        //          "amount": 0.017,
+        //          "tid": 176126557,
+        //          "currency_pair": "btc_jpy",
+        //          "trade_type": "ask"
         //      }
         //
         $side = $this->safe_string($trade, 'trade_type');
@@ -487,47 +500,50 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
          *
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * get the list of most recent $trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradesPair ($this->extend($request, $params));
+        $response = $this->publicGetTradesPair($this->extend($request, $params));
         //
-        //      array(
-        //          array(
-        //              "date" => 1648559414,
-        //              "price" => 5880375.0,
-        //              "amount" => 0.017,
-        //              "tid" => 176126557,
-        //              "currency_pair" => "btc_jpy",
-        //              "trade_type" => "ask"
-        //          ), ...
-        //      )
+        //      [
+        //          {
+        //              "date": 1648559414,
+        //              "price": 5880375.0,
+        //              "amount": 0.017,
+        //              "tid": 176126557,
+        //              "currency_pair": "btc_jpy",
+        //              "trade_type": "ask"
+        //          }, ...
+        //      ]
         //
-        $numTrades = count($response);
+        $trades = $this->to_array($response);
+        $numTrades = count($trades);
         if ($numTrades === 1) {
-            $firstTrade = $response[0];
-            if (!$firstTrade) {
-                $response = array();
+            $firstTrade = $this->safe_dict($trades, 0, array());
+            if (count($firstTrade) === 0) {
+                $trades = array();
             }
         }
-        return $this->parse_trades($response, $market, $since, $limit);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
@@ -541,7 +557,9 @@ class zaif extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
@@ -552,66 +570,67 @@ class zaif extends Exchange {
             'amount' => $amount,
             'price' => $price,
         );
-        $response = $this->privatePostTrade ($this->extend($request, $params));
+        $response = $this->privatePostTrade($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'return', array());
         return $this->safe_order(array(
             'info' => $response,
-            'id' => (string) $response['return']['order_id'],
+            'id' => (string) $data['order_id'],
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
          *
          * cancels an open order
          * @param {string} $id order $id
-         * @param {string} $symbol not used by zaif cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        $response = $this->privatePostCancelOrder($this->extend($request, $params));
         //
         //    {
-        //        "success" => 1,
-        //        "return" => {
-        //            "order_id" => 184,
-        //            "funds" => {
-        //                "jpy" => 15320,
-        //                "btc" => 1.392,
-        //                "mona" => 2600,
-        //                "kaori" => 0.1
+        //        "success": 1,
+        //        "return": {
+        //            "order_id": 184,
+        //            "funds": {
+        //                "jpy": 15320,
+        //                "btc": 1.392,
+        //                "mona": 2600,
+        //                "kaori": 0.1
         //            }
         //        }
         //    }
         //
-        $data = $this->safe_dict($response, 'return');
+        $data = $this->safe_dict($response, 'return', array());
         return $this->parse_order($data);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "currency_pair" => "btc_jpy",
-        //         "action" => "ask",
-        //         "amount" => 0.03,
-        //         "price" => 56000,
-        //         "timestamp" => 1402021125,
+        //         "currency_pair": "btc_jpy",
+        //         "action": "ask",
+        //         "amount": 0.03,
+        //         "price": 56000,
+        //         "timestamp": 1402021125,
         //         "comment" : "demo"
         //     }
         //
         // cancelOrder
         //
         //    {
-        //        "order_id" => 184,
-        //        "funds" => {
-        //            "jpy" => 15320,
-        //            "btc" => 1.392,
-        //            "mona" => 2600,
-        //            "kaori" => 0.1
+        //        "order_id": 184,
+        //        "funds": {
+        //            "jpy": 15320,
+        //            "btc": 1.392,
+        //            "mona": 2600,
+        //            "kaori": 0.1
         //        }
         //    }
         //
@@ -648,7 +667,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
@@ -660,21 +679,24 @@ class zaif extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array(
-            // 'is_token' => false,
-            // 'is_token_both' => false,
+            // 'is_token': false,
+            // 'is_token_both': false,
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
-        $response = $this->privatePostActiveOrders ($this->extend($request, $params));
-        return $this->parse_orders($response['return'], $market, $since, $limit);
+        $response = $this->privatePostActiveOrders($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'return', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
@@ -686,27 +708,36 @@ class zaif extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array(
-            // 'from' => 0,
-            // 'count' => 1000,
-            // 'from_id' => 0,
-            // 'end_id' => 1000,
-            // 'order' => 'DESC',
-            // 'since' => 1503821051,
-            // 'end' => 1503821051,
-            // 'is_token' => false,
+            // 'from': 0,
+            // 'count': 1000,
+            // 'from_id': 0,
+            // 'end_id': 1000,
+            // 'order': 'DESC',
+            // 'since': 1503821051,
+            // 'end': 1503821051,
+            // 'is_token': false,
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
-        $response = $this->privatePostTradeHistory ($this->extend($request, $params));
-        return $this->parse_orders($response['return'], $market, $since, $limit);
+        if ($since !== null) {
+            $request['since'] = $this->parse_to_int($since / 1000);
+        }
+        if ($limit !== null) {
+            $request['count'] = min($limit, 1000);
+        }
+        $response = $this->privatePostTradeHistory($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'return', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
@@ -721,7 +752,9 @@ class zaif extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         if ($code === 'JPY') {
             throw new ExchangeError($this->id . ' withdraw() does not allow ' . $code . ' withdrawals');
@@ -730,50 +763,50 @@ class zaif extends Exchange {
             'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
-            // 'message' => 'Hi!', // XEM and others
-            // 'opt_fee' => 0.003, // BTC and MONA only
+            // 'message': 'Hi!', // XEM and others
+            // 'opt_fee': 0.003, // BTC and MONA only
         );
         if ($tag !== null) {
             $request['message'] = $tag;
         }
-        $result = $this->privatePostWithdraw ($this->extend($request, $params));
+        $result = $this->privatePostWithdraw($this->extend($request, $params));
         //
         //     {
-        //         "success" => 1,
-        //         "return" => {
-        //             "id" => 23634,
-        //             "fee" => 0.001,
+        //         "success": 1,
+        //         "return": {
+        //             "id": 23634,
+        //             "fee": 0.001,
         //             "txid":,
-        //             "funds" => {
-        //                 "jpy" => 15320,
-        //                 "btc" => 1.392,
-        //                 "xem" => 100.2,
-        //                 "mona" => 2600
+        //             "funds": {
+        //                 "jpy": 15320,
+        //                 "btc": 1.392,
+        //                 "xem": 100.2,
+        //                 "mona": 2600
         //             }
         //         }
         //     }
         //
-        $returnData = $this->safe_dict($result, 'return');
+        $returnData = $this->safe_dict($result, 'return', array());
         return $this->parse_transaction($returnData, $currency);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
-        //         "id" => 23634,
-        //         "fee" => 0.001,
+        //         "id": 23634,
+        //         "fee": 0.001,
         //         "txid":,
-        //         "funds" => {
-        //             "jpy" => 15320,
-        //             "btc" => 1.392,
-        //             "xem" => 100.2,
-        //             "mona" => 2600
+        //         "funds": {
+        //             "jpy": 15320,
+        //             "btc": 1.392,
+        //             "xem": 100.2,
+        //             "mona": 2600
         //         }
         //     }
         //
         $currency = $this->safe_currency(null, $currency);
         $fee = null;
-        $feeCost = $this->safe_value($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -810,7 +843,7 @@ class zaif extends Exchange {
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['rest'] . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
@@ -839,12 +872,12 @@ class zaif extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
         //
-        //     array("error" => "unsupported currency_pair")
+        //     {"error": "unsupported currency_pair"}
         //
         $feedback = $this->id . ' ' . $body;
         $error = $this->safe_string($response, 'error');
@@ -854,7 +887,7 @@ class zaif extends Exchange {
             throw new ExchangeError($feedback); // unknown message
         }
         $success = $this->safe_bool($response, 'success', true);
-        if (!$success) {
+        if ($success !== true) {
             throw new ExchangeError($feedback);
         }
         return null;

@@ -11,22 +11,22 @@ public partial class testMainClass : BaseTest
     async static public Task createOrderAfterDelay(Exchange exchange)
     {
         await exchange.sleep(3000);
-        await exchange.createOrder("BTC/USDT:USDT", "market", "buy", 0.001);
+        detypeForComparison(await exchange.CreateOrder("BTC/USDT:USDT", "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0.001)));
     }
     async static public Task<object> testUnWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "unWatchPositions";
+        string method = "unWatchPositions";
         exchange.setSandboxMode(true);
         // First, we need to subscribe to positions to test the unsubscribe functionality
         object positionsSubscription = null;
         try
         {
             // First call uses snapshot
-            positionsSubscription = await exchange.watchPositions();
+            positionsSubscription = detypeForComparison(await exchange.WatchPositions());
             // trigger a position update
             exchange.spawn(createOrderAfterDelay, new object[] { exchange});
             // Second call uses subscription
-            positionsSubscription = await exchange.watchPositions();
+            positionsSubscription = detypeForComparison(await exchange.WatchPositions());
         } catch(Exception e)
         {
             if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
         {
             errorResponse = e;
         }
-        assert(!isEqual(errorResponse, null), add(add(add(add(exchange.id, " "), method), " must throw an error when unwatching a specific symbol, returned "), exchange.json(errorResponse)));
+        assert((errorResponse != null), add(add(add(add(exchange.id, " "), method), " must throw an error when unwatching a specific symbol, returned "), exchange.json(errorResponse)));
         // Test unwatching all positions (without specific symbols)
         object responseAll = null;
         try
@@ -62,14 +62,14 @@ public partial class testMainClass : BaseTest
             throw e;
         }
         // Verify the response for unwatching all positions
-        assert(!isEqual(responseAll, null), add(add(add(add(exchange.id, " "), method), " must return a response when unwatching all positions, returned "), exchange.json(responseAll)));
+        assert((responseAll != null), add(add(add(add(exchange.id, " "), method), " must return a response when unwatching all positions, returned "), exchange.json(responseAll)));
         // Test that we can resubscribe after unwatching (to ensure cleanup was proper)
         object resubscribeResponse = null;
         try
         {
-            resubscribeResponse = await exchange.watchPositions();
+            resubscribeResponse = detypeForComparison(await exchange.WatchPositions());
             exchange.spawn(createOrderAfterDelay, new object[] { exchange});
-            resubscribeResponse = await exchange.watchPositions();
+            resubscribeResponse = detypeForComparison(await exchange.WatchPositions());
         } catch(Exception e)
         {
             if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

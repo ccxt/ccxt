@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.backpack import ImplicitAPI
-from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -26,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class backpack(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(backpack, self).describe(), {
             'id': 'backpack',
             'name': 'Backpack',
@@ -156,7 +155,7 @@ class backpack(Exchange, ImplicitAPI):
                 '1M': '1month',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f',
+                'logo': 'https://github.com/user-attachments/assets/7f682234-3eb1-48ab-a5ec-250a3227c985',
                 'api': {
                     'public': 'https://api.backpack.exchange',
                     'private': 'https://api.backpack.exchange',
@@ -168,72 +167,88 @@ class backpack(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/assets': 1,  # done
-                        'api/v1/collateral': 1,  # not used
-                        'api/v1/borrowLend/markets': 1,
-                        'api/v1/borrowLend/markets/history': 1,
-                        'api/v1/markets': 1,  # done
-                        'api/v1/market': 1,  # not used
-                        'api/v1/ticker': 1,  # done
-                        'api/v1/tickers': 1,  # done
-                        'api/v1/depth': 1,  # done
-                        'api/v1/klines': 1,  # done
-                        'api/v1/markPrices': 1,  # done
-                        'api/v1/openInterest': 1,  # done
-                        'api/v1/fundingRates': 1,  # done
-                        'api/v1/status': 1,  # done
-                        'api/v1/ping': 1,  # todo check if it is needed for ws
-                        'api/v1/time': 1,  # done
-                        'api/v1/wallets': 1,  # not used
-                        'api/v1/trades': 1,  # done
-                        'api/v1/trades/history': 1,  # done
+                        'api/v1/assets': {'cost': 1},  # done
+                        'api/v1/collateral': {'cost': 1},  # not used
+                        'api/v1/borrowLend/markets': {'cost': 1},
+                        'api/v1/borrowLend/markets/history': {'cost': 1},
+                        'api/v1/borrowLend/apy': {'cost': 1},
+                        'api/v1/markets': {'cost': 1},  # done
+                        'api/v1/market': {'cost': 1},  # not used
+                        'api/v1/ticker': {'cost': 1},  # done
+                        'api/v1/tickers': {'cost': 1},  # done
+                        'api/v1/depth': {'cost': 1},  # done
+                        'api/v1/prediction': {'cost': 1},
+                        'api/v1/prediction/tags': {'cost': 1},
+                        'api/v1/market-sessions': {'cost': 1},
+                        'api/v1/market-holidays': {'cost': 1},
+                        'api/v1/securities': {'cost': 1},
+                        'api/v1/klines': {'cost': 1},  # done
+                        'api/v1/markPrices': {'cost': 1},  # done
+                        'api/v1/openInterest': {'cost': 1},  # done
+                        'api/v1/fundingRates': {'cost': 1},  # done
+                        'api/v1/status': {'cost': 1},  # done
+                        'api/v1/ping': {'cost': 1},  # todo check if it is needed for ws
+                        'api/v1/time': {'cost': 1},  # done
+                        'api/v1/wallets': {'cost': 1},  # not used
+                        'api/v1/trades': {'cost': 1},  # done
+                        'api/v1/trades/history': {'cost': 1},  # done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 1,  # todo fetchTradingFee
-                        'api/v1/account/limits/borrow': 1,  # not used
-                        'api/v1/account/limits/order': 1,  # not used
-                        'api/v1/account/limits/withdrawal': 1,  # not used
-                        'api/v1/borrowLend/positions': 1,  # todo fetchBorrowInterest
-                        'api/v1/capital': 1,  # done
-                        'api/v1/capital/collateral': 1,  # not used
-                        'wapi/v1/capital/deposits': 1,  # done
-                        'wapi/v1/capital/deposit/address': 1,  # done
-                        'wapi/v1/capital/withdrawals': 1,  # todo complete after withdrawal
-                        'api/v1/position': 1,  # done but todo check if all is right
-                        'wapi/v1/history/borrowLend': 1,  # not used
-                        'wapi/v1/history/interest': 1,  # not used
-                        'wapi/v1/history/borrowLend/positions': 1,  # not used
-                        'wapi/v1/history/dust': 1,  # not used
-                        'wapi/v1/history/fills': 1,  # done
-                        'wapi/v1/history/funding': 1,  # done
-                        'wapi/v1/history/orders': 1,  # done
-                        'wapi/v1/history/rfq': 1,
-                        'wapi/v1/history/quote': 1,
-                        'wapi/v1/history/settlement': 1,
-                        'wapi/v1/history/strategies': 1,
-                        'api/v1/order': 1,  # done
-                        'api/v1/orders': 1,  # done
+                        'api/v1/account': {'cost': 1},  # todo fetchTradingFee
+                        'api/v1/account/limits/borrow': {'cost': 1},  # not used
+                        'api/v1/account/limits/order': {'cost': 1},  # not used
+                        'api/v1/account/limits/withdrawal': {'cost': 1},  # not used
+                        'api/v1/borrowLend/positions': {'cost': 1},  # todo fetchBorrowInterest
+                        'api/v1/borrowLend/position/liquidationPrice': {'cost': 1},
+                        'api/v1/capital': {'cost': 1},  # done
+                        'api/v1/capital/collateral': {'cost': 1},  # not used
+                        'wapi/v1/capital/deposits': {'cost': 1},  # done
+                        'wapi/v1/capital/deposit/address': {'cost': 1},  # done
+                        'wapi/v1/capital/withdrawals': {'cost': 1},  # todo complete after withdrawal
+                        'api/v1/position': {'cost': 1},  # done but todo check if all is right
+                        'wapi/v1/history/borrowLend': {'cost': 1},  # not used
+                        'wapi/v1/history/interest': {'cost': 1},  # not used
+                        'wapi/v1/history/borrowLend/positions': {'cost': 1},  # not used
+                        'wapi/v1/history/dust': {'cost': 1},  # not used
+                        'wapi/v1/history/fills': {'cost': 1},  # done
+                        'wapi/v1/history/funding': {'cost': 1},  # done
+                        'wapi/v1/history/position': {'cost': 1},
+                        'wapi/v1/history/orders': {'cost': 1},  # done
+                        'api/v1/rfqs': {'cost': 1},
+                        'wapi/v1/history/rfq': {'cost': 1},
+                        'wapi/v1/history/quote': {'cost': 1},
+                        'wapi/v1/history/rfq/fill': {'cost': 1},
+                        'wapi/v1/history/quote/fill': {'cost': 1},
+                        'wapi/v1/history/settlement': {'cost': 1},
+                        'wapi/v1/history/strategies': {'cost': 1},
+                        'api/v1/strategy': {'cost': 1},
+                        'api/v1/strategies': {'cost': 1},
+                        'api/v1/order': {'cost': 1},  # done
+                        'api/v1/orders': {'cost': 1},  # done
                     },
                     'post': {
-                        'api/v1/account/convertDust': 1,
-                        'api/v1/borrowLend': 1,  # todo borrowCrossMargin
-                        'wapi/v1/capital/withdrawals': 1,  # todo complete after withdrawal
-                        'api/v1/order': 1,  # done
-                        'api/v1/orders': 1,  # done
-                        'api/v1/rfq': 1,
-                        'api/v1/rfq/accept': 1,
-                        'api/v1/rfq/refresh': 1,
-                        'api/v1/rfq/cancel': 1,
-                        'api/v1/rfq/quote': 1,
+                        'api/v1/account/convertDust': {'cost': 1},
+                        'api/v1/borrowLend': {'cost': 1},  # todo borrowCrossMargin
+                        'wapi/v1/capital/withdrawals': {'cost': 1},  # todo complete after withdrawal
+                        'api/v1/order': {'cost': 1},  # done
+                        'api/v1/orders': {'cost': 1},  # done
+                        'api/v1/rfq': {'cost': 1},
+                        'api/v1/rfq/accept': {'cost': 1},
+                        'api/v1/rfq/refresh': {'cost': 1},
+                        'api/v1/rfq/cancel': {'cost': 1},
+                        'api/v1/rfq/quote': {'cost': 1},
+                        'api/v1/strategy': {'cost': 1},
                     },
                     'delete': {
-                        'api/v1/order': 1,  # done
-                        'api/v1/orders': 1,  # done
+                        'api/v1/order': {'cost': 1},  # done
+                        'api/v1/orders': {'cost': 1},  # done
+                        'api/v1/strategy': {'cost': 1},
+                        'api/v1/strategies': {'cost': 1},
                     },
                     'patch': {
-                        'api/v1/account': 1,
+                        'api/v1/account': {'cost': 1},
                     },
                 },
             },
@@ -416,7 +431,7 @@ class backpack(Exchange, ImplicitAPI):
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'APT': 'Aptos',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVAX': 'Avalanche',
                     'BASE': 'Base',
                     'BERA': 'Berachain',
@@ -441,7 +456,7 @@ class backpack(Exchange, ImplicitAPI):
                 },
                 'networksById': {
                     'aptos': 'APT',
-                    'arbitrum': 'ARB',
+                    'arbitrum': 'ARBITRUM',
                     'avalanche': 'AVAX',
                     'base': 'BASE',
                     'berachain': 'BERA',
@@ -502,13 +517,13 @@ class backpack(Exchange, ImplicitAPI):
                     'TRADING_PAUSED': ExchangeNotAvailable,
                     'UNAUTHORIZED': AuthenticationError,
                 },
-                # Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol(occurred while parsing "OrderExecutePayload")
+                # Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol (occurred while parsing "OrderExecutePayload")
                 # failed to parse parameter `interval`: failed to parse "KlineInterval": Expect a valid enumeration value.
                 'broad': {},
             },
         })
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -528,12 +543,12 @@ class backpack(Exchange, ImplicitAPI):
         #                 {
         #                     "blockchain": "Solana",
         #                     "contractAddress": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-        #                     "depositEnabled": True,
+        #                     "depositEnabled": true,
         #                     "displayName": "Jito",
         #                     "maximumWithdrawal": null,
         #                     "minimumDeposit": "0.28",
         #                     "minimumWithdrawal": "0.58",
-        #                     "withdrawEnabled": True,
+        #                     "withdrawEnabled": true,
         #                     "withdrawalFee": "0.29"
         #                 }
         #             ]
@@ -543,36 +558,37 @@ class backpack(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(currencyId)
         networks = self.safe_list(rawCurrency, 'tokens', [])
-        parsedNetworks: dict = {}
+        parsedNetworks = {}
         for j in range(0, len(networks)):
             network = networks[j]
             networkId = self.safe_string(network, 'blockchain')
             networkIdLowerCase = self.safe_string_lower(network, 'blockchain')
-            networkCode = self.network_id_to_code(networkIdLowerCase)
-            parsedNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(network, 'minimumWithdrawal'),
-                        'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
+            networkCode = self.network_id_to_code(networkIdLowerCase, code)
+            if networkCode is not None:
+                parsedNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(network, 'minimumWithdrawal'),
+                            'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
+                        },
+                        'deposit': {
+                            'min': self.safe_number(network, 'minimumDeposit'),
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': self.safe_number(network, 'minimumDeposit'),
-                        'max': None,
-                    },
-                },
-                'active': None,
-                'deposit': self.safe_bool(network, 'depositEnabled'),
-                'withdraw': self.safe_bool(network, 'withdrawEnabled'),
-                'fee': self.safe_number(network, 'withdrawalFee'),
-                'precision': None,
-                'info': network,
-            }
+                    'active': None,
+                    'deposit': self.safe_bool(network, 'depositEnabled'),
+                    'withdraw': self.safe_bool(network, 'withdrawEnabled'),
+                    'fee': self.safe_number(network, 'withdrawalFee'),
+                    'precision': None,
+                    'info': network,
+                }
         active = None
         deposit = None
         withdraw = None
@@ -604,7 +620,7 @@ class backpack(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bitbank
 
@@ -613,7 +629,7 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         response = await self.publicGetApiV1Markets(params)
         return self.parse_markets(response)
@@ -722,13 +738,13 @@ class backpack(Exchange, ImplicitAPI):
         maxQuantity = self.safe_number(quantityFilter, 'maxQuantity')
         minQuantity = self.safe_number(quantityFilter, 'minQuantity')
         amountPrecision = self.safe_number(quantityFilter, 'stepSize')
-        type: MarketType
+        type = None
         typeOfMarket = self.parse_market_type(self.safe_string(market, 'marketType'))
-        linear: Bool = None
-        inverse: Bool = None
-        settle: Str = None
-        settleId: Str = None
-        contractSize: Num = None
+        linear = None
+        inverse = None
+        settle = None
+        settleId = None
+        contractSize = None
         if typeOfMarket == 'spot':
             type = 'spot'
         elif typeOfMarket == 'swap':
@@ -792,7 +808,7 @@ class backpack(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_market_type(self, type):
+    def parse_market_type(self, type: Str) -> Str:
         types = {
             'SPOT': 'spot',
             'PERP': 'swap',
@@ -804,7 +820,7 @@ class backpack(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
@@ -814,13 +830,14 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         response = await self.publicGetApiV1Tickers(self.extend(request, params))
         tickers = self.parse_tickers(response)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -830,9 +847,10 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetApiV1Ticker(self.extend(request, params))
@@ -864,9 +882,13 @@ class backpack(Exchange, ImplicitAPI):
         low = self.safe_string(ticker, 'low')
         baseVolume = self.safe_string(ticker, 'volume')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
-        percentage = self.safe_string(ticker, 'priceChangePercent')
+        percentage = None
+        percentageNumber = self.safe_float(ticker, 'priceChangePercent')
+        # in some cases priceChangePercent is a non-numeric string like "N/A"
+        if percentageNumber is not None:
+            percentage = Precise.string_mul(self.safe_string(ticker, 'priceChangePercent'), '100')
         change = self.safe_string(ticker, 'priceChange')
-        return self.safe_ticker({
+        parsedTicker = self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
@@ -890,8 +912,9 @@ class backpack(Exchange, ImplicitAPI):
             'indexPrice': None,
             'info': ticker,
         }, market)
+        return parsedTicker
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -899,12 +922,13 @@ class backpack(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetApiV1Depth(self.extend(request, params))
@@ -923,12 +947,14 @@ class backpack(Exchange, ImplicitAPI):
         #     }
         #
         microseconds = self.safe_integer(response, 'timestamp')
+        if microseconds is None:
+            raise ExchangeError(self.id + ' fetchOrderBook() missing microseconds')
         timestamp = self.parse_to_int(microseconds / 1000)
         orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -938,17 +964,18 @@ class backpack(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in seconds of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch(default 100)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'interval': interval,
         }
-        until: Int = None
+        until = None
         until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         if until is not None:
             request['endTime'] = self.parse_to_int(until / 1000)  # convert milliseconds to seconds
@@ -957,7 +984,7 @@ class backpack(Exchange, ImplicitAPI):
             if limit is None:
                 limit = defaultLimit
             duration = self.parse_timeframe(timeframe)
-            endTime = self.parse_to_int(until / 1000) if until else self.seconds()
+            endTime = self.parse_to_int(until / 1000) if (until is not None and until is not None and until != 0) else self.seconds()
             startTime = endTime - (limit * duration)
             request['startTime'] = startTime
         else:
@@ -967,9 +994,10 @@ class backpack(Exchange, ImplicitAPI):
             request['priceType'] = self.capitalize(price)
             params = self.omit(params, 'price')
         response = await self.publicGetApiV1Klines(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcvs = self.to_array(response)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         {
@@ -1005,18 +1033,19 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchFundingRate() symbol does not support market ' + symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetApiV1MarkPrices(self.extend(request, params))
         data = self.safe_dict(response, 0, {})
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "fundingRate": "0.0001",
@@ -1051,7 +1080,7 @@ class backpack(Exchange, ImplicitAPI):
             'interval': '1h',
         }
 
-    async def fetch_open_interest(self, symbol: str, params={}):
+    async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
         Retrieves the open interest of a derivative trading pair
 
@@ -1061,18 +1090,19 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure:
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchOpenInterest() symbol does not support market ' + symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetApiV1OpenInterest(self.extend(request, params))
         interest = self.safe_dict(response, 0, {})
         return self.parse_open_interest(interest, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #
         #     [
         #         {
@@ -1085,7 +1115,7 @@ class backpack(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 'timestamp')
         openInterest = self.safe_number(interest, 'openInterest')
         return self.safe_open_interest({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'openInterestAmount': None,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
@@ -1093,7 +1123,7 @@ class backpack(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1107,9 +1137,10 @@ class backpack(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1125,8 +1156,9 @@ class backpack(Exchange, ImplicitAPI):
         #     ]
         #
         rates = []
-        for i in range(0, len(response)):
-            rate = response[i]
+        rawRates = self.to_array(response)
+        for i in range(0, len(rawRates)):
+            rate = rawRates[i]
             datetime = self.safe_string(rate, 'intervalEndTimestamp')
             timestamp = self.parse8601(datetime)
             rates.append({
@@ -1139,7 +1171,7 @@ class backpack(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1153,9 +1185,10 @@ class backpack(Exchange, ImplicitAPI):
         :param int [params.offset]: the number of trades to skip, default is 0
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1166,9 +1199,10 @@ class backpack(Exchange, ImplicitAPI):
             response = await self.publicGetApiV1TradesHistory(self.extend(request, params))
         else:
             response = await self.publicGetApiV1Trades(self.extend(request, params))
-        return self.parse_trades(response, market, since, limit)
+        responseList = self.to_array(response)
+        return self.parse_trades(responseList, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1182,8 +1216,9 @@ class backpack(Exchange, ImplicitAPI):
         :param str [params.fillType]: 'User'(default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1200,14 +1235,15 @@ class backpack(Exchange, ImplicitAPI):
         if fillType is None:
             request['fillType'] = 'User'  # default
         response = await self.privateGetWapiV1HistoryFills(self.extend(request, params))
-        return self.parse_trades(response, market, since, limit)
+        responseList = self.to_array(response)
+        return self.parse_trades(responseList, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #     {
         #         "id": 8721563,
-        #         "isBuyerMaker": False,
+        #         "isBuyerMaker": false,
         #         "price": "117427.6",
         #         "quantity": "0.00016",
         #         "quoteQuantity": "18.788416",
@@ -1219,7 +1255,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "clientId": null,
         #         "fee": "0.004974",
         #         "feeSymbol": "USDC",
-        #         "isMaker": False,
+        #         "isMaker": false,
         #         "orderId": "4238907375",
         #         "price": "3826.15",
         #         "quantity": "0.0026",
@@ -1235,10 +1271,16 @@ class backpack(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
-        isMaker = self.safe_bool(trade, 'isMaker')
-        takerOrMaker = 'maker' if isMaker else 'taker'
-        orderId = self.safe_string(trade, 'orderId')
+        isBuyerMaker = self.safe_bool(trade, 'isBuyerMaker')
         side = self.parse_order_side(self.safe_string(trade, 'side'))
+        isMaker = self.safe_bool(trade, 'isMaker')
+        takerOrMaker = None
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
+        elif isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            side = 'sell' if isBuyerMaker else 'buy'
+        orderId = self.safe_string(trade, 'orderId')
         fee = None
         feeAmount = self.safe_string(trade, 'fee')
         timestamp = self.safe_integer(trade, 'timestamp')
@@ -1269,7 +1311,7 @@ class backpack(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1286,6 +1328,8 @@ class backpack(Exchange, ImplicitAPI):
         #     }
         #
         status = self.safe_string(response, 'status')
+        if status is None:
+            raise ExchangeError(self.id + ' fetchStatus() missing status')
         return {
             'status': status.lower(),
             'updated': None,
@@ -1294,7 +1338,7 @@ class backpack(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1309,7 +1353,7 @@ class backpack(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 0, self.milliseconds())
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1318,11 +1362,12 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetApiV1Capital(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         #     {
         #         "USDC": {
@@ -1333,7 +1378,7 @@ class backpack(Exchange, ImplicitAPI):
         #     }
         #
         balanceKeys = list(response.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(balanceKeys)):
             id = balanceKeys[i]
             code = self.safe_currency_code(id)
@@ -1344,10 +1389,11 @@ class backpack(Exchange, ImplicitAPI):
             used = Precise.string_add(locked, staked)
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = used
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1360,24 +1406,25 @@ class backpack(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
         }
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
         if since is not None:
             request['from'] = since
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
-        until: Int = None
+        until = None
         until, params = self.handle_option_and_params(params, 'fetchDeposits', 'until')
         if until is not None:
             request['endTime'] = until
         response = await self.privateGetWapiV1CapitalDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1390,23 +1437,24 @@ class backpack(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch transfers for(default time now)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
-        currency: Currency = None
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
+        currency = None
         if code is not None:
             currency = self.currency(code)
         if since is not None:
             request['from'] = since
         if limit is not None:
             request['limit'] = limit
-        until: Int = None
+        until = None
         until, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'until')
         if until is not None:
             request['to'] = until
         response = await self.privateGetWapiV1CapitalWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1420,9 +1468,10 @@ class backpack(Exchange, ImplicitAPI):
         :param str params['network']: the network to withdraw on(mandatory)
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
             'quantity': self.number_to_string(amount),
             'address': address,
@@ -1430,14 +1479,14 @@ class backpack(Exchange, ImplicitAPI):
         if tag is not None:
             request['clientId'] = tag  # memo or tag
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, currency['code'])
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
         request['blockchain'] = networkId
         response = await self.privatePostWapiV1CapitalWithdrawals(self.extend(request, query))
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #     [
@@ -1472,7 +1521,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "fiatSymbol": null,
         #         "id": 5479929,
         #         "identifier": null,
-        #         "isInternal": False,
+        #         "isInternal": false,
         #         "providerId": null,
         #         "quantity": "10",
         #         "status": "pending",
@@ -1498,7 +1547,7 @@ class backpack(Exchange, ImplicitAPI):
         #             "fiatSymbol": null,
         #             "id": 5479929,
         #             "identifier": null,
-        #             "isInternal": False,
+        #             "isInternal": false,
         #             "providerId": null,
         #             "quantity": "10",
         #             "status": "confirmed",
@@ -1518,7 +1567,7 @@ class backpack(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         amount = self.safe_number(transaction, 'quantity')
         networkId = self.safe_string_lower_2(transaction, 'source', 'blockchain')
-        network = self.network_id_to_code(networkId)
+        network = self.network_id_to_code(networkId, code)
         addressTo = self.safe_string(transaction, 'toAddress')
         addressFrom = self.safe_string(transaction, 'fromAddress')
         tag = self.safe_string(transaction, 'platformMemo')
@@ -1554,7 +1603,7 @@ class backpack(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'cancelled': 'cancelled',
             'confirmed': 'ok',
             'declined': 'declined',
@@ -1566,7 +1615,7 @@ class backpack(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -1577,19 +1626,20 @@ class backpack(Exchange, ImplicitAPI):
         :param str [params.networkCode]: the network to fetch the deposit address(mandatory)
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes')
         currency = self.currency(code)
-        request: dict = {
-            'blockchain': self.network_code_to_id(networkCode),
+        request = {
+            'blockchain': self.network_code_to_id(networkCode, currency['code']),
         }
         response = await self.privateGetWapiV1CapitalDepositAddress(self.extend(request, params))
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1606,7 +1656,7 @@ class backpack(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1637,13 +1687,14 @@ class backpack(Exchange, ImplicitAPI):
         :param float [params.stopLoss.price]: stop loss order price(if not provided the order will be a market order)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
         response = await self.privatePostApiV1Order(orderRequest)
         return self.parse_order(response, market)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -1653,7 +1704,8 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -1669,9 +1721,13 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privatePostApiV1Orders(ordersRequests)
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'side': self.encode_order_side(side),
             'orderType': self.capitalize(type),
@@ -1731,14 +1787,14 @@ class backpack(Exchange, ImplicitAPI):
                 request['selfTradePrevention'] = 'RejectBoth'
         return self.extend(request, params)
 
-    def encode_order_side(self, side):
-        sides: dict = {
+    def encode_order_side(self, side: Str) -> Str:
+        sides = {
             'buy': 'Bid',
             'sell': 'Ask',
         }
         return self.safe_string(sides, side, side)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1750,8 +1806,9 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1759,29 +1816,30 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetApiV1Orders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetch an open order by it's id
 
         https://docs.backpack.exchange/#tag/Order/operation/get_order
 
         :param str id: order id
-        :param str symbol: not used by hollaex fetchOpenOrder()
+        :param str symbol: not used by fetchOpenOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'orderId': id,
         }
         response = await self.privateGetApiV1Order(self.extend(request, params))
         return self.parse_order(response)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1792,18 +1850,19 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'orderId': id,
             'symbol': market['id'],
         }
         response = await self.privateDeleteApiV1Order(self.extend(request, params))
         return self.parse_order(response)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -1813,30 +1872,32 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.privateDeleteApiV1Orders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
         https://docs.backpack.exchange/#tag/History/operation/get_order_history
 
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve(default 100, max 1000)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve(default 100, max 1000)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1885,7 +1946,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "executedQuoteQuantity": "0",
         #         "id": "4228978331",
         #         "orderType": "Limit",
-        #         "postOnly": True,
+        #         "postOnly": true,
         #         "price": "3000",
         #         "quantity": "0.001",
         #         "reduceOnly": null,
@@ -1917,7 +1978,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "expiryReason": null,
         #         "id": "4239996998",
         #         "orderType": "Limit",
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "price": "4500",
         #         "quantity": null,
         #         "quoteQuantity": null,
@@ -1987,7 +2048,7 @@ class backpack(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'New': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
@@ -1999,13 +2060,13 @@ class backpack(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_side(self, side: Str):
-        sides: dict = {
+        sides = {
             'Bid': 'buy',
             'Ask': 'sell',
         }
         return self.safe_string(sides, side, side)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2015,7 +2076,8 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetApiV1Position(params)
         positions = self.parse_positions(response)
         if self.is_empty(symbols):
@@ -2023,7 +2085,7 @@ class backpack(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(positions, 'symbol', symbols, False)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # fetchPositions
         #     {
@@ -2106,7 +2168,7 @@ class backpack(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetches the history of funding payments
 
@@ -2119,8 +2181,9 @@ class backpack(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest trade to fetch(default now)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2130,7 +2193,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetWapiV1HistoryFunding(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: object, market: Market = None) -> object:
         #
         #     {
         #         "fundingRate": "0.0001",
@@ -2158,10 +2221,10 @@ class backpack(Exchange, ImplicitAPI):
             'rate': rate,
         }
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = '/' + path
         url = self.urls['api'][api]
         sortedParams = params if isinstance(params, list) else self.keysort(params)
@@ -2200,7 +2263,7 @@ class backpack(Exchange, ImplicitAPI):
         url += endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def generate_batch_payload(self, params, ts, recvWindow, instruction):
+    def generate_batch_payload(self, params: object, ts: str, recvWindow: str, instruction: str) -> str:
         payload = ''
         for i in range(0, len(params)):
             order = self.safe_dict(params, i, {})
@@ -2211,7 +2274,7 @@ class backpack(Exchange, ImplicitAPI):
                 payload += 'timestamp=' + ts + '&window=' + recvWindow
         return payload
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

@@ -4,7 +4,6 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	ed25 "crypto/ed25519"
-	"crypto/elliptic"
 	"crypto/hmac"
 	md5Hash "crypto/md5"
 	"crypto/rand"
@@ -18,7 +17,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"hash/crc32"
-	"math/big"
 	"strings"
 
 	"golang.org/x/crypto/sha3"
@@ -42,7 +40,7 @@ func P256() string      { return "p256" }
 func keccak() string    { return "keccak" }
 func secp256k1() string { return "secp256k1" }
 
-func (this *Exchange) Hmac(request2 any, secret2 any, algorithm2 func() string, args ...any) string {
+func (this *BaseExchange) Hmac(request2 any, secret2 any, algorithm2 func() string, args ...any) string {
 	digest := GetArg(args, 0, "hex").(string)
 	return Hmac(request2, secret2, algorithm2, digest)
 }
@@ -100,7 +98,7 @@ func signHMACSHA512(data, secret []byte) []byte {
 }
 
 func signHMACSHA384(data, secret []byte) []byte {
-	h := hmac.New(sha512Hash.New, secret)
+	h := hmac.New(sha512Hash.New384, secret)
 	h.Write([]byte(data))
 	return h.Sum(nil)
 }
@@ -111,7 +109,7 @@ func signHMACMD5(data, secret []byte) []byte {
 	return h.Sum(nil)
 }
 
-func (this *Exchange) Hash(request2 any, hash func() string, args ...any) any {
+func (this *BaseExchange) Hash(request2 any, hash func() string, args ...any) any {
 	digest2 := GetArg(args, 0, "hex")
 	return Hash(request2, hash, digest2)
 }
@@ -126,7 +124,7 @@ func Hash(request2 any, hash func() string, digest2 any) any {
 	algorithm := hash()
 	digest := "hex"
 	if digest2 != nil {
-		digest = digest2.(string)
+		digest = derefScalar(digest2).(string)
 	}
 
 	var signature []byte
@@ -156,7 +154,7 @@ func Hash(request2 any, hash func() string, digest2 any) any {
 	return base64.StdEncoding.EncodeToString(signature)
 }
 
-func (this *Exchange) Axolotl(a any, b any, c any) string {
+func (this *BaseExchange) Axolotl(a any, b any, c any) string {
 	return ""
 }
 
@@ -224,7 +222,7 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 	}
 	alg := algPrefix + strings.ToUpper(algorithm[3:])
 	if algOpt, ok := options["alg"]; ok {
-		alg = algOpt.(string)
+		alg = derefScalar(algOpt).(string)
 	}
 	header := map[string]any{
 		"alg": alg,
@@ -250,14 +248,14 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 		signature = Rsa(token, secret, hash)
 	} else if alg[:2] == "ES" {
 		ec := Ecdsa(token, secret, P256, hash)
-		r := ec["r"].(string)
-		s := ec["s"].(string)
+		r := derefScalar(ec["r"]).(string)
+		s := derefScalar(ec["s"]).(string)
 		converted, _ := convertHexStringToByteArray(r + s)
 		signature = Base64urlencode(converted)
 	} else if alg[:2] == "Ed" {
 		signature = Eddsa(token, secret, "ed25519")
 	} else {
-		signature = base64.RawURLEncoding.EncodeToString(signHMACSHA256([]byte(token), []byte(secret.(string))))
+		signature = base64.RawURLEncoding.EncodeToString(signHMACSHA256([]byte(token), []byte(derefScalar(secret).(string))))
 	}
 	// dirty quicky
 	signature = strings.Replace(signature, "+", "-", -1)
@@ -266,11 +264,15 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 	return token + "." + signature
 }
 
-func Rsa(data2 any, privateKey2 any, algorithm2 func() string) string {
-	data := data2.(string)
-	publicKey := privateKey2.(string)
+func Rsa(data2 any, privateKey2 any, algorithm2 func() string, optionalArgs ...any) string {
+	data := derefScalar(data2).(string)
+	publicKey := derefScalar(privateKey2).(string)
 	// hashAlgorithm := hashAlgorithm2.(string)
 	hashAlgorithm := algorithm2()
+	paddingMode := "pkcs1"
+	if len(optionalArgs) > 0 && optionalArgs[0] != nil {
+		paddingMode = derefScalar(optionalArgs[0]).(string)
+	}
 	// Remove PEM headers
 	// pkParts := strings.Split(publicKey, "\n")
 	// pkParts = pkParts[1 : len(pkParts)-1]
@@ -328,8 +330,13 @@ func Rsa(data2 any, privateKey2 any, algorithm2 func() string) string {
 		return ""
 	}
 
-	// Sign the data
-	signData, err := rsaHash.SignPKCS1v15(rand.Reader, parsedKey, hash, hashedData)
+	// Sign the data (PSS with salt = hash length, or PKCS#1 v1.5 by default)
+	var signData []byte
+	if paddingMode == "pss" {
+		signData, err = rsaHash.SignPSS(rand.Reader, parsedKey, hash, hashedData, &rsaHash.PSSOptions{SaltLength: rsaHash.PSSSaltLengthEqualsHash, Hash: hash})
+	} else {
+		signData, err = rsaHash.SignPKCS1v15(rand.Reader, parsedKey, hash, hashedData)
+	}
 	if err != nil {
 		return ""
 	}
@@ -350,10 +357,34 @@ func Base64ToBase64URL(base64Str string, stripPadding bool) string {
 
 func Eddsa(data2 any, secret any, curve any) string {
 	// it should use ed25519 and return a base64 string
-	data := data2.(string)
+	data := derefScalar(data2).(string)
 	secretsBytes := []uint8{}
 	if s, ok := secret.([]uint8); ok {
 		secretsBytes = s
+	} else if s, ok := secret.(string); ok {
+		// mirror the js eddsa: a PEM-armored pkcs8 key carries the 32-byte
+		// seed in its trailing bytes; any other string is a raw seed
+		if strings.Contains(s, "-----BEGIN") {
+			cleaned := ""
+			lines := strings.Split(s, "\n")
+			for _, line := range lines {
+				trimmed := strings.TrimSpace(line)
+				if trimmed == "" || strings.HasPrefix(trimmed, "-----") {
+					continue
+				}
+				cleaned += trimmed
+			}
+			der, err := base64.StdEncoding.DecodeString(cleaned)
+			if err != nil {
+				panic("invalid pem ed25519 secret: " + err.Error())
+			}
+			if len(der) < 32 {
+				panic("invalid pem ed25519 secret: der too short")
+			}
+			secretsBytes = der[len(der)-32:]
+		} else {
+			secretsBytes = []uint8(s)
+		}
 	} else {
 		bytes, err := interfacesToBytes(secret.([]any))
 		if err != nil {
@@ -394,38 +425,6 @@ func interfacesToBytes(input []any) ([]uint8, error) {
 	return result, nil
 }
 
-func stringToPrivateKey(privKeyStr string) *ecdsa.PrivateKey {
-	// Decode PEM formatted private key
-	block, _ := pem.Decode([]byte(privKeyStr))
-	if block == nil {
-		return nil
-	}
-
-	// Parse the ECDSA private key
-	privKey, err := x509.ParseECPrivateKey(block.Bytes)
-	if err != nil {
-		return nil
-	}
-
-	return privKey
-}
-
-var secp256k1Curve = &elliptic.CurveParams{
-	Name:    "secp256k1",
-	BitSize: 256,
-	P:       fromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"),
-	N:       fromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"),
-	B:       fromHex("07"),
-	Gx:      fromHex("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"),
-	Gy:      fromHex("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"),
-}
-
-// Helper function to convert hex string to big.Int
-func fromHex(s string) *big.Int {
-	b, _ := new(big.Int).SetString(s, 16)
-	return b
-}
-
 // Helper function to convert a string hex to byte array
 func hexToBytes(hexStr string) ([]byte, bool) {
 	bytes, err := hex.DecodeString(hexStr)
@@ -440,69 +439,6 @@ func toHex(bytes []byte) string {
 	return hex.EncodeToString(bytes)
 }
 
-func enforceLowS(s *big.Int) *big.Int {
-	// secp256k1 curve order
-	curveOrder := fromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141")
-
-	// If s is greater than curveOrder / 2, calculate the new s as curveOrder - s
-	halfOrder := new(big.Int).Div(curveOrder, big.NewInt(2))
-	if s.Cmp(halfOrder) > 0 {
-		s.Sub(curveOrder, s)
-	}
-	return s
-}
-
-// Sign the message with secp256k1 curve using Go's native ecdsa package
-
-// func signSecp256k1(message []byte, seckey []byte) ([]byte, int, bool) {
-// 	// Sign the message with the secp256k1 private key
-// 	// return nil, 0, false
-// 	signature, err := secp256k1Hash.Sign(message, seckey)
-// 	if err != nil {
-// 		return nil, 0, false
-// 	}
-
-// 	recoveryID := int(signature[64])
-
-// 	// // Split the signature into r and s components
-// 	r := new(big.Int).SetBytes(signature[:32])
-// 	s := new(big.Int).SetBytes(signature[32:64])
-
-// 	// // Enforce low-s rule on the 's' value
-// 	s = enforceLowS(s)
-
-// 	// // Convert r and s back to byte slices
-// 	rBytes := r.FillBytes(make([]byte, 32))
-// 	sBytes := s.FillBytes(make([]byte, 32))
-
-// 	// // Reconstruct the signature with the adjusted low-s value
-// 	signature = append(rBytes, sBytes...)
-
-// 	// The recovery ID is the last byte in the original signature
-
-// 	return signature, recoveryID, true
-// }
-
-// Helper function to sign with P256 (Go's native implementation)
-// func signP256(message []byte, seckey []byte) ([]byte, int, bool) {
-// 	curve := elliptic.P256()
-// 	privKey := new(ecdsa.PrivateKey)
-// 	privKey.PublicKey.Curve = curve
-// 	privKey.D = new(big.Int).SetBytes(seckey)
-
-// 	r, s, err := ecdsa.Sign(rand.Reader, privKey, message)
-// 	if err != nil {
-// 		return nil, 0, false
-// 	}
-
-// 	rBytes := r.Bytes()
-// 	sBytes := s.Bytes()
-// 	signature := append(rBytes, sBytes...)
-
-// 	return signature, 0, true // P256 does not need a recovery ID
-// }
-
-// Main Ecdsa function
 func Ecdsa(request any, secret any, curveFunc func() string, hashFunc func() string) map[string]any {
 	// Initialize return structure
 	result := map[string]any{

@@ -7,424 +7,1156 @@ namespace ccxt\abstract;
 
 
 abstract class alpaca extends \ccxt\Exchange {
+    /**
+     * @return list<mixed>
+     */
+    public function broker_private_get_v1_accounts_account_id_tokenization_requests($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_accounts_account_id_tokenization_requests_tokenization_request_id($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_accounts_account_id_tokenization_requests_by_client_request_id($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests:by_client_request_id', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_accounts_account_id_tokenization_requests_by_issuer_request_id($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_fpsl_analytics_account_id_loans($params = array()) {
+        return $this->request('v1/fpsl/analytics/{account_id}/loans', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_ipos($params = array()) {
+        return $this->request('v1/ipos', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_ipos_offering_reference($params = array()) {
+        return $this->request('v1/ipos/{offering_reference}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1_wallets_travel_rule_vasps($params = array()) {
+        return $this->request('v1/wallets/travel-rule/vasps', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1beta1_acats($params = array()) {
+        return $this->request('v1beta1/acats', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1beta1_acats_contrabrokers($params = array()) {
+        return $this->request('v1beta1/acats/contrabrokers', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1beta1_acats_account_id($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_get_v1beta1_acats_account_id_acats_id($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}/{acats_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function broker_private_get_v1beta1_acats_account_id_acats_id_assets($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}/{acats_id}/assets', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_post_v1beta1_acats_account_id($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function broker_private_patch_v1_accounts_account_id_wallets_whitelists_whitelisted_address_id_travel_rule_info($params = array()) {
+        return $this->request('v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', array('broker', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_account($params = array()) {
-        return $this->request('v2/account', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_get_v2_orders($params = array()) {
-        return $this->request('v2/orders', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/orders', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_orders_order_id($params = array()) {
-        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_get_v2_positions($params = array()) {
-        return $this->request('v2/positions', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/positions', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_positions_symbol_or_asset_id($params = array()) {
-        return $this->request('v2/positions/{symbol_or_asset_id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/positions/{symbol_or_asset_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_account_portfolio_history($params = array()) {
-        return $this->request('v2/account/portfolio/history', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account/portfolio/history', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_get_v2_watchlists($params = array()) {
-        return $this->request('v2/watchlists', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/watchlists', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_watchlists_watchlist_id($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_watchlists_by_name($params = array()) {
-        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_account_configurations($params = array()) {
-        return $this->request('v2/account/configurations', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account/configurations', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_get_v2_account_activities($params = array()) {
-        return $this->request('v2/account/activities', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account/activities', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_get_v2_account_activities_activity_type($params = array()) {
-        return $this->request('v2/account/activities/{activity_type}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account/activities/{activity_type}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_get_v2_calendar($params = array()) {
-        return $this->request('v2/calendar', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/calendar', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_clock($params = array()) {
-        return $this->request('v2/clock', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/clock', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_get_v2_assets($params = array()) {
-        return $this->request('v2/assets', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/assets', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_assets_symbol_or_asset_id($params = array()) {
-        return $this->request('v2/assets/{symbol_or_asset_id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/assets/{symbol_or_asset_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_corporate_actions_announcements_id($params = array()) {
-        return $this->request('v2/corporate_actions/announcements/{id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/corporate_actions/announcements/{id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_get_v2_corporate_actions_announcements($params = array()) {
-        return $this->request('v2/corporate_actions/announcements', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/corporate_actions/announcements', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_get_v2_wallets($params = array()) {
-        return $this->request('v2/wallets', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/wallets', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_get_v2_wallets_transfers($params = array()) {
-        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v1_locates($params = array()) {
+        return $this->request('v1/locates', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v1_locates_locate_id($params = array()) {
+        return $this->request('v1/locates/{locate_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v1_locates_quotes($params = array()) {
+        return $this->request('v1/locates/quotes', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function trader_private_get_v2_tokenization_requests($params = array()) {
+        return $this->request('v2/tokenization/requests', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v2_tokenization_requests_tokenization_request_id($params = array()) {
+        return $this->request('v2/tokenization/requests/{tokenization_request_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v2_tokenization_requests_by_client_request_id($params = array()) {
+        return $this->request('v2/tokenization/requests:by_client_request_id', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_get_v2_wallets_travel_rule_vasps($params = array()) {
+        return $this->request('v2/wallets/travel-rule/vasps', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_post_v2_orders($params = array()) {
-        return $this->request('v2/orders', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/orders', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_post_v2_watchlists($params = array()) {
-        return $this->request('v2/watchlists', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/watchlists', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_post_v2_watchlists_watchlist_id($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_post_v2_watchlists_by_name($params = array()) {
-        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_post_v2_wallets_transfers($params = array()) {
-        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_post_v1_locates($params = array()) {
+        return $this->request('v1/locates', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_put_v2_orders_order_id($params = array()) {
-        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_put_v2_watchlists_watchlist_id($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_put_v2_watchlists_by_name($params = array()) {
-        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_patch_v2_orders_order_id($params = array()) {
-        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PATCH', $params, null, null, array());
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_patch_v2_account_configurations($params = array()) {
-        return $this->request('v2/account/configurations', array('trader', 'private'), 'PATCH', $params, null, null, array());
+        return $this->request('v2/account/configurations', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function trader_private_patch_v2_wallets_whitelists_whitelisted_address_id_travel_rule_info($params = array()) {
+        return $this->request('v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_delete_v2_orders($params = array()) {
-        return $this->request('v2/orders', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/orders', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_delete_v2_orders_order_id($params = array()) {
-        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function trader_private_delete_v2_positions($params = array()) {
-        return $this->request('v2/positions', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/positions', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_delete_v2_positions_symbol_or_asset_id($params = array()) {
-        return $this->request('v2/positions/{symbol_or_asset_id}', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/positions/{symbol_or_asset_id}', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_delete_v2_watchlists_watchlist_id($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_delete_v2_watchlists_by_name($params = array()) {
-        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function trader_private_delete_v2_watchlists_watchlist_id_symbol($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}/{symbol}', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}/{symbol}', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_public_get_v1beta3_crypto_loc_bars($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/bars', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/bars', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_public_get_v1beta3_crypto_loc_latest_bars($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/latest/bars', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/latest/bars', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_public_get_v1beta3_crypto_loc_latest_orderbooks($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/latest/orderbooks', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/latest/orderbooks', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_public_get_v1beta3_crypto_loc_latest_quotes($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/latest/quotes', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/latest/quotes', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_public_get_v1beta3_crypto_loc_latest_trades($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/latest/trades', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/latest/trades', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_public_get_v1beta3_crypto_loc_quotes($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/quotes', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/quotes', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_public_get_v1beta3_crypto_loc_snapshots($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/snapshots', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/snapshots', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_public_get_v1beta3_crypto_loc_trades($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/trades', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/trades', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v1beta1_corporate_actions($params = array()) {
-        return $this->request('v1beta1/corporate-actions', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/corporate-actions', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function market_private_get_v1beta1_fixed_income_latest_prices($params = array()) {
+        return $this->request('v1beta1/fixed_income/latest/prices', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function market_private_get_v1beta1_fixed_income_latest_quotes($params = array()) {
+        return $this->request('v1beta1/fixed_income/latest/quotes', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v1beta1_forex_latest_rates($params = array()) {
-        return $this->request('v1beta1/forex/latest/rates', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/forex/latest/rates', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v1beta1_forex_rates($params = array()) {
-        return $this->request('v1beta1/forex/rates', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/forex/rates', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return string
+     */
     public function market_private_get_v1beta1_logos_symbol($params = array()) {
-        return $this->request('v1beta1/logos/{symbol}', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/logos/{symbol}', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v1beta1_news($params = array()) {
-        return $this->request('v1beta1/news', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/news', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v1beta1_screener_stocks_most_actives($params = array()) {
-        return $this->request('v1beta1/screener/stocks/most-actives', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/screener/stocks/most-actives', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v1beta1_screener_market_type_movers($params = array()) {
-        return $this->request('v1beta1/screener/{market_type}/movers', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/screener/{market_type}/movers', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_auctions($params = array()) {
-        return $this->request('v2/stocks/auctions', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/auctions', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_bars($params = array()) {
-        return $this->request('v2/stocks/bars', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/bars', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_bars_latest($params = array()) {
-        return $this->request('v2/stocks/bars/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/bars/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_meta_conditions_ticktype($params = array()) {
-        return $this->request('v2/stocks/meta/conditions/{ticktype}', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/meta/conditions/{ticktype}', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_meta_exchanges($params = array()) {
-        return $this->request('v2/stocks/meta/exchanges', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/meta/exchanges', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_quotes($params = array()) {
-        return $this->request('v2/stocks/quotes', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/quotes', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_quotes_latest($params = array()) {
-        return $this->request('v2/stocks/quotes/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/quotes/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_snapshots($params = array()) {
-        return $this->request('v2/stocks/snapshots', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/snapshots', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_trades($params = array()) {
-        return $this->request('v2/stocks/trades', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/trades', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_trades_latest($params = array()) {
-        return $this->request('v2/stocks/trades/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/trades/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_symbol_auctions($params = array()) {
-        return $this->request('v2/stocks/{symbol}/auctions', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/auctions', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_symbol_bars($params = array()) {
-        return $this->request('v2/stocks/{symbol}/bars', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/bars', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_symbol_bars_latest($params = array()) {
-        return $this->request('v2/stocks/{symbol}/bars/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/bars/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_symbol_quotes($params = array()) {
-        return $this->request('v2/stocks/{symbol}/quotes', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/quotes', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_symbol_quotes_latest($params = array()) {
-        return $this->request('v2/stocks/{symbol}/quotes/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/quotes/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_symbol_snapshot($params = array()) {
-        return $this->request('v2/stocks/{symbol}/snapshot', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/snapshot', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_symbol_trades($params = array()) {
-        return $this->request('v2/stocks/{symbol}/trades', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/trades', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function market_private_get_v2_stocks_symbol_trades_latest($params = array()) {
-        return $this->request('v2/stocks/{symbol}/trades/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/trades/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
+    public function brokerPrivateGetV1AccountsAccountIdTokenizationRequests($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests:by_client_request_id', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId($params = array()) {
+        return $this->request('v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1FpslAnalyticsAccountIdLoans($params = array()) {
+        return $this->request('v1/fpsl/analytics/{account_id}/loans', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1Ipos($params = array()) {
+        return $this->request('v1/ipos', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1IposOfferingReference($params = array()) {
+        return $this->request('v1/ipos/{offering_reference}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1WalletsTravelRuleVasps($params = array()) {
+        return $this->request('v1/wallets/travel-rule/vasps', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1beta1Acats($params = array()) {
+        return $this->request('v1beta1/acats', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1beta1AcatsContrabrokers($params = array()) {
+        return $this->request('v1beta1/acats/contrabrokers', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1beta1AcatsAccountId($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivateGetV1beta1AcatsAccountIdAcatsId($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}/{acats_id}', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}/{acats_id}/assets', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivatePostV1beta1AcatsAccountId($params = array()) {
+        return $this->request('v1beta1/acats/{account_id}', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo($params = array()) {
+        return $this->request('v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', array('broker', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2Account($params = array()) {
-        return $this->request('v2/account', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateGetV2Orders($params = array()) {
-        return $this->request('v2/orders', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/orders', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2OrdersOrderId($params = array()) {
-        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateGetV2Positions($params = array()) {
-        return $this->request('v2/positions', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/positions', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2PositionsSymbolOrAssetId($params = array()) {
-        return $this->request('v2/positions/{symbol_or_asset_id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/positions/{symbol_or_asset_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2AccountPortfolioHistory($params = array()) {
-        return $this->request('v2/account/portfolio/history', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account/portfolio/history', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateGetV2Watchlists($params = array()) {
-        return $this->request('v2/watchlists', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/watchlists', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2WatchlistsWatchlistId($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2WatchlistsByName($params = array()) {
-        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2AccountConfigurations($params = array()) {
-        return $this->request('v2/account/configurations', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account/configurations', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateGetV2AccountActivities($params = array()) {
-        return $this->request('v2/account/activities', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account/activities', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateGetV2AccountActivitiesActivityType($params = array()) {
-        return $this->request('v2/account/activities/{activity_type}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/account/activities/{activity_type}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateGetV2Calendar($params = array()) {
-        return $this->request('v2/calendar', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/calendar', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2Clock($params = array()) {
-        return $this->request('v2/clock', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/clock', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateGetV2Assets($params = array()) {
-        return $this->request('v2/assets', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/assets', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2AssetsSymbolOrAssetId($params = array()) {
-        return $this->request('v2/assets/{symbol_or_asset_id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/assets/{symbol_or_asset_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2CorporateActionsAnnouncementsId($params = array()) {
-        return $this->request('v2/corporate_actions/announcements/{id}', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/corporate_actions/announcements/{id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateGetV2CorporateActionsAnnouncements($params = array()) {
-        return $this->request('v2/corporate_actions/announcements', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/corporate_actions/announcements', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateGetV2Wallets($params = array()) {
-        return $this->request('v2/wallets', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/wallets', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateGetV2WalletsTransfers($params = array()) {
-        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV1Locates($params = array()) {
+        return $this->request('v1/locates', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV1LocatesLocateId($params = array()) {
+        return $this->request('v1/locates/{locate_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV1LocatesQuotes($params = array()) {
+        return $this->request('v1/locates/quotes', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function traderPrivateGetV2TokenizationRequests($params = array()) {
+        return $this->request('v2/tokenization/requests', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV2TokenizationRequestsTokenizationRequestId($params = array()) {
+        return $this->request('v2/tokenization/requests/{tokenization_request_id}', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV2TokenizationRequestsByClientRequestId($params = array()) {
+        return $this->request('v2/tokenization/requests:by_client_request_id', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivateGetV2WalletsTravelRuleVasps($params = array()) {
+        return $this->request('v2/wallets/travel-rule/vasps', array('trader', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePostV2Orders($params = array()) {
-        return $this->request('v2/orders', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/orders', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePostV2Watchlists($params = array()) {
-        return $this->request('v2/watchlists', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/watchlists', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePostV2WatchlistsWatchlistId($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePostV2WatchlistsByName($params = array()) {
-        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePostV2WalletsTransfers($params = array()) {
-        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'POST', $params, null, null, array());
+        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivatePostV1Locates($params = array()) {
+        return $this->request('v1/locates', array('trader', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePutV2OrdersOrderId($params = array()) {
-        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePutV2WatchlistsWatchlistId($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePutV2WatchlistsByName($params = array()) {
-        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'PUT', $params, null, null, array());
+        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePatchV2OrdersOrderId($params = array()) {
-        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PATCH', $params, null, null, array());
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivatePatchV2AccountConfigurations($params = array()) {
-        return $this->request('v2/account/configurations', array('trader', 'private'), 'PATCH', $params, null, null, array());
+        return $this->request('v2/account/configurations', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo($params = array()) {
+        return $this->request('v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info', array('trader', 'private'), 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateDeleteV2Orders($params = array()) {
-        return $this->request('v2/orders', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/orders', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateDeleteV2OrdersOrderId($params = array()) {
-        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return list<mixed>
+     */
     public function traderPrivateDeleteV2Positions($params = array()) {
-        return $this->request('v2/positions', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/positions', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateDeleteV2PositionsSymbolOrAssetId($params = array()) {
-        return $this->request('v2/positions/{symbol_or_asset_id}', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/positions/{symbol_or_asset_id}', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateDeleteV2WatchlistsWatchlistId($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateDeleteV2WatchlistsByName($params = array()) {
-        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function traderPrivateDeleteV2WatchlistsWatchlistIdSymbol($params = array()) {
-        return $this->request('v2/watchlists/{watchlist_id}/{symbol}', array('trader', 'private'), 'DELETE', $params, null, null, array());
+        return $this->request('v2/watchlists/{watchlist_id}/{symbol}', array('trader', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPublicGetV1beta3CryptoLocBars($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/bars', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/bars', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPublicGetV1beta3CryptoLocLatestBars($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/latest/bars', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/latest/bars', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPublicGetV1beta3CryptoLocLatestOrderbooks($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/latest/orderbooks', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/latest/orderbooks', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPublicGetV1beta3CryptoLocLatestQuotes($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/latest/quotes', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/latest/quotes', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPublicGetV1beta3CryptoLocLatestTrades($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/latest/trades', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/latest/trades', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPublicGetV1beta3CryptoLocQuotes($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/quotes', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/quotes', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPublicGetV1beta3CryptoLocSnapshots($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/snapshots', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/snapshots', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPublicGetV1beta3CryptoLocTrades($params = array()) {
-        return $this->request('v1beta3/crypto/{loc}/trades', array('market', 'public'), 'GET', $params, null, null, array());
+        return $this->request('v1beta3/crypto/{loc}/trades', array('market', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV1beta1CorporateActions($params = array()) {
-        return $this->request('v1beta1/corporate-actions', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/corporate-actions', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
+    public function marketPrivateGetV1beta1FixedIncomeLatestPrices($params = array()) {
+        return $this->request('v1beta1/fixed_income/latest/prices', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function marketPrivateGetV1beta1FixedIncomeLatestQuotes($params = array()) {
+        return $this->request('v1beta1/fixed_income/latest/quotes', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV1beta1ForexLatestRates($params = array()) {
-        return $this->request('v1beta1/forex/latest/rates', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/forex/latest/rates', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV1beta1ForexRates($params = array()) {
-        return $this->request('v1beta1/forex/rates', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/forex/rates', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return string
+     */
     public function marketPrivateGetV1beta1LogosSymbol($params = array()) {
-        return $this->request('v1beta1/logos/{symbol}', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/logos/{symbol}', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV1beta1News($params = array()) {
-        return $this->request('v1beta1/news', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/news', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV1beta1ScreenerStocksMostActives($params = array()) {
-        return $this->request('v1beta1/screener/stocks/most-actives', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/screener/stocks/most-actives', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV1beta1ScreenerMarketTypeMovers($params = array()) {
-        return $this->request('v1beta1/screener/{market_type}/movers', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v1beta1/screener/{market_type}/movers', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksAuctions($params = array()) {
-        return $this->request('v2/stocks/auctions', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/auctions', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksBars($params = array()) {
-        return $this->request('v2/stocks/bars', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/bars', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksBarsLatest($params = array()) {
-        return $this->request('v2/stocks/bars/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/bars/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksMetaConditionsTicktype($params = array()) {
-        return $this->request('v2/stocks/meta/conditions/{ticktype}', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/meta/conditions/{ticktype}', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksMetaExchanges($params = array()) {
-        return $this->request('v2/stocks/meta/exchanges', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/meta/exchanges', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksQuotes($params = array()) {
-        return $this->request('v2/stocks/quotes', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/quotes', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksQuotesLatest($params = array()) {
-        return $this->request('v2/stocks/quotes/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/quotes/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksSnapshots($params = array()) {
-        return $this->request('v2/stocks/snapshots', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/snapshots', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksTrades($params = array()) {
-        return $this->request('v2/stocks/trades', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/trades', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksTradesLatest($params = array()) {
-        return $this->request('v2/stocks/trades/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/trades/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksSymbolAuctions($params = array()) {
-        return $this->request('v2/stocks/{symbol}/auctions', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/auctions', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksSymbolBars($params = array()) {
-        return $this->request('v2/stocks/{symbol}/bars', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/bars', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksSymbolBarsLatest($params = array()) {
-        return $this->request('v2/stocks/{symbol}/bars/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/bars/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksSymbolQuotes($params = array()) {
-        return $this->request('v2/stocks/{symbol}/quotes', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/quotes', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksSymbolQuotesLatest($params = array()) {
-        return $this->request('v2/stocks/{symbol}/quotes/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/quotes/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksSymbolSnapshot($params = array()) {
-        return $this->request('v2/stocks/{symbol}/snapshot', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/snapshot', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksSymbolTrades($params = array()) {
-        return $this->request('v2/stocks/{symbol}/trades', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/trades', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    /**
+     * @return array<string, mixed>
+     */
     public function marketPrivateGetV2StocksSymbolTradesLatest($params = array()) {
-        return $this->request('v2/stocks/{symbol}/trades/latest', array('market', 'private'), 'GET', $params, null, null, array());
+        return $this->request('v2/stocks/{symbol}/trades/latest', array('market', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
 }

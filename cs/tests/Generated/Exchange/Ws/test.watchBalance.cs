@@ -10,16 +10,16 @@ public partial class testMainClass : BaseTest
 {
     async static public Task testWatchBalance(Exchange exchange, object skippedProperties, object code)
     {
-        object method = "watchBalance";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
+        string method = "watchBalance";
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 15000);
         while (isLessThan(now, ends))
         {
-            object response = null;
-            object success = true;
+            object response = new Dictionary<string, object>() {};
+            bool success = true;
             try
             {
-                response = await exchange.watchBalance();
+                response = detypeForComparison(await exchange.WatchBalance());
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, false)))
+            if ((success == false))
             {
                 continue;
             }

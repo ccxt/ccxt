@@ -152,7 +152,7 @@
             "liquidationPrice": null,
             "marginRatio": null,
             "marginMode": null,
-            "percentage": null
+            "percentage": 0
           }
         }
       ],
@@ -212,7 +212,7 @@
               "liquidationPrice": null,
               "marginRatio": null,
               "marginMode": null,
-              "percentage": null
+              "percentage": 0
             }
           ]
         },
@@ -273,7 +273,7 @@
               "liquidationPrice": null,
               "marginRatio": null,
               "marginMode": null,
-              "percentage": null
+              "percentage": 0
             }
           ]
         }
@@ -711,7 +711,7 @@
             "remaining": 0.01,
             "cost": 0,
             "average": null,
-            "status": "WORKING",
+            "status": "open",
             "fee": {
               "cost": 0
             },
@@ -798,7 +798,7 @@
             "remaining": 0.01,
             "cost": 0,
             "average": null,
-            "status": "WORKING",
+            "status": "open",
             "fee": {
               "cost": 0
             },
@@ -898,7 +898,7 @@
               "remaining": 0.2,
               "cost": 0,
               "average": null,
-              "status": "WORKING",
+              "status": "open",
               "fee": {
                 "cost": 0
               },

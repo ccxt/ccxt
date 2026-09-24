@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
-from typing import List
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -26,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class coinbase(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coinbase, self).describe(), {
             'id': 'coinbase',
             'name': 'Coinbase Advanced',
@@ -37,7 +36,7 @@ class coinbase(Exchange, ImplicitAPI):
             # ADVANCED API: https://docs.cdp.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             # - max 30 req/second for private data, 10 req/s for public data
             # DATA API    : https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting
-            # - max 10000 req/hour(to prevent userland mistakes we apply ~3 req/second RL per call
+            # - max 10000 req/hour (to prevent userland mistakes we apply ~3 req/second RL per call
             'rateLimit': 34,
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
@@ -48,8 +47,8 @@ class coinbase(Exchange, ImplicitAPI):
                 'CORS': True,
                 'spot': True,
                 'margin': False,
-                'swap': False,
-                'future': False,
+                'swap': True,
+                'future': True,
                 'option': False,
                 'addMargin': False,
                 'borrowCrossMargin': False,
@@ -144,6 +143,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrdersByStatus': True,
                 'fetchPosition': True,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,
@@ -169,6 +169,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'urls': {
@@ -195,124 +196,130 @@ class coinbase(Exchange, ImplicitAPI):
                 'v2': {
                     'public': {
                         'get': {
-                            'currencies': 10.6,
-                            'currencies/crypto': 10.6,
-                            'time': 10.6,
-                            'exchange-rates': 10.6,
-                            'users/{user_id}': 10.6,
-                            'prices/{symbol}/buy': 10.6,
-                            'prices/{symbol}/sell': 10.6,
-                            'prices/{symbol}/spot': 10.6,
+                            'currencies': {'cost': 10.6},
+                            'currencies/crypto': {'cost': 10.6},
+                            'time': {'cost': 10.6},
+                            'exchange-rates': {'cost': 10.6},
+                            'users/{user_id}': {'cost': 10.6},
+                            'prices/{symbol}/buy': {'cost': 10.6},
+                            'prices/{symbol}/sell': {'cost': 10.6},
+                            'prices/{symbol}/spot': {'cost': 10.6},
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 10.6,
-                            'accounts/{account_id}': 10.6,
-                            'accounts/{account_id}/addresses': 10.6,
-                            'accounts/{account_id}/addresses/{address_id}': 10.6,
-                            'accounts/{account_id}/addresses/{address_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
-                            'accounts/{account_id}/buys': 10.6,
-                            'accounts/{account_id}/buys/{buy_id}': 10.6,
-                            'accounts/{account_id}/sells': 10.6,
-                            'accounts/{account_id}/sells/{sell_id}': 10.6,
-                            'accounts/{account_id}/deposits': 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}': 10.6,
-                            'accounts/{account_id}/withdrawals': 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}': 10.6,
-                            'payment-methods': 10.6,
-                            'payment-methods/{payment_method_id}': 10.6,
-                            'user': 10.6,
-                            'user/auth': 10.6,
+                            'accounts': {'cost': 10.6},
+                            'accounts/{account_id}': {'cost': 10.6},
+                            'accounts/{account_id}/addresses': {'cost': 10.6},
+                            'accounts/{account_id}/addresses/{address_id}': {'cost': 10.6},
+                            'accounts/{account_id}/addresses/{address_id}/transactions': {'cost': 10.6},
+                            'accounts/{account_id}/transactions': {'cost': 10.6},
+                            'accounts/{account_id}/transactions/{transaction_id}': {'cost': 10.6},
+                            'accounts/{account_id}/buys': {'cost': 10.6},
+                            'accounts/{account_id}/buys/{buy_id}': {'cost': 10.6},
+                            'accounts/{account_id}/sells': {'cost': 10.6},
+                            'accounts/{account_id}/sells/{sell_id}': {'cost': 10.6},
+                            'accounts/{account_id}/deposits': {'cost': 10.6},
+                            'accounts/{account_id}/deposits/{deposit_id}': {'cost': 10.6},
+                            'accounts/{account_id}/withdrawals': {'cost': 10.6},
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}': {'cost': 10.6},
+                            'payment-methods': {'cost': 10.6},
+                            'payment-methods/{payment_method_id}': {'cost': 10.6},
+                            'user': {'cost': 10.6},
+                            'user/auth': {'cost': 10.6},
+                            'subscriptions/coinbase-one': {'cost': 10.6},
                         },
                         'post': {
-                            'accounts': 10.6,
-                            'accounts/{account_id}/primary': 10.6,
-                            'accounts/{account_id}/addresses': 10.6,
-                            'accounts/{account_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/complete': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/resend': 10.6,
-                            'accounts/{account_id}/buys': 10.6,
-                            'accounts/{account_id}/buys/{buy_id}/commit': 10.6,
-                            'accounts/{account_id}/sells': 10.6,
-                            'accounts/{account_id}/sells/{sell_id}/commit': 10.6,
-                            'accounts/{account_id}/deposits': 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}/commit': 10.6,
-                            'accounts/{account_id}/withdrawals': 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit': 10.6,
+                            'accounts': {'cost': 10.6},
+                            'accounts/{account_id}/primary': {'cost': 10.6},
+                            'accounts/{account_id}/addresses': {'cost': 10.6},
+                            'accounts/{account_id}/transactions': {'cost': 10.6},
+                            'accounts/{account_id}/transactions/{transaction_id}/complete': {'cost': 10.6},
+                            'accounts/{account_id}/transactions/{transaction_id}/resend': {'cost': 10.6},
+                            'accounts/{account_id}/buys': {'cost': 10.6},
+                            'accounts/{account_id}/buys/{buy_id}/commit': {'cost': 10.6},
+                            'accounts/{account_id}/sells': {'cost': 10.6},
+                            'accounts/{account_id}/sells/{sell_id}/commit': {'cost': 10.6},
+                            'accounts/{account_id}/deposits': {'cost': 10.6},
+                            'accounts/{account_id}/deposits/{deposit_id}/commit': {'cost': 10.6},
+                            'accounts/{account_id}/withdrawals': {'cost': 10.6},
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit': {'cost': 10.6},
                         },
                         'put': {
-                            'accounts/{account_id}': 10.6,
-                            'user': 10.6,
+                            'accounts/{account_id}': {'cost': 10.6},
+                            'user': {'cost': 10.6},
                         },
                         'delete': {
-                            'accounts/{id}': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
+                            'accounts/{id}': {'cost': 10.6},
+                            'accounts/{account_id}/transactions/{transaction_id}': {'cost': 10.6},
                         },
                     },
                 },
                 'v3': {
                     'public': {
                         'get': {
-                            'brokerage/time': 3,
-                            'brokerage/market/product_book': 3,
-                            'brokerage/market/products': 3,
-                            'brokerage/market/products/{product_id}': 3,
-                            'brokerage/market/products/{product_id}/candles': 3,
-                            'brokerage/market/products/{product_id}/ticker': 3,
+                            'brokerage/time': {'cost': 3},
+                            'brokerage/market/product_book': {'cost': 3},
+                            'brokerage/market/products': {'cost': 3},
+                            'brokerage/market/products/{product_id}': {'cost': 3},
+                            'brokerage/market/products/{product_id}/candles': {'cost': 3},
+                            'brokerage/market/products/{product_id}/ticker': {'cost': 3},
                         },
                     },
                     'private': {
                         'get': {
-                            'brokerage/accounts': 1,
-                            'brokerage/accounts/{account_uuid}': 1,
-                            'brokerage/orders/historical/batch': 1,
-                            'brokerage/orders/historical/fills': 1,
-                            'brokerage/orders/historical/{order_id}': 1,
-                            'brokerage/products': 3,
-                            'brokerage/products/{product_id}': 3,
-                            'brokerage/products/{product_id}/candles': 3,
-                            'brokerage/products/{product_id}/ticker': 3,
-                            'brokerage/best_bid_ask': 3,
-                            'brokerage/product_book': 3,
-                            'brokerage/transaction_summary': 3,
-                            'brokerage/portfolios': 1,
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
-                            'brokerage/convert/trade/{trade_id}': 1,
-                            'brokerage/cfm/balance_summary': 1,
-                            'brokerage/cfm/positions': 1,
-                            'brokerage/cfm/positions/{product_id}': 1,
-                            'brokerage/cfm/sweeps': 1,
-                            'brokerage/intx/portfolio/{portfolio_uuid}': 1,
-                            'brokerage/intx/positions/{portfolio_uuid}': 1,
-                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
-                            'brokerage/payment_methods': 1,
-                            'brokerage/payment_methods/{payment_method_id}': 1,
-                            'brokerage/key_permissions': 1,
+                            'brokerage/accounts': {'cost': 1},
+                            'brokerage/accounts/{account_uuid}': {'cost': 1},
+                            'brokerage/orders/historical/batch': {'cost': 1},
+                            'brokerage/orders/historical/fills': {'cost': 1},
+                            'brokerage/orders/historical/{order_id}': {'cost': 1},
+                            'brokerage/products': {'cost': 3},
+                            'brokerage/products/{product_id}': {'cost': 3},
+                            'brokerage/products/{product_id}/candles': {'cost': 3},
+                            'brokerage/products/{product_id}/ticker': {'cost': 3},
+                            'brokerage/best_bid_ask': {'cost': 3},
+                            'brokerage/product_book': {'cost': 3},
+                            'brokerage/transaction_summary': {'cost': 3},
+                            'brokerage/portfolios': {'cost': 1},
+                            'brokerage/portfolios/{portfolio_uuid}': {'cost': 1},
+                            'brokerage/convert/trade/{trade_id}': {'cost': 1},
+                            'brokerage/cfm/balance_summary': {'cost': 1},
+                            'brokerage/cfm/positions': {'cost': 1},
+                            'brokerage/cfm/positions/{product_id}': {'cost': 1},
+                            'brokerage/cfm/sweeps': {'cost': 1},
+                            'brokerage/cfm/intraday/current_margin_window': {'cost': 1},
+                            'brokerage/cfm/intraday/margin_setting': {'cost': 1},
+                            'brokerage/intx/balances/{portfolio_uuid}': {'cost': 1},
+                            'brokerage/intx/portfolio/{portfolio_uuid}': {'cost': 1},
+                            'brokerage/intx/positions/{portfolio_uuid}': {'cost': 1},
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}': {'cost': 1},
+                            'brokerage/payment_methods': {'cost': 1},
+                            'brokerage/payment_methods/{payment_method_id}': {'cost': 1},
+                            'brokerage/key_permissions': {'cost': 1},
                         },
                         'post': {
-                            'brokerage/orders': 1,
-                            'brokerage/orders/batch_cancel': 1,
-                            'brokerage/orders/edit': 1,
-                            'brokerage/orders/edit_preview': 1,
-                            'brokerage/orders/preview': 1,
-                            'brokerage/portfolios': 1,
-                            'brokerage/portfolios/move_funds': 1,
-                            'brokerage/convert/quote': 1,
-                            'brokerage/convert/trade/{trade_id}': 1,
-                            'brokerage/cfm/sweeps/schedule': 1,
-                            'brokerage/intx/allocate': 1,
+                            'brokerage/orders': {'cost': 1},
+                            'brokerage/orders/batch_cancel': {'cost': 1},
+                            'brokerage/orders/edit': {'cost': 1},
+                            'brokerage/orders/edit_preview': {'cost': 1},
+                            'brokerage/orders/preview': {'cost': 1},
+                            'brokerage/portfolios': {'cost': 1},
+                            'brokerage/portfolios/move_funds': {'cost': 1},
+                            'brokerage/convert/quote': {'cost': 1},
+                            'brokerage/convert/trade/{trade_id}': {'cost': 1},
+                            'brokerage/cfm/sweeps/schedule': {'cost': 1},
+                            'brokerage/cfm/intraday/margin_setting': {'cost': 1},
+                            'brokerage/intx/allocate': {'cost': 1},
+                            'brokerage/intx/multi_asset_collateral': {'cost': 1},
                             # futures
-                            'brokerage/orders/close_position': 1,
+                            'brokerage/orders/close_position': {'cost': 1},
                         },
                         'put': {
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
+                            'brokerage/portfolios/{portfolio_uuid}': {'cost': 1},
                         },
                         'delete': {
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
-                            'brokerage/cfm/sweeps': 1,
+                            'brokerage/portfolios/{portfolio_uuid}': {'cost': 1},
+                            'brokerage/cfm/sweeps': {'cost': 1},
                         },
                     },
                 },
@@ -356,13 +363,13 @@ class coinbase(Exchange, ImplicitAPI):
                     'param_required': ExchangeError,  # 400 Missing parameter
                     'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
                     'invalid_request': ExchangeError,  # 400 Invalid request
-                    'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
-                    'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
-                    'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
-                    'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
+                    'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete this request
+                    'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete this request
+                    'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete this request
+                    'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete this request
                     'unverified_email': AuthenticationError,  # 400 User has not verified their email
-                    'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
-                    'unauthorized': AuthenticationError,  # 401 Not authorized to perform self operation
+                    'authentication_error': AuthenticationError,  # 401 Invalid auth (generic)
+                    'unauthorized': AuthenticationError,  # 401 Not authorized to perform this operation
                     'invalid_authentication_method': AuthenticationError,  # 401 API access is blocked for deleted users.
                     'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
                     'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
@@ -382,7 +389,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'broad': {
                     'Insufficient balance in source account': InsufficientFunds,
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
-                    'order with self orderID was not found': OrderNotFound,  # {"error":"unknown","error_details":"order with self orderID was not found","message":"order with self orderID was not found"}
+                    'order with self orderID was not found': OrderNotFound,  # {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 },
             },
             'timeframes': {
@@ -399,6 +406,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'CGLD': 'CELO',
             },
             'options': {
+                'mica': True,
                 'usePrivate': False,
                 'brokerId': 'ccxt',
                 'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
@@ -419,7 +427,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'XLM': 'stellar',
                 },
                 'createMarketBuyOrderRequiresPrice': True,
-                'advanced': True,  # set to True if using any v3 endpoints from the advanced trade API
+                'advanced': True,  # set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3',  # 'fetchMarketsV3' or 'fetchMarketsV2'
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -517,7 +525,7 @@ class coinbase(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -554,7 +562,7 @@ class coinbase(Exchange, ImplicitAPI):
             #
         return self.safe_timestamp_2(response, 'epoch', 'epochSeconds')
 
-    async def fetch_accounts(self, params={}) -> List[Account]:
+    async def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -570,13 +578,14 @@ class coinbase(Exchange, ImplicitAPI):
             return await self.fetch_accounts_v3(params)
         return await self.fetch_accounts_v2(params)
 
-    async def fetch_accounts_v2(self, params={}) -> List[Account]:
-        await self.load_markets()
+    async def fetch_accounts_v2(self, params: dict = {}) -> list[Account]:
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'next_starting_after', 'starting_after', None, 100)
-        request: dict = {
+        request = {
             'limit': 100,
         }
         response = await self.v2PrivateGetAccounts(self.extend(request, params))
@@ -596,7 +605,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             {
         #                 "id": "XLM",
         #                 "name": "XLM Wallet",
-        #                 "primary": False,
+        #                 "primary": false,
         #                 "type": "wallet",
         #                 "currency": {
         #                     "code": "XLM",
@@ -608,7 +617,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                     "address_regex": "^G[A-Z2-7]{55}$",
         #                     "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
         #                     "destination_tag_name": "XLM Memo ID",
-        #                     "destination_tag_regex": "^[-~]{1,28}$"
+        #                     "destination_tag_regex": "^[ -~]{1,28}$"
         #                 },
         #                 "balance": {
         #                     "amount": "0.0000000",
@@ -618,8 +627,8 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "updated_at": null,
         #                 "resource": "account",
         #                 "resource_path": "/v2/accounts/XLM",
-        #                 "allow_deposits": True,
-        #                 "allow_withdrawals": True
+        #                 "allow_deposits": true,
+        #                 "allow_withdrawals": true
         #             },
         #         ]
         #     }
@@ -630,19 +639,20 @@ class coinbase(Exchange, ImplicitAPI):
         accounts = self.safe_list(response, 'data', [])
         length = len(accounts)
         lastIndex = length - 1
-        last = self.safe_dict(accounts, lastIndex)
+        last = self.safe_dict(accounts, lastIndex, {})
         if (cursor is not None) and (cursor != ''):
             last['next_starting_after'] = cursor
             accounts[lastIndex] = last
         return self.parse_accounts(data, params)
 
-    async def fetch_accounts_v3(self, params={}) -> List[Account]:
-        await self.load_markets()
+    async def fetch_accounts_v3(self, params: dict = {}) -> list[Account]:
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'cursor', 'cursor', None, 250)
-        request: dict = {
+        request = {
             'limit': 250,
         }
         response = await self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
@@ -657,13 +667,13 @@ class coinbase(Exchange, ImplicitAPI):
         #                     "value": "0.0000000000000000",
         #                     "currency": "USDC"
         #                 },
-        #                 "default": True,
-        #                 "active": True,
+        #                 "default": true,
+        #                 "active": true,
         #                 "created_at": "2023-01-04T06:20:06.456Z",
         #                 "updated_at": "2023-01-04T06:20:07.181Z",
         #                 "deleted_at": null,
         #                 "type": "ACCOUNT_TYPE_CRYPTO",
-        #                 "ready": False,
+        #                 "ready": false,
         #                 "hold": {
         #                     "value": "0.0000000000000000",
         #                     "currency": "USDC"
@@ -671,7 +681,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             },
         #             ...
         #         ],
-        #         "has_next": False,
+        #         "has_next": false,
         #         "cursor": "",
         #         "size": 9
         #     }
@@ -681,12 +691,12 @@ class coinbase(Exchange, ImplicitAPI):
         cursor = self.safe_string(response, 'cursor')
         if (accountsLength > 0) and (cursor is not None) and (cursor != ''):
             lastIndex = accountsLength - 1
-            last = self.safe_dict(accounts, lastIndex)
+            last = self.safe_dict(accounts, lastIndex, {})
             last['cursor'] = cursor
             accounts[lastIndex] = last
         return self.parse_accounts(accounts, params)
 
-    async def fetch_portfolios(self, params={}) -> List[Account]:
+    async def fetch_portfolios(self, params: dict = {}) -> list[Account]:
         """
         fetch all the portfolios
 
@@ -708,14 +718,14 @@ class coinbase(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_account(self, account):
+    def parse_account(self, account: dict) -> Account:
         #
         # fetchAccountsV2
         #
         #     {
         #         "id": "XLM",
         #         "name": "XLM Wallet",
-        #         "primary": False,
+        #         "primary": false,
         #         "type": "wallet",
         #         "currency": {
         #             "code": "XLM",
@@ -727,7 +737,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "address_regex": "^G[A-Z2-7]{55}$",
         #             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
         #             "destination_tag_name": "XLM Memo ID",
-        #             "destination_tag_regex": "^[-~]{1,28}$"
+        #             "destination_tag_regex": "^[ -~]{1,28}$"
         #         },
         #         "balance": {
         #             "amount": "0.0000000",
@@ -737,8 +747,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         "updated_at": null,
         #         "resource": "account",
         #         "resource_path": "/v2/accounts/XLM",
-        #         "allow_deposits": True,
-        #         "allow_withdrawals": True
+        #         "allow_deposits": true,
+        #         "allow_withdrawals": true
         #     }
         #
         # fetchAccountsV3
@@ -751,13 +761,13 @@ class coinbase(Exchange, ImplicitAPI):
         #             "value": "0.0000000000000000",
         #             "currency": "USDC"
         #         },
-        #         "default": True,
-        #         "active": True,
+        #         "default": true,
+        #         "active": true,
         #         "created_at": "2023-01-04T06:20:06.456Z",
         #         "updated_at": "2023-01-04T06:20:07.181Z",
         #         "deleted_at": null,
         #         "type": "ACCOUNT_TYPE_CRYPTO",
-        #         "ready": False,
+        #         "ready": false,
         #         "hold": {
         #             "value": "0.0000000000000000",
         #             "currency": "USDC"
@@ -778,7 +788,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -799,7 +809,7 @@ class coinbase(Exchange, ImplicitAPI):
                     break
         if accountId is None:
             raise ExchangeError(self.id + ' createDepositAddress() could not find the account with matching currency code ' + code + ', specify an `account_id` extra param to target specific wallet')
-        request: dict = {
+        request = {
             'account_id': accountId,
         }
         response = await self.v2PrivatePostAccountsAccountIdAddresses(self.extend(request, params))
@@ -821,7 +831,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "resource_path": "/v2/accounts/14cfc769-e852-52f3-b831-711c104d194c/addresses/05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
         #             "warnings": [
         #                 {
-        #                     "title": "Only send EOS(EOS) to self address",
+        #                     "title": "Only send EOS (EOS) to this address",
         #                     "details": "Sending any other cryptocurrency will result in permanent loss.",
         #                     "image_url": "https://dynamic-assets.coinbase.com/deaca3d47b10ed4a91a872e9618706eec34081127762d88f2476ac8e99ada4b48525a9565cf2206d18c04053f278f693434af4d4629ca084a9d01b7a286a7e26/asset_icons/1f8489bb280fb0a0fd643c1161312ba49655040e9aaaced5f9ad3eeaf868eadc.png"
         #                 },
@@ -831,7 +841,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                     "image_url": "https://www.coinbase.com/assets/receive-warning-2f3269d83547a7748fb39d6e0c1c393aee26669bfea6b9f12718094a1abff155.png"
         #                 }
         #             ],
-        #             "warning_title": "Only send EOS(EOS) to self address",
+        #             "warning_title": "Only send EOS (EOS) to this address",
         #             "warning_details": "Sending any other cryptocurrency will result in permanent loss.",
         #             "destination_tag": "287594668",
         #             "deposit_uri": "eosio:coinbasebase?dt=287594668",
@@ -850,14 +860,14 @@ class coinbase(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
  @ignore
         fetch sells
 
         https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
 
-        :param str symbol: not used by coinbase fetchMySells()
+        :param str symbol: not used by fetchMySells()
         :param int [since]: timestamp in ms of the earliest sell, default is None
         :param int [limit]: max number of sells to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -865,19 +875,21 @@ class coinbase(Exchange, ImplicitAPI):
         """
         # v2 did't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         sells = await self.v2PrivateGetAccountsAccountIdSells(self.extend(request, query))
-        return self.parse_trades(sells['data'], None, since, limit)
+        sellsData = self.safe_list(sells, 'data', [])
+        return self.parse_trades(sellsData, None, since, limit)
 
-    async def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
  @ignore
         fetch buys
 
         https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
 
-        :param str symbol: not used by coinbase fetchMyBuys()
+        :param str symbol: not used by fetchMyBuys()
         :param int [since]: timestamp in ms of the earliest buy, default is None
         :param int [limit]: max number of buys to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -885,19 +897,28 @@ class coinbase(Exchange, ImplicitAPI):
         """
         # v2 did't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         buys = await self.v2PrivateGetAccountsAccountIdBuys(self.extend(request, query))
-        return self.parse_trades(buys['data'], None, since, limit)
+        buysData = self.safe_list(buys, 'data', [])
+        return self.parse_trades(buysData, None, since, limit)
 
-    async def fetch_transactions_with_method(self, method, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transactions_with_method(self, method: str, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         request = None
         request, params = await self.prepare_account_request_with_currency_code(code, limit, params)
-        await self.load_markets()
-        response = await getattr(self, method)(self.extend(request, params))
+        if self.markets is None:
+            await self.load_markets()
+        response = None
+        if method == 'v2PrivateGetAccountsAccountIdTransactions':
+            response = await self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
+        elif method == 'v2PrivateGetAccountsAccountIdWithdrawals':
+            response = await self.v2PrivateGetAccountsAccountIdWithdrawals(self.extend(request, params))
+        else:
+            response = await self.v2PrivateGetAccountsAccountIdDeposits(self.extend(request, params))
         return self.parse_transactions(response['data'], None, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
 
@@ -918,7 +939,7 @@ class coinbase(Exchange, ImplicitAPI):
             return self.filter_by_array(results, 'type', 'withdrawal', False)
         return await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
 
@@ -933,13 +954,13 @@ class coinbase(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         currencyType = None
-        currencyType, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'currencyType')
+        currencyType, params = self.handle_option_and_params(params, 'fetchDeposits', 'currencyType')
         if currencyType == 'crypto':
             results = await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
             return self.filter_by_array(results, 'type', 'deposit', False)
         return await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params)
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -951,12 +972,13 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         results = await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
         return self.filter_by_array(results, 'type', ['deposit', 'withdrawal'], False)
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'created': 'pending',
             'completed': 'ok',
             'canceled': 'canceled',
@@ -985,12 +1007,12 @@ class coinbase(Exchange, ImplicitAPI):
         #         "updated_at": "2017-02-09T07:01:26Z",
         #         "resource": "deposit",
         #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72",
-        #         "committed": True,
+        #         "committed": true,
         #         "payout_at": "2017-02-12T07:01:17Z",
-        #         "instant": False,
-        #         "fee": {"amount": "0.00", "currency": "EUR"},
-        #         "amount": {"amount": "114.02", "currency": "EUR"},
-        #         "subtotal": {"amount": "114.02", "currency": "EUR"},
+        #         "instant": false,
+        #         "fee": { "amount": "0.00", "currency": "EUR" },
+        #         "amount": { "amount": "114.02", "currency": "EUR" },
+        #         "subtotal": { "amount": "114.02", "currency": "EUR" },
         #         "hold_until": null,
         #         "hold_days": 0,
         #         "hold_business_days": 0,
@@ -1017,12 +1039,12 @@ class coinbase(Exchange, ImplicitAPI):
         #         "updated_at": "2018-07-26T08:58:18Z",
         #         "resource": "withdrawal",
         #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/cfcc3b4a-eeb6-5e8c-8058",
-        #         "committed": True,
+        #         "committed": true,
         #         "payout_at": "2018-07-31T08:55:12Z",
-        #         "instant": False,
-        #         "fee": {"amount": "0.15", "currency": "EUR"},
-        #         "amount": {"amount": "13130.69", "currency": "EUR"},
-        #         "subtotal": {"amount": "13130.84", "currency": "EUR"},
+        #         "instant": false,
+        #         "fee": { "amount": "0.15", "currency": "EUR" },
+        #         "amount": { "amount": "13130.69", "currency": "EUR" },
+        #         "subtotal": { "amount": "13130.84", "currency": "EUR" },
         #         "idem": "e549dee5-63ed-4e79-8a96",
         #         "next_step": null
         #     }
@@ -1046,10 +1068,10 @@ class coinbase(Exchange, ImplicitAPI):
         #         "updated_at": "2024-01-12T01:27:31Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "network": {
         #             "status": "pending",
-        #             "status_description": "Pending(est. less than 10 minutes)",
+        #             "status_description": "Pending (est. less than 10 minutes)",
         #             "transaction_fee": {
         #                 "amount": "4.008308",
         #                 "currency": "USDC"
@@ -1072,28 +1094,28 @@ class coinbase(Exchange, ImplicitAPI):
         #         "details": {
         #             "title": "Sent USDC",
         #             "subtitle": "To USDC address on Ethereum network",
-        #             "header": "Sent 14.008308 USDC($18.74)",
+        #             "header": "Sent 14.008308 USDC ($18.74)",
         #             "health": "warning"
         #         },
-        #         "hide_native_amount": False
+        #         "hide_native_amount": false
         #     }
         #
         #
-        # crypto deposit & withdrawal(using `/transactions` endpoint)
+        # crypto deposit & withdrawal (using `/transactions` endpoint)
         #    {
         #        "amount": {
-        #            "amount": "0.00014200",(negative for withdrawal)
+        #            "amount": "0.00014200", (negative for withdrawal)
         #            "currency": "BTC"
         #        },
         #        "created_at": "2024-03-29T15:48:30Z",
         #        "id": "0031a605-241d-514d-a97b-d4b99f3225d3",
-        #        "idem": "092a979b-017e-4403-940a-2ca57811f442",  # field present only in case of withdrawal
+        #        "idem": "092a979b-017e-4403-940a-2ca57811f442", // field present only in case of withdrawal
         #        "native_amount": {
-        #            "amount": "9.85",(negative for withdrawal)
+        #            "amount": "9.85", (negative for withdrawal)
         #            "currency": "USD"
         #        },
         #        "network": {
-        #            "status": "pending",  # if status is `off_blockchain` then no more other fields are hasattr(self, present) object
+        #            "status": "pending", // if status is `off_blockchain` then no more other fields are present in this object
         #            "hash": "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
         #            "network_name": "solana",
         #            "transaction_fee": {
@@ -1105,16 +1127,16 @@ class coinbase(Exchange, ImplicitAPI):
         #        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
         #        "status": "completed",
         #        "type": "send",
-        #        "from": { # in some cases, field might be present for deposit
+        #        "from": { // in some cases, field might be present for deposit
         #            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
         #            "name": "Coinbase",
         #            "resource": "user"
         #        },
-        #        "to": { # field only present for withdrawal
+        #        "to": { // field only present for withdrawal
         #            "address": "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
         #            "resource": "address"
         #        },
-        #        "description": "C3 - One Time BTC Credit . Reference Case  # 123.",  #  in some cases, field might be present for deposit
+        #        "description": "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
         #    }
         #
         transactionType = self.safe_string(transaction, 'type')
@@ -1134,7 +1156,7 @@ class coinbase(Exchange, ImplicitAPI):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         if status is None:
             committed = self.safe_bool(transaction, 'committed')
-            status = 'ok' if committed else 'pending'
+            status = 'ok' if (committed is True) else 'pending'
         id = self.safe_string(transaction, 'id')
         currencyId = self.safe_string(amountAndCurrencyObject, 'currency')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -1149,13 +1171,14 @@ class coinbase(Exchange, ImplicitAPI):
         toObject = self.safe_dict(transaction, 'to')
         addressTo = self.safe_string(toObject, 'address')
         networkId = self.safe_string(network, 'network_name')
+        code = self.safe_currency_code(currencyId, currency)
         return {
             'info': transaction,
             'id': id,
             'txid': self.safe_string(network, 'hash', id),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': addressTo,
             'addressTo': addressTo,
             'addressFrom': None,
@@ -1164,7 +1187,7 @@ class coinbase(Exchange, ImplicitAPI):
             'tagFrom': None,
             'type': type,
             'amount': self.parse_number(amountStringAbs),
-            'currency': self.safe_currency_code(currencyId, currency),
+            'currency': code,
             'status': status,
             'updated': self.parse8601(self.safe_string(transaction, 'updated_at')),
             'fee': {
@@ -1190,16 +1213,16 @@ class coinbase(Exchange, ImplicitAPI):
         #             "resource": "transaction",
         #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
         #         },
-        #         "amount": {"amount": "1.00000000", "currency": "BTC"},
-        #         "total": {"amount": "10.25", "currency": "USD"},
-        #         "subtotal": {"amount": "10.10", "currency": "USD"},
+        #         "amount": { "amount": "1.00000000", "currency": "BTC" },
+        #         "total": { "amount": "10.25", "currency": "USD" },
+        #         "subtotal": { "amount": "10.10", "currency": "USD" },
         #         "created_at": "2015-01-31T20:49:02Z",
         #         "updated_at": "2015-02-11T16:54:02-08:00",
         #         "resource": "buy",
         #         "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        #         "committed": True,
-        #         "instant": False,
-        #         "fee": {"amount": "0.15", "currency": "USD"},
+        #         "committed": true,
+        #         "instant": false,
+        #         "fee": { "amount": "0.15", "currency": "USD" },
         #         "payout_at": "2015-02-18T16:54:00-08:00"
         #     }
         #
@@ -1230,7 +1253,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "product_id": "BTC-USDT",
         #         "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
         #         "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
-        #         "size_in_quote": True,
+        #         "size_in_quote": true,
         #         "user_id": "1111111-1111-1111-1111-111111111111",
         #         "side": "BUY"
         #     }
@@ -1255,7 +1278,7 @@ class coinbase(Exchange, ImplicitAPI):
         v3Price = self.safe_string(trade, 'price')
         v3Cost = None
         v3Amount = self.safe_string(trade, 'size')
-        if sizeInQuote:
+        if sizeInQuote is True:
             # calculate base size
             v3Cost = v3Amount
             v3Amount = Precise.string_div(v3Amount, v3Price)
@@ -1298,7 +1321,7 @@ class coinbase(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
 
         https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
@@ -1311,14 +1334,14 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.usePrivate]: use private endpoint for fetching markets
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
         if method == 'fetchMarketsV3':
             return await self.fetch_markets_v3(params)
         return await self.fetch_markets_v2(params)
 
-    async def fetch_markets_v2(self, params={}) -> List[Market]:
+    async def fetch_markets_v2(self, params: dict = {}) -> list[Market]:
         response = await self.fetch_currencies_from_cache(params)
         currencies = self.safe_dict(response, 'currencies', {})
         exchangeRates = self.safe_dict(response, 'exchangeRates', {})
@@ -1349,8 +1372,8 @@ class coinbase(Exchange, ImplicitAPI):
                         'type': 'spot',
                         'spot': True,
                         'margin': False,
-                        'swap': False,
-                        'future': False,
+                        'swap': True,
+                        'future': True,
                         'option': False,
                         'active': None,
                         'contract': False,
@@ -1387,7 +1410,7 @@ class coinbase(Exchange, ImplicitAPI):
                     }))
         return result
 
-    async def fetch_markets_v3(self, params={}) -> List[Market]:
+    async def fetch_markets_v3(self, params: dict = {}) -> list[Market]:
         usePrivate = False
         usePrivate, params = self.handle_option_and_params(params, 'fetchMarkets', 'usePrivate', False)
         spotUnresolvedPromises = []
@@ -1412,25 +1435,25 @@ class coinbase(Exchange, ImplicitAPI):
         #                base_max_size: '3400',
         #                base_name: 'Bitcoin',
         #                quote_name: 'US Dollar',
-        #                watched: False,
-        #                is_disabled: False,
-        #                new: False,
+        #                watched: false,
+        #                is_disabled: false,
+        #                new: false,
         #                status: 'online',
-        #                cancel_only: False,
-        #                limit_only: False,
-        #                post_only: False,
-        #                trading_disabled: False,
-        #                auction_mode: False,
+        #                cancel_only: false,
+        #                limit_only: false,
+        #                post_only: false,
+        #                trading_disabled: false,
+        #                auction_mode: false,
         #                product_type: 'SPOT',
         #                quote_currency_id: 'USD',
         #                base_currency_id: 'BTC',
         #                fcm_trading_session_details: null,
         #                mid_market_price: '',
         #                alias: '',
-        #                alias_to: ['BTC-USDC'],
+        #                alias_to: [ 'BTC-USDC' ],
         #                base_display_symbol: 'BTC',
         #                quote_display_symbol: 'USD',
-        #                view_only: False,
+        #                view_only: false,
         #                price_increment: '0.01',
         #                display_name: 'BTC-USD',
         #                product_venue: 'CBE'
@@ -1462,7 +1485,7 @@ class coinbase(Exchange, ImplicitAPI):
         #        coinbase_pro_volume: '0',
         #        coinbase_pro_fees: '0',
         #        total_balance: '',
-        #        has_promo_fee: False
+        #        has_promo_fee: false
         #    }
         #
         promises = await asyncio.gather(*spotUnresolvedPromises)
@@ -1520,7 +1543,7 @@ class coinbase(Exchange, ImplicitAPI):
         newMarkets = []
         for i in range(0, len(result)):
             market = result[i]
-            info = self.safe_value(market, 'info', {})
+            info = self.safe_dict(market, 'info', {})
             realMarketIds = self.safe_list(info, 'alias_to', [])
             length = len(realMarketIds)
             if length > 0:
@@ -1530,7 +1553,7 @@ class coinbase(Exchange, ImplicitAPI):
             newMarkets.append(market)
         return newMarkets
 
-    def parse_spot_market(self, market, feeTier) -> MarketInterface:
+    def parse_spot_market(self, market: dict, feeTier: dict) -> Market:
         #
         #         {
         #             "product_id": "TONE-USD",
@@ -1546,15 +1569,15 @@ class coinbase(Exchange, ImplicitAPI):
         #             "base_max_size": "267187147.2294696735908216",
         #             "base_name": "TE-FOOD",
         #             "quote_name": "US Dollar",
-        #             "watched": False,
-        #             "is_disabled": False,
-        #             "new": False,
+        #             "watched": false,
+        #             "is_disabled": false,
+        #             "new": false,
         #             "status": "online",
-        #             "cancel_only": False,
-        #             "limit_only": False,
-        #             "post_only": False,
-        #             "trading_disabled": False,
-        #             "auction_mode": False,
+        #             "cancel_only": false,
+        #             "limit_only": false,
+        #             "post_only": false,
+        #             "trading_disabled": false,
+        #             "auction_mode": false,
         #             "product_type": "SPOT",
         #             "quote_currency_id": "USD",
         #             "base_currency_id": "TONE",
@@ -1589,7 +1612,7 @@ class coinbase(Exchange, ImplicitAPI):
             'swap': False,
             'future': False,
             'option': False,
-            'active': not tradingDisabled,
+            'active': tradingDisabled is not True,
             'contract': False,
             'linear': None,
             'inverse': None,
@@ -1626,7 +1649,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_contract_market(self, market, feeTier) -> MarketInterface:
+    def parse_contract_market(self, market: dict, feeTier: dict) -> Market:
         # expiring
         #
         #        {
@@ -1767,8 +1790,8 @@ class coinbase(Exchange, ImplicitAPI):
             symbol = symbol + ':' + quote + '-' + self.yymmdd(expireTimestamp)
         takerFeeRate = self.safe_number(feeTier, 'taker_fee_rate')
         makerFeeRate = self.safe_number(feeTier, 'maker_fee_rate')
-        taker = takerFeeRate if takerFeeRate else self.parse_number('0.06')
-        maker = makerFeeRate if makerFeeRate else self.parse_number('0.04')
+        taker = takerFeeRate if (takerFeeRate is not None and takerFeeRate is not None and takerFeeRate != 0) else self.parse_number('0.06')
+        maker = makerFeeRate if (makerFeeRate is not None and makerFeeRate is not None and makerFeeRate != 0) else self.parse_number('0.04')
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -1784,7 +1807,7 @@ class coinbase(Exchange, ImplicitAPI):
             'swap': isSwap,
             'future': not isSwap,
             'option': False,
-            'active': not tradingDisabled,
+            'active': tradingDisabled is not True,
             'contract': True,
             'linear': True,
             'inverse': False,
@@ -1821,7 +1844,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_currencies_from_cache(self, params={}):
+    async def fetch_currencies_from_cache(self, params: dict = {}) -> dict:
         options = self.safe_dict(self.options, 'fetchCurrencies', {})
         timestamp = self.safe_integer(options, 'timestamp')
         expires = self.safe_integer(options, 'expires', 1000)
@@ -1866,7 +1889,7 @@ class coinbase(Exchange, ImplicitAPI):
             })
         return self.safe_dict(self.options, 'fetchCurrencies', {})
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -1916,62 +1939,67 @@ class coinbase(Exchange, ImplicitAPI):
         rates = self.safe_dict(ratesData, 'rates', {})
         ratesIds = list(rates.keys())
         currencies = self.array_concat(fiatData, cryptoData)
-        result: dict = {}
-        networks: dict = {}
-        networksById: dict = {}
+        result = {}
+        networks = {}
+        networksById = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             assetId = self.safe_string(currency, 'asset_id')
             id = self.safe_string_2(currency, 'id', 'code')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            self.options['networks'][code] = name.lower()
-            self.options['networksById'][code] = name.lower()
+            if code is not None:
+                self.options['networks'][code] = name.lower()
+            if code is not None:
+                self.options['networksById'][code] = name.lower()
             type = 'crypto' if (assetId is not None) else 'fiat'
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'type': type,
-                'name': name,
-                'active': True,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
-                'networks': {},  # todo
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(currency, 'min_size'),
-                        'max': None,
+            if code is not None:
+                result[code] = self.safe_currency_structure({
+                    'info': currency,
+                    'id': id,
+                    'code': code,
+                    'type': type,
+                    'name': name,
+                    'active': True,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': None,
+                    'networks': {},  # todo
+                    'limits': {
+                        'amount': {
+                            'min': self.safe_number(currency, 'min_size'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            })
+                })
             if assetId is not None:
                 lowerCaseName = name.lower()
-                networks[code] = lowerCaseName
+                if code is not None:
+                    networks[code] = lowerCaseName
                 networksById[lowerCaseName] = code
-        # we have to add other currencies here( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        # we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
         for i in range(0, len(ratesIds)):
             currencyId = ratesIds[i]
             code = self.safe_currency_code(currencyId)
-            if not (code in result):
-                result[code] = self.safe_currency_structure({
-                    'info': {},
-                    'id': currencyId,
-                    'code': code,
-                    'type': 'crypto',
-                    'networks': {},  # todo
-                })
+            if (code is None) or not (code in result):
+                if code is not None:
+                    result[code] = self.safe_currency_structure({
+                        'info': {},
+                        'id': currencyId,
+                        'code': code,
+                        'type': 'crypto',
+                        'networks': {},  # todo
+                    })
         self.options['networks'] = self.extend(networks, self.options['networks'])
         self.options['networksById'] = self.extend(networksById, self.options['networksById'])
         return result
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1989,10 +2017,11 @@ class coinbase(Exchange, ImplicitAPI):
             return await self.fetch_tickers_v3(symbols, params)
         return await self.fetch_tickers_v2(symbols, params)
 
-    async def fetch_tickers_v2(self, symbols: Strings = None, params={}) -> Tickers:
-        await self.load_markets()
+    async def fetch_tickers_v2(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             # 'currency': 'USD',
         }
         response = await self.v2PublicGetExchangeRates(self.extend(request, params))
@@ -2011,7 +2040,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         rates = self.safe_dict(data, 'rates', {})
         quoteId = self.safe_string(data, 'currency')
-        result: dict = {}
+        result = {}
         baseIds = list(rates.keys())
         delimiter = '-'
         for i in range(0, len(baseIds)):
@@ -2022,10 +2051,11 @@ class coinbase(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(rates[baseId], market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_tickers_v3(self, symbols: Strings = None, params={}) -> Tickers:
-        await self.load_markets()
+    async def fetch_tickers_v3(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             request['product_ids'] = self.market_ids(symbols)
         marketType = None
@@ -2056,15 +2086,15 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "base_max_size": "267187147.2294696735908216",
         #                 "base_name": "TE-FOOD",
         #                 "quote_name": "US Dollar",
-        #                 "watched": False,
-        #                 "is_disabled": False,
-        #                 "new": False,
+        #                 "watched": false,
+        #                 "is_disabled": false,
+        #                 "new": false,
         #                 "status": "online",
-        #                 "cancel_only": False,
-        #                 "limit_only": False,
-        #                 "post_only": False,
-        #                 "trading_disabled": False,
-        #                 "auction_mode": False,
+        #                 "cancel_only": false,
+        #                 "limit_only": false,
+        #                 "post_only": false,
+        #                 "trading_disabled": false,
+        #                 "auction_mode": false,
         #                 "product_type": "SPOT",
         #                 "quote_currency_id": "USD",
         #                 "base_currency_id": "TONE",
@@ -2077,7 +2107,7 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'products', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'product_id')
@@ -2086,7 +2116,7 @@ class coinbase(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -2104,8 +2134,9 @@ class coinbase(Exchange, ImplicitAPI):
             return await self.fetch_ticker_v3(symbol, params)
         return await self.fetch_ticker_v2(symbol, params)
 
-    async def fetch_ticker_v2(self, symbol: str, params={}):
-        await self.load_markets()
+    async def fetch_ticker_v2(self, symbol: str, params: dict = {}) -> Ticker:
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = self.extend({
             'symbol': market['id'],
@@ -2125,17 +2156,18 @@ class coinbase(Exchange, ImplicitAPI):
         spotData = self.safe_dict(spot, 'data', {})
         askData = self.safe_dict(ask, 'data', {})
         bidData = self.safe_dict(bid, 'data', {})
-        bidAskLast: dict = {
+        bidAskLast = {
             'bid': self.safe_number(bidData, 'amount'),
             'ask': self.safe_number(askData, 'amount'),
             'price': self.safe_number(spotData, 'amount'),
         }
         return self.parse_ticker(bidAskLast, market)
 
-    async def fetch_ticker_v3(self, symbol: str, params={}):
-        await self.load_markets()
+    async def fetch_ticker_v3(self, symbol: str, params: dict = {}) -> Ticker:
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_id': market['id'],
             'limit': 1,
         }
@@ -2215,25 +2247,25 @@ class coinbase(Exchange, ImplicitAPI):
         #            "base_max_size": "42000",
         #            "base_name": "Ethereum",
         #            "quote_name": "US Dollar",
-        #            "watched": False,
-        #            "is_disabled": False,
-        #            "new": False,
+        #            "watched": false,
+        #            "is_disabled": false,
+        #            "new": false,
         #            "status": "online",
-        #            "cancel_only": False,
-        #            "limit_only": False,
-        #            "post_only": False,
-        #            "trading_disabled": False,
-        #            "auction_mode": False,
+        #            "cancel_only": false,
+        #            "limit_only": false,
+        #            "post_only": false,
+        #            "trading_disabled": false,
+        #            "auction_mode": false,
         #            "product_type": "SPOT",
         #            "quote_currency_id": "USD",
         #            "base_currency_id": "ETH",
         #            "fcm_trading_session_details": null,
         #            "mid_market_price": "",
         #            "alias": "",
-        #            "alias_to": ["ETH-USDC"],
+        #            "alias_to": [ "ETH-USDC" ],
         #            "base_display_symbol": "ETH",
         #            "quote_display_symbol": "USD",
-        #            "view_only": False,
+        #            "view_only": false,
         #            "price_increment": "0.01",
         #            "display_name": "ETH-USD",
         #            "product_venue": "CBE",
@@ -2302,11 +2334,11 @@ class coinbase(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_custom_balance(self, response, params={}):
+    def parse_custom_balance(self, response: dict, params: dict = {}) -> Balances:
         balances = self.safe_list_2(response, 'data', 'accounts', [])
         accounts = self.safe_list(params, 'type', self.options['accounts'])
         v3Accounts = self.safe_list(params, 'type', self.options['v3Accounts'])
-        result: dict = {'info': response}
+        result = {'info': response}
         for b in range(0, len(balances)):
             balance = balances[b]
             type = self.safe_string(balance, 'type')
@@ -2325,7 +2357,8 @@ class coinbase(Exchange, ImplicitAPI):
                     else:
                         account['free'] = Precise.string_add(account['free'], total)
                         account['total'] = Precise.string_add(account['total'], total)
-                    result[code] = account
+                    if code is not None:
+                        result[code] = account
             elif self.in_array(type, v3Accounts):
                 available = self.safe_dict(balance, 'available_balance')
                 hold = self.safe_dict(balance, 'hold')
@@ -2345,10 +2378,11 @@ class coinbase(Exchange, ImplicitAPI):
                         account['free'] = Precise.string_add(account['free'], free)
                         account['used'] = Precise.string_add(account['used'], used)
                         account['total'] = Precise.string_add(account['total'], total)
-                    result[code] = account
+                    if code is not None:
+                        result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2362,8 +2396,9 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [params.limit]: default 250, maximum number of accounts to return
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         response = None
         isV3 = self.safe_bool(params, 'v3', False)
         params = self.omit(params, ['v3'])
@@ -2372,7 +2407,7 @@ class coinbase(Exchange, ImplicitAPI):
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
         if marketType == 'future':
             response = await self.v3PrivateGetBrokerageCfmBalanceSummary(self.extend(request, params))
-        elif (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
+        elif (isV3 is True) or (method == 'v3PrivateGetBrokerageAccounts'):
             request['limit'] = 250
             response = await self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
@@ -2430,13 +2465,13 @@ class coinbase(Exchange, ImplicitAPI):
         #                     "value": "0.0000000000000000",
         #                     "currency": "USDC"
         #                 },
-        #                 "default": True,
-        #                 "active": True,
+        #                 "default": true,
+        #                 "active": true,
         #                 "created_at": "2023-01-04T06:20:06.456Z",
         #                 "updated_at": "2023-01-04T06:20:07.181Z",
         #                 "deleted_at": null,
         #                 "type": "ACCOUNT_TYPE_CRYPTO",
-        #                 "ready": False,
+        #                 "ready": false,
         #                 "hold": {
         #                     "value": "0.0000000000000000",
         #                     "currency": "USDC"
@@ -2444,7 +2479,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             },
         #             ...
         #         ],
-        #         "has_next": False,
+        #         "has_next": false,
         #         "cursor": "",
         #         "size": 9
         #     }
@@ -2452,7 +2487,7 @@ class coinbase(Exchange, ImplicitAPI):
         params['type'] = marketType
         return self.parse_custom_balance(response, params)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
 
@@ -2465,7 +2500,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
@@ -2479,7 +2515,8 @@ class coinbase(Exchange, ImplicitAPI):
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_http_response -> pagination.next_starting_after
         response = await self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
-        ledger = self.parse_ledger(response['data'], currency, since, limit)
+        data = self.safe_list(response, 'data', [])
+        ledger = self.parse_ledger(data, currency, since, limit)
         length = len(ledger)
         if length == 0:
             return ledger
@@ -2492,23 +2529,23 @@ class coinbase(Exchange, ImplicitAPI):
             ledger[lastIndex] = last
         return ledger
 
-    def parse_ledger_entry_status(self, status):
-        types: dict = {
+    def parse_ledger_entry_status(self, status: Str) -> Str:
+        types = {
             'completed': 'ok',
         }
         return self.safe_string(types, status, status)
 
-    def parse_ledger_entry_type(self, type):
-        types: dict = {
+    def parse_ledger_entry_type(self, type: Str) -> Str:
+        types = {
             'buy': 'trade',
             'sell': 'trade',
             'fiat_deposit': 'transaction',
             'fiat_withdrawal': 'transaction',
-            'exchange_deposit': 'transaction',  # fiat withdrawal(from coinbase to coinbasepro)
-            'exchange_withdrawal': 'transaction',  # fiat deposit(to coinbase from coinbasepro)
+            'exchange_deposit': 'transaction',  # fiat withdrawal (from coinbase to coinbasepro)
+            'exchange_withdrawal': 'transaction',  # fiat deposit (to coinbase from coinbasepro)
             'send': 'transaction',  # crypto deposit OR withdrawal
-            'pro_deposit': 'transaction',  # crypto withdrawal(from coinbase to coinbasepro)
-            'pro_withdrawal': 'transaction',  # crypto deposit(to coinbase from coinbasepro)
+            'pro_deposit': 'transaction',  # crypto withdrawal (from coinbase to coinbasepro)
+            'pro_withdrawal': 'transaction',  # crypto deposit (to coinbase from coinbasepro)
         }
         return self.safe_string(types, type, type)
 
@@ -2520,21 +2557,21 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "34e4816b-4c8c-5323-a01c-35a9fa26e490",
         #         "type": "send",
         #         "status": "completed",
-        #         "amount": {amount: "28.31976528", currency: "BCH"},
-        #         "native_amount": {amount: "2799.65", currency: "GBP"},
+        #         "amount": { amount: "28.31976528", currency: "BCH" },
+        #         "native_amount": { amount: "2799.65", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-02-28T12:35:20Z",
         #         "updated_at": "2019-02-28T12:43:24Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "network": {
         #             "status": "confirmed",
         #             "hash": "56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701",
         #             "transaction_url": "https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701"
         #         },
-        #         "from": {resource: "bitcoin_cash_network", currency: "BCH"},
-        #         "details": {title: 'Received Bitcoin Cash', subtitle: "From Bitcoin Cash address"}
+        #         "from": { resource: "bitcoin_cash_network", currency: "BCH" },
+        #         "details": { title: 'Received Bitcoin Cash', subtitle: "From Bitcoin Cash address" }
         #     }
         #
         # crypto withdrawal transaction
@@ -2543,27 +2580,27 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "459aad99-2c41-5698-ac71-b6b81a05196c",
         #         "type": "send",
         #         "status": "completed",
-        #         "amount": {amount: "-0.36775642", currency: "BTC"},
-        #         "native_amount": {amount: "-1111.65", currency: "GBP"},
+        #         "amount": { amount: "-0.36775642", currency: "BTC" },
+        #         "native_amount": { amount: "-1111.65", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-03-20T08:37:07Z",
         #         "updated_at": "2019-03-20T08:49:33Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "network": {
         #             "status": "confirmed",
         #             "hash": "2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
         #             "transaction_url": "https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
-        #             "transaction_fee": {amount: "0.00000000", currency: "BTC"},
-        #             "transaction_amount": {amount: "0.36775642", currency: "BTC"},
+        #             "transaction_fee": { amount: "0.00000000", currency: "BTC" },
+        #             "transaction_amount": { amount: "0.36775642", currency: "BTC" },
         #             "confirmations": 15682
         #         },
         #         "to": {
         #             "resource": "bitcoin_address",
         #             "address": "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX",
         #             "currency": "BTC",
-        #             "address_info": {address: "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX"}
+        #             "address_info": { address: "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX" }
         #         },
         #         "idem": "da0a2f14-a2af-4c5a-a37e-d4484caf582bsend",
         #         "application": {
@@ -2571,7 +2608,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "resource": "application",
         #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         "details": {title: 'Sent Bitcoin', subtitle: "To Bitcoin address"}
+        #         "details": { title: 'Sent Bitcoin', subtitle: "To Bitcoin address" }
         #     }
         #
         # withdrawal transaction from coinbase to coinbasepro
@@ -2580,20 +2617,20 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "5b1b9fb8-5007-5393-b923-02903b973fdc",
         #         "type": "pro_deposit",
         #         "status": "completed",
-        #         "amount": {amount: "-0.00001111", currency: "BCH"},
-        #         "native_amount": {amount: "0.00", currency: "GBP"},
+        #         "amount": { amount: "-0.00001111", currency: "BCH" },
+        #         "native_amount": { amount: "0.00", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-02-28T13:31:58Z",
         #         "updated_at": "2019-02-28T13:31:58Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "application": {
         #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
         #             "resource": "application",
         #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         "details": {title: 'Transferred Bitcoin Cash', subtitle: "To Coinbase Pro"}
+        #         "details": { title: 'Transferred Bitcoin Cash', subtitle: "To Coinbase Pro" }
         #     }
         #
         # withdrawal transaction from coinbase to gdax
@@ -2602,15 +2639,15 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "badb7313-a9d3-5c07-abd0-00f8b44199b1",
         #         "type": "exchange_deposit",
         #         "status": "completed",
-        #         "amount": {amount: "-0.43704149", currency: "BCH"},
-        #         "native_amount": {amount: "-51.90", currency: "GBP"},
+        #         "amount": { amount: "-0.43704149", currency: "BCH" },
+        #         "native_amount": { amount: "-51.90", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-03-19T10:30:40Z",
         #         "updated_at": "2019-03-19T10:30:40Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1",
-        #         "instant_exchange": False,
-        #         "details": {title: 'Transferred Bitcoin Cash', subtitle: "To GDAX"}
+        #         "instant_exchange": false,
+        #         "details": { title: 'Transferred Bitcoin Cash', subtitle: "To GDAX" }
         #     }
         #
         # deposit transaction from gdax to coinbase
@@ -2619,15 +2656,15 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "9c4b642c-8688-58bf-8962-13cef64097de",
         #         "type": "exchange_withdrawal",
         #         "status": "completed",
-        #         "amount": {amount: "0.57729420", currency: "BTC"},
-        #         "native_amount": {amount: "4418.72", currency: "GBP"},
+        #         "amount": { amount: "0.57729420", currency: "BTC" },
+        #         "native_amount": { amount: "4418.72", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2018-02-17T11:33:33Z",
         #         "updated_at": "2018-02-17T11:33:33Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de",
-        #         "instant_exchange": False,
-        #         "details": {title: 'Transferred Bitcoin', subtitle: "From GDAX"}
+        #         "instant_exchange": false,
+        #         "details": { title: 'Transferred Bitcoin', subtitle: "From GDAX" }
         #     }
         #
         # deposit transaction from coinbasepro to coinbase
@@ -2636,20 +2673,20 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "8d6dd0b9-3416-568a-889d-8f112fae9e81",
         #         "type": "pro_withdrawal",
         #         "status": "completed",
-        #         "amount": {amount: "0.40555386", currency: "BTC"},
-        #         "native_amount": {amount: "1140.27", currency: "GBP"},
+        #         "amount": { amount: "0.40555386", currency: "BTC" },
+        #         "native_amount": { amount: "1140.27", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-03-04T19:41:58Z",
         #         "updated_at": "2019-03-04T19:41:58Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "application": {
         #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
         #             "resource": "application",
         #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         "details": {title: 'Transferred Bitcoin', subtitle: "From Coinbase Pro"}
+        #         "details": { title: 'Transferred Bitcoin', subtitle: "From Coinbase Pro" }
         #     }
         #
         # sell trade
@@ -2658,14 +2695,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "a9409207-df64-585b-97ab-a50780d2149e",
         #         "type": "sell",
         #         "status": "completed",
-        #         "amount": {amount: "-9.09922880", currency: "BTC"},
-        #         "native_amount": {amount: "-7285.73", currency: "GBP"},
+        #         "amount": { amount: "-9.09922880", currency: "BTC" },
+        #         "native_amount": { amount: "-7285.73", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2017-03-27T15:38:34Z",
         #         "updated_at": "2017-03-27T15:38:34Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "sell": {
         #             "id": "e3550b4d-8ae6-5de3-95fe-1fb01ba83051",
         #             "resource": "sell",
@@ -2684,14 +2721,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "63eeed67-9396-5912-86e9-73c4f10fe147",
         #         "type": "buy",
         #         "status": "completed",
-        #         "amount": {amount: "2.39605772", currency: "ETH"},
-        #         "native_amount": {amount: "98.31", currency: "GBP"},
+        #         "amount": { amount: "2.39605772", currency: "ETH" },
+        #         "native_amount": { amount: "98.31", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2017-03-27T09:07:56Z",
         #         "updated_at": "2017-03-27T09:07:57Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "buy": {
         #             "id": "20b25b36-76c6-5353-aa57-b06a29a39d82",
         #             "resource": "buy",
@@ -2710,14 +2747,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "04ed4113-3732-5b0c-af86-b1d2146977d0",
         #         "type": "fiat_deposit",
         #         "status": "completed",
-        #         "amount": {amount: "114.02", currency: "EUR"},
-        #         "native_amount": {amount: "97.23", currency: "GBP"},
+        #         "amount": { amount: "114.02", currency: "EUR" },
+        #         "native_amount": { amount: "97.23", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2017-02-09T07:01:21Z",
         #         "updated_at": "2017-02-09T07:01:22Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "fiat_deposit": {
         #             "id": "f34c19f3-b730-5e3d-9f72-96520448677a",
         #             "resource": "fiat_deposit",
@@ -2725,8 +2762,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         },
         #         "details": {
         #             "title": "Deposited funds",
-        #             "subtitle": "From SEPA Transfer(GB47 BARC 20..., reference CBADVI)",
-        #             "payment_method_name": "SEPA Transfer(GB47 BARC 20..., reference CBADVI)"
+        #             "subtitle": "From SEPA Transfer (GB47 BARC 20..., reference CBADVI)",
+        #             "payment_method_name": "SEPA Transfer (GB47 BARC 20..., reference CBADVI)"
         #         }
         #     }
         #
@@ -2736,14 +2773,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "957d98e2-f80e-5e2f-a28e-02945aa93079",
         #         "type": "fiat_withdrawal",
         #         "status": "completed",
-        #         "amount": {amount: "-11000.00", currency: "EUR"},
-        #         "native_amount": {amount: "-9698.22", currency: "GBP"},
+        #         "amount": { amount: "-11000.00", currency: "EUR" },
+        #         "native_amount": { amount: "-9698.22", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2017-12-06T13:19:19Z",
         #         "updated_at": "2017-12-06T13:19:19Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "fiat_withdrawal": {
         #             "id": "f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7",
         #             "resource": "fiat_withdrawal",
@@ -2751,8 +2788,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         },
         #         "details": {
         #             "title": "Withdrew funds",
-        #             "subtitle": "To HSBC BANK PLC(GB74 MIDL...)",
-        #             "payment_method_name": "HSBC BANK PLC(GB74 MIDL...)"
+        #             "subtitle": "To HSBC BANK PLC (GB74 MIDL...)",
+        #             "payment_method_name": "HSBC BANK PLC (GB74 MIDL...)"
         #         }
         #     }
         #
@@ -2770,15 +2807,15 @@ class coinbase(Exchange, ImplicitAPI):
         #
         # the address and txid do not belong to the unified ledger structure
         #
-        #     address = None
-        #     if item['to']:
-        #         address = self.safe_string(item['to'], 'address')
+        #     let address = undefined;
+        #     if (item['to']) {
+        #         address = this.safeString (item['to'], 'address');
         #     }
-        #     txid = None
+        #     let txid = undefined;
         #
         fee = None
         networkInfo = self.safe_dict(item, 'network', {})
-        # txid = network['hash']  # txid does not belong to the unified ledger structure
+        # txid = network['hash']; // txid does not belong to the unified ledger structure
         feeInfo = self.safe_dict(networkInfo, 'transaction_fee')
         if feeInfo is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'currency')
@@ -2817,8 +2854,9 @@ class coinbase(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    async def find_account_id(self, code, params={}):
-        await self.load_markets()
+    async def find_account_id(self, code: Str, params: dict = {}):
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts(False, params)
         for i in range(0, len(self.accounts)):
             account = self.accounts[i]
@@ -2826,34 +2864,34 @@ class coinbase(Exchange, ImplicitAPI):
                 return account['id']
         return None
 
-    def prepare_account_request(self, limit: Int = None, params={}):
+    def prepare_account_request(self, limit: Int = None, params: dict = {}) -> dict:
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
-            raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id(or accountId) parameter')
-        request: dict = {
+            raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id (or accountId) parameter')
+        request = {
             'account_id': accountId,
         }
         if limit is not None:
             request['limit'] = limit
         return request
 
-    async def prepare_account_request_with_currency_code(self, code: Str = None, limit: Int = None, params={}):
+    async def prepare_account_request_with_currency_code(self, code: Str = None, limit: Int = None, params: dict = {}) -> list:
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.')
-        request: dict = {
+        request = {
             'account_id': accountId,
         }
         if limit is not None:
             request['limit'] = limit
         return [request, params]
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -2864,14 +2902,15 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -2891,7 +2930,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
         :param str [params.stop_direction]: 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         :param str [params.end_time]: '2023-05-25T17:01:05.092Z' for 'GTD' orders
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
         :param float [params.leverage]: default to 1, the leverage to use for the order
         :param str [params.marginMode]: 'cross' or 'isolated'
@@ -2901,16 +2940,17 @@ class coinbase(Exchange, ImplicitAPI):
         :param float [params.reduceOnly]: set to True for closing a position or use closePosition
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         id = self.safe_string(self.options, 'brokerId', 'ccxt')
-        request: dict = {
+        request = {
             'client_order_id': id + '-' + self.uuid(),
             'product_id': market['id'],
             'side': side.upper(),
         }
         reduceOnly = self.safe_bool(params, 'reduceOnly')
-        if reduceOnly:
+        if reduceOnly is True:
             params = self.omit(params, 'reduceOnly')
             params['amount'] = amount
             return await self.close_position(symbol, side, params)
@@ -3004,7 +3044,7 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             if isStop or isStopLoss or isTakeProfit:
                 raise NotSupported(self.id + ' createOrder() only stop limit orders are supported')
-            if market['spot'] and (side == 'buy'):
+            if (market['spot'] is True) and (side == 'buy'):
                 total = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
@@ -3014,7 +3054,7 @@ class coinbase(Exchange, ImplicitAPI):
                     total = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -3042,7 +3082,7 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode'])
         preview = self.safe_bool_2(params, 'preview', 'test', False)
         response = None
-        if preview:
+        if preview is True:
             params = self.omit(params, ['preview', 'test'])
             request = self.omit(request, 'client_order_id')
             response = await self.v3PrivatePostBrokerageOrdersPreview(self.extend(request, params))
@@ -3052,7 +3092,7 @@ class coinbase(Exchange, ImplicitAPI):
         # successful order
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "failure_reason": "UNKNOWN_FAILURE_REASON",
         #         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
         #         "success_response": {
@@ -3067,7 +3107,7 @@ class coinbase(Exchange, ImplicitAPI):
         # failed order
         #
         #     {
-        #         "success": False,
+        #         "success": false,
         #         "failure_reason": "UNKNOWN_FAILURE_REASON",
         #         "order_id": "",
         #         "error_response": {
@@ -3080,7 +3120,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "limit_limit_gtc": {
         #                 "base_size": "100",
         #                 "limit_price": "40000",
-        #                 "post_only": False
+        #                 "post_only": false
         #             }
         #         }
         #     }
@@ -3111,7 +3151,7 @@ class coinbase(Exchange, ImplicitAPI):
         # cancelOrder, cancelOrders
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
         #         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         #     }
@@ -3126,7 +3166,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "limit_limit_gtc": {
         #                 "base_size": "0.2",
         #                 "limit_price": "0.006",
-        #                 "post_only": False
+        #                 "post_only": false
         #             },
         #             "stop_limit_stop_limit_gtc": {
         #                 "base_size": "48.54",
@@ -3146,15 +3186,15 @@ class coinbase(Exchange, ImplicitAPI):
         #         "fee": "",
         #         "number_of_fills": "0",
         #         "filled_value": "0",
-        #         "pending_cancel": False,
-        #         "size_in_quote": False,
+        #         "pending_cancel": false,
+        #         "size_in_quote": false,
         #         "total_fees": "0",
-        #         "size_inclusive_of_fees": False,
+        #         "size_inclusive_of_fees": false,
         #         "total_value_after_fees": "0",
         #         "trigger_status": "INVALID_ORDER_TYPE",
         #         "order_type": "LIMIT",
         #         "reject_reason": "REJECT_REASON_UNSPECIFIED",
-        #         "settled": False,
+        #         "settled": false,
         #         "product_type": "SPOT",
         #         "reject_message": "",
         #         "cancel_message": ""
@@ -3229,7 +3269,7 @@ class coinbase(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'OPEN': 'open',
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -3242,7 +3282,7 @@ class coinbase(Exchange, ImplicitAPI):
     def parse_order_type(self, type: Str):
         if type == 'UNKNOWN_ORDER_TYPE':
             return None
-        types: dict = {
+        types = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'limit',
@@ -3251,7 +3291,7 @@ class coinbase(Exchange, ImplicitAPI):
         return self.safe_string(types, type, type)
 
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'GOOD_UNTIL_CANCELLED': 'GTC',
             'GOOD_UNTIL_DATE_TIME': 'GTD',
             'IMMEDIATE_OR_CANCEL': 'IOC',
@@ -3260,37 +3300,39 @@ class coinbase(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
         https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
 
         :param str id: order id
-        :param str symbol: not used by coinbase cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         orders = await self.cancel_orders([id], symbol, params)
         return self.safe_dict(orders, 0, {})
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
         https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
 
         :param str[] ids: order ids
-        :param str symbol: not used by coinbase cancelOrders()
+        :param str symbol: not used by cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_ids': ids,
         }
         response = await self.v3PrivatePostBrokerageOrdersBatchCancel(self.extend(request, params))
@@ -3298,7 +3340,7 @@ class coinbase(Exchange, ImplicitAPI):
         #     {
         #         "results": [
         #             {
-        #                 "success": True,
+        #                 "success": true,
         #                 "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
         #                 "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         #             }
@@ -3312,7 +3354,7 @@ class coinbase(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -3328,9 +3370,10 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
         }
         if amount is not None:
@@ -3339,14 +3382,14 @@ class coinbase(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         preview = self.safe_bool_2(params, 'preview', 'test', False)
         response = None
-        if preview:
+        if preview is True:
             params = self.omit(params, ['preview', 'test'])
             response = await self.v3PrivatePostBrokerageOrdersEditPreview(self.extend(request, params))
         else:
             response = await self.v3PrivatePostBrokerageOrdersEdit(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "errors": {
         #           "edit_failure_reason": "UNKNOWN_EDIT_ORDER_FAILURE_REASON",
         #           "preview_failure_reason": "UNKNOWN_PREVIEW_FAILURE_REASON"
@@ -3355,7 +3398,7 @@ class coinbase(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -3366,11 +3409,12 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = await self.v3PrivateGetBrokerageOrdersHistoricalOrderId(self.extend(request, params))
@@ -3384,7 +3428,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "limit_limit_gtc": {
         #                     "base_size": "0.2",
         #                     "limit_price": "0.006",
-        #                     "post_only": False
+        #                     "post_only": false
         #                 }
         #             },
         #             "side": "SELL",
@@ -3398,15 +3442,15 @@ class coinbase(Exchange, ImplicitAPI):
         #             "fee": "",
         #             "number_of_fills": "0",
         #             "filled_value": "0",
-        #             "pending_cancel": False,
-        #             "size_in_quote": False,
+        #             "pending_cancel": false,
+        #             "size_in_quote": false,
         #             "total_fees": "0",
-        #             "size_inclusive_of_fees": False,
+        #             "size_inclusive_of_fees": false,
         #             "total_value_after_fees": "0",
         #             "trigger_status": "INVALID_ORDER_TYPE",
         #             "order_type": "LIMIT",
         #             "reject_reason": "REJECT_REASON_UNSPECIFIED",
-        #             "settled": False,
+        #             "settled": false,
         #             "product_type": "SPOT",
         #             "reject_message": "",
         #             "cancel_message": ""
@@ -3416,7 +3460,7 @@ class coinbase(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'order', {})
         return self.parse_order(order, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -3430,7 +3474,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
@@ -3438,14 +3483,14 @@ class coinbase(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if market is not None:
             request['product_id'] = market['id']
         if limit is not None:
             request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_integer_n(params, ['until'])
+        until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, ['until'])
             request['end_date'] = self.iso8601(until)
@@ -3473,39 +3518,40 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "fee": "",
         #                 "number_of_fills": "2",
         #                 "filled_value": "6.3220675944333996",
-        #                 "pending_cancel": False,
-        #                 "size_in_quote": True,
+        #                 "pending_cancel": false,
+        #                 "size_in_quote": true,
         #                 "total_fees": "0.0379324055666004",
-        #                 "size_inclusive_of_fees": True,
+        #                 "size_inclusive_of_fees": true,
         #                 "total_value_after_fees": "6.36",
         #                 "trigger_status": "INVALID_ORDER_TYPE",
         #                 "order_type": "MARKET",
         #                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
-        #                 "settled": True,
+        #                 "settled": true,
         #                 "product_type": "SPOT",
         #                 "reject_message": "",
         #                 "cancel_message": "Internal error"
         #             },
         #         ],
         #         "sequence": "0",
-        #         "has_next": False,
+        #         "has_next": false,
         #         "cursor": ""
         #     }
         #
         orders = self.safe_list(response, 'orders', [])
-        first = self.safe_dict(orders, 0)
+        first = self.safe_dict(orders, 0, {})
         cursor = self.safe_string(response, 'cursor')
         if (cursor is not None) and (cursor != ''):
             first['cursor'] = cursor
             orders[0] = first
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        await self.load_markets()
+    async def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_status': status,
         }
         if market is not None:
@@ -3515,7 +3561,7 @@ class coinbase(Exchange, ImplicitAPI):
         request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_integer_n(params, ['until'])
+        until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, ['until'])
             request['end_date'] = self.iso8601(until)
@@ -3533,7 +3579,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                     }
         #                 },
         #                 "side": "BUY",
-        #                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        #                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4314",
         #                 "status": "FILLED",
         #                 "time_in_force": "IMMEDIATE_OR_CANCEL",
         #                 "created_time": "2023-01-18T01:37:37.975552Z",
@@ -3543,34 +3589,34 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "fee": "",
         #                 "number_of_fills": "2",
         #                 "filled_value": "6.3220675944333996",
-        #                 "pending_cancel": False,
-        #                 "size_in_quote": True,
+        #                 "pending_cancel": false,
+        #                 "size_in_quote": true,
         #                 "total_fees": "0.0379324055666004",
-        #                 "size_inclusive_of_fees": True,
+        #                 "size_inclusive_of_fees": true,
         #                 "total_value_after_fees": "6.36",
         #                 "trigger_status": "INVALID_ORDER_TYPE",
         #                 "order_type": "MARKET",
         #                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
-        #                 "settled": True,
+        #                 "settled": true,
         #                 "product_type": "SPOT",
         #                 "reject_message": "",
         #                 "cancel_message": "Internal error"
         #             },
         #         ],
         #         "sequence": "0",
-        #         "has_next": False,
+        #         "has_next": false,
         #         "cursor": ""
         #     }
         #
         orders = self.safe_list(response, 'orders', [])
-        first = self.safe_dict(orders, 0)
+        first = self.safe_dict(orders, 0, {})
         cursor = self.safe_string(response, 'cursor')
         if (cursor is not None) and (cursor != ''):
             first['cursor'] = cursor
             orders[0] = first
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on all currently open orders
 
@@ -3584,14 +3630,15 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch trades for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
         return await self.fetch_orders_by_status('OPEN', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -3605,14 +3652,15 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch trades for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
+            return await self.fetch_paginated_call_cursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 1000)
         return await self.fetch_orders_by_status('FILLED', symbol, since, limit, params)
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -3626,7 +3674,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('CANCELLED', symbol, since, limit, params)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3641,9 +3689,10 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the candles
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         maxLimit = 300
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
         paginate = False
@@ -3651,11 +3700,11 @@ class coinbase(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit - 1)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_id': market['id'],
             'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        until = self.safe_integer_n(params, ['until', 'end'])
+        until = self.safe_integer_2(params, 'until', 'end')
         params = self.omit(params, ['until'])
         duration = self.parse_timeframe(timeframe)
         requestedDuration = limit * duration
@@ -3695,7 +3744,7 @@ class coinbase(Exchange, ImplicitAPI):
         candles = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         {
@@ -3717,7 +3766,7 @@ class coinbase(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -3731,9 +3780,10 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the trades
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_id': market['id'],
         }
         if since is not None:
@@ -3772,7 +3822,7 @@ class coinbase(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -3786,7 +3836,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -3794,14 +3845,14 @@ class coinbase(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {}
+        request = {}
         if market is not None:
             request['product_id'] = market['id']
         if limit is not None:
             request['limit'] = limit
         if since is not None:
             request['start_sequence_timestamp'] = self.iso8601(since)
-        until = self.safe_integer_n(params, ['until'])
+        until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, ['until'])
             request['end_sequence_timestamp'] = self.iso8601(until)
@@ -3821,7 +3872,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "product_id": "BTC-USDT",
         #                 "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
         #                 "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
-        #                 "size_in_quote": True,
+        #                 "size_in_quote": true,
         #                 "user_id": "1111111-1111-1111-1111-111111111111",
         #                 "side": "BUY"
         #             },
@@ -3830,14 +3881,14 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         trades = self.safe_list(response, 'fills', [])
-        first = self.safe_dict(trades, 0)
+        first = self.safe_dict(trades, 0, {})
         cursor = self.safe_string(response, 'cursor')
         if (cursor is not None) and (cursor != ''):
             first['cursor'] = cursor
             trades[0] = first
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -3848,11 +3899,12 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'product_id': market['id'],
         }
         if limit is not None:
@@ -3889,7 +3941,7 @@ class coinbase(Exchange, ImplicitAPI):
         timestamp = self.parse8601(time)
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'size')
 
-    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
@@ -3899,9 +3951,10 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             request['product_ids'] = self.market_ids(symbols)
         response = await self.v3PrivateGetBrokerageBestBidAsk(self.extend(request, params))
@@ -3930,7 +3983,7 @@ class coinbase(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'pricebooks', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3947,9 +4000,10 @@ class coinbase(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'type': 'send',
             'to': address,
             'amount': self.number_to_string(amount),
@@ -3959,7 +4013,7 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' withdraw() requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' withdraw() requires an account_id (or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' withdraw() could not find account id for ' + code)
@@ -3988,10 +4042,10 @@ class coinbase(Exchange, ImplicitAPI):
         #             "updated_at": "2024-01-12T01:27:31Z",
         #             "resource": "transaction",
         #             "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
-        #             "instant_exchange": False,
+        #             "instant_exchange": false,
         #             "network": {
         #                 "status": "pending",
-        #                 "status_description": "Pending(est. less than 10 minutes)",
+        #                 "status_description": "Pending (est. less than 10 minutes)",
         #                 "transaction_fee": {
         #                     "amount": "4.008308",
         #                     "currency": "USDC"
@@ -4014,17 +4068,17 @@ class coinbase(Exchange, ImplicitAPI):
         #             "details": {
         #                 "title": "Sent USDC",
         #                 "subtitle": "To USDC address on Ethereum network",
-        #                 "header": "Sent 14.008308 USDC($18.74)",
+        #                 "header": "Sent 14.008308 USDC ($18.74)",
         #                 "health": "warning"
         #             },
-        #             "hide_native_amount": False
+        #             "hide_native_amount": false
         #         }
         #     }
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params: dict = {}) -> DepositAddresses:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -4034,7 +4088,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = None
         request, params = await self.prepare_account_request_with_currency_code(currency['code'], None, params)
@@ -4055,7 +4110,7 @@ class coinbase(Exchange, ImplicitAPI):
         #            {
         #                id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
         #                address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
-        #                address_info: {address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk'},
+        #                address_info: { address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk' },
         #                name: null,
         #                created_at: '2023-05-29T21:12:12Z',
         #                updated_at: '2023-05-29T21:12:12Z',
@@ -4067,14 +4122,14 @@ class coinbase(Exchange, ImplicitAPI):
         #                    {
         #                    type: 'correct_address_warning',
         #                    title: 'This is an ERC20 USDC address.',
-        #                    details: 'Only send ERC20 USD Coin(USDC) to self address.',
+        #                    details: 'Only send ERC20 USD Coin (USDC) to this address.',
         #                    image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
-        #                    options: [{text: 'I understand', style: 'primary', id: 'dismiss'}]
+        #                    options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
         #                    }
         #                ],
         #                qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
-        #                address_label: 'USDC address(Solana)',
-        #                default_receive: True,
+        #                address_label: 'USDC address (Solana)',
+        #                default_receive: true,
         #                deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         #                callback_url: null,
         #                share_address_copy: {
@@ -4085,7 +4140,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                inline_warning: {
         #                    text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
         #                    tooltip: {
-        #                    title: 'USDC(Solana)',
+        #                    title: 'USDC (Solana)',
         #                    subtitle: 'This address can only receive USDC-SPL from Solana network.'
         #                    }
         #                }
@@ -4098,7 +4153,7 @@ class coinbase(Exchange, ImplicitAPI):
         addressStructures = self.parse_deposit_addresses(data, None, False)
         return self.index_by(addressStructures, 'network')
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -4118,14 +4173,14 @@ class coinbase(Exchange, ImplicitAPI):
         #            {
         #            type: 'correct_address_warning',
         #            title: 'This is an ERC20 USDC address.',
-        #            details: 'Only send ERC20 USD Coin(USDC) to self address.',
+        #            details: 'Only send ERC20 USD Coin (USDC) to this address.',
         #            image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
-        #            options: [{text: 'I understand', style: 'primary', id: 'dismiss'}]
+        #            options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
         #            }
         #        ],
         #        qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
-        #        address_label: 'USDC address(Solana)',
-        #        default_receive: True,
+        #        address_label: 'USDC address (Solana)',
+        #        default_receive: true,
         #        deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         #        callback_url: null,
         #        share_address_copy: {
@@ -4136,7 +4191,7 @@ class coinbase(Exchange, ImplicitAPI):
         #        inline_warning: {
         #            text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
         #            tooltip: {
-        #            title: 'USDC(Solana)',
+        #            title: 'USDC (Solana)',
         #            subtitle: 'This address can only receive USDC-SPL from Solana network.'
         #            }
         #        }
@@ -4175,7 +4230,7 @@ class coinbase(Exchange, ImplicitAPI):
             'tag': self.safe_string(addressInfo, 'destination_tag'),
         }
 
-    async def deposit(self, code: str, amount: float, id: str, params={}):
+    async def deposit(self, code: str, amount: float, id: str, params: dict = {}) -> Transaction:
         """
         make a deposit
 
@@ -4188,21 +4243,22 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.accountId]: the id of the account to deposit into
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' deposit() requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' deposit() requires an account_id (or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' deposit() could not find account id for ' + code)
-        request: dict = {
+        request = {
             'account_id': accountId,
             'amount': self.number_to_string(amount),
             'currency': code.upper(),  # need to use code in case depositing USD etc.
             'payment_method': id,
-            'commit': True,  # otheriwse the deposit does not go through
+            'commit': True,  # otherwise the deposit does not go through
         }
         response = await self.v2PrivatePostAccountsAccountIdDeposits(self.extend(request, params))
         #
@@ -4232,7 +4288,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "updated_at": "2015-02-11T16:54:02-08:00",
         #             "resource": "deposit",
         #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        #             "committed": True,
+        #             "committed": true,
         #             "fee": {
         #                 "amount": "0.00",
         #                 "currency": "USD"
@@ -4245,7 +4301,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict_2(response, 'data', 'transfer', {})
         return self.parse_transaction(data)
 
-    async def fetch_deposit(self, id: str, code: Str = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
 
@@ -4257,16 +4313,17 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.accountId]: the id of the account that the funds were deposited into
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' fetchDeposit() requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' fetchDeposit() could not find account id for ' + code)
-        request: dict = {
+        request = {
             'account_id': accountId,
             'deposit_id': id,
         }
@@ -4298,7 +4355,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "updated_at": "2015-02-11T16:54:02-08:00",
         #             "resource": "deposit",
         #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        #             "committed": True,
+        #             "committed": true,
         #             "fee": {
         #                 "amount": "0.00",
         #                 "currency": "USD"
@@ -4311,7 +4368,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict_2(response, 'data', 'transfer', {})
         return self.parse_transaction(data)
 
-    async def fetch_deposit_method_ids(self, params={}):
+    async def fetch_deposit_method_ids(self, params: dict = {}) -> list[dict]:
         """
         fetch the deposit id for a fiat currency associated with self account
 
@@ -4320,7 +4377,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `deposit id structures <https://docs.ccxt.com/?id=deposit-id-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.v3PrivateGetBrokeragePaymentMethods(params)
         #
         #     {
@@ -4330,11 +4388,11 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "type": "COINBASE_FIAT_ACCOUNT",
         #                 "name": "CAD Wallet",
         #                 "currency": "CAD",
-        #                 "verified": True,
-        #                 "allow_buy": False,
-        #                 "allow_sell": True,
-        #                 "allow_deposit": False,
-        #                 "allow_withdraw": False,
+        #                 "verified": true,
+        #                 "allow_buy": false,
+        #                 "allow_sell": true,
+        #                 "allow_deposit": false,
+        #                 "allow_withdraw": false,
         #                 "created_at": "2023-06-29T19:58:46Z",
         #                 "updated_at": "2023-10-30T20:25:01Z"
         #             }
@@ -4344,7 +4402,7 @@ class coinbase(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'payment_methods', [])
         return self.parse_deposit_method_ids(result)
 
-    async def fetch_deposit_method_id(self, id: str, params={}):
+    async def fetch_deposit_method_id(self, id: str, params: dict = {}) -> dict:
         """
         fetch the deposit id for a fiat currency associated with self account
 
@@ -4354,8 +4412,9 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `deposit id structure <https://docs.ccxt.com/?id=deposit-id-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'payment_method_id': id,
         }
         response = await self.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(self.extend(request, params))
@@ -4366,11 +4425,11 @@ class coinbase(Exchange, ImplicitAPI):
         #             "type": "COINBASE_FIAT_ACCOUNT",
         #             "name": "CAD Wallet",
         #             "currency": "CAD",
-        #             "verified": True,
-        #             "allow_buy": False,
-        #             "allow_sell": True,
-        #             "allow_deposit": False,
-        #             "allow_withdraw": False,
+        #             "verified": true,
+        #             "allow_buy": false,
+        #             "allow_sell": true,
+        #             "allow_deposit": false,
+        #             "allow_withdraw": false,
         #             "created_at": "2023-06-29T19:58:46Z",
         #             "updated_at": "2023-10-30T20:25:01Z"
         #         }
@@ -4379,14 +4438,14 @@ class coinbase(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'payment_method', {})
         return self.parse_deposit_method_id(result)
 
-    def parse_deposit_method_ids(self, ids, params={}):
+    def parse_deposit_method_ids(self, ids: list[dict], params: dict = {}) -> list[dict]:
         result = []
         for i in range(0, len(ids)):
             id = self.extend(self.parse_deposit_method_id(ids[i]), params)
             result.append(id)
         return result
 
-    def parse_deposit_method_id(self, depositId):
+    def parse_deposit_method_id(self, depositId: dict) -> dict:
         return {
             'info': depositId,
             'id': self.safe_string(depositId, 'id'),
@@ -4395,7 +4454,7 @@ class coinbase(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositId, 'name'),
         }
 
-    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params: dict = {}) -> Conversion:
         """
         fetch a quote for converting from one currency to another
 
@@ -4410,8 +4469,9 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.trade_incentive_metadata.code_val]: the code value of the incentive
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'from_account': fromCode,
             'to_account': toCode,
             'amount': self.number_to_string(amount),
@@ -4420,7 +4480,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'trade', {})
         return self.parse_conversion(data)
 
-    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params: dict = {}) -> Conversion:
         """
         convert from one currency to another
 
@@ -4433,8 +4493,9 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'trade_id': id,
             'from_account': fromCode,
             'to_account': toCode,
@@ -4443,7 +4504,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'trade', {})
         return self.parse_conversion(data)
 
-    async def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
+    async def fetch_convert_trade(self, id: str, code: Str = None, params: dict = {}) -> Conversion:
         """
         fetch the data for a conversion trade
 
@@ -4455,14 +4516,15 @@ class coinbase(Exchange, ImplicitAPI):
         :param strng params['toCode']: the unified currency code that was converted into
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchConvertTrade() requires a code argument')
         toCode = self.safe_string(params, 'toCode')
         if toCode is None:
             raise ArgumentsRequired(self.id + ' fetchConvertTrade() requires a toCode parameter')
         params = self.omit(params, 'toCode')
-        request: dict = {
+        request = {
             'trade_id': id,
             'from_account': code,
             'to_account': toCode,
@@ -4492,7 +4554,62 @@ class coinbase(Exchange, ImplicitAPI):
             'fee': self.safe_number(feeAmountStructure, 'value'),
         }
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
+        """
+        transfer currency internally between portfolios of the same account
+
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: the portfolio uuid to transfer funds from
+        :param str toAccount: the portfolio uuid to transfer funds to
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'funds': {
+                'value': self.currency_to_precision(code, amount),
+                'currency': currency['id'],
+            },
+            'source_portfolio_uuid': fromAccount,
+            'target_portfolio_uuid': toAccount,
+        }
+        response = await self.v3PrivatePostBrokeragePortfoliosMoveFunds(self.extend(request, params))
+        #
+        #     {
+        #         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        #         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transfer['amount'] = amount
+        transfer['status'] = 'ok'
+        return transfer
+
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
+        #
+        #     {
+        #         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        #         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        #     }
+        #
+        currencyCode = self.safe_currency_code(None, currency)
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': currencyCode,
+            'amount': None,
+            'fromAccount': self.safe_string(transfer, 'source_portfolio_uuid'),
+            'toAccount': self.safe_string(transfer, 'target_portfolio_uuid'),
+            'status': None,
+        }
+
+    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
         """
         *futures only* closes open positions for a market
 
@@ -4500,16 +4617,17 @@ class coinbase(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by coinbase
-        :param dict [params]: extra parameters specific to the coinbase api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
  @param {str}  params.clientOrderId *mandatory* the client order id of the position to close
         :param float [params.size]: the size of the position to close, optional
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         params = self.omit(params, 'clientOrderId')
-        request: dict = {
+        request = {
             'product_id': market['id'],
         }
         if clientOrderId is None:
@@ -4519,7 +4637,7 @@ class coinbase(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'success_response', {})
         return self.parse_order(order)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -4531,7 +4649,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.portfolio]: the portfolio UUID to fetch positions for
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         market = None
         if symbols is not None:
@@ -4545,15 +4664,15 @@ class coinbase(Exchange, ImplicitAPI):
             portfolio = None
             portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
             if portfolio is None:
-                raise ArgumentsRequired(self.id + ' fetchPositions() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
-            request: dict = {
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
+            request = {
                 'portfolio_uuid': portfolio,
             }
             response = await self.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(self.extend(request, params))
         positions = self.safe_list(response, 'positions', [])
         return self.parse_positions(positions, symbols)
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -4566,14 +4685,15 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.portfolio]: *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         response = None
-        if market['future']:
+        if market['future'] is True:
             productId = self.safe_string(market, 'product_id')
             if productId is None:
                 raise ArgumentsRequired(self.id + ' fetchPosition() requires a "product_id" in params')
-            futureRequest: dict = {
+            futureRequest = {
                 'product_id': productId,
             }
             response = await self.v3PrivateGetBrokerageCfmPositionsProductId(self.extend(futureRequest, params))
@@ -4581,8 +4701,8 @@ class coinbase(Exchange, ImplicitAPI):
             portfolio = None
             portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
             if portfolio is None:
-                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
-            request: dict = {
+                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
+            request = {
                 'symbol': market['id'],
                 'portfolio_uuid': portfolio,
             }
@@ -4590,7 +4710,7 @@ class coinbase(Exchange, ImplicitAPI):
         position = self.safe_dict(response, 'position', {})
         return self.parse_position(position, market)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # {
         #     "product_id": "1r4njf84-0-0",
@@ -4725,7 +4845,7 @@ class coinbase(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
 
         https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary
@@ -4735,12 +4855,13 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap'
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
         isSpot = (type == 'spot')
         productType = 'SPOT' if isSpot else 'FUTURE'
-        request: dict = {
+        request = {
             'product_type': productType,
         }
         response = await self.v3PrivateGetBrokerageTransactionSummary(self.extend(request, params))
@@ -4764,27 +4885,27 @@ class coinbase(Exchange, ImplicitAPI):
         #     coinbase_pro_volume: '0',
         #     coinbase_pro_fees: '0',
         #     total_balance: '',
-        #     has_promo_fee: False
+        #     has_promo_fee: false
         # }
         #
         data = self.safe_dict(response, 'fee_tier', {})
         taker_fee = self.safe_number(data, 'taker_fee_rate')
-        marker_fee = self.safe_number(data, 'maker_fee_rate')
-        result: dict = {}
+        maker_fee = self.safe_number(data, 'maker_fee_rate')
+        result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
-            if (isSpot and market['spot']) or (not isSpot and not market['spot']):
+            if (isSpot and (market['spot'] is True)) or (not isSpot and (market['spot'] is not True)):
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
-                    'maker': taker_fee,
-                    'taker': marker_fee,
+                    'maker': maker_fee,
+                    'taker': taker_fee,
                     'percentage': True,
                 }
         return result
 
-    async def fetch_portfolio_details(self, portfolioUuid: str, params={}) -> List[Any]:
+    async def fetch_portfolio_details(self, portfolioUuid: str, params: dict = {}) -> list[object]:
         """
         Fetch details for a specific portfolio by UUID
 
@@ -4794,7 +4915,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param Dict [params]: Extra parameters specific to the exchange API endpoint
         :returns any[]: An account structure <https://docs.ccxt.com/?id=account-structure>
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'portfolio_uuid': portfolioUuid,
         }
@@ -4810,7 +4932,7 @@ class coinbase(Exchange, ImplicitAPI):
         spotPositions = self.safe_list(breakdown, 'spot_positions', [])
         parsedPositions = []
         for i in range(0, len(spotPositions)):
-            position: dict = spotPositions[i]
+            position = spotPositions[i]
             currencyCode = self.safe_string(position, 'asset', 'Unknown')
             availableBalanceStr = self.safe_string(position, 'available_to_trade_fiat', '0')
             availableBalance = self.parse_number(availableBalanceStr)
@@ -4821,7 +4943,7 @@ class coinbase(Exchange, ImplicitAPI):
             costBasisStr = self.safe_string(costBasisDict, 'value', '0')
             averageEntryPriceDict = self.safe_dict(position, 'average_entry_price', {})
             averageEntryPriceStr = self.safe_string(averageEntryPriceDict, 'value', '0')
-            positionData: dict = {
+            positionData = {
                 'currency': currencyCode,
                 'available_balance': availableBalance,
                 'hold_amount': holdAmount > holdAmount if 0 else 0,
@@ -4855,15 +4977,15 @@ class coinbase(Exchange, ImplicitAPI):
         if url is not None:
             uri = method + ' ' + url.replace('https://', '')
             quesPos = uri.find('?')
-            # Due to we use mb_strpos, quesPos could be False in php. In that case, the quesPos >= 0 is True
+            # Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             # Also it's not possible that the question mark is first character, only check > 0 here.
             if quesPos > 0:
                 uri = uri[0:quesPos]
-        # self.eddsa{"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
+        # eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         nonce = self.random_bytes(16)
         aud = 'cdp_service' if useEddsa else 'retail_rest_api_proxy'
         iss = 'cdp' if useEddsa else 'coinbase-cloud'
-        request: dict = {
+        request = {
             'aud': [aud],
             'iss': iss,
             'nbf': seconds,
@@ -4881,13 +5003,13 @@ class coinbase(Exchange, ImplicitAPI):
             seed = self.array_slice(byteArray, 0, 32)
             return self.jwt(request, seed, 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'EdDSA'})
         else:
-            # self.ecdsawith p256
+            # ecdsa with p256
             return self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         version = api[0]
         signed = api[1] == 'private'
         isV3 = version == 'v3'
@@ -4896,7 +5018,7 @@ class coinbase(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         savedPath = fullPath
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
         url = self.urls['api']['rest'] + fullPath
         if signed:
@@ -4904,19 +5026,19 @@ class coinbase(Exchange, ImplicitAPI):
             authorizationString = None
             if authorization is not None:
                 authorizationString = authorization
-            elif self.token and not self.check_required_credentials(False):
+            elif (self.token != '') and not self.check_required_credentials(False):
                 authorizationString = 'Bearer ' + self.token
             else:
                 self.check_required_credentials()
                 seconds = self.seconds()
                 payload = ''
                 if method != 'GET':
-                    if query:
+                    if len(query) > 0:
                         body = self.json(query)
                         payload = body
                 else:
                     if not isV3:
-                        if query:
+                        if len(query) > 0:
                             payload += '?' + self.urlencode(query)
                 # v3: 'GET' doesn't need payload in the signature. inside url is enough
                 # https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
@@ -4927,27 +5049,27 @@ class coinbase(Exchange, ImplicitAPI):
                 isV2CloudAPiKey = len(self.secret) == 88 or self.safe_bool(self.options, 'v2CloudAPiKey', False) or self.secret.endswith('=')
                 if isCloudAPiKey or isV2CloudAPiKey:
                     if isCloudAPiKey and self.apiKey.startswith('-----BEGIN'):
-                        raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
-                    #  # it may not work for v2
-                    # uri = method + ' ' + url.replace('https://', '')
-                    # quesPos = uri.find('?')
-                    #  # Due to we use mb_strpos, quesPos could be False in php. In that case, the quesPos >= 0 is True
-                    #  # Also it's not possible that the question mark is first character, only check > 0 here.
-                    # if quesPos > 0:
-                    #     uri = uri[0:quesPos]
+                        raise ArgumentsRequired(self.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key')
+                    # // it may not work for v2
+                    # let uri = method + ' ' + url.replace ('https://', '');
+                    # const quesPos = uri.indexOf ('?');
+                    # // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+                    # // Also it's not possible that the question mark is first character, only check > 0 here.
+                    # if (quesPos > 0) {
+                    #     uri = uri.slice (0, quesPos);
                     # }
-                    # nonce = self.random_bytes(16)
-                    # request: Dict = {
-                    #     'aud': ['retail_rest_api_proxy'],
+                    # const nonce = this.randomBytes (16);
+                    # const request: Dict = {
+                    #     'aud': [ 'retail_rest_api_proxy' ],
                     #     'iss': 'coinbase-cloud',
                     #     'nbf': seconds,
                     #     'exp': seconds + 120,
-                    #     'sub': self.apiKey,
+                    #     'sub': this.apiKey,
                     #     'uri': uri,
                     #     'iat': seconds,
-                    # }
+                    # };
                     token = self.create_auth_token(seconds, method, url, isV2CloudAPiKey)
-                    # token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
+                    # const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token
                 else:
                     nonce = self.nonce()
@@ -4967,11 +5089,11 @@ class coinbase(Exchange, ImplicitAPI):
                     'Content-Type': 'application/json',
                 }
                 if method != 'GET':
-                    if query:
+                    if len(query) > 0:
                         body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         feedback = self.id + ' ' + body
@@ -4990,7 +5112,7 @@ class coinbase(Exchange, ImplicitAPI):
         #    }
         # or
         # {
-        #     "success": False,
+        #     "success": false,
         #     "error_response": {
         #       "error": "UNKNOWN_FAILURE_REASON",
         #       "message": "",
@@ -5003,7 +5125,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "limit_price": "2000",
         #         "stop_price": "2005",
         #         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
-        #         "reduce_only": False
+        #         "reduce_only": false
         #       }
         #     }
         # }
@@ -5032,11 +5154,11 @@ class coinbase(Exchange, ImplicitAPI):
                         self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
                         raise ExchangeError(feedback)
         advancedTrade = self.options['advanced']
-        if not ('data' in response) and (not advancedTrade):
+        if not ('data' in response) and (advancedTrade is not True):
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
         return None
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
+    async def fetch_deposit_addresses(self, codes: Strings = None, params: dict = {}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies(when available)
 
@@ -5047,7 +5169,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.accountId]: account ID to fetch deposit addresses for
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by currency code
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = self.prepare_account_request(None, params)
         response = await self.v2PrivateGetAccountsAccountIdAddresses(self.extend(request, params))
         data = self.safe_list(response, 'data', [])

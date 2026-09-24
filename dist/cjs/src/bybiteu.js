@@ -11,7 +11,7 @@ class bybiteu extends bybit["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bybiteu',
             'name': 'Bybit EU',
-            'countries': ['EU'],
+            'countries': ['EU'], // European Union
             'version': 'v5',
             'rateLimit': 20,
             'hostname': 'bybit.eu',
@@ -56,6 +56,9 @@ class bybiteu extends bybit["default"] {
                 'swap': false,
                 'future': false,
                 'option': undefined,
+            },
+            'options': {
+                'mica': true,
             },
         });
     }

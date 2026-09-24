@@ -126,6 +126,7 @@
 * [unWatchTickers](#unwatchtickers)
 * [unWatchMarkPrices](#unwatchmarkprices)
 * [unWatchMarkPrice](#unwatchmarkprice)
+* [unWatchBidsAsks](#unwatchbidsasks)
 * [unWatchTicker](#unwatchticker)
 * [watchBidsAsks](#watchbidsasks)
 * [fetchBalanceWs](#fetchbalancews)
@@ -165,7 +166,7 @@ enables or disables demo trading mode
 
 
 ```javascript
-binance.enableDemoTrading ([enable])
+binance.enableDemoTrading (enable?)
 ```
 
 
@@ -191,7 +192,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-binance.fetchTime ([params])
+binance.fetchTime (params?)
 ```
 
 
@@ -215,7 +216,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-binance.fetchCurrencies ([params])
+binance.fetchCurrencies (params?)
 ```
 
 
@@ -229,12 +230,13 @@ retrieves data on all markets for binance
 
 **See**
 
-- https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
-- https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
-- https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
-- https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
-- https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
-- https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
+- https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information               // spot
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information         // swap
+- https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information         // future
+- https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                                 // option
+- https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                               // cross margin
+- https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                           // isolated margin
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#exchange-info   // tokenized stocks
 
 
 | Param | Type | Required | Description |
@@ -243,7 +245,7 @@ retrieves data on all markets for binance
 
 
 ```javascript
-binance.fetchMarkets ([params])
+binance.fetchMarkets (params?)
 ```
 
 
@@ -278,7 +280,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-binance.fetchBalance ([params])
+binance.fetchBalance (params?)
 ```
 
 
@@ -288,7 +290,7 @@ binance.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -308,7 +310,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-binance.fetchOrderBook (symbol[, limit, params])
+binance.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -328,7 +330,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-binance.fetchStatus ([params])
+binance.fetchStatus (params?)
 ```
 
 
@@ -347,6 +349,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
 - https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
 
 
 | Param | Type | Required | Description |
@@ -357,7 +360,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-binance.fetchTicker (symbol[, params])
+binance.fetchTicker (symbol, params?)
 ```
 
 
@@ -367,13 +370,14 @@ binance.fetchTicker (symbol[, params])
 fetches the bid and ask price and volume for multiple markets
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure) tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
 
 **See**
 
 - https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+- https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
 
 
 | Param | Type | Required | Description |
@@ -384,7 +388,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-binance.fetchBidsAsks (symbols[, params])
+binance.fetchBidsAsks (symbols, params?)
 ```
 
 
@@ -411,7 +415,7 @@ fetches the last price for multiple markets
 
 
 ```javascript
-binance.fetchLastPrices (symbols[, params])
+binance.fetchLastPrices (symbols, params?)
 ```
 
 
@@ -421,7 +425,7 @@ binance.fetchLastPrices (symbols[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure) tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
 
 **See**
 
@@ -440,7 +444,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-binance.fetchTickers ([symbols, params])
+binance.fetchTickers (symbols?, params?)
 ```
 
 
@@ -456,6 +460,7 @@ fetches mark price for the market
 
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+- https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
 
 
 | Param | Type | Required | Description |
@@ -466,7 +471,7 @@ fetches mark price for the market
 
 
 ```javascript
-binance.fetchMarkPrice (symbol[, params])
+binance.fetchMarkPrice (symbol, params?)
 ```
 
 
@@ -482,6 +487,7 @@ fetches mark prices for multiple markets
 
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+- https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
 
 
 | Param | Type | Required | Description |
@@ -492,7 +498,7 @@ fetches mark prices for multiple markets
 
 
 ```javascript
-binance.fetchMarkPrices ([symbols, params])
+binance.fetchMarkPrices (symbols?, params?)
 ```
 
 
@@ -531,7 +537,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-binance.fetchOHLCV (symbol, timeframe[, since, limit, params])
+binance.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -573,7 +579,7 @@ Other fetchTradesMethod
 
 
 ```javascript
-binance.fetchTrades (symbol[, since, limit, params])
+binance.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -606,7 +612,7 @@ edit a trade order
 
 
 ```javascript
-binance.editContractOrder (id, symbol, type, side, amount[, price, params])
+binance.editContractOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -637,7 +643,7 @@ edit a trade order
 
 
 ```javascript
-binance.editOrder (id, symbol, type, side, amount[, price, params])
+binance.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -662,7 +668,7 @@ edit a list of trade orders
 
 
 ```javascript
-binance.editOrders (orders[, params])
+binance.editOrders (orders, params?)
 ```
 
 
@@ -688,7 +694,7 @@ binance.editOrders (orders[, params])
 
 
 ```javascript
-binance.createOrders (orders[, params])
+binance.createOrders (orders, params?)
 ```
 
 
@@ -715,6 +721,7 @@ create a trade order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#place-equity-order
 
 
 | Param | Type | Required | Description |
@@ -741,10 +748,11 @@ create a trade order
 | params.positionSide | <code>string</code> | No | *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode |
 | params.hedged | <code>bool</code> | No | *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false |
 | params.clientOrderId | <code>string</code> | No | the clientOrderId of the order |
+| params.tradingSession | <code>string</code> | No | *stock only* required for limit orders, RTH, EXTENDED or 24H, default is 24H |
 
 
 ```javascript
-binance.createOrder (symbol, type, side, amount[, price, params])
+binance.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -767,7 +775,7 @@ create a market order by providing the symbol, side and cost
 
 
 ```javascript
-binance.createMarketOrderWithCost (symbol, side, cost[, params])
+binance.createMarketOrderWithCost (symbol, side, cost, params?)
 ```
 
 
@@ -789,7 +797,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-binance.createMarketBuyOrderWithCost (symbol, cost[, params])
+binance.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -811,7 +819,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-binance.createMarketSellOrderWithCost (symbol, cost[, params])
+binance.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -833,6 +841,7 @@ fetches information on an order made by the user
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-detail
 
 
 | Param | Type | Required | Description |
@@ -843,10 +852,11 @@ fetches information on an order made by the user
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for spot margin trading |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch an order in a portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to fetch a trigger or conditional order |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock orders |
 
 
 ```javascript
-binance.fetchOrder (id, symbol[, params])
+binance.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -870,6 +880,7 @@ fetches information on multiple orders made by the user
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
 
 
 | Param | Type | Required | Description |
@@ -883,10 +894,11 @@ fetches information on multiple orders made by the user
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch orders in a portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account trigger or conditional orders |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock orders |
 
 
 ```javascript
-binance.fetchOrders (symbol[, since, limit, params])
+binance.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -910,22 +922,24 @@ fetch all unfilled currently open orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#current-open-orders
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for spot margin trading |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch open orders in the portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account conditional orders |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock orders |
 | params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
-binance.fetchOpenOrders (symbol[, since, limit, params])
+binance.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -957,7 +971,7 @@ fetch an open order by the id
 
 
 ```javascript
-binance.fetchOpenOrder (id, symbol[, params])
+binance.fetchOpenOrder (id, symbol, params?)
 ```
 
 
@@ -980,21 +994,23 @@ fetches information on multiple closed orders made by the user
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch orders in a portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account trigger or conditional orders |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock orders |
 
 
 ```javascript
-binance.fetchClosedOrders (symbol[, since, limit, params])
+binance.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1017,21 +1033,23 @@ fetches information on multiple canceled orders made by the user
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market the orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch orders in a portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account trigger or conditional orders |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock orders |
 
 
 ```javascript
-binance.fetchCanceledOrders (symbol[, since, limit, params])
+binance.fetchCanceledOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1054,21 +1072,23 @@ fetches information on multiple canceled orders made by the user
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market the orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch orders in a portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account trigger or conditional orders |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock orders |
 
 
 ```javascript
-binance.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+binance.fetchCanceledAndClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1093,6 +1113,7 @@ cancels an open order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-equity-order
 
 
 | Param | Type | Required | Description |
@@ -1102,10 +1123,11 @@ cancels an open order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to cancel an order in a portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to cancel a portfolio margin account conditional order |
+| params.stock | <code>boolean</code> | No | set to true if you would like to cancel a tokenized stock order |
 
 
 ```javascript
-binance.cancelOrder (id, symbol[, params])
+binance.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -1130,6 +1152,7 @@ cancel all open orders in a market
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-all-equity-orders
 
 
 | Param | Type | Required | Description |
@@ -1139,10 +1162,11 @@ cancel all open orders in a market
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for spot margin trading |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to cancel orders in a portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to cancel portfolio margin account conditional orders |
+| params.stock | <code>boolean</code> | No | set to true if you would like to cancel tokenized stock orders |
 
 
 ```javascript
-binance.cancelAllOrders (symbol[, params])
+binance.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -1171,7 +1195,7 @@ cancel multiple orders
 
 
 ```javascript
-binance.cancelOrders (ids[, symbol, params])
+binance.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -1201,7 +1225,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-binance.fetchOrderTrades (id, symbol[, since, limit, params])
+binance.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -1222,21 +1246,23 @@ fetch all trades made by the user
 - https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-trade-history
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch trades for a portfolio margin account |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock trades |
 
 
 ```javascript
-binance.fetchMyTrades (symbol[, since, limit, params])
+binance.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1252,7 +1278,7 @@ fetch all dust trades made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | not used by binance fetchMyDustTrades () |
+| symbol | <code>string</code> | Yes | not used by fetchMyDustTrades () |
 | since | <code>int</code> | No | the earliest time in ms to fetch my dust trades for |
 | limit | <code>int</code> | No | the maximum number of dust trades to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -1260,7 +1286,7 @@ fetch all dust trades made by the user
 
 
 ```javascript
-binance.fetchMyDustTrades (symbol[, since, limit, params])
+binance.fetchMyDustTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1290,7 +1316,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-binance.fetchDeposits (code[, since, limit, params])
+binance.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -1320,7 +1346,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-binance.fetchWithdrawals (code[, since, limit, params])
+binance.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -1346,7 +1372,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-binance.transfer (code, amount, fromAccount, toAccount[, params])
+binance.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1372,7 +1398,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-binance.fetchTransfers (code[, since, limit, params])
+binance.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -1394,7 +1420,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-binance.fetchDepositAddress (code[, params])
+binance.fetchDepositAddress (code, params?)
 ```
 
 
@@ -1412,12 +1438,12 @@ please use fetchDepositWithdrawFees instead
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchTransactionFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchTransactionFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-binance.fetchTransactionFees (codes[, params])
+binance.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -1433,12 +1459,12 @@ fetch deposit and withdraw fees
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchDepositWithdrawFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchDepositWithdrawFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-binance.fetchDepositWithdrawFees (codes[, params])
+binance.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -1462,7 +1488,7 @@ make a withdrawal
 
 
 ```javascript
-binance.withdraw (code, amount, address, tag[, params])
+binance.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -1492,7 +1518,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-binance.fetchTradingFee (symbol[, params])
+binance.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -1519,7 +1545,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-binance.fetchTradingFees ([params])
+binance.fetchTradingFees (params?)
 ```
 
 
@@ -1544,7 +1570,7 @@ fetch the current funding rate
 
 
 ```javascript
-binance.fetchFundingRate (symbol[, params])
+binance.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1574,7 +1600,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-binance.fetchFundingRateHistory (symbol[, since, limit, params])
+binance.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1600,7 +1626,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-binance.fetchFundingRates (symbols[, params])
+binance.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -1629,7 +1655,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-binance.fetchLeverageTiers (symbols[, params])
+binance.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -1650,7 +1676,7 @@ fetch data on an open position
 
 
 ```javascript
-binance.fetchPosition (symbol[, params])
+binance.fetchPosition (symbol, params?)
 ```
 
 
@@ -1671,7 +1697,7 @@ fetch data on open options positions
 
 
 ```javascript
-binance.fetchOptionPositions (symbols[, params])
+binance.fetchOptionPositions (symbols, params?)
 ```
 
 
@@ -1702,7 +1728,7 @@ fetch all open positions
 
 
 ```javascript
-binance.fetchPositions ([symbols, params])
+binance.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1734,7 +1760,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-binance.fetchFundingHistory (symbol[, since, limit, params])
+binance.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1763,7 +1789,7 @@ set the level of leverage for a market
 
 
 ```javascript
-binance.setLeverage (leverage, symbol[, params])
+binance.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1789,7 +1815,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-binance.setMarginMode (marginMode, symbol[, params])
+binance.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -1812,14 +1838,14 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by binance setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to set the position mode for a portfolio margin account |
 | params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
-binance.setPositionMode (hedged, symbol[, params])
+binance.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1848,7 +1874,7 @@ fetch the set leverage for all markets
 
 
 ```javascript
-binance.fetchLeverages ([symbols, params])
+binance.fetchLeverages (symbols?, params?)
 ```
 
 
@@ -1871,7 +1897,7 @@ fetches historical settlement records
 
 
 ```javascript
-binance.fetchSettlementHistory (symbol[, since, limit, params])
+binance.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1894,7 +1920,7 @@ fetches historical settlement records of the user
 
 
 ```javascript
-binance.fetchMySettlementHistory (symbol[, since, limit, params])
+binance.fetchMySettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1916,7 +1942,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-binance.fetchLedgerEntry (id, code[, params])
+binance.fetchLedgerEntry (id, code, params?)
 ```
 
 
@@ -1950,7 +1976,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-binance.fetchLedger ([code, since, limit, params])
+binance.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1976,7 +2002,7 @@ remove margin from a position
 
 
 ```javascript
-binance.reduceMargin (symbol, amount[, params])
+binance.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -2002,7 +2028,7 @@ add margin
 
 
 ```javascript
-binance.addMargin (symbol, amount[, params])
+binance.addMargin (symbol, amount, params?)
 ```
 
 
@@ -2023,7 +2049,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-binance.fetchCrossBorrowRate (code[, params])
+binance.fetchCrossBorrowRate (code, params?)
 ```
 
 
@@ -2045,7 +2071,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-binance.fetchIsolatedBorrowRate (symbol[, params])
+binance.fetchIsolatedBorrowRate (symbol, params?)
 ```
 
 
@@ -2067,7 +2093,7 @@ fetch the borrow interest rates of all currencies
 
 
 ```javascript
-binance.fetchIsolatedBorrowRates ([params])
+binance.fetchIsolatedBorrowRates (params?)
 ```
 
 
@@ -2090,7 +2116,7 @@ retrieves a history of a currencies borrow interest rate at specific time slots
 
 
 ```javascript
-binance.fetchBorrowRateHistory (code[, since, limit, params])
+binance.fetchBorrowRateHistory (code, since?, limit?, params?)
 ```
 
 
@@ -2112,7 +2138,7 @@ create gift code
 
 
 ```javascript
-binance.createGiftCode (code, amount[, params])
+binance.createGiftCode (code, amount, params?)
 ```
 
 
@@ -2133,7 +2159,7 @@ redeem gift code
 
 
 ```javascript
-binance.redeemGiftCode (giftcardCode[, params])
+binance.redeemGiftCode (giftcardCode, params?)
 ```
 
 
@@ -2154,7 +2180,7 @@ verify gift code
 
 
 ```javascript
-binance.verifyGiftCode (id[, params])
+binance.verifyGiftCode (id, params?)
 ```
 
 
@@ -2183,7 +2209,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-binance.fetchBorrowInterest ([code, symbol, since, limit, params])
+binance.fetchBorrowInterest (code?, symbol?, since?, limit?, params?)
 ```
 
 
@@ -2213,7 +2239,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-binance.repayCrossMargin (code, amount[, params])
+binance.repayCrossMargin (code, amount, params?)
 ```
 
 
@@ -2236,7 +2262,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-binance.repayIsolatedMargin (symbol, code, amount[, params])
+binance.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -2263,7 +2289,7 @@ create a loan to borrow margin
 
 
 ```javascript
-binance.borrowCrossMargin (code, amount[, params])
+binance.borrowCrossMargin (code, amount, params?)
 ```
 
 
@@ -2286,7 +2312,7 @@ create a loan to borrow margin
 
 
 ```javascript
-binance.borrowIsolatedMargin (symbol, code, amount[, params])
+binance.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -2316,7 +2342,7 @@ Retrieves the open interest history of a currency
 
 
 ```javascript
-binance.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
+binance.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -2342,7 +2368,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-binance.fetchOpenInterest (symbol[, params])
+binance.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -2377,7 +2403,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-binance.fetchMyLiquidations ([symbol, since, limit, params])
+binance.fetchMyLiquidations (symbol?, since?, limit?, params?)
 ```
 
 
@@ -2398,7 +2424,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-binance.fetchGreeks (symbol[, params])
+binance.fetchGreeks (symbol, params?)
 ```
 
 
@@ -2408,7 +2434,7 @@ binance.fetchGreeks (symbol[, params])
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 **See**: https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price  
 
@@ -2419,7 +2445,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 
 
 ```javascript
-binance.fetchAllGreeks ([symbols, params])
+binance.fetchAllGreeks (symbols?, params?)
 ```
 
 
@@ -2445,7 +2471,7 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 
 ```javascript
-binance.fetchPositionMode (symbol[, params])
+binance.fetchPositionMode (symbol, params?)
 ```
 
 
@@ -2472,7 +2498,7 @@ fetches margin modes ("isolated" or "cross") that the market for the symbol in i
 
 
 ```javascript
-binance.fetchMarginModes (symbols[, params])
+binance.fetchMarginModes (symbols, params?)
 ```
 
 
@@ -2498,7 +2524,7 @@ fetches the margin mode of a specific symbol
 
 
 ```javascript
-binance.fetchMarginMode (symbol[, params])
+binance.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -2519,7 +2545,7 @@ fetches option data that is commonly found in an option chain
 
 
 ```javascript
-binance.fetchOption (symbol[, params])
+binance.fetchOption (symbol, params?)
 ```
 
 
@@ -2543,12 +2569,12 @@ fetches the history of margin added or reduced from contract isolated positions
 | type | <code>string</code> | No | "add" or "reduce" |
 | since | <code>int</code> | No | timestamp in ms of the earliest change to fetch |
 | limit | <code>int</code> | No | the maximum amount of changes to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest change to fetch |
 
 
 ```javascript
-binance.fetchMarginAdjustmentHistory (symbol[, type, since, limit, params])
+binance.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params)
 ```
 
 
@@ -2568,7 +2594,7 @@ fetches all available currencies that can be converted
 
 
 ```javascript
-binance.fetchConvertCurrencies ([params])
+binance.fetchConvertCurrencies (params?)
 ```
 
 
@@ -2592,7 +2618,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-binance.fetchConvertQuote (fromCode, toCode, amount[, params])
+binance.fetchConvertQuote (fromCode, toCode, amount, params?)
 ```
 
 
@@ -2616,7 +2642,7 @@ convert from one currency to another
 
 
 ```javascript
-binance.createConvertTrade (id, fromCode, toCode[, amount, params])
+binance.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
@@ -2638,7 +2664,7 @@ fetch the data for a conversion trade
 
 
 ```javascript
-binance.fetchConvertTrade (id[, code, params])
+binance.fetchConvertTrade (id, code?, params?)
 ```
 
 
@@ -2662,7 +2688,7 @@ fetch the users history of conversion trades
 
 
 ```javascript
-binance.fetchConvertTradeHistory ([code, since, limit, params])
+binance.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
@@ -2688,7 +2714,7 @@ fetch the funding rate interval for multiple markets
 
 
 ```javascript
-binance.fetchFundingIntervals ([symbols, params])
+binance.fetchFundingIntervals (symbols?, params?)
 ```
 
 
@@ -2717,7 +2743,7 @@ fetches the long short ratio history for a unified market symbol
 
 
 ```javascript
-binance.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+binance.fetchLongShortRatioHistory (symbol, timeframe?, since?, limit?, params?)
 ```
 
 
@@ -2738,7 +2764,7 @@ fetches the auto deleveraging rank and risk percentage for a symbol
 
 
 ```javascript
-binance.fetchADLRank (symbol[, params])
+binance.fetchADLRank (symbol, params?)
 ```
 
 
@@ -2766,7 +2792,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols tha
 
 
 ```javascript
-binance.fetchPositionsADLRank ([symbols, params])
+binance.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -2786,7 +2812,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-binance.ensureUserDataStreamWsSubscribeSignature ([marketType])
+binance.ensureUserDataStreamWsSubscribeSignature (marketType?)
 ```
 
 
@@ -2810,7 +2836,7 @@ subscribes to user data stream using listenToken (for margin)
 
 
 ```javascript
-binance.ensureUserDataStreamWsSubscribeListenToken (marketType, params[])
+binance.ensureUserDataStreamWsSubscribeListenToken (marketType, params)
 ```
 
 
@@ -2833,11 +2859,11 @@ watch the public liquidations of a trading pair
 | symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-binance.watchLiquidations (symbol[, since, limit, params])
+binance.watchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -2860,11 +2886,11 @@ watch the public liquidations of a trading pair
 | symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-binance.watchLiquidationsForSymbols (symbols[, since, limit, params])
+binance.watchLiquidationsForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -2887,11 +2913,11 @@ watch the private liquidations of a trading pair
 | symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-binance.watchMyLiquidations (symbol[, since, limit, params])
+binance.watchMyLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -2914,11 +2940,11 @@ watch the private liquidations of a trading pair
 | symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-binance.watchMyLiquidationsForSymbols (symbols[, since, limit, params])
+binance.watchMyLiquidationsForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -2928,7 +2954,7 @@ binance.watchMyLiquidationsForSymbols (symbols[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -2949,7 +2975,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-binance.watchOrderBook (symbol[, limit, params])
+binance.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -2959,7 +2985,7 @@ binance.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -2981,7 +3007,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-binance.watchOrderBookForSymbols (symbols[, limit, params])
+binance.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -2991,7 +3017,7 @@ binance.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -3010,7 +3036,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-binance.unWatchOrderBookForSymbols (symbols[, params])
+binance.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -3020,7 +3046,7 @@ binance.unWatchOrderBookForSymbols (symbols[, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -3039,7 +3065,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-binance.unWatchOrderBook (symbol[, params])
+binance.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -3049,7 +3075,7 @@ binance.unWatchOrderBook (symbol[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -3065,7 +3091,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-binance.fetchOrderBookWs (symbol[, limit, params])
+binance.fetchOrderBookWs (symbol, limit?, params?)
 ```
 
 
@@ -3095,7 +3121,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-binance.watchTradesForSymbols (symbols[, since, limit, params])
+binance.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -3123,7 +3149,7 @@ unsubscribes from the trades channel
 
 
 ```javascript
-binance.unWatchTradesForSymbols (symbols[, params])
+binance.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -3151,7 +3177,7 @@ unsubscribes from the trades channel
 
 
 ```javascript
-binance.unWatchTrades (symbol[, params])
+binance.unWatchTrades (symbol, params?)
 ```
 
 
@@ -3181,7 +3207,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-binance.watchTrades (symbol[, since, limit, params])
+binance.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -3198,6 +3224,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 - https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
 
 
 | Param | Type | Required | Description |
@@ -3207,11 +3234,12 @@ watches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | set to true to use stocks market streams |
 | params.timezone | <code>object</code> | No | if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00' |
 
 
 ```javascript
-binance.watchOHLCV (symbol, timeframe[, since, limit, params])
+binance.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -3228,6 +3256,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 - https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
 
 
 | Param | Type | Required | Description |
@@ -3236,11 +3265,12 @@ watches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | set to true to use stocks market streams |
 | params.timezone | <code>object</code> | No | if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00' |
 
 
 ```javascript
-binance.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+binance.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -3267,7 +3297,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-binance.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
+binance.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 ```
 
 
@@ -3295,7 +3325,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-binance.unWatchOHLCV (symbol, timeframe[, params])
+binance.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -3317,7 +3347,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-binance.fetchTickerWs (symbol[, params])
+binance.fetchTickerWs (symbol, params?)
 ```
 
 
@@ -3343,7 +3373,7 @@ query historical candlestick data containing the open, high, low, and close pric
 
 
 ```javascript
-binance.fetchOHLCVWs (symbol, timeframe, since, limit, params[])
+binance.fetchOHLCVWs (symbol, timeframe, since, limit, params)
 ```
 
 
@@ -3363,17 +3393,19 @@ watches a price ticker, a statistical calculation with the information calculate
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | set to true to use the stocks aggregated price stream |
 | params.name | <code>string</code> | No | stream to use can be ticker or miniTicker |
 
 
 ```javascript
-binance.watchTicker (symbol[, params])
+binance.watchTicker (symbol, params?)
 ```
 
 
@@ -3395,7 +3427,7 @@ watches a mark price for a specific market
 
 
 ```javascript
-binance.watchMarkPrice (symbol[, params])
+binance.watchMarkPrice (symbol, params?)
 ```
 
 
@@ -3417,7 +3449,7 @@ watches the mark price for all markets
 
 
 ```javascript
-binance.watchMarkPrices (symbols[, params])
+binance.watchMarkPrices (symbols, params?)
 ```
 
 
@@ -3437,16 +3469,18 @@ watches a price ticker, a statistical calculation with the information calculate
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | set to true to use the stocks price stream |
 
 
 ```javascript
-binance.watchTickers (symbols[, params])
+binance.watchTickers (symbols, params?)
 ```
 
 
@@ -3475,7 +3509,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-binance.unWatchTickers (symbols[, params])
+binance.unWatchTickers (symbols, params?)
 ```
 
 
@@ -3496,7 +3530,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-binance.unWatchMarkPrices (symbols[, params])
+binance.unWatchMarkPrices (symbols, params?)
 ```
 
 
@@ -3517,7 +3551,32 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-binance.unWatchMarkPrice (symbol[, params])
+binance.unWatchMarkPrice (symbol, params?)
+```
+
+
+<a name="unWatchBidsAsks" id="unwatchbidsasks"></a>
+
+### unWatchBidsAsks{docsify-ignore}
+unWatches best bid & ask for symbols
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
+- https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols |
+| params | <code>object</code> | No | extra parameters |
+
+
+```javascript
+binance.unWatchBidsAsks (symbols?, params?)
 ```
 
 
@@ -3546,7 +3605,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-binance.unWatchTicker (symbol[, params])
+binance.unWatchTicker (symbol, params?)
 ```
 
 
@@ -3563,16 +3622,18 @@ watches best bid & ask for symbols
 - https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#quote-stream
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | set to true to use stocks quote streams |
 
 
 ```javascript
-binance.watchBidsAsks (symbols[, params])
+binance.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -3601,7 +3662,7 @@ fetch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-binance.fetchBalanceWs ([params])
+binance.fetchBalanceWs (params?)
 ```
 
 
@@ -3622,7 +3683,7 @@ fetch data on an open position
 
 
 ```javascript
-binance.fetchPositionWs (symbol[, params])
+binance.fetchPositionWs (symbol, params?)
 ```
 
 
@@ -3649,7 +3710,7 @@ fetch all open positions
 
 
 ```javascript
-binance.fetchPositionsWs ([symbols, params])
+binance.fetchPositionsWs (symbols?, params?)
 ```
 
 
@@ -3669,7 +3730,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-binance.watchBalance ([params])
+binance.watchBalance (params?)
 ```
 
 
@@ -3702,7 +3763,7 @@ create a trade order
 
 
 ```javascript
-binance.createOrderWs (symbol, type, side, amount[, price, params])
+binance.createOrderWs (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -3733,7 +3794,7 @@ edit a trade order
 
 
 ```javascript
-binance.editOrderWs (id, symbol, type, side, amount[, price, params])
+binance.editOrderWs (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -3763,7 +3824,7 @@ cancel multiple orders
 
 
 ```javascript
-binance.cancelOrderWs (id[, symbol, params])
+binance.cancelOrderWs (id, symbol?, params?)
 ```
 
 
@@ -3784,7 +3845,7 @@ cancel all open orders in a market
 
 
 ```javascript
-binance.cancelAllOrdersWs ([symbol, params])
+binance.cancelAllOrdersWs (symbol?, params?)
 ```
 
 
@@ -3811,7 +3872,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-binance.fetchOrderWs (id[, symbol, params])
+binance.fetchOrderWs (id, symbol?, params?)
 ```
 
 
@@ -3838,7 +3899,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-binance.fetchOrdersWs (symbol[, since, limit, params])
+binance.fetchOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -3861,7 +3922,7 @@ fetch closed orders
 
 
 ```javascript
-binance.fetchClosedOrdersWs (symbol[, since, limit, params])
+binance.fetchClosedOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -3884,7 +3945,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-binance.fetchOpenOrdersWs (symbol[, since, limit, params])
+binance.fetchOpenOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -3902,6 +3963,7 @@ watches information on multiple orders made by the user
 - https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
+- https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream
 
 
 | Param | Type | Required | Description |
@@ -3910,12 +3972,13 @@ watches information on multiple orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | set to true to use stocks user data streams |
 | params.marginMode | <code>string</code>, <code>undefined</code> | No | 'cross' or 'isolated', for spot margin |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to watch portfolio margin account orders |
 
 
 ```javascript
-binance.watchOrders (symbol[, since, limit, params])
+binance.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -3938,7 +4001,7 @@ watch all open positions
 
 
 ```javascript
-binance.watchPositions (symbols[, since, limit, params])
+binance.watchPositions (symbols, since?, limit?, params)
 ```
 
 
@@ -3963,7 +4026,7 @@ fetch all trades made by the user
 
 
 ```javascript
-binance.fetchMyTradesWs (symbol[, since, limit, params])
+binance.fetchMyTradesWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -3987,7 +4050,7 @@ fetch all trades made by the user
 
 
 ```javascript
-binance.fetchTradesWs (symbol[, since, limit, params])
+binance.fetchTradesWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -4010,6 +4073,6 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-binance.watchMyTrades (symbol[, since, limit, params])
+binance.watchMyTrades (symbol, since?, limit?, params?)
 ```
 

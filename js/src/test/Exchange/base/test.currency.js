@@ -7,16 +7,19 @@
 import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 function testCurrency(exchange, skippedProperties, method, entry) {
+    if (entry === undefined) {
+        return;
+    }
     const format = {
-        'id': 'btc',
+        'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
     };
     // todo: remove fee from empty
     const emptyAllowedFor = ['name', 'fee'];
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
+    const isNative = (exchange.has['fetchCurrencies'] !== undefined) && (exchange.has['fetchCurrencies'] !== false) && (exchange.has['fetchCurrencies'] !== 'emulated');
     const currencyType = exchange.safeString(entry, 'type');
-    if (isNative) {
+    if (isNative === true) {
         format['info'] = {};
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         format['withdraw'] = true; // withdraw enabled

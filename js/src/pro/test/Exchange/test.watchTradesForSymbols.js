@@ -9,12 +9,16 @@ import testTrade from '../../../test/Exchange/base/test.trade.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 async function testWatchTradesForSymbols(exchange, skippedProperties, symbols) {
     const method = 'watchTradesForSymbols';
+    const logText = exchange.id + ' ' + method + ' [symbols: ' + exchange.json(symbols) + '] ';
     let now = exchange.milliseconds();
-    const ends = now + 15000;
+    const ends = now + 30000;
+    const maxIdleTime = 5000;
+    let idle = false;
     const returnedSymbols = [];
-    while (now < ends || returnedSymbols.length < symbols.length) {
+    while ((now < ends) && !idle) {
         let response = undefined;
-        const success = true;
+        let success = true;
+        const startTime = exchange.milliseconds();
         try {
             response = await exchange.watchTradesForSymbols(symbols);
         }
@@ -22,27 +26,28 @@ async function testWatchTradesForSymbols(exchange, skippedProperties, symbols) {
             if (!testSharedMethods.isTemporaryFailure(e)) {
                 throw e;
             }
-            now = exchange.milliseconds();
-            // continue;
+            success = false;
         }
-        if (success === true) {
-            assert(Array.isArray(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an array. ' + exchange.json(response));
-            now = exchange.milliseconds();
-            let symbol = undefined;
+        now = exchange.milliseconds();
+        const elapsedMs = now - startTime;
+        if ((success === true) && (response !== undefined)) {
+            assert(Array.isArray(response), logText + 'must return an array. ' + exchange.json(response));
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];
-                symbol = trade['symbol'];
-                testTrade(exchange, skippedProperties, method, trade, symbol, now);
+                const symbol = trade['symbol'];
+                assert(symbol !== undefined, logText + 'returned a trade without a symbol ' + exchange.json(trade));
+                testTrade(exchange, skippedProperties, method, trade, symbol, now, true);
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, 'symbol', symbols);
                 if (!exchange.inArray(symbol, returnedSymbols)) {
                     returnedSymbols.push(symbol);
                 }
             }
-            // if (!('timestampSort' in skippedProperties)) {
-            //     testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
-            // }
+            if (elapsedMs > maxIdleTime) {
+                idle = true;
+            }
         }
     }
+    assert(returnedSymbols.length === symbols.length, logText + 'only received part of symbols: ' + exchange.json(returnedSymbols));
     return true;
 }
 export default testWatchTradesForSymbols;

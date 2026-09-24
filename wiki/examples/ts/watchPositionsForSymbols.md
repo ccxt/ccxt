@@ -1,10 +1,5 @@
-- [Watchpositionsforsymbols](./examples/ts/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
-
-// AUTO-TRANSPILE //
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 async function example () {
     const exchange = new ccxt.pro.binanceusdm ({
@@ -18,5 +13,5 @@ async function example () {
     }
 }
 await example ();
- 
+
 ```

@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.toobit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -26,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class toobit(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(toobit, self).describe(), {
             'id': 'toobit',
             'name': 'Toobit',
@@ -58,6 +57,7 @@ class toobit(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
@@ -71,6 +71,7 @@ class toobit(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRates': False,
                 'fetchLastPrices': True,
                 'fetchLedger': True,
+                'fetchLeverage': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
@@ -81,109 +82,148 @@ class toobit(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFees': True,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
+                'setLeverage': True,
                 'setMarginMode': True,
                 'transfer': True,
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e',
+                'logo': 'https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008',
                 'api': {
                     'common': 'https://api.toobit.com',
                     'private': 'https://api.toobit.com',
                 },
                 'www': 'https://www.toobit.com/',
                 'doc': [
-                    'https://toobit-docs.github.io/apidocs/spot/v1/en/',
-                    'https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/',
+                    'https://api-docs.toobit.com/',
                 ],
                 'referral': {
-                    'url': 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount': 0.1,
+                    'url': 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 },
                 'fees': 'https://www.toobit.com/fee',
             },
             'api': {
                 'common': {
                     'get': {
-                        'api/v1/time': 1,
-                        'api/v1/ping': 1,
-                        'api/v1/exchangeInfo': 1,
-                        'quote/v1/depth': 1,  # todo: by limit 1-10
-                        'quote/v1/depth/merged': 1,
-                        'quote/v1/trades': 1,
-                        'quote/v1/klines': 1,
-                        'quote/v1/index/klines': 1,
-                        'quote/v1/markPrice/klines': 1,
-                        'quote/v1/markPrice': 1,
-                        'quote/v1/index': 1,
-                        'quote/v1/ticker/24hr': 40,  # todo: 1-40 depenidng noSymbol
-                        'quote/v1/contract/ticker/24hr': 40,  # todo: 1-40 depenidng noSymbol
-                        'quote/v1/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1,
-                        'api/v1/futures/fundingRate': 1,
-                        'api/v1/futures/historyFundingRate': 1,
+                        'api/v1/time': {'cost': 1},
+                        'api/v1/ping': {'cost': 1},
+                        'api/v1/exchangeInfo': {'cost': 1},
+                        'quote/v1/depth': {'cost': 1},  # todo: by limit 1-10
+                        'quote/v1/depth/merged': {'cost': 1},
+                        'quote/v1/trades': {'cost': 1},
+                        'quote/v1/klines': {'cost': 1},
+                        'quote/v1/index/klines': {'cost': 1},
+                        'quote/v1/indexPriceComponents': {'cost': 1},
+                        'quote/v1/markPrice/klines': {'cost': 1},
+                        'quote/v1/markPrice': {'cost': 10},  # 5 requests per second
+                        'quote/v1/index': {'cost': 1},
+                        'quote/v1/ticker/24hr': {'cost': 40},  # todo: 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr': {'cost': 40},  # todo: 1-40 depending noSymbol
+                        'quote/v1/ticker/price': {'cost': 1},
+                        'quote/v1/contract/ticker/price': {'cost': 1},
+                        'quote/v1/ticker/bookTicker': {'cost': 1},
+                        'quote/v1/contract/ticker/bookTicker': {'cost': 1},
+                        'api/v1/futures/fundingRate': {'cost': 1},
+                        'api/v1/futures/historyFundingRate': {'cost': 1},
+                        'api/v1/futures/riskLimits': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 5,
-                        'api/v1/account/checkApiKey': 1,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 1 * 1.67,
-                        'api/v1/futures/openOrders': 1 * 1.67,
-                        'api/v1/spot/tradeOrders': 5 * 1.67,
-                        'api/v1/futures/historyOrders': 5 * 1.67,
-                        'api/v1/account/trades': 5 * 1.67,
-                        'api/v1/account/balanceFlow': 5,
-                        'api/v1/account/depositOrders': 5,
-                        'api/v1/account/withdrawOrders': 5,
-                        'api/v1/account/deposit/address': 1,
+                        'api/v1/account': {'cost': 5},
+                        'api/v1/account/checkApiKey': {'cost': 1},
+                        'api/v1/spot/order': {'cost': 1 * 1.67},
+                        'api/v1/spot/openOrders': {'cost': 1 * 1.67},
+                        'api/v1/futures/openOrders': {'cost': 1 * 1.67},
+                        'api/v1/spot/tradeOrders': {'cost': 5 * 1.67},
+                        'api/v1/futures/historyOrders': {'cost': 5 * 1.67},
+                        'api/v1/account/trades': {'cost': 5 * 1.67},
+                        'api/v1/account/balanceFlow': {'cost': 5},
+                        'api/v1/account/depositOrders': {'cost': 5},
+                        'api/v1/account/withdrawOrders': {'cost': 5},
+                        'api/v1/account/deposit/address': {'cost': 1},
                         # contracts
-                        'api/v1/subAccount': 5,
-                        'api/v1/futures/accountLeverage': 1,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/futures/positions': 5 * 1.67,
-                        'api/v1/futures/balance': 5,
-                        'api/v1/futures/userTrades': 5 * 1.67,
-                        'api/v1/futures/balanceFlow': 5,
-                        'api/v1/futures/commissionRate': 5,
-                        'api/v1/futures/todayPnl': 5,
+                        'api/v1/subAccount': {'cost': 5},
+                        'api/v1/account/subAccount': {'cost': 5},
+                        'api/v1/subAccount/list': {'cost': 5},
+                        'api/v1/futures/accountLeverage': {'cost': 1},
+                        'api/v1/futures/order': {'cost': 1 * 1.67},
+                        'api/v1/futures/positions': {'cost': 5 * 1.67},
+                        'api/v1/futures/historyPositions': {'cost': 5},
+                        'api/v1/futures/balance': {'cost': 5},
+                        'api/v1/futures/userTrades': {'cost': 5 * 1.67},
+                        'api/v1/futures/balanceFlow': {'cost': 5},
+                        'api/v1/futures/commissionRate': {'cost': 5},
+                        'api/v1/futures/todayPnl': {'cost': 5},
+                        'api/v1/account/download/detail': {'cost': 10},
+                        'api/v1/agent/inviteUserList': {'cost': 1},
+                        'api/v1/agent/commissionDataList': {'cost': 1},
+                        'api/v1/agent/commissionDataInfo': {'cost': 1},
+                        'api/v1/agent/inviteRelationCheck': {'cost': 1},
+                        'api/v1/agent/depositDetailList': {'cost': 1},
+                        'api/v1/agent/querySubAgentData': {'cost': 1},
+                        'api/v1/agent/spotOrdersList': {'cost': 1},
+                        'api/v1/agent/futuresOrdersList': {'cost': 1},
+                        'api/v1/agent/futuresPositionsList': {'cost': 1},
+                        'api/v1/agent/invite-commission-detail': {'cost': 1},
+                        'api/v1/agent/user/export': {'cost': 1},
+                        'api/v1/agent/export-list': {'cost': 1},
+                        'api/v1/agent/export-url': {'cost': 1},
+                        # v2
+                        'api/v2/account/balance-flow': {'cost': 5},
+                        'api/v2/futures/order': {'cost': 1 * 1.67},
+                        'api/v2/futures/open-orders': {'cost': 1 * 1.67},
+                        'api/v2/futures/history-orders': {'cost': 5 * 1.67},
+                        'api/v2/futures/user-trades': {'cost': 5 * 1.67},
+                        'api/v2/futures/algo-order': {'cost': 1 * 1.67},
+                        'api/v2/futures/open-algo-orders': {'cost': 1 * 1.67},
+                        'api/v2/futures/history-algo-orders': {'cost': 5 * 1.67},
+                        'api/v2/futures/voucher/list': {'cost': 5},
                     },
                     'post': {
-                        'api/v1/spot/orderTest': 1 * 1.67,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/batchOrders': 2 * 1.67,
-                        'api/v1/subAccount/transfer': 1,
-                        'api/v1/account/withdraw': 1,
+                        'api/v1/spot/orderTest': {'cost': 1 * 1.67},
+                        'api/v1/spot/order': {'cost': 1 * 1.67},
+                        'api/v1/futures/order': {'cost': 1 * 1.67},
+                        'api/v1/spot/batchOrders': {'cost': 2 * 1.67},
+                        'api/v1/subAccount/transfer': {'cost': 1},
+                        'api/v1/account/withdraw': {'cost': 1},
                         # contracts
-                        'api/v1/futures/marginType': 1,
-                        'api/v1/futures/leverage': 1,
-                        'api/v1/futures/batchOrders': 2 * 1.67,
-                        'api/v1/futures/position/trading-stop': 3 * 1.67,
-                        'api/v1/futures/positionMargin': 1,
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/futures/marginType': {'cost': 1},
+                        'api/v1/futures/leverage': {'cost': 1},
+                        'api/v1/futures/batchOrders': {'cost': 2 * 1.67},
+                        'api/v1/futures/position/trading-stop': {'cost': 3 * 1.67},
+                        'api/v1/futures/positionMargin': {'cost': 1},
+                        'api/v1/futures/order/update': {'cost': 2 * 1.67},
+                        'api/v1/futures/autoAddMargin': {'cost': 1},
+                        'api/v1/futures/flashClose': {'cost': 1},
+                        'api/v1/futures/reversePosition': {'cost': 5},
+                        'api/v1/account/download/apply': {'cost': 1000},
+                        'api/v1/userDataStream': {'cost': 1},
+                        'api/v1/listenKey': {'cost': 1},
                     },
                     'delete': {
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 5 * 1.67,
-                        'api/v1/futures/batchOrders': 5 * 1.67,
-                        'api/v1/spot/cancelOrderByIds': 5 * 1.67,
-                        'api/v1/futures/cancelOrderByIds': 5 * 1.67,
-                        'api/v1/listenKey': 1,
+                        'api/v1/spot/order': {'cost': 1 * 1.67},
+                        'api/v1/futures/order': {'cost': 1 * 1.67},
+                        'api/v1/spot/openOrders': {'cost': 5 * 1.67},
+                        'api/v1/futures/batchOrders': {'cost': 3 * 1.67},
+                        'api/v1/spot/cancelOrderByIds': {'cost': 5 * 1.67},
+                        'api/v1/futures/cancelOrderByIds': {'cost': 3 * 1.67},
+                        'api/v1/userDataStream': {'cost': 1},
+                        'api/v1/listenKey': {'cost': 1},
                     },
                     'put': {
-                        'api/v1/listenKey': 1,
+                        'api/v1/userDataStream': {'cost': 1},
+                        'api/v1/listenKey': {'cost': 1},
                     },
                 },
             },
@@ -208,54 +248,77 @@ class toobit(Exchange, ImplicitAPI):
                 'exact': {
                     '-1000': OperationFailed,  # An unknown error occurred while processing the request.
                     '-1001': OperationFailed,  # Internal error; unable to process your request. Please try again.
-                    '-1002': PermissionDenied,  # You are not authorized to execute self request.
-                    '-1003': RateLimitExceeded,  # TOO_MANY_REQUESTS
+                    '-1002': PermissionDenied,  # You are not authorized to execute this request.
+                    '-1003': RateLimitExceeded,  # Too many requests queued.
                     '-1004': BadRequest,  # {"code":-1004,"msg":"Missing required parameter \u0027xyz\u0027"} | {"code":-1004,"msg":"Bad request"}
-                    '-1006': OperationFailed,  # An unexpected response was received from the message bus. Execution status unknown
+                    '-1005': PermissionDenied,  # No Permission
+                    '-1006': OperationFailed,  # An unexpected response was received from the message bus. Execution status unknown.
                     '-1007': OperationFailed,  # Timeout waiting for response from backend server. Send status unknown; execution status unknown.
                     '-1014': OperationFailed,  # Unsupported order combination.
-                    '-1015': RateLimitExceeded,  # Too many new orders
+                    '-1015': RateLimitExceeded,  # Reach the rate limit .Please slow down your request speed.
                     '-1016': OperationRejected,  # This service is no longer available.
                     '-1020': OperationRejected,  # This operation is not supported.
-                    '-1021': OperationRejected,  # Timestamp for self request is outside of the recvWindow.
-                    '-1022': OperationRejected,  # Signature for self request is not valid.
+                    '-1021': OperationRejected,  # Timestamp for this request is outside of the recvWindow.
+                    '-1022': OperationRejected,  # Signature for this request is not valid.
+                    '-1023': PermissionDenied,  # Please set IP whitelist before using API
+                    '-1031': OperationRejected,  # The feature has been suspended
                     '-1100': BadRequest,  # Illegal characters found in a parameter.
-                    '-1101': BadRequest,  # Too many parameters sent for self endpoint.
-                    '-1102': BadRequest,  # A mandatory parameter was not sent, was empty/null, or malformed
-                    '-1103': BadRequest,  # An unknown parameter was sent
-                    '-1104': BadRequest,  # Not all sent parameters were read
-                    '-1105': BadRequest,  # A parameter was empty
-                    '-1106': BadRequest,  # A parameter was sent when not required
-                    '-1111': BadRequest,  # Precision is over the maximum defined for self asset.
+                    '-1101': BadRequest,  # Too many parameters sent for this endpoint.
+                    '-1102': BadRequest,  # A mandatory parameter was not sent, was empty/null, or malformed.
+                    '-1103': BadRequest,  # An unknown parameter was sent.
+                    '-1104': BadRequest,  # Not all sent parameters were read.
+                    '-1105': BadRequest,  # A parameter was empty.
+                    '-1106': BadRequest,  # A parameter was sent when not required.
+                    '-1107': PermissionDenied,  # The accessKey is missing from the request header or parameters, or the accessKey is not in the correct format.
+                    '-1111': BadRequest,  # Precision is over the maximum defined for this asset.
                     '-1112': OperationRejected,  # No orders on book for symbol.
                     '-1114': BadRequest,  # TimeInForce parameter sent when not required.
-                    '-1115': BadRequest,  # Invalid timeInForce
-                    '-1116': BadRequest,  # Invalid orderType
-                    '-1117': BadRequest,  # Invalid side
+                    '-1115': BadRequest,  # Invalid timeInForce.
+                    '-1116': BadRequest,  # Invalid orderType.
+                    '-1117': BadRequest,  # Invalid side.
                     '-1118': InvalidOrder,  # New client order ID was empty.
-                    '-1119': InvalidOrder,  # Original client order ID was empty
-                    '-1120': BadRequest,  # Invalid interval
-                    '-1121': BadRequest,  # Invalid symbol
+                    '-1119': InvalidOrder,  # Original client order ID was empty.
+                    '-1120': BadRequest,  # Invalid interval.
+                    '-1121': BadSymbol,  # Invalid symbol.
                     '-1125': OperationRejected,  # This listenKey does not exist.
-                    '-1127': OperationRejected,  # Lookup interval is too big
-                    '-1128': BadRequest,  # Combination of optional parameters invalid
-                    '-1130': BadRequest,  # Invalid data sent for a parameter
-                    '-1132': OperationRejected,  # Order price too high
-                    '-1133': OperationRejected,  # Order price lower than the minimum,please check general broker info
-                    '-1134': OperationRejected,  # Order price decimal too long,please check general broker info
-                    '-1135': OperationRejected,  # Order quantity too large
-                    '-1136': OperationRejected,  # Order quantity lower than the minimum
-                    '-1137': OperationRejected,  # Order quantity decimal too long
-                    '-1138': OperationRejected,  # Order price exceeds permissible range
-                    '-1139': OperationRejected,  # Order has been filled
-                    '-1140': OperationRejected,  # Transaction amount lower than the minimum
+                    '-1127': OperationRejected,  # Lookup interval is too big.
+                    '-1128': BadRequest,  # Combination of optional parameters invalid.
+                    '-1129': BadRequest,  # The time range cannot exceed one year.
+                    '-1130': BadRequest,  # Invalid data sent for a parameter.
+                    '-1131': InsufficientFunds,  # Balance insufficient
+                    '-1132': OperationRejected,  # Order price too high.
+                    '-1133': OperationRejected,  # Order price lower than the minimum,please check general broker info.
+                    '-1134': OperationRejected,  # Order price decimal too long,please check general broker info.
+                    '-1135': OperationRejected,  # Order quantity too large.
+                    '-1136': OperationRejected,  # Order quantity lower than the minimum.
+                    '-1137': OperationRejected,  # Order quantity decimal too long.
+                    '-1138': OperationRejected,  # Order price exceeds permissible range.
+                    '-1139': OperationRejected,  # Order has been filled.
+                    '-1140': OperationRejected,  # Transaction amount lower than the minimum.
                     '-1141': InvalidOrder,  # Duplicate clientOrderId
                     '-1142': InvalidOrder,  # Order has been canceled
-                    '-1143': InvalidOrder,  # Cannot be found on order book
+                    '-1143': OrderNotFound,  # Cannot be found on order book
                     '-1144': OperationRejected,  # Order has been locked
                     '-1145': OperationRejected,  # This order type does not support cancellation
                     '-1146': OperationFailed,  # Order creation timeout
                     '-1147': OperationFailed,  # Order cancellation timeout
+                    '-1148': InvalidOrder,  # Market order amount decimal too long
+                    '-1149': OperationFailed,  # Create order failed
+                    '-1150': OperationFailed,  # Cancel order failed
+                    '-1151': OperationRejected,  # The trading pair is not open yet
+                    '-1153': PermissionDenied,  # User not exist
+                    '-1156': InvalidOrder,  # Order quantity invalid
+                    '-1157': OperationRejected,  # The trading pair is not available for api trading
+                    '-1158': InvalidOrder,  # create limit maker order failed
+                    '-1161': OperationRejected,  # Reduce margin forbidden
+                    '-1164': OperationRejected,  # Auto add margin error
+                    '-1165': BadRequest,  # Invalid stopType.
+                    '-1166': BadRequest,  # Invalid callbackType.
+                    '-1170': OperationRejected,  # finance account exist.
+                    '-1171': ExchangeError,  # account not exist.
+                    '-1172': OperationFailed,  # Balance transfer failed.
+                    '-1181': PermissionDenied,  # Currently not allowed to withdraw.
+                    '-1182': PermissionDenied,  # Currently not allowed to deposit.
                     '-1193': OperationRejected,  # Create order count limit
                     '-1194': OperationRejected,  # Create market order forbidden
                     '-1195': OperationRejected,  # Create limit order price too small
@@ -267,34 +330,105 @@ class toobit(Exchange, ImplicitAPI):
                     '-1201': OperationRejected,  # Create limit order sell price too big
                     '-1202': OperationRejected,  # Create order sell quantity too small
                     '-1203': OperationRejected,  # Create order sell quantity too big
+                    '-1204': PermissionDenied,  # account not authorized
+                    '-1205': BadRequest,  # same account not transfer
                     '-1206': OperationRejected,  # Orders over the maximum transaction amount
+                    '-1207': InvalidOrder,  # planOrder count limit.
+                    '-1208': InvalidOrder,  # stopProfitLoss order count limit.
+                    '-1209': InvalidOrder,  # stopProfitLoss order position limit.
+                    '-1210': InvalidOrder,  # dynamic stop profit long fallQuantity high.
+                    '-1211': InvalidOrder,  # dynamic stop profit activePrice low.
+                    '-1212': InvalidOrder,  # dynamic stop profit activePrice high.
+                    '-1213': BadSymbol,  # Account symbol does not match
+                    '-1214': PermissionDenied,  # No opening trades
+                    '-1215': PermissionDenied,  # No closing trades
+                    '-1216': OperationRejected,  # Trigger transfer limit failed
+                    '-1217': InvalidOrder,  # Create stop order buy price too big
+                    '-1300': BadRequest,  # Duplicate transferId
+                    '-1400': BadRequest,  # API voucher type is not allowed.
+                    '-1401': PermissionDenied,  # You are not eligible to use API trial voucher.
+                    '-1402': OperationFailed,  # API voucher query failed.
+                    '-1403': OperationFailed,  # API voucher receive failed.
+                    '-1404': ExchangeError,  # API voucher agent config failed.
+                    '-1405': ExchangeError,  # API voucher not found.
+                    '-1406': OperationRejected,  # API voucher is already in use.
+                    '-1407': OperationRejected,  # API voucher threshold is not met.
+                    '-1408': InsufficientFunds,  # Contract asset is less than zero.
+                    '-1409': OperationRejected,  # API voucher status is invalid.
+                    '-1410': InsufficientFunds,  # API voucher system account balance is insufficient.
+                    '-1411': OperationRejected,  # API voucher transfer is processing.
+                    '-1412': OperationRejected,  # API voucher can not be merged.
+                    '-1413': BadRequest,  # API voucher trade rate does not match.
+                    '-1414': BadRequest,  # API voucher fee rule does not match.
+                    '-1415': BadRequest,  # API voucher token does not match.
+                    '-1416': InsufficientFunds,  # Some API vouchers can not be received due to insufficient system balance.
+                    '-1417': OperationRejected,  # Some API vouchers do not meet the receiving threshold.
                     '-2010': OperationFailed,  # NEW_ORDER_REJECTED
                     '-2011': OperationFailed,  # CANCEL_REJECTED
-                    '-2013': InvalidOrder,  # Order does not exist.
+                    '-2013': OrderNotFound,  # Order does not exist.
                     '-2014': PermissionDenied,  # API-key format invalid.
                     '-2015': PermissionDenied,  # Invalid API-key, IP, or permissions for action.
                     '-2016': BadRequest,  # No trading window could be found for the symbol. Try ticker/24hrs instead.
+                    '-2017': PermissionDenied,  # The API key has expired. Please update your API key immediately.
+                    '-2018': PermissionDenied,  # API triggered risk control restrictions have been suspended, if you have any questions, please contact support@toobit.com .
                     # errors above 3xxx are from swap API
-                    '-3050': ExchangeError,  # CREATE_API_KEY_EXCEED_LIMIT
-                    '-3101': OperationRejected,  # open margin account error
-                    '-3102': OperationRejected,  # get margin safety error
-                    '-3103': BadRequest,  # risk config is not exit
-                    '-3105': OperationRejected,  # token can not borrow
-                    '-3107': OperationRejected,  # token can not withdraw
-                    '-3108': OperationRejected,  # get token avail withdraw error
-                    '-3109': OperationRejected,  # margin withdraw failed
-                    '-3110': InsufficientFunds,  # margin avail withdraw not enough failed
-                    '-3116': OperationRejected,  # repay fail
-                    '-3117': OperationRejected,  # get margin all position fail
-                    '-3120': OperationRejected,  # get repay order fail
+                    '-3000': BadRequest,  # Option not exist.
+                    '-3001': OperationRejected,  # The option has expired.
+                    '-3002': InvalidOrder,  # Order failed: position exceeded limit
+                    '-3050': ExchangeError,  # The ApiKey corresponding to the account already exists
+                    '-3051': OperationRejected,  # The sub-user has assets are not allowed to be deleted
+                    '-3052': BadRequest,  # sub-user id error
+                    '-3101': OperationRejected,  # Open margin account error
+                    '-3102': OperationRejected,  # Get margin safety error
+                    '-3103': BadRequest,  # Risk config is not exit
+                    '-3105': OperationRejected,  # Token can not borrow
+                    '-3107': OperationRejected,  # Token can not withdraw
+                    '-3108': OperationRejected,  # Get token avail withdraw error
+                    '-3109': OperationRejected,  # Margin withdraw failed
+                    '-3110': InsufficientFunds,  # Margin avail withdraw not enough failed
+                    '-3116': OperationRejected,  # Repay fail
+                    '-3117': OperationRejected,  # Get margin all position fail
+                    '-3120': OperationRejected,  # Get repay order fail
                     '-3124': OperationRejected,  # Position and order data error
                     '-3125': OperationRejected,  # Position size cannot meet target leverage
                     '-3126': OperationRejected,  # Adjust leverage fail
                     '-3127': OperationFailed,  # Adjust leverage timeout
                     '-3128': OperationRejected,  # The margin mode cannot be changed while you have an open order/position
-                    '-3129': BadRequest,  # cone futures change position type error
-                    '-3130': OperationRejected,  # order margin insufficient
+                    '-3129': BadRequest,  # Cone futures change position type error
+                    '-3130': OperationRejected,  # Order margin insufficient
                     '-3131': NotSupported,  # Leverage reduction is not supported in Isolated Margin Mode with open positions.
+                    '-3132': InvalidOrder,  # Maximum allowed leverage reached, please lower your leverage.
+                    '-3133': InvalidOrder,  # The number of open orders exceeds the limit.
+                    '-3136': OperationRejected,  # Quick symbol activity only limit/buy/ioc order is supported
+                    '-3137': OperationRejected,  # Open countdown is not over
+                    '-3138': OperationRejected,  # Open activity pre_hold is handling
+                    '-3139': OperationRejected,  # Open activity max amount limit
+                    '-3140': OperationRejected,  # Open activity min amount limit
+                    '-3141': InvalidOrder,  # Invalid long stop profit price.
+                    '-3142': InvalidOrder,  # Invalid long stop loss price.
+                    '-3143': InvalidOrder,  # Invalid short stop profit price.
+                    '-3144': InvalidOrder,  # Invalid short stop loss price.
+                    '-3145': InvalidOrder,  # No position, Please confirm your position direction.
+                    '-3147': OperationRejected,  # previous transfer is being processed. please try again later.
+                    '-3148': InvalidOrder,  # create order exceeds max futures risk limit.
+                    '-3149': InvalidOrder,  # The reduction in margin is unlawful.
+                    '-3150': NotSupported,  # cross position margin adjustments are not supported.
+                    '-3151': NotSupported,  # Separate position mode is not supported.
+                    '-3152': BadRequest,  # Separate-position mismatch: position mode must be SEPARATE.
+                    '-3153': BadRequest,  # Whole-position mismatch: position mode must be WHOLE.
+                    '-32045': ExchangeError,  # Copy trading follower not found.
+                    '-32090': OperationRejected,  # Trading pair change is not allowed.
+                    '-32093': OperationRejected,  # Copy trading position type cannot be changed.
+                    '-120041': PermissionDenied,  # Copy trading leader is not available.
+                    '-120047': ExchangeError,  # Leader does not exist.
+                    '-120055': OperationRejected,  # The follower currently has copy position, cannot be removed.
+                    '-120067': ExchangeError,  # Copy trading level config not found.
+                    '-120072': BadRequest,  # Copy trading leader config is invalid.
+                    '-120073': OperationRejected,  # Unable to switch invite setting.
+                    '-120078': BadRequest,  # unLeadStartTime or unLeadEndTime is invalid.
+                    '-120510': BadRequest,  # Invite code already exists.
+                    '-120511': BadRequest,  # Invite code contains sensitive content.
+                    '-120512': BadRequest,  # Invite code is invalid.
                 },
                 'broad': {
                     'Unknown order sent': OrderNotFound,
@@ -331,7 +465,7 @@ class toobit(Exchange, ImplicitAPI):
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BASE': 'BASE',
                     'TON': 'TON',
                     'AVAXC': 'AVAXC',
@@ -432,7 +566,7 @@ class toobit(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -450,11 +584,11 @@ class toobit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time
+        https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -467,9 +601,12 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
+
+        https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -536,15 +673,15 @@ class toobit(Exchange, ImplicitAPI):
         #                "quoteAsset": "USDT",
         #                "quoteAssetName": "USDT",
         #                "quotePrecision": "0.01",
-        #                "icebergAllowed": False,
-        #                "isAggregate": False,
-        #                "allowMargin": True,
+        #                "icebergAllowed": false,
+        #                "isAggregate": false,
+        #                "allowMargin": true,
         #             }
         #        ],
         #        "options": [],
         #        "contracts": [
         #            {
-        #                 "filters": [...],
+        #                 "filters": [ ... ],
         #                 "exchangeId": "301",
         #                 "symbol": "BTC-SWAP-USDT",
         #                 "symbolName": "BTC-SWAP-USDTUSDT",
@@ -553,8 +690,8 @@ class toobit(Exchange, ImplicitAPI):
         #                 "baseAssetPrecision": "0.001",
         #                 "quoteAsset": "USDT",
         #                 "quoteAssetPrecision": "0.1",
-        #                 "icebergAllowed": False,
-        #                 "inverse": False,
+        #                 "icebergAllowed": false,
+        #                 "inverse": false,
         #                 "index": "BTC",
         #                 "indexToken": "BTCUSDT",
         #                 "marginToken": "USDT",
@@ -567,14 +704,14 @@ class toobit(Exchange, ImplicitAPI):
         #                         "quantity": "42000.0",
         #                         "initialMargin": "0.02",
         #                         "maintMargin": "0.01",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     {
         #                         "riskLimitId": "200020912",
         #                         "quantity": "84000.0",
         #                         "initialMargin": "0.04",
         #                         "maintMargin": "0.02",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     ...
         #                 ]
@@ -586,8 +723,8 @@ class toobit(Exchange, ImplicitAPI):
         #                "coinId": "TCOM",
         #                "coinName": "TCOM",
         #                "coinFullName": "TCOM",
-        #                "allowWithdraw": True,
-        #                "allowDeposit": True,
+        #                "allowWithdraw": true,
+        #                "allowDeposit": true,
         #                "chainTypes": [
         #                    {
         #                        "chainType": "BSC",
@@ -595,11 +732,11 @@ class toobit(Exchange, ImplicitAPI):
         #                        "minWithdrawQuantity": "77",
         #                        "maxWithdrawQuantity": "0",
         #                        "minDepositQuantity": "48",
-        #                        "allowDeposit": True,
-        #                        "allowWithdraw": False
+        #                        "allowDeposit": true,
+        #                        "allowWithdraw": false
         #                    }
         #                ],
-        #                "isVirtual": False
+        #                "isVirtual": false
         #            },
         #          ...
         #
@@ -608,40 +745,42 @@ class toobit(Exchange, ImplicitAPI):
         for i in range(0, len(coins)):
             coin = coins[i]
             parsed = self.parse_currency(coin)
-            code = parsed['code']
-            result[code] = parsed
+            if parsed is not None:
+                code = parsed['code']
+                result[code] = parsed
         return result
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coinId')
         code = self.safe_currency_code(id)
-        networks: dict = {}
-        rawNetworks = self.safe_list(rawCurrency, 'chainTypes')
+        networks = {}
+        rawNetworks = self.safe_list(rawCurrency, 'chainTypes', [])
         for j in range(0, len(rawNetworks)):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string(rawNetwork, 'chainType')
-            networkCode = self.network_id_to_code(networkId)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': None,
-                'deposit': self.safe_bool(rawNetwork, 'allowDeposit'),
-                'withdraw': self.safe_bool(rawNetwork, 'allowWithdraw'),
-                'active': None,
-                'fee': self.safe_number(rawNetwork, 'withdrawFee'),
-                'precision': None,
-                'limits': {
-                    'deposit': {
-                        'min': self.safe_number(rawNetwork, 'minDepositQuantity'),
-                        'max': None,
+            networkCode = self.network_id_to_code(networkId, code)
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': None,
+                    'deposit': self.safe_bool(rawNetwork, 'allowDeposit'),
+                    'withdraw': self.safe_bool(rawNetwork, 'allowWithdraw'),
+                    'active': None,
+                    'fee': self.safe_number(rawNetwork, 'withdrawFee'),
+                    'precision': None,
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(rawNetwork, 'minDepositQuantity'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(rawNetwork, 'minWithdrawQuantity'),
+                            'max': self.safe_number(rawNetwork, 'maxWithdrawQuantity'),
+                        },
                     },
-                    'withdraw': {
-                        'min': self.safe_number(rawNetwork, 'minWithdrawQuantity'),
-                        'max': self.safe_number(rawNetwork, 'maxWithdrawQuantity'),
-                    },
-                },
-                'info': rawNetwork,
-            }
+                    'info': rawNetwork,
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -666,12 +805,12 @@ class toobit(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def fetch_markets(self, params={}) -> List[MarketInterface]:
+    def fetch_markets(self, params: dict = {}) -> list[MarketInterface]:
         """
         retrieves data on all markets for toobit
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
+        https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -742,15 +881,15 @@ class toobit(Exchange, ImplicitAPI):
         #                "quoteAsset": "USDT",
         #                "quoteAssetName": "USDT",
         #                "quotePrecision": "0.01",
-        #                "icebergAllowed": False,
-        #                "isAggregate": False,
-        #                "allowMargin": True,
+        #                "icebergAllowed": false,
+        #                "isAggregate": false,
+        #                "allowMargin": true,
         #             }
         #        ],
         #        "options": [],
         #        "contracts": [
         #            {
-        #                 "filters": [...],
+        #                 "filters": [ ... ],
         #                 "exchangeId": "301",
         #                 "symbol": "BTC-SWAP-USDT",
         #                 "symbolName": "BTC-SWAP-USDTUSDT",
@@ -759,8 +898,8 @@ class toobit(Exchange, ImplicitAPI):
         #                 "baseAssetPrecision": "0.001",
         #                 "quoteAsset": "USDT",
         #                 "quoteAssetPrecision": "0.1",
-        #                 "icebergAllowed": False,
-        #                 "inverse": False,
+        #                 "icebergAllowed": false,
+        #                 "inverse": false,
         #                 "index": "BTC",
         #                 "indexToken": "BTCUSDT",
         #                 "marginToken": "USDT",
@@ -773,14 +912,14 @@ class toobit(Exchange, ImplicitAPI):
         #                         "quantity": "42000.0",
         #                         "initialMargin": "0.02",
         #                         "maintMargin": "0.01",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     {
         #                         "riskLimitId": "200020912",
         #                         "quantity": "84000.0",
         #                         "initialMargin": "0.04",
         #                         "maintMargin": "0.02",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     ...
         #                 ]
@@ -792,8 +931,8 @@ class toobit(Exchange, ImplicitAPI):
         #                "coinId": "TCOM",
         #                "coinName": "TCOM",
         #                "coinFullName": "TCOM",
-        #                "allowWithdraw": True,
-        #                "allowDeposit": True,
+        #                "allowWithdraw": true,
+        #                "allowDeposit": true,
         #                "chainTypes": [
         #                    {
         #                        "chainType": "BSC",
@@ -801,11 +940,11 @@ class toobit(Exchange, ImplicitAPI):
         #                        "minWithdrawQuantity": "77",
         #                        "maxWithdrawQuantity": "0",
         #                        "minDepositQuantity": "48",
-        #                        "allowDeposit": True,
-        #                        "allowWithdraw": False
+        #                        "allowDeposit": true,
+        #                        "allowWithdraw": false
         #                    }
         #                ],
-        #                "isVirtual": False
+        #                "isVirtual": false
         #            },
         #          ...
         #
@@ -816,12 +955,13 @@ class toobit(Exchange, ImplicitAPI):
         for i in range(0, len(all)):
             market = all[i]
             parsed = self.parse_market(market)
-            result.append(parsed)
+            if parsed is not None:
+                result.append(parsed)
         return result
 
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
-        baseId = self.safe_string(market, 'baseAsset')
+        baseId = self.safe_string(market, 'baseAsset', '')
         quoteId = self.safe_string(market, 'quoteAsset')
         baseParts = baseId.split('-')
         baseIdClean = baseParts[0]
@@ -858,7 +998,7 @@ class toobit(Exchange, ImplicitAPI):
             'option': False,
             'active': active,
             'contract': isContract,
-            'linear': not inverse if isContract else None,
+            'linear': (inverse is not True) if isContract else None,
             'inverse': inverse if isContract else None,
             'contractSize': self.safe_number(market, 'contractMultiplier'),
             'expiry': None,
@@ -891,21 +1031,22 @@ class toobit(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
+        https://api-docs.toobit.com/api/spot-market-data.html#order-book
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -941,12 +1082,12 @@ class toobit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 't')
         return self.parse_order_book(response, market['symbol'], timestamp, 'b', 'a')
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get a list of the most recent trades for a particular symbol
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
+        https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -954,9 +1095,10 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -968,7 +1110,7 @@ class toobit(Exchange, ImplicitAPI):
         #            "t": "1755594277287",
         #            "p": "115276.99",
         #            "q": "0.001508",
-        #            "ibm": True
+        #            "ibm": true
         #        },
         #    ]
         #
@@ -982,11 +1124,11 @@ class toobit(Exchange, ImplicitAPI):
         #            "t": "1755594277287",
         #            "p": "115276.99",
         #            "q": "0.001508",
-        #            "ibm": True
+        #            "ibm": true
         #        },
-        #        # watchTrades have also an additional fields:
-        #             "v": "4864732022868004630",   # trade id
-        #             "m": True,                    # is the buyer taker
+        #        // watchTrades have also an additional fields:
+        #             "v": "4864732022868004630",   // trade id
+        #             "m": true,                    // is the buyer taker
         #
         # fetchMyTrades
         #
@@ -998,22 +1140,22 @@ class toobit(Exchange, ImplicitAPI):
         #            "price": "4641.21",
         #            "qty": "0.001",
         #            "time": "1756127012094",
-        #            "isMaker": False,
+        #            "isMaker": false,
         #            "commission": "0.00464121",
         #            "commissionAsset": "USDT",
         #            "makerRebate": "0",
-        #            "symbolName": "ETHUSDT",                 # only in SPOT
-        #            "isBuyer": False,                        # only in SPOT
-        #            "feeAmount": "0.00464121",               # only in SPOT
-        #            "feeCoinId": "USDT",                     # only in SPOT
-        #            "fee": {                                # only in SPOT
+        #            "symbolName": "ETHUSDT",                 // only in SPOT
+        #            "isBuyer": false,                        // only in SPOT
+        #            "feeAmount": "0.00464121",               // only in SPOT
+        #            "feeCoinId": "USDT",                     // only in SPOT
+        #            "fee": {                                 // only in SPOT
         #                "feeCoinId": "USDT",
         #                "feeCoinName": "USDT",
         #                "fee": "0.00464121"
         #            },
-        #            "type": "LIMIT",                         # only in CONTRACT
-        #            "side": "BUY_OPEN",                      # only in CONTRACT
-        #            "realizedPnl": "0",                      # only in CONTRACT
+        #            "type": "LIMIT",                         // only in CONTRACT
+        #            "side": "BUY_OPEN",                      // only in CONTRACT
+        #            "realizedPnl": "0",                      // only in CONTRACT
         #        },
         #
         timestamp = self.safe_integer_2(trade, 't', 'time')
@@ -1032,7 +1174,7 @@ class toobit(Exchange, ImplicitAPI):
             else:
                 side = 'buy'
         else:
-            if isBuyer:
+            if isBuyer is True:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -1066,23 +1208,26 @@ class toobit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
+        https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1094,7 +1239,7 @@ class toobit(Exchange, ImplicitAPI):
             request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
-        response = None
+        response = []
         endpoint = None
         endpoint, params = self.handle_option_and_params(params, 'fetchOHLCV', 'price')
         if endpoint == 'index':
@@ -1164,9 +1309,12 @@ class toobit(Exchange, ImplicitAPI):
             #        ],
             #        ...
             #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        candles = []
+        if isinstance(response, list):
+            candles = response
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer_n(ohlcv, [0, 'time', 't']),
             self.safe_number_n(ohlcv, [1, 'open', 'o']),
@@ -1176,27 +1324,29 @@ class toobit(Exchange, ImplicitAPI):
             self.safe_number_n(ohlcv, [5, 'volume', 'v']),
         ]
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+        https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         type = None
         market = None
-        request: dict = {}
+        request = {}
         if symbols is not None:
             symbol = self.safe_string(symbols, 0)
-            market = self.market(symbol)
+            if symbol is not None:
+                market = self.market(symbol)
             length = len(symbols)
-            if length == 1:
+            if (length == 1) and (market is not None):
                 request['symbol'] = market['id']
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         response = None
@@ -1227,6 +1377,10 @@ class toobit(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(ticker, 't')
         last = self.safe_string(ticker, 'c')
+        baseVolume = self.safe_string(ticker, 'v')
+        if (market['contract'] is True) and (market['contractSize'] is not None):
+            # 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1243,27 +1397,29 @@ class toobit(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': None,
             'change': self.safe_string(ticker, 'pc'),
-            'percentage': self.safe_string(ticker, 'pcp'),
+            # 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise.string_mul(self.safe_string(ticker, 'pcp'), '100'),
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'qv'),
             'info': ticker,
         }, market)
 
-    def fetch_last_prices(self, symbols: Strings = None, params={}):
+    def fetch_last_prices(self, symbols: Strings = None, params: dict = {}) -> LastPrices:
         """
         fetches the last price for multiple markets
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
+        https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
         https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
 
         :param str[]|None symbols: unified symbols of the markets to fetch the last prices
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of lastprices structures
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             length = len(symbols)
             if length == 1:
@@ -1280,7 +1436,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry, market: Market = None):
+    def parse_last_price(self, entry: object, market: Market = None) -> LastPrice:
         marketId = self.safe_string(entry, 's')
         market = self.safe_market(marketId, market)
         return {
@@ -1292,20 +1448,21 @@ class toobit(Exchange, ImplicitAPI):
             'info': entry,
         }
 
-    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
+        https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
         https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
 
         :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             length = len(symbols)
             if length == 1:
@@ -1325,7 +1482,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_bids_asks_custom(response, symbols)
 
-    def parse_bids_asks_custom(self, tickers, symbols: Strings = None, params={}) -> Tickers:
+    def parse_bids_asks_custom(self, tickers: object, symbols: Strings = None, params: dict = {}) -> Tickers:
         results = []
         for i in range(0, len(tickers)):
             parsedTicker = self.parse_bid_ask_custom(tickers[i])
@@ -1334,10 +1491,16 @@ class toobit(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def parse_bid_ask_custom(self, ticker):
+    def parse_bid_ask_custom(self, ticker: dict) -> dict:
+        # 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        # reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        marketId = self.safe_string(ticker, 's')
+        market = self.safe_market(marketId)
+        timestamp = self.safe_integer(ticker, 't')
         return {
-            'timestamp': self.safe_string(ticker, 't'),
-            'symbol': self.safe_string(ticker, 's'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
             'bid': self.safe_number(ticker, 'b'),
             'bidVolume': self.safe_number(ticker, 'bq'),
             'ask': self.safe_number(ticker, 'a'),
@@ -1345,19 +1508,20 @@ class toobit(Exchange, ImplicitAPI):
             'info': ticker,
         }
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict[]: a list of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         if symbols is not None:
             length = len(symbols)
             if length == 1:
@@ -1374,7 +1538,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         nextFundingRate = self.safe_number(contract, 'rate')
@@ -1400,11 +1564,11 @@ class toobit(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
+        https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -1414,13 +1578,16 @@ class toobit(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1437,7 +1604,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
         timestamp = self.safe_integer(contract, 'settleTime')
         marketId = self.safe_string(contract, 'symbol')
         return {
@@ -1448,31 +1615,32 @@ class toobit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
 
-        :param dict [params]: extra parameters specific to the exchange API endpointinvalid
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = None
-        marketType: Str = None
+        marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         if self.in_array(marketType, ['swap', 'future']):
             response = self.privateGetApiV1FuturesBalance()
             #
             #     [
             #         {
-            #             "asset": "USDT",  # asset
-            #             "balance": "999999999999.982",  # total
-            #             "availableBalance": "1899999999978.4995",  # available balance Include unrealized pnl
-            #             "positionMargin": "11.9825",  #position Margin
-            #             "orderMargin": "9.5",  #order Margin
-            #             "crossUnRealizedPnl": "10.01"  #The unrealized profit and loss of cross position
+            #             "asset": "USDT", // asset
+            #             "balance": "999999999999.982", // total
+            #             "availableBalance": "1899999999978.4995", // available balance Include unrealized pnl
+            #             "positionMargin": "11.9825", //position Margin
+            #             "orderMargin": "9.5", //order Margin
+            #             "crossUnRealizedPnl": "10.01" //The unrealized profit and loss of cross position
             #         }
             #     ]
             #
@@ -1495,8 +1663,8 @@ class toobit(Exchange, ImplicitAPI):
             #
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
-        result: dict = {
+    def parse_balance(self, response: object) -> Balances:
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -1509,15 +1677,16 @@ class toobit(Exchange, ImplicitAPI):
             account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
             account['total'] = self.safe_string_2(balance, 'total', 'balance')
             account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit'
@@ -1525,13 +1694,15 @@ class toobit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {}
-        response = None
-        if market['spot']:
+        response = {}
+        if market['spot'] is True:
             request, params = self.create_order_request(symbol, type, side, amount, price, params)
             response = self.privatePostApiV1SpotOrder(self.extend(request, params))
         else:
@@ -1549,57 +1720,64 @@ class toobit(Exchange, ImplicitAPI):
         #         "timeInForce": "GTC",
         #         "type": "MARKET",
         #         "side": "SELL"
-        #         "accountId": "1783404067076253952",    # only in spot
-        #         "symbolName": "ETHUSDT",               # only in spot
-        #         "transactTime": "1756115478604",       # only in spot
-        #         "time": "1668418485058",               # only in contract
-        #         "updateTime": "1668418485058",         # only in contract
-        #         "leverage": "2",                       # only in contract
-        #         "avgPrice": "0",                       # only in contract
-        #         "marginLocked": "9.5",                 # only in contract
-        #         "priceType": "INPUT"                   # only in contract
+        #         "accountId": "1783404067076253952",    // only in spot
+        #         "symbolName": "ETHUSDT",               // only in spot
+        #         "transactTime": "1756115478604",       // only in spot
+        #         "time": "1668418485058",               // only in contract
+        #         "updateTime": "1668418485058",         // only in contract
+        #         "leverage": "2",                       // only in contract
+        #         "avgPrice": "0",                       // only in contract
+        #         "marginLocked": "9.5",                 // only in contract
+        #         "priceType": "INPUT"                   // only in contract
         #     }
         #
         return self.parse_order(response, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         id = market['id']
-        request: dict = {
+        request = {
             'symbol': id,
             'side': side.upper(),
         }
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        cost: Str = None
+        cost = None
         cost, params = self.handle_param_string(params, 'cost')
-        if type == 'market':
-            if cost is None and side == 'buy':
+        if type == 'market' and side == 'buy':
+            if cost is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires params["cost"] for market buy order')
-            else:
-                request['quantity'] = self.cost_to_precision(symbol, cost)
+            request['quantity'] = self.cost_to_precision(symbol, cost)
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         isPostOnly = None
         isPostOnly, params = self.handle_post_only(type == 'market', False, params)
-        if isPostOnly:
+        if isPostOnly is True:
             request['type'] = 'LIMIT_MAKER'
         else:
             request['type'] = type.upper()
         return [request, params]
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
         }
         reduceOnly = None
         reduceOnly, params = self.handle_param_bool(params, 'reduceOnly')
         if side == 'buy':
-            side = 'SELL_CLOSE' if reduceOnly else 'BUY_OPEN'
+            side = 'BUY_CLOSE' if (reduceOnly is True) else 'BUY_OPEN'
         elif side == 'sell':
-            side = 'BUY_CLOSE' if reduceOnly else 'SELL_OPEN'
+            side = 'SELL_CLOSE' if (reduceOnly is True) else 'SELL_OPEN'
         request['side'] = side
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
@@ -1607,11 +1785,11 @@ class toobit(Exchange, ImplicitAPI):
             request['type'] = type.upper()
             request['price'] = self.price_to_precision(symbol, price)
         elif type == 'market':
-            request['type'] = 'LIMIT'  # weird, but exchange works self way
+            request['type'] = 'LIMIT'  # weird, but exchange works this way
             request['priceType'] = 'MARKET'
         isPostOnly = None
         isPostOnly, params = self.handle_post_only(type == 'market', False, params)
-        if isPostOnly:
+        if isPostOnly is True:
             request['timeInForce'] = 'LIMIT_MAKER'
         values = self.handle_trigger_prices_and_params(symbol, params)
         triggerPrice = values[0]
@@ -1665,15 +1843,15 @@ class toobit(Exchange, ImplicitAPI):
         #         "timeInForce": "GTC",
         #         "type": "MARKET",
         #         "side": "SELL"
-        #         "accountId": "1783404067076253952",    # only in spot
-        #         "symbolName": "ETHUSDT",               # only in spot
-        #         "transactTime": "1756115478604",       # only in spot
-        #         "time": "1668418485058",               # only in contract
-        #         "updateTime": "1668418485058",         # only in contract
-        #         "leverage": "2",                       # only in contract
-        #         "avgPrice": "0",                       # only in contract
-        #         "marginLocked": "9.5",                 # only in contract
-        #         "priceType": "INPUT"                   # only in contract
+        #         "accountId": "1783404067076253952",    // only in spot
+        #         "symbolName": "ETHUSDT",               // only in spot
+        #         "transactTime": "1756115478604",       // only in spot
+        #         "time": "1668418485058",               // only in contract
+        #         "updateTime": "1668418485058",         // only in contract
+        #         "leverage": "2",                       // only in contract
+        #         "avgPrice": "0",                       // only in contract
+        #         "marginLocked": "9.5",                 // only in contract
+        #         "priceType": "INPUT"                   // only in contract
         #     }
         #
         #
@@ -1693,20 +1871,20 @@ class toobit(Exchange, ImplicitAPI):
         #        "side": "BUY",
         #        "timeInForce": "GTC",
         #        "status": "NEW",
-        #        "accountId": "1783404067076253952",  # only in SPOT
-        #        "exchangeId": "301",                 # only in SPOT
-        #        "symbolName": "ETHUSDT",             # only in SPOT
-        #        "cummulativeQuoteQty": "0",          # only in SPOT
-        #        "cumulativeQuoteQty": "0",           # only in SPOT
-        #        "stopPrice": "0.0",                  # only in SPOT
-        #        "icebergQty": "0.0",                 # only in SPOT
-        #        "isWorking": True                    # only in SPOT
-        #        "leverage": "2",                     # only in CONTRACT
-        #        "marginLocked": "9.5",               # only in CONTRACT
-        #        "priceType": "INPUT"                 # only in CONTRACT
-        #        "triggerType": "0",                  # only in CONTRACT fetchClosedOrders
-        #        "fallType": "0",                     # only in CONTRACT fetchClosedOrders
-        #        "activeStatus": "0"                  # only in CONTRACT fetchClosedOrders
+        #        "accountId": "1783404067076253952",  // only in SPOT
+        #        "exchangeId": "301",                 // only in SPOT
+        #        "symbolName": "ETHUSDT",             // only in SPOT
+        #        "cummulativeQuoteQty": "0",          // only in SPOT
+        #        "cumulativeQuoteQty": "0",           // only in SPOT
+        #        "stopPrice": "0.0",                  // only in SPOT
+        #        "icebergQty": "0.0",                 // only in SPOT
+        #        "isWorking": true                    // only in SPOT
+        #        "leverage": "2",                     // only in CONTRACT
+        #        "marginLocked": "9.5",               // only in CONTRACT
+        #        "priceType": "INPUT"                 // only in CONTRACT
+        #        "triggerType": "0",                  // only in CONTRACT fetchClosedOrders
+        #        "fallType": "0",                     // only in CONTRACT fetchClosedOrders
+        #        "activeStatus": "0"                  // only in CONTRACT fetchClosedOrders
         #    }
         #
         timestamp = self.safe_integer_2(order, 'transactTime', 'time')
@@ -1714,6 +1892,16 @@ class toobit(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         rawType = self.safe_string(order, 'type')
         rawSideLower = self.safe_string_lower(order, 'side')
+        reduceOnly = None
+        if rawSideLower is not None:
+            # contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            # the suffix is the only signal that carries reduceOnly, so read
+            # it before discarding it (spot sides have no suffix: undefined)
+            sideParts = rawSideLower.split('_')
+            sideSuffix = self.safe_string(sideParts, 1)
+            if sideSuffix is not None:
+                reduceOnly = (sideSuffix == 'close')
+            rawSideLower = self.safe_string(sideParts, 0)
         triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         if triggerPrice == '0.0':
             triggerPrice = None
@@ -1741,13 +1929,13 @@ class toobit(Exchange, ImplicitAPI):
             'trades': None,
             'fee': None,
             'marginMode': None,
-            'reduceOnly': None,
+            'reduceOnly': reduceOnly,
             'leverage': None,
             'hedged': None,
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -1756,22 +1944,26 @@ class toobit(Exchange, ImplicitAPI):
             'CANCELED': 'canceled',
             'REJECTED': 'canceled',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
-        statuses: dict = {
+    def parse_order_type(self, status: Str):
+        statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
 
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1789,29 +1981,30 @@ class toobit(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('cancelOrder', market, params, 'none')
         if marketType == 'none':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"')
-        response = None
+        response = {}
         if marketType == 'spot':
             response = self.privateDeleteApiV1SpotOrder(self.extend(request, params))
         else:
             response = self.privateDeleteApiV1FuturesOrder(self.extend(request, params))
-        # response same `createOrder`
+        # response same as in `createOrder`
         status = self.parse_order_status(self.safe_string(response, 'status'))
         if status != 'open':
             raise OrderNotFound(self.id + ' order ' + id + ' can not be canceled, ' + self.json(response))
         return self.parse_order(response, market)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
 
         :param str symbol: unified symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1825,12 +2018,12 @@ class toobit(Exchange, ImplicitAPI):
         if marketType == 'spot':
             response = self.privateDeleteApiV1SpotOpenOrders(self.extend(request, params))
             #
-            # {"success":true}  # always same response
+            # {"success":true}  // always same response
             #
         else:
             response = self.privateDeleteApiV1FuturesBatchOrders(self.extend(request, params))
             #
-            # {"code": 200, "message":"success", "timestamp":1541161088303}
+            # { "code": 200, "message":"success", "timestamp":1541161088303 }
             #
         return [
             self.safe_order({
@@ -1838,21 +2031,22 @@ class toobit(Exchange, ImplicitAPI):
             }),
         ]
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         idsString = ','.join(ids)
-        request: dict = {
+        request = {
             'ids': idsString,
         }
         market = None
@@ -1866,7 +2060,7 @@ class toobit(Exchange, ImplicitAPI):
         if marketType == 'spot':
             response = self.privateDeleteApiV1SpotCancelOrderByIds(self.extend(request, params))
             #
-            # {"success":true}  # always same response
+            # {"success":true}  // always same response
             #
         else:
             response = self.privateDeleteApiV1FuturesCancelOrderByIds(self.extend(request, params))
@@ -1889,12 +2083,12 @@ class toobit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
 
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1903,13 +2097,14 @@ class toobit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'orderId': id,
         }
         market = self.market(symbol)
-        response = None
-        if market['spot']:
+        response = {}
+        if market['spot'] is True:
             response = self.privateGetApiV1SpotOrder(self.extend(request, params))
         else:
             response = self.privateGetApiV1FuturesOrder(self.extend(request, params))
@@ -1928,27 +2123,27 @@ class toobit(Exchange, ImplicitAPI):
         #        "side": "BUY",
         #        "timeInForce": "GTC",
         #        "status": "NEW",
-        #        "accountId": "1783404067076253952",  # only in SPOT
-        #        "exchangeId": "301",                 # only in SPOT
-        #        "symbolName": "ETHUSDT",             # only in SPOT
-        #        "cummulativeQuoteQty": "0",          # only in SPOT
-        #        "cumulativeQuoteQty": "0",           # only in SPOT
-        #        "stopPrice": "0.0",                  # only in SPOT
-        #        "icebergQty": "0.0",                 # only in SPOT
-        #        "isWorking": True                    # only in SPOT
-        #        "leverage": "2",                     # only in CONTRACT
-        #        "marginLocked": "9.5",               # only in CONTRACT
-        #        "priceType": "INPUT"                 # only in CONTRACT
+        #        "accountId": "1783404067076253952",  // only in SPOT
+        #        "exchangeId": "301",                 // only in SPOT
+        #        "symbolName": "ETHUSDT",             // only in SPOT
+        #        "cummulativeQuoteQty": "0",          // only in SPOT
+        #        "cumulativeQuoteQty": "0",           // only in SPOT
+        #        "stopPrice": "0.0",                  // only in SPOT
+        #        "icebergQty": "0.0",                 // only in SPOT
+        #        "isWorking": true                    // only in SPOT
+        #        "leverage": "2",                     // only in CONTRACT
+        #        "marginLocked": "9.5",               // only in CONTRACT
+        #        "priceType": "INPUT"                 // only in CONTRACT
         #    }
         #
         return self.parse_order(response, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1956,7 +2151,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1965,8 +2161,8 @@ class toobit(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
-        response = None
+        marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        response = []
         if marketType == 'spot':
             response = self.privateGetApiV1SpotOpenOrders(self.extend(request, params))
             #
@@ -1992,7 +2188,7 @@ class toobit(Exchange, ImplicitAPI):
             #            "icebergQty": "0.0",
             #            "time": "1756141516189",
             #            "updateTime": "1756141516198",
-            #            "isWorking": True
+            #            "isWorking": true
             #        }, ...
             #    ]
             #
@@ -2000,11 +2196,11 @@ class toobit(Exchange, ImplicitAPI):
             response = self.privateGetApiV1FuturesOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2012,7 +2208,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -2025,7 +2222,7 @@ class toobit(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
-        response = None
+        response = []
         if marketType == 'spot':
             response = self.privateGetApiV1SpotTradeOrders(request)
             #
@@ -2051,7 +2248,7 @@ class toobit(Exchange, ImplicitAPI):
             #            "icebergQty": "0.0",
             #            "time": "1756141516189",
             #            "updateTime": "1756141516198",
-            #            "isWorking": True
+            #            "isWorking": true
             #        }, ...
             #    ]
             #
@@ -2059,11 +2256,11 @@ class toobit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrders() is not supported for ' + marketType + ' markets')
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2072,7 +2269,8 @@ class toobit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -2083,7 +2281,7 @@ class toobit(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('endTime', request, params)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
-        response = None
+        response = []
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchOrders() is not supported for ' + marketType + ' markets')
         else:
@@ -2115,16 +2313,19 @@ class toobit(Exchange, ImplicitAPI):
             #    ]
             #
         ordersList = []
-        for i in range(0, len(response)):
-            ordersList.append({'result': response[i]})
+        responseList = []
+        if isinstance(response, list):
+            responseList = response
+        for i in range(0, len(responseList)):
+            ordersList.append({'result': responseList[i]})
         return self.parse_orders(ordersList, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
 
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2135,8 +2336,9 @@ class toobit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -2146,7 +2348,7 @@ class toobit(Exchange, ImplicitAPI):
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request, params = self.handle_until_option('endTime', request, params)
-        response = None
+        response = []
         if marketType == 'spot':
             response = self.privateGetApiV1AccountTrades(self.extend(request, params))
             #
@@ -2161,8 +2363,8 @@ class toobit(Exchange, ImplicitAPI):
             #            "commission": "0.00464121",
             #            "commissionAsset": "USDT",
             #            "time": "1756127012094",
-            #            "isBuyer": False,
-            #            "isMaker": False,
+            #            "isBuyer": false,
+            #            "isMaker": false,
             #            "fee": {
             #                "feeCoinId": "USDT",
             #                "feeCoinName": "USDT",
@@ -2192,17 +2394,17 @@ class toobit(Exchange, ImplicitAPI):
             #            "side": "BUY_OPEN",
             #            "realizedPnl": "0",
             #            "ticketId": "4900760819871364854",
-            #            "isMaker": False
+            #            "isMaker": false
             #        }
             #    ]
             #
         return self.parse_trades(response, market, since, limit)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
-        https://open.big.one/docs/spot_transfer.html#transfer-of-user
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
 
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -2211,12 +2413,13 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        request: dict = {
+        request = {
             'asset': currency['id'],
             'quantity': self.currency_to_precision(code, amount),
             'fromAccountType': fromId,
@@ -2225,8 +2428,8 @@ class toobit(Exchange, ImplicitAPI):
         response = self.privatePostApiV1SubAccountTransfer(self.extend(request, params))
         #
         #    {
-        #     "code": 200,  # 200 = success
-        #     "msg": "success"  # response message
+        #     "code": 200, // 200 = success
+        #     "msg": "success" // response message
         #    }
         #
         return self.parse_transfer(response, currency)
@@ -2234,8 +2437,8 @@ class toobit(Exchange, ImplicitAPI):
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    {
-        #     "code": 200,  # 200 = success
-        #     "msg": "success"  # response message
+        #     "code": 200, // 200 = success
+        #     "msg": "success" // response message
         #    }
         #
         return {
@@ -2250,12 +2453,12 @@ class toobit(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
+        https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -2264,9 +2467,10 @@ class toobit(Exchange, ImplicitAPI):
         :param int [params.until]: end time in ms
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -2276,7 +2480,7 @@ class toobit(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         marketType = None
-        marketType, params = self.handle_market_type_and_params('cancelAllOrders', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchLedger', None, params)
         response = None
         if marketType == 'spot':
             response = self.privateGetApiV1AccountBalanceFlow(self.extend(request, params))
@@ -2307,7 +2511,7 @@ class toobit(Exchange, ImplicitAPI):
         currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'created')
         after = self.safe_number(item, 'total')
-        amountRaw = self.safe_string(item, 'change')
+        amountRaw = self.safe_string(item, 'change', '')
         amount = self.parse_number(Precise.string_abs(amountRaw))
         direction = 'in'
         if amountRaw.startswith('-'):
@@ -2330,23 +2534,24 @@ class toobit(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_type(self, type):
-        types: dict = {
+    def parse_ledger_type(self, type: Str) -> Str:
+        types = {
             'USER_ACCOUNT_TRANSFER': 'transfer',
             'AIRDROP': 'rebate',
         }
         return self.safe_string(types, type, type)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = None
         marketType = None
         market = None
@@ -2354,7 +2559,7 @@ class toobit(Exchange, ImplicitAPI):
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchTradingFees(): does not support ' + marketType + ' markets')
         elif self.in_array(marketType, ['swap', 'future']):
-            symbol: Str = None
+            symbol = None
             symbol, params = self.handle_param_string(params, 'symbol')
             if symbol is None:
                 raise BadRequest(self.id + ' fetchTradingFees requires a params["symbol"]')
@@ -2365,13 +2570,13 @@ class toobit(Exchange, ImplicitAPI):
             response = self.privateGetApiV1FuturesCommissionRate(self.extend(request, params))
         #
         # {
-        #     "openMakerFee": "0.000006",  # The trade fee rate for opening pending orders
-        #     "openTakerFee": "0.0001",  # The trade fee rate for open position taker
-        #     "closeMakerFee": "0.0002",  # The trade fee rate for closing pending orders
-        #     "closeTakerFee": "0.0004"  # The trade fee rate for closing a taker order
+        #     "openMakerFee": "0.000006", // The trade fee rate for opening pending orders
+        #     "openTakerFee": "0.0001", // The trade fee rate for open position taker
+        #     "closeMakerFee": "0.0002", // The trade fee rate for closing pending orders
+        #     "closeTakerFee": "0.0004" // The trade fee rate for closing a taker order
         # }
         #
-        result: dict = {}
+        result = {}
         entry = response
         marketId = self.safe_string(entry, 'symbol')
         market = self.safe_market(marketId, market)
@@ -2379,7 +2584,7 @@ class toobit(Exchange, ImplicitAPI):
         result[market['symbol']] = fee
         return result
 
-    def parse_trading_fee(self, data, market: Market = None):
+    def parse_trading_fee(self, data: dict, market: Market = None) -> TradingFeeInterface:
         marketId = self.safe_string(data, 'symbol')
         return {
             'info': data,
@@ -2390,11 +2595,11 @@ class toobit(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data
+        https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
 
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2404,11 +2609,11 @@ class toobit(Exchange, ImplicitAPI):
         """
         return self.fetch_deposits_or_withdrawals_helper('deposits', code, since, limit, params)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data
+        https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
 
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2418,10 +2623,11 @@ class toobit(Exchange, ImplicitAPI):
         """
         return self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
-    def fetch_deposits_or_withdrawals_helper(self, type, code, since, limit, params={}):
-        self.load_markets()
+    def fetch_deposits_or_withdrawals_helper(self, type: Str, code: Str, since: Int, limit: Int, params: dict = {}) -> list[Transaction]:
+        if self.markets is None:
+            self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -2430,7 +2636,7 @@ class toobit(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('endTime', request, params)
         if limit is not None:
             request['limit'] = limit
-        response = None
+        response = []
         if type == 'deposits':
             response = self.privateGetApiV1AccountDepositOrders(self.extend(request, params))
             #
@@ -2440,7 +2646,7 @@ class toobit(Exchange, ImplicitAPI):
             #         "id": 100234,
             #         "coinName": "EOS",
             #         "statusCode": "DEPOSIT_CAN_WITHDRAW",
-            #         "status": "2",  # 2=SUCCESS, 11=REJECT, 12=AUDIT
+            #         "status": "2", // 2=SUCCESS, 11=REJECT, 12=AUDIT
             #         "address": "deposit2bb",
             #         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
             #         "txIdUrl": "",
@@ -2468,9 +2674,9 @@ class toobit(Exchange, ImplicitAPI):
             #         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
             #         "txId ":"",
             #         "txIdUrl ":"",
-            #         "requiredConfirmTimes ":0,  # Number of confirmation requests
-            #         "confirmTimes ":0,  # number of confirmations
-            #         "quantity":"14",  # Withdrawal amount
+            #         "requiredConfirmTimes ":0, // Number of confirmation requests
+            #         "confirmTimes ":0, // number of confirmations
+            #         "quantity":"14", // Withdrawal amount
             #         "coinId ":"BHC",
             #         "addressExt":"address tag",
             #         "arriveQuantity":"14",
@@ -2478,8 +2684,8 @@ class toobit(Exchange, ImplicitAPI):
             #         "feeCoinId ":"BHC",
             #         "feeCoinName ":"BHC",
             #         "fee":"0.1",
-            #         "kernelId":"",  # Exclusive to BEAM and GRIN
-            #         "isInternalTransfer": False  # Whether internal transfer
+            #         "kernelId":"", // Exclusive to BEAM and GRIN
+            #         "isInternalTransfer": false // Whether internal transfer
             #     }
             # ]
             #
@@ -2494,36 +2700,36 @@ class toobit(Exchange, ImplicitAPI):
         #         "id": 100234,
         #         "coinName": "EOS",
         #         "statusCode": "DEPOSIT_CAN_WITHDRAW",
-        #         "status": "2",  # 2=SUCCESS, 11=REJECT, 12=AUDIT
+        #         "status": "2", // 2=SUCCESS, 11=REJECT, 12=AUDIT
         #         "address": "deposit2bb",
         #         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
         #         "txIdUrl": "",
         #         "requiredConfirmTimes": "5",
         #         "confirmTimes": "5",
         #         "quantity": "1.01",
-        #         "coin": "EOS",                     # present in "fetchDeposits"
-        #         "coinId ":"BHC",                   # present in "fetchWithdrawals"
-        #         "addressTag": "19012584",          # present in "fetchDeposits"
-        #         "addressExt":"address tag",        # present in "fetchWithdrawals"
-        #         "fromAddress": "clarkkent",        # present in "fetchDeposits"
-        #         "fromAddressTag": "19029901"       # present in "fetchDeposits"
-        #         "arriveQuantity":"14",             # present in "fetchWithdrawals"
+        #         "coin": "EOS",                     // present in "fetchDeposits"
+        #         "coinId ":"BHC",                   // present in "fetchWithdrawals"
+        #         "addressTag": "19012584",          // present in "fetchDeposits"
+        #         "addressExt":"address tag",        // present in "fetchWithdrawals"
+        #         "fromAddress": "clarkkent",        // present in "fetchDeposits"
+        #         "fromAddressTag": "19029901"       // present in "fetchDeposits"
+        #         "arriveQuantity":"14",             // present in "fetchWithdrawals"
         #         "walletHandleTime":"1536232111669",// present in "fetchWithdrawals"
-        #         "feeCoinId ":"BHC",                # present in "fetchWithdrawals"
-        #         "feeCoinName ":"BHC",              # present in "fetchWithdrawals"
-        #         "fee":"0.1",                       # present in "fetchWithdrawals"
-        #         "kernelId":"",                     # present in "fetchWithdrawals"
-        #         "isInternalTransfer": False        # present in "fetchWithdrawals"
+        #         "feeCoinId ":"BHC",                // present in "fetchWithdrawals"
+        #         "feeCoinName ":"BHC",              // present in "fetchWithdrawals"
+        #         "fee":"0.1",                       // present in "fetchWithdrawals"
+        #         "kernelId":"",                     // present in "fetchWithdrawals"
+        #         "isInternalTransfer": false        // present in "fetchWithdrawals"
         #     }
         #
         # withdraw
         #
         #     {
         #         "status": 0,
-        #         "success": True,
-        #         "needBrokerAudit": False,  # Do you need a brokerage review?
+        #         "success": true,
+        #         "needBrokerAudit": false, // Do you need a brokerage review?
         #         "id": "423885103582776064",
-        #         "refuseReason":""  # failure rejection reason
+        #         "refuseReason":"" // failure rejection reason
         #     }
         #
         timestamp = self.safe_integer(transaction, 'time')
@@ -2567,33 +2773,36 @@ class toobit(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '2': 'pending',
             '12': 'pending',
             '11': 'failed',
             '3': 'ok',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
+        https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
         }
         networkCode, paramsOmitted = self.handle_network_code_and_params(self.extend(request, params))
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() : param["network"] is required')
-        request['chainType'] = self.network_code_to_id(networkCode)
+        request['chainType'] = self.network_code_to_id(networkCode, code)
         response = self.privateGetApiV1AccountDepositAddress(self.extend(request, paramsOmitted))
         #
         #     {
@@ -2608,7 +2817,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
@@ -2619,17 +2828,18 @@ class toobit(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'addressExt'),
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data
+        https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag: a memo for the transaction
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.addressType]: recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.check_address(address)
@@ -2637,13 +2847,14 @@ class toobit(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' withdraw() : param["network"] is required')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'address': address,
             'quantity': self.currency_to_precision(currency['code'], amount),
-            'chainType': networkCode,
+            'chainType': self.network_code_to_id(networkCode, code),
             'clientOrderId': self.milliseconds(),
         }
         if tag is not None:
@@ -2652,19 +2863,19 @@ class toobit(Exchange, ImplicitAPI):
         #
         # {
         #     "status": 0,
-        #     "success": True,
-        #     "needBrokerAudit": False,  # Do you need a brokerage review?
-        #     "id": "423885103582776064",  # Withdrawal successful order id
-        #     "refuseReason":""  # failure rejection reason
+        #     "success": true,
+        #     "needBrokerAudit": false, // Do you need a brokerage review?
+        #     "id": "423885103582776064", // Withdrawal successful order id
+        #     "refuseReason":"" // failure rejection reason
         # }
         #
         return self.parse_transaction(response, currency)
 
-    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}):
         """
         set margin mode to 'cross' or 'isolated'
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
 
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
@@ -2673,12 +2884,13 @@ class toobit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
         marginMode = marginMode.upper()
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'marginType': marginMode,
         }
@@ -2688,11 +2900,11 @@ class toobit(Exchange, ImplicitAPI):
         #
         return response
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-leverage-trade
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade
 
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
@@ -2701,9 +2913,10 @@ class toobit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'leverage': leverage,
         }
@@ -2713,39 +2926,40 @@ class toobit(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.privateGetApiV1FuturesAccountLeverage(self.extend(request, params))
         #
         # [
         #     {
-        #         "symbol":"BTC-SWAP-USDT",  #symbol
-        #         "leverage":"20",  # leverage
-        #         "marginType":"CROSS"  # CROSS;ISOLATED
+        #         "symbolId":"ETH-SWAP-USDT",
+        #         "leverage":"50",
+        #         "marginType":"CROSS" // CROSS;ISOLATED
         #     }
         # ]
         #
-        data = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 0, {})
         return self.parse_leverage(data, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
-        marketId = self.safe_string(leverage, 'symbol')
+        marketId = self.safe_string_2(leverage, 'symbolId', 'symbol')
         leverageValue = self.safe_integer(leverage, 'leverage')
-        marginType = self.safe_string(leverage, 'marginType')
-        marginMode = 'cross' if (marginType == 'crossed') else 'isolated'
+        marginType = self.safe_string_lower(leverage, 'marginType')
+        marginMode = 'cross' if (marginType == 'cross') else 'isolated'
         return {
             'info': leverage,
             'symbol': self.safe_symbol(marketId, market),
@@ -2754,17 +2968,18 @@ class toobit(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
+        https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbols is not None:
@@ -2801,7 +3016,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_positions(response, symbols)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
         side = self.safe_string_lower(position, 'side')
@@ -2811,12 +3026,12 @@ class toobit(Exchange, ImplicitAPI):
             'info': position,
             'id': self.safe_string(position, 'id'),
             'symbol': market['symbol'],
-            'entryPrice': self.safe_string(position, 'avgPrice'),
-            'markPrice': self.safe_string(position, 'markPrice'),
-            'lastPrice': self.safe_string(position, 'lastPrice'),
-            'notional': self.safe_string(position, 'positionValue'),
+            'entryPrice': self.safe_number(position, 'avgPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': self.safe_number(position, 'lastPrice'),
+            'notional': self.safe_number(position, 'positionValue'),
             'collateral': None,
-            'unrealizedPnl': self.safe_string(position, 'unrealizedPnL'),
+            'unrealizedPnl': self.safe_number(position, 'unrealizedPnL'),
             'side': side,
             'contracts': self.parse_number(quantity),
             'contractSize': None,
@@ -2825,7 +3040,7 @@ class toobit(Exchange, ImplicitAPI):
             'hedged': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'initialMargin': self.safe_string(position, 'margin'),
+            'initialMargin': self.safe_number(position, 'margin'),
             'initialMarginPercentage': None,
             'leverage': leverage,
             'liquidationPrice': None,
@@ -2834,7 +3049,7 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         isPost = method == 'POST'
         isDelete = method == 'DELETE'
@@ -2843,7 +3058,7 @@ class toobit(Exchange, ImplicitAPI):
         if api != 'private':
             # Public endpoints
             if not isPost:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -2879,12 +3094,12 @@ class toobit(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        if errorCode and errorCode != '200' and errorCode != '0':
+        if (errorCode is not None and errorCode != '') and errorCode != '200' and errorCode != '0':
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

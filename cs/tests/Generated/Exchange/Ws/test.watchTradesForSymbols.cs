@@ -10,43 +10,53 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
-        object method = "watchTradesForSymbols";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        object returnedSymbols = new List<object>() {};
-        while (isTrue(isLessThan(now, ends)) || isTrue(isLessThan(getArrayLength(returnedSymbols), getArrayLength(symbols))))
+        string method = "watchTradesForSymbols";
+        object logText = add(add(add(add(add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 30000);
+        int maxIdleTime = 5000;
+        bool idle = false;
+        List<object> returnedSymbols = new List<object>() {};
+        while ((isLessThan(now, ends)) && !idle)
         {
             object response = null;
-            object success = true;
+            bool success = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchTradesForSymbols(symbols);
+                response = detypeForComparison(await exchange.WatchTradesForSymbols(symbols));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
+                success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            now = exchange.milliseconds();
+            Int64 elapsedMs = (now - startTime);
+            if (((success == true)) && ((response != null)))
             {
-                assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
-                now = exchange.milliseconds();
-                object symbol = null;
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(logText, "must return an array. "), exchange.json(response)));
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     object trade = getValue(response, i);
-                    symbol = getValue(trade, "symbol");
-                    testTrade(exchange, skippedProperties, method, trade, symbol, now);
+                    object symbol = getValue(trade, "symbol");
+                    assert((symbol != null), add(add(logText, "returned a trade without a symbol "), exchange.json(trade)));
+                    testTrade(exchange, skippedProperties, method, trade, ((string)symbol), now, true);
                     testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
                     {
                         ((IList<object>)returnedSymbols).Add(symbol);
                     }
                 }
+                if (elapsedMs > maxIdleTime)
+                {
+                    idle = true;
+                }
             }
         }
+        assert(((returnedSymbols?.Count ?? 0) == getArrayLength(symbols)), add(add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
         return true;
     }
 

@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.dydx import ImplicitAPI
 import math
-from ccxt.base.types import Account, Any, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Account, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class dydx(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(dydx, self).describe(), {
             'id': 'dydx',
             'name': 'dYdX',
@@ -133,7 +132,7 @@ class dydx(Exchange, ImplicitAPI):
                 '1d': '1DAY',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1',
+                'logo': 'https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d',
                 'api': {
                     'indexer': 'https://indexer.dydx.trade/v4',
                     'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
@@ -151,76 +150,84 @@ class dydx(Exchange, ImplicitAPI):
                 'fees': [
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ],
-                'referral': 'dydx.trade?ref=ccxt',
+                'referral': 'https://dydx.trade?ref=ccxt',
             },
             'api': {
                 'indexer': {
                     'get': {
-                        'addresses/{address}': 1,
-                        'addresses/{address}/parentSubaccountNumber/{number}': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}': 1,
-                        'assetPositions': 1,
-                        'assetPositions/parentSubaccountNumber': 1,
-                        'candles/perpetualMarkets/{market}': 1,
-                        'compliance/screen/{address}': 1,
-                        'fills': 1,
-                        'fills/parentSubaccountNumber': 1,
-                        'fundingPayments': 1,
-                        'fundingPayments/parentSubaccount': 1,
-                        'height': 0.1,
-                        'historical-pnl': 1,
-                        'historical-pnl/parentSubaccountNumber': 1,
-                        'historicalBlockTradingRewards/{address}': 1,
-                        'historicalFunding/{market}': 1,
-                        'historicalTradingRewardAggregations/{address}': 1,
-                        'orderbooks/perpetualMarket/{market}': 1,
-                        'orders': 1,
-                        'orders/parentSubaccountNumber': 1,
-                        'orders/{orderId}': 1,
-                        'perpetualMarkets': 1,
-                        'perpetualPositions': 1,
-                        'perpetualPositions/parentSubaccountNumber': 1,
-                        'screen': 1,
-                        'sparklines': 1,
-                        'time': 1,
-                        'trades/perpetualMarket/{market}': 1,
-                        'transfers': 1,
-                        'transfers/between': 1,
-                        'transfers/parentSubaccountNumber': 1,
-                        'vault/v1/megavault/historicalPnl': 1,
-                        'vault/v1/megavault/positions': 1,
-                        'vault/v1/vaults/historicalPnl': 1,
+                        'addresses/{address}': {'cost': 1},
+                        'addresses/{address}/parentSubaccountNumber/{number}': {'cost': 1},
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}': {'cost': 1},
+                        'assetPositions': {'cost': 1},
+                        'assetPositions/parentSubaccountNumber': {'cost': 1},
+                        'candles/perpetualMarkets/{market}': {'cost': 1},
+                        'compliance/screen/{address}': {'cost': 1},
+                        'fills': {'cost': 1},
+                        'fills/parentSubaccountNumber': {'cost': 1},
+                        'fundingPayments': {'cost': 1},
+                        'fundingPayments/parentSubaccount': {'cost': 1},
+                        'height': {'cost': 0.1},
+                        'historical-pnl': {'cost': 1},
+                        'historical-pnl/parentSubaccountNumber': {'cost': 1},
+                        'historicalBlockTradingRewards/{address}': {'cost': 1},
+                        'historicalFunding/{market}': {'cost': 1},
+                        'historicalTradingRewardAggregations/{address}': {'cost': 1},
+                        'orderbooks/perpetualMarket/{market}': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'orders/parentSubaccountNumber': {'cost': 1},
+                        'orders/{orderId}': {'cost': 1},
+                        'perpetualMarkets': {'cost': 1},
+                        'perpetualPositions': {'cost': 1},
+                        'perpetualPositions/parentSubaccountNumber': {'cost': 1},
+                        'screen': {'cost': 1},
+                        'sparklines': {'cost': 1},
+                        'time': {'cost': 1},
+                        'trades/perpetualMarket/{market}': {'cost': 1},
+                        'transfers': {'cost': 1},
+                        'transfers/between': {'cost': 1},
+                        'transfers/parentSubaccountNumber': {'cost': 1},
+                        'vault/v1/megavault/historicalPnl': {'cost': 1},
+                        'vault/v1/megavault/positions': {'cost': 1},
+                        'vault/v1/vaults/historicalPnl': {'cost': 1},
                         #
-                        'perpetualMarketSparklines': 1,
-                        'perpetualMarkets/{ticker}': 1,
-                        'perpetualMarkets/{ticker}/orderbook': 1,
-                        'trades/perpetualMarket/{ticker}': 1,
-                        'historicalFunding/{ticker}': 1,
-                        'candles/{ticker}/{resolution}': 1,
-                        'addresses/{address}/subaccounts': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': 1,
-                        'fills/parentSubaccount': 1,
-                        'historical-pnl/parentSubaccount': 1,
+                        'perpetualMarketSparklines': {'cost': 1},
+                        'perpetualMarkets/{ticker}': {'cost': 1},
+                        'perpetualMarkets/{ticker}/orderbook': {'cost': 1},
+                        'trades/perpetualMarket/{ticker}': {'cost': 1},
+                        'historicalFunding/{ticker}': {'cost': 1},
+                        'candles/{ticker}/{resolution}': {'cost': 1},
+                        'addresses/{address}/subaccounts': {'cost': 1},
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': {'cost': 1},
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': {'cost': 1},
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': {'cost': 1},
+                        'fills/parentSubaccount': {'cost': 1},
+                        'historical-pnl/parentSubaccount': {'cost': 1},
+                        'pnl': {'cost': 1},
+                        'pnl/parentSubaccountNumber': {'cost': 1},
+                        'tradeHistory': {'cost': 1},
+                        'tradeHistory/parentSubaccountNumber': {'cost': 1},
+                    },
+                    'post': {
+                        'turnkey/signin': {'cost': 1},
+                        'turnkey/uploadAddress': {'cost': 1},
                     },
                 },
                 'nodeRpc': {
                     'get': {
-                        'abci_info': 1,
-                        'block': 1,
-                        'broadcast_tx_async': 1,
-                        'broadcast_tx_sync': 1,
-                        'tx': 1,
+                        'abci_info': {'cost': 1},
+                        'block': {'cost': 1},
+                        'broadcast_tx_async': {'cost': 1},
+                        'broadcast_tx_sync': {'cost': 1},
+                        'tx': {'cost': 1},
                     },
                 },
                 'nodeRest': {
                     'get': {
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': {'cost': 1},
                     },
                     'post': {
-                        'cosmos/tx/v1beta1/encode': 1,
-                        'cosmos/tx/v1beta1/simulate': 1,
+                        'cosmos/tx/v1beta1/encode': {'cost': 1},
+                        'cosmos/tx/v1beta1/simulate': {'cost': 1},
                     },
                 },
             },
@@ -238,7 +245,7 @@ class dydx(Exchange, ImplicitAPI):
                 'privateKey': False,
             },
             'options': {
-                'mnemonic': None,  # specify mnemonic, copy secret phrase from UI
+                'privateKey': None,  # specify a hex-encoded secp256k1 private key
                 'chainName': 'dydx-mainnet-1',
                 'chainId': 1,
                 'sandboxMode': False,
@@ -350,7 +357,7 @@ class dydx(Exchange, ImplicitAPI):
                     # error collision for clob and sending modules from 2 - 8
                     # https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
                     # https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
-                    '9': InvalidOrder,  # A cancel already exists in the memclob for self order with a greater than or equal GoodTilBlock
+                    '9': InvalidOrder,  # A cancel already exists in the memclob for this order with a greater than or equal GoodTilBlock
                     '10': InvalidOrder,  # The next block height is greater than the GoodTilBlock of the message
                     '11': InvalidOrder,  # The GoodTilBlock of the message is further than ShortBlockWindow blocks into the future
                     '12': InvalidOrder,  # MsgPlaceOrder is invalid
@@ -371,7 +378,7 @@ class dydx(Exchange, ImplicitAPI):
                     '27': InvalidOrder,  # Invalid ClobPair parameter
                     '28': InvalidOrder,  # Oracle price must be > 0.
                     '29': InvalidOrder,  # Invalid stateful order cancellation
-                    '30': InvalidOrder,  # An order with the same `OrderId` and `OrderHash` has already been processed for self CLOB
+                    '30': InvalidOrder,  # An order with the same `OrderId` and `OrderHash` has already been processed for this CLOB
                     '31': InvalidOrder,  # Missing mid price for ClobPair
                     '32': InvalidOrder,  # Existing stateful order cancellation has higher-or-equal priority than the new one
                     '33': InvalidOrder,  # ClobPair with id already exists
@@ -399,7 +406,7 @@ class dydx(Exchange, ImplicitAPI):
                     '1005': InvalidOrder,  # Liquidation order is on the wrong side
                     '1006': InvalidOrder,  # Total fills amount exceeds size of liquidation order
                     '1007': InvalidOrder,  # Liquidation order does not contain any fills
-                    '1008': InvalidOrder,  # Subaccount has previously liquidated self perpetual in the current block
+                    '1008': InvalidOrder,  # Subaccount has previously liquidated this perpetual in the current block
                     '1009': InvalidOrder,  # Liquidation order has size smaller than min position notional specified in the liquidation config
                     '1010': InvalidOrder,  # Liquidation order has size greater than max position notional specified in the liquidation config
                     '1011': InvalidOrder,  # Liquidation exceeds the maximum notional amount that a single subaccount can have liquidated per block
@@ -459,7 +466,7 @@ class dydx(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -506,9 +513,11 @@ class dydx(Exchange, ImplicitAPI):
         #
         quoteId = 'USDC'
         marketId = self.safe_string(market, 'ticker')
+        if marketId is None:
+            raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('-')
         baseName = self.safe_string(parts, 0)
-        baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving
+        baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving as is
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         settleId = 'USDC'
@@ -575,16 +584,16 @@ class dydx(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
-        retrieves data on all markets for hyperliquid
+        retrieves data on all markets for dydx
 
         https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request: dict = {
+        request = {
             # 'limit': 1000,
         }
         response = self.indexerGetPerpetualMarkets(self.extend(request, params))
@@ -635,7 +644,7 @@ class dydx(Exchange, ImplicitAPI):
         # }
         #
         timestamp = self.parse8601(self.safe_string(trade, 'createdAt'))
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'size')
         side = self.safe_string_lower(trade, 'side')
@@ -656,11 +665,11 @@ class dydx(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
-        https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+        https://docs.dydx.xyz/indexer-client/http#get-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -668,9 +677,10 @@ class dydx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -694,7 +704,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'trades', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         # {
         #     "startedAt": "2025-07-25T09:47:00.000Z",
@@ -721,7 +731,7 @@ class dydx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'baseTokenVolume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://docs.dydx.xyz/indexer-client/http#get-candles
@@ -733,11 +743,12 @@ class dydx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -774,7 +785,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, limit)
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -789,9 +800,10 @@ class dydx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -829,7 +841,7 @@ class dydx(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def handle_public_address(self, methodName: str, params: dict):
+    def handle_public_address(self, methodName: Str, params: dict) -> list:
         userAux = None
         userAux, params = self.handle_option_and_params(params, methodName, 'user')
         user = userAux
@@ -854,14 +866,14 @@ class dydx(Exchange, ImplicitAPI):
         #     "type": "LIMIT",
         #     "status": "FILLED",
         #     "timeInForce": "GTT",
-        #     "reduceOnly": False,
+        #     "reduceOnly": false,
         #     "orderFlags": "64",
         #     "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
         #     "createdAtHeight": "45058325",
         #     "clientMetadata": "2",
         #     "updatedAt": "2025-07-28T12:06:35.330Z",
         #     "updatedAtHeight": "45058326",
-        #     "postOnly": False,
+        #     "postOnly": false,
         #     "ticker": "BTC-USD",
         #     "subaccountNumber": 0
         # }
@@ -903,7 +915,7 @@ class dydx(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'UNTRIGGERED': 'open',
             'OPEN': 'open',
             'FILLED': 'closed',
@@ -913,7 +925,7 @@ class dydx(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'LIMIT': 'LIMIT',
             'STOP_LIMIT': 'LIMIT',
             'TAKE_PROFIT_LIMIT': 'LIMIT',
@@ -924,7 +936,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return self.safe_string_upper(types, type, type)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -935,14 +947,15 @@ class dydx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'orderId': id,
         }
         order = self.indexerGetOrdersOrderId(self.extend(request, params))
         return self.parse_order(order)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -960,8 +973,9 @@ class dydx(Exchange, ImplicitAPI):
         subAccountNumber = None
         userAddress, params = self.handle_public_address('fetchOrders', params)
         subAccountNumber, params = self.handle_option_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
         }
@@ -986,14 +1000,14 @@ class dydx(Exchange, ImplicitAPI):
         #         "type": "LIMIT",
         #         "status": "FILLED",
         #         "timeInForce": "GTT",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "orderFlags": "64",
         #         "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
         #         "createdAtHeight": "45058325",
         #         "clientMetadata": "2",
         #         "updatedAt": "2025-07-28T12:06:35.330Z",
         #         "updatedAtHeight": "45058326",
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "ticker": "BTC-USD",
         #         "subaccountNumber": 0
         #     }
@@ -1001,7 +1015,7 @@ class dydx(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1015,12 +1029,12 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'OPEN',  # ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1034,12 +1048,12 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'FILLED',  # ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # {
         #     "market": "BTC-USD",
@@ -1094,7 +1108,7 @@ class dydx(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on an open position
 
@@ -1109,7 +1123,7 @@ class dydx(Exchange, ImplicitAPI):
         positions = self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1124,9 +1138,10 @@ class dydx(Exchange, ImplicitAPI):
         userAddress = None
         subAccountNumber = None
         userAddress, params = self.handle_public_address('fetchPositions', params)
-        subAccountNumber, params = self.handle_option_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
-        self.load_markets()
-        request: dict = {
+        subAccountNumber, params = self.handle_option_and_params(params, 'fetchPositions', 'subAccountNumber', '0')
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
             'status': 'OPEN',  # ['OPEN', 'CLOSED', 'LIQUIDATED']
@@ -1159,10 +1174,10 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'positions', [])
         return self.parse_positions(rows, symbols)
 
-    def hash_message(self, message):
+    def hash_message(self, message: object):
         return self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: object, privateKey: object):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -1172,17 +1187,17 @@ class dydx(Exchange, ImplicitAPI):
             'v': self.sum(27, signature['v']),
         }
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_onboarding_action(self) -> object:
         message = {'action': 'dYdX Chain Onboarding'}
         chainId = self.options['chainId']
-        domain: dict = {
+        domain = {
             'chainId': chainId,
             'name': 'dYdX Chain',
         }
-        messageTypes: dict = {
+        messageTypes = {
             'dYdX': [
                 {'name': 'action', 'type': 'string'},
             ],
@@ -1193,20 +1208,20 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def sign_dydx_tx(self, privateKey: str, message: Any, memo: str, chainId: str, account: Any, authenticators: Any, fee=None) -> str:
+    def sign_dydx_tx(self, privateKey: Str, message: object, memo: Str, chainId: Str, account: object, authenticators: object, fee: object = None) -> str:
         encodedTx, signDoc = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
         return self.encode_dydx_tx_raw(signDoc, signature['r'] + signature['s'])
 
-    def retrieve_credentials(self) -> Any:
+    def retrieve_credentials(self) -> object:
         credentials = self.safe_dict(self.options, 'dydxCredentials')
         if credentials is not None:
             return credentials
-        entropy = self.safe_string(self.options, 'mnemonic')
-        if entropy is None:
+        privateKey = self.safe_string(self.options, 'privateKey')
+        if privateKey is None:
             signature = self.sign_onboarding_action()
-            entropy = self.hash_message(self.base16_to_binary(signature['r'] + signature['s']))
-        credentials = self.retrieve_dydx_credentials(entropy)
+            privateKey = self.hash_message(self.base16_to_binary(signature['r'] + signature['s']))
+        credentials = self.retrieve_dydx_credentials(privateKey)
         credentials['privateKey'] = self.binary_to_base16(credentials['privateKey'])
         credentials['publicKey'] = self.binary_to_base16(credentials['publicKey'])
         self.options['dydxCredentials'] = credentials
@@ -1239,7 +1254,7 @@ class dydx(Exchange, ImplicitAPI):
         # }
         #
         response = self.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)
-        account = self.safe_dict(response, 'info')
+        account = self.safe_dict(response, 'info', {})
         account['pub_key'] = {
             # encode with binary key would fail in python
             'key': account['pub_key']['key'],
@@ -1247,7 +1262,7 @@ class dydx(Exchange, ImplicitAPI):
         self.options['dydxAccount'] = account
         return account
 
-    def pow(self, n: str, m: str):
+    def pow(self, n: str, m: Str):
         r = Precise.string_mul(n, '1')
         c = self.parse_to_int(m)
         # TODO: cap
@@ -1255,10 +1270,16 @@ class dydx(Exchange, ImplicitAPI):
             r = Precise.string_mul(r, n)
         return r
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)
         orderType = type.upper()
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrderRequest() requires a side argument')
         orderSide = side.upper()
         subaccountId = 0
         subaccountId, params = self.handle_option_and_params(params, 'createOrder', 'subAccountId', subaccountId)
@@ -1271,7 +1292,7 @@ class dydx(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarket, None, params)
         amountStr = self.amount_to_precision(symbol, amount)
         priceStr = self.price_to_precision(symbol, price)
-        marketInfo = self.safe_dict(market, 'info')
+        marketInfo = self.safe_dict(market, 'info', {})
         atomicResolution = marketInfo['atomicResolution']
         quantumScale = self.pow('10', Precise.string_neg(atomicResolution))
         quantums = Precise.string_mul(amountStr, quantumScale)
@@ -1324,6 +1345,8 @@ class dydx(Exchange, ImplicitAPI):
         if orderFlag == 0:
             if goodTillBlock is None:
                 # short term order
+                if latestBlockHeight is None:
+                    raise ExchangeError(self.id + ' method() missing latestBlockHeight')
                 goodTillBlock = latestBlockHeight + 20
         else:
             if goodTillBlockTimeInSeconds is None:
@@ -1361,7 +1384,13 @@ class dydx(Exchange, ImplicitAPI):
             'value': orderPayload,
         }
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId'])
-        orderId = self.create_order_id_from_parts(self.get_wallet_address(), subaccountId, clientOrderId, orderFlag, marketInfo['clobPairId'])
+        walletAddress = self.get_wallet_address()
+        clobPairId = self.safe_integer(marketInfo, 'clobPairId', 0)
+        subaccountIdValue = 0 if (subaccountId is None) else subaccountId
+        clientOrderIdValue = 0 if (clientOrderId is None) else clientOrderId
+        orderFlagValue = 0 if (orderFlag is None) else orderFlag
+        clobPairIdValue = 0 if (clobPairId is None) else clobPairId
+        orderId = self.create_order_id_from_parts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
         return [orderId, self.extend(signingPayload, params)]
 
     def create_order_id_from_parts(self, address: str, subAccountNumber: float, clientOrderId: float, orderFlags: float, clobPairId: float) -> str:
@@ -1389,9 +1418,12 @@ class dydx(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result')
         info = self.safe_dict(result, 'response')
-        return self.safe_integer(info, 'last_block_height')
+        height = self.safe_integer(info, 'last_block_height')
+        if height is None:
+            raise ExchangeError(self.id + ' fetchLatestBlockHeight() could not parse last_block_height')
+        return height
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
 
         https://docs.dydx.xyz/interaction/trading#place-an-order
@@ -1414,11 +1446,12 @@ class dydx(Exchange, ImplicitAPI):
         :param float [params.goodTillBlockTimeInSeconds]: expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         credentials = self.retrieve_credentials()
         account = self.fetch_dydx_account()
         lastBlockHeight = self.fetch_latest_block_height()
-        # params['latestBlockHeight'] = lastBlockHeight
+        # params['latestBlockHeight'] = lastBlockHeight;
         newParams = self.extend(params, {'latestBlockHeight': lastBlockHeight})
         orderRequestRes = self.create_order_request(symbol, type, side, amount, price, newParams)
         orderId = orderRequestRes[0]
@@ -1450,7 +1483,7 @@ class dydx(Exchange, ImplicitAPI):
             'clientOrderId': orderRequest['value']['order']['orderId']['clientId'],
         })
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1469,10 +1502,11 @@ class dydx(Exchange, ImplicitAPI):
         """
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
-        if not isTrigger and (symbol is None):
+        if (isTrigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
-        market: Market = self.market(symbol)
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId', id)
         if clientOrderId is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.')
@@ -1483,13 +1517,13 @@ class dydx(Exchange, ImplicitAPI):
         goodTillBlockTimeInSeconds = 2592000
         goodTillBlockTimeInSeconds, params = self.handle_option_and_params(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
         goodTillBlockTime = None
-        defaultOrderFlags = 32 if (isTrigger) else 64
+        defaultOrderFlags = 32 if (isTrigger is True) else 64
         orderFlags = self.safe_integer(params, 'orderFlags', defaultOrderFlags)
         subAccountId = 0
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrder', 'subAccountId', subAccountId)
         params = self.omit(params, ['clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId'])
         if orderFlags != 0 and orderFlags != 64 and orderFlags != 32:
-            raise InvalidOrder(self.id + ' invalid orderFlags, allowed values are(0, 64, 32).')
+            raise InvalidOrder(self.id + ' invalid orderFlags, allowed values are (0, 64, 32).')
         if orderFlags > 0:
             if goodTillBlockTimeInSeconds is None:
                 raise ArgumentsRequired(self.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.')
@@ -1544,7 +1578,7 @@ class dydx(Exchange, ImplicitAPI):
             'info': result,
         })
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -1554,10 +1588,11 @@ class dydx(Exchange, ImplicitAPI):
         :param int [params.subAccountId]: sub account id, default is 0
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        market: Market = self.market(symbol)
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
-        if not clientOrderIds:
+        if clientOrderIds is None:
             raise NotSupported(self.id + ' cancelOrders only support clientOrderIds.')
         subAccountId = 0
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrders', 'subAccountId', subAccountId)
@@ -1609,7 +1644,7 @@ class dydx(Exchange, ImplicitAPI):
             'info': result,
         })]
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1618,11 +1653,12 @@ class dydx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.indexerGetOrderbooksPerpetualMarketMarket(self.extend(request, params))
@@ -1696,8 +1732,8 @@ class dydx(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
-        ledgerType: dict = {
+    def parse_ledger_entry_type(self, type: Str) -> Str:
+        ledgerType = {
             'TRANSFER_IN': 'transfer',
             'TRANSFER_OUT': 'transfer',
             'DEPOSIT': 'deposit',
@@ -1705,7 +1741,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
 
@@ -1719,14 +1755,15 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
         response = self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchLedger'}))
         return self.parse_ledger(response, currency, since, limit)
 
-    def estimate_tx_fee(self, message: Any, memo: str, account: Any) -> Any:
+    def estimate_tx_fee(self, message: object, memo: Str, account: object) -> object:
         txBytes = self.encode_dydx_tx_for_simulation(message, memo, account['sequence'], account['pub_key'])
         request = {
             'txBytes': txBytes,
@@ -1734,7 +1771,7 @@ class dydx(Exchange, ImplicitAPI):
         response = self.nodeRestPostCosmosTxV1beta1Simulate(request)
         #
         # {
-        #     gas_info: {gas_wanted: '18446744073709551615', gas_used: '86055'},
+        #     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
         #     result: {
         #         ...
         #     }
@@ -1748,7 +1785,7 @@ class dydx(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' failed to simulate transaction.')
         defaultFeeDenom = self.safe_string(self.options, 'defaultFeeDenom')
         defaultFeeMultiplier = self.safe_string(self.options, 'defaultFeeMultiplier')
-        feeDenom = self.safe_dict(self.options, 'feeDenom')
+        feeDenom = self.safe_dict(self.options, 'feeDenom', {})
         gasPrice = None
         denom = None
         if defaultFeeDenom == 'uusdc':
@@ -1759,6 +1796,8 @@ class dydx(Exchange, ImplicitAPI):
             denom = feeDenom['CHAINTOKEN_DENOM']
         gasLimit = int(math.ceil(self.parse_to_numeric(Precise.string_mul(gasUsed, defaultFeeMultiplier))))
         feeAmount = Precise.string_mul(self.number_to_string(gasLimit), gasPrice)
+        if feeAmount is None:
+            raise ExchangeError(self.id + ' estimateTxFee() missing feeAmount')
         if feeAmount.find('.') >= 0:
             feeAmount = self.number_to_string(int(math.ceil(self.parse_to_numeric(feeAmount))))
         feeObj = {
@@ -1770,7 +1809,7 @@ class dydx(Exchange, ImplicitAPI):
             'gasLimit': gasLimit,
         }
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1783,11 +1822,12 @@ class dydx(Exchange, ImplicitAPI):
         """
         if code != 'USDC':
             raise NotSupported(self.id + ' transfer() only support USDC')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         fromSubaccountId = self.safe_integer(params, 'fromSubaccountId')
         toSubaccountId = self.safe_integer(params, 'toSubaccountId')
         if fromAccount != 'main':
-            # raise error if from subaccount id is undefind
+            # throw error if from subaccount id is undefined
             if fromAccount is None:
                 raise NotSupported(self.id + ' transfer only support main > subaccount and subaccount <> subaccount.')
             if fromSubaccountId is None or toSubaccountId is None:
@@ -1898,7 +1938,7 @@ class dydx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -1912,7 +1952,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1975,7 +2016,7 @@ class dydx(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1987,7 +2028,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         if code != 'USDC':
             raise NotSupported(self.id + ' withdraw() only support USDC')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.check_address(address)
         subaccountId = self.safe_integer(params, 'subaccountId')
         if subaccountId is None:
@@ -2034,7 +2076,7 @@ class dydx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'result', {})
         return self.parse_transaction(data, currency)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2048,7 +2090,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2056,7 +2099,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.filter_by(response, 'type', 'WITHDRAWAL')
         return self.parse_transactions(rows, currency, since, limit)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2070,7 +2113,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2078,7 +2122,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.filter_by(response, 'type', 'DEPOSIT')
         return self.parse_transactions(rows, currency, since, limit)
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2092,7 +2136,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2102,14 +2147,14 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.array_concat(withdrawals, deposits)
         return self.parse_transactions(rows, currency, since, limit)
 
-    def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         methodName = self.safe_string(params, 'methodName')
         params = self.omit(params, 'methodName')
         userAddress = None
         subAccountNumber = None
         userAddress, params = self.handle_public_address(methodName, params)
         subAccountNumber, params = self.handle_option_and_params(params, methodName, 'subAccountNumber', '0')
-        request: dict = {
+        request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
         }
@@ -2139,7 +2184,7 @@ class dydx(Exchange, ImplicitAPI):
         #
         return self.safe_list(response, 'transfers', [])
 
-    def fetch_accounts(self, params={}) -> List[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -2151,7 +2196,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchAccounts', params)
-        request: dict = {
+        request = {
             'address': userAddress,
         }
         response = self.indexerGetAddressesAddress(self.extend(request, params))
@@ -2192,7 +2237,7 @@ class dydx(Exchange, ImplicitAPI):
         #                     "subaccountNumber": 0
         #                 }
         #             },
-        #             "marginEnabled": True,
+        #             "marginEnabled": true,
         #             "updatedAtHeight": "45234659",
         #             "latestProcessedBlockHeight": "45293477"
         #         }
@@ -2213,7 +2258,7 @@ class dydx(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2222,12 +2267,13 @@ class dydx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         userAddress = None
-        userAddress, params = self.handle_public_address('fetchAccounts', params)
+        userAddress, params = self.handle_public_address('fetchBalance', params)
         subaccountNumber = None
-        subaccountNumber, params = self.handle_option_and_params(params, 'fetchAccounts', 'subaccountNumber', 0)
-        request: dict = {
+        subaccountNumber, params = self.handle_option_and_params(params, 'fetchBalance', 'subaccountNumber', 0)
+        request = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,
         }
@@ -2286,7 +2332,7 @@ class dydx(Exchange, ImplicitAPI):
         #                 "subaccountNumber": 0
         #             }
         #         },
-        #         "marginEnabled": True,
+        #         "marginEnabled": true,
         #         "updatedAtHeight": "52228833",
         #         "latestProcessedBlockHeight": "52246761"
         #     }
@@ -2295,16 +2341,16 @@ class dydx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'subaccount')
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         account = self.account()
         account['free'] = self.safe_string(response, 'freeCollateral')
-        result: dict = {
+        result = {
             'info': response,
             'USDC': account,
         }
         return self.safe_balance(result)
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
     def get_wallet_address(self):
@@ -2312,20 +2358,20 @@ class dydx(Exchange, ImplicitAPI):
             return self.walletAddress
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
         if dydxAccount is not None:
-            # return dydxAccount
+            # return dydxAccount;
             wallet = self.safe_string(dydxAccount, 'address')
             if wallet is not None:
                 return wallet
         raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
 
-    def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         pathWithParams = self.implode_params(path, params)
-        url = self.implode_hostname(self.urls['api'][section])
+        url = self.urls['api'][section]
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         url += '/' + pathWithParams
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             body = self.json(params)
@@ -2334,21 +2380,21 @@ class dydx(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         # abci response
-        # {"result": {"code": 0}}
+        # { "result": { "code": 0 } }
         #
         # rest response
-        # {"code": 123}
+        # { "code": 123 }
         #
         result = self.safe_dict(response, 'result')
         errorCode = self.safe_string(result, 'code')
-        if not errorCode:
+        if (errorCode is None) or (errorCode == ''):
             errorCode = self.safe_string(response, 'code')
-        if errorCode:
+        if (errorCode is not None) and (errorCode != ''):
             errorCodeNum = self.parse_to_numeric(errorCode)
             if errorCodeNum > 0:
                 feedback = self.id + ' ' + self.json(response)

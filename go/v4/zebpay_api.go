@@ -7,170 +7,257 @@
 
 package ccxt
 
-func (this *ZebpayCore) PublicSpotGetV2SystemTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2SystemTime", args...)
+// PublicSpotGetV2SystemTime returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2SystemTime(args ...any) <-chan any {
+	return this.Fetch2Async("v2/system/time", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSpotGetV2SystemStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2SystemStatus", args...)
+// PublicSpotGetV2SystemStatus returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2SystemStatus(args ...any) <-chan any {
+	return this.Fetch2Async("v2/system/status", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2MarketOrderbook", args...)
+// PublicSpotGetV2MarketOrderbook returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2MarketOrderbook(args ...any) <-chan any {
+	return this.Fetch2Async("v2/market/orderbook", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2MarketTrades", args...)
+// PublicSpotGetV2MarketOrderbookTicker returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2MarketOrderbookTicker(args ...any) <-chan any {
+	return this.Fetch2Async("v2/market/orderbook/ticker", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2MarketTicker", args...)
+// PublicSpotGetV2MarketTrades returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2MarketTrades(args ...any) <-chan any {
+	return this.Fetch2Async("v2/market/trades", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketAllTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2MarketAllTickers", args...)
+// PublicSpotGetV2MarketTicker returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2MarketTicker(args ...any) <-chan any {
+	return this.Fetch2Async("v2/market/ticker", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSpotGetV2ExExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2ExExchangeInfo", args...)
+// PublicSpotGetV2MarketAllTickers returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2MarketAllTickers(args ...any) <-chan any {
+	return this.Fetch2Async("v2/market/allTickers", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSpotGetV2ExCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2ExCurrencies", args...)
+// PublicSpotGetV2ExExchangeInfo returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2ExExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/exchangeInfo", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2MarketKlines", args...)
+// PublicSpotGetV2ExCurrencies returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2ExCurrencies(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/currencies", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSpotGetV2ExTradefees(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetV2ExTradefees", args...)
+// PublicSpotGetV2MarketKlines returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2MarketKlines(args ...any) <-chan any {
+	return this.Fetch2Async("v2/market/klines", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSwapGetV1SystemTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetV1SystemTime", args...)
+// PublicSpotGetV2ExTradefees returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSpotGetV2ExTradefees(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/tradefees", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSwapGetV1SystemStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetV1SystemStatus", args...)
+// PublicSwapGetV1SystemTime returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1SystemTime(args ...any) <-chan any {
+	return this.Fetch2Async("v1/system/time", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefee(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetV1ExchangeTradefee", args...)
+// PublicSwapGetV1SystemStatus returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1SystemStatus(args ...any) <-chan any {
+	return this.Fetch2Async("v1/system/status", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefees(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetV1ExchangeTradefees", args...)
+// PublicSwapGetV1ExchangeTradefee returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1ExchangeTradefee(args ...any) <-chan any {
+	return this.Fetch2Async("v1/exchange/tradefee", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketOrderBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetV1MarketOrderBook", args...)
+// PublicSwapGetV1ExchangeTradefees returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1ExchangeTradefees(args ...any) <-chan any {
+	return this.Fetch2Async("v1/exchange/tradefees", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketTicker24Hr(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetV1MarketTicker24Hr", args...)
+// PublicSwapGetV1ExchangeExchangeInfo returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1ExchangeExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("v1/exchange/exchangeInfo", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetV1MarketMarkets", args...)
+// PublicSwapGetV1ExchangePairs returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1ExchangePairs(args ...any) <-chan any {
+	return this.Fetch2Async("v1/exchange/pairs", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketAggTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetV1MarketAggTrade", args...)
+// PublicSwapGetV1MarketOrderBook returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1MarketOrderBook(args ...any) <-chan any {
+	return this.Fetch2Async("v1/market/orderBook", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PublicSwapPostV1MarketKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapPostV1MarketKlines", args...)
+// PublicSwapGetV1MarketTicker24Hr returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1MarketTicker24Hr(args ...any) <-chan any {
+	return this.Fetch2Async("v1/market/ticker24Hr", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSpotPostV2ExOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostV2ExOrders", args...)
+// PublicSwapGetV1MarketMarkets returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1MarketMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("v1/market/markets", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetV2ExOrders", args...)
+// PublicSwapGetV1MarketMarketInfo returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1MarketMarketInfo(args ...any) <-chan any {
+	return this.Fetch2Async("v1/market/marketInfo", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2AccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetV2AccountBalance", args...)
+// PublicSwapGetV1MarketAggTrade returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapGetV1MarketAggTrade(args ...any) <-chan any {
+	return this.Fetch2Async("v1/market/aggTrade", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExTradefee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetV2ExTradefee", args...)
+// PublicSwapPostV1MarketKlines returns a channel that yields a JSON object.
+func (this *Zebpay) PublicSwapPostV1MarketKlines(args ...any) <-chan any {
+	return this.Fetch2Async("v1/market/klines", []string{"public", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetV2ExOrder", args...)
+// PrivateSpotPostV2ExOrders returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotPostV2ExOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/orders", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExOrderFills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetV2ExOrderFills", args...)
+// PrivateSpotGetV2ExOrders returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotGetV2ExOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/orders", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSpotDeleteV2ExOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotDeleteV2ExOrder", args...)
+// PrivateSpotGetV2AccountBalance returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotGetV2AccountBalance(args ...any) <-chan any {
+	return this.Fetch2Async("v2/account/balance", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSpotDeleteV2ExOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotDeleteV2ExOrders", args...)
+// PrivateSpotGetV2ExTradefee returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotGetV2ExTradefee(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/tradefee", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSpotDeleteV2ExOrdersCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotDeleteV2ExOrdersCancelAll", args...)
+// PrivateSpotGetV2ExMyfeeSymbol returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotGetV2ExMyfeeSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/myfee/{symbol}", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1WalletBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetV1WalletBalance", args...)
+// PrivateSpotGetV2ExOrder returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotGetV2ExOrder(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/order", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetV1TradeOrder", args...)
+// PrivateSpotGetV2ExOrderFills returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotGetV2ExOrderFills(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/order/fills", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeOrderOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetV1TradeOrderOpenOrders", args...)
+// PrivateSpotDeleteV2ExOrder returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotDeleteV2ExOrder(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/order", []string{"private", "spot"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverages(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetV1TradeUserLeverages", args...)
+// PrivateSpotDeleteV2ExOrders returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotDeleteV2ExOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/orders", []string{"private", "spot"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetV1TradeUserLeverage", args...)
+// PrivateSpotDeleteV2ExOrdersCancelAll returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSpotDeleteV2ExOrdersCancelAll(args ...any) <-chan any {
+	return this.Fetch2Async("v2/ex/orders/cancelAll", []string{"private", "spot"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradePositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetV1TradePositions", args...)
+// PrivateSwapGetV1WalletBalance returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapGetV1WalletBalance(args ...any) <-chan any {
+	return this.Fetch2Async("v1/wallet/balance", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetV1TradeHistory", args...)
+// PrivateSwapGetV1TradeOrder returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapGetV1TradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/order", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostV1TradeOrder", args...)
+// PrivateSwapGetV1TradeOrderOpenOrders returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapGetV1TradeOrderOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/order/open-orders", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeOrderAddTPSL(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostV1TradeOrderAddTPSL", args...)
+// PrivateSwapGetV1TradeOrderHistory returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapGetV1TradeOrderHistory(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/order/history", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeAddMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostV1TradeAddMargin", args...)
+// PrivateSwapGetV1TradeUserLeverages returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapGetV1TradeUserLeverages(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/userLeverages", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeReduceMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostV1TradeReduceMargin", args...)
+// PrivateSwapGetV1TradeUserLeverage returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapGetV1TradeUserLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/userLeverage", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradePositionClose(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostV1TradePositionClose", args...)
+// PrivateSwapGetV1TradePositions returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapGetV1TradePositions(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/positions", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeUpdateUserLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostV1TradeUpdateUserLeverage", args...)
+// PrivateSwapGetV1TradeHistory returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapGetV1TradeHistory(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/history", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-func (this *ZebpayCore) PrivateSwapDeleteV1TradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapDeleteV1TradeOrder", args...)
+// PrivateSwapGetV1TradeTransactionHistory returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapGetV1TradeTransactionHistory(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/transaction/history", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateSwapPostV1TradeOrder returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapPostV1TradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/order", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateSwapPostV1TradeOrderAddTPSL returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapPostV1TradeOrderAddTPSL(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/order/addTPSL", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateSwapPostV1TradeAddMargin returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapPostV1TradeAddMargin(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/addMargin", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateSwapPostV1TradeReduceMargin returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapPostV1TradeReduceMargin(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/reduceMargin", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateSwapPostV1TradePositionClose returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapPostV1TradePositionClose(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/position/close", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateSwapPostV1TradeUpdateUserLeverage returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapPostV1TradeUpdateUserLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/update/userLeverage", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateSwapDeleteV1TradeOrder returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapDeleteV1TradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/order", []string{"private", "swap"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateSwapDeleteV1TradeOrderAll returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapDeleteV1TradeOrderAll(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/order/all", []string{"private", "swap"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateSwapPatchV1TradeOrder returns a channel that yields a JSON object.
+func (this *Zebpay) PrivateSwapPatchV1TradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("v1/trade/order", []string{"private", "swap"}, "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }

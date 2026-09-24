@@ -17,24 +17,27 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchTickersHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
-        object method = "watchTickers";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        string method = "watchTickers";
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 15000);
+        int maxIdleTime = 5000;
+        bool idle = false;
+        while ((isLessThan(now, ends)) && !idle)
         {
-            object response = null;
-            object success = true;
-            object shouldReturn = false;
+            object response = new Dictionary<string, object>() {};
+            bool success = true;
+            bool shouldReturn = false;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchTickers(argSymbols, argParams);
+                response = detypeForComparison(await exchange.WatchTickers(argSymbols, argParams));
             } catch(Exception e)
             {
                 // for some exchanges, specifically watchTickers method not subscribe
                 // to "all tickers" itself, and it requires symbols to be set
                 // so, in such case, if it's arguments-required exception, we don't
                 // mark tests as failed, but just skip them
-                if (isTrue(isTrue((e is ArgumentsRequired)) && isTrue((isTrue(isEqual(argSymbols, null)) || isTrue(isEqual(getArrayLength(argSymbols), 0))))))
+                if ((e is ArgumentsRequired) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
                 {
                     // todo: provide random symbols to try
                     // return;
@@ -44,30 +47,44 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (isTrue(shouldReturn))
+            now = exchange.milliseconds();
+            if (shouldReturn)
             {
                 return false;
             }
-            if (isTrue(isEqual(success, true)))
+            if ((success == true))
             {
-                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
-                object values = new List<object>(((IDictionary<string,object>)response).Values);
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
+                List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
-                if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
+                if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
                 {
                     checkedSymbol = getValue(argSymbols, 0);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+                for (int i = 0; i < values.Count; i++)
                 {
-                    object ticker = getValue(values, i);
-                    testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    object ticker = values[i];
+                    try
+                    {
+                        testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    } catch(Exception ex)
+                    {
+                        object ohlcv = null;
+                        object tickerSymbol = getValue(ticker, "symbol");
+                        if (((tickerSymbol != null)) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
+                        {
+                            ohlcv = detypeForComparison(await exchange.FetchOHLCV(((string)tickerSymbol), "1d",ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(5)));
+                        }
+                        testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
+                    }
                 }
-                now = exchange.milliseconds();
+                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

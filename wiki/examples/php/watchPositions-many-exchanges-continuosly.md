@@ -1,8 +1,5 @@
-- [Watchpositions Many Exchanges Continuosly](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // watch and handle constinuosly
 function watch_positions_continuously($exchange) {
     return Async\async(function () use ($exchange) {
@@ -63,7 +59,7 @@ function example() {
                 'apiKey' => 'YOUR_API_KEY',
                 'secret' => 'YOUR_API_SECRET',
             ),
-            'huobi' => array(
+            'htx' => array(
                 'apiKey' => 'YOUR_API_KEY',
                 'secret' => 'YOUR_API_SECRET',
             ),
@@ -81,5 +77,5 @@ function example() {
 
 
 \React\Async\await(example());
- 
+
 ```

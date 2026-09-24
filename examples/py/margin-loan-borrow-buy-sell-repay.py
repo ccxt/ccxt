@@ -12,7 +12,6 @@ sys.path.append(root + '/python')
 # ----------------------------------------------------------------------------
 
 
-# AUTO-TRANSPILE #
 # Note, this is just an example and might not yet work on other exchanges, which are being still unified.
 async def example():
     # ########## user inputs ##########

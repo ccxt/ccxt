@@ -7,9 +7,16 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testOrderBook(Exchange exchange, object skippedProperties, object method, object orderbook, object symbol)
+    public static void testOrderBook(BaseExchange exchange, object skippedProperties, object method, object orderbook, object symbol)
     {
-        object format = new Dictionary<string, object>() {
+        // prediction-market structures are keyed by an outcome handle, not a `symbol`
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+            }, skippedProperties);
+        }
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "symbol", "ETH/BTC" },
             { "asks", new List<object>() {new List<object> {exchange.parseNumber("1.24"), exchange.parseNumber("0.453")}, new List<object> {exchange.parseNumber("1.25"), exchange.parseNumber("0.157")}} },
             { "bids", new List<object>() {new List<object> {exchange.parseNumber("1.23"), exchange.parseNumber("0.123")}, new List<object> {exchange.parseNumber("1.22"), exchange.parseNumber("0.543")}} },
@@ -17,29 +24,27 @@ public partial class testMainClass : BaseTest
             { "datetime", "2017-09-01T00:00:00" },
             { "nonce", 134234234 },
         };
-        object emptyAllowedFor = new List<object>() {"nonce"};
-        // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-        orderbook = exchange.deepExtend(new Dictionary<string, object>() {}, orderbook);
+        List<object> emptyAllowedFor = new List<object>() {"nonce"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         // testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);
         object logText = testSharedMethods.logTemplate(exchange, method, orderbook);
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         object bids = getValue(orderbook, "bids");
-        object bidsLength = getArrayLength(bids);
-        for (object i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))
+        int bidsLength = getArrayLength(bids);
+        for (int i = 0; i < bidsLength; i++)
         {
-            object currentBidString = exchange.safeString(getValue(bids, i), 0);
-            if (!isTrue((inOp(skippedProperties, "compareToNextItem"))))
+            string? currentBidString = exchange.safeString(getValue(bids, i), 0);
+            if (!(inOp(skippedProperties, "compareToNextItem")))
             {
                 object nextI = add(i, 1);
-                if (isTrue(isGreaterThan(bidsLength, nextI)))
+                if (isGreaterThan(bidsLength, nextI))
                 {
-                    object nextBidString = exchange.safeString(getValue(bids, nextI), 0);
-                    assert(Precise.stringGt(currentBidString, nextBidString), add(add(add(add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText));
+                    string? nextBidString = exchange.safeString(getValue(bids, nextI), 0);
+                    assert(Precise.stringGt(currentBidString, nextBidString), (((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString) + (logText)));
                 }
             }
-            if (!isTrue((inOp(skippedProperties, "compareToZero"))))
+            if (!(inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(bids, i), 0, "0");
@@ -47,34 +52,34 @@ public partial class testMainClass : BaseTest
             }
         }
         object asks = getValue(orderbook, "asks");
-        object asksLength = getArrayLength(asks);
-        for (object i = 0; isLessThan(i, asksLength); postFixIncrement(ref i))
+        int asksLength = getArrayLength(asks);
+        for (int i = 0; i < asksLength; i++)
         {
-            object currentAskString = exchange.safeString(getValue(asks, i), 0);
-            if (!isTrue((inOp(skippedProperties, "compareToNextItem"))))
+            string? currentAskString = exchange.safeString(getValue(asks, i), 0);
+            if (!(inOp(skippedProperties, "compareToNextItem")))
             {
                 object nextI = add(i, 1);
-                if (isTrue(isGreaterThan(asksLength, nextI)))
+                if (isGreaterThan(asksLength, nextI))
                 {
-                    object nextAskString = exchange.safeString(getValue(asks, nextI), 0);
-                    assert(Precise.stringLt(currentAskString, nextAskString), add(add(add(add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText));
+                    string? nextAskString = exchange.safeString(getValue(asks, nextI), 0);
+                    assert(Precise.stringLt(currentAskString, nextAskString), (((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString) + (logText)));
                 }
             }
-            if (!isTrue((inOp(skippedProperties, "compareToZero"))))
+            if (!(inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 0, "0");
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 1, "0");
             }
         }
-        if (!isTrue((inOp(skippedProperties, "spread"))))
+        if (!(inOp(skippedProperties, "spread")))
         {
-            if (isTrue(isTrue(bidsLength) && isTrue(asksLength)))
+            if ((bidsLength > 0) && (asksLength > 0))
             {
-                object firstBid = exchange.safeString(getValue(bids, 0), 0);
-                object firstAsk = exchange.safeString(getValue(asks, 0), 0);
+                string? firstBid = exchange.safeString(getValue(bids, 0), 0);
+                string? firstAsk = exchange.safeString(getValue(asks, 0), 0);
                 // check bid-ask spread
-                assert(Precise.stringLt(firstBid, firstAsk), add(add(add(add(add("bids[0][0] (", firstBid), ") should be < than asks[0][0] ("), firstAsk), ")"), logText));
+                assert(Precise.stringLt(firstBid, firstAsk), ((((("bids[0][0] (" + firstBid) + ") should be < than asks[0][0] (") + firstAsk) + ")") + (logText)));
             }
         }
     }

@@ -9,11 +9,13 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class mexc extends \ccxt\async\mexc {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -85,102 +87,104 @@ class mexc extends \ccxt\async\mexc {
         ));
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-$symbol-book-ticker-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->miniTicker] set to true for using the miniTicker endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = 'ticker:' . $market['symbol'];
-            if ($market['spot']) {
-                $channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
-                return Async\await($this->watch_spot_public($channel, $messageHash, $params));
-            } else {
-                $channel = 'sub.ticker';
-                $requestParams = array(
-                    'symbol' => $market['id'],
-                );
-                return Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
-            }
-        }) ();
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
     }
 
-    public function handle_ticker(Client $client, $message) {
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/individual-$symbol-book-ticker-streams // spot
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/get-a-single-ticker // swap
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'ticker:' . $market['symbol'];
+        if ($market['spot'] === true) {
+            $channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
+            return Async\await($this->watch_spot_public($channel, $messageHash, $params));
+        } else {
+            $channel = 'sub.ticker';
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            return Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
+        }
+    }
+
+    public function handle_ticker(Client $client, array $message) {
         //
         // swap
         //
         //     {
-        //         "symbol" => "BTC_USDT",
-        //         "data" => array(
-        //             "symbol" => "BTC_USDT",
-        //             "lastPrice" => 76376.1,
-        //             "riseFallRate" => -0.0006,
-        //             "fairPrice" => 76374.4,
-        //             "indexPrice" => 76385.8,
-        //             "volume24" => 962062810,
-        //             "amount24" => 7344207079.96768,
-        //             "maxBidPrice" => 84024.3,
-        //             "minAskPrice" => 68747.2,
-        //             "lower24Price" => 75620.2,
-        //             "high24Price" => 77210,
-        //             "timestamp" => 1731137509138,
-        //             "bid1" => 76376.2,
-        //             "ask1" => 76376.3,
-        //             "holdVol" => 95479623,
-        //             "riseFallValue" => -46.5,
-        //             "fundingRate" => 0.0001,
-        //             "zone" => "UTC+8",
-        //             "riseFallRates" => array( -0.0006, 0.1008, 0.2262, 0.2628, 0.2439, 1.0564 ),
-        //             "riseFallRatesOfTimezone" => array( 0.0065, -0.0013, -0.0006 )
-        //         ),
-        //         "channel" => "push.ticker",
-        //         "ts" => 1731137509138
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "lastPrice": 76376.1,
+        //             "riseFallRate": -0.0006,
+        //             "fairPrice": 76374.4,
+        //             "indexPrice": 76385.8,
+        //             "volume24": 962062810,
+        //             "amount24": 7344207079.96768,
+        //             "maxBidPrice": 84024.3,
+        //             "minAskPrice": 68747.2,
+        //             "lower24Price": 75620.2,
+        //             "high24Price": 77210,
+        //             "timestamp": 1731137509138,
+        //             "bid1": 76376.2,
+        //             "ask1": 76376.3,
+        //             "holdVol": 95479623,
+        //             "riseFallValue": -46.5,
+        //             "fundingRate": 0.0001,
+        //             "zone": "UTC+8",
+        //             "riseFallRates": [ -0.0006, 0.1008, 0.2262, 0.2628, 0.2439, 1.0564 ],
+        //             "riseFallRatesOfTimezone": [ 0.0065, -0.0013, -0.0006 ]
+        //         },
+        //         "channel": "push.ticker",
+        //         "ts": 1731137509138
         //     }
         //
         // spot
         //
         //    {
-        //        "c" => "spot@public.bookTicker.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "A" => "4.70432",
-        //            "B" => "6.714863",
-        //            "a" => "20744.54",
-        //            "b" => "20744.17"
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678643605721
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
         //    }
         //
         // spot miniTicker
         //
         //     {
-        //         "d" => array(
-        //             "s" => "BTCUSDT",
-        //             "p" => "76522",
-        //             "r" => "0.0012",
-        //             "tr" => "0.0012",
-        //             "h" => "77196.3",
-        //             "l" => "75630.77",
-        //             "v" => "584664223.92",
-        //             "q" => "7666.720258",
-        //             "lastRT" => "-1",
-        //             "MT" => "0",
-        //             "NV" => "--",
-        //             "t" => "1731135533126"
-        //         ),
-        //         "c" => "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
-        //         "t" => 1731135533126,
-        //         "s" => "BTCUSDT"
+        //         "d": {
+        //             "s": "BTCUSDT",
+        //             "p": "76522",
+        //             "r": "0.0012",
+        //             "tr": "0.0012",
+        //             "h": "77196.3",
+        //             "l": "75630.77",
+        //             "v": "584664223.92",
+        //             "q": "7666.720258",
+        //             "lastRT": "-1",
+        //             "MT": "0",
+        //             "NV": "--",
+        //             "t": "1731135533126"
+        //         },
+        //         "c": "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
+        //         "t": 1731135533126,
+        //         "s": "BTCUSDT"
         //     }
         //
         $this->handle_bid_ask($client, $message);
@@ -189,151 +193,153 @@ class mexc extends \ccxt\async\mexc {
         $timestamp = $this->safe_integer_2($message, 't', 'sendTime');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $ticker = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $ticker = $this->parse_ws_ticker($rawTicker, $market);
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
-        } else {
+        } elseif ($rawTicker !== null) {
             $ticker = $this->parse_ticker($rawTicker, $market);
+        } else {
+            return;
         }
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $messageHash);
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-$ticker-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers
-             *
-             * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->miniTicker] set to true for using the $miniTicker endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/tickers
+         *
+         * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null);
-            $messageHashes = array();
-            $firstSymbol = $this->safe_string($symbols, 0);
-            $market = null;
-            if ($firstSymbol !== null) {
-                $market = $this->market($firstSymbol);
-            }
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
-            $isSpot = ($type === 'spot');
-            $url = ($isSpot) ? $this->urls['api']['ws']['spot'] : $this->urls['api']['ws']['swap'];
-            $request = array();
-            if ($isSpot) {
-                throw new NotSupported($this->id . ' watchTickers does not support spot markets');
-                // $miniTicker = false;
-                // list($miniTicker, $params) = $this->handle_option_and_params($params, 'watchTickers', 'miniTicker');
-                // $topics = array();
-                // if (!$miniTicker) {
-                //     if ($symbols === null) {
-                //         throw new ArgumentsRequired($this->id . ' watchTickers required $symbols argument for the bookTicker channel');
-                //     }
-                //     $marketIds = $this->market_ids($symbols);
-                //     for ($i = 0; $i < count($marketIds); $i++) {
-                //         $marketId = $marketIds[$i];
-                //         $messageHashes[] = 'ticker:' . $symbols[$i];
-                //         $channel = 'spot@public.bookTicker.v3.api@' . $marketId;
-                //         $topics[] = $channel;
-                //     }
-                // } else {
-                //     $topics[] = 'spot@public.miniTickers.v3.api@UTC+8';
-                //     if ($symbols === null) {
-                //         $messageHashes[] = 'spot:ticker';
-                //     } else {
-                //         for ($i = 0; $i < count($symbols); $i++) {
-                //             $messageHashes[] = 'ticker:' . $symbols[$i];
-                //         }
-                //     }
-                // }
-                // $request['method'] = 'SUBSCRIPTION';
-                // $request['params'] = $topics;
-            } else {
-                $request['method'] = 'sub.tickers';
-                $request['params'] = array();
-                $messageHashes[] = 'ticker';
-            }
-            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
-            if ($isSpot && $this->newUpdates) {
-                $result = array();
-                $result[$ticker['symbol']] = $ticker;
-                return $result;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null);
+        $messageHashes = array();
+        $firstSymbol = $this->safe_string($symbols, 0);
+        $market = null;
+        if ($firstSymbol !== null) {
+            $market = $this->market($firstSymbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
+        $isSpot = ($type === 'spot');
+        $url = ($isSpot) ? $this->urls['api']['ws']['spot'] : $this->urls['api']['ws']['swap'];
+        $request = array();
+        if ($isSpot) {
+            throw new NotSupported($this->id . ' watchTickers does not support spot markets');
+            // let miniTicker = false;
+            // [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTickers', 'miniTicker');
+            // const topics = [];
+            // if (!miniTicker) {
+            //     if (symbols === undefined) {
+            //         throw new ArgumentsRequired (this.id + ' watchTickers required symbols argument for the bookTicker channel');
+            //     }
+            //     const marketIds = this.marketIds (symbols);
+            //     for (let i = 0; i < marketIds.length; i++) {
+            //         const marketId = marketIds[i];
+            //         messageHashes.push ('ticker:' + symbols[i]);
+            //         const channel = 'spot@public.bookTicker.v3.api@' + marketId;
+            //         topics.push (channel);
+            //     }
+            // } else {
+            //     topics.push ('spot@public.miniTickers.v3.api@UTC+8');
+            //     if (symbols === undefined) {
+            //         messageHashes.push ('spot:ticker');
+            //     } else {
+            //         for (let i = 0; i < symbols.length; i++) {
+            //             messageHashes.push ('ticker:' + symbols[i]);
+            //         }
+            //     }
+            // }
+            // request['method'] = 'SUBSCRIPTION';
+            // request['params'] = topics;
+        } else {
+            $request['method'] = 'sub.tickers';
+            $request['params'] = array();
+            $messageHashes[] = 'ticker';
+        }
+        $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        if ($isSpot && $this->newUpdates) {
+            $result = array();
+            $result[$ticker['symbol']] = $ticker;
+            return $result;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_tickers(Client $client, $message) {
+    public function handle_tickers(Client $client, array $message) {
         //
         // swap
         //
         //     {
-        //       "channel" => "push.tickers",
-        //       "data" => array(
+        //       "channel": "push.tickers",
+        //       "data": [
         //         {
-        //           "symbol" => "ETH_USDT",
-        //           "lastPrice" => 2324.5,
-        //           "riseFallRate" => 0.0356,
-        //           "fairPrice" => 2324.32,
-        //           "indexPrice" => 2325.44,
-        //           "volume24" => 25868309,
-        //           "amount24" => 591752573.9792,
-        //           "maxBidPrice" => 2557.98,
-        //           "minAskPrice" => 2092.89,
-        //           "lower24Price" => 2239.39,
-        //           "high24Price" => 2332.59,
-        //           "timestamp" => 1725872514111
+        //           "symbol": "ETH_USDT",
+        //           "lastPrice": 2324.5,
+        //           "riseFallRate": 0.0356,
+        //           "fairPrice": 2324.32,
+        //           "indexPrice": 2325.44,
+        //           "volume24": 25868309,
+        //           "amount24": 591752573.9792,
+        //           "maxBidPrice": 2557.98,
+        //           "minAskPrice": 2092.89,
+        //           "lower24Price": 2239.39,
+        //           "high24Price": 2332.59,
+        //           "timestamp": 1725872514111
         //         }
-        //       ),
-        //       "ts" => 1725872514111
+        //       ],
+        //       "ts": 1725872514111
         //     }
         //
         // spot
         //
         //    {
-        //        "c" => "spot@public.bookTicker.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "A" => "4.70432",
-        //            "B" => "6.714863",
-        //            "a" => "20744.54",
-        //            "b" => "20744.17"
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678643605721
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
         //    }
         //
         // spot miniTicker
         //
         //     {
-        //         "d" => array(
-        //             "s" => "BTCUSDT",
-        //             "p" => "76522",
-        //             "r" => "0.0012",
-        //             "tr" => "0.0012",
-        //             "h" => "77196.3",
-        //             "l" => "75630.77",
-        //             "v" => "584664223.92",
-        //             "q" => "7666.720258",
-        //             "lastRT" => "-1",
-        //             "MT" => "0",
-        //             "NV" => "--",
-        //             "t" => "1731135533126"
-        //         ),
-        //         "c" => "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
-        //         "t" => 1731135533126,
-        //         "s" => "BTCUSDT"
+        //         "d": {
+        //             "s": "BTCUSDT",
+        //             "p": "76522",
+        //             "r": "0.0012",
+        //             "tr": "0.0012",
+        //             "h": "77196.3",
+        //             "l": "75630.77",
+        //             "v": "584664223.92",
+        //             "q": "7666.720258",
+        //             "lastRT": "-1",
+        //             "MT": "0",
+        //             "NV": "--",
+        //             "t": "1731135533126"
+        //         },
+        //         "c": "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
+        //         "t": 1731135533126,
+        //         "s": "BTCUSDT"
         //     }
         //
-        $data = $this->safe_list_2($message, 'data', 'd');
+        $data = $this->safe_list_2($message, 'data', 'd', array());
         $channel = $this->safe_string($message, 'c', '');
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId);
@@ -341,57 +347,58 @@ class mexc extends \ccxt\async\mexc {
         $marketIdIsUndefined = $marketId === null;
         $isSpot = $marketIdIsUndefined ? $channelStartsWithSpot : $market['spot'];
         $spotPrefix = 'spot:';
-        $messageHashPrefix = $isSpot ? $spotPrefix : '';
+        $messageHashPrefix = ($isSpot === true) ? $spotPrefix : '';
         $topic = $messageHashPrefix . 'ticker';
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
-            $ticker = null;
-            if ($isSpot) {
+            if ($isSpot === true) {
                 $ticker = $this->parse_ws_ticker($entry, $market);
             } else {
                 $ticker = $this->parse_ticker($entry);
             }
             $symbol = $ticker['symbol'];
-            $this->tickers[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $this->tickers[$symbol] = $ticker;
+            }
             $result[] = $ticker;
             $messageHash = 'ticker:' . $symbol;
-            $client->resolve ($ticker, $messageHash);
+            $client->resolve($ticker, $messageHash);
         }
-        $client->resolve ($result, $topic);
+        $client->resolve($result, $topic);
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
-        // protobuf $ticker
-        // "bidprice" => "93387.28",  // Best bid $price
-        // "bidquantity" => "3.73485", // Best bid quantity
-        // "askprice" => "93387.29", // Best ask $price
-        // "askquantity" => "7.669875" // Best ask quantity
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+        // protobuf ticker
+        // "bidprice": "93387.28",  // Best bid price
+        // "bidquantity": "3.73485", // Best bid quantity
+        // "askprice": "93387.29", // Best ask price
+        // "askquantity": "7.669875" // Best ask quantity
         //
         // spot
         //
         //     {
-        //         "A" => "4.70432",
-        //         "B" => "6.714863",
-        //         "a" => "20744.54",
-        //         "b" => "20744.17"
+        //         "A": "4.70432",
+        //         "B": "6.714863",
+        //         "a": "20744.54",
+        //         "b": "20744.17"
         //     }
         //
         // spot miniTicker
         //
         //     {
-        //         "s" => "BTCUSDT",
-        //         "p" => "76521",
-        //         "r" => "0.0012",
-        //         "tr" => "0.0012",
-        //         "h" => "77196.3",
-        //         "l" => "75630.77",
-        //         "v" => "584664223.92",
-        //         "q" => "7666.720258",
-        //         "lastRT" => "-1",
-        //         "MT" => "0",
-        //         "NV" => "--",
-        //         "t" => "1731135533126"
+        //         "s": "BTCUSDT",
+        //         "p": "76521",
+        //         "r": "0.0012",
+        //         "tr": "0.0012",
+        //         "h": "77196.3",
+        //         "l": "75630.77",
+        //         "v": "584664223.92",
+        //         "q": "7666.720258",
+        //         "lastRT": "-1",
+        //         "MT": "0",
+        //         "NV": "--",
+        //         "t": "1731135533126"
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
@@ -421,65 +428,69 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-$ticker-streams
-             *
-             * watches best bid & ask for $symbols
-             * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, false, true);
-            $marketType = null;
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchBidsAsks required $symbols argument');
-            }
-            $markets = $this->markets_for_symbols($symbols);
-            list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
-            $isSpot = $marketType === 'spot';
-            if (!$isSpot) {
-                throw new NotSupported($this->id . ' watchBidsAsks only support spot market');
-            }
-            $messageHashes = array();
-            $topics = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                if ($isSpot) {
-                    $market = $this->market($symbols[$i]);
-                    $topics[] = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
-                }
-                $messageHashes[] = 'bidask:' . $symbols[$i];
-            }
-            $url = $this->urls['api']['ws']['spot'];
-            $request = array(
-                'method' => 'SUBSCRIPTION',
-                'params' => $topics,
-            );
-            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
-            if ($this->newUpdates) {
-                $tickers = array();
-                $tickers[$ticker['symbol']] = $ticker;
-                return $tickers;
-            }
-            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
-        }) ();
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/individual-symbol-book-$ticker-streams
+         *
+         * watches best bid & ask for $symbols
+         * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, true, false, true);
+        $marketType = null;
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' watchBidsAsks required $symbols argument');
+        }
+        $markets = $this->require_value($this->markets_for_symbols($symbols), 'watchBidsAsks() $markets is required');
+        list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
+        $isSpot = $marketType === 'spot';
+        if (!$isSpot) {
+            throw new NotSupported($this->id . ' watchBidsAsks only support spot market');
+        }
+        $messageHashes = array();
+        $topics = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            if ($isSpot) {
+                $market = $this->market($symbols[$i]);
+                $topics[] = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
+            }
+            $messageHashes[] = 'bidask:' . $symbols[$i];
+        }
+        $url = $this->urls['api']['ws']['spot'];
+        $request = array(
+            'method' => 'SUBSCRIPTION',
+            'params' => $topics,
+        );
+        $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        if ($this->newUpdates) {
+            $tickers = array();
+            $tickers[$ticker['symbol']] = $ticker;
+            return $tickers;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+    }
+
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //    {
-        //        "c" => "spot@public.bookTicker.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "A" => "4.70432",
-        //            "B" => "6.714863",
-        //            "a" => "20744.54",
-        //            "b" => "20744.17"
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678643605721
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
         //    }
         //
         $parsedTicker = $this->parse_ws_bid_ask($message);
@@ -489,10 +500,10 @@ class mexc extends \ccxt\async\mexc {
         }
         $this->bidsasks[$symbol] = $parsedTicker;
         $messageHash = 'bidask:' . $symbol;
-        $client->resolve ($parsedTicker, $messageHash);
+        $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $data = $this->safe_dict($ticker, 'd');
         $marketId = $this->safe_string($ticker, 's');
         $market = $this->safe_market($marketId, $market);
@@ -510,150 +521,164 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function watch_spot_public($channel, $messageHash, $params = array ()) {
-        return Async\async(function () use ($channel, $messageHash, $params) {
-            $unsubscribed = $this->safe_bool($params, 'unsubscribed', false);
-            $params = $this->omit($params, array( 'unsubscribed' ));
-            $url = $this->urls['api']['ws']['spot'];
-            $method = ($unsubscribed) ? 'UNSUBSCRIPTION' : 'SUBSCRIPTION';
-            $request = array(
-                'method' => $method,
-                'params' => array( $channel ),
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+    public function watch_spot_public(string $channel, string $messageHash, $params = array()) {
+        return Async\async(self::do_watch_spot_public(...))($channel, $messageHash, $params);
     }
 
-    public function watch_spot_private($channel, $messageHash, $params = array ()) {
-        return Async\async(function () use ($channel, $messageHash, $params) {
-            $this->check_required_credentials();
-            $listenKey = Async\await($this->authenticate($channel));
-            $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
-            $request = array(
-                'method' => 'SUBSCRIPTION',
-                'params' => array( $channel ),
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel));
-        }) ();
+    private function do_watch_spot_public(string $channel, string $messageHash, $params = array()) {
+        $unsubscribed = $this->safe_bool($params, 'unsubscribed', false);
+        $params = $this->omit($params, array( 'unsubscribed' ));
+        $url = $this->urls['api']['ws']['spot'];
+        $method = ($unsubscribed === true) ? 'UNSUBSCRIPTION' : 'SUBSCRIPTION';
+        $request = array(
+            'method' => $method,
+            'params' => array( $channel ),
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function watch_swap_public($channel, $messageHash, $requestParams, $params = array ()) {
-        return Async\async(function () use ($channel, $messageHash, $requestParams, $params) {
-            $url = $this->urls['api']['ws']['swap'];
-            $request = array(
-                'method' => $channel,
-                'param' => $requestParams,
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        }) ();
+    public function watch_spot_private(string $channel, string $messageHash, $params = array()) {
+        return Async\async(self::do_watch_spot_private(...))($channel, $messageHash, $params);
     }
 
-    public function watch_swap_private($messageHash, $params = array ()) {
-        return Async\async(function () use ($messageHash, $params) {
-            $this->check_required_credentials();
-            $channel = 'login';
-            $url = $this->urls['api']['ws']['swap'];
-            $timestamp = (string) $this->milliseconds();
-            $payload = $this->apiKey . $timestamp;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
-            $request = array(
-                'method' => $channel,
-                'param' => array(
-                    'apiKey' => $this->apiKey,
-                    'signature' => $signature,
-                    'reqTime' => $timestamp,
-                ),
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $channel));
-        }) ();
+    private function do_watch_spot_private(string $channel, string $messageHash, $params = array()) {
+        $this->check_required_credentials();
+        $listenKey = Async\await($this->authenticate($channel));
+        $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
+        $request = array(
+            'method' => 'SUBSCRIPTION',
+            'params' => array( $channel ),
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel));
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams#trade-streams
-             *
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
+    public function watch_swap_public(string $channel, string $messageHash, array $requestParams, $params = array()) {
+        return Async\async(self::do_watch_swap_public(...))($channel, $messageHash, $requestParams, $params);
+    }
+
+    private function do_watch_swap_public(string $channel, string $messageHash, array $requestParams, $params = array()) {
+        $url = $this->urls['api']['ws']['swap'];
+        $request = array(
+            'method' => $channel,
+            'param' => $requestParams,
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+    }
+
+    public function watch_swap_private(string $messageHash, $params = array()) {
+        return Async\async(self::do_watch_swap_private(...))($messageHash, $params);
+    }
+
+    private function do_watch_swap_private(string $messageHash, $params = array()) {
+        $this->check_required_credentials();
+        $channel = 'login';
+        $url = $this->urls['api']['ws']['swap'];
+        $timestamp = (string) $this->milliseconds();
+        $payload = $this->apiKey . $timestamp;
+        $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+        $request = array(
+            'method' => $channel,
+            'param' => array(
+                'apiKey' => $this->apiKey,
+                'signature' => $signature,
+                'reqTime' => $timestamp,
+            ),
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch($url, $messageHash, $message, $channel));
+    }
+
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/k-line-streams // spot
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/k-line-data // swap
+         *
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $timeframes = $this->safe_value($this->options, 'timeframes', array());
-            $timeframeId = $this->safe_string($timeframes, $timeframe);
-            $messageHash = 'candles:' . $symbol . ':' . $timeframe;
-            $ohlcv = null;
-            if ($market['spot']) {
-                $channel = 'spot@public.kline.v3.api.pb@' . $market['id'] . '@' . $timeframeId;
-                $ohlcv = Async\await($this->watch_spot_public($channel, $messageHash, $params));
-            } else {
-                $channel = 'sub.kline';
-                $requestParams = array(
-                    'symbol' => $market['id'],
-                    'interval' => $timeframeId,
-                );
-                $ohlcv = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
-            }
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+        $timeframeId = $this->safe_string($timeframes, $timeframe);
+        $messageHash = 'candles:' . $symbol . ':' . $timeframe;
+        $ohlcv = null;
+        if ($market['spot'] === true) {
+            $channel = 'spot@public.kline.v3.api.pb@' . $market['id'] . '@' . $timeframeId;
+            $ohlcv = Async\await($this->watch_spot_public($channel, $messageHash, $params));
+        } else {
+            $channel = 'sub.kline';
+            $requestParams = array(
+                'symbol' => $market['id'],
+                'interval' => $timeframeId,
+            );
+            $ohlcv = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
+        }
+        $ohlcv = $this->require_value($ohlcv, 'watchOHLCV() $ohlcv is required');
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // spot
         //
         //    {
-        //        "d" => {
-        //            "e" => "spot@public.kline.v3.api",
-        //            "k" => array(
-        //                "t" => 1678642261,
-        //                "o" => 20626.94,
-        //                "c" => 20599.69,
-        //                "h" => 20626.94,
-        //                "l" => 20597.06,
-        //                "v" => 27.678686,
-        //                "a" => 570332.77,
-        //                "T" => 1678642320,
-        //                "i" => "Min1"
+        //        "d": {
+        //            "e": "spot@public.kline.v3.api",
+        //            "k": {
+        //                "t": 1678642261,
+        //                "o": 20626.94,
+        //                "c": 20599.69,
+        //                "h": 20626.94,
+        //                "l": 20597.06,
+        //                "v": 27.678686,
+        //                "a": 570332.77,
+        //                "T": 1678642320,
+        //                "i": "Min1"
         //            }
-        //        ),
-        //        "c" => "spot@public.kline.v3.api@BTCUSDT@Min1",
-        //        "t" => 1678642276459,
-        //        "s" => "BTCUSDT"
+        //        },
+        //        "c": "spot@public.kline.v3.api@BTCUSDT@Min1",
+        //        "t": 1678642276459,
+        //        "s": "BTCUSDT"
         //    }
         //
         // swap
         //
         //   {
-        //       "channel" => "push.kline",
-        //       "data" => array(
-        //         "a" => 325653.3287,
-        //         "c" => 38839,
-        //         "h" => 38909.5,
-        //         "interval" => "Min1",
-        //         "l" => 38833,
-        //         "o" => 38901.5,
-        //         "q" => 83808,
-        //         "rc" => 38839,
-        //         "rh" => 38909.5,
-        //         "rl" => 38833,
-        //         "ro" => 38909.5,
-        //         "symbol" => "BTC_USDT",
-        //         "t" => 1651230660
-        //       ),
-        //       "symbol" => "BTC_USDT",
-        //       "ts" => 1651230713067
+        //       "channel": "push.kline",
+        //       "data": {
+        //         "a": 325653.3287,
+        //         "c": 38839,
+        //         "h": 38909.5,
+        //         "interval": "Min1",
+        //         "l": 38833,
+        //         "o": 38901.5,
+        //         "q": 83808,
+        //         "rc": 38839,
+        //         "rh": 38909.5,
+        //         "rl": 38833,
+        //         "ro": 38909.5,
+        //         "symbol": "BTC_USDT",
+        //         "t": 1651230660
+        //       },
+        //       "symbol": "BTC_USDT",
+        //       "ts": 1651230713067
         //   }
         // protobuf
         //  {
@@ -674,20 +699,19 @@ class mexc extends \ccxt\async\mexc {
         //    }
         // }
         //
-        $parsed = null;
         $symbol = null;
         $timeframe = null;
-        if (is_array($message) && array_key_exists('publicSpotKline', $message)) {
+        if (is_array($message) && array_key_exists('publicSpotKline' ?? '', $message)) {
             $symbol = $this->symbol($this->safe_string($message, 'symbol'));
             $data = $this->safe_dict($message, 'publicSpotKline', array());
             $timeframeId = $this->safe_string($data, 'interval');
             $timeframe = $this->find_timeframe($timeframeId, $this->options['timeframes']);
             $parsed = $this->parse_ws_ohlcv($data, $this->safe_market($symbol));
         } else {
-            $d = $this->safe_value_2($message, 'd', 'data', array());
-            $rawOhlcv = $this->safe_value($d, 'k', $d);
+            $d = $this->safe_dict_2($message, 'd', 'data', array());
+            $rawOhlcv = $this->safe_dict($d, 'k', $d);
             $timeframeId = $this->safe_string_2($rawOhlcv, 'i', 'interval');
-            $timeframes = $this->safe_value($this->options, 'timeframes', array());
+            $timeframes = $this->safe_dict($this->options, 'timeframes', array());
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
             $marketId = $this->safe_string_2($message, 's', 'symbol');
             $market = $this->safe_market($marketId);
@@ -695,48 +719,51 @@ class mexc extends \ccxt\async\mexc {
             $parsed = $this->parse_ws_ohlcv($rawOhlcv, $market);
         }
         $messageHash = 'candles:' . $symbol . ':' . $timeframe;
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $symbolOhlcvs;
+        $stored = $this->safe_value($symbolOhlcvs, $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            $stored = new ArrayCacheByTimestamp($limit);
+            if ($timeframe !== null) {
+                $symbolOhlcvs[$timeframe] = $stored;
+            }
         }
-        $stored->append ($parsed);
-        $client->resolve ($stored, $messageHash);
+        $stored->append($parsed);
+        $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // spot
         //
         //    {
-        //        "t" => 1678642260,
-        //        "o" => 20626.94,
-        //        "c" => 20599.69,
-        //        "h" => 20626.94,
-        //        "l" => 20597.06,
-        //        "v" => 27.678686,
-        //        "a" => 570332.77,
-        //        "T" => 1678642320,
-        //        "i" => "Min1"
+        //        "t": 1678642260,
+        //        "o": 20626.94,
+        //        "c": 20599.69,
+        //        "h": 20626.94,
+        //        "l": 20597.06,
+        //        "v": 27.678686,
+        //        "a": 570332.77,
+        //        "T": 1678642320,
+        //        "i": "Min1"
         //    }
         //
         // swap
         //    {
-        //       "symbol" => "BTC_USDT",
-        //       "interval" => "Min1",
-        //       "t" => 1680055080,
-        //       "o" => 27301.9,
-        //       "c" => 27301.8,
-        //       "h" => 27301.9,
-        //       "l" => 27301.8,
-        //       "a" => 8.19054,
-        //       "q" => 3,
-        //       "ro" => 27301.8,
-        //       "rc" => 27301.8,
-        //       "rh" => 27301.8,
-        //       "rl" => 27301.8
+        //       "symbol": "BTC_USDT",
+        //       "interval": "Min1",
+        //       "t": 1680055080,
+        //       "o": 27301.9,
+        //       "c": 27301.8,
+        //       "h": 27301.9,
+        //       "l": 27301.8,
+        //       "a": 8.19054,
+        //       "q": 3,
+        //       "ro": 27301.8,
+        //       "rc": 27301.8,
+        //       "rh": 27301.8,
+        //       "rl": 27301.8
         //     }
         // protobuf
         //
@@ -751,9 +778,9 @@ class mexc extends \ccxt\async\mexc {
         //       "windowEnd":"1754737980"
         //
         $volume = $this->safe_number_2($ohlcv, 'v', 'volume');
-        // MEXC swap websocket klines publish contracts $volume in `q`,
-        // while spot/protobuf uses `v`/`$volume`.
-        if (($market !== null) && (!$this->safe_bool($market, 'spot')) && ($volume === null)) {
+        // MEXC swap websocket klines publish contracts volume in `q`,
+        // while spot/protobuf uses `v`/`volume`.
+        if (($market !== null) && ($this->safe_bool($market, 'spot') !== true) && ($volume === null)) {
             $volume = $this->safe_number_2($ohlcv, 'q', 'v');
         }
         return array(
@@ -766,63 +793,74 @@ class mexc extends \ccxt\async\mexc {
         );
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams#trade-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-             *
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->frequency] the $frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'orderbook:' . $symbol;
-            $orderbook = null;
-            if ($market['spot']) {
-                $frequency = null;
-                list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'frequency', '100ms');
-                $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $market['id'];
-                $orderbook = Async\await($this->watch_spot_public($channel, $messageHash, $params));
-            } else {
-                $channel = 'sub.depth';
-                $requestParams = array(
-                    'symbol' => $market['id'],
-                );
-                $orderbook = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
-            }
-            return $orderbook->limit ();
-        }) ();
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function handle_order_book_subscription(Client $client, $message) {
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/diffdepth-stream // spot
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/order-book-depth // swap
+         *
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->frequency] the $frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'orderbook:' . $symbol;
+        $orderbook = null;
+        if ($market['spot'] === true) {
+            $frequency = null;
+            list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'frequency', '100ms');
+            $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $market['id'];
+            $orderbook = Async\await($this->watch_spot_public($channel, $messageHash, $params));
+        } else {
+            $channel = 'sub.depth';
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            $orderbook = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
+        }
+        $orderbook = $this->require_value($orderbook, 'watchOrderBook() $orderbook is required');
+        return $orderbook->limit();
+    }
+
+    public function handle_order_book_subscription(Client $client, array $message) {
         // spot
-        //     array( id => 0, code => 0, $msg => "spot@public.increase.depth.v3.api@BTCUSDT" )
+        //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
-        $msg = $this->safe_string($message, 'msg');
+        $msg = $this->safe_string($message, 'msg', '');
         $parts = explode('@', $msg);
         $marketId = $this->safe_string($parts, 2);
         $symbol = $this->safe_symbol($marketId);
         $this->orderbooks[$symbol] = $this->order_book(array());
     }
 
-    public function get_cache_index($orderbook, $cache) {
-        // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
+    public function get_cache_index(mixed $orderbook, mixed $cache): float {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
-        $firstDelta = $this->safe_value($cache, 0);
+        $firstDelta = $this->safe_dict($cache, 0);
         $firstDeltaNonce = $this->safe_integer_n($firstDelta, array( 'r', 'version', 'fromVersion' ));
+        if (($nonce === null) || ($firstDeltaNonce === null)) {
+            return -1;
+        }
         if ($nonce < $firstDeltaNonce - 1) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
             $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
+            if ($deltaNonce === null) {
+                continue;
+            }
             if ($deltaNonce >= $nonce) {
                 return $i;
             }
@@ -830,21 +868,21 @@ class mexc extends \ccxt\async\mexc {
         return count($cache);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // spot
         //    {
-        //        "c" => "spot@public.increase.depth.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "asks" => [array(
-        //                "p" => "20290.89",
-        //                "v" => "0.000000"
-        //            )],
-        //            "e" => "spot@public.increase.depth.v3.api",
-        //            "r" => "3407459756"
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1661932660144
+        //        "c": "spot@public.increase.depth.v3.api@BTCUSDT",
+        //        "d": {
+        //            "asks": [{
+        //                "p": "20290.89",
+        //                "v": "0.000000"
+        //            }],
+        //            "e": "spot@public.increase.depth.v3.api",
+        //            "r": "3407459756"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1661932660144
         //    }
         //
         //
@@ -852,24 +890,24 @@ class mexc extends \ccxt\async\mexc {
         // swap
         //  {
         //      "channel":"push.depth",
-        //      "data":array(
-        //         "asks":array(
-        //            array(
+        //      "data":{
+        //         "asks":[
+        //            [
         //               39146.5,
         //               11264,
         //               1
-        //            )
-        //         ),
-        //         "bids":array(
-        //            array(
+        //            ]
+        //         ],
+        //         "bids":[
+        //            [
         //               39144,
         //               35460,
         //               1
-        //            )
-        //         ),
+        //            ]
+        //         ],
         //         "end":4895965272,
         //         "begin":4895965271
-        //      ),
+        //      },
         //      "symbol":"BTC_USDT",
         //      "ts":1651239652372
         //  }
@@ -879,18 +917,18 @@ class mexc extends \ccxt\async\mexc {
         //      "symbol":"BTCUSDT",
         //      "sendTime":"1754741322152",
         //      "publicAggreDepths":{
-        //          "asks":array(
+        //          "asks":[
         //              {
         //                  "price":"117145.49",
         //                  "quantity":"0"
         //              }
-        //          ),
-        //          "bids":array(
+        //          ],
+        //          "bids":[
         //              {
         //                  "price":"117053.41",
         //                  "quantity":"1.86837271"
         //              }
-        //          ),
+        //          ],
         //          "eventType":"spot@public.aggre.depth.v3.api.pb@100ms",
         //          "fromVersion":"43296363236",
         //          "toVersion":"43296363255"
@@ -901,9 +939,9 @@ class mexc extends \ccxt\async\mexc {
         $marketId = $this->safe_string_2($message, 's', 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol;
-        $subscription = $this->safe_value($client->subscriptions, $messageHash);
+        $subscription = $this->safe_dict($client->subscriptions, $messageHash);
         $limit = $this->safe_integer($subscription, 'limit');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $storedOrderBook = $this->orderbooks[$symbol];
@@ -925,40 +963,40 @@ class mexc extends \ccxt\async\mexc {
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
         } catch (Exception $e) {
             unset($client->subscriptions[$messageHash]);
-            $client->reject ($e, $messageHash);
+            $client->reject($e, $messageHash);
             // return;
             $shouldReturn = true;
         }
         if ($shouldReturn) {
             return; // go requirement
         }
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_bookside_delta($bookside, $bidasks) {
+    public function handle_bookside_delta(mixed $bookside, mixed $bidasks) {
         //
-        //    [array(
-        //        "p" => "20290.89",
-        //        "v" => "0.000000"
-        //    )]
+        //    [{
+        //        "p": "20290.89",
+        //        "v": "0.000000"
+        //    }]
         //
         for ($i = 0; $i < count($bidasks); $i++) {
             $bidask = $bidasks[$i];
             if ((gettype($bidask) === 'array' && array_keys($bidask) === array_keys(array_keys($bidask)))) {
-                $bookside->storeArray ($bidask);
+                $bookside->storeArray($bidask);
             } else {
                 $price = $this->safe_float_2($bidask, 'p', 'price');
                 $amount = $this->safe_float_2($bidask, 'v', 'quantity');
-                $bookside->store ($price, $amount);
+                $bookside->store($price, $amount);
             }
         }
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $existingNonce = $this->safe_integer($orderbook, 'nonce');
         $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
-        if ($deltaNonce < $existingNonce) {
-            // even when doing < comparison, this happens => https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+        if (($deltaNonce !== null) && ($existingNonce !== null) && ($deltaNonce < $existingNonce)) {
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
             return;
         }
@@ -971,91 +1009,96 @@ class mexc extends \ccxt\async\mexc {
         $this->handle_bookside_delta($bidsOrderSide, $bids);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams#trade-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-             *
-             * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'trades:' . $symbol;
-            $trades = null;
-            if ($market['spot']) {
-                $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $market['id'];
-                $trades = Async\await($this->watch_spot_public($channel, $messageHash, $params));
-            } else {
-                $channel = 'sub.deal';
-                $requestParams = array(
-                    'symbol' => $market['id'],
-                );
-                $trades = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
-            }
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_trades(Client $client, $message) {
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/trade-streams // spot
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/deal // swap
+         *
+         * get the list of most recent $trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'trades:' . $symbol;
+        $trades = null;
+        if ($market['spot'] === true) {
+            $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $market['id'];
+            $trades = Async\await($this->watch_spot_public($channel, $messageHash, $params));
+        } else {
+            $channel = 'sub.deal';
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            $trades = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
+        }
+        $trades = $this->require_value($trades, 'watchTrades() $trades is required');
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_trades(Client $client, array $message) {
         // protobuf
         // {
-        // "channel" => "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
-        // "publicdeals" => {
-        //     "dealsList" => array(
-        //     array(
-        //         "price" => "93220.00", // Trade price
-        //         "quantity" => "0.04438243", // Trade quantity
-        //         "tradetype" => 2, // Trade type (1 => Buy, 2 => Sell)
-        //         "time" => 1736409765051 // Trade time
+        // "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
+        // "publicdeals": {
+        //     "dealsList": [
+        //     {
+        //         "price": "93220.00", // Trade price
+        //         "quantity": "0.04438243", // Trade quantity
+        //         "tradetype": 2, // Trade type (1: Buy, 2: Sell)
+        //         "time": 1736409765051 // Trade time
         //     }
-        //     ),
-        //     "eventtype" => "spot@public.aggre.deals.v3.api.pb@100ms" // Event type
-        // ),
-        // "symbol" => "BTCUSDT", // Trading pair
-        // "sendtime" => 1736409765052 // Event time
+        //     ],
+        //     "eventtype": "spot@public.aggre.deals.v3.api.pb@100ms" // Event type
+        // },
+        // "symbol": "BTCUSDT", // Trading pair
+        // "sendtime": 1736409765052 // Event time
         // }
         //
         //    {
-        //        "c" => "spot@public.deals.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "deals" => [array(
-        //                "p" => "20382.70",
-        //                "v" => "0.043800",
-        //                "S" => 1,
-        //                "t" => 1678593222456,
-        //            ), ],
-        //            "e" => "spot@public.deals.v3.api",
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678593222460,
+        //        "c": "spot@public.deals.v3.api@BTCUSDT",
+        //        "d": {
+        //            "deals": [{
+        //                "p": "20382.70",
+        //                "v": "0.043800",
+        //                "S": 1,
+        //                "t": 1678593222456,
+        //            }, ],
+        //            "e": "spot@public.deals.v3.api",
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678593222460,
         //    }
         //
         // swap
         //     {
-        //         "symbol" => "BTC_USDT",
-        //         "data" => array(
+        //         "symbol": "BTC_USDT",
+        //         "data": [
         //            {
-        //                "p" => 114350.4,
-        //                "v" => 4,
-        //                "T" => 2,
-        //                "O" => 3,
-        //                "M" => 2,
-        //                "t" => 1760368563597
+        //                "p": 114350.4,
+        //                "v": 4,
+        //                "T": 2,
+        //                "O": 3,
+        //                "M": 2,
+        //                "t": 1760368563597
         //            }
-        //         ),
-        //         "channel" => "push.deal",
-        //         "ts" => 1680055941870
+        //         ],
+        //         "channel": "push.deal",
+        //         "ts": 1680055941870
         //     }
         //
         $marketId = $this->safe_string_2($message, 's', 'symbol');
@@ -1065,7 +1108,7 @@ class mexc extends \ccxt\async\mexc {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $d = $this->safe_dict_n($message, array( 'd', 'publicAggreDeals' ));
@@ -1074,87 +1117,91 @@ class mexc extends \ccxt\async\mexc {
             $trades = $this->safe_list($message, 'data', array());
         }
         for ($j = 0; $j < count($trades); $j++) {
-            $parsedTrade = null;
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 $parsedTrade = $this->parse_ws_trade($trades[$j], $market);
             } else {
                 $parsedTrade = $this->parse_trade($trades[$j], $market);
             }
-            $stored->append ($parsedTrade);
+            $stored->append($parsedTrade);
         }
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
-             *
-             * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-deals // spot
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/fill-details // swap
+         *
+         * watches information on multiple $trades made by the user
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $messageHash = 'myTrades';
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash = $messageHash . ':' . $symbol;
-            }
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
-            $trades = null;
-            if ($type === 'spot') {
-                $channel = 'spot@private.deals.v3.api.pb';
-                $trades = Async\await($this->watch_spot_private($channel, $messageHash, $params));
-            } else {
-                $trades = Async\await($this->watch_swap_private($messageHash, $params));
-            }
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        }) ();
+        }
+        $messageHash = 'myTrades';
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash = $messageHash . ':' . $symbol;
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
+        $trades = null;
+        if ($type === 'spot') {
+            $channel = 'spot@private.deals.v3.api.pb';
+            $trades = Async\await($this->watch_spot_private($channel, $messageHash, $params));
+        } else {
+            $trades = Async\await($this->watch_swap_private($messageHash, $params));
+        }
+        $trades = $this->require_value($trades, 'watchMyTrades() $trades is required');
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trade(Client $client, $message, $subscription = null) {
+    public function handle_my_trade(Client $client, array $message, ?array $subscription = null) {
         //
         //    {
-        //        "c" => "spot@private.deals.v3.api",
-        //        "d" => array(
-        //            "p" => "22339.99",
-        //            "v" => "0.000235",
-        //            "S" => 1,
-        //            "T" => 1678670940695,
-        //            "t" => "9f6a47fb926442e496c5c4c104076ae3",
-        //            "c" => '',
-        //            "i" => "e2b9835d1b6745f8a10ab74a81a16d50",
-        //            "m" => 0,
-        //            "st" => 0
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678670940700
+        //        "c": "spot@private.deals.v3.api",
+        //        "d": {
+        //            "p": "22339.99",
+        //            "v": "0.000235",
+        //            "S": 1,
+        //            "T": 1678670940695,
+        //            "t": "9f6a47fb926442e496c5c4c104076ae3",
+        //            "c": '',
+        //            "i": "e2b9835d1b6745f8a10ab74a81a16d50",
+        //            "m": 0,
+        //            "st": 0
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678670940700
         //    }
         //    {
-        //      channel => "spot@private.deals.v3.api.pb",
-        //      $symbol => "MXUSDT",
-        //      sendTime => 1736417034332,
+        //      channel: "spot@private.deals.v3.api.pb",
+        //      symbol: "MXUSDT",
+        //      sendTime: 1736417034332,
         //      privateDeals {
-        //        price => "3.6962",
-        //        quantity => "1",
-        //        amount => "3.6962",
-        //        tradeType => 2,
-        //        tradeId => "505979017439002624X1",
-        //        orderId => "C02__505979017439002624115",
-        //        feeAmount => "0.0003998377369698171",
-        //        feeCurrency => "MX",
-        //        time => 1736417034280
+        //        price: "3.6962",
+        //        quantity: "1",
+        //        amount: "3.6962",
+        //        tradeType: 2,
+        //        tradeId: "505979017439002624X1",
+        //        orderId: "C02__505979017439002624115",
+        //        feeAmount: "0.0003998377369698171",
+        //        feeCurrency: "MX",
+        //        time: 1736417034280
         //      }
         // }
         //
@@ -1164,72 +1211,73 @@ class mexc extends \ccxt\async\mexc {
         $marketId = $this->safe_string_2($message, 's', 'symbol', $futuresMarketId);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $trade = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $trade = $this->parse_ws_trade($data, $market);
-        } else {
+        } elseif ($data !== null) {
             $trade = $this->parse_trade($data, $market);
+        } else {
+            return;
         }
         $trades = $this->myTrades;
         if ($trades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $trades = new ArrayCacheBySymbolById ($limit);
+            $trades = new ArrayCacheBySymbolById($limit);
             $this->myTrades = $trades;
         }
-        $trades->append ($trade);
-        $client->resolve ($trades, $messageHash);
+        $trades->append($trade);
+        $client->resolve($trades, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($trades, $symbolSpecificMessageHash);
+        $client->resolve($trades, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
-        // public $trade (protobuf)
+        // public trade (protobuf)
         //    {
-        //        "p" => "20382.70",
-        //        "v" => "0.043800",
-        //        "S" => 1,
-        //        "t" => 1678593222456,
+        //        "p": "20382.70",
+        //        "v": "0.043800",
+        //        "S": 1,
+        //        "t": 1678593222456,
         //    }
-        // private $trade
+        // private trade
         //    {
-        //        "S" => 1,
-        //        "T" => 1661938980268,
-        //        "c" => "",
-        //        "i" => "c079b0fcb80a46e8b128b281ce4e4f38",
-        //        "m" => 1,
-        //        "p" => "1.008",
-        //        "st" => 0,
-        //        "t" => "4079b1522a0b40e7919f609e1ea38d44",
-        //        "v" => "5"
+        //        "S": 1,
+        //        "T": 1661938980268,
+        //        "c": "",
+        //        "i": "c079b0fcb80a46e8b128b281ce4e4f38",
+        //        "m": 1,
+        //        "p": "1.008",
+        //        "st": 0,
+        //        "t": "4079b1522a0b40e7919f609e1ea38d44",
+        //        "v": "5"
         //    }
         //
-        //   d => {
-        //       p => '1.0005',
-        //       v => '5.71',
-        //       a => '5.712855',
-        //       S => 1,
-        //       T => 1714325698237,
-        //       t => 'edafcd9fdc2f426e82443d114691f724',
-        //       c => '',
-        //       i => 'C02__413321238354677760043',
-        //       m => 0,
-        //       st => 0,
-        //       n => '0.005712855',
-        //       N => 'USDT'
+        //   d: {
+        //       p: '1.0005',
+        //       v: '5.71',
+        //       a: '5.712855',
+        //       S: 1,
+        //       T: 1714325698237,
+        //       t: 'edafcd9fdc2f426e82443d114691f724',
+        //       c: '',
+        //       i: 'C02__413321238354677760043',
+        //       m: 0,
+        //       st: 0,
+        //       n: '0.005712855',
+        //       N: 'USDT'
         //   }
         // protobuf
         //
         //     {
-        //        price => "3.6962",
-        //        quantity => "1",
-        //        amount => "3.6962",
-        //        tradeType => 2,
-        //        $tradeId => "505979017439002624X1",
-        //        orderId => "C02__505979017439002624115",
-        //        $feeAmount => "0.0003998377369698171",
-        //        feeCurrency => "MX",
-        //        time => 1736417034280
+        //        price: "3.6962",
+        //        quantity: "1",
+        //        amount: "3.6962",
+        //        tradeType: 2,
+        //        tradeId: "505979017439002624X1",
+        //        orderId: "C02__505979017439002624115",
+        //        feeAmount: "0.0003998377369698171",
+        //        feeCurrency: "MX",
+        //        time: 1736417034280
         //      }
         //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
@@ -1254,7 +1302,7 @@ class mexc extends \ccxt\async\mexc {
             'symbol' => $this->safe_symbol(null, $market),
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => ($isMaker) ? 'maker' : 'taker',
+            'takerOrMaker' => ($isMaker !== null && $isMaker !== 0) ? 'maker' : 'taker',
             'price' => $priceString,
             'amount' => $amountString,
             'cost' => $this->safe_string($trade, 'amount'),
@@ -1265,51 +1313,56 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-$orders
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-$orders
-             *
-             * watches information on multiple $orders made by the user
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await($this->load_markets());
-            $messageHash = 'orders';
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash = $messageHash . ':' . $symbol;
-            }
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
-            $orders = null;
-            if ($type === 'spot') {
-                $channel = 'spot@private.orders.v3.api.pb';
-                $orders = Async\await($this->watch_spot_private($channel, $messageHash, $params));
-            } else {
-                $orders = Async\await($this->watch_swap_private($messageHash, $params));
-            }
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_order(Client $client, $message) {
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-$orders // spot
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/order // swap
+         *
+         * watches information on multiple $orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'swap'
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'orders';
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash = $messageHash . ':' . $symbol;
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+        $orders = null;
+        if ($type === 'spot') {
+            $channel = 'spot@private.orders.v3.api.pb';
+            $orders = Async\await($this->watch_spot_private($channel, $messageHash, $params));
+        } else {
+            $orders = Async\await($this->watch_swap_private($messageHash, $params));
+        }
+        $orders = $this->require_value($orders, 'watchOrders() $orders is required');
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+    }
+
+    public function handle_order(Client $client, array $message) {
         //
         // spot
         //    {
-        //        "c" => "spot@private.orders.v3.api",
-        //        "d" => array(
+        //        "c": "spot@private.orders.v3.api",
+        //        "d": {
         //              "A":8.0,
         //              "O":1661938138000,
         //              "S":1,
@@ -1325,14 +1378,14 @@ class mexc extends \ccxt\async\mexc {
         //              "ap":0,
         //              "cv":0,
         //              "ca":0
-        //        ),
-        //        "s" => "MXUSDT",
-        //        "t" => 1661938138193
+        //        },
+        //        "s": "MXUSDT",
+        //        "t": 1661938138193
         //    }
         // spot - stop
         //    {
-        //        "c" => "spot@private.orders.v3.api",
-        //        "d" => array(
+        //        "c": "spot@private.orders.v3.api",
+        //        "d": {
         //              "N":"USDT",
         //              "O":1661938853715,
         //              "P":0.9,
@@ -1343,14 +1396,14 @@ class mexc extends \ccxt\async\mexc {
         //              "p":1.01,
         //              "s":"NEW",
         //              "v":6
-        //        ),
-        //        "s" => "MXUSDT",
-        //        "t" => 1661938853727
+        //        },
+        //        "s": "MXUSDT",
+        //        "t": 1661938853727
         //    }
         // margin
         //    {
-        //        "c" => "margin@private.orders.v3.api",
-        //        "d":array(
+        //        "c": "margin@private.orders.v3.api",
+        //        "d":{
         //             "O":1661938138000,
         //             "p":"0.8",
         //             "a":"8",
@@ -1359,22 +1412,22 @@ class mexc extends \ccxt\async\mexc {
         //            "dv":"0",
         //             "A":"8.0",
         //             "V":"10",
-        //             "n" => "0",
-        //             "N" => "USDT",
+        //             "n": "0",
+        //             "N": "USDT",
         //             "S":1,
         //             "o":1,
         //             "s":1,
         //             "i":"e03a5c7441e44ed899466a7140b71391",
-        //        ),
-        //        "s" => "MXUSDT",
+        //        },
+        //        "s": "MXUSDT",
         //        "t":1661938138193
         //    }
         // protobuf
         //   {
-        //      channel => "spot@private.orders.v3.api.pb",
-        //      $symbol => "MXUSDT",
-        //      sendTime => 1736417034281,
-        //      privateOrders array()
+        //      channel: "spot@private.orders.v3.api.pb",
+        //      symbol: "MXUSDT",
+        //      sendTime: 1736417034281,
+        //      privateOrders {}
         //   }
         //
         $messageHash = 'orders';
@@ -1383,25 +1436,30 @@ class mexc extends \ccxt\async\mexc {
         $marketId = $this->safe_string_2($message, 's', 'symbol', $futuresMarketId);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $parsed = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $parsed = $this->parse_ws_order($data, $market);
-        } else {
+            $sendTime = $this->safe_integer($message, 'sendTime');
+            if ($sendTime !== null) {
+                $parsed['lastTradeTimestamp'] = $sendTime;
+            }
+        } elseif ($data !== null) {
             $parsed = $this->parse_order($data, $market);
+        } else {
+            return;
         }
         $orders = $this->orders;
         if ($orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $orders = new ArrayCacheBySymbolById ($limit);
+            $orders = new ArrayCacheBySymbolById($limit);
             $this->orders = $orders;
         }
-        $orders->append ($parsed);
-        $client->resolve ($orders, $messageHash);
+        $orders->append($parsed);
+        $client->resolve($orders, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($orders, $symbolSpecificMessageHash);
+        $client->resolve($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         // spot
         //     {
@@ -1444,14 +1502,14 @@ class mexc extends \ccxt\async\mexc {
         //       "dv":"0",
         //        "A":"8.0",
         //        "V":"10",
-        //        "n" => "0",
-        //        "N" => "USDT",
+        //        "n": "0",
+        //        "N": "USDT",
         //        "S":1,
         //        "o":1,
         //        "s":1,
         //        "i":"e03a5c7441e44ed899466a7140b71391",
         //    }
-        // protofbuf spot $order
+        // protofbuf spot order
         // {
         //     "id":"C02__583905164440776704043",
         //     "price":"0.001053",
@@ -1506,7 +1564,7 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function parse_ws_order_status($status, $market = null) {
+    public function parse_ws_order_status(?string $status, ?array $market = null): ?string {
         $statuses = array(
             '0' => 'open',     // new/pending (OCO orders)
             '1' => 'open',     // new order
@@ -1522,7 +1580,7 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order_type($type) {
+    public function parse_ws_order_type(?string $type): ?string {
         $types = array(
             '1' => 'limit',   // LIMIT_ORDER
             '2' => 'limit', // POST_ONLY
@@ -1536,7 +1594,7 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($types, $type);
     }
 
-    public function parse_ws_time_in_force($timeInForce) {
+    public function parse_ws_time_in_force(?string $timeInForce): ?string {
         $timeInForceIds = array(
             '1' => 'GTC',   // LIMIT_ORDER
             '2' => 'PO', // POST_ONLY
@@ -1550,46 +1608,51 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($timeInForceIds, $timeInForce);
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
-             *
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            Async\await($this->load_markets());
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
-            $messageHash = 'balance:' . $type;
-            if ($type === 'spot') {
-                $channel = 'spot@private.account.v3.api.pb';
-                return Async\await($this->watch_spot_private($channel, $messageHash, $params));
-            } else {
-                return Async\await($this->watch_swap_private($messageHash, $params));
-            }
-        }) ();
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
     }
 
-    public function handle_balance(Client $client, $message) {
+    private function do_watch_balance($params = array()) {
+        /**
+         *
+         * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-update // spot
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/assets // swap
+         *
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+        $messageHash = 'balance:' . $type;
+        if ($type === 'spot') {
+            $channel = 'spot@private.account.v3.api.pb';
+            return Async\await($this->watch_spot_private($channel, $messageHash, $params));
+        } else {
+            return Async\await($this->watch_swap_private($messageHash, $params));
+        }
+    }
+
+    public function handle_balance(Client $client, array $message) {
         //
         // spot
         //
         //    {
-        //        $channel => "spot@private.account.v3.api.pb",
-        //        createTime => "1758134605364",
-        //        sendTime => "1758134605373",
-        //        privateAccount => {
-        //          vcoinName => "USDT",
-        //          coinId => "128f589271cb4951b03e71e6323eb7be",
-        //          balanceAmount => "0.006016465074677006",
-        //          balanceAmountChange => "-4.4022",
-        //          frozenAmount => "4.4022",
-        //          frozenAmountChange => "4.4022",
-        //          $type => "ENTRUST_PLACE",
-        //          time => "1758134605364",
+        //        channel: "spot@private.account.v3.api.pb",
+        //        createTime: "1758134605364",
+        //        sendTime: "1758134605373",
+        //        privateAccount: {
+        //          vcoinName: "USDT",
+        //          coinId: "128f589271cb4951b03e71e6323eb7be",
+        //          balanceAmount: "0.006016465074677006",
+        //          balanceAmountChange: "-4.4022",
+        //          frozenAmount: "4.4022",
+        //          frozenAmountChange: "4.4022",
+        //          type: "ENTRUST_PLACE",
+        //          time: "1758134605364",
         //       }
         //    }
         //
@@ -1597,15 +1660,15 @@ class mexc extends \ccxt\async\mexc {
         // swap balance
         //
         //     {
-        //         "channel" => "push.personal.asset",
-        //         "data" => array(
-        //             "availableBalance" => 67.2426683348,
-        //             "bonus" => 0,
-        //             "currency" => "USDT",
-        //             "frozenBalance" => 0,
-        //             "positionMargin" => 1.36945756
-        //         ),
-        //         "ts" => 1680059188191
+        //         "channel": "push.personal.asset",
+        //         "data": {
+        //             "availableBalance": 67.2426683348,
+        //             "bonus": 0,
+        //             "currency": "USDT",
+        //             "frozenBalance": 0,
+        //             "positionMargin": 1.36945756
+        //         },
+        //         "ts": 1680059188191
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
@@ -1614,329 +1677,365 @@ class mexc extends \ccxt\async\mexc {
         $data = $this->safe_dict_n($message, array( 'data', 'privateAccount' ));
         $futuresTimestamp = $this->safe_integer_2($message, 'ts', 'createTime');
         $timestamp = $this->safe_integer_2($data, 'time', $futuresTimestamp);
-        if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
+        if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
         $this->balance[$type]['timestamp'] = $timestamp;
         $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
-        $currencyId = $this->safe_string_n($data, array( 'currency', 'vcoinName' ));
+        $currencyId = $this->safe_string_2($data, 'currency', 'vcoinName');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_string_2($data, 'balanceAmount', 'availableBalance');
-        $account['used'] = $this->safe_string_n($data, array( 'frozenBalance', 'frozenAmount' ));
-        $this->balance[$type][$code] = $account;
+        $account['used'] = $this->safe_string_2($data, 'frozenBalance', 'frozenAmount');
+        if ($code !== null) {
+            $this->balance[$type][$code] = $account;
+        }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
-        $client->resolve ($this->balance[$type], $messageHash);
+        $client->resolve($this->balance[$type], $messageHash);
     }
 
-    public function watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watch the current funding rate
-             *
-             * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
-             */
+    public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_watch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * watch the current funding rate
+         *
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = 'fundingRate:' . $market['symbol'];
-            $channel = 'sub.funding.rate';
-            $requestParams = array(
-                'symbol' => $market['id'],
-            );
-            return Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
-        }) ();
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'fundingRate:' . $market['symbol'];
+        $channel = 'sub.funding.rate';
+        $requestParams = array(
+            'symbol' => $market['id'],
+        );
+        return Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
     }
 
-    public function un_watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches the current funding rate for a $symbol
-             *
-             * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
-             *
-             * @param {string} $symbol unified $symbol of the $market
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
-             */
+    public function un_watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_un_watch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * unWatches the current funding rate for a $symbol
+         *
+         * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
+         *
+         * @param {string} $symbol unified $symbol of the $market
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = 'unsubscribe:fundingRate:' . $market['symbol'];
-            $url = null;
-            $channel = 'unsub.funding.rate';
-            $requestParams = array(
-                'symbol' => $market['id'],
-            );
-            $url = $this->urls['api']['ws']['swap'];
-            $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
-            $client = $this->client($url);
-            $this->handle_unsubscriptions($client, array( $messageHash ));
-            return null;
-        }) ();
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'unsubscribe:fundingRate:' . $market['symbol'];
+        $url = null;
+        $channel = 'unsub.funding.rate';
+        $requestParams = array(
+            'symbol' => $market['id'],
+        );
+        $url = $this->urls['api']['ws']['swap'];
+        $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
+        $client = $this->client($url);
+        $this->handle_unsubscriptions($client, array( $messageHash ));
+        return null;
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, array $message) {
         //
         //     {
-        //         "symbol" => "BTC_USDT",
-        //         "data" => array(
-        //             "symbol" => "BTC_USDT",
-        //             "rate" => -0.000021,
-        //             "nextSettleTime" => 1771084800000
-        //         ),
-        //         "channel" => "push.funding.rate",
-        //         "ts" => 1771069020506
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "rate": -0.000021,
+        //             "nextSettleTime": 1771084800000
+        //         },
+        //         "channel": "push.funding.rate",
+        //         "ts": 1771069020506
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
         $fundingRate = $this->parse_funding_rate($data);
         $symbol = $fundingRate['symbol'];
-        $this->fundingRates[$symbol] = $fundingRate;
+        if ($symbol !== null) {
+            $this->fundingRates[$symbol] = $fundingRate;
+        }
         $messageHash = 'fundingRate:' . $symbol;
-        $client->resolve ($fundingRate, $messageHash);
+        $client->resolve($fundingRate, $messageHash);
     }
 
-    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = 'unsubscribe:ticker:' . $market['symbol'];
-            $url = null;
-            $channel = null;
-            if ($market['spot']) {
-                $channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
-                $url = $this->urls['api']['ws']['spot'];
-                $params['unsubscribed'] = true;
-                $this->watch_spot_public($channel, $messageHash, $params);
-            } else {
-                $channel = 'unsub.ticker';
-                $requestParams = array(
-                    'symbol' => $market['id'],
-                );
-                $url = $this->urls['api']['ws']['swap'];
-                $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
-            }
-            $client = $this->client($url);
-            $this->handle_unsubscriptions($client, array( $messageHash ));
-            return null;
-        }) ();
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null);
-            $messageHashes = array();
-            $firstSymbol = $this->safe_string($symbols, 0);
-            $market = null;
-            if ($firstSymbol !== null) {
-                $market = $this->market($firstSymbol);
-            }
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
-            $isSpot = ($type === 'spot');
-            $url = ($isSpot) ? $this->urls['api']['ws']['spot'] : $this->urls['api']['ws']['swap'];
-            $request = array();
-            if ($isSpot) {
-                throw new NotSupported($this->id . ' watchTickers does not support spot markets');
-                // $miniTicker = false;
-                // list($miniTicker, $params) = $this->handle_option_and_params($params, 'watchTickers', 'miniTicker');
-                // $topics = array();
-                // if (!$miniTicker) {
-                //     if ($symbols === null) {
-                //         throw new ArgumentsRequired($this->id . ' watchTickers required $symbols argument for the bookTicker channel');
-                //     }
-                //     $marketIds = $this->market_ids($symbols);
-                //     for ($i = 0; $i < count($marketIds); $i++) {
-                //         $marketId = $marketIds[$i];
-                //         $messageHashes[] = 'unsubscribe:ticker:' . $symbols[$i];
-                //         $channel = 'spot@public.bookTicker.v3.api@' . $marketId;
-                //         $topics[] = $channel;
-                //     }
-                // } else {
-                //     $topics[] = 'spot@public.miniTickers.v3.api@UTC+8';
-                //     if ($symbols === null) {
-                //         $messageHashes[] = 'unsubscribe:spot:ticker';
-                //     } else {
-                //         for ($i = 0; $i < count($symbols); $i++) {
-                //             $messageHashes[] = 'unsubscribe:ticker:' . $symbols[$i];
-                //         }
-                //     }
-                // }
-                // $request['method'] = 'UNSUBSCRIPTION';
-                // $request['params'] = $topics;
-            } else {
-                $request['method'] = 'unsub.tickers';
-                $request['params'] = array();
-                $messageHashes[] = 'unsubscribe:ticker';
-            }
-            $client = $this->client($url);
-            $this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes);
-            $this->handle_unsubscriptions($client, $messageHashes);
-            return null;
-        }) ();
-    }
-
-    public function un_watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches best bid & ask for $symbols
-             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, false, true);
-            $marketType = null;
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchBidsAsks required $symbols argument');
-            }
-            $markets = $this->markets_for_symbols($symbols);
-            list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
-            $isSpot = $marketType === 'spot';
-            if (!$isSpot) {
-                throw new NotSupported($this->id . ' watchBidsAsks only support spot market');
-            }
-            $messageHashes = array();
-            $topics = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                if ($isSpot) {
-                    $market = $this->market($symbols[$i]);
-                    $topics[] = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
-                }
-                $messageHashes[] = 'unsubscribe:bidask:' . $symbols[$i];
-            }
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'unsubscribe:ticker:' . $market['symbol'];
+        $url = null;
+        $channel = null;
+        if ($market['spot'] === true) {
+            $channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
             $url = $this->urls['api']['ws']['spot'];
-            $request = array(
-                'method' => 'UNSUBSCRIPTION',
-                'params' => $topics,
+            $params['unsubscribed'] = true;
+            $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
+        } else {
+            $channel = 'unsub.ticker';
+            $requestParams = array(
+                'symbol' => $market['id'],
             );
-            $client = $this->client($url);
-            $this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes);
-            $this->handle_unsubscriptions($client, $messageHashes);
-            return null;
-        }) ();
+            $url = $this->urls['api']['ws']['swap'];
+            $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
+        }
+        $client = $this->client($url);
+        $this->handle_unsubscriptions($client, array( $messageHash ));
+        return null;
     }
 
-    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $timeframes = $this->safe_value($this->options, 'timeframes', array());
-            $timeframeId = $this->safe_string($timeframes, $timeframe);
-            $messageHash = 'unsubscribe:candles:' . $symbol . ':' . $timeframe;
-            $url = null;
-            if ($market['spot']) {
-                $url = $this->urls['api']['ws']['spot'];
-                $channel = 'spot@public.kline.v3.api.pb@' . $market['id'] . '@' . $timeframeId;
-                $params['unsubscribed'] = true;
-                $this->watch_spot_public($channel, $messageHash, $params);
-            } else {
-                $url = $this->urls['api']['ws']['swap'];
-                $channel = 'unsub.kline';
-                $requestParams = array(
-                    'symbol' => $market['id'],
-                    'interval' => $timeframeId,
-                );
-                $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
-            }
-            $client = $this->client($url);
-            $this->handle_unsubscriptions($client, array( $messageHash ));
-            return null;
-        }) ();
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified array of symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->frequency] the $frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
-             */
+    private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'unsubscribe:orderbook:' . $symbol;
-            $url = null;
-            if ($market['spot']) {
-                $url = $this->urls['api']['ws']['spot'];
-                $frequency = null;
-                list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'frequency', '100ms');
-                $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $market['id'];
-                $params['unsubscribed'] = true;
-                $this->watch_spot_public($channel, $messageHash, $params);
-            } else {
-                $url = $this->urls['api']['ws']['swap'];
-                $channel = 'unsub.depth';
-                $requestParams = array(
-                    'symbol' => $market['id'],
-                );
-                $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
-            }
-            $client = $this->client($url);
-            $this->handle_unsubscriptions($client, array( $messageHash ));
-            return null;
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null);
+        $messageHashes = array();
+        $firstSymbol = $this->safe_string($symbols, 0);
+        $market = null;
+        if ($firstSymbol !== null) {
+            $market = $this->market($firstSymbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
+        $isSpot = ($type === 'spot');
+        $url = ($isSpot) ? $this->urls['api']['ws']['spot'] : $this->urls['api']['ws']['swap'];
+        $request = array();
+        if ($isSpot) {
+            throw new NotSupported($this->id . ' watchTickers does not support spot markets');
+            // let miniTicker = false;
+            // [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTickers', 'miniTicker');
+            // const topics = [];
+            // if (!miniTicker) {
+            //     if (symbols === undefined) {
+            //         throw new ArgumentsRequired (this.id + ' watchTickers required symbols argument for the bookTicker channel');
+            //     }
+            //     const marketIds = this.marketIds (symbols);
+            //     for (let i = 0; i < marketIds.length; i++) {
+            //         const marketId = marketIds[i];
+            //         messageHashes.push ('unsubscribe:ticker:' + symbols[i]);
+            //         const channel = 'spot@public.bookTicker.v3.api@' + marketId;
+            //         topics.push (channel);
+            //     }
+            // } else {
+            //     topics.push ('spot@public.miniTickers.v3.api@UTC+8');
+            //     if (symbols === undefined) {
+            //         messageHashes.push ('unsubscribe:spot:ticker');
+            //     } else {
+            //         for (let i = 0; i < symbols.length; i++) {
+            //             messageHashes.push ('unsubscribe:ticker:' + symbols[i]);
+            //         }
+            //     }
+            // }
+            // request['method'] = 'UNSUBSCRIPTION';
+            // request['params'] = topics;
+        } else {
+            $request['method'] = 'unsub.tickers';
+            $request['params'] = array();
+            $messageHashes[] = 'unsubscribe:ticker';
+        }
+        $client = $this->client($url);
+        $this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes);
+        $this->handle_unsubscriptions($client, $messageHashes);
+        return null;
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unsubscribes from the trades $channel
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
+    public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_un_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches best bid & ask for $symbols
+         * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'unsubscribe:trades:' . $symbol;
-            $url = null;
-            if ($market['spot']) {
-                $url = $this->urls['api']['ws']['spot'];
-                $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $market['id'];
-                $params['unsubscribed'] = true;
-                $this->watch_spot_public($channel, $messageHash, $params);
-            } else {
-                $url = $this->urls['api']['ws']['swap'];
-                $channel = 'unsub.deal';
-                $requestParams = array(
-                    'symbol' => $market['id'],
-                );
-                $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+        }
+        $symbols = $this->market_symbols($symbols, null, true, false, true);
+        $marketType = null;
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' watchBidsAsks required $symbols argument');
+        }
+        $markets = $this->require_value($this->markets_for_symbols($symbols), 'unWatchBidsAsks() $markets is required');
+        list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
+        $isSpot = $marketType === 'spot';
+        if (!$isSpot) {
+            throw new NotSupported($this->id . ' watchBidsAsks only support spot market');
+        }
+        $messageHashes = array();
+        $topics = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            if ($isSpot) {
+                $market = $this->market($symbols[$i]);
+                $topics[] = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
             }
-            $client = $this->client($url);
-            $this->handle_unsubscriptions($client, array( $messageHash ));
-            return null;
-        }) ();
+            $messageHashes[] = 'unsubscribe:bidask:' . $symbols[$i];
+        }
+        $url = $this->urls['api']['ws']['spot'];
+        $request = array(
+            'method' => 'UNSUBSCRIPTION',
+            'params' => $topics,
+        );
+        $client = $this->client($url);
+        $this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes);
+        $this->handle_unsubscriptions($client, $messageHashes);
+        return null;
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+        $timeframeId = $this->safe_string($timeframes, $timeframe);
+        $messageHash = 'unsubscribe:candles:' . $symbol . ':' . $timeframe;
+        $url = null;
+        if ($market['spot'] === true) {
+            $url = $this->urls['api']['ws']['spot'];
+            $channel = 'spot@public.kline.v3.api.pb@' . $market['id'] . '@' . $timeframeId;
+            $params['unsubscribed'] = true;
+            $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
+        } else {
+            $url = $this->urls['api']['ws']['swap'];
+            $channel = 'unsub.kline';
+            $requestParams = array(
+                'symbol' => $market['id'],
+                'interval' => $timeframeId,
+            );
+            $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
+        }
+        $client = $this->client($url);
+        $this->handle_unsubscriptions($client, array( $messageHash ));
+        return null;
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified array of symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->frequency] the $frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:orderbook:' . $symbol;
+        $url = null;
+        if ($market['spot'] === true) {
+            $url = $this->urls['api']['ws']['spot'];
+            $frequency = null;
+            list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'frequency', '100ms');
+            $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $market['id'];
+            $params['unsubscribed'] = true;
+            $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
+        } else {
+            $url = $this->urls['api']['ws']['swap'];
+            $channel = 'unsub.depth';
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
+        }
+        $client = $this->client($url);
+        $this->handle_unsubscriptions($client, array( $messageHash ));
+        return null;
+    }
+
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unsubscribes from the trades $channel
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:trades:' . $symbol;
+        $url = null;
+        if ($market['spot'] === true) {
+            $url = $this->urls['api']['ws']['spot'];
+            $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $market['id'];
+            $params['unsubscribed'] = true;
+            $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
+        } else {
+            $url = $this->urls['api']['ws']['swap'];
+            $channel = 'unsub.deal';
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
+        }
+        $client = $this->client($url);
+        $this->handle_unsubscriptions($client, array( $messageHash ));
+        return null;
     }
 
     public function handle_unsubscriptions(Client $client, array $messageHashes) {
@@ -1952,98 +2051,125 @@ class mexc extends \ccxt\async\mexc {
                     for ($j = 0; $j < count($symbols); $j++) {
                         unset($this->tickers[$symbols[$j]]);
                     }
-                } elseif (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                } elseif (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
                     unset($this->tickers[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'bidask') !== false) {
                 $symbol = str_replace('unsubscribe:bidask:', '', $messageHash);
-                if (is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks)) {
+                if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
                     unset($this->bidsasks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'candles') !== false) {
                 $splitHashes = explode(':', $messageHash);
                 $symbol = $this->safe_string($splitHashes, 2);
-                if (strlen($splitHashes) > 4) {
+                $splitHashesLength = count($splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                if ($splitHashesLength > 4) {
                     $symbol .= ':' . $this->safe_string($splitHashes, 3);
                 }
-                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+                if (($symbol !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
                     unset($this->ohlcvs[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'orderbook') !== false) {
                 $symbol = str_replace('unsubscribe:orderbook:', '', $messageHash);
-                if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                     unset($this->orderbooks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'trades') !== false) {
                 $symbol = str_replace('unsubscribe:trades:', '', $messageHash);
-                if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
                     unset($this->trades[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'fundingRate') !== false) {
                 $symbol = str_replace('unsubscribe:fundingRate:', '', $messageHash);
-                if (is_array($this->fundingRates) && array_key_exists($symbol, $this->fundingRates)) {
+                if (is_array($this->fundingRates) && array_key_exists($symbol ?? '', $this->fundingRates)) {
                     unset($this->fundingRates[$symbol]);
                 }
             }
         }
     }
 
-    public function authenticate($subscriptionHash, $params = array ()) {
-        return Async\async(function () use ($subscriptionHash, $params) {
-            // we only need one $listenKey since ccxt shares connections
-            $listenKey = $this->safe_string($this->options, 'listenKey');
-            if ($listenKey !== null) {
-                return $listenKey;
-            }
-            $response = Async\await($this->spotPrivatePostUserDataStream ($params));
-            //
-            //    {
-            //        "listenKey" => "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
-            //    }
-            //
-            $listenKey = $this->safe_string($response, 'listenKey');
-            $this->options['listenKey'] = $listenKey;
+    public function authenticate(?string $subscriptionHash, $params = array()) {
+        return Async\async(self::do_authenticate(...))($subscriptionHash, $params);
+    }
+
+    private function do_authenticate(?string $subscriptionHash, $params = array()) {
+        // we only need one listenKey since ccxt shares connections
+        $listenKey = $this->safe_string($this->options, 'listenKey');
+        if ($listenKey !== null) {
+            return $listenKey;
+        }
+        // guard against concurrent listenKey requests with a future on the base
+        // spot ws client - the first caller fetches the listenKey, concurrent
+        // callers wait on the future and resume when the listenKey is ready,
+        // otherwise the user-data subscriptions would be split across two connections
+        $client = $this->client($this->urls['api']['ws']['spot']);
+        $messageHash = 'authenticate:listenKey';
+        $isFetching = $this->safe_bool($this->options, 'listenKeyFetching', false);
+        if ($isFetching === true) {
+            Async\await($client->future($messageHash));
+            return $this->safe_string($this->options, 'listenKey');
+        }
+        $this->options['listenKeyFetching'] = true;
+        $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
+        $response = null;
+        try {
+            $response = Async\await($this->spotPrivatePostUserDataStream($params));
+        } catch (Exception $e) {
+            $this->options['listenKeyFetching'] = false;
+            $client->reject($e, $messageHash);
+            throw $e;
+        }
+        $this->options['listenKeyFetching'] = false;
+        //
+        //    {
+        //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
+        //    }
+        //
+        $listenKey = $this->safe_string($response, 'listenKey');
+        $this->options['listenKey'] = $listenKey;
+        $client->resolve($listenKey, $messageHash);
+        $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
+        $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
+        return $listenKey;
+    }
+
+    public function keep_alive_listen_key(?string $listenKey, $params = array()) {
+        return Async\async(self::do_keep_alive_listen_key(...))($listenKey, $params);
+    }
+
+    private function do_keep_alive_listen_key(?string $listenKey, $params = array()) {
+        if ($listenKey === null) {
+            return;
+        }
+        $request = array(
+            'listenKey' => $listenKey,
+        );
+        try {
+            Async\await($this->spotPrivatePutUserDataStream($this->extend($request, $params)));
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
-            return $listenKey;
-        }) ();
+        } catch (Exception $error) {
+            $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
+            $client = $this->client($url);
+            $this->options['listenKey'] = null;
+            $client->reject($error);
+            unset($this->clients[$url]);
+        }
     }
 
-    public function keep_alive_listen_key($listenKey, $params = array ()) {
-        return Async\async(function () use ($listenKey, $params) {
-            if ($listenKey === null) {
-                return;
-            }
-            $request = array(
-                'listenKey' => $listenKey,
-            );
-            try {
-                Async\await($this->spotPrivatePutUserDataStream ($this->extend($request, $params)));
-                $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
-                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
-            } catch (Exception $error) {
-                $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
-                $client = $this->client($url);
-                $this->options['listenKey'] = null;
-                $client->reject ($error);
-                unset($this->clients[$url]);
-            }
-        }) ();
-    }
-
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, array $message): array {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         //
         //    {
-        //        "id" => 0,
-        //        "code" => 0,
-        //        "msg" => "spot@public.increase.depth.v3.api@BTCUSDT"
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
-        // Set the default to an empty string if the $message is empty during the test.
+        // Set the default to an empty string if the message is empty during the test.
         $msg = $this->safe_string($message, 'msg', '');
         if ($msg === 'PONG') {
             $this->handle_pong($client, $message);
@@ -2061,8 +2187,8 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function handle_protobuf_message(Client $client, $message) {
-        // protobuf $message decoded
+    public function handle_protobuf_message(Client $client, array $message): bool {
+        // protobuf message decoded
         //  {
         //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
         //    "symbol":"BTCUSDT",
@@ -2080,7 +2206,7 @@ class mexc extends \ccxt\async\mexc {
         //       "windowEnd":"1754737980"
         //    }
         // }
-        $channel = $this->safe_string($message, 'channel');
+        $channel = $this->safe_string($message, 'channel', '');
         $channelParts = explode('@', $channel);
         $channelId = $this->safe_string($channelParts, 1);
         if ($channelId === 'public.kline.v3.api.pb') {
@@ -2101,11 +2227,11 @@ class mexc extends \ccxt\async\mexc {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (gettype($message) === 'string') {
             if ($message === 'Invalid listen key') {
-                $error = new AuthenticationError ($this->id . ' invalid listen key');
-                $client->reject ($error);
+                $error = new AuthenticationError($this->id . ' invalid listen key');
+                $client->reject($error);
                 return;
             }
         }
@@ -2114,7 +2240,7 @@ class mexc extends \ccxt\async\mexc {
             $this->handle_protobuf_message($client, $message);
             return;
         }
-        if (is_array($message) && array_key_exists('msg', $message)) {
+        if (is_array($message) && array_key_exists('msg' ?? '', $message)) {
             $this->handle_subscription_status($client, $message);
             return;
         }
@@ -2124,7 +2250,7 @@ class mexc extends \ccxt\async\mexc {
             $channel = $this->safe_string($message, 'channel');
         } else {
             $parts = explode('@', $c);
-            $channel = $this->safe_string($parts, 1);
+            $channel = $this->safe_string($parts, 1, '');
         }
         $methods = array(
             'public.deals.v3.api' => array($this, 'handle_trades'),
@@ -2147,7 +2273,7 @@ class mexc extends \ccxt\async\mexc {
             'pong' => array($this, 'handle_pong'),
             'push.funding.rate' => array($this, 'handle_funding_rate'),
         );
-        if (is_array($methods) && array_key_exists($channel, $methods)) {
+        if (($channel !== null) && (is_array($methods) && array_key_exists($channel ?? '', $methods))) {
             $method = $methods[$channel];
             $method($client, $message);
         }

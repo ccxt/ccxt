@@ -1,8 +1,6 @@
-- [Watch New Trades Only](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- 
 'use strict';
 
 import ccxt from '../../js/ccxt.js';
@@ -34,7 +32,7 @@ async function watchExchange (exchangeId, symbol) {
 async function main () {
     const streams = {
         'binance': 'BTC/USDT',
-        'okex': 'BTC/USDT',
+        'okx': 'BTC/USDT',
         'kraken': 'BTC/USD',
     };
 
@@ -44,5 +42,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

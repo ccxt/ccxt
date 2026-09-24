@@ -29,7 +29,7 @@ class okxus extends okx["default"] {
                 },
             },
             'has': {
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
             },

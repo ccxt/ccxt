@@ -11,269 +11,487 @@ public partial class deepcoin : Exchange
 {
     public deepcoin (object args = null): base(args) {}
 
-    public async Task<object> publicGetDeepcoinMarketBooks (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketBooks endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketBooks (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinMarketBooks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketBooks",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinMarketCandles (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinMarketCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketCandles",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinMarketInstruments (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketInstruments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketInstruments (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinMarketInstruments",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketInstruments",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinMarketTickers (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketTickers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketTickers (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinMarketTickers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketTickers",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinMarketIndexCandles (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketIndexCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketIndexCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinMarketIndexCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketIndexCandles",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinMarketTrades (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinMarketTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketTrades",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinMarketMarkPriceCandles (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketMarkPriceCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketMarkPriceCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinMarketMarkPriceCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketMarkPriceCandles",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinMarketStepMargin (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketMarkPrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketMarkPrice (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinMarketStepMargin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketMarkPrice",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinTradeFundingRate (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketOpenInterestVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketOpenInterestVolume (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinTradeFundingRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketOpenInterestVolume",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinTradeFundRateCurrentFundingRate (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketLongShortRatio endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketLongShortRatio (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinTradeFundRateCurrentFundingRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketLongShortRatio",parameters);
     }
 
-    public async Task<object> publicGetDeepcoinTradeFundRateHistory (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketTakerVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketTakerVolume (object parameters = null)
     {
-        return await this.callAsync ("publicGetDeepcoinTradeFundRateHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketTakerVolume",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinAccountBalances (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinMarketStepMargin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinMarketStepMargin (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinAccountBalances",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinMarketStepMargin",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinAccountBills (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinTradeFundingRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinTradeFundingRate (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinAccountBills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinTradeFundingRate",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinAccountPositions (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinTradeFundRateCurrentFundingRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinTradeFundRateCurrentFundingRate (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinAccountPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinTradeFundRateCurrentFundingRate",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinTradeFills (object parameters = null)
+    /// <summary>Calls the publicGetDeepcoinTradeFundRateHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDeepcoinTradeFundRateHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinTradeFills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDeepcoinTradeFundRateHistory",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinTradeOrderByID (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAccountBalances endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAccountBalances (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinTradeOrderByID",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAccountBalances",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinTradeFinishOrderByID (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAccountAllBalances endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAccountAllBalances (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinTradeFinishOrderByID",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAccountAllBalances",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinTradeOrdersHistory (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAccountBills endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAccountBills (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinTradeOrdersHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAccountBills",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinTradeV2OrdersPending (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAccountPositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAccountPositions (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinTradeV2OrdersPending",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAccountPositions",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinTradeTriggerOrdersPending (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAccountTradeFee endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAccountTradeFee (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinTradeTriggerOrdersPending",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAccountTradeFee",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinTradeTriggerOrdersHistory (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAccountLeverageInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAccountLeverageInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinTradeTriggerOrdersHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAccountLeverageInfo",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinCopytradingSupportContracts (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAccountPositionsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAccountPositionsHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinCopytradingSupportContracts",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAccountPositionsHistory",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinCopytradingLeaderPosition (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinTradeFills endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinTradeFills (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinCopytradingLeaderPosition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinTradeFills",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinCopytradingEstimateProfit (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinTradeOrderByID endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinTradeOrderByID (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinCopytradingEstimateProfit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinTradeOrderByID",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinCopytradingHistoryProfit (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinTradeOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinTradeOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinCopytradingHistoryProfit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinTradeOrder",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinCopytradingFollowerRank (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinTradeFinishOrderByID endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinTradeFinishOrderByID (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinCopytradingFollowerRank",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinTradeFinishOrderByID",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinInternalTransferSupport (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinTradeOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinTradeOrdersHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinInternalTransferSupport",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinTradeOrdersHistory",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinInternalTransferHistoryOrder (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinTradeV2OrdersPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinTradeV2OrdersPending (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinInternalTransferHistoryOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinTradeV2OrdersPending",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinRebateConfig (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinTradeTriggerOrdersPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinTradeTriggerOrdersPending (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinRebateConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinTradeTriggerOrdersPending",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinAgentsUsers (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinTradeTriggerOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinTradeTriggerOrdersHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinAgentsUsers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinTradeTriggerOrdersHistory",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinAgentsUsersRebateList (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinCopytradingSupportContracts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinCopytradingSupportContracts (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinAgentsUsersRebateList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinCopytradingSupportContracts",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinAgentsUsersRebates (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinCopytradingLeaderPosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinCopytradingLeaderPosition (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinAgentsUsersRebates",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinCopytradingLeaderPosition",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinAssetDepositList (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinCopytradingEstimateProfit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinCopytradingEstimateProfit (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinAssetDepositList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinCopytradingEstimateProfit",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinAssetWithdrawList (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinCopytradingHistoryProfit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinCopytradingHistoryProfit (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinAssetWithdrawList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinCopytradingHistoryProfit",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinAssetRechargeChainList (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinCopytradingFollowerRank endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinCopytradingFollowerRank (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinAssetRechargeChainList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinCopytradingFollowerRank",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinListenkeyAcquire (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinInternalTransferSupport endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinInternalTransferSupport (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinListenkeyAcquire",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinInternalTransferSupport",parameters);
     }
 
-    public async Task<object> privateGetDeepcoinListenkeyExtend (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinInternalTransferHistoryOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinInternalTransferHistoryOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetDeepcoinListenkeyExtend",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinInternalTransferHistoryOrder",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinAccountSetLeverage (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinRebateConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinRebateConfig (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinAccountSetLeverage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinRebateConfig",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeOrder (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAgentsUsers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAgentsUsers (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAgentsUsers",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeReplaceOrder (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAgentsUsersRebateList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAgentsUsersRebateList (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeReplaceOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAgentsUsersRebateList",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeCancelOrder (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAgentsUsersRebates endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAgentsUsersRebates (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeCancelOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAgentsUsersRebates",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeBatchCancelOrder (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAssetDepositList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAssetDepositList (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeBatchCancelOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAssetDepositList",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeCancelTriggerOrder (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAssetWithdrawList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAssetWithdrawList (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeCancelTriggerOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAssetWithdrawList",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeSwapCancelAll (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinAssetRechargeChainList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinAssetRechargeChainList (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeSwapCancelAll",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinAssetRechargeChainList",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeTriggerOrder (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinListenkeyAcquire endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinListenkeyAcquire (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeTriggerOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinListenkeyAcquire",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeBatchClosePosition (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinListenkeyExtend endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinListenkeyExtend (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeBatchClosePosition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinListenkeyExtend",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeReplaceOrderSltp (object parameters = null)
+    /// <summary>Calls the privateGetDeepcoinSubAccountSubAccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetDeepcoinSubAccountSubAccountApikey (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeReplaceOrderSltp",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetDeepcoinSubAccountSubAccountApikey",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinTradeClosePositionByIds (object parameters = null)
+    /// <summary>Calls the privatePostDeepcoinAccountSetLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinAccountSetLeverage (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinTradeClosePositionByIds",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinAccountSetLeverage",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinCopytradingLeaderSettings (object parameters = null)
+    /// <summary>Calls the privatePostDeepcoinTradeOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinCopytradingLeaderSettings",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeOrder",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinCopytradingSetContracts (object parameters = null)
+    /// <summary>Calls the privatePostDeepcoinTradeReplaceOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeReplaceOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinCopytradingSetContracts",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeReplaceOrder",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinInternalTransfer (object parameters = null)
+    /// <summary>Calls the privatePostDeepcoinTradeCancelOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeCancelOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinInternalTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeCancelOrder",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinRebateConfig (object parameters = null)
+    /// <summary>Calls the privatePostDeepcoinTradeBatchCancelOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeBatchCancelOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinRebateConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeBatchCancelOrder",parameters);
     }
 
-    public async Task<object> privatePostDeepcoinAssetTransfer (object parameters = null)
+    /// <summary>Calls the privatePostDeepcoinTradeCancelTriggerOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeCancelTriggerOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostDeepcoinAssetTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeCancelTriggerOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinTradeSwapCancelAll endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeSwapCancelAll (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeSwapCancelAll",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinTradeTriggerOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeTriggerOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeTriggerOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinTradeAmendTriggerOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeAmendTriggerOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeAmendTriggerOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinTradeBatchClosePosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeBatchClosePosition (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeBatchClosePosition",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinTradeReplaceOrderSltp endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeReplaceOrderSltp (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeReplaceOrderSltp",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinTradeClosePositionByIds endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeClosePositionByIds (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeClosePositionByIds",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinTradeIncreasePosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeIncreasePosition (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeIncreasePosition",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinTradeMergePositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinTradeMergePositions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinTradeMergePositions",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinCopytradingLeaderSettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinCopytradingLeaderSettings (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinCopytradingLeaderSettings",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinCopytradingSetContracts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinCopytradingSetContracts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinCopytradingSetContracts",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinInternalTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinInternalTransfer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinInternalTransfer",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinRebateConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinRebateConfig (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinRebateConfig",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinAssetTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinAssetTransfer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinAssetTransfer",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinSubAccountCreateSubAccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinSubAccountCreateSubAccount (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinSubAccountCreateSubAccount",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinSubAccountSubAccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinSubAccountSubAccountApikey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinSubAccountSubAccountApikey",parameters);
+    }
+
+    /// <summary>Calls the privatePostDeepcoinSubAccountDeleteSubAccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeepcoinSubAccountDeleteSubAccountApikey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeepcoinSubAccountDeleteSubAccountApikey",parameters);
     }
 
 }

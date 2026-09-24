@@ -51,9 +51,9 @@ class whitebit extends whitebit$1["default"] {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        '1': errors.BadRequest,
-                        '2': errors.BadRequest,
-                        '4': errors.BadRequest,
+                        '1': errors.BadRequest, // { error: { code: 1, message: 'invalid argument' }, result: null, id: 1656404342 }
+                        '2': errors.BadRequest, // { error: { code: 2, message: 'internal error' }, result: null, id: 1656404075 }
+                        '4': errors.BadRequest, // { error: { code: 4, message: 'method not found' }, result: null, id: 1656404250 }
                         '6': errors.AuthenticationError, // { error: { code: 6, message: 'require authentication' }, result: null, id: 1656404076 }
                     },
                 },
@@ -73,10 +73,12 @@ class whitebit extends whitebit$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
         const interval = this.safeInteger(timeframes, timeframe);
         const marketId = market['id'];
         // currently there is no way of knowing
@@ -111,7 +113,7 @@ class whitebit extends whitebit$1["default"] {
         //     "id": null
         // }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         for (let i = 0; i < params.length; i++) {
             const data = params[i];
             const marketId = this.safeString(data, 7);
@@ -143,17 +145,19 @@ class whitebit extends whitebit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (limit === undefined) {
             limit = 10; // max 100
         }
         const messageHash = 'orderbook' + ':' + market['symbol'];
         const method = 'depth_subscribe';
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
+        const options = this.safeDict(this.options, 'watchOrderBook', {});
         const defaultPriceInterval = this.safeString(options, 'priceInterval', '0');
         const priceInterval = this.safeString(params, 'priceInterval', defaultPriceInterval);
         params = this.omit(params, 'priceInterval');
@@ -204,12 +208,12 @@ class whitebit extends whitebit$1["default"] {
         //     "id":null
         //  }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         const isSnapshot = this.safeValue(params, 0);
         const marketId = this.safeString(params, 2);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        const data = this.safeValue(params, 1);
+        const data = this.safeDict(params, 1);
         const timestamp = this.safeTimestamp(data, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook();
@@ -218,13 +222,13 @@ class whitebit extends whitebit$1["default"] {
         const orderbook = this.orderbooks[symbol];
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
-        if (isSnapshot) {
+        if (isSnapshot === true) {
             const snapshot = this.parseOrderBook(data, symbol);
             orderbook.reset(snapshot);
         }
         else {
-            const asks = this.safeValue(data, 'asks', []);
-            const bids = this.safeValue(data, 'bids', []);
+            const asks = this.safeList(data, 'asks', []);
+            const bids = this.safeList(data, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
         }
@@ -251,7 +255,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const method = 'market_subscribe';
@@ -269,7 +275,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
@@ -309,11 +317,11 @@ class whitebit extends whitebit$1["default"] {
         //       "id": null
         //   }
         //
-        const tickers = this.safeValue(message, 'params', []);
+        const tickers = this.safeList(message, 'params', []);
         const marketId = this.safeString(tickers, 0);
-        const market = this.safeMarket(marketId, undefined);
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        const rawTicker = this.safeValue(tickers, 1, {});
+        const rawTicker = this.safeDict(tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
         const ticker = this.parseTicker(rawTicker, market);
         this.tickers[symbol] = ticker;
@@ -350,7 +358,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trades' + ':' + symbol;
@@ -387,7 +397,7 @@ class whitebit extends whitebit$1["default"] {
         //        ]
         //    }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         const marketId = this.safeString(params, 0);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -397,7 +407,7 @@ class whitebit extends whitebit$1["default"] {
             stored = new Cache.ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue(params, 1, []);
+        const data = this.safeList(params, 1, []);
         const parsedTrades = this.parseTrades(data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append(parsedTrades[j]);
@@ -420,7 +430,9 @@ class whitebit extends whitebit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -444,7 +456,10 @@ class whitebit extends whitebit$1["default"] {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
@@ -471,7 +486,10 @@ class whitebit extends whitebit$1["default"] {
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         "2", // side, 1 = sell, 2 = buy
+        //         "2", // role, 1 = maker, 2 = taker
+        //         "LTC" // fee asset
         //    ]
         //
         const orderId = this.safeString(trade, 3);
@@ -484,10 +502,28 @@ class whitebit extends whitebit$1["default"] {
         let fee = undefined;
         const feeCost = this.safeString(trade, 6);
         if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString(trade, 10);
+            const feeCurrencyCode = (feeCurrencyId !== undefined) ? this.safeCurrencyCode(feeCurrencyId) : market['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': feeCurrencyCode,
             };
+        }
+        const rawSide = this.safeInteger(trade, 8);
+        let side = undefined;
+        if (rawSide === 1) {
+            side = 'sell';
+        }
+        else if (rawSide === 2) {
+            side = 'buy';
+        }
+        const role = this.safeInteger(trade, 9);
+        let takerOrMaker = undefined;
+        if (role === 1) {
+            takerOrMaker = 'maker';
+        }
+        else if (role === 2) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade({
             'id': id,
@@ -497,8 +533,8 @@ class whitebit extends whitebit$1["default"] {
             'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -520,7 +556,9 @@ class whitebit extends whitebit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -559,8 +597,8 @@ class whitebit extends whitebit$1["default"] {
         //     "id": null
         // }
         //
-        const params = this.safeValue(message, 'params', []);
-        const data = this.safeValue(params, 1);
+        const params = this.safeList(message, 'params', []);
+        const data = this.safeDict(params, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -689,10 +727,14 @@ class whitebit extends whitebit$1["default"] {
      * @see https://docs.whitebit.com/private/websocket/#balance-margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @param {bool} [params.fetchBalanceSnapshot] whether to fetch the initial balance snapshot over REST, default is true
+     * @param {bool} [params.awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         let messageHash = 'wallet:';
@@ -705,10 +747,46 @@ class whitebit extends whitebit$1["default"] {
             method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
-        const currencies = Object.keys(this.currencies);
-        return await this.watchPrivate(messageHash, method, currencies, params);
+        const url = this.urls['api']['ws'];
+        const client = this.client(url);
+        this.setBalanceCache(client, type, messageHash);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'awaitBalanceSnapshot', true);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future(type + ':fetchBalanceSnapshot');
+        }
+        // an empty params array subscribes to updates for all assets,
+        // listing all tickers explicitly is rejected with "invalid argument"
+        return await this.watchPrivate(messageHash, method, [], params);
+    }
+    setBalanceCache(client, type, subscriptionHash) {
+        if (subscriptionHash in client.subscriptions) {
+            return;
+        }
+        const fetchBalanceSnapshot = this.handleOption('watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot === true) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, client, messageHash, type, subscriptionHash);
+            }
+        }
+    }
+    async loadBalanceSnapshot(client, messageHash, type, subscriptionHash) {
+        const response = await this.fetchBalance({ 'type': type });
+        this.balance = this.extend(response, this.balance);
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve();
+            client.resolve(this.balance, subscriptionHash);
+        }
     }
     handleBalance(client, message) {
+        //
+        // spot
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -717,24 +795,67 @@ class whitebit extends whitebit$1["default"] {
         //             "LTC":{
         //                "available":"0.16587",
         //                "freeze":"0"
+        //             },
+        //             "BTC":{
+        //                "available":"0.005",
+        //                "freeze":"0.001"
         //             }
         //          }
         //       ],
         //       "id":null
         //   }
         //
+        // margin
+        //
+        //   {
+        //       "method":"balanceMargin_update",
+        //       "params":[
+        //          {
+        //             "a":"USDT",         // asset
+        //             "B":"0.00538073",   // total balance
+        //             "b":"0",            // borrowed
+        //             "av":"0.00538073",  // available without borrowing
+        //             "ab":"28.43739825"  // available with borrowing
+        //          }
+        //       ],
+        //       "id":null
+        //   }
+        //
         const method = this.safeString(message, 'method');
-        const data = this.safeValue(message, 'params');
-        const balanceDict = this.safeValue(data, 0);
-        this.balance['info'] = balanceDict;
-        const keys = Object.keys(balanceDict);
-        const currencyId = this.safeValue(keys, 0);
-        const rawBalance = this.safeValue(balanceDict, currencyId);
-        const code = this.safeCurrencyCode(currencyId);
-        const account = this.account();
-        account['free'] = this.safeString(rawBalance, 'available');
-        account['used'] = this.safeString(rawBalance, 'freeze');
-        this.balance[code] = account;
+        if (method === undefined) {
+            return;
+        }
+        const isMargin = (method.indexOf('Margin') >= 0);
+        const data = this.safeList(message, 'params', []);
+        for (let i = 0; i < data.length; i++) {
+            const balanceDict = this.safeDict(data, i, {});
+            this.balance['info'] = balanceDict;
+            if (isMargin) {
+                const currencyId = this.safeString(balanceDict, 'a');
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['free'] = this.safeString(balanceDict, 'av');
+                account['total'] = this.safeString(balanceDict, 'B');
+                account['debt'] = this.safeString(balanceDict, 'b');
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
+            }
+            else {
+                const keys = Object.keys(balanceDict);
+                for (let j = 0; j < keys.length; j++) {
+                    const currencyId = keys[j];
+                    const rawBalance = this.safeDict(balanceDict, currencyId, {});
+                    const code = this.safeCurrencyCode(currencyId);
+                    const account = this.account();
+                    account['free'] = this.safeString(rawBalance, 'available');
+                    account['used'] = this.safeString(rawBalance, 'freeze');
+                    if (code !== undefined) {
+                        this.balance[code] = account;
+                    }
+                }
+            }
+        }
         this.balance = this.safeBalance(this.balance);
         let messageHash = 'wallet:';
         if (method.indexOf('Spot') >= 0) {
@@ -757,7 +878,9 @@ class whitebit extends whitebit$1["default"] {
         return await this.watch(url, messageHash, message, messageHash);
     }
     async watchMultipleSubscription(messageHash, method, symbol, isNested = false, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const id = this.nonce();
         const client = this.safeValue(this.clients, url);
@@ -767,7 +890,9 @@ class whitebit extends whitebit$1["default"] {
             const subscription = {};
             const market = this.market(symbol);
             const marketId = market['id'];
-            subscription[marketId] = true;
+            if (marketId !== undefined) {
+                subscription[marketId] = true;
+            }
             marketIds = [marketId];
             if (isNested) {
                 marketIds = [marketIds];
@@ -781,13 +906,15 @@ class whitebit extends whitebit$1["default"] {
             return await this.watch(url, messageHash, message, method, subscription);
         }
         else {
-            const subscription = this.safeValue(client.subscriptions, method, {});
+            const subscription = this.safeDict(client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market(symbol);
             const marketId = market['id'];
             const isSubscribed = this.safeBool(subscription, marketId, false);
-            if (!isSubscribed) {
-                subscription[marketId] = true;
+            if (isSubscribed !== true) {
+                if (marketId !== undefined) {
+                    subscription[marketId] = true;
+                }
                 hasSymbolSubscription = false;
             }
             if (hasSymbolSubscription) {
@@ -829,11 +956,38 @@ class whitebit extends whitebit$1["default"] {
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.urls['api']['ws'];
-        const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.reusableFuture('authenticated');
-        const authenticated = this.safeValue(client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        const subscribeHash = 'authenticated';
+        // handleAuthenticate () resolves the handshake future with 1, so 1 is
+        // the authorized sentinel authenticate () has always returned - every
+        // path below hands back that same value
+        const authorized = 1;
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // the handshake gate subscriptions['authenticated'] is only registered after the awaited
+        // token fetch, so concurrent cold callers would each burn a private REST call and push
+        // their own authorize frame. the flight lives in client.futures of the handshake client
+        // under a non-messageHash key and settles only via client.resolve () / client.reject ()
+        const messageHash = 'authenticateFlight';
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader settles
+            // it, the socket is authorized by then. the flight gate is
+            // checked before the subscriptions one because watch () registers
+            // subscriptions['authenticated'] immediately, long before the
+            // venue acks the authorize frame
+            await client.future(messageHash);
+            return authorized;
+        }
+        const authenticated = this.safeValue(client.subscriptions, subscribeHash);
+        if (authenticated !== undefined) {
+            // a previous flight already completed the handshake on the client
+            return authorized;
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch or the authorize round-trip finds it and waits
+        // instead of re-leading, and so client.reject () below always has a
+        // waiter and can never park the error in client.rejections
+        const future = client.reusableFuture(messageHash);
+        try {
             const authToken = await this.v4PrivatePostProfileWebsocketToken();
             //
             //   {
@@ -841,6 +995,11 @@ class whitebit extends whitebit$1["default"] {
             //   }
             //
             const token = this.safeString(authToken, 'websocket_token');
+            if (token === undefined) {
+                // reject instead of authorizing with an empty credential, the
+                // venue answers that with an opaque socket drop
+                throw new errors.AuthenticationError(this.id + ' authenticate() received an empty websocket_token');
+            }
             const id = this.nonce();
             const request = {
                 'id': id,
@@ -854,15 +1013,33 @@ class whitebit extends whitebit$1["default"] {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
-            try {
-                await this.watch(url, messageHash, request, messageHash, subscription);
-            }
-            catch (e) {
-                delete client.subscriptions[messageHash];
-                future.reject(e);
-            }
+            await this.watch(url, subscribeHash, request, subscribeHash, subscription);
+            // settle the flight and wake every waiter - resolve () also drops
+            // the registry entry, so a later cold call can re-lead
+            client.resolve(authorized, messageHash);
         }
-        return await future;
+        catch (e) {
+            // drop the handshake state so the next caller can retry: watch ()
+            // registers subscriptions['authenticated'] before it connects and
+            // parks a rejected future under the same key when the dial fails,
+            // and either one left behind would make every later authenticate ()
+            // replay that failure. the stale future is settled through
+            // client.reject () - guarded, so it always has a waiter and the
+            // error is never parked in client.rejections
+            if (subscribeHash in client.subscriptions) {
+                delete client.subscriptions[subscribeHash];
+            }
+            if (subscribeHash in client.futures) {
+                client.reject(e, subscribeHash);
+            }
+            // reject the flight - the leader and every waiter throw and the
+            // next caller re-leads instead of deadlocking on a dead flight
+            client.reject(e, messageHash);
+        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        await future;
+        return authorized;
     }
     handleAuthenticate(client, message) {
         //
@@ -897,7 +1074,7 @@ class whitebit extends whitebit$1["default"] {
                 return false;
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         //
@@ -907,7 +1084,7 @@ class whitebit extends whitebit$1["default"] {
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const result = this.safeString(message, 'result');

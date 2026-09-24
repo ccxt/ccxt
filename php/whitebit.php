@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\whitebit as Exchange;
 
 class whitebit extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
@@ -32,7 +31,7 @@ class whitebit extends Exchange {
                 'createConvertTrade' => true,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
-                'createMarketOrderWithCost' => false,
+                'createMarketOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -43,13 +42,14 @@ class whitebit extends Exchange {
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchClosedOrders' => true,
                 'fetchConvertQuote' => true,
                 'fetchConvertTrade' => false,
                 'fetchConvertTradeHistory' => true,
-                'fetchCrossBorrowRate' => true,
+                'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
@@ -142,142 +142,169 @@ class whitebit extends Exchange {
             'api' => array(
                 'web' => array(
                     'get' => array(
-                        'v1/healthcheck',
+                        'v1/healthcheck' => array( 'cost' => 1 ),
                     ),
                 ),
                 'v1' => array(
                     'public' => array(
                         'get' => array(
-                            'markets',
-                            'tickers',
-                            'ticker',
-                            'symbols',
-                            'depth/result',
-                            'history',
-                            'kline',
+                            'markets' => array( 'cost' => 1 ),
+                            'tickers' => array( 'cost' => 1 ),
+                            'ticker' => array( 'cost' => 1 ),
+                            'symbols' => array( 'cost' => 1 ),
+                            'depth/result' => array( 'cost' => 1 ),
+                            'history' => array( 'cost' => 1 ),
+                            'kline' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'account/balance',
-                            'order/new',
-                            'order/cancel',
-                            'orders',
-                            'account/order_history',
-                            'account/executed_history',
-                            'account/executed_history/all',
-                            'account/order',
+                            'account/balance' => array( 'cost' => 1 ),
+                            'order/new' => array( 'cost' => 1 ),
+                            'order/cancel' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'account/order_history' => array( 'cost' => 1 ),
+                            'account/executed_history' => array( 'cost' => 1 ),
+                            'account/executed_history/all' => array( 'cost' => 1 ),
+                            'account/order' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'v2' => array(
                     'public' => array(
                         'get' => array(
-                            'markets',
-                            'ticker',
-                            'assets',
-                            'fee',
-                            'depth/{market}',
-                            'trades/{market}',
+                            'markets' => array( 'cost' => 1 ),
+                            'ticker' => array( 'cost' => 1 ),
+                            'assets' => array( 'cost' => 1 ),
+                            'fee' => array( 'cost' => 1 ),
+                            'depth/{market}' => array( 'cost' => 1 ),
+                            'trades/{market}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'v4' => array(
                     'public' => array(
                         'get' => array(
-                            'assets',
-                            'collateral/markets',
-                            'fee',
-                            'funding-history/{market}',
-                            'orderbook/depth/{market}',
-                            'orderbook/{market}',
-                            'ticker',
-                            'trades/{market}',
-                            'time',
-                            'ping',
-                            'markets',
-                            'futures',
-                            'platform/status',
-                            'mining-pool',
+                            'assets' => array( 'cost' => 1 ),
+                            'collateral/markets' => array( 'cost' => 1 ),
+                            'fee' => array( 'cost' => 1 ),
+                            'funding-history/{market}' => array( 'cost' => 1 ),
+                            'orderbook/depth/{market}' => array( 'cost' => 1 ),
+                            'orderbook/{market}' => array( 'cost' => 1 ),
+                            'ticker' => array( 'cost' => 1 ),
+                            'trades/{market}' => array( 'cost' => 1 ),
+                            'time' => array( 'cost' => 1 ),
+                            'ping' => array( 'cost' => 1 ),
+                            'markets' => array( 'cost' => 1 ),
+                            'futures' => array( 'cost' => 1 ),
+                            'platform/status' => array( 'cost' => 1 ),
+                            'mining-pool' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'collateral-account/balance',
-                            'collateral-account/balance-summary',
-                            'collateral-account/positions/history',
-                            'collateral-account/leverage',
-                            'collateral-account/positions/open',
-                            'collateral-account/summary',
-                            'collateral-account/funding-history',
-                            'main-account/address',
-                            'main-account/balance',
-                            'main-account/create-new-address',
-                            'main-account/codes',
-                            'main-account/codes/apply',
-                            'main-account/codes/my',
-                            'main-account/codes/history',
-                            'main-account/fiat-deposit-url',
-                            'main-account/history',
-                            'main-account/withdraw',
-                            'main-account/withdraw-pay',
-                            'main-account/transfer',
-                            'main-account/smart/plans',
-                            'main-account/smart/investment',
-                            'main-account/smart/investment/close',
-                            'main-account/smart/investments',
-                            'main-account/fee',
-                            'main-account/smart/interest-payment-history',
-                            'trade-account/balance',
-                            'trade-account/executed-history',
-                            'trade-account/order/history',
-                            'trade-account/order',
-                            'order/collateral/limit',
-                            'order/collateral/market',
-                            'order/collateral/stop-limit',
-                            'order/collateral/trigger-market',
-                            'order/collateral/bulk',
-                            'order/new',
-                            'order/market',
-                            'order/stock_market',
-                            'order/stop_limit',
-                            'order/stop_market',
-                            'order/cancel',
-                            'order/cancel/all',
-                            'order/kill-switch',
-                            'order/kill-switch/status',
-                            'order/bulk',
-                            'order/modify',
-                            'order/conditional-cancel',
-                            'orders',
-                            'oco-orders',
-                            'order/collateral/oco',
-                            'order/oco-cancel',
-                            'order/oto-cancel',
-                            'profile/websocket_token',
-                            'convert/estimate',
-                            'convert/confirm',
-                            'convert/history',
-                            'sub-account/create',
-                            'sub-account/delete',
-                            'sub-account/edit',
-                            'sub-account/list',
-                            'sub-account/transfer',
-                            'sub-account/block',
-                            'sub-account/unblock',
-                            'sub-account/balances',
-                            'sub-account/transfer/history',
-                            'sub-account/api-key/create',
-                            'sub-account/api-key/edit',
-                            'sub-account/api-key/delete',
-                            'sub-account/api-key/list',
-                            'sub-account/api-key/reset',
-                            'sub-account/api-key/ip-address/list',
-                            'sub-account/api-key/ip-address/create',
-                            'sub-account/api-key/ip-address/delete',
-                            'mining/rewards',
-                            'market/fee',
-                            'conditional-orders',
+                            'collateral-account/balance' => array( 'cost' => 1 ),
+                            'collateral-account/balance-summary' => array( 'cost' => 1 ),
+                            'collateral-account/positions/history' => array( 'cost' => 1 ),
+                            'collateral-account/leverage' => array( 'cost' => 1 ),
+                            'collateral-account/positions/open' => array( 'cost' => 1 ),
+                            'collateral-account/positions/closed-pnl' => array( 'cost' => 1 ),
+                            'collateral-account/summary' => array( 'cost' => 1 ),
+                            'collateral-account/funding-history' => array( 'cost' => 1 ),
+                            'main-account/address' => array( 'cost' => 1 ),
+                            'main-account/balance' => array( 'cost' => 1 ),
+                            'main-account/create-new-address' => array( 'cost' => 1 ),
+                            'main-account/codes' => array( 'cost' => 1 ),
+                            'main-account/codes/apply' => array( 'cost' => 1 ),
+                            'main-account/codes/my' => array( 'cost' => 1 ),
+                            'main-account/codes/history' => array( 'cost' => 1 ),
+                            'main-account/fiat-deposit-url' => array( 'cost' => 1 ),
+                            'main-account/history' => array( 'cost' => 1 ),
+                            'main-account/withdraw' => array( 'cost' => 1 ),
+                            'main-account/withdraw-pay' => array( 'cost' => 1 ),
+                            'main-account/express-withdraw/token' => array( 'cost' => 1 ),
+                            'main-account/transfer' => array( 'cost' => 1 ),
+                            'main-account/smart/plans' => array( 'cost' => 1 ),
+                            'main-account/smart/investment' => array( 'cost' => 1 ),
+                            'main-account/smart/investment/close' => array( 'cost' => 1 ),
+                            'main-account/smart/investments' => array( 'cost' => 1 ),
+                            'main-account/fee' => array( 'cost' => 1 ),
+                            'main-account/smart/interest-payment-history' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/plans' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/history' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/payment-history' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/invest' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/withdraw' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/close' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/auto-invest' => array( 'cost' => 1 ),
+                            'trade-account/balance' => array( 'cost' => 1 ),
+                            // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
+                            'trade-account/executed-history' => array( 'cost' => 1 ),
+                            'trade-account/order/history' => array( 'cost' => 1 ),
+                            'trade-account/order/history/query' => array( 'cost' => 1 ),
+                            'trade-account/order' => array( 'cost' => 1 ),
+                            'order/collateral/limit' => array( 'cost' => 1 ),
+                            'order/collateral/market' => array( 'cost' => 1 ),
+                            'order/collateral/stop-limit' => array( 'cost' => 1 ),
+                            'order/collateral/trigger-market' => array( 'cost' => 1 ),
+                            'order/collateral/bulk' => array( 'cost' => 1 ),
+                            'order/new' => array( 'cost' => 1 ),
+                            'order/market' => array( 'cost' => 1 ),
+                            'order/stock_market' => array( 'cost' => 1 ),
+                            'order/stop_limit' => array( 'cost' => 1 ),
+                            'order/stop_market' => array( 'cost' => 1 ),
+                            'order/cancel' => array( 'cost' => 1 ),
+                            'order/cancel/all' => array( 'cost' => 1 ),
+                            'order/cancel/bulk' => array( 'cost' => 1 ),
+                            'order/kill-switch' => array( 'cost' => 1 ),
+                            'order/kill-switch/status' => array( 'cost' => 1 ),
+                            'order/bulk' => array( 'cost' => 1 ),
+                            'order/modify' => array( 'cost' => 1 ),
+                            'order/conditional-cancel' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'oco-orders' => array( 'cost' => 1 ),
+                            'order/collateral/oco' => array( 'cost' => 1 ),
+                            'order/oco-cancel' => array( 'cost' => 1 ),
+                            'order/oto-cancel' => array( 'cost' => 1 ),
+                            'profile/websocket_token' => array( 'cost' => 1 ),
+                            'convert/estimate' => array( 'cost' => 1 ),
+                            'convert/confirm' => array( 'cost' => 1 ),
+                            'convert/history' => array( 'cost' => 1 ),
+                            'sub-account/create' => array( 'cost' => 1 ),
+                            'sub-account/delete' => array( 'cost' => 1 ),
+                            'sub-account/edit' => array( 'cost' => 1 ),
+                            'sub-account/list' => array( 'cost' => 1 ),
+                            'sub-account/transfer' => array( 'cost' => 1 ),
+                            'sub-account/block' => array( 'cost' => 1 ),
+                            'sub-account/unblock' => array( 'cost' => 1 ),
+                            'sub-account/balances' => array( 'cost' => 1 ),
+                            'sub-account/transfer/history' => array( 'cost' => 1 ),
+                            'sub-account/api-key/create' => array( 'cost' => 1 ),
+                            'sub-account/api-key/edit' => array( 'cost' => 1 ),
+                            'sub-account/api-key/delete' => array( 'cost' => 1 ),
+                            'sub-account/api-key/list' => array( 'cost' => 1 ),
+                            'sub-account/api-key/reset' => array( 'cost' => 1 ),
+                            'sub-account/api-key/ip-address/list' => array( 'cost' => 1 ),
+                            'sub-account/api-key/ip-address/create' => array( 'cost' => 1 ),
+                            'sub-account/api-key/ip-address/delete' => array( 'cost' => 1 ),
+                            'mining/rewards' => array( 'cost' => 1 ),
+                            'mining/hashrate' => array( 'cost' => 1 ),
+                            'mining/payout-destination' => array( 'cost' => 1 ),
+                            'mining/payout-destination/edit' => array( 'cost' => 1 ),
+                            'mining/miners/info' => array( 'cost' => 1 ),
+                            'mining/workers/names' => array( 'cost' => 1 ),
+                            'mining/workers/hashrate' => array( 'cost' => 1 ),
+                            'mining/watcher-links/create' => array( 'cost' => 1 ),
+                            'mining/watcher-links/list' => array( 'cost' => 1 ),
+                            'mining/accounts/create' => array( 'cost' => 1 ),
+                            'mining/accounts' => array( 'cost' => 1 ),
+                            'market/fee' => array( 'cost' => 1 ),
+                            'market/fee/single' => array( 'cost' => 1 ),
+                            'conditional-orders' => array( 'cost' => 1 ),
+                            'travel-rule/vasps' => array( 'cost' => 1 ),
+                            'travel-rule/deposit/verification' => array( 'cost' => 1 ),
+                            'jwt' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -321,9 +348,9 @@ class whitebit extends Exchange {
                         'takeProfitPrice' => false, // todo
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'IOC' => true, // todo
+                            'IOC' => true,
                             'FOK' => false,
-                            'PO' => true, // todo
+                            'PO' => true,
                             'GTD' => false,
                         ),
                         'hedged' => false,
@@ -406,38 +433,38 @@ class whitebit extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
-                    'Unauthorized request.' => '\\ccxt\\AuthenticationError', // array("code":10,"message":"Unauthorized request.")
-                    'The market format is invalid.' => '\\ccxt\\BadSymbol', // array("code":0,"message":"Validation failed","errors":array("market":["The market format is invalid."]))
-                    'Market is not available' => '\\ccxt\\BadSymbol', // array("success":false,"message":array("market":["Market is not available"]),"result":array())
-                    'Invalid payload.' => '\\ccxt\\BadRequest', // array("code":9,"message":"Invalid payload.")
-                    'Amount must be greater than 0' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
-                    'Not enough balance.' => '\\ccxt\\InsufficientFunds', // array("code":10,"message":"Inner validation failed","errors":array("amount":["Not enough balance."]))
-                    'The order id field is required.' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("orderId":["The order id field is required."]))
-                    'Not enough balance' => '\\ccxt\\InsufficientFunds', // array("code":0,"message":"Validation failed","errors":array("amount":["Not enough balance"]))
-                    'This action is unauthorized.' => '\\ccxt\\PermissionDenied', // array("code":0,"message":"This action is unauthorized.")
-                    'This API Key is not authorized to perform this action.' => '\\ccxt\\PermissionDenied', // array("code":4,"message":"This API Key is not authorized to perform this action.")
-                    'Unexecuted order was not found.' => '\\ccxt\\OrderNotFound', // array("code":2,"message":"Inner validation failed","errors":array("order_id":["Unexecuted order was not found."]))
-                    'The selected from is invalid.' => '\\ccxt\\BadRequest', // array("code":0,"message":"Validation failed","errors":array("from":["The selected from is invalid."]))
-                    '503' => '\\ccxt\\ExchangeNotAvailable', // array("response":null,"status":503,"errors":array("message":[""]),"notification":null,"warning":null,"_token":null),
-                    '422' => '\\ccxt\\OrderNotFound', // array("response":null,"status":422,"errors":array("orderId":["Finished order id 1295772653 not found on your account"]),"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null)
+                    'Unauthorized request.' => '\\ccxt\\AuthenticationError', // {"code":10,"message":"Unauthorized request."}
+                    'The market format is invalid.' => '\\ccxt\\BadSymbol', // {"code":0,"message":"Validation failed","errors":{"market":["The market format is invalid."]}}
+                    'Market is not available' => '\\ccxt\\BadSymbol', // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                    'Invalid payload.' => '\\ccxt\\BadRequest', // {"code":9,"message":"Invalid payload."}
+                    'Amount must be greater than 0' => '\\ccxt\\InvalidOrder', // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+                    'Not enough balance.' => '\\ccxt\\InsufficientFunds', // {"code":10,"message":"Inner validation failed","errors":{"amount":["Not enough balance."]}}
+                    'The order id field is required.' => '\\ccxt\\InvalidOrder', // {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
+                    'Not enough balance' => '\\ccxt\\InsufficientFunds', // {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
+                    'This action is unauthorized.' => '\\ccxt\\PermissionDenied', // {"code":0,"message":"This action is unauthorized."}
+                    'This API Key is not authorized to perform this action.' => '\\ccxt\\PermissionDenied', // {"code":4,"message":"This API Key is not authorized to perform this action."}
+                    'Unexecuted order was not found.' => '\\ccxt\\OrderNotFound', // {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
+                    'The selected from is invalid.' => '\\ccxt\\BadRequest', // {"code":0,"message":"Validation failed","errors":{"from":["The selected from is invalid."]}}
+                    '503' => '\\ccxt\\ExchangeNotAvailable', // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
+                    '422' => '\\ccxt\\OrderNotFound', // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 ),
                 'broad' => array(
                     'limit must be less than or equal to' => '\\ccxt\\BadRequest',
-                    'The Price should be less than or equal to' => '\\ccxt\\InvalidOrder', // array("code":250,"errors":array("price":["The Price should be less than or equal to 1.277"]),"message":"Validation failed")
-                    'The Price should be greater than or equal to' => '\\ccxt\\InvalidOrder', // array("code":250,"errors":array("price":["The Price should be greater than or equal to 0.0029"]),"message":"Validation failed")
-                    'This action is unauthorized' => '\\ccxt\\PermissionDenied', // array("code":2,"message":"This action is unauthorized. Enable your key in API settings")
-                    'Given amount is less than min amount' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]))
-                    'Min amount step' => '\\ccxt\\InvalidOrder', // array("code":32,"errors":array("amount":["Min amount step = 0.01"]),"message":"Validation failed")
-                    'Total is less than' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]))
-                    'fee must be no less than' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Total amount . fee must be no less than 5.05505"]))
-                    'Enable your key in API settings' => '\\ccxt\\PermissionDenied', // array("code":2,"message":"This action is unauthorized. Enable your key in API settings")
-                    'You don\'t have such amount for transfer' => '\\ccxt\\InsufficientFunds', // array("code":3,"message":"Inner validation failed","errors":array("amount":["You don't have such amount for transfer (available 0.44523433, in amount => 2)"]))
+                    'The Price should be less than or equal to' => '\\ccxt\\InvalidOrder', // {"code":250,"errors":{"price":["The Price should be less than or equal to 1.277"]},"message":"Validation failed"}
+                    'The Price should be greater than or equal to' => '\\ccxt\\InvalidOrder', // {"code":250,"errors":{"price":["The Price should be greater than or equal to 0.0029"]},"message":"Validation failed"}
+                    'This action is unauthorized' => '\\ccxt\\PermissionDenied', // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
+                    'Given amount is less than min amount' => '\\ccxt\\InvalidOrder', // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'Min amount step' => '\\ccxt\\InvalidOrder', // {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
+                    'Total is less than' => '\\ccxt\\InvalidOrder', // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'fee must be no less than' => '\\ccxt\\InvalidOrder', // {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
+                    'Enable your key in API settings' => '\\ccxt\\PermissionDenied', // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
+                    'You don\'t have such amount for transfer' => '\\ccxt\\InsufficientFunds', // {"code":3,"message":"Inner validation failed","errors":{"amount":["You don't have such amount for transfer (available 0.44523433, in amount: 2)"]}}
                 ),
             ),
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for whitebit
          *
@@ -446,32 +473,32 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
-        $markets = $this->v4PublicGetMarkets ();
+        $markets = $this->v4PublicGetMarkets();
         //
-        //    array(
-        //        array(
-        //          "name" => "SON_USD",         // Market pair name
-        //          "stock" => "SON",            // Ticker of stock currency
-        //          "money" => "USD",            // Ticker of money currency
-        //          "stockPrec" => "3",          // Stock currency precision
-        //          "moneyPrec" => "2",          // Precision of money currency
-        //          "feePrec" => "4",            // Fee precision
-        //          "makerFee" => "0.1",         // Default maker fee ratio
-        //          "takerFee" => "0.1",         // Default taker fee ratio
-        //          "minAmount" => "0.001",      // Minimal amount of stock to trade
-        //          "minTotal" => "0.001",       // Minimal amount of money to trade
-        //          "tradesEnabled" => true,     // Is trading enabled
-        //          "isCollateral" => true,      // Is margin trading enabled
-        //          "type" => "spot",            // Market type. Possible values => "spot", "futures"
-        //          "maxTotal" => "1000000000"   // Maximum total(amount * price) of money to trade
-        //        ),
+        //    [
+        //        {
+        //          "name": "SON_USD",         // Market pair name
+        //          "stock": "SON",            // Ticker of stock currency
+        //          "money": "USD",            // Ticker of money currency
+        //          "stockPrec": "3",          // Stock currency precision
+        //          "moneyPrec": "2",          // Precision of money currency
+        //          "feePrec": "4",            // Fee precision
+        //          "makerFee": "0.1",         // Default maker fee ratio
+        //          "takerFee": "0.1",         // Default taker fee ratio
+        //          "minAmount": "0.001",      // Minimal amount of stock to trade
+        //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "tradesEnabled": true,     // Is trading enabled
+        //          "isCollateral": true,      // Is margin trading enabled
+        //          "type": "spot",            // Market type. Possible values: "spot", "futures"
+        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        //        },
         //        {
         //          ...
         //        }
-        //    )
+        //    ]
         //
         return $this->parse_markets($markets);
     }
@@ -483,17 +510,16 @@ class whitebit extends Exchange {
         $quoteId = ($quoteId === 'PERP') ? 'USDT' : $quoteId;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $active = $this->safe_value($market, 'tradesEnabled');
-        $isCollateral = $this->safe_value($market, 'isCollateral');
+        $active = $this->safe_bool($market, 'tradesEnabled');
+        $isCollateral = $this->safe_bool($market, 'isCollateral');
         $typeId = $this->safe_string($market, 'type');
         $settle = null;
         $settleId = null;
         $symbol = $base . '/' . $quote;
-        $swap = $typeId === 'futures';
-        $margin = $isCollateral && !$swap;
+        $swap = ($typeId === 'futures') || ($typeId === 'tradfiFutures');
+        $margin = ($isCollateral === true) && !$swap;
         $contract = false;
         $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
-        $contractSize = $amountPrecision;
         $linear = null;
         $inverse = null;
         if ($swap) {
@@ -512,7 +538,7 @@ class whitebit extends Exchange {
         $makerFeeRate = $this->safe_string($market, 'makerFee');
         $maker = Precise::string_div($makerFeeRate, '100');
         $isSpot = !$swap;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -533,7 +559,7 @@ class whitebit extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->parse_number($taker),
             'maker' => $this->parse_number($maker),
-            'contractSize' => $isSpot ? null : $contractSize,
+            'contractSize' => $isSpot ? null : $this->parse_number('1'), // perpetual amounts are denominated in base currency units
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
@@ -562,10 +588,10 @@ class whitebit extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -574,93 +600,95 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->v4PublicGetAssets ($params);
+        $response = $this->v4PublicGetAssets($params);
         //
         // {
-        //   BTC => array(
-        //     $name => "Bitcoin",
-        //     unified_cryptoasset_id => "1",
-        //     can_withdraw => true,
-        //     can_deposit => true,
-        //     min_withdraw => "0.0003",
-        //     max_withdraw => "0",
-        //     maker_fee => "0.1",
-        //     taker_fee => "0.1",
-        //     min_deposit => "0.0001",
-        //     max_deposit => "0",
-        //     $networks => array(
-        //         deposits => array( "BTC", ),
-        //         withdraws => array( "BTC", ),
-        //         default => "BTC",
-        //     ),
-        //     confirmations => array(
-        //         BTC => "2",
-        //     ),
-        //     limits => array(
-        //         deposit => array(
-        //            BTC => array( min => "0.0001", ),
-        //         ),
-        //         withdraw => array(
-        //            BTC => array( min => "0.0003", ),
-        //         ),
-        //     ),
-        //     currency_precision => "8",
-        //     is_memo => false,
-        //   ),
-        //   USD => {
-        //         $name => "United States Dollar",
-        //         unified_cryptoasset_id => "6955",
-        //         can_withdraw => true,
-        //         can_deposit => true,
-        //         min_withdraw => "10",
-        //         max_withdraw => "10000",
-        //         maker_fee => "0.1",
-        //         taker_fee => "0.1",
-        //         min_deposit => "10",
-        //         max_deposit => "10000",
-        //         $networks => array(
-        //           deposits => array( "USD", ),
-        //           withdraws => array( "USD", ),
-        //           default => "USD",
-        //         ),
-        //         providers => array(
-        //           deposits => array( "ADVCASH", ),
-        //           withdraws => array( "ADVCASH", ),
-        //         ),
-        //         limits => array(
-        //           deposit => array(
-        //             USD => array(  max => "10000", min => "10", ),
-        //           ),
-        //           withdraw => array(
-        //             USD => array( max => "10000",  min => "10", ),
-        //           ),
-        //         ),
-        //         currency_precision => "2",
-        //         is_memo => false,
+        //   BTC: {
+        //     name: "Bitcoin",
+        //     unified_cryptoasset_id: "1",
+        //     can_withdraw: true,
+        //     can_deposit: true,
+        //     min_withdraw: "0.0003",
+        //     max_withdraw: "0",
+        //     maker_fee: "0.1",
+        //     taker_fee: "0.1",
+        //     min_deposit: "0.0001",
+        //     max_deposit: "0",
+        //     networks: {
+        //         deposits: [ "BTC", ],
+        //         withdraws: [ "BTC", ],
+        //         default: "BTC",
+        //     },
+        //     confirmations: {
+        //         BTC: "2",
+        //     },
+        //     limits: {
+        //         deposit: {
+        //            BTC: { min: "0.0001", },
+        //         },
+        //         withdraw: {
+        //            BTC: { min: "0.0003", },
+        //         },
+        //     },
+        //     currency_precision: "8",
+        //     is_memo: false,
+        //   },
+        //   USD: {
+        //         name: "United States Dollar",
+        //         unified_cryptoasset_id: "6955",
+        //         can_withdraw: true,
+        //         can_deposit: true,
+        //         min_withdraw: "10",
+        //         max_withdraw: "10000",
+        //         maker_fee: "0.1",
+        //         taker_fee: "0.1",
+        //         min_deposit: "10",
+        //         max_deposit: "10000",
+        //         networks: {
+        //           deposits: [ "USD", ],
+        //           withdraws: [ "USD", ],
+        //           default: "USD",
+        //         },
+        //         providers: {
+        //           deposits: [ "ADVCASH", ],
+        //           withdraws: [ "ADVCASH", ],
+        //         },
+        //         limits: {
+        //           deposit: {
+        //             USD: {  max: "10000", min: "10", },
+        //           },
+        //           withdraw: {
+        //             USD: { max: "10000",  min: "10", },
+        //           },
+        //         },
+        //         currency_precision: "2",
+        //         is_memo: false,
         //   }
         // }
         //
-        $ids = is_array($response) ? array_keys($response) : array();
-        $result = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $currency = $response[$id];
-            // $name = $this->safe_string($currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-            $code = $this->safe_currency_code($id);
-            $hasProvider = (is_array($currency) && array_key_exists('providers', $currency));
-            $networks = array();
-            $rawNetworks = $this->safe_dict($currency, 'networks', array());
-            $depositsNetworks = $this->safe_list($rawNetworks, 'deposits', array());
-            $withdrawsNetworks = $this->safe_list($rawNetworks, 'withdraws', array());
-            $networkLimits = $this->safe_dict($currency, 'limits', array());
-            $depositLimits = $this->safe_dict($networkLimits, 'deposit', array());
-            $withdrawLimits = $this->safe_dict($networkLimits, 'withdraw', array());
-            $allNetworks = $this->array_concat($depositsNetworks, $withdrawsNetworks);
-            for ($j = 0; $j < count($allNetworks); $j++) {
-                $networkId = $allNetworks[$j];
-                $networkCode = $this->network_id_to_code($networkId);
-                $networkDepositLimits = $this->safe_dict($depositLimits, $networkId, array());
-                $networkWithdrawLimits = $this->safe_dict($withdrawLimits, $networkId, array());
+        $enhancedArray = $this->add_key_in_array_items($response, '_coin_id');
+        return $this->parse_currencies($enhancedArray);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
+        $id = $this->safe_string($rawCurrency, '_coin_id');
+        $code = $this->safe_currency_code($id);
+        $hasProvider = (is_array($rawCurrency) && array_key_exists('providers' ?? '', $rawCurrency));
+        $networks = array();
+        $rawNetworks = $this->safe_dict($rawCurrency, 'networks', array());
+        $depositsNetworks = $this->safe_list($rawNetworks, 'deposits', array());
+        $withdrawsNetworks = $this->safe_list($rawNetworks, 'withdraws', array());
+        $networkLimits = $this->safe_dict($rawCurrency, 'limits', array());
+        $depositLimits = $this->safe_dict($networkLimits, 'deposit', array());
+        $withdrawLimits = $this->safe_dict($networkLimits, 'withdraw', array());
+        $allNetworks = $this->array_concat($depositsNetworks, $withdrawsNetworks);
+        for ($j = 0; $j < count($allNetworks); $j++) {
+            $networkId = $allNetworks[$j];
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networkDepositLimits = $this->safe_dict($depositLimits, $networkId, array());
+            $networkWithdrawLimits = $this->safe_dict($withdrawLimits, $networkId, array());
+            if ($networkCode !== null) {
                 $networks[$networkCode] = array(
                     'id' => $networkId,
                     'network' => $networkCode,
@@ -681,38 +709,37 @@ class whitebit extends Exchange {
                     ),
                 );
             }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency, // the original payload
-                'name' => null, // see the comment above
-                'active' => null,
-                'deposit' => $this->safe_bool($currency, 'can_deposit'),
-                'withdraw' => $this->safe_bool($currency, 'can_withdraw'),
-                'fee' => null,
-                'networks' => $networks,
-                'type' => $hasProvider ? 'fiat' : 'crypto',
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'currency_precision'))),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'min_withdraw'),
-                        'max' => $this->safe_number($currency, 'max_withdraw'),
-                    ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($currency, 'min_deposit'),
-                        'max' => $this->safe_number($currency, 'max_deposit'),
-                    ),
-                ),
-            ));
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency, // the original payload
+            'name' => null, // see the comment above
+            'active' => null,
+            'deposit' => $this->safe_bool($rawCurrency, 'can_deposit'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'can_withdraw'),
+            'fee' => null,
+            'networks' => $networks,
+            'type' => $hasProvider ? 'fiat' : 'crypto',
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'currency_precision'))),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'min_withdraw'),
+                    'max' => $this->safe_number($rawCurrency, 'max_withdraw'),
+                ),
+                'deposit' => array(
+                    'min' => $this->safe_number($rawCurrency, 'min_deposit'),
+                    'max' => $this->safe_number($rawCurrency, 'max_deposit'),
+                ),
+            ),
+        ));
     }
 
-    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array()) {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
@@ -723,8 +750,10 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
-        $response = $this->v4PublicGetFee ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->v4PublicGetFee($params);
         //
         //      {
         //          "1INCH":{
@@ -732,22 +761,22 @@ class whitebit extends Exchange {
         //              "is_withdrawal":true,
         //              "ticker":"1INCH",
         //              "name":"1inch",
-        //              "providers":array(
-        //              ),
-        //              "withdraw":array(
+        //              "providers":[
+        //              ],
+        //              "withdraw":{
         //                   "max_amount":"0",
         //                  "min_amount":"21.5",
         //                  "fixed":"17.5",
         //                  "flex":null
-        //              ),
-        //              "deposit":array(
+        //              },
+        //              "deposit":{
         //                  "max_amount":"0",
         //                  "min_amount":"19.5",
         //                  "fixed":null,
         //                  "flex":null
         //               }
-        //          ),
-        //           array(...)
+        //          },
+        //           {...}
         //      }
         //
         $currenciesIds = is_array($response) ? array_keys($response) : array();
@@ -755,12 +784,16 @@ class whitebit extends Exchange {
         $depositFees = array();
         for ($i = 0; $i < count($currenciesIds); $i++) {
             $currency = $currenciesIds[$i];
-            $data = $response[$currency];
+            $data = $this->safe_dict($response, $currency, array());
             $code = $this->safe_currency_code($currency);
-            $withdraw = $this->safe_value($data, 'withdraw', array());
-            $withdrawFees[$code] = $this->safe_string($withdraw, 'fixed');
-            $deposit = $this->safe_value($data, 'deposit', array());
-            $depositFees[$code] = $this->safe_string($deposit, 'fixed');
+            $withdraw = $this->safe_dict($data, 'withdraw', array());
+            if ($code !== null) {
+                $withdrawFees[$code] = $this->safe_string($withdraw, 'fixed');
+            }
+            $deposit = $this->safe_dict($data, 'deposit', array());
+            if ($code !== null) {
+                $depositFees[$code] = $this->safe_string($deposit, 'fixed');
+            }
         }
         return array(
             'withdraw' => $withdrawFees,
@@ -769,7 +802,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -779,93 +812,95 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
-        $response = $this->v4PublicGetFee ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->v4PublicGetFee($params);
         //
         //    {
-        //        "1INCH" => {
-        //            "is_depositable" => true,
-        //            "is_withdrawal" => true,
-        //            "ticker" => "1INCH",
-        //            "name" => "1inch",
-        //            "providers" => array(),
-        //            "withdraw" => array(
-        //                "max_amount" => "0",
-        //                "min_amount" => "21.5",
-        //                "fixed" => "17.5",
-        //                "flex" => null
-        //            ),
-        //            "deposit" => array(
-        //                "max_amount" => "0",
-        //                "min_amount" => "19.5",
-        //                "fixed" => null,
-        //                "flex" => null
+        //        "1INCH": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "1INCH",
+        //            "name": "1inch",
+        //            "providers": [],
+        //            "withdraw": {
+        //                "max_amount": "0",
+        //                "min_amount": "21.5",
+        //                "fixed": "17.5",
+        //                "flex": null
+        //            },
+        //            "deposit": {
+        //                "max_amount": "0",
+        //                "min_amount": "19.5",
+        //                "fixed": null,
+        //                "flex": null
         //            }
-        //        ),
-        //        "WBT (ERC20)" => array(
-        //            "is_depositable" => true,
-        //            "is_withdrawal" => true,
-        //            "ticker" => "WBT",
-        //            "name" => "WhiteBIT Token",
-        //            "providers" => array(),
-        //            "withdraw" => array( max_amount => "0", min_amount => '0.7', fixed => "0.253", flex => null ),
-        //            "deposit" => array( max_amount => "0", min_amount => "0.35", fixed => null, flex => null )
-        //        ),
-        //        "WBT (TRC20)" => array(
-        //            "is_depositable" => true,
-        //            "is_withdrawal" => true,
-        //            "ticker" => "WBT",
-        //            "name" => "WhiteBIT Token",
-        //            "providers" => array(),
-        //            "withdraw" => array( max_amount => "0", min_amount => "1.5", fixed => "0.075", flex => null ),
-        //            "deposit" => array( max_amount => "0", min_amount => "0.75", fixed => null, flex => null )
-        //        ),
+        //        },
+        //        "WBT (ERC20)": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "WBT",
+        //            "name": "WhiteBIT Token",
+        //            "providers": [],
+        //            "withdraw": { max_amount: "0", min_amount: '0.7', fixed: "0.253", flex: null },
+        //            "deposit": { max_amount: "0", min_amount: "0.35", fixed: null, flex: null }
+        //        },
+        //        "WBT (TRC20)": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "WBT",
+        //            "name": "WhiteBIT Token",
+        //            "providers": [],
+        //            "withdraw": { max_amount: "0", min_amount: "1.5", fixed: "0.075", flex: null },
+        //            "deposit": { max_amount: "0", min_amount: "0.75", fixed: null, flex: null }
+        //        },
         //        ...
         //    }
         //
         return $this->parse_deposit_withdraw_fees($response, $codes);
     }
 
-    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, ?string $currencyIdKey = null): mixed {
         //
         //    {
-        //        "1INCH" => {
-        //            "is_depositable" => true,
-        //            "is_withdrawal" => true,
-        //            "ticker" => "1INCH",
-        //            "name" => "1inch",
-        //            "providers" => array(),
-        //            "withdraw" => array(
-        //                "max_amount" => "0",
-        //                "min_amount" => "21.5",
-        //                "fixed" => "17.5",
-        //                "flex" => null
-        //            ),
-        //            "deposit" => array(
-        //                "max_amount" => "0",
-        //                "min_amount" => "19.5",
-        //                "fixed" => null,
-        //                "flex" => null
+        //        "1INCH": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "1INCH",
+        //            "name": "1inch",
+        //            "providers": [],
+        //            "withdraw": {
+        //                "max_amount": "0",
+        //                "min_amount": "21.5",
+        //                "fixed": "17.5",
+        //                "flex": null
+        //            },
+        //            "deposit": {
+        //                "max_amount": "0",
+        //                "min_amount": "19.5",
+        //                "fixed": null,
+        //                "flex": null
         //            }
-        //        ),
-        //        "WBT (ERC20)" => array(
-        //            "is_depositable" => true,
-        //            "is_withdrawal" => true,
-        //            "ticker" => "WBT",
-        //            "name" => "WhiteBIT Token",
-        //            "providers" => array(),
-        //            "withdraw" => array( max_amount => "0", min_amount => "0.7", fixed => "0.253", flex => null ),
-        //            "deposit" => array( max_amount => "0", min_amount => "0.35", fixed => null, flex => null )
-        //        ),
-        //        "WBT (TRC20)" => array(
-        //            "is_depositable" => true,
-        //            "is_withdrawal" => true,
-        //            "ticker" => "WBT",
-        //            "name" => "WhiteBIT Token",
-        //            "providers" => array(),
-        //            "withdraw" => array( max_amount => "0", min_amount => "1.5", fixed => "0.075", flex => null ),
-        //            "deposit" => array( max_amount => "0", min_amount => "0.75", fixed => null, flex => null )
-        //        ),
+        //        },
+        //        "WBT (ERC20)": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "WBT",
+        //            "name": "WhiteBIT Token",
+        //            "providers": [],
+        //            "withdraw": { max_amount: "0", min_amount: "0.7", fixed: "0.253", flex: null },
+        //            "deposit": { max_amount: "0", min_amount: "0.35", fixed: null, flex: null }
+        //        },
+        //        "WBT (TRC20)": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "WBT",
+        //            "name": "WhiteBIT Token",
+        //            "providers": [],
+        //            "withdraw": { max_amount: "0", min_amount: "1.5", fixed: "0.075", flex: null },
+        //            "deposit": { max_amount: "0", min_amount: "0.75", fixed: null, flex: null }
+        //        },
         //        ...
         //    }
         //
@@ -878,15 +913,15 @@ class whitebit extends Exchange {
             $currencyId = $splitEntry[0];
             $feeInfo = $response[$entry];
             $code = $this->safe_currency_code($currencyId);
-            if (($codes === null) || ($this->in_array($code, $codes))) {
-                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
+            if (($code !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
+                $depositWithdrawFee = $this->safe_dict($depositWithdrawFees, $code);
                 if ($depositWithdrawFee === null) {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
                 }
                 $depositWithdrawFees[$code]['info'][$entry] = $feeInfo;
                 $networkId = $this->safe_string($splitEntry, 1);
-                $withdraw = $this->safe_value($feeInfo, 'withdraw');
-                $deposit = $this->safe_value($feeInfo, 'deposit');
+                $withdraw = $this->safe_dict($feeInfo, 'withdraw');
+                $deposit = $this->safe_dict($feeInfo, 'deposit');
                 $withdrawFee = $this->safe_number($withdraw, 'fixed');
                 $depositFee = $this->safe_number($deposit, 'fixed');
                 $withdrawResult = array(
@@ -900,11 +935,13 @@ class whitebit extends Exchange {
                 if ($networkId !== null) {
                     $networkLength = count($networkId);
                     $networkId = mb_substr($networkId, 1, $networkLength - 1 - 1);
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
-                        'withdraw' => $withdrawResult,
-                        'deposit' => $depositResult,
-                    );
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                    if ($networkCode !== null) {
+                        $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                            'withdraw' => $withdrawResult,
+                            'deposit' => $depositResult,
+                        );
+                    }
                 } else {
                     $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
                     $depositWithdrawFees[$code]['deposit'] = $depositResult;
@@ -920,39 +957,42 @@ class whitebit extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
          * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market $symbols
          */
-        $this->load_markets();
-        $response = $this->v4PublicGetAssets ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->v4PublicGetAssets($params);
         //
         //      {
-        //          "1INCH" => array(
-        //              "name" => "1inch",
-        //              "unified_cryptoasset_id" => "8104",
-        //              "can_withdraw" => true,
-        //              "can_deposit" => true,
-        //              "min_withdraw" => "33",
-        //              "max_withdraw" => "0",
-        //              "maker_fee" => "0.1",
-        //              "taker_fee" => "0.1",
-        //              "min_deposit" => "30",
-        //              "max_deposit" => "0"
-        //            ),
+        //          "1INCH": {
+        //              "name": "1inch",
+        //              "unified_cryptoasset_id": "8104",
+        //              "can_withdraw": true,
+        //              "can_deposit": true,
+        //              "min_withdraw": "33",
+        //              "max_withdraw": "0",
+        //              "maker_fee": "0.1",
+        //              "taker_fee": "0.1",
+        //              "min_deposit": "30",
+        //              "max_deposit": "0"
+        //            },
         //            ...
         //      }
         //
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $fee = $this->safe_value($response, $market['baseId'], array());
+            $fee = $this->safe_dict($response, $market['baseId'], array());
             $makerFee = $this->safe_string($fee, 'maker_fee');
             $takerFee = $this->safe_string($fee, 'taker_fee');
             $makerFee = Precise::string_div($makerFee, '100');
@@ -969,7 +1009,7 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_limits(?array $symbols = null, $params = array ()): mixed {
+    public function fetch_trading_limits(?array $symbols = null, $params = array()): array {
         /**
          * fetch the trading $limits for a $market
          *
@@ -979,63 +1019,70 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=trading-$limits-structure trading $limits structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         //
-        // Trading $limits are derived from $market information already loaded by loadMarkets()
+        // Trading limits are derived from market information already loaded by loadMarkets()
         // Market structure includes:
         //     {
-        //         "id" => "BTC_USDT",                    // Market ID
-        //         "symbol" => "BTC/USDT",                // Unified $symbol
-        //         "base" => "BTC",                       // Base currency
-        //         "quote" => "USDT",                     // Quote currency
-        //         "active" => true,                      // Market active status
-        //         "type" => "spot",                      // Market type
-        //         "spot" => true,                        // Spot trading enabled
-        //         "margin" => false,                     // Margin trading enabled
-        //         "future" => false,                     // Futures trading enabled
-        //         "option" => false,                     // Options trading enabled
-        //         "contract" => false,                   // Contract trading enabled
-        //         "settle" => null,                 // Settlement currency
-        //         "settleId" => null,               // Settlement currency ID
-        //         "contractSize" => null,           // Contract size
-        //         "linear" => null,                 // Linear contract
-        //         "inverse" => null,                // Inverse contract
-        //         "limits" => {                          // Trading $limits
-        //             "amount" => array(                      // Amount $limits
-        //                 "min" => 0.00001,              // Minimum amount
-        //                 "max" => 1000000               // Maximum amount
-        //             ),
-        //             "price" => array(                       // Price $limits
-        //                 "min" => 0.01,                 // Minimum price
-        //                 "max" => 1000000               // Maximum price
-        //             ),
-        //             "cost" => array(                        // Cost $limits
-        //                 "min" => 5.0,                  // Minimum cost
-        //                 "max" => 10000000              // Maximum cost
+        //         "id": "BTC_USDT",                    // Market ID
+        //         "symbol": "BTC/USDT",                // Unified symbol
+        //         "base": "BTC",                       // Base currency
+        //         "quote": "USDT",                     // Quote currency
+        //         "active": true,                      // Market active status
+        //         "type": "spot",                      // Market type
+        //         "spot": true,                        // Spot trading enabled
+        //         "margin": false,                     // Margin trading enabled
+        //         "future": false,                     // Futures trading enabled
+        //         "option": false,                     // Options trading enabled
+        //         "contract": false,                   // Contract trading enabled
+        //         "settle": undefined,                 // Settlement currency
+        //         "settleId": undefined,               // Settlement currency ID
+        //         "contractSize": undefined,           // Contract size
+        //         "linear": undefined,                 // Linear contract
+        //         "inverse": undefined,                // Inverse contract
+        //         "limits": {                          // Trading limits
+        //             "amount": {                      // Amount limits
+        //                 "min": 0.00001,              // Minimum amount
+        //                 "max": 1000000               // Maximum amount
+        //             },
+        //             "price": {                       // Price limits
+        //                 "min": 0.01,                 // Minimum price
+        //                 "max": 1000000               // Maximum price
+        //             },
+        //             "cost": {                        // Cost limits
+        //                 "min": 5.0,                  // Minimum cost
+        //                 "max": 10000000              // Maximum cost
         //             }
-        //         ),
-        //         "precision" => array(                       // Precision settings
-        //             "amount" => 5,                     // Amount precision
-        //             "price" => 2                       // Price precision
-        //         ),
-        //         "taker" => 0.001,                      // Taker fee
-        //         "maker" => 0.001,                      // Maker fee
-        //         "percentage" => true,                  // Fee percentage
-        //         "tierBased" => false                   // Tier-based fees
+        //         },
+        //         "precision": {                       // Precision settings
+        //             "amount": 5,                     // Amount precision
+        //             "price": 2                       // Price precision
+        //         },
+        //         "taker": 0.001,                      // Taker fee
+        //         "maker": 0.001,                      // Maker fee
+        //         "percentage": true,                  // Fee percentage
+        //         "tierBased": false                   // Tier-based fees
         //     }
         //
         $result = array();
         // Process all markets from the loaded markets cache
-        $marketIds = is_array($this->markets) ? array_keys($this->markets) : array();
+        $markets = $this->markets;
+        if ($markets === null) {
+            throw new ExchangeError($this->id . ' $markets not loaded');
+        }
+        $marketIds = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->markets[$marketId];
-            if (!$market || !$market['symbol']) {
+            $market = $markets[$marketId];
+            $marketSymbol = $this->safe_string($market, 'symbol');
+            if (($market === null) || ($market === null) || ($marketSymbol === null) || ($marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
             $symbol = $market['symbol'];
-            // Filter by $symbols if specified
-            if ($symbols) {
+            // Filter by symbols if specified
+            if ($symbols !== null) {
                 $symbolFound = false;
                 for ($j = 0; $j < count($symbols); $j++) {
                     if ($symbols[$j] === $symbol) {
@@ -1044,19 +1091,19 @@ class whitebit extends Exchange {
                     }
                 }
                 if (!$symbolFound) {
-                    continue; // Skip $symbols not in requested list
+                    continue; // Skip symbols not in requested list
                 }
             }
-            // Extract trading $limits
+            // Extract trading limits
             $limits = $this->safe_dict($market, 'limits');
             $amountLimits = $this->safe_dict($limits, 'amount');
             $priceLimits = $this->safe_dict($limits, 'price');
             $costLimits = $this->safe_dict($limits, 'cost');
-            // Validate that all required $limits exist and are valid numbers
-            $hasAmountLimits = $amountLimits && $this->safe_number($amountLimits, 'min') !== null && $this->safe_number($amountLimits, 'max') !== null;
-            $hasPriceLimits = $priceLimits && $this->safe_number($priceLimits, 'min') !== null && $this->safe_number($priceLimits, 'max') !== null;
-            $hasCostLimits = $costLimits && $this->safe_number($costLimits, 'min') !== null && $this->safe_number($costLimits, 'max') !== null;
-            if ($hasAmountLimits && $hasPriceLimits && $hasCostLimits) {
+            // Validate that all required limits exist and are valid numbers
+            $hasAmountLimits = ($amountLimits !== null) && ($amountLimits !== null) && $this->safe_number($amountLimits, 'min') !== null && $this->safe_number($amountLimits, 'max') !== null;
+            $hasPriceLimits = ($priceLimits !== null) && ($priceLimits !== null) && $this->safe_number($priceLimits, 'min') !== null && $this->safe_number($priceLimits, 'max') !== null;
+            $hasCostLimits = ($costLimits !== null) && ($costLimits !== null) && $this->safe_number($costLimits, 'min') !== null && $this->safe_number($costLimits, 'max') !== null;
+            if (($hasAmountLimits === true) && ($hasPriceLimits === true) && ($hasCostLimits === true)) {
                 $result[$symbol] = array(
                     'info' => $market,
                     'limits' => array(
@@ -1079,7 +1126,7 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_limits(?array $codes = null, $params = array ()) {
+    public function fetch_funding_limits(?array $codes = null, $params = array()): array {
         /**
          * fetch the deposit and withdrawal $limits for a $currency
          *
@@ -1090,64 +1137,66 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-$limits-structure funding $limits structure~
          */
-        $this->load_markets();
-        // Fetch both currencies and fees data for comprehensive funding $limits
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        // Fetch both currencies and fees data for comprehensive funding limits
         list($currenciesData, $feesData) = Promise\all(array(
             $this->fetch_currencies(),
-            $this->v4PublicGetFee ($params),
+            $this->v4PublicGetFee($params),
         ));
         //
         // Currencies response structure (from fetchCurrencies):
         //     {
-        //         "BTC" => {
-        //             "id" => "BTC",                          // Currency ID
-        //             "code" => "BTC",                        // Currency $code
-        //             "name" => "Bitcoin",                    // Currency name
-        //             "active" => true,                       // Currency active status
-        //             "type" => "crypto",                     // Currency type
-        //             "precision" => 8,                       // Currency precision
-        //             "limits" => {                           // Currency $limits
-        //                 "deposit" => array(                      // Deposit $limits
-        //                     "min" => 0.00001,               // Minimum deposit
-        //                     "max" => 1000000                // Maximum deposit
-        //                 ),
-        //                 "withdraw" => array(                     // Withdrawal $limits
-        //                     "min" => 0.00001,               // Minimum withdrawal
-        //                     "max" => 1000000                // Maximum withdrawal
+        //         "BTC": {
+        //             "id": "BTC",                          // Currency ID
+        //             "code": "BTC",                        // Currency code
+        //             "name": "Bitcoin",                    // Currency name
+        //             "active": true,                       // Currency active status
+        //             "type": "crypto",                     // Currency type
+        //             "precision": 8,                       // Currency precision
+        //             "limits": {                           // Currency limits
+        //                 "deposit": {                      // Deposit limits
+        //                     "min": 0.00001,               // Minimum deposit
+        //                     "max": 1000000                // Maximum deposit
+        //                 },
+        //                 "withdraw": {                     // Withdrawal limits
+        //                     "min": 0.00001,               // Minimum withdrawal
+        //                     "max": 1000000                // Maximum withdrawal
         //                 }
-        //             ),
-        //             "networks" => {                         // Network-specific $limits
-        //                 "BTC" => {
-        //                     "limits" => array(
-        //                         "deposit" => array( "min" => "0.001" ),
-        //                         "withdraw" => array( "min" => "0.002" )
+        //             },
+        //             "networks": {                         // Network-specific limits
+        //                 "BTC": {
+        //                     "limits": {
+        //                         "deposit": { "min": "0.001" },
+        //                         "withdraw": { "min": "0.002" }
         //                     }
         //                 }
-        //             ),
-        //             "info" => array( ... )                       // Original API response
+        //             },
+        //             "info": { ... }                       // Original API response
         //         }
         //     }
         //
         // Fees response structure (from /api/v4/public/fee):
         //     {
-        //         "USDT (ERC20)" => {
-        //             "ticker" => "USDT",
-        //             "name" => "Tether US",
-        //             "deposit" => {
-        //                 "min_amount" => "0.0005",
-        //                 "max_amount" => "0.1",
-        //                 "fixed" => "0.0005",
-        //                 "flex" => array(
-        //                     "min_fee" => "100",
-        //                     "max_fee" => "1000",
-        //                     "percent" => "10"
+        //         "USDT (ERC20)": {
+        //             "ticker": "USDT",
+        //             "name": "Tether US",
+        //             "deposit": {
+        //                 "min_amount": "0.0005",
+        //                 "max_amount": "0.1",
+        //                 "fixed": "0.0005",
+        //                 "flex": {
+        //                     "min_fee": "100",
+        //                     "max_fee": "1000",
+        //                     "percent": "10"
         //                 }
-        //             ),
-        //             "withdraw" => {
-        //                 "min_amount" => "0.001",
-        //                 "max_amount" => "0",
-        //                 "fixed" => null,
-        //                 "flex" => null
+        //             },
+        //             "withdraw": {
+        //                 "min_amount": "0.001",
+        //                 "max_amount": "0",
+        //                 "fixed": null,
+        //                 "flex": null
         //             }
         //         }
         //     }
@@ -1157,45 +1206,46 @@ class whitebit extends Exchange {
         for ($i = 0; $i < count($currencyKeys); $i++) {
             $code = $currencyKeys[$i];
             $currency = $currenciesData[$code];
-            if (!$currency) {
-                // Skip invalid $currency silently
+            if ($currency === null) {
+                // Skip invalid currency silently
                 continue;
             }
             if ($codes !== null && !$this->in_array($code, $codes)) {
-                // Skip $currency not in requested list silently
+                // Skip currency not in requested list silently
                 continue;
             }
-            // Find corresponding $fee data for this $currency
+            // Find corresponding fee data for this currency
             $feeData = null;
             $feeKeys = is_array($feesData) ? array_keys($feesData) : array();
             for ($j = 0; $j < count($feeKeys); $j++) {
                 $feeKey = $feeKeys[$j];
-                $fee = $feesData[$feeKey];
-                if ($fee && $fee['ticker'] === $code) {
+                $fee = $this->safe_dict($feesData, $feeKey);
+                if (($fee !== null && $fee !== null) && $fee['ticker'] === $code) {
                     $feeData = $fee;
                     break;
                 }
             }
-            // Build comprehensive funding $limits
+            // Build comprehensive funding limits
+            $currencyLimits = $this->safe_dict($currency, 'limits', array());
             $limits = array(
                 'deposit' => array(
-                    'min' => $currency['limits']['deposit']['min'],
-                    'max' => $currency['limits']['deposit']['max'],
+                    'min' => $currencyLimits['deposit']['min'],
+                    'max' => $currencyLimits['deposit']['max'],
                 ),
                 'withdraw' => array(
-                    'min' => $currency['limits']['withdraw']['min'],
-                    'max' => $currency['limits']['withdraw']['max'],
+                    'min' => $currencyLimits['withdraw']['min'],
+                    'max' => $currencyLimits['withdraw']['max'],
                 ),
             );
-            // Add $fee information if available
-            if ($feeData) {
+            // Add fee information if available
+            if ($feeData !== null) {
                 $depositFee = $feeData['deposit'];
                 $withdrawFee = $feeData['withdraw'];
-                if ($depositFee) {
+                if (($depositFee !== null) && ($depositFee !== null)) {
                     $depositFeeData = array(
                         'fixed' => $this->safe_number($depositFee, 'fixed'),
                     );
-                    if ($depositFee['flex']) {
+                    if (($depositFee['flex'] !== null) && ($depositFee['flex'] !== null)) {
                         $depositFeeData['flex'] = array(
                             'min' => $this->safe_number($depositFee['flex'], 'min_fee'),
                             'max' => $this->safe_number($depositFee['flex'], 'max_fee'),
@@ -1204,11 +1254,11 @@ class whitebit extends Exchange {
                     }
                     $limits['deposit']['fee'] = $depositFeeData;
                 }
-                if ($withdrawFee) {
+                if (($withdrawFee !== null) && ($withdrawFee !== null)) {
                     $withdrawFeeData = array(
                         'fixed' => $this->safe_number($withdrawFee, 'fixed'),
                     );
-                    if ($withdrawFee['flex']) {
+                    if (($withdrawFee['flex'] !== null) && ($withdrawFee['flex'] !== null)) {
                         $withdrawFeeData['flex'] = array(
                             'min' => $this->safe_number($withdrawFee['flex'], 'min_fee'),
                             'max' => $this->safe_number($withdrawFee['flex'], 'max_fee'),
@@ -1218,8 +1268,8 @@ class whitebit extends Exchange {
                     $limits['withdraw']['fee'] = $withdrawFeeData;
                 }
             }
-            // Add network-specific $limits if available
-            if ($currency['networks']) {
+            // Add network-specific limits if available
+            if ($currency['networks'] !== null) {
                 $limits['networks'] = $currency['networks'];
             }
             $result[$code] = array(
@@ -1230,7 +1280,7 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1240,17 +1290,19 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PublicGetTicker ($this->extend($request, $params));
+        $response = $this->v1PublicGetTicker($this->extend($request, $params));
         //
         //      {
         //         "success":true,
         //         "message":"",
-        //         "result" => array(
+        //         "result": {
         //             "bid":"0.021979",
         //             "ask":"0.021996",
         //             "open":"0.02182",
@@ -1260,7 +1312,7 @@ class whitebit extends Exchange {
         //             "volume":"2810.267",
         //             "deal":"61.383565474",
         //             "change":"0.76",
-        //         ),
+        //         },
         //     }
         //
         $ticker = $this->safe_dict($response, 'result', array());
@@ -1272,91 +1324,91 @@ class whitebit extends Exchange {
         //  FetchTicker (v1)
         //
         //    {
-        //        "bid" => "0.021979",
-        //        "ask" => "0.021996",
-        //        "open" => "0.02182",
-        //        "high" => "0.022039",
-        //        "low" => "0.02161",
-        //        "last" => "0.021987",
-        //        "volume" => "2810.267",
-        //        "deal" => "61.383565474",
-        //        "change" => "0.76",
+        //        "bid": "0.021979",
+        //        "ask": "0.021996",
+        //        "open": "0.02182",
+        //        "high": "0.022039",
+        //        "low": "0.02161",
+        //        "last": "0.021987",
+        //        "volume": "2810.267",
+        //        "deal": "61.383565474",
+        //        "change": "0.76",
         //    }
         //
         // FetchTickers (v4)
         //
-        //    "BCH_RUB" => {
-        //        "base_id" => 1831,
-        //        "quote_id" => 0,
-        //        "last_price" => "32830.21",
-        //        "quote_volume" => "1494659.8024096",
-        //        "base_volume" => "46.1083",
-        //        "isFrozen" => false,
-        //        "change" => "2.12" // in percent
+        //    "BCH_RUB": {
+        //        "base_id": 1831,
+        //        "quote_id": 0,
+        //        "last_price": "32830.21",
+        //        "quote_volume": "1494659.8024096",
+        //        "base_volume": "46.1083",
+        //        "isFrozen": false,
+        //        "change": "2.12" // in percent
         //    }
         //
         // WS market_update
         //
         //     {
-        //         "open" => "52853.04",
-        //         "close" => "55913.88",
-        //         "high" => "56272",
-        //         "low" => "49549.67",
-        //         "volume" => "57331.067185",
-        //         "deal" => "3063860382.42985338",
-        //         "last" => "55913.88",
-        //         "period" => 86400
+        //         "open": "52853.04",
+        //         "close": "55913.88",
+        //         "high": "56272",
+        //         "low": "49549.67",
+        //         "volume": "57331.067185",
+        //         "deal": "3063860382.42985338",
+        //         "last": "55913.88",
+        //         "period": 86400
         //     }
         // v2
         //   {
-        //       lastUpdateTimestamp => '2025-01-02T09:16:36.000Z',
-        //       tradingPairs => 'ARB_USDC',
-        //       lastPrice => '0.7727',
-        //       lowestAsk => '0.7735',
-        //       highestBid => '0.7732',
-        //       baseVolume24h => '1555793.74',
-        //       quoteVolume24h => '1157602.622406',
-        //       tradesEnabled => true
+        //       lastUpdateTimestamp: '2025-01-02T09:16:36.000Z',
+        //       tradingPairs: 'ARB_USDC',
+        //       lastPrice: '0.7727',
+        //       lowestAsk: '0.7735',
+        //       highestBid: '0.7732',
+        //       baseVolume24h: '1555793.74',
+        //       quoteVolume24h: '1157602.622406',
+        //       tradesEnabled: true
         //   }
         //
         // v4PublicGetFutures
         //     {
-        //         "ticker_id" => "0G_PERP",
-        //         "stock_currency" => "0G",
-        //         "money_currency" => "USDT",
-        //         "last_price" => "0.6065",
-        //         "stock_volume" => "2563218",
-        //         "money_volume" => "1587952.6137",
-        //         "bid" => "0.6065",
-        //         "ask" => "0.6077",
-        //         "high" => "0.6472",
-        //         "low" => "0.6045",
-        //         "product_type" => "Perpetual",
-        //         "open_interest" => "3721488",
-        //         "index_price" => "0.61",
-        //         "index_name" => "0G future contract",
-        //         "index_currency" => "0G",
-        //         "funding_rate" => "-0.00000778",
-        //         "next_funding_rate_timestamp" => "1772467200000",
-        //         "brackets" => array(
-        //             "1" => 0,
-        //             "10" => 0,
-        //             "100" => 0,
-        //             "2" => 0,
-        //             "20" => 4000,
-        //             "3" => 0,
-        //             "5" => 0,
-        //             "50" => 800
-        //         ),
-        //         "max_leverage" => 50,
-        //         "funding_interval_minutes" => 240
+        //         "ticker_id": "0G_PERP",
+        //         "stock_currency": "0G",
+        //         "money_currency": "USDT",
+        //         "last_price": "0.6065",
+        //         "stock_volume": "2563218",
+        //         "money_volume": "1587952.6137",
+        //         "bid": "0.6065",
+        //         "ask": "0.6077",
+        //         "high": "0.6472",
+        //         "low": "0.6045",
+        //         "product_type": "Perpetual",
+        //         "open_interest": "3721488",
+        //         "index_price": "0.61",
+        //         "index_name": "0G future contract",
+        //         "index_currency": "0G",
+        //         "funding_rate": "-0.00000778",
+        //         "next_funding_rate_timestamp": "1772467200000",
+        //         "brackets": {
+        //             "1": 0,
+        //             "10": 0,
+        //             "100": 0,
+        //             "2": 0,
+        //             "20": 4000,
+        //             "3": 0,
+        //             "5": 0,
+        //             "50": 800
+        //         },
+        //         "max_leverage": 50,
+        //         "funding_interval_minutes": 240
         //     }
         //
         $marketId = $this->safe_string_2($ticker, 'tradingPairs', 'ticker_id');
         $market = $this->safe_market($marketId, $market);
-        // $last price is provided as "last" or "last_price"
+        // last price is provided as "last" or "last_price"
         $last = $this->safe_string_n($ticker, array( 'last', 'last_price', 'lastPrice' ));
-        // if "close" is provided, use it, otherwise use <$last>
+        // if "close" is provided, use it, otherwise use <last>
         $close = $this->safe_string($ticker, 'close', $last);
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -1383,7 +1435,7 @@ class whitebit extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order by the $id
          *
@@ -1397,10 +1449,13 @@ class whitebit extends Exchange {
          * @param {boolean} [$params->checkExecuted] whether to check executed $orders (default => true)
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
-        // Extract control parameters from $params
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        // Extract control parameters from params
         $checkActive = $this->safe_bool($params, 'checkActive', true);
         $checkExecuted = $this->safe_bool($params, 'checkExecuted', true);
+        $params = $this->omit($params, array( 'checkActive', 'checkExecuted' ));
         $request = array(
             'orderId' => $id,
         );
@@ -1409,13 +1464,14 @@ class whitebit extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        // Try active $orders first (if enabled)
-        if ($checkActive) {
+        // Try active orders first (if enabled)
+        if ($checkActive === true) {
             try {
-                $response = $this->v4PrivatePostOrders ($this->extend($request, $params));
-                // Search for $order in active $orders $response (array format)
-                for ($i = 0; $i < count($response); $i++) {
-                    $order = $response[$i];
+                $response = $this->v4PrivatePostOrders($this->extend($request, $params));
+                // Search for order in active orders response (array format)
+                $orders = $this->to_array($response);
+                for ($i = 0; $i < count($orders); $i++) {
+                    $order = $orders[$i];
                     $orderId = $this->safe_string($order, 'orderId');
                     if ($orderId === $id) {
                         $marketId = $this->safe_string($order, 'market');
@@ -1429,18 +1485,18 @@ class whitebit extends Exchange {
                 }
             }
         }
-        // Try executed $orders (if enabled)
-        if ($checkExecuted) {
+        // Try executed orders (if enabled)
+        if ($checkExecuted === true) {
             try {
-                $response = $this->v4PrivatePostTradeAccountOrderHistory ($this->extend($request, $params));
-                // Search for $order in executed $orders $response (object format)
+                $response = $this->v4PrivatePostTradeAccountOrderHistory($this->extend($request, $params));
+                // Search for order in executed orders response (object format)
                 $marketIds = is_array($response) ? array_keys($response) : array();
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
                     $marketNew = $this->safe_market($marketId, null, '_');
-                    $orders = $response[$marketId];
-                    for ($j = 0; $j < count($orders); $j++) {
-                        $order = $orders[$j];
+                    $marketOrders = $this->safe_list($response, $marketId, array());
+                    for ($j = 0; $j < count($marketOrders); $j++) {
+                        $order = $marketOrders[$j];
                         $orderId = $this->safe_string($order, 'id');
                         if ($orderId === $id) {
                             return $this->parse_order($order, $marketNew);
@@ -1457,7 +1513,7 @@ class whitebit extends Exchange {
         throw new OrderNotFound($this->id . ' fetchOrder() $order not found => ' . $id);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
@@ -1469,14 +1525,16 @@ class whitebit extends Exchange {
          * @param {string} [$params->method] either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $onlyContractSymbols = true;
         if ($symbols !== null) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                if (!($market['contract'])) {
+                if ($market['contract'] !== true) {
                     $onlyContractSymbols = false;
                     break;
                 }
@@ -1489,17 +1547,16 @@ class whitebit extends Exchange {
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', $method);
         if ($method === null) {
-            // if the user did not specify a $method, choose it based on $market type and $symbols
+            // if the user did not specify a method, choose it based on market type and symbols
             if ($onlyContractSymbols || ($marketType === 'swap')) {
                 $method = 'v4PublicGetFutures';
             } else {
                 $method = 'v4PublicGetTicker';
             }
         }
-        $response = null;
         if ($method === 'v4PublicGetTicker') {
             //
-            //      "BCH_RUB" => array(
+            //      "BCH_RUB": {
             //          "base_id":1831,
             //          "quote_id":0,
             //          "last_price":"32830.21",
@@ -1507,52 +1564,52 @@ class whitebit extends Exchange {
             //          "base_volume":"46.1083",
             //          "isFrozen":false,
             //          "change":"2.12"
-            //      ),
+            //      },
             //
-            $response = $this->v4PublicGetTicker ($params);
+            $response = $this->v4PublicGetTicker($params);
         } elseif ($method === 'v4PublicGetFutures') {
             //
             //     {
-            //         "success" => true,
-            //         "message" => null,
-            //         "result" => array(
+            //         "success": true,
+            //         "message": null,
+            //         "result": [
             //             {
-            //                 "ticker_id" => "0G_PERP",
-            //                 "stock_currency" => "0G",
-            //                 "money_currency" => "USDT",
-            //                 "last_price" => "0.6065",
-            //                 "stock_volume" => "2563218",
-            //                 "money_volume" => "1587952.6137",
-            //                 "bid" => "0.6065",
-            //                 "ask" => "0.6077",
-            //                 "high" => "0.6472",
-            //                 "low" => "0.6045",
-            //                 "product_type" => "Perpetual",
-            //                 "open_interest" => "3721488",
-            //                 "index_price" => "0.61",
-            //                 "index_name" => "0G future contract",
-            //                 "index_currency" => "0G",
-            //                 "funding_rate" => "-0.00000778",
-            //                 "next_funding_rate_timestamp" => "1772467200000",
-            //                 "brackets" => array(
-            //                     "1" => 0,
-            //                     "10" => 0,
-            //                     "100" => 0,
-            //                     "2" => 0,
-            //                     "20" => 4000,
-            //                     "3" => 0,
-            //                     "5" => 0,
-            //                     "50" => 800
-            //                 ),
-            //                 "max_leverage" => 50,
-            //                 "funding_interval_minutes" => 240
+            //                 "ticker_id": "0G_PERP",
+            //                 "stock_currency": "0G",
+            //                 "money_currency": "USDT",
+            //                 "last_price": "0.6065",
+            //                 "stock_volume": "2563218",
+            //                 "money_volume": "1587952.6137",
+            //                 "bid": "0.6065",
+            //                 "ask": "0.6077",
+            //                 "high": "0.6472",
+            //                 "low": "0.6045",
+            //                 "product_type": "Perpetual",
+            //                 "open_interest": "3721488",
+            //                 "index_price": "0.61",
+            //                 "index_name": "0G future contract",
+            //                 "index_currency": "0G",
+            //                 "funding_rate": "-0.00000778",
+            //                 "next_funding_rate_timestamp": "1772467200000",
+            //                 "brackets": {
+            //                     "1": 0,
+            //                     "10": 0,
+            //                     "100": 0,
+            //                     "2": 0,
+            //                     "20": 4000,
+            //                     "3": 0,
+            //                     "5": 0,
+            //                     "50": 800
+            //                 },
+            //                 "max_leverage": 50,
+            //                 "funding_interval_minutes": 240
             //             }
-            //         )
+            //         ]
             //     }
             //
-            $response = $this->v4PublicGetFutures ($params);
+            $response = $this->v4PublicGetFutures($params);
         } else {
-            $response = $this->v2PublicGetTicker ($params);
+            $response = $this->v2PublicGetTicker($params);
         }
         $resultList = $this->safe_list($response, 'result');
         if ($resultList !== null) {
@@ -1570,7 +1627,7 @@ class whitebit extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -1579,9 +1636,11 @@ class whitebit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1589,31 +1648,31 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 100, maximum = 100
         }
-        $response = $this->v4PublicGetOrderbookMarket ($this->extend($request, $params));
+        $response = $this->v4PublicGetOrderbookMarket($this->extend($request, $params));
         //
         //      {
-        //          "timestamp" => 1594391413,
-        //          "asks" => array(
-        //              array(
+        //          "timestamp": 1594391413,
+        //          "asks": [
+        //              [
         //                  "9184.41",
         //                  "0.773162"
-        //              ),
-        //              array( ... )
-        //          ),
-        //          "bids" => array(
-        //              array(
+        //              ],
+        //              [ ... ]
+        //          ],
+        //          "bids": [
+        //              [
         //                  "9181.19",
         //                  "0.010873"
-        //              ),
-        //              array( ... )
-        //          )
+        //              ],
+        //              [ ... ]
+        //          ]
         //      }
         //
         $timestamp = $this->safe_timestamp($response, 'timestamp');
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1625,28 +1684,30 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v4PublicGetTradesMarket ($this->extend($request, $params));
+        $response = $this->v4PublicGetTradesMarket($this->extend($request, $params));
         //
-        //      array(
-        //          array(
-        //              "tradeID" => 158056419,
-        //              "price" => "9186.13",
-        //              "quote_volume" => "0.0021",
-        //              "base_volume" => "9186.13",
-        //              "trade_timestamp" => 1594391747,
-        //              "type" => "sell"
-        //          ),
-        //      ),
+        //      [
+        //          {
+        //              "tradeID": 158056419,
+        //              "price": "9186.13",
+        //              "quote_volume": "0.0021",
+        //              "base_volume": "9186.13",
+        //              "trade_timestamp": 1594391747,
+        //              "type": "sell"
+        //          },
+        //      ],
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -1658,20 +1719,22 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->v4PrivatePostTradeAccountExecutedHistory ($this->extend($request, $params));
+        $response = $this->v4PrivatePostTradeAccountExecutedHistory($this->extend($request, $params));
         //
-        // when no $symbol is provided
+        // when no symbol is provided
         //
         //   {
-        //       "USDC_USDT":array(
-        //          array(
+        //       "USDC_USDT":[
+        //          {
         //             "id":"1343815269",
         //             "clientOrderId":"",
         //             "time":"1641051917.532965",
@@ -1682,26 +1745,26 @@ class whitebit extends Exchange {
         //             "deal":"9.981007",
         //             "fee":"0.009981007",
         //             "orderId":"58166729555"
-        //          ),
-        //       )
+        //          },
+        //       ]
         //   }
         //
-        // when a $symbol is provided
+        // when a symbol is provided
         //
-        //     array(
-        //         array(
-        //             "id" => 1343815269,
-        //             "clientOrderId" => '',
-        //             "time" => 1641051917.532965,
-        //             "side" => "sell",
-        //             "role" => 2,
-        //             "amount" => "9.986",
-        //             "price" => "0.9995",
-        //             "deal" => "9.981007",
-        //             "fee" => "0.009981007",
-        //             "orderId" => 58166729555,
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "id": 1343815269,
+        //             "clientOrderId": '',
+        //             "time": 1641051917.532965,
+        //             "side": "sell",
+        //             "role": 2,
+        //             "amount": "9.986",
+        //             "price": "0.9995",
+        //             "deal": "9.981007",
+        //             "fee": "0.009981007",
+        //             "orderId": 58166729555,
+        //         },
+        //     ]
         //
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             return $this->parse_trades($response, $market, $since, $limit);
@@ -1711,7 +1774,7 @@ class whitebit extends Exchange {
             for ($i = 0; $i < count($keys); $i++) {
                 $marketId = $keys[$i];
                 $marketNew = $this->safe_market($marketId, null, '_');
-                $rawTrades = $this->safe_value($response, $marketId, array());
+                $rawTrades = $this->safe_list($response, $marketId, array());
                 $parsed = $this->parse_trades($rawTrades, $marketNew, $since, $limit);
                 $results = $this->array_concat($results, $parsed);
             }
@@ -1725,43 +1788,43 @@ class whitebit extends Exchange {
         // fetchTradesV4
         //
         //     {
-        //       "tradeID" => 158056419,
-        //       "price" => "9186.13",
-        //       "quote_volume" => "0.0021",
-        //       "base_volume" => "9186.13",
-        //       "trade_timestamp" => 1594391747,
-        //       "type" => "sell"
+        //       "tradeID": 158056419,
+        //       "price": "9186.13",
+        //       "quote_volume": "0.0021",
+        //       "base_volume": "9186.13",
+        //       "trade_timestamp": 1594391747,
+        //       "type": "sell"
         //     }
         //
         // orderTrades (v4Private)
         //
         //     {
-        //         "time" => 1593342324.613711,
-        //         "fee" => "0.00000419198",
-        //         "price" => "0.00000701",
-        //         "amount" => "598",
-        //         "id" => 149156519, // $trade $id
-        //         "dealOrderId" => 3134995325, // $orderId
-        //         "clientOrderId" => "customId11",
-        //         "role" => 2, // 1 = maker, 2 = taker
-        //         "deal" => "0.00419198" // $amount in money
-        //         "feeAsset" => "USDT"
+        //         "time": 1593342324.613711,
+        //         "fee": "0.00000419198",
+        //         "price": "0.00000701",
+        //         "amount": "598",
+        //         "id": 149156519, // trade id
+        //         "dealOrderId": 3134995325, // orderId
+        //         "clientOrderId": "customId11",
+        //         "role": 2, // 1 = maker, 2 = taker
+        //         "deal": "0.00419198" // amount in money
+        //         "feeAsset": "USDT"
         //     }
         //
         // fetchMyTrades
         //
         //      {
-        //          "id" => 1343815269,
-        //          "clientOrderId" => '',
-        //          "time" => 1641051917.532965,
-        //          "side" => "sell",
-        //          "role" => 2,
-        //          "amount" => "9.986",
-        //          "price" => "0.9995",
-        //          "deal" => "9.981007",
-        //          "fee" => "0.009981007",
-        //          "orderId" => 58166729555,
-        //          "feeAsset" => "USDT"
+        //          "id": 1343815269,
+        //          "clientOrderId": '',
+        //          "time": 1641051917.532965,
+        //          "side": "sell",
+        //          "role": 2,
+        //          "amount": "9.986",
+        //          "price": "0.9995",
+        //          "deal": "9.981007",
+        //          "fee": "0.009981007",
+        //          "orderId": 58166729555,
+        //          "feeAsset": "USDT"
         //      }
         //
         $market = $this->safe_market(null, $market);
@@ -1803,7 +1866,7 @@ class whitebit extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1814,9 +1877,11 @@ class whitebit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1827,14 +1892,14 @@ class whitebit extends Exchange {
             if ($limit === null) {
                 $limit = $maxLimit;
             }
-            $limit = min ($limit, $maxLimit);
+            $limit = min($limit, $maxLimit);
             $start = $this->parse_to_int($since / 1000);
             $request['start'] = $start;
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1440);
+            $request['limit'] = min($limit, 1440);
         }
-        $response = $this->v1PublicGetKline ($this->extend($request, $params));
+        $response = $this->v1PublicGetKline($this->extend($request, $params));
         //
         //     {
         //         "success":true,
@@ -1850,9 +1915,9 @@ class whitebit extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         1591488000,
         //         "0.025025",
         //         "0.025025",
@@ -1860,7 +1925,7 @@ class whitebit extends Exchange {
         //         "0.025023",
         //         "6.181",
         //         "0.154686629"
-        //     )
+        //     ]
         //
         return array(
             $this->safe_timestamp($ohlcv, 0), // timestamp
@@ -1872,7 +1937,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1881,11 +1946,11 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
-        $response = $this->v4PublicGetPing ($params);
+        $response = $this->v4PublicGetPing($params);
         //
-        //      array(
+        //      [
         //          "pong"
-        //      )
+        //      ]
         //
         $status = $this->safe_string($response, 0);
         return array(
@@ -1897,7 +1962,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -1906,7 +1971,7 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->v4PublicGetTime ($params);
+        $response = $this->v4PublicGetTime($params);
         //
         //     {
         //         "time":1737380046
@@ -1915,7 +1980,7 @@ class whitebit extends Exchange {
         return $this->safe_integer_product($response, 'time', 1000);
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): array {
         /**
          * create a market order by providing the $symbol, $side and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -1927,11 +1992,11 @@ class whitebit extends Exchange {
         $req = array(
             'cost' => $cost,
         );
-        // only buy $side is supported
+        // only buy side is supported
         return $this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params));
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()): array {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -1942,7 +2007,7 @@ class whitebit extends Exchange {
         return $this->create_market_order_with_cost($symbol, 'buy', $cost, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1961,11 +2026,14 @@ class whitebit extends Exchange {
          * @param {float} [$params->cost] *$market orders only* the $cost of the order in units of the base currency
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
          * @param {bool} [$params->postOnly] If true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [$params->timeInForce] "GTC", "IOC" or "PO"; IOC and PO are limit-order only, not supported for stop orders
          * @param {string} [$params->clientOrderId] a unique id for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1996,29 +2064,42 @@ class whitebit extends Exchange {
         $isMarketOrder = $type === 'market';
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
         $isStopOrder = ($triggerPrice !== null);
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        if (($timeInForce !== null) && ($timeInForce !== 'GTC') && ($timeInForce !== 'IOC') && ($timeInForce !== 'PO')) {
+            throw new NotSupported($this->id . ' createOrder() does not support $timeInForce ' . $timeInForce . ', only GTC, IOC and PO are allowed');
+        }
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
+        $ioc = ($timeInForce === 'IOC');
+        if ($isStopOrder && ($postOnly || $ioc)) {
+            throw new NotSupported($this->id . ' createOrder() does not support $postOnly or $timeInForce IOC for stop orders');
+        }
+        if ($ioc && !$isLimitOrder) {
+            throw new NotSupported($this->id . ' createOrder() $timeInForce IOC is only supported for limit orders');
+        }
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($postOnly) {
             $request['postOnly'] = true;
         }
+        if ($ioc) {
+            $request['ioc'] = true;
+        }
         if ($marginMode !== null && $marginMode !== 'cross') {
             throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
         }
-        $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
+        $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice', 'timeInForce' ));
         $useCollateralEndpoint = $marginMode !== null || $marketType === 'swap';
-        $response = null;
         if ($isStopOrder) {
             $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($isLimitOrder) {
                 // stop limit order
                 $request['price'] = $this->price_to_precision($symbol, $price);
-                $response = $this->v4PrivatePostOrderStopLimit ($this->extend($request, $params));
+                $response = $this->v4PrivatePostOrderStopLimit($this->extend($request, $params));
             } else {
-                // stop $market order
+                // stop market order
                 if ($useCollateralEndpoint) {
-                    $response = $this->v4PrivatePostOrderCollateralTriggerMarket ($this->extend($request, $params));
+                    $response = $this->v4PrivatePostOrderCollateralTriggerMarket($this->extend($request, $params));
                 } else {
-                    $response = $this->v4PrivatePostOrderStopMarket ($this->extend($request, $params));
+                    $response = $this->v4PrivatePostOrderStopMarket($this->extend($request, $params));
                 }
             }
         } else {
@@ -2026,19 +2107,19 @@ class whitebit extends Exchange {
                 // limit order
                 $request['price'] = $this->price_to_precision($symbol, $price);
                 if ($useCollateralEndpoint) {
-                    $response = $this->v4PrivatePostOrderCollateralLimit ($this->extend($request, $params));
+                    $response = $this->v4PrivatePostOrderCollateralLimit($this->extend($request, $params));
                 } else {
-                    $response = $this->v4PrivatePostOrderNew ($this->extend($request, $params));
+                    $response = $this->v4PrivatePostOrderNew($this->extend($request, $params));
                 }
             } else {
-                // $market order
+                // market order
                 if ($useCollateralEndpoint) {
-                    $response = $this->v4PrivatePostOrderCollateralMarket ($this->extend($request, $params));
+                    $response = $this->v4PrivatePostOrderCollateralMarket($this->extend($request, $params));
                 } else {
                     if ($cost !== null) {
-                        $response = $this->v4PrivatePostOrderMarket ($this->extend($request, $params));
+                        $response = $this->v4PrivatePostOrderMarket($this->extend($request, $params));
                     } else {
-                        $response = $this->v4PrivatePostOrderStockMarket ($this->extend($request, $params));
+                        $response = $this->v4PrivatePostOrderStockMarket($this->extend($request, $params));
                     }
                 }
             }
@@ -2046,7 +2127,7 @@ class whitebit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -2061,22 +2142,24 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        // Handle $clientOrderId vs orderId ($clientOrderId takes priority)
+        // Handle clientOrderId vs orderId (clientOrderId takes priority)
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         } else {
             $request['orderId'] = $id;
         }
-        // Handle $amount vs $total parameter based on order $type and $side
+        // Handle amount vs total parameter based on order type and side
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activationPrice' ));
         $isStopOrder = ($triggerPrice !== null);
-        // Handle activation $price for stop orders
+        // Handle activation price for stop orders
         if ($isStopOrder) {
             $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
         }
@@ -2086,17 +2169,17 @@ class whitebit extends Exchange {
             $request['total'] = $this->amount_to_precision($symbol, $total);
         } elseif ($amount !== null) {
             if ($isLimitOrder) {
-                // Limit orders always use $amount parameter
+                // Limit orders always use amount parameter
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             } elseif ($type === 'market' && $side === 'buy') {
-                // Market buy orders use $total parameter
+                // Market buy orders use total parameter
                 $request['total'] = $this->amount_to_precision($symbol, $amount);
             } else {
-                // Market sell orders use $amount parameter
+                // Market sell orders use amount parameter
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }
         }
-        // Handle $price parameter for limit orders
+        // Handle price parameter for limit orders
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -2106,11 +2189,11 @@ class whitebit extends Exchange {
             throw new ArgumentsRequired($this->id . ' editOrder() requires at least one of => $amount, $price, activationPrice, or $total parameters');
         }
         $params = $this->omit($params, array( 'clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total' ));
-        $response = $this->v4PrivatePostOrderModify ($this->extend($request, $params));
+        $response = $this->v4PrivatePostOrderModify($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2124,48 +2207,52 @@ class whitebit extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'orderId' => intval($id),
         );
-        $response = $this->v4PrivatePostOrderCancel ($this->extend($request, $params));
+        $response = $this->v4PrivatePostOrderCancel($this->extend($request, $params));
         //
         //    {
-        //        "orderId" => 4180284841, // order $id
-        //        "clientOrderId" => "customId11", // custom order identifier; "clientOrderId" => "" - if not specified.
-        //        "market" => "BTC_USDT", // deal $market
-        //        "side" => "buy", // order side
-        //        "type" => "stop $market", // order type
-        //        "timestamp" => 1595792396.165973, // current timestamp
-        //        "dealMoney" => "0", // if order finished - amount in money currency that is finished
-        //        "dealStock" => "0", // if order finished - amount in stock currency that is finished
-        //        "amount" => "0.001", // amount
-        //        "takerFee" => "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        //        "makerFee" => "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        //        "left" => "0.001", // if order not finished - rest of the amount that must be finished
-        //        "dealFee" => "0", // fee in money that you pay if order is finished
-        //        "price" => "40000", // price if price isset
-        //        "activation_price" => "40000" // activation price if activation price is set
+        //        "orderId": 4180284841, // order id
+        //        "clientOrderId": "customId11", // custom order identifier; "clientOrderId": "" - if not specified.
+        //        "market": "BTC_USDT", // deal market
+        //        "side": "buy", // order side
+        //        "type": "stop market", // order type
+        //        "timestamp": 1595792396.165973, // current timestamp
+        //        "dealMoney": "0", // if order finished - amount in money currency that is finished
+        //        "dealStock": "0", // if order finished - amount in stock currency that is finished
+        //        "amount": "0.001", // amount
+        //        "takerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "makerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "left": "0.001", // if order not finished - rest of the amount that must be finished
+        //        "dealFee": "0", // fee in money that you pay if order is finished
+        //        "price": "40000", // price if price isset
+        //        "activation_price": "40000" // activation price if activation price is set
         //    }
         //
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          *
          * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] $market $type, ['swap', 'spot']
          * @param {boolean} [$params->isMargin] cancel all margin orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -2189,14 +2276,14 @@ class whitebit extends Exchange {
             throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' type');
         }
         $request['type'] = $requestType;
-        $response = $this->v4PrivatePostOrderCancelAll ($this->extend($request, $params));
+        $response = $this->v4PrivatePostOrderCancelAll($this->extend($request, $params));
         //
-        // array()
+        // []
         //
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user (combines open and closed orders)
          *
@@ -2209,7 +2296,9 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         // Fetch both open and closed orders in parallel
         list($openOrders, $closedOrders) = Promise\all(array(
             $this->fetch_open_orders($symbol, $since, $limit, $params),
@@ -2218,14 +2307,14 @@ class whitebit extends Exchange {
         $allOrders = $this->array_concat($openOrders, $closedOrders);
         // Sort by timestamp (most recent first)
         $sortedOrders = $this->sort_by($allOrders, 'timestamp', true);
-        // Apply $limit if specified ($since and $symbol filtering already handled by individual methods)
+        // Apply limit if specified (since and symbol filtering already handled by individual methods)
         if ($limit !== null && strlen($sortedOrders) > $limit) {
             return mb_substr($sortedOrders, 0, $limit - 0);
         }
         return $sortedOrders;
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()) {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          *
@@ -2237,58 +2326,66 @@ class whitebit extends Exchange {
          * @param {string} [$params->symbol] $symbol unified $symbol of the $market the order was made in
          * @return {array} the api result
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbol = $this->safe_string($params, 'symbol');
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrdersAfter() requires a $symbol argument in params');
         }
         $market = $this->market($symbol);
         $params = $this->omit($params, 'symbol');
+        if ($timeout === null) {
+            throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
+        }
         $isBiggerThanZero = ($timeout > 0);
         $request = array(
             'market' => $market['id'],
-            // 'timeout' => ($timeout > 0) ? $this->number_to_string($timeout / 1000) : null,
         );
         if ($isBiggerThanZero) {
             $request['timeout'] = $this->number_to_string($timeout / 1000);
         } else {
             $request['timeout'] = 'null';
         }
-        $response = $this->v4PrivatePostOrderKillSwitch ($this->extend($request, $params));
+        $response = $this->v4PrivatePostOrderKillSwitch($this->extend($request, $params));
         //
         //     {
-        //         "market" => "BTC_USDT", // currency $market,
-        //         "startTime" => 1662478154, // now timestamp,
-        //         "cancellationTime" => 1662478154, // now . timer_value,
-        //         "types" => ["spot", "margin"]
+        //         "market": "BTC_USDT", // currency market,
+        //         "startTime": 1662478154, // now timestamp,
+        //         "cancellationTime": 1662478154, // now + timer_value,
+        //         "types": ["spot", "margin"]
         //     }
         //
         return $response;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balanceKeys = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($balanceKeys); $i++) {
             $id = $balanceKeys[$i];
             $code = $this->safe_currency_code($id);
             $balance = $response[$id];
-            if (gettype($balance) === 'array' && $balance !== null) {
+            if ($balance !== null && $this->is_dictionary($balance)) {
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'available', 'main_balance');
                 $account['used'] = $this->safe_string($balance, 'freeze');
                 $account['total'] = $this->safe_string($balance, 'main_balance');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             } else {
                 $account = $this->account();
                 $account['total'] = $balance;
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -2298,49 +2395,50 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $response = null;
         if ($marketType === 'swap') {
-            $response = $this->v4PrivatePostCollateralAccountBalance ($params);
+            $response = $this->v4PrivatePostCollateralAccountBalance($params);
         } else {
-            $options = $this->safe_value($this->options, 'fetchBalance', array());
+            $options = $this->safe_dict($this->options, 'fetchBalance', array());
             $defaultAccount = $this->safe_string($options, 'account');
             $account = $this->safe_string_2($params, 'account', 'type', $defaultAccount);
             $params = $this->omit($params, array( 'account', 'type' ));
             if ($account === 'main' || $account === 'funding') {
-                $response = $this->v4PrivatePostMainAccountBalance ($params);
+                $response = $this->v4PrivatePostMainAccountBalance($params);
             } else {
-                $response = $this->v4PrivatePostTradeAccountBalance ($params);
+                $response = $this->v4PrivatePostTradeAccountBalance($params);
             }
         }
         //
-        // main $account
+        // main account
         //
         //     {
-        //         "BTC":array("main_balance":"0.0013929494020316"),
-        //         "ETH":array("main_balance":"0.001398289308"),
+        //         "BTC":{"main_balance":"0.0013929494020316"},
+        //         "ETH":{"main_balance":"0.001398289308"},
         //     }
         //
-        // spot trade $account
+        // spot trade account
         //
         //     {
-        //         "BTC" => array( "available" => "0.123", "freeze" => "1" ),
-        //         "XMR" => array( "available" => "3013", "freeze" => "100" ),
+        //         "BTC": { "available": "0.123", "freeze": "1" },
+        //         "XMR": { "available": "3013", "freeze": "100" },
         //     }
         //
         // swap
         //
         //     {
-        //          "BTC" => 1,
-        //          "USDT" => 1000
+        //          "BTC": 1,
+        //          "USDT": 1000
         //     }
         //
         return $this->parse_balance($response);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -2352,7 +2450,9 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -2360,33 +2460,33 @@ class whitebit extends Exchange {
             $request['market'] = $market['id'];
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 100);
+            $request['limit'] = min($limit, 100);
         }
-        $response = $this->v4PrivatePostOrders ($this->extend($request, $params));
+        $response = $this->v4PrivatePostOrders($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "orderId" => 3686033640,
-        //             "clientOrderId" => "customId11",
-        //             "market" => "BTC_USDT",
-        //             "side" => "buy",
-        //             "type" => "limit",
-        //             "timestamp" => 1594605801.49815,    // current timestamp of unexecuted order
-        //             "dealMoney" => "0",                 // executed amount in money
-        //             "dealStock" => "0",                 // executed amount in stock
-        //             "amount" => "2.241379",             // active order amount
-        //             "takerFee" => "0.001",
-        //             "makerFee" => "0.001",
-        //             "left" => "2.241379",               // unexecuted amount in stock
-        //             "dealFee" => "0",                   // executed fee by deal
-        //             "price" => "40000"
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "orderId": 3686033640,
+        //             "clientOrderId": "customId11",
+        //             "market": "BTC_USDT",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "timestamp": 1594605801.49815,    // current timestamp of unexecuted order
+        //             "dealMoney": "0",                 // executed amount in money
+        //             "dealStock": "0",                 // executed amount in stock
+        //             "amount": "2.241379",             // active order amount
+        //             "takerFee": "0.001",
+        //             "makerFee": "0.001",
+        //             "left": "2.241379",               // unexecuted amount in stock
+        //             "dealFee": "0",                   // executed fee by deal
+        //             "price": "40000"
+        //         },
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit, array( 'status' => 'open' ));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          *
@@ -2398,7 +2498,9 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -2407,24 +2509,24 @@ class whitebit extends Exchange {
             $request['market'] = $market['id'];
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 100); // default 50 max 100
+            $request['limit'] = min($limit, 100); // default 50 max 100
         }
-        $response = $this->v4PrivatePostTradeAccountOrderHistory ($this->extend($request, $params));
+        $response = $this->v4PrivatePostTradeAccountOrderHistory($this->extend($request, $params));
         //
         //     {
-        //         "BTC_USDT" => array(
-        //             array(
-        //                 "id" => 160305483,
-        //                 "clientOrderId" => "customId11",
-        //                 "time" => 1594667731.724403,
-        //                 "side" => "sell",
-        //                 "role" => 2, // 1 = maker, 2 = taker
-        //                 "amount" => "0.000076",
-        //                 "price" => "9264.21",
-        //                 "deal" => "0.70407996",
-        //                 "fee" => "0.00070407996"
-        //             ),
-        //         ),
+        //         "BTC_USDT": [
+        //             {
+        //                 "id": 160305483,
+        //                 "clientOrderId": "customId11",
+        //                 "time": 1594667731.724403,
+        //                 "side": "sell",
+        //                 "role": 2, // 1 = maker, 2 = taker
+        //                 "amount": "0.000076",
+        //                 "price": "9264.21",
+        //                 "deal": "0.70407996",
+        //                 "fee": "0.00070407996"
+        //             },
+        //         ],
         //     }
         //
         $marketIds = is_array($response) ? array_keys($response) : array();
@@ -2432,7 +2534,7 @@ class whitebit extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $marketNew = $this->safe_market($marketId, null, '_');
-            $orders = $response[$marketId];
+            $orders = $this->safe_list($response, $marketId, array());
             for ($j = 0; $j < count($orders); $j++) {
                 $order = $this->parse_order($orders[$j], $marketNew);
                 $results[] = $this->extend($order, array( 'status' => 'closed' ));
@@ -2465,17 +2567,17 @@ class whitebit extends Exchange {
         //          "clientOrderId":"",
         //          "market":"DOGE_USDT",
         //          "side":"sell",
-        //          "type":"stop $market",
+        //          "type":"stop market",
         //          "timestamp":1659091079.729576,
-        //          "dealMoney":"0",                // executed $amount in quote
-        //          "dealStock":"0",                // base $filled $amount
+        //          "dealMoney":"0",                // executed amount in quote
+        //          "dealStock":"0",                // base filled amount
         //          "amount":"100",
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
-        //          "price" => "40000", // $price if $price isset
+        //          "price": "40000", // price if price isset
         //          "dealFee":"0",
-        //          "activation_price":"0.065"      // stop $price (if stop limit or stop $market)
+        //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
         //      }
         //
         // fetchClosedOrders
@@ -2486,14 +2588,14 @@ class whitebit extends Exchange {
         //          "ctime":1659045334.550127,
         //          "ftime":1659045334.550127,
         //          "side":"buy",
-        //          "amount":"5.9940059",           // $cost in terms of quote for regular $market orders, $amount in terms or base for all other $order types
+        //          "amount":"5.9940059",           // cost in terms of quote for regular market orders, amount in terms or base for all other order types
         //          "price":"0",
         //          "type":"market",
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "dealFee":"0.0059375815",
-        //          "dealStock":"85",               // base $filled $amount
-        //          "dealMoney":"5.9375815",        // executed $amount in quote
+        //          "dealStock":"85",               // base filled amount
+        //          "dealMoney":"5.9375815",        // executed amount in quote
         //      }
         //
         $marketId = $this->safe_string($order, 'market');
@@ -2529,6 +2631,14 @@ class whitebit extends Exchange {
         }
         $timestamp = $this->safe_timestamp_2($order, 'ctime', 'timestamp');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'ftime');
+        $postOnly = $this->safe_bool($order, 'postOnly');
+        $ioc = $this->safe_bool($order, 'ioc');
+        $timeInForce = null;
+        if ($ioc === true) {
+            $timeInForce = 'IOC';
+        } elseif ($postOnly === true) {
+            $timeInForce = 'PO';
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $orderId,
@@ -2537,8 +2647,8 @@ class whitebit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'timeInForce' => null,
-            'postOnly' => null,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'side' => $side,
             'price' => $price,
@@ -2564,7 +2674,7 @@ class whitebit extends Exchange {
         return $this->safe_string_lower($statuses, $status, $status);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -2577,7 +2687,9 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'orderId' => intval($id),
         );
@@ -2587,33 +2699,33 @@ class whitebit extends Exchange {
             $request['market'] = $market['id'];
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 100);
+            $request['limit'] = min($limit, 100);
         }
-        $response = $this->v4PrivatePostTradeAccountOrder ($this->extend($request, $params));
+        $response = $this->v4PrivatePostTradeAccountOrder($this->extend($request, $params));
         //
         //     {
-        //         "records" => array(
+        //         "records": [
         //             {
-        //                 "time" => 1593342324.613711,
-        //                 "fee" => "0.00000419198",
-        //                 "price" => "0.00000701",
-        //                 "amount" => "598",
-        //                 "id" => 149156519, // trade $id
-        //                 "dealOrderId" => 3134995325, // orderId
-        //                 "clientOrderId" => "customId11", // empty string if not specified
-        //                 "role" => 2, // 1 = maker, 2 = taker
-        //                 "deal" => "0.00419198"
+        //                 "time": 1593342324.613711,
+        //                 "fee": "0.00000419198",
+        //                 "price": "0.00000701",
+        //                 "amount": "598",
+        //                 "id": 149156519, // trade id
+        //                 "dealOrderId": 3134995325, // orderId
+        //                 "clientOrderId": "customId11", // empty string if not specified
+        //                 "role": 2, // 1 = maker, 2 = taker
+        //                 "deal": "0.00419198"
         //             }
-        //         ),
-        //         "offset" => 0,
-        //         "limit" => 100
+        //         ],
+        //         "offset": 0,
+        //         "limit": 100
         //     }
         //
         $data = $this->safe_list($response, 'records', array());
         return $this->parse_trades($data, $market);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -2626,7 +2738,9 @@ class whitebit extends Exchange {
          * @param {string} [$params->transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array();
         if ($code !== null) {
@@ -2644,29 +2758,29 @@ class whitebit extends Exchange {
         }
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         $request['transactionMethod'] = '2';
-        $response = $this->v4PrivatePostMainAccountHistory ($this->extend($request, $params));
+        $response = $this->v4PrivatePostMainAccountHistory($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "id" => 123456789,                    // Transaction ID
-        //             "method" => "2",                      // Method => 1=deposit, 2=withdrawal (filtered server-side)
-        //             "ticker" => "BTC",                    // Currency ticker
-        //             "amount" => "0.001",                  // Transaction amount
-        //             "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Withdrawal address
-        //             "memo" => "",                         // Memo/tag (if required)
-        //             "network" => "BTC",                   // Network name
-        //             "fee" => "0.0005",                    // Transaction fee
-        //             "status" => "1",                      // Status => 0=pending, 1=completed, 2=failed
-        //             "timestamp" => 1641051917,            // Transaction timestamp
-        //             "txid" => "abc123def456..."           // Transaction hash
-        //         ),
-        //         array( ... )                                 // More withdrawal transactions
-        //     )
+        //     [
+        //         {
+        //             "id": 123456789,                    // Transaction ID
+        //             "method": "2",                      // Method: 1=deposit, 2=withdrawal (filtered server-side)
+        //             "ticker": "BTC",                    // Currency ticker
+        //             "amount": "0.001",                  // Transaction amount
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Withdrawal address
+        //             "memo": "",                         // Memo/tag (if required)
+        //             "network": "BTC",                   // Network name
+        //             "fee": "0.0005",                    // Transaction fee
+        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
+        //             "timestamp": 1641051917,            // Transaction timestamp
+        //             "txid": "abc123def456..."           // Transaction hash
+        //         },
+        //         { ... }                                 // More withdrawal transactions
+        //     ]
         //
         return $this->parse_transactions($this->safe_list($response, 'records', array()), $currency, $since, $limit);
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals
          *
@@ -2679,7 +2793,9 @@ class whitebit extends Exchange {
          * @param {string} [$params->transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array();
         if ($code !== null) {
@@ -2696,29 +2812,39 @@ class whitebit extends Exchange {
             $request['limit'] = $limit;
         }
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
-        $response = $this->v4PrivatePostMainAccountHistory ($this->extend($request, $params));
+        $response = $this->v4PrivatePostMainAccountHistory($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "id" => 123456789,                    // Transaction ID
-        //             "method" => "1",                      // Method => 1=deposit, 2=withdrawal
-        //             "ticker" => "BTC",                    // Currency ticker
-        //             "amount" => "0.001",                  // Transaction amount
-        //             "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
-        //             "memo" => "",                         // Memo/tag (if required)
-        //             "network" => "BTC",                   // Network name
-        //             "fee" => "0.0005",                    // Transaction fee
-        //             "status" => "1",                      // Status => 0=pending, 1=completed, 2=failed
-        //             "timestamp" => 1641051917,            // Transaction timestamp
-        //             "txid" => "abc123def456..."           // Transaction hash
-        //         ),
-        //         array( ... )                                 // More transactions (deposits and withdrawals)
-        //     )
+        //     {
+        //         "records": [
+        //             {
+        //                 "address": "TDepositAddressExample1111111111111",
+        //                 "uniqueId": null,
+        //                 "transactionId": "11111111-2222-3333-4444-555555555555",
+        //                 "createdAt": 1786182572,
+        //                 "currency": "Tether US",
+        //                 "ticker": "USDT",
+        //                 "method": 1,                    // 1 = deposit, 2 = withdraw
+        //                 "amount": "20.723117",
+        //                 "description": null,
+        //                 "memo": null,
+        //                 "fee": "0",
+        //                 "status": 3,
+        //                 "network": "TRC20",
+        //                 "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        //                 "details": { "partial": null },
+        //                 "centralized": false
+        //             }
+        //         ],
+        //         "total": 1,
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        $records = $this->safe_list($response, 'records', array());
+        return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit $address for a $currency associated with this $account
          *
@@ -2729,12 +2855,13 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'ticker' => $currency['id'],
         );
-        $response = null;
         if ($this->is_fiat($code)) {
             $provider = $this->safe_string($params, 'provider');
             if ($provider === null) {
@@ -2750,38 +2877,38 @@ class whitebit extends Exchange {
             if ($uniqueId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an $uniqueId when the ticker is fiat');
             }
-            $response = $this->v4PrivatePostMainAccountFiatDepositUrl ($this->extend($request, $params));
+            $response = $this->v4PrivatePostMainAccountFiatDepositUrl($this->extend($request, $params));
         } else {
-            $response = $this->v4PrivatePostMainAccountAddress ($this->extend($request, $params));
+            $response = $this->v4PrivatePostMainAccountAddress($this->extend($request, $params));
         }
         //
         // fiat
         //
         //     {
-        //         "url" => "https://someaddress.com"
+        //         "url": "https://someaddress.com"
         //     }
         //
         // crypto
         //
         //     {
-        //         "account" => array(
-        //             "address" => "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
-        //             "memo" => "48565488244493"
-        //         ),
-        //         "required" => {
-        //             "fixedFee" => "0",
-        //             "flexFee" => array(
-        //                 "maxFee" => "0",
-        //                 "minFee" => "0",
-        //                 "percent" => "0"
-        //             ),
-        //             "maxAmount" => "0",
-        //             "minAmount" => "1"
+        //         "account": {
+        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //             "memo": "48565488244493"
+        //         },
+        //         "required": {
+        //             "fixedFee": "0",
+        //             "flexFee": {
+        //                 "maxFee": "0",
+        //                 "minFee": "0",
+        //                 "percent": "0"
+        //             },
+        //             "maxAmount": "0",
+        //             "minAmount": "1"
         //         }
         //     }
         //
         $url = $this->safe_string($response, 'url');
-        $account = $this->safe_value($response, 'account', array());
+        $account = $this->safe_dict($response, 'account', array());
         $address = $this->safe_string($account, 'address', $url);
         $tag = $this->safe_string($account, 'memo');
         $this->check_address($address);
@@ -2794,7 +2921,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function create_deposit_address(string $code, $params = array ()): array {
+    public function create_deposit_address(string $code, $params = array()): array {
         /**
          * create a $currency deposit address
          *
@@ -2806,26 +2933,28 @@ class whitebit extends Exchange {
          * @param {string} [$params->type] address type, available for specific currencies
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'ticker' => $currency['id'],
         );
-        $response = $this->v4PrivatePostMainAccountCreateNewAddress ($this->extend($request, $params));
+        $response = $this->v4PrivatePostMainAccountCreateNewAddress($this->extend($request, $params));
         //
         //     {
-        //         "account" => array(
-        //             "address" => "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
-        //             "memo" => "48565488244493"
-        //         ),
-        //         "required" => {
-        //             "maxAmount" => "0",
-        //             "minAmount" => "1",
-        //             "fixedFee" => "0",
-        //             "flexFee" => {
-        //                 "maxFee" => "0",
-        //                 "minFee" => "0",
-        //                 "percent" => "0"
+        //         "account": {
+        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //             "memo": "48565488244493"
+        //         },
+        //         "required": {
+        //             "maxAmount": "0",
+        //             "minAmount": "1",
+        //             "fixedFee": "0",
+        //             "flexFee": {
+        //                 "maxFee": "0",
+        //                 "minFee": "0",
+        //                 "percent": "0"
         //             }
         //         }
         //     }
@@ -2834,12 +2963,12 @@ class whitebit extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
-        //     array(
-        //         "address" => "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
-        //         "memo" => "48565488244493"
-        //     ),
+        //     {
+        //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //         "memo": "48565488244493"
+        //     },
         //
         return array(
             'info' => $depositAddress,
@@ -2850,7 +2979,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_accounts($params = array ()): array {
+    public function fetch_accounts($params = array()): array {
         /**
          * fetch all the $accounts associated with a profile
          *
@@ -2859,40 +2988,46 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $accounts = array();
-        // Fetch sub-$accounts
+        $response = $this->v4PrivatePostSubAccountList($params);
         //
-        //     [
-        //         {
-        //             "id" => "12345",
-        //             "name" => "SubAccount1",
-        //             "status" => "active",
-        //             "permissions" => ["trade", "withdraw"]
-        //         }
-        //     ]
+        //     {
+        //         "offset": 0,
+        //         "limit": 100,
+        //         "data": [
+        //             {
+        //                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        //                 "alias": "trading_bot",
+        //                 "userId": "u-12345",
+        //                 "email": "s***@example.com",
+        //                 "status": "active",
+        //                 "color": "#FF5733",
+        //                 "kyc": { "shareKyc": false, "kycStatus": "verified" },
+        //                 "permissions": { "spotEnabled": true, "collateralEnabled": false }
+        //             }
+        //         ]
+        //     }
         //
-        $subAccounts = $this->v4PrivatePostSubAccountList ($params);
-        if ($subAccounts && (gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts)))) {
-            for ($i = 0; $i < count($subAccounts); $i++) {
-                $subAccount = $this->safe_value($subAccounts, $i);
-                $accountId = $this->safe_string($subAccount, 'id');
-                $accountName = $this->safe_string($subAccount, 'name');
-                if ($accountId) {
-                    $accounts[] = array(
-                        'id' => $accountId,
-                        'type' => 'subaccount',
-                        'name' => $accountName || 'SubAccount ' . $accountId,
-                        'code' => null,
-                        'info' => $subAccount,
-                    );
-                }
-            }
+        $subAccounts = $this->safe_list($response, 'data', array());
+        for ($i = 0; $i < count($subAccounts); $i++) {
+            $subAccount = $this->safe_dict($subAccounts, $i, array());
+            $accountId = $this->safe_string($subAccount, 'id');
+            $accountName = $this->safe_string($subAccount, 'alias');
+            $accounts[] = array(
+                'id' => $accountId,
+                'type' => 'subaccount',
+                'name' => $accountName,
+                'code' => null,
+                'info' => $subAccount,
+            );
         }
         return $accounts;
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a market
          *
@@ -2903,7 +3038,9 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbol !== null) {
             throw new NotSupported($this->id . ' setLeverage() does not allow to set per symbol');
         }
@@ -2913,13 +3050,13 @@ class whitebit extends Exchange {
         $request = array(
             'leverage' => $leverage,
         );
-        return $this->v4PrivatePostCollateralAccountLeverage ($this->extend($request, $params));
+        return $this->v4PrivatePostCollateralAccountLeverage($this->extend($request, $params));
         //     {
-        //         "leverage" => 5
+        //         "leverage": 5
         //     }
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          *
@@ -2932,9 +3069,11 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType');
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType');
         $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $amountString = $this->currency_to_precision($code, $amount);
@@ -2944,16 +3083,16 @@ class whitebit extends Exchange {
             'from' => $fromAccountId,
             'to' => $toAccountId,
         );
-        $response = $this->v4PrivatePostMainAccountTransfer ($this->extend($request, $params));
+        $response = $this->v4PrivatePostMainAccountTransfer($this->extend($request, $params));
         //
-        //    array()
+        //    []
         //
         return $this->parse_transfer($response, $currency);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        //    array()
+        //    []
         //
         return array(
             'info' => $transfer,
@@ -2968,7 +3107,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2981,7 +3120,9 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code); // check if it has canDeposit
         $request = array(
             'ticker' => $currency['id'],
@@ -3003,12 +3144,12 @@ class whitebit extends Exchange {
             }
             $request['provider'] = $provider;
         }
-        $response = $this->v4PrivatePostMainAccountWithdraw ($this->extend($request, $params));
+        $response = $this->v4PrivatePostMainAccountWithdraw($this->extend($request, $params));
         //
         // empty array with a success status
-        // go to deposit/withdraw history and check you $request status by $uniqueId
+        // go to deposit/withdraw history and check you request status by uniqueId
         //
-        //     array()
+        //     []
         //
         return $this->extend($this->parse_transaction($response, $currency), array( 'id' => $uniqueId ));
     }
@@ -3016,33 +3157,33 @@ class whitebit extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
-        //         "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit $address
-        //         "uniqueId" => null,                                                                             // unique Id of deposit
-        //         "transactionId" => "a6d71d69-2b17-4ad8-8b15-2d686c54a1a5",
-        //         "createdAt" => 1593437922,                                                                      // $timestamp of deposit
-        //         "currency" => "Bitcoin",                                                                        // deposit $currency
-        //         "ticker" => "BTC",                                                                              // deposit $currency ticker
-        //         "method" => 1,                                                                                  // called $method 1 - deposit, 2 - withdraw
-        //         "amount" => "0.0006",                                                                           // amount of deposit
-        //         "description" => "",                                                                            // deposit description
-        //         "memo" => "",                                                                                   // deposit memo
-        //         "fee" => "0",                                                                                   // deposit fee
-        //         "status" => 15,                                                                                 // transactions $status
-        //         "network" => null,                                                                              // if $currency is multinetwork
-        //         "transactionHash" => "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit $transaction hash
-        //         "details" => {
-        //             "partial" => array(                                                                              // details about partially successful withdrawals
-        //                 "requestAmount" => "50000",                                                             // requested withdrawal amount
-        //                 "processedAmount" => "39000",                                                           // processed withdrawal amount
-        //                 "processedFee" => "273",                                                                // fee for processed withdrawal amount
-        //                 "normalizeTransaction" => ""                                                            // deposit id
+        //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
+        //         "uniqueId": null,                                                                             // unique Id of deposit
+        //         "transactionId": "a6d71d69-2b17-4ad8-8b15-2d686c54a1a5",
+        //         "createdAt": 1593437922,                                                                      // timestamp of deposit
+        //         "currency": "Bitcoin",                                                                        // deposit currency
+        //         "ticker": "BTC",                                                                              // deposit currency ticker
+        //         "method": 1,                                                                                  // called method 1 - deposit, 2 - withdraw
+        //         "amount": "0.0006",                                                                           // amount of deposit
+        //         "description": "",                                                                            // deposit description
+        //         "memo": "",                                                                                   // deposit memo
+        //         "fee": "0",                                                                                   // deposit fee
+        //         "status": 15,                                                                                 // transactions status
+        //         "network": null,                                                                              // if currency is multinetwork
+        //         "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
+        //         "details": {
+        //             "partial": {                                                                              // details about partially successful withdrawals
+        //                 "requestAmount": "50000",                                                             // requested withdrawal amount
+        //                 "processedAmount": "39000",                                                           // processed withdrawal amount
+        //                 "processedFee": "273",                                                                // fee for processed withdrawal amount
+        //                 "normalizeTransaction": ""                                                            // deposit id
         //             }
-        //         ),
-        //         "confirmations" => {                                                                            // if $transaction $status == 15 you can see this object
-        //             "actual" => 1,                                                                              // current block confirmations
-        //             "required" => 2                                                                             // required block confirmation for successful deposit
+        //         },
+        //         "confirmations": {                                                                            // if transaction status == 15 you can see this object
+        //             "actual": 1,                                                                              // current block confirmations
+        //             "required": 2                                                                             // required block confirmation for successful deposit
         //         }
-        //         "centralized" => false,
+        //         "centralized": false,
         //     }
         //
         $currency = $this->safe_currency(null, $currency);
@@ -3100,18 +3241,20 @@ class whitebit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch information on a deposit
          *
          * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
          *
          * @param {string} $id deposit $id
-         * @param {string} $code not used by whitebit fetchDeposit ()
+         * @param {string} $code not used by fetchDeposit ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array(
             'transactionMethod' => 1,
@@ -3123,50 +3266,50 @@ class whitebit extends Exchange {
             $currency = $this->currency($code);
             $request['ticker'] = $currency['id'];
         }
-        $response = $this->v4PrivatePostMainAccountHistory ($this->extend($request, $params));
+        $response = $this->v4PrivatePostMainAccountHistory($this->extend($request, $params));
         //
         //     {
-        //         "limit" => 100,
-        //         "offset" => 0,
-        //         "records" => array(
+        //         "limit": 100,
+        //         "offset": 0,
+        //         "records": [
         //             {
-        //                 "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
-        //                 "uniqueId" => null,                                                                             // unique Id of deposit
-        //                 "createdAt" => 1593437922,                                                                      // timestamp of deposit
-        //                 "currency" => "Bitcoin",                                                                        // deposit $currency
-        //                 "ticker" => "BTC",                                                                              // deposit $currency ticker
-        //                 "method" => 1,                                                                                  // called method 1 - deposit, 2 - withdraw
-        //                 "amount" => "0.0006",                                                                           // amount of deposit
-        //                 "description" => "",                                                                            // deposit description
-        //                 "memo" => "",                                                                                   // deposit memo
-        //                 "fee" => "0",                                                                                   // deposit fee
-        //                 "status" => 15,                                                                                 // transactions status
-        //                 "network" => null,                                                                              // if $currency is multinetwork
-        //                 "transactionHash" => "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
-        //                 "details" => {
-        //                     "partial" => array(                                                                              // details about partially successful withdrawals
-        //                         "requestAmount" => "50000",                                                             // requested withdrawal amount
-        //                         "processedAmount" => "39000",                                                           // processed withdrawal amount
-        //                         "processedFee" => "273",                                                                // fee for processed withdrawal amount
-        //                         "normalizeTransaction" => ""                                                            // deposit $id
+        //                 "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
+        //                 "uniqueId": null,                                                                             // unique Id of deposit
+        //                 "createdAt": 1593437922,                                                                      // timestamp of deposit
+        //                 "currency": "Bitcoin",                                                                        // deposit currency
+        //                 "ticker": "BTC",                                                                              // deposit currency ticker
+        //                 "method": 1,                                                                                  // called method 1 - deposit, 2 - withdraw
+        //                 "amount": "0.0006",                                                                           // amount of deposit
+        //                 "description": "",                                                                            // deposit description
+        //                 "memo": "",                                                                                   // deposit memo
+        //                 "fee": "0",                                                                                   // deposit fee
+        //                 "status": 15,                                                                                 // transactions status
+        //                 "network": null,                                                                              // if currency is multinetwork
+        //                 "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
+        //                 "details": {
+        //                     "partial": {                                                                              // details about partially successful withdrawals
+        //                         "requestAmount": "50000",                                                             // requested withdrawal amount
+        //                         "processedAmount": "39000",                                                           // processed withdrawal amount
+        //                         "processedFee": "273",                                                                // fee for processed withdrawal amount
+        //                         "normalizeTransaction": ""                                                            // deposit id
         //                     }
-        //                 ),
-        //                 "confirmations" => array(                                                                            // if transaction status == 15 you can see this object
-        //                     "actual" => 1,                                                                              // current block confirmations
-        //                     "required" => 2                                                                             // required block confirmation for successful deposit
+        //                 },
+        //                 "confirmations": {                                                                            // if transaction status == 15 you can see this object
+        //                     "actual": 1,                                                                              // current block confirmations
+        //                     "required": 2                                                                             // required block confirmation for successful deposit
         //                 }
-        //             ),
-        //             array(...),
-        //         ),
-        //         "total" => 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
+        //             },
+        //             {...},
+        //         ],
+        //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        $records = $this->safe_value($response, 'records', array());
+        $records = $this->safe_list($response, 'records', array());
         $first = $this->safe_dict($records, 0, array());
         return $this->parse_transaction($first, $currency);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -3178,7 +3321,9 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array(
             'transactionMethod' => 1,
@@ -3190,51 +3335,55 @@ class whitebit extends Exchange {
             $request['ticker'] = $currency['id'];
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 100);
+            $request['limit'] = min($limit, 100);
         }
-        $response = $this->v4PrivatePostMainAccountHistory ($this->extend($request, $params));
+        $response = $this->v4PrivatePostMainAccountHistory($this->extend($request, $params));
         //
         //     {
-        //         "limit" => 100,
-        //         "offset" => 0,
-        //         "records" => array(
+        //         "limit": 100,
+        //         "offset": 0,
+        //         "records": [
         //             {
-        //                 "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
-        //                 "uniqueId" => null,                                                                             // unique Id of deposit
-        //                 "createdAt" => 1593437922,                                                                      // timestamp of deposit
-        //                 "currency" => "Bitcoin",                                                                        // deposit $currency
-        //                 "ticker" => "BTC",                                                                              // deposit $currency ticker
-        //                 "method" => 1,                                                                                  // called method 1 - deposit, 2 - withdraw
-        //                 "amount" => "0.0006",                                                                           // amount of deposit
-        //                 "description" => "",                                                                            // deposit description
-        //                 "memo" => "",                                                                                   // deposit memo
-        //                 "fee" => "0",                                                                                   // deposit fee
-        //                 "status" => 15,                                                                                 // transactions status
-        //                 "network" => null,                                                                              // if $currency is multinetwork
-        //                 "transactionHash" => "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
-        //                 "details" => {
-        //                     "partial" => array(                                                                              // details about partially successful withdrawals
-        //                         "requestAmount" => "50000",                                                             // requested withdrawal amount
-        //                         "processedAmount" => "39000",                                                           // processed withdrawal amount
-        //                         "processedFee" => "273",                                                                // fee for processed withdrawal amount
-        //                         "normalizeTransaction" => ""                                                            // deposit id
+        //                 "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
+        //                 "uniqueId": null,                                                                             // unique Id of deposit
+        //                 "createdAt": 1593437922,                                                                      // timestamp of deposit
+        //                 "currency": "Bitcoin",                                                                        // deposit currency
+        //                 "ticker": "BTC",                                                                              // deposit currency ticker
+        //                 "method": 1,                                                                                  // called method 1 - deposit, 2 - withdraw
+        //                 "amount": "0.0006",                                                                           // amount of deposit
+        //                 "description": "",                                                                            // deposit description
+        //                 "memo": "",                                                                                   // deposit memo
+        //                 "fee": "0",                                                                                   // deposit fee
+        //                 "status": 15,                                                                                 // transactions status
+        //                 "network": null,                                                                              // if currency is multinetwork
+        //                 "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
+        //                 "details": {
+        //                     "partial": {                                                                              // details about partially successful withdrawals
+        //                         "requestAmount": "50000",                                                             // requested withdrawal amount
+        //                         "processedAmount": "39000",                                                           // processed withdrawal amount
+        //                         "processedFee": "273",                                                                // fee for processed withdrawal amount
+        //                         "normalizeTransaction": ""                                                            // deposit id
         //                     }
-        //                 ),
-        //                 "confirmations" => array(                                                                            // if transaction status == 15 you can see this object
-        //                     "actual" => 1,                                                                              // current block confirmations
-        //                     "required" => 2                                                                             // required block confirmation for successful deposit
+        //                 },
+        //                 "confirmations": {                                                                            // if transaction status == 15 you can see this object
+        //                     "actual": 1,                                                                              // current block confirmations
+        //                     "required": 2                                                                             // required block confirmation for successful deposit
         //                 }
-        //             ),
-        //             array(...),
-        //         ),
-        //         "total" => 300                                                                                             // total number of  transactions, use this for calculating ‘$limit’ and ‘offset'
+        //             },
+        //             {...},
+        //         ],
+        //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
         $records = $this->safe_list($response, 'records', array());
-        return $this->parse_transactions($records, $currency, $since, $limit);
+        $recordsList = array();
+        if ($records !== null) {
+            $recordsList = $records;
+        }
+        return $this->parse_transactions($recordsList, $currency, $since, $limit);
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
          *
@@ -3247,34 +3396,36 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=borrow-$interest-structure borrow $interest structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->v4PrivatePostCollateralAccountPositionsOpen ($this->extend($request, $params));
+        $response = $this->v4PrivatePostCollateralAccountPositionsOpen($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "positionId" => 191823,
-        //             "market" => "BTC_USDT",
-        //             "openDate" => 1660340344.027163,
-        //             "modifyDate" => 1660340344.027163,
-        //             "amount" => "0.003075",
-        //             "basePrice" => "24149.24512",
-        //             "liquidationPrice" => "7059.02",
-        //             "leverage" => "5",
-        //             "pnl" => "-0.15",
-        //             "pnlPercent" => "-0.20",
-        //             "margin" => "14.86",
-        //             "freeMargin" => "44.99",
-        //             "funding" => "0",
-        //             "unrealizedFunding" => "0.0000307828284903",
-        //             "liquidationState" => null
+        //             "positionId": 191823,
+        //             "market": "BTC_USDT",
+        //             "openDate": 1660340344.027163,
+        //             "modifyDate": 1660340344.027163,
+        //             "amount": "0.003075",
+        //             "basePrice": "24149.24512",
+        //             "liquidationPrice": "7059.02",
+        //             "leverage": "5",
+        //             "pnl": "-0.15",
+        //             "pnlPercent": "-0.20",
+        //             "margin": "14.86",
+        //             "freeMargin": "44.99",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0.0000307828284903",
+        //             "liquidationState": null
         //         }
-        //     )
+        //     ]
         //
         $interest = $this->parse_borrow_interests($response, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
@@ -3283,21 +3434,21 @@ class whitebit extends Exchange {
     public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     {
-        //         "positionId" => 191823,
-        //         "market" => "BTC_USDT",
-        //         "openDate" => 1660340344.027163,
-        //         "modifyDate" => 1660340344.027163,
-        //         "amount" => "0.003075",
-        //         "basePrice" => "24149.24512",
-        //         "liquidationPrice" => "7059.02",
-        //         "leverage" => "5",
-        //         "pnl" => "-0.15",
-        //         "pnlPercent" => "-0.20",
-        //         "margin" => "14.86",
-        //         "freeMargin" => "44.99",
-        //         "funding" => "0",
-        //         "unrealizedFunding" => "0.0000307828284903",
-        //         "liquidationState" => null
+        //         "positionId": 191823,
+        //         "market": "BTC_USDT",
+        //         "openDate": 1660340344.027163,
+        //         "modifyDate": 1660340344.027163,
+        //         "amount": "0.003075",
+        //         "basePrice": "24149.24512",
+        //         "liquidationPrice": "7059.02",
+        //         "leverage": "5",
+        //         "pnl": "-0.15",
+        //         "pnlPercent": "-0.20",
+        //         "margin": "14.86",
+        //         "freeMargin": "44.99",
+        //         "funding": "0",
+        //         "unrealizedFunding": "0.0000307828284903",
+        //         "liquidationState": null
         //     }
         //
         $marketId = $this->safe_string($info, 'market');
@@ -3316,7 +3467,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
@@ -3326,13 +3477,15 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbol = $this->symbol($symbol);
         $response = $this->fetch_funding_rates(array( $symbol ), $params);
         return $this->safe_value($response, $symbol);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * fetch the funding rate for multiple markets
          *
@@ -3342,58 +3495,60 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->v4PublicGetFutures ($params);
+        $response = $this->v4PublicGetFutures($params);
         //
-        //    array(
+        //    [
         //        {
-        //            "name" => "BTC_USDT",
-        //            "type" => "direct",
-        //            "quanto_multiplier" => "0.0001",
-        //            "ref_discount_rate" => "0",
-        //            "order_price_deviate" => "0.5",
-        //            "maintenance_rate" => "0.005",
-        //            "mark_type" => "index",
-        //            "last_price" => "38026",
-        //            "mark_price" => "37985.6",
-        //            "index_price" => "37954.92",
-        //            "funding_rate_indicative" => "0.000219",
-        //            "mark_price_round" => "0.01",
-        //            "funding_offset" => 0,
-        //            "in_delisting" => false,
-        //            "risk_limit_base" => "1000000",
-        //            "interest_rate" => "0.0003",
-        //            "order_price_round" => "0.1",
-        //            "order_size_min" => 1,
-        //            "ref_rebate_rate" => "0.2",
-        //            "funding_interval" => 28800,
-        //            "risk_limit_step" => "1000000",
-        //            "leverage_min" => "1",
-        //            "leverage_max" => "100",
-        //            "risk_limit_max" => "8000000",
-        //            "maker_fee_rate" => "-0.00025",
-        //            "taker_fee_rate" => "0.00075",
-        //            "funding_rate" => "0.002053",
-        //            "order_size_max" => 1000000,
-        //            "funding_next_apply" => 1610035200,
-        //            "short_users" => 977,
-        //            "config_change_time" => 1609899548,
-        //            "trade_size" => 28530850594,
-        //            "position_size" => 5223816,
-        //            "long_users" => 455,
-        //            "funding_impact_value" => "60000",
-        //            "orders_limit" => 50,
-        //            "trade_id" => 10851092,
-        //            "orderbook_id" => 2129638396
+        //            "name": "BTC_USDT",
+        //            "type": "direct",
+        //            "quanto_multiplier": "0.0001",
+        //            "ref_discount_rate": "0",
+        //            "order_price_deviate": "0.5",
+        //            "maintenance_rate": "0.005",
+        //            "mark_type": "index",
+        //            "last_price": "38026",
+        //            "mark_price": "37985.6",
+        //            "index_price": "37954.92",
+        //            "funding_rate_indicative": "0.000219",
+        //            "mark_price_round": "0.01",
+        //            "funding_offset": 0,
+        //            "in_delisting": false,
+        //            "risk_limit_base": "1000000",
+        //            "interest_rate": "0.0003",
+        //            "order_price_round": "0.1",
+        //            "order_size_min": 1,
+        //            "ref_rebate_rate": "0.2",
+        //            "funding_interval": 28800,
+        //            "risk_limit_step": "1000000",
+        //            "leverage_min": "1",
+        //            "leverage_max": "100",
+        //            "risk_limit_max": "8000000",
+        //            "maker_fee_rate": "-0.00025",
+        //            "taker_fee_rate": "0.00075",
+        //            "funding_rate": "0.002053",
+        //            "order_size_max": 1000000,
+        //            "funding_next_apply": 1610035200,
+        //            "short_users": 977,
+        //            "config_change_time": 1609899548,
+        //            "trade_size": 28530850594,
+        //            "position_size": 5223816,
+        //            "long_users": 455,
+        //            "funding_impact_value": "60000",
+        //            "orders_limit": 50,
+        //            "trade_id": 10851092,
+        //            "orderbook_id": 2129638396
         //        }
-        //    )
+        //    ]
         //
         $data = $this->safe_list($response, 'result', array());
         return $this->parse_funding_rates($data, $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         // {
         //     "ticker_id":"ADA_PERP",
@@ -3413,7 +3568,7 @@ class whitebit extends Exchange {
         //     "index_currency":"ADA",
         //     "funding_rate":"0.0001",
         //     "next_funding_rate_timestamp":"1691193600000",
-        //     "brackets":array(
+        //     "brackets":{
         //        "1":"0",
         //        "2":"0",
         //        "3":"0",
@@ -3422,7 +3577,7 @@ class whitebit extends Exchange {
         //        "20":"0",
         //        "50":"-10000",
         //        "100":"-5000"
-        //     ),
+        //     },
         //     "max_leverage":"100"
         //  }
         //
@@ -3454,7 +3609,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -3467,7 +3622,9 @@ class whitebit extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch funding history for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
         }
@@ -3479,41 +3636,41 @@ class whitebit extends Exchange {
             $request['startDate'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $since;
+            $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endDate', $request, $params);
-        $response = $this->v4PrivatePostCollateralAccountFundingHistory ($request);
+        $response = $this->v4PrivatePostCollateralAccountFundingHistory($this->extend($request, $params));
         //
         //     {
-        //         "records" => array(
-        //             array(
-        //                 "market" => "BTC_PERP",
-        //                 "fundingTime" => "1708704000000",
-        //                 "fundingRate" => "0.00017674",
-        //                 "fundingAmount" => "-0.171053531892",
-        //                 "positionAmount" => "0.019",
-        //                 "settlementPrice" => "50938.2",
-        //                 "rateCalculatedTime" => "1708675200000"
-        //             ),
-        //         ),
-        //         "limit" => 100,
-        //         "offset" => 0
+        //         "records": [
+        //             {
+        //                 "market": "BTC_PERP",
+        //                 "fundingTime": "1708704000000",
+        //                 "fundingRate": "0.00017674",
+        //                 "fundingAmount": "-0.171053531892",
+        //                 "positionAmount": "0.019",
+        //                 "settlementPrice": "50938.2",
+        //                 "rateCalculatedTime": "1708675200000"
+        //             },
+        //         ],
+        //         "limit": 100,
+        //         "offset": 0
         //     }
         //
         $data = $this->safe_list($response, 'records', array());
         return $this->parse_funding_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_history($contract, ?array $market = null) {
+    public function parse_funding_history(mixed $contract, ?array $market = null) {
         //
         //     {
-        //         "market" => "BTC_PERP",
-        //         "fundingTime" => "1708704000000",
-        //         "fundingRate" => "0.00017674",
-        //         "fundingAmount" => "-0.171053531892",
-        //         "positionAmount" => "0.019",
-        //         "settlementPrice" => "50938.2",
-        //         "rateCalculatedTime" => "1708675200000"
+        //         "market": "BTC_PERP",
+        //         "fundingTime": "1708704000000",
+        //         "fundingRate": "0.00017674",
+        //         "fundingAmount": "-0.171053531892",
+        //         "positionAmount": "0.019",
+        //         "settlementPrice": "50938.2",
+        //         "rateCalculatedTime": "1708675200000"
         //     }
         //
         $marketId = $this->safe_string($contract, 'market');
@@ -3529,7 +3686,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(mixed $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -3539,7 +3696,7 @@ class whitebit extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals
          *
@@ -3559,7 +3716,9 @@ class whitebit extends Exchange {
          * @param {string[]} [$params->status] Can be used for filtering transactions by status codes. Caution => You must use this parameter with appropriate transactionMethod and use valid status codes for this method. You can find them below. Example => "status" => [3,7]
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -3569,50 +3728,54 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 1000
         }
-        $response = $this->v4PrivatePostMainAccountHistory ($this->extend($request, $params));
+        $response = $this->v4PrivatePostMainAccountHistory($this->extend($request, $params));
         //
         //    {
-        //        "limit" => 100,
-        //        "offset" => 0,
-        //        "records" => array(
+        //        "limit": 100,
+        //        "offset": 0,
+        //        "records": [
         //            {
-        //                "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                        // deposit address
-        //                "uniqueId" => null,                                                                       // unique Id of deposit
-        //                "createdAt" => 1593437922,                                                                // timestamp of deposit
-        //                "currency" => "Bitcoin",                                                                  // deposit $currency
-        //                "ticker" => "BTC",                                                                        // deposit $currency ticker
-        //                "method" => 1,                                                                            // called method 1 - deposit, 2 - withdraw
-        //                "amount" => "0.0006",                                                                     // amount of deposit
-        //                "description" => "",                                                                      // deposit description
-        //                "memo" => "",                                                                             // deposit memo
-        //                "fee" => "0",                                                                             // deposit fee
-        //                "status" => 15,                                                                           // transactions status
-        //                "network" => null,                                                                        // if $currency is multinetwork
-        //                "transactionHash" => "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",  // deposit transaction hash
-        //                "transactionId" => "5e112b38-9652-11ed-a1eb-0242ac120002",                                // transaction id
-        //                "details" => {
-        //                    "partial" => array(                                                                        // details about partially successful withdrawals
-        //                        "requestAmount" => "50000",                                                       // requested withdrawal amount
-        //                        "processedAmount" => "39000",                                                     // processed withdrawal amount
-        //                        "processedFee" => "273",                                                          // fee for processed withdrawal amount
-        //                        "normalizeTransaction" => ""                                                      // deposit id
+        //                "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                        // deposit address
+        //                "uniqueId": null,                                                                       // unique Id of deposit
+        //                "createdAt": 1593437922,                                                                // timestamp of deposit
+        //                "currency": "Bitcoin",                                                                  // deposit currency
+        //                "ticker": "BTC",                                                                        // deposit currency ticker
+        //                "method": 1,                                                                            // called method 1 - deposit, 2 - withdraw
+        //                "amount": "0.0006",                                                                     // amount of deposit
+        //                "description": "",                                                                      // deposit description
+        //                "memo": "",                                                                             // deposit memo
+        //                "fee": "0",                                                                             // deposit fee
+        //                "status": 15,                                                                           // transactions status
+        //                "network": null,                                                                        // if currency is multinetwork
+        //                "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",  // deposit transaction hash
+        //                "transactionId": "5e112b38-9652-11ed-a1eb-0242ac120002",                                // transaction id
+        //                "details": {
+        //                    "partial": {                                                                        // details about partially successful withdrawals
+        //                        "requestAmount": "50000",                                                       // requested withdrawal amount
+        //                        "processedAmount": "39000",                                                     // processed withdrawal amount
+        //                        "processedFee": "273",                                                          // fee for processed withdrawal amount
+        //                        "normalizeTransaction": ""                                                      // deposit id
         //                    }
-        //                ),
-        //                "confirmations" => array(                                                                      // if transaction status == 15 (Pending) you can see this object
-        //                    "actual" => 1,                                                                        // current block confirmations
-        //                    "required" => 2                                                                       // required block confirmation for successful deposit
+        //                },
+        //                "confirmations": {                                                                      // if transaction status == 15 (Pending) you can see this object
+        //                    "actual": 1,                                                                        // current block confirmations
+        //                    "required": 2                                                                       // required block confirmation for successful deposit
         //                }
-        //            ),
-        //            array(...),
-        //        ),
-        //        "total" => 300                                                                                    // total number of  transactions, use this for calculating ‘$limit’ and ‘offset'
+        //            },
+        //            {...},
+        //        ],
+        //        "total": 300                                                                                    // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //    }
         //
         $records = $this->safe_list($response, 'records');
-        return $this->parse_transactions($records, $currency, $since, $limit);
+        $recordsList = array();
+        if ($records !== null) {
+            $recordsList = $records;
+        }
+        return $this->parse_transactions($recordsList, $currency, $since, $limit);
     }
 
-    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array()): array {
         /**
          * fetch a quote for converting from one currency to another
          *
@@ -3624,7 +3787,9 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $fromCurrency = $this->currency($fromCode);
         $toCurrency = $this->currency($toCode);
         $request = array(
@@ -3633,22 +3798,22 @@ class whitebit extends Exchange {
             'amount' => $this->number_to_string($amount),
             'direction' => 'from',
         );
-        $response = $this->v4PrivatePostConvertEstimate ($this->extend($request, $params));
+        $response = $this->v4PrivatePostConvertEstimate($this->extend($request, $params));
         //
         //     {
-        //         "give" => "4",
-        //         "receive" => "0.00004762",
-        //         "rate" => "0.0000119",
-        //         "id" => "1740889",
-        //         "expireAt" => 1741090147,
-        //         "from" => "USDT",
-        //         "to" => "BTC"
+        //         "give": "4",
+        //         "receive": "0.00004762",
+        //         "rate": "0.0000119",
+        //         "id": "1740889",
+        //         "expireAt": 1741090147,
+        //         "from": "USDT",
+        //         "to": "BTC"
         //     }
         //
         return $this->parse_conversion($response, $fromCurrency, $toCurrency);
     }
 
-    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array()): array {
         /**
          * convert from one currency to another
          *
@@ -3661,23 +3826,25 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $fromCurrency = $this->currency($fromCode);
         $toCurrency = $this->currency($toCode);
         $request = array(
             'quoteId' => $id,
         );
-        $response = $this->v4PrivatePostConvertConfirm ($this->extend($request, $params));
+        $response = $this->v4PrivatePostConvertConfirm($this->extend($request, $params));
         //
         //     {
-        //         "finalGive" => "4",
-        //         "finalReceive" => "0.00004772"
+        //         "finalGive": "4",
+        //         "finalReceive": "0.00004772"
         //     }
         //
         return $this->parse_conversion($response, $fromCurrency, $toCurrency);
     }
 
-    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the users history of conversion trades
          *
@@ -3693,7 +3860,9 @@ class whitebit extends Exchange {
          * @param {string} [$params->quoteId] the quote id of the conversion
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=conversion-structure conversion structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($code !== null) {
             $request['fromTicker'] = $code;
@@ -3706,28 +3875,28 @@ class whitebit extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
-        $response = $this->v4PrivatePostConvertHistory ($this->extend($request, $params));
+        $response = $this->v4PrivatePostConvertHistory($this->extend($request, $params));
         //
         //     {
-        //         "records" => array(
+        //         "records": [
         //             {
-        //                 "id" => "1741105",
-        //                 "path" => array(
+        //                 "id": "1741105",
+        //                 "path": [
         //                     {
-        //                         "from" => "USDT",
-        //                         "to" => "BTC",
-        //                         "rate" => "0.00001193"
+        //                         "from": "USDT",
+        //                         "to": "BTC",
+        //                         "rate": "0.00001193"
         //                     }
-        //                 ),
-        //                 "date" => 1741090757,
-        //                 "give" => "4",
-        //                 "receive" => "0.00004772",
-        //                 "rate" => "0.00001193"
+        //                 ],
+        //                 "date": 1741090757,
+        //                 "give": "4",
+        //                 "receive": "0.00004772",
+        //                 "rate": "0.00001193"
         //             }
-        //         ),
-        //         "total" => 1,
-        //         "limit" => 100,
-        //         "offset" => 0
+        //         ],
+        //         "total": 1,
+        //         "limit": 100,
+        //         "offset": 0
         //     }
         //
         $rows = $this->safe_list($response, 'records', array());
@@ -3739,37 +3908,37 @@ class whitebit extends Exchange {
         // fetchConvertQuote
         //
         //     {
-        //         "give" => "4",
-        //         "receive" => "0.00004762",
-        //         "rate" => "0.0000119",
-        //         "id" => "1740889",
-        //         "expireAt" => 1741090147,
-        //         "from" => "USDT",
-        //         "to" => "BTC"
+        //         "give": "4",
+        //         "receive": "0.00004762",
+        //         "rate": "0.0000119",
+        //         "id": "1740889",
+        //         "expireAt": 1741090147,
+        //         "from": "USDT",
+        //         "to": "BTC"
         //     }
         //
         // createConvertTrade
         //
         //     {
-        //         "finalGive" => "4",
-        //         "finalReceive" => "0.00004772"
+        //         "finalGive": "4",
+        //         "finalReceive": "0.00004772"
         //     }
         //
         // fetchConvertTradeHistory
         //
         //     {
-        //         "id" => "1741105",
-        //         "path" => array(
+        //         "id": "1741105",
+        //         "path": [
         //             {
-        //                 "from" => "USDT",
-        //                 "to" => "BTC",
-        //                 "rate" => "0.00001193"
+        //                 "from": "USDT",
+        //                 "to": "BTC",
+        //                 "rate": "0.00001193"
         //             }
-        //         ),
-        //         "date" => 1741090757,
-        //         "give" => "4",
-        //         "receive" => "0.00004772",
-        //         "rate" => "0.00001193"
+        //         ],
+        //         "date": 1741090757,
+        //         "give": "4",
+        //         "receive": "0.00004772",
+        //         "rate": "0.00001193"
         //     }
         //
         $path = $this->safe_list($conversion, 'path', array());
@@ -3795,7 +3964,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical $positions
          *
@@ -3804,11 +3973,13 @@ class whitebit extends Exchange {
          * @param {string} $symbol unified contract $symbol
          * @param {int} [$since] the earliest time in ms to fetch $positions for
          * @param {int} [$limit] the maximum amount of records to fetch
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->positionId] the id of the requested position
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -3820,35 +3991,35 @@ class whitebit extends Exchange {
             $request['limit'] = $since;
         }
         list($request, $params) = $this->handle_until_option('endDate', $request, $params);
-        $response = $this->v4PrivatePostCollateralAccountPositionsHistory ($this->extend($request, $params));
+        $response = $this->v4PrivatePostCollateralAccountPositionsHistory($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "positionId" => 479975679,
-        //             "market" => "BTC_PERP",
-        //             "openDate" => 1741941025.309887,
-        //             "modifyDate" => 1741941025.309887,
-        //             "amount" => "0.001",
-        //             "basePrice" => "82498.7",
-        //             "realizedFunding" => "0",
-        //             "liquidationPrice" => "0",
-        //             "liquidationState" => null,
-        //             "orderDetail" => {
-        //                 "id" => 1224727949521,
-        //                 "tradeAmount" => "0.001",
-        //                 "price" => "82498.7",
-        //                 "tradeFee" => "0.028874545",
-        //                 "fundingFee" => "0",
-        //                 "realizedPnl" => "-0.028874545"
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.309887,
+        //             "modifyDate": 1741941025.309887,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "realizedFunding": "0",
+        //             "liquidationPrice": "0",
+        //             "liquidationState": null,
+        //             "orderDetail": {
+        //                 "id": 1224727949521,
+        //                 "tradeAmount": "0.001",
+        //                 "price": "82498.7",
+        //                 "tradeFee": "0.028874545",
+        //                 "fundingFee": "0",
+        //                 "realizedPnl": "-0.028874545"
         //             }
         //         }
-        //     )
+        //     ]
         //
         $positions = $this->parse_positions($response);
         return $this->filter_by_symbol_since_limit($positions, $symbol, $since, $limit);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -3858,34 +4029,36 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->v4PrivatePostCollateralAccountPositionsOpen ($params);
+        $response = $this->v4PrivatePostCollateralAccountPositionsOpen($params);
         //
-        //     array(
+        //     [
         //         {
-        //             "positionId" => 479975679,
-        //             "market" => "BTC_PERP",
-        //             "openDate" => 1741941025.3098869,
-        //             "modifyDate" => 1741941025.3098869,
-        //             "amount" => "0.001",
-        //             "basePrice" => "82498.7",
-        //             "liquidationPrice" => "70177.2",
-        //             "pnl" => "0",
-        //             "pnlPercent" => "0.00",
-        //             "margin" => "4.2",
-        //             "freeMargin" => "9.9",
-        //             "funding" => "0",
-        //             "unrealizedFunding" => "0",
-        //             "liquidationState" => null,
-        //             "tpsl" => null
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.3098869,
+        //             "modifyDate": 1741941025.3098869,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "liquidationPrice": "70177.2",
+        //             "pnl": "0",
+        //             "pnlPercent": "0.00",
+        //             "margin": "4.2",
+        //             "freeMargin": "9.9",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0",
+        //             "liquidationState": null,
+        //             "tpsl": null
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_positions($response, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array ()): array {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch $data on a single open contract trade position
          *
@@ -3895,32 +4068,34 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v4PrivatePostCollateralAccountPositionsOpen ($this->extend($request, $params));
+        $response = $this->v4PrivatePostCollateralAccountPositionsOpen($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "positionId" => 479975679,
-        //             "market" => "BTC_PERP",
-        //             "openDate" => 1741941025.3098869,
-        //             "modifyDate" => 1741941025.3098869,
-        //             "amount" => "0.001",
-        //             "basePrice" => "82498.7",
-        //             "liquidationPrice" => "70177.2",
-        //             "pnl" => "0",
-        //             "pnlPercent" => "0.00",
-        //             "margin" => "4.2",
-        //             "freeMargin" => "9.9",
-        //             "funding" => "0",
-        //             "unrealizedFunding" => "0",
-        //             "liquidationState" => null,
-        //             "tpsl" => null
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.3098869,
+        //             "modifyDate": 1741941025.3098869,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "liquidationPrice": "70177.2",
+        //             "pnl": "0",
+        //             "pnlPercent": "0.00",
+        //             "margin": "4.2",
+        //             "freeMargin": "9.9",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0",
+        //             "liquidationState": null,
+        //             "tpsl": null
         //         }
-        //     )
+        //     ]
         //
         $data = $this->safe_dict($response, 0, array());
         return $this->parse_position($data, $market);
@@ -3931,42 +4106,42 @@ class whitebit extends Exchange {
         // fetchPosition, fetchPositions
         //
         //     {
-        //         "positionId" => 479975679,
-        //         "market" => "BTC_PERP",
-        //         "openDate" => 1741941025.3098869,
-        //         "modifyDate" => 1741941025.3098869,
-        //         "amount" => "0.001",
-        //         "basePrice" => "82498.7",
-        //         "liquidationPrice" => "70177.2",
-        //         "pnl" => "0",
-        //         "pnlPercent" => "0.00",
-        //         "margin" => "4.2",
-        //         "freeMargin" => "9.9",
-        //         "funding" => "0",
-        //         "unrealizedFunding" => "0",
-        //         "liquidationState" => null,
-        //         "tpsl" => null
+        //         "positionId": 479975679,
+        //         "market": "BTC_PERP",
+        //         "openDate": 1741941025.3098869,
+        //         "modifyDate": 1741941025.3098869,
+        //         "amount": "0.001",
+        //         "basePrice": "82498.7",
+        //         "liquidationPrice": "70177.2",
+        //         "pnl": "0",
+        //         "pnlPercent": "0.00",
+        //         "margin": "4.2",
+        //         "freeMargin": "9.9",
+        //         "funding": "0",
+        //         "unrealizedFunding": "0",
+        //         "liquidationState": null,
+        //         "tpsl": null
         //     }
         //
         // fetchPositionHistory
         //
         //     {
-        //         "positionId" => 479975679,
-        //         "market" => "BTC_PERP",
-        //         "openDate" => 1741941025.309887,
-        //         "modifyDate" => 1741941025.309887,
-        //         "amount" => "0.001",
-        //         "basePrice" => "82498.7",
-        //         "realizedFunding" => "0",
-        //         "liquidationPrice" => "0",
-        //         "liquidationState" => null,
-        //         "orderDetail" => {
-        //             "id" => 1224727949521,
-        //             "tradeAmount" => "0.001",
-        //             "price" => "82498.7",
-        //             "tradeFee" => "0.028874545",
-        //             "fundingFee" => "0",
-        //             "realizedPnl" => "-0.028874545"
+        //         "positionId": 479975679,
+        //         "market": "BTC_PERP",
+        //         "openDate": 1741941025.309887,
+        //         "modifyDate": 1741941025.309887,
+        //         "amount": "0.001",
+        //         "basePrice": "82498.7",
+        //         "realizedFunding": "0",
+        //         "liquidationPrice": "0",
+        //         "liquidationState": null,
+        //         "orderDetail": {
+        //             "id": 1224727949521,
+        //             "tradeAmount": "0.001",
+        //             "price": "82498.7",
+        //             "tradeFee": "0.028874545",
+        //             "fundingFee": "0",
+        //             "realizedPnl": "-0.028874545"
         //         }
         //     }
         //
@@ -4006,49 +4181,12 @@ class whitebit extends Exchange {
         ));
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()): array {
-        /**
-         * fetch the rate of interest to borrow a $currency for margin trading
-         *
-         * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
-         *
-         * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structure~
-         */
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'ticker' => $currency['id'],
-        );
-        $response = $this->v4PrivatePostMainAccountSmartPlans ($this->extend($request, $params));
-        //
-        //
-        $data = $this->safe_list($response, 0, array());
-        return $this->parse_borrow_rate($data, $currency);
-    }
-
-    public function parse_borrow_rate($info, ?array $currency = null) {
-        //
-        //
-        $currencyId = $this->safe_string($info, 'ticker');
-        $percent = $this->safe_string($info, 'percent');
-        return array(
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'rate' => $this->parse_number(Precise::string_div($percent, '100')),
-            'period' => $this->safe_integer($info, 'duration'),
-            'timestamp' => null,
-            'datetime' => null,
-            'info' => $info,
-        );
-    }
-
     public function is_fiat(string $currency): bool {
-        $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
+        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -4070,7 +4208,9 @@ class whitebit extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, $maxLimit);
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -4082,22 +4222,22 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v4PublicGetFundingHistoryMarket ($this->extend($request, $params));
+        $response = $this->v4PublicGetFundingHistoryMarket($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "fundingTime" => "1773648000",
-        //             "fundingRate" => "-0.00004593",
-        //             "market" => "ETH_PERP",
-        //             "settlementPrice" => "2248.47",
-        //             "rateCalculatedTime" => "1773619200"
+        //             "fundingTime": "1773648000",
+        //             "fundingRate": "-0.00004593",
+        //             "market": "ETH_PERP",
+        //             "settlementPrice": "2248.47",
+        //             "rateCalculatedTime": "1773619200"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
         $marketId = $this->safe_string($info, 'market');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($info, 'fundingTime');
@@ -4110,11 +4250,11 @@ class whitebit extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_value($api, 0);
         $accessibility = $this->safe_value($api, 1);
@@ -4123,9 +4263,9 @@ class whitebit extends Exchange {
         }
         $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'][$version][$accessibility] . $pathWithParams;
+        $url = ($this->urls['api'])[$version][$accessibility] . $pathWithParams;
         if ($accessibility === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -4148,7 +4288,7 @@ class whitebit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
@@ -4156,14 +4296,14 @@ class whitebit extends Exchange {
             throw new ExchangeError($this->id . ' ' . (string) $code . ' endpoint not found');
         }
         if ($response !== null) {
-            // For cases where we have a meaningful $status
-            // array("response":null,"status":422,"errors":array("orderId":["Finished order id 435453454535 not found on your account"]),"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null)
+            // For cases where we have a meaningful status
+            // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             $status = $this->safe_string($response, 'status');
-            $errors = $this->safe_value($response, 'errors');
-            // array("code":10,"message":"Unauthorized request.")
+            $errors = $this->safe_dict($response, 'errors');
+            // {"code":10,"message":"Unauthorized request."}
             $message = $this->safe_string($response, 'message');
-            // For these cases where we have a generic $code variable error key
-            // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
+            // For these cases where we have a generic code variable error key
+            // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             $codeNew = $this->safe_integer($response, 'code');
             $hasErrorStatus = $status !== null && $status !== '200' && $errors !== null;
             if ($hasErrorStatus || $codeNew !== null) {
@@ -4177,7 +4317,7 @@ class whitebit extends Exchange {
                     $errorsLength = count($errorKeys);
                     if ($errorsLength > 0) {
                         $errorKey = $errorKeys[0];
-                        $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
+                        $errorMessageArray = $this->safe_list($errorObject, $errorKey, array());
                         $errorMessageLength = count($errorMessageArray);
                         $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
                     }
@@ -4186,9 +4326,9 @@ class whitebit extends Exchange {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
                 throw new ExchangeError($feedback);
             }
-            // array("success":false,"message":array("limit":["limit must be less than or equal to 100"]),"result":null)
+            // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             $success = $this->safe_bool($response, 'success', true);
-            if (!$success) {
+            if ($success !== true) {
                 $errMsg = $this->safe_dict($response, 'message', array());
                 $errKeys = is_array($errMsg) ? array_keys($errMsg) : array();
                 $errKeysLength = count($errKeys);

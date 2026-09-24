@@ -3,22 +3,14 @@ import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings
 import Client from '../base/ws/Client.js';
 export default class deepcoin extends deepcoinRest {
     describe(): any;
-    ping(client: Client): string;
-    handlePong(client: Client, message: any): any;
+    ping(client: Client): Str;
+    handlePong(client: Client, message: Dict): Dict;
     requestId(): any;
-    createPublicRequest(market: Market, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): {
-        sendTopicAction: {
-            Action: string;
-            FilterValue: string;
-            LocalNo: number;
-            ResumeNo: number;
-            TopicID: string;
-        };
-    };
-    watchPublic(market: Market, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
-    unWatchPublic(market: Market, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
+    createPublicRequest(market: any, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): Dict;
+    watchPublic(market: any, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
+    unWatchPublic(market: any, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
     watchPrivate(messageHash: string, params?: Dict): Promise<any>;
-    authenticate(params?: {}): Promise<string>;
+    authenticate(params?: Dict): Promise<Str>;
     /**
      * @method
      * @name deepcoin#watchTicker
@@ -28,7 +20,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name deepcoin#unWatchTicker
@@ -39,7 +31,7 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -52,7 +44,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name deepcoin#unWatchTrades
@@ -62,8 +54,8 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    handleTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     parseTradeSide(direction: Str): Str;
     handleTakerOrMaker(matchRole: Str): Str;
@@ -79,7 +71,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name deepcoin#unWatchOHLCV
@@ -91,7 +83,7 @@ export default class deepcoin extends deepcoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -101,9 +93,10 @@ export default class deepcoin extends deepcoinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @param {string} [params.aggregation] price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name deepcoin#unWatchOrderBook
@@ -111,12 +104,14 @@ export default class deepcoin extends deepcoinRest {
      * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: any): void;
-    handleOrderBookSnapshot(client: Client, message: any): void;
-    handleOrderBookMessage(client: Client, message: any, orderbook: any): void;
+    orderBookSuffix(market: Market, methodName: string, params?: Dict): [Str, Dict];
+    handleOrderBook(client: Client, message: Dict): void;
+    handleOrderBookSnapshot(client: Client, message: Dict): void;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: any): void;
     handleDelta(orderbook: any, entry: any): void;
     /**
      * @method
@@ -129,8 +124,8 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrade(client: Client, message: any): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleMyTrade(client: Client, message: Dict): void;
     /**
      * @method
      * @name deepcoin#watchOrders
@@ -142,9 +137,9 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrder(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
     parseWsOrderStatus(status: Str): Str;
     /**
      * @method
@@ -157,13 +152,13 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    handlePosition(client: Client, message: any): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
+    handlePosition(client: Client, message: Dict): void;
     parseWsPosition(position: any, market?: Market): Position;
     parsePositionSide(direction: Str): Str;
     parseWsMarginMode(marginMode: Str): Str;
     handleMessage(client: Client, message: any): void;
-    handleSubscriptionStatus(client: Client, message: any): void;
+    handleSubscriptionStatus(client: Client, message: Dict): void;
     handleUnSubscription(client: Client, subscription: Dict): void;
-    handleErrorMessage(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: Dict): void;
 }

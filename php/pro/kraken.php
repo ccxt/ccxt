@@ -7,15 +7,18 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class kraken extends \ccxt\async\kraken {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -36,8 +39,8 @@ class kraken extends \ccxt\async\kraken {
                 'cancelOrderWs' => true,
                 'cancelOrdersWs' => true,
                 'cancelAllOrdersWs' => true,
-                // 'watchHeartbeat' => true,
-                // 'watchStatus' => true,
+                // 'watchHeartbeat': true,
+                // 'watchStatus': true,
             ),
             'urls' => array(
                 'api' => array(
@@ -51,9 +54,9 @@ class kraken extends \ccxt\async\kraken {
                     ),
                 ),
             ),
-            // 'versions' => array(
-            //     'ws' => '0.2.0',
-            // ),
+            // 'versions': {
+            //     'ws': '0.2.0',
+            // },
             'options' => array(
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
@@ -125,7 +128,7 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
-    public function order_request_ws(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array ()) {
+    public function order_request_ws(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array()): array {
         $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if ($isLimitOrder) {
             if ($price === null) {
@@ -136,7 +139,7 @@ class kraken extends \ccxt\async\kraken {
         $isMarket = ($type === 'market');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['params']['post_only'] = true;
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -175,7 +178,7 @@ class kraken extends \ccxt\async\kraken {
         $priceType = ($isTrailingPercentOrder || $isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if ($method === 'createOrderWs') {
             $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-            if ($reduceOnly) {
+            if ($reduceOnly === true) {
                 $request['params']['reduce_only'] = true;
             }
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
@@ -271,260 +274,270 @@ class kraken extends \ccxt\async\kraken {
         return array( $request, $params );
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            Async\await($this->load_markets());
-            $token = Async\await($this->authenticate());
-            $market = $this->market($symbol);
-            $url = $this->urls['api']['ws']['privateV2'];
-            $requestId = $this->request_id();
-            $messageHash = $this->number_to_string($requestId);
-            $request = array(
-                'method' => 'add_order',
-                'params' => array(
-                    'order_type' => $type,
-                    'side' => $side,
-                    'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
-                    'symbol' => $market['symbol'],
-                    'token' => $token,
-                ),
-                'req_id' => $requestId,
-            );
-            list($request, $params) = $this->order_request_ws('createOrderWs', $symbol, $type, $request, $amount, $price, $params);
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function handle_create_edit_order($client, $message) {
+    private function do_create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        Async\await($this->load_markets());
+        $token = Async\await($this->authenticate());
+        $market = $this->market($symbol);
+        $url = ($this->urls['api'])['ws']['privateV2'];
+        $requestId = $this->request_id();
+        $messageHash = $this->number_to_string($requestId);
+        $request = array(
+            'method' => 'add_order',
+            'params' => array(
+                'order_type' => $type,
+                'side' => $side,
+                'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
+                'symbol' => $market['symbol'],
+                'token' => $token,
+            ),
+            'req_id' => $requestId,
+        );
+        list($request, $params) = $this->order_request_ws('createOrderWs', $symbol, $type, $request, $amount, $price, $params);
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+    }
+
+    public function handle_create_edit_order(Client $client, array $message) {
         //
         //  createOrder
         //     {
-        //         "method" => "add_order",
-        //         "req_id" => 1,
-        //         "result" => array(
-        //             "order_id" => "OXM2QD-EALR2-YBAVEU"
-        //         ),
-        //         "success" => true,
-        //         "time_in" => "2025-05-13T10:12:13.876173Z",
-        //         "time_out" => "2025-05-13T10:12:13.890137Z"
+        //         "method": "add_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "order_id": "OXM2QD-EALR2-YBAVEU"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-13T10:12:13.876173Z",
+        //         "time_out": "2025-05-13T10:12:13.890137Z"
         //     }
         //
         //  editOrder
         //     {
-        //         "method" => "amend_order",
-        //         "req_id" => 1,
-        //         "result" => array(
-        //             "amend_id" => "TYDLSQ-OYNYU-3MNRER",
-        //             "order_id" => "OGL7HR-SWFO4-NRQTHO"
-        //         ),
-        //         "success" => true,
-        //         "time_in" => "2025-05-14T13:54:10.840342Z",
-        //         "time_out" => "2025-05-14T13:54:10.855046Z"
+        //         "method": "amend_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "amend_id": "TYDLSQ-OYNYU-3MNRER",
+        //             "order_id": "OGL7HR-SWFO4-NRQTHO"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-14T13:54:10.840342Z",
+        //         "time_out": "2025-05-14T13:54:10.855046Z"
         //     }
         //
         $result = $this->safe_dict($message, 'result', array());
         $order = $this->parse_order($result);
         $messageHash = $this->safe_string_2($message, 'reqid', 'req_id');
-        $client->resolve ($order, $messageHash);
+        $client->resolve($order, $messageHash);
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * edit a trade order
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            Async\await($this->load_markets());
-            $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
-            $requestId = $this->request_id();
-            $messageHash = $this->number_to_string($requestId);
-            $request = array(
-                'method' => 'amend_order',
-                'params' => array(
-                    'order_id' => $id,
-                    'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
-                    'token' => $token,
-                ),
-                'req_id' => $requestId,
-            );
-            list($request, $params) = $this->order_request_ws('editOrderWs', $symbol, $type, $request, $amount, $price, $params);
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($ids, $symbol, $params) {
-            /**
-             * cancel multiple orders
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
-             *
-             * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($symbol !== null) {
-                throw new NotSupported($this->id . ' cancelOrdersWs () does not support cancelling orders for a specific $symbol->');
-            }
-            Async\await($this->load_markets());
-            $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
-            $requestId = $this->request_id();
-            $messageHash = $this->number_to_string($requestId);
-            $request = array(
-                'method' => 'cancel_order',
-                'params' => array(
-                    'order_id' => $ids,
-                    'token' => $token,
-                ),
-                'req_id' => $requestId,
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+    private function do_edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * edit a trade order
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/amend_order
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of the currency you want to trade in units of the base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        Async\await($this->load_markets());
+        $token = Async\await($this->authenticate());
+        $url = ($this->urls['api'])['ws']['privateV2'];
+        $requestId = $this->request_id();
+        $messageHash = $this->number_to_string($requestId);
+        $request = array(
+            'method' => 'amend_order',
+            'params' => array(
+                'order_id' => $id,
+                'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
+                'token' => $token,
+            ),
+            'req_id' => $requestId,
+        );
+        list($request, $params) = $this->order_request_ws('editOrderWs', $symbol, $type, $request, $amount, $price, $params);
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
-             *
-             * @param {string} $id order $id
-             * @param {string} [$symbol] unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($symbol !== null) {
-                throw new NotSupported($this->id . ' cancelOrderWs () does not support cancelling orders for a specific $symbol->');
-            }
-            Async\await($this->load_markets());
-            $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
-            $requestId = $this->request_id();
-            $messageHash = $this->number_to_string($requestId);
-            $request = array(
-                'method' => 'cancel_order',
-                'params' => array(
-                    'order_id' => array( $id ),
-                    'token' => $token,
-                ),
-                'req_id' => $requestId,
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_orders_ws(...))($ids, $symbol, $params);
     }
 
-    public function handle_cancel_order($client, $message) {
+    private function do_cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple orders
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
+         *
+         * @param {string[]} $ids order $ids
+         * @param {string} [$symbol] unified market $symbol, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' cancelOrdersWs () does not support cancelling orders for a specific $symbol->');
+        }
+        Async\await($this->load_markets());
+        $token = Async\await($this->authenticate());
+        $url = ($this->urls['api'])['ws']['privateV2'];
+        $requestId = $this->request_id();
+        $messageHash = $this->number_to_string($requestId);
+        $request = array(
+            'method' => 'cancel_order',
+            'params' => array(
+                'order_id' => $ids,
+                'token' => $token,
+            ),
+            'req_id' => $requestId,
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+    }
+
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
+         *
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' cancelOrderWs () does not support cancelling orders for a specific $symbol->');
+        }
+        Async\await($this->load_markets());
+        $token = Async\await($this->authenticate());
+        $url = ($this->urls['api'])['ws']['privateV2'];
+        $requestId = $this->request_id();
+        $messageHash = $this->number_to_string($requestId);
+        $request = array(
+            'method' => 'cancel_order',
+            'params' => array(
+                'order_id' => array( $id ),
+                'token' => $token,
+            ),
+            'req_id' => $requestId,
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+    }
+
+    public function handle_cancel_order(Client $client, array $message) {
         //
         //     {
-        //         "method" => "cancel_order",
-        //         "req_id" => 123456789,
-        //         "result" => array(
-        //             "order_id" => "OKAGJC-YHIWK-WIOZWG"
-        //         ),
-        //         "success" => true,
-        //         "time_in" => "2023-09-21T14:36:57.428972Z",
-        //         "time_out" => "2023-09-21T14:36:57.437952Z"
+        //         "method": "cancel_order",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "order_id": "OKAGJC-YHIWK-WIOZWG"
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
         $reqId = $this->safe_string($message, 'req_id');
-        $client->resolve ($message, $reqId);
+        $client->resolve($message, $reqId);
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
-             *
-             * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($symbol !== null) {
-                throw new NotSupported($this->id . ' cancelAllOrdersWs () does not support cancelling orders in a specific market.');
-            }
-            Async\await($this->load_markets());
-            $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['privateV2'];
-            $requestId = $this->request_id();
-            $messageHash = $this->number_to_string($requestId);
-            $request = array(
-                'method' => 'cancel_all',
-                'params' => array(
-                    'token' => $token,
-                ),
-                'req_id' => $requestId,
-            );
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
     }
 
-    public function handle_cancel_all_orders($client, $message) {
+    private function do_cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_all
+         *
+         * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' cancelAllOrdersWs () does not support cancelling orders in a specific market.');
+        }
+        Async\await($this->load_markets());
+        $token = Async\await($this->authenticate());
+        $url = ($this->urls['api'])['ws']['privateV2'];
+        $requestId = $this->request_id();
+        $messageHash = $this->number_to_string($requestId);
+        $request = array(
+            'method' => 'cancel_all',
+            'params' => array(
+                'token' => $token,
+            ),
+            'req_id' => $requestId,
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+    }
+
+    public function handle_cancel_all_orders(Client $client, array $message) {
         //
         //     {
-        //         "method" => "cancel_all",
-        //         "req_id" => 123456789,
-        //         "result" => array(
-        //             "count" => 1
-        //         ),
-        //         "success" => true,
-        //         "time_in" => "2023-09-21T14:36:57.428972Z",
-        //         "time_out" => "2023-09-21T14:36:57.437952Z"
+        //         "method": "cancel_all",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "count": 1
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
         $reqId = $this->safe_string($message, 'req_id');
-        $client->resolve ($message, $reqId);
+        $client->resolve($message, $reqId);
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "channel" => "ticker",
-        //         "type" => "snapshot",
-        //         "data" => array(
+        //         "channel": "ticker",
+        //         "type": "snapshot",
+        //         "data": [
         //             {
-        //                 "symbol" => "BTC/USD",
-        //                 "bid" => 108359.8,
-        //                 "bid_qty" => 0.01362603,
-        //                 "ask" => 108359.9,
-        //                 "ask_qty" => 17.17988863,
-        //                 "last" => 108359.8,
-        //                 "volume" => 2158.32346723,
-        //                 "vwap" => 108894.5,
-        //                 "low" => 106824,
-        //                 "high" => 111300,
-        //                 "change" => -2679.9,
-        //                 "change_pct" => -2.41
+        //                 "symbol": "BTC/USD",
+        //                 "bid": 108359.8,
+        //                 "bid_qty": 0.01362603,
+        //                 "ask": 108359.9,
+        //                 "ask_qty": 17.17988863,
+        //                 "last": 108359.8,
+        //                 "volume": 2158.32346723,
+        //                 "vwap": 108894.5,
+        //                 "low": 106824,
+        //                 "high": 111300,
+        //                 "change": -2679.9,
+        //                 "change_pct": -2.41
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -561,25 +574,25 @@ class kraken extends \ccxt\async\kraken {
             'info' => $ticker,
         ));
         $this->tickers[$symbol] = $result;
-        $client->resolve ($result, $messageHash);
+        $client->resolve($result, $messageHash);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "channel" => "trade",
-        //         "type" => "update",
-        //         "data" => array(
+        //         "channel": "trade",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "symbol" => "MATIC/USD",
-        //                 "side" => "sell",
-        //                 "price" => 0.5117,
-        //                 "qty" => 40.0,
-        //                 "ord_type" => "market",
-        //                 "trade_id" => 4665906,
-        //                 "timestamp" => "2023-09-25T07:49:37.708706Z"
+        //                 "symbol": "MATIC/USD",
+        //                 "side": "sell",
+        //                 "price": 0.5117,
+        //                 "qty": 40.0,
+        //                 "ord_type": "market",
+        //                 "trade_id": 4665906,
+        //                 "timestamp": "2023-09-25T07:49:37.708706Z"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -589,77 +602,77 @@ class kraken extends \ccxt\async\kraken {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $market = $this->market($symbol);
         $parsed = $this->parse_trades($data, $market);
         for ($i = 0; $i < count($parsed); $i++) {
-            $stored->append ($parsed[$i]);
+            $stored->append($parsed[$i]);
         }
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "channel" => "ohlc",
-        //         "type" => "update",
-        //         "timestamp" => "2023-10-04T16:26:30.524394914Z",
-        //         "data" => array(
+        //         "channel": "ohlc",
+        //         "type": "update",
+        //         "timestamp": "2023-10-04T16:26:30.524394914Z",
+        //         "data": [
         //             {
-        //                 "symbol" => "MATIC/USD",
-        //                 "open" => 0.5624,
-        //                 "high" => 0.5628,
-        //                 "low" => 0.5622,
-        //                 "close" => 0.5627,
-        //                 "trades" => 12,
-        //                 "volume" => 30927.68066226,
-        //                 "vwap" => 0.5626,
-        //                 "interval_begin" => "2023-10-04T16:25:00.000000000Z",
-        //                 "interval" => 5,
-        //                 "timestamp" => "2023-10-04T16:30:00.000000Z"
+        //                 "symbol": "MATIC/USD",
+        //                 "open": 0.5624,
+        //                 "high": 0.5628,
+        //                 "low": 0.5622,
+        //                 "close": 0.5627,
+        //                 "trades": 12,
+        //                 "volume": 30927.68066226,
+        //                 "vwap": 0.5626,
+        //                 "interval_begin": "2023-10-04T16:25:00.000000000Z",
+        //                 "interval": 5,
+        //                 "timestamp": "2023-10-04T16:30:00.000000Z"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
         $first = $data[0];
         $marketId = $this->safe_string($first, 'symbol');
         $symbol = $this->safe_symbol($marketId);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $interval = $this->safe_integer($first, 'interval');
         $timeframe = $this->find_timeframe($interval);
         $messageHash = $this->get_message_hash('ohlcv', null, $symbol);
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         $ohlcvsLength = count($data);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
-            $candle = $data[$ohlcvsLength - $i - 1];
-            $datetime = $this->safe_string($candle, 'timestamp');
+            $candle = $data[$i];
+            $datetime = $this->safe_string($candle, 'interval_begin');
             $timestamp = $this->parse8601($datetime);
             $parsed = array(
                 $timestamp,
-                $this->safe_string($candle, 'open'),
-                $this->safe_string($candle, 'high'),
-                $this->safe_string($candle, 'low'),
-                $this->safe_string($candle, 'close'),
-                $this->safe_string($candle, 'volume'),
+                $this->safe_number($candle, 'open'),
+                $this->safe_number($candle, 'high'),
+                $this->safe_number($candle, 'low'),
+                $this->safe_number($candle, 'close'),
+                $this->safe_number($candle, 'volume'),
             );
-            $stored->append ($parsed);
+            $stored->append($parsed);
         }
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function request_id() {
-        // their support said that $reqid must be an int32, not documented
+        // their support said that reqid must be an int32, not documented
         $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
@@ -667,208 +680,221 @@ class kraken extends \ccxt\async\kraken {
         return $reqid;
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
-            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
-            return $tickers[$symbol];
-        }) ();
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
-             *
-             * @param {string[]} $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $ticker = Async\await($this->watch_multi_helper('ticker', 'ticker', $symbols, null, $params));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$ticker['symbol']] = $ticker;
-                return $result;
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        Async\await($this->load_markets());
+        $symbol = $this->symbol($symbol);
+        $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+        return $tickers[$symbol];
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
+         *
+         * @param {string[]} $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        Async\await($this->load_markets());
+        $symbols = $this->market_symbols($symbols, null, false);
+        $ticker = Async\await($this->watch_multi_helper('ticker', 'ticker', $symbols, null, $params));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$ticker['symbol']] = $ticker;
+            return $result;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * watches best bid & ask for $symbols
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        Async\await($this->load_markets());
+        $symbols = $this->market_symbols($symbols, null, false);
+        $params['event_trigger'] = 'bbo';
+        $ticker = Async\await($this->watch_multi_helper('bidask', 'ticker', $symbols, null, $params));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$ticker['symbol']] = $ticker;
+            return $result;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+    }
+
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a list of $symbols
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        $trades = Async\await($this->watch_multi_helper('trade', 'trade', $symbols, null, $params));
+        if ($this->newUpdates) {
+            $first = $this->safe_list($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $requiredParams = array();
+        if ($limit !== null) {
+            if ($this->in_array($limit, array( 10, 25, 100, 500, 1000 ))) {
+                $requiredParams['depth'] = $limit; // default 10, valid options 10, 25, 100, 500, 1000
+            } else {
+                throw new NotSupported($this->id . ' watchOrderBook accepts $limit values of 10, 25, 100, 500 and 1000 only');
             }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        }
+        $orderbook = Async\await($this->watch_multi_helper('orderbook', 'book', $symbols, array( 'limit' => $limit ), $this->extend($requiredParams, $params)));
+        return $orderbook->limit();
     }
 
-    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches best bid & ask for $symbols
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $params['event_trigger'] = 'bbo';
-            $ticker = Async\await($this->watch_multi_helper('bidask', 'ticker', $symbols, null, $params));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$ticker['symbol']] = $ticker;
-                return $result;
-            }
-            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
-        }) ();
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/trade
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        }) ();
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        Async\await($this->load_markets());
+        $name = 'ohlc';
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $url = ($this->urls['api'])['ws']['publicV2'];
+        $requestId = $this->request_id();
+        $messageHash = $this->get_message_hash('ohlcv', null, $symbol);
+        $subscribe = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $name,
+                'symbol' => array( $symbol ),
+                'interval' => $this->safe_value($this->timeframes, $timeframe, $timeframe),
+            ),
+            'req_id' => $requestId,
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 'timestamp', true);
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a list of $symbols
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/trade
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            $trades = Async\await($this->watch_multi_helper('trade', 'trade', $symbols, null, $params));
-            if ($this->newUpdates) {
-                $first = $this->safe_list($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit ($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+    public function load_markets($reload = false, $params = array()) {
+        return Async\async(self::do_load_markets(...))($reload, $params);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/book
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        }) ();
-    }
-
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/book
-             *
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
-             */
-            $requiredParams = array();
-            if ($limit !== null) {
-                if ($this->in_array($limit, array( 10, 25, 100, 500, 1000 ))) {
-                    $requiredParams['depth'] = $limit; // default 10, valid options 10, 25, 100, 500, 1000
-                } else {
-                    throw new NotSupported($this->id . ' watchOrderBook accepts $limit values of 10, 25, 100, 500 and 1000 only');
-                }
-            }
-            $orderbook = Async\await($this->watch_multi_helper('orderbook', 'book', $symbols, array( 'limit' => $limit ), $this->extend($requiredParams, $params)));
-            return $orderbook->limit ();
-        }) ();
-    }
-
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $name = 'ohlc';
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $url = $this->urls['api']['ws']['publicV2'];
-            $requestId = $this->request_id();
-            $messageHash = $this->get_message_hash('ohlcv', null, $symbol);
-            $subscribe = array(
-                'method' => 'subscribe',
-                'params' => array(
-                    'channel' => $name,
-                    'symbol' => array( $symbol ),
-                    'interval' => $this->safe_value($this->timeframes, $timeframe, $timeframe),
-                ),
-                'req_id' => $requestId,
-            );
-            $request = $this->deep_extend($subscribe, $params);
-            $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 'timestamp', true);
-        }) ();
-    }
-
-    public function load_markets($reload = false, $params = array ()) {
-        return Async\async(function () use ($reload, $params) {
-            $markets = Async\await(parent::load_markets($reload, $params));
-            $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
-            if (($marketsByWsName === null) || $reload) {
-                $marketsByWsName = array();
-                for ($i = 0; $i < count($this->symbols); $i++) {
-                    $symbol = $this->symbols[$i];
-                    $market = $this->markets[$symbol];
-                    $info = $this->safe_value($market, 'info', array());
+    private function do_load_markets($reload = false, $params = array()) {
+        $markets = Async\await(parent::load_markets($reload, $params));
+        $marketsByWsName = $this->safe_dict($this->options, 'marketsByWsName');
+        if (($marketsByWsName === null) || $reload) {
+            $marketsByWsName = array();
+            $symbols = $this->symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $info = $this->safe_dict($market, 'info', array());
                     $wsName = $this->safe_string($info, 'wsname');
                     $marketsByWsName[$wsName] = $market;
                 }
-                $this->options['marketsByWsName'] = $marketsByWsName;
             }
-            return $markets;
-        }) ();
+            $this->options['marketsByWsName'] = $marketsByWsName;
+        }
+        return $markets;
     }
 
     public function ping(Client $client) {
@@ -882,92 +908,94 @@ class kraken extends \ccxt\async\kraken {
         return $request;
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, array $message): array {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function watch_heartbeat($params = array ()) {
-        return Async\async(function () use ($params) {
-            Async\await($this->load_markets());
-            $event = 'heartbeat';
-            $url = $this->urls['api']['ws']['publicV2'];
-            return Async\await($this->watch($url, $event));
-        }) ();
+    public function watch_heartbeat($params = array()) {
+        return Async\async(self::do_watch_heartbeat(...))($params);
     }
 
-    public function handle_heartbeat(Client $client, $message) {
+    private function do_watch_heartbeat($params = array()) {
+        Async\await($this->load_markets());
+        $event = 'heartbeat';
+        $url = ($this->urls['api'])['ws']['publicV2'];
+        return Async\await($this->watch($url, $event));
+    }
+
+    public function handle_heartbeat(Client $client, array $message) {
         //
         // every second (approx) if no other updates are sent
         //
-        //     array( "channel" => "heartbeat" )
+        //     { "channel": "heartbeat" }
         //
         $event = $this->safe_string($message, 'channel');
-        $client->resolve ($message, $event);
+        $client->resolve($message, $event);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
-        // $first $message (snapshot)
+        // first message (snapshot)
         //
         //     {
-        //         "channel" => "book",
-        //         "type" => "snapshot",
-        //         "data" => array(
+        //         "channel": "book",
+        //         "type": "snapshot",
+        //         "data": [
         //             {
-        //                 "symbol" => "MATIC/USD",
-        //                 "bids" => array(
-        //                     array(
-        //                         "price" => 0.5666,
-        //                         "qty" => 4831.75496356
-        //                     ),
+        //                 "symbol": "MATIC/USD",
+        //                 "bids": [
         //                     {
-        //                         "price" => 0.5665,
-        //                         "qty" => 6658.22734739
-        //                     }
-        //                 ),
-        //                 "asks" => array(
-        //                     array(
-        //                         "price" => 0.5668,
-        //                         "qty" => 4410.79769741
-        //                     ),
+        //                         "price": 0.5666,
+        //                         "qty": 4831.75496356
+        //                     },
         //                     {
-        //                         "price" => 0.5669,
-        //                         "qty" => 4655.40412487
+        //                         "price": 0.5665,
+        //                         "qty": 6658.22734739
         //                     }
-        //                 ),
-        //                 "checksum" => 2439117997
+        //                 ],
+        //                 "asks": [
+        //                     {
+        //                         "price": 0.5668,
+        //                         "qty": 4410.79769741
+        //                     },
+        //                     {
+        //                         "price": 0.5669,
+        //                         "qty": 4655.40412487
+        //                     }
+        //                 ],
+        //                 "checksum": 2439117997
         //             }
-        //         )
+        //         ]
         //     }
         //
         // subsequent updates
         //
         //     {
-        //         "channel" => "book",
-        //         "type" => "update",
-        //         "data" => array(
+        //         "channel": "book",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "symbol" => "MATIC/USD",
-        //                 "bids" => array(
+        //                 "symbol": "MATIC/USD",
+        //                 "bids": [
         //                     {
-        //                         "price" => 0.5657,
-        //                         "qty" => 1098.3947558
+        //                         "price": 0.5657,
+        //                         "qty": 1098.3947558
         //                     }
-        //                 ),
-        //                 "asks" => array(),
-        //                 "checksum" => 2114181697,
-        //                 "timestamp" => "2023-10-06T17:35:55.440295Z"
+        //                 ],
+        //                 "asks": [],
+        //                 "checksum": 2114181697,
+        //                 "timestamp": "2023-10-06T17:35:55.440295Z"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_list($message, 'data', array());
         $first = $this->safe_dict($data, 0, array());
         $symbol = $this->safe_string($first, 'symbol');
-        $a = $this->safe_value($first, 'asks', array());
-        $b = $this->safe_value($first, 'bids', array());
+        $a = $this->safe_list($first, 'asks', array());
+        $b = $this->safe_list($first, 'bids', array());
         $c = $this->safe_integer($first, 'checksum');
         $messageHash = $this->get_message_hash('orderbook', null, $symbol);
         $orderbook = null;
@@ -994,23 +1022,24 @@ class kraken extends \ccxt\async\kraken {
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
                 $bookside = $orderbook[$key];
-                $deltas = $this->safe_value($first, $key, array());
-                if (strlen($deltas) > 0) {
+                $deltas = $this->safe_list($first, $key, array());
+                $deltasLength = count($deltas);
+                if ($deltasLength > 0) {
                     $this->custom_handle_deltas($bookside, $deltas);
                 }
             }
             $orderbook['symbol'] = $symbol;
         }
-        $orderbook->limit ();
-        // $checksum temporarily disabled because the exchange $checksum was not reliable
+        $orderbook->limit();
+        // checksum temporarily disabled because the exchange checksum was not reliable
         $checksum = $this->handle_option('watchOrderBook', 'checksum', false);
-        if ($checksum) {
+        if ($checksum === true) {
             $payloadArray = array();
             if ($c !== null) {
                 $checkAsks = $orderbook['asks'];
                 $checkBids = $orderbook['bids'];
-                // $checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
-                // $checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
+                // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
+                // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for ($i = 0; $i < 10; $i++) {
                     $currentAsk = $this->safe_value($checkAsks, $i, array());
                     $formattedAsk = $this->format_number($currentAsk[0]) . $this->format_number($currentAsk[1]);
@@ -1025,35 +1054,35 @@ class kraken extends \ccxt\async\kraken {
             $payload = implode('', $payloadArray);
             $localChecksum = $this->crc32($payload, false);
             if ($localChecksum !== $c) {
-                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+                $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                 unset($client->subscriptions[$messageHash]);
                 unset($this->orderbooks[$symbol]);
-                $client->reject ($error, $messageHash);
+                $client->reject($error, $messageHash);
                 return;
             }
         }
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_handle_deltas($bookside, $deltas) {
-        // $sortOrder = (key === 'bids') ? true : false;
+    public function custom_handle_deltas(mixed $bookside, array $deltas) {
+        // const sortOrder = (key === 'bids') ? true : false;
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
             $price = $this->safe_number($delta, 'price');
             $amount = $this->safe_number($delta, 'qty');
-            $bookside->store ($price, $amount);
-            // if ($amount === 0) {
-            //     $index = $bookside->findIndex ((x => Int) => x[0] === $price);
-            //     $bookside->splice ($index, 1);
+            $bookside->store($price, $amount);
+            // if (amount === 0) {
+            //     const index = bookside.findIndex ((x: Int) => x[0] === price);
+            //     bookside.splice (index, 1);
             // } else {
-            //     $bookside->store ($price, $amount);
+            //     bookside.store (price, amount);
             // }
-            // $bookside = $this->sort_by($bookside, 0, $sortOrder);
-            // mb_substr($bookside, 0, 9 - 0);
+            // bookside = this.sortBy (bookside, 0, sortOrder);
+            // bookside.slice (0, 9);
         }
     }
 
-    public function format_number($data) {
+    public function format_number(string $data): string {
         $parts = explode('.', $data);
         $integer = $this->safe_string($parts, 0);
         $decimals = $this->safe_string($parts, 1, '');
@@ -1068,51 +1097,74 @@ class kraken extends \ccxt\async\kraken {
         return $joinedResult;
     }
 
-    public function handle_system_status(Client $client, $message) {
+    public function handle_system_status(Client $client, array $message): array {
         //
-        // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified for any usage pattern that
+        // todo: answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
-        //         "connectionID" => 15527282728335292000,
-        //         "event" => "systemStatus",
-        //         "status" => "online", // online|maintenance|(custom status tbd)
-        //         "version" => "0.2.0"
+        //         "connectionID": 15527282728335292000,
+        //         "event": "systemStatus",
+        //         "status": "online", // online|maintenance|(custom status tbd)
+        //         "version": "0.2.0"
         //     }
         //
         // v2
         //     {
-        //         channel => 'status',
-        //         type => 'update',
-        //         data => array(
+        //         channel: 'status',
+        //         type: 'update',
+        //         data: [
         //             {
-        //                 version => '2.0.10',
-        //                 system => 'online',
-        //                 api_version => 'v2',
-        //                 connection_id => 6447481662169813000
+        //                 version: '2.0.10',
+        //                 system: 'online',
+        //                 api_version: 'v2',
+        //                 connection_id: 6447481662169813000
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $message;
     }
 
-    public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws']['private'];
-            $client = $this->client($url);
-            $authenticated = 'authenticated';
-            $subscription = $this->safe_value($client->subscriptions, $authenticated);
-            $now = $this->seconds();
-            $start = $this->safe_integer($subscription, 'start');
-            $expires = $this->safe_integer($subscription, 'expires');
-            if (($subscription === null) || (($subscription !== null) && ($start . $expires) <= $now)) {
+    public function authenticate($params = array()): PromiseInterface {
+        return Async\async(self::do_authenticate(...))($params);
+    }
+
+    private function do_authenticate($params = array()) {
+        $url = ($this->urls['api'])['ws']['private'];
+        $client = $this->client($url);
+        $authenticated = 'authenticated';
+        $subscription = $this->safe_value($client->subscriptions, $authenticated);
+        $now = $this->seconds();
+        $start = $this->safe_integer($subscription, 'start');
+        $expires = $this->safe_integer($subscription, 'expires');
+        if (($subscription === null) || (($subscription !== null) && ($start . $expires) <= $now)) {
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+            // above is followed by an awaited privatePostGetWebSocketsToken (),
+            // so N concurrent watchPrivate () calls on a cold instance each
+            // pass the gate and each burn a rate-limited private REST call to
+            // mint a separate token. client.futures is the flight registry
+            // itself, namespaced away from the real subscription keys on the
+            // same client that already caches the token, and settlement goes
+            // through client.resolve () / client.reject () so every write to
+            // that map stays behind the client's own lock
+            $messageHash = 'authenticateFlight';
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in the subscriptions bucket
+                Async\await($client->future($messageHash));
+                $subscription = $this->safe_dict($client->subscriptions, $authenticated);
+                return $this->safe_string($subscription, 'token');
+            }
+            $future = $client->reusableFuture($messageHash);
+            try {
                 // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-                $response = Async\await($this->privatePostGetWebSocketsToken ($params));
+                $response = Async\await($this->privatePostGetWebSocketsToken($params));
                 //
                 //     {
-                //         "error":array(),
+                //         "error":[],
                 //         "result":{
                 //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
                 //             "expires":900
@@ -1120,92 +1172,113 @@ class kraken extends \ccxt\async\kraken {
                 //     }
                 //
                 $subscription = $this->safe_dict($response, 'result');
+                $token = $this->safe_string($subscription, 'token');
+                if ($token === null) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty token');
+                }
                 $subscription['start'] = $now;
                 $client->subscriptions[$authenticated] = $subscription;
+                // settle the flight and wake every waiter - resolve () also
+                // clears the registry entry, so the next refresh re-leads
+                $client->resolve($token, $messageHash);
+            } catch (Exception $e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                $client->reject($e, $messageHash);
             }
-            return $this->safe_string($subscription, 'token');
-        }) ();
+            // rethrows the leader's own failure and attaches the handler that
+            // keeps an alone leader's rejection from killing the process
+            Async\await($future);
+            $subscription = $this->safe_dict($client->subscriptions, $authenticated);
+        }
+        return $this->safe_string($subscription, 'token');
     }
 
-    public function watch_private($name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($name, $symbol, $since, $limit, $params) {
-            Async\await($this->load_markets());
-            $token = Async\await($this->authenticate());
-            $subscriptionHash = 'executions';
-            $messageHash = $name;
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash .= ':' . $symbol;
-            }
-            $url = $this->urls['api']['ws']['privateV2'];
-            $requestId = $this->request_id();
-            $subscribe = array(
-                'method' => 'subscribe',
-                'params' => array(
-                    'channel' => 'executions',
-                    'token' => $token,
-                ),
-                'req_id' => $requestId,
-            );
-            if ($params !== null) {
-                $subscribe['params'] = $this->deep_extend($subscribe['params'], $params);
-            }
-            $result = Async\await($this->watch($url, $messageHash, $subscribe, $subscriptionHash));
-            if ($this->newUpdates) {
-                $limit = $result->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
-        }) ();
+    public function watch_private(string $name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\async(self::do_watch_private(...))($name, $symbol, $since, $limit, $params);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple trades made by the user
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/executions
-             *
-             * @param {string} $symbol unified market $symbol of the market trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            $params['snap_trades'] = true;
-            return Async\await($this->watch_private('myTrades', $symbol, $since, $limit, $params));
-        }) ();
+    private function do_watch_private(string $name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        Async\await($this->load_markets());
+        $token = Async\await($this->authenticate());
+        $subscriptionHash = 'executions';
+        $messageHash = $name;
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+            $messageHash .= ':' . $symbol;
+        }
+        $url = ($this->urls['api'])['ws']['privateV2'];
+        $requestId = $this->request_id();
+        $subscribe = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => 'executions',
+                'token' => $token,
+            ),
+            'req_id' => $requestId,
+        );
+        if ($params !== null) {
+            $subscribe['params'] = $this->deep_extend($subscribe['params'], $params);
+        }
+        $result = Async\await($this->watch($url, $messageHash, $subscribe, $subscriptionHash));
+        if ($this->newUpdates) {
+            $limit = $result->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trades(Client $client, $message, $subscription = null) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple trades made by the user
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
+         *
+         * @param {string} $symbol unified market $symbol of the market trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        $params['snap_trades'] = true;
+        return Async\await($this->watch_private('myTrades', $symbol, $since, $limit, $params));
+    }
+
+    public function handle_my_trades(Client $client, array $message, ?array $subscription = null) {
         //
         //     {
-        //         "channel" => "executions",
-        //         "type" => "update",
-        //         "data" => array(
+        //         "channel": "executions",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "order_id" => "O6NTZC-K6FRH-ATWBCK",
-        //                 "exec_id" => "T5DIUI-5N4KO-Z5BPXK",
-        //                 "exec_type" => "trade",
-        //                 "trade_id" => 8253473,
-        //                 "symbol" => "USDC/USD",
-        //                 "side" => "sell",
-        //                 "last_qty" => 15.44,
-        //                 "last_price" => 1.0002,
-        //                 "liquidity_ind" => "t",
-        //                 "cost" => 15.443088,
-        //                 "order_userref" => 0,
-        //                 "order_status" => "filled",
-        //                 "order_type" => "market",
-        //                 "fee_usd_equiv" => 0.03088618,
-        //                 "fees" => array(
+        //                 "order_id": "O6NTZC-K6FRH-ATWBCK",
+        //                 "exec_id": "T5DIUI-5N4KO-Z5BPXK",
+        //                 "exec_type": "trade",
+        //                 "trade_id": 8253473,
+        //                 "symbol": "USDC/USD",
+        //                 "side": "sell",
+        //                 "last_qty": 15.44,
+        //                 "last_price": 1.0002,
+        //                 "liquidity_ind": "t",
+        //                 "cost": 15.443088,
+        //                 "order_userref": 0,
+        //                 "order_status": "filled",
+        //                 "order_type": "market",
+        //                 "fee_usd_equiv": 0.03088618,
+        //                 "fees": [
         //                     {
-        //                         "asset" => "USD",
-        //                         "qty" => 0.3458
+        //                         "asset": "USD",
+        //                         "qty": 0.3458
         //                     }
-        //                 )
+        //                 ]
         //             }
-        //         ),
-        //         "sequence" => 10
+        //         ],
+        //         "sequence": 10
         //     }
         //
         $allTrades = $this->safe_list($message, 'data', array());
@@ -1213,50 +1286,50 @@ class kraken extends \ccxt\async\kraken {
         if ($allTradesLength > 0) {
             if ($this->myTrades === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $this->myTrades = new ArrayCache ($limit);
+                $this->myTrades = new ArrayCache($limit);
             }
             $stored = $this->myTrades;
             $symbols = array();
             for ($i = 0; $i < count($allTrades); $i++) {
                 $trade = $this->safe_dict($allTrades, $i, array());
                 $parsed = $this->parse_ws_trade($trade);
-                $stored->append ($parsed);
+                $stored->append($parsed);
                 $symbol = $parsed['symbol'];
                 $symbols[$symbol] = true;
             }
             $name = 'myTrades';
-            $client->resolve ($this->myTrades, $name);
+            $client->resolve($this->myTrades, $name);
             $keys = is_array($symbols) ? array_keys($symbols) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $messageHash = $name . ':' . $keys[$i];
-                $client->resolve ($this->myTrades, $messageHash);
+                $client->resolve($this->myTrades, $messageHash);
             }
         }
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "order_id" => "O6NTZC-K6FRH-ATWBCK",
-        //         "exec_id" => "T5DIUI-5N4KO-Z5BPXK",
-        //         "exec_type" => "trade",
-        //         "trade_id" => 8253473,
-        //         "symbol" => "USDC/USD",
-        //         "side" => "sell",
-        //         "last_qty" => 15.44,
-        //         "last_price" => 1.0002,
-        //         "liquidity_ind" => "t",
-        //         "cost" => 15.443088,
-        //         "order_userref" => 0,
-        //         "order_status" => "filled",
-        //         "order_type" => "market",
-        //         "fee_usd_equiv" => 0.03088618,
-        //         "fees" => array(
+        //         "order_id": "O6NTZC-K6FRH-ATWBCK",
+        //         "exec_id": "T5DIUI-5N4KO-Z5BPXK",
+        //         "exec_type": "trade",
+        //         "trade_id": 8253473,
+        //         "symbol": "USDC/USD",
+        //         "side": "sell",
+        //         "last_qty": 15.44,
+        //         "last_price": 1.0002,
+        //         "liquidity_ind": "t",
+        //         "cost": 15.443088,
+        //         "order_userref": 0,
+        //         "order_status": "filled",
+        //         "order_type": "market",
+        //         "fee_usd_equiv": 0.03088618,
+        //         "fees": [
         //             {
-        //                 "asset" => "USD",
-        //                 "qty" => 0.3458
+        //                 "asset": "USD",
+        //                 "qty": 0.3458
         //             }
-        //         )
+        //         ]
         //     }
         //
         $symbol = $this->safe_string($trade, 'symbol');
@@ -1264,7 +1337,7 @@ class kraken extends \ccxt\async\kraken {
             $symbol = $market['symbol'];
         }
         $fee = null;
-        if (is_array($trade) && array_key_exists('fees', $trade)) {
+        if (is_array($trade) && array_key_exists('fees' ?? '', $trade)) {
             $fees = $this->safe_list($trade, 'fees', array());
             $firstFee = $this->safe_dict($fees, 0, array());
             $fee = array(
@@ -1292,49 +1365,47 @@ class kraken extends \ccxt\async\kraken {
         );
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple orders made by the user
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/executions
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] maximum number of orderic to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            return Async\await($this->watch_private('orders', $symbol, $since, $limit, $this->extend($params, array( 'snap_orders' => true ))));
-        }) ();
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        /**
+         * watches information on multiple orders made by the user
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {array} [$params] maximum number of orderic to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        return $this->watch_private('orders', $symbol, $since, $limit, $this->extend($params, array( 'snap_orders' => true )));
     }
 
-    public function handle_orders(Client $client, $message, $subscription = null) {
+    public function handle_orders(Client $client, array $message, ?array $subscription = null) {
         //
         //     {
-        //         "channel" => "executions",
-        //         "type" => "update",
-        //         "data" => array(
+        //         "channel": "executions",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "order_id" => "OK4GJX-KSTLS-7DZZO5",
-        //                 "order_userref" => 3,
-        //                 "symbol" => "BTC/USD",
-        //                 "order_qty" => 0.005,
-        //                 "cum_cost" => 0.0,
-        //                 "time_in_force" => "GTC",
-        //                 "exec_type" => "pending_new",
-        //                 "side" => "sell",
-        //                 "order_type" => "limit",
-        //                 "limit_price_type" => "static",
-        //                 "limit_price" => 26500.0,
-        //                 "stop_price" => 0.0,
-        //                 "order_status" => "pending_new",
-        //                 "fee_usd_equiv" => 0.0,
-        //                 "fee_ccy_pref" => "fciq",
-        //                 "timestamp" => "2023-09-22T10:33:05.709950Z"
+        //                 "order_id": "OK4GJX-KSTLS-7DZZO5",
+        //                 "order_userref": 3,
+        //                 "symbol": "BTC/USD",
+        //                 "order_qty": 0.005,
+        //                 "cum_cost": 0.0,
+        //                 "time_in_force": "GTC",
+        //                 "exec_type": "pending_new",
+        //                 "side": "sell",
+        //                 "order_type": "limit",
+        //                 "limit_price_type": "static",
+        //                 "limit_price": 26500.0,
+        //                 "stop_price": 0.0,
+        //                 "order_status": "pending_new",
+        //                 "fee_usd_equiv": 0.0,
+        //                 "fee_ccy_pref": "fciq",
+        //                 "timestamp": "2023-09-22T10:33:05.709950Z"
         //             }
-        //         ),
-        //         "sequence" => 8
+        //         ],
+        //         "sequence": 8
         //     }
         //
         $allOrders = $this->safe_list($message, 'data', array());
@@ -1342,7 +1413,7 @@ class kraken extends \ccxt\async\kraken {
         if ($allOrdersLength > 0) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {
-                $this->orders = new ArrayCacheBySymbolById ($limit);
+                $this->orders = new ArrayCacheBySymbolById($limit);
             }
             $stored = $this->orders;
             $symbols = array();
@@ -1351,8 +1422,8 @@ class kraken extends \ccxt\async\kraken {
                 $id = $this->safe_string($order, 'order_id');
                 $parsed = $this->parse_ws_order($order);
                 $symbol = $this->safe_string($order, 'symbol');
-                $previousOrders = $this->safe_value($stored->hashmap, $symbol);
-                $previousOrder = $this->safe_value($previousOrders, $id);
+                $previousOrders = $this->safe_dict($stored->hashmap, $symbol);
+                $previousOrder = $this->safe_dict($previousOrders, $id);
                 $newOrder = $parsed;
                 if ($previousOrder !== null) {
                     $newRawOrder = $this->extend($previousOrder['info'], $newOrder['info']);
@@ -1361,64 +1432,64 @@ class kraken extends \ccxt\async\kraken {
                 $length = count($stored);
                 if ($length === $limit && ($previousOrder === null)) {
                     $first = $stored[0];
-                    $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId', array());
-                    if (is_array($symbolsByOrderId) && array_key_exists($first['id'], $symbolsByOrderId)) {
+                    $symbolsByOrderId = $this->safe_dict($this->options, 'symbolsByOrderId', array());
+                    if (is_array($symbolsByOrderId) && array_key_exists($first['id'] ?? '', $symbolsByOrderId)) {
                         unset($symbolsByOrderId[$first['id']]);
                     }
                 }
-                $stored->append ($newOrder);
+                $stored->append($newOrder);
                 if ($symbol !== null) {
                     $symbols[$symbol] = true;
                 }
             }
             $name = 'orders';
-            $client->resolve ($this->orders, $name);
+            $client->resolve($this->orders, $name);
             $keys = is_array($symbols) ? array_keys($symbols) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $messageHash = $name . ':' . $keys[$i];
-                $client->resolve ($this->orders, $messageHash);
+                $client->resolve($this->orders, $messageHash);
             }
         }
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // watchOrders
         //
-        // open $order
+        // open order
         //     {
-        //         "order_id" => "OK4GJX-KSTLS-7DZZO5",
-        //         "order_userref" => 3,
-        //         "symbol" => "BTC/USD",
-        //         "order_qty" => 0.005,
-        //         "cum_cost" => 0.0,
-        //         "time_in_force" => "GTC",
-        //         "exec_type" => "pending_new",
-        //         "side" => "sell",
-        //         "order_type" => "limit",
-        //         "limit_price_type" => "static",
-        //         "limit_price" => 26500.0,
-        //         "stop_price" => 0.0,
-        //         "order_status" => "pending_new",
-        //         "fee_usd_equiv" => 0.0,
-        //         "fee_ccy_pref" => "fciq",
-        //         "timestamp" => "2023-09-22T10:33:05.709950Z"
+        //         "order_id": "OK4GJX-KSTLS-7DZZO5",
+        //         "order_userref": 3,
+        //         "symbol": "BTC/USD",
+        //         "order_qty": 0.005,
+        //         "cum_cost": 0.0,
+        //         "time_in_force": "GTC",
+        //         "exec_type": "pending_new",
+        //         "side": "sell",
+        //         "order_type": "limit",
+        //         "limit_price_type": "static",
+        //         "limit_price": 26500.0,
+        //         "stop_price": 0.0,
+        //         "order_status": "pending_new",
+        //         "fee_usd_equiv": 0.0,
+        //         "fee_ccy_pref": "fciq",
+        //         "timestamp": "2023-09-22T10:33:05.709950Z"
         //     }
         //
-        // canceled $order
+        // canceled order
         //
         //     {
-        //         "timestamp" => "2025-10-11T15:11:47.695226Z",
-        //         "order_status" => "canceled",
-        //         "exec_type" => "canceled",
-        //         "order_userref" => 0,
-        //         "order_id" => "OGAB7Y-BKX5F-PTK5RW",
-        //         "cum_qty" => 0,
-        //         "cum_cost" => 0,
-        //         "fee_usd_equiv" => 0,
-        //         "avg_price" => 0,
-        //         "cancel_reason" => "User requested",
-        //         "reason" => "User requested"
+        //         "timestamp": "2025-10-11T15:11:47.695226Z",
+        //         "order_status": "canceled",
+        //         "exec_type": "canceled",
+        //         "order_userref": 0,
+        //         "order_id": "OGAB7Y-BKX5F-PTK5RW",
+        //         "cum_qty": 0,
+        //         "cum_cost": 0,
+        //         "fee_usd_equiv": 0,
+        //         "avg_price": 0,
+        //         "cancel_reason": "User requested",
+        //         "reason": "User requested"
         //     }
         //
         $fee = array(
@@ -1453,82 +1524,89 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
-    public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, $subscriptionArgs = null, $params = array ()) {
-        return Async\async(function () use ($unifiedName, $channelName, $symbols, $subscriptionArgs, $params) {
-            Async\await($this->load_markets());
-            // $symbols are required
-            $symbols = $this->market_symbols($symbols, null, false, true, false);
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $eventTrigger = $this->safe_string($params, 'event_trigger');
-                if ($eventTrigger !== null) {
-                    $messageHashes[] = $this->get_message_hash($channelName, null, $this->symbol($symbols[$i]));
-                } else {
-                    $messageHashes[] = $this->get_message_hash($unifiedName, null, $this->symbol($symbols[$i]));
-                }
+    public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
+        return Async\async(self::do_watch_multi_helper(...))($unifiedName, $channelName, $symbols, $subscriptionArgs, $params);
+    }
+
+    private function do_watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
+        Async\await($this->load_markets());
+        // symbols are required
+        $symbols = $this->market_symbols($symbols, null, false, true, false);
+        if ($symbols === null) {
+            return null;
+        }
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $eventTrigger = $this->safe_string($params, 'event_trigger');
+            if ($eventTrigger !== null) {
+                $messageHashes[] = $this->get_message_hash($channelName, null, $this->symbol($symbols[$i]));
+            } else {
+                $messageHashes[] = $this->get_message_hash($unifiedName, null, $this->symbol($symbols[$i]));
             }
-            $request = array(
-                'method' => 'subscribe',
-                'params' => array(
-                    'channel' => $channelName,
-                    'symbol' => $symbols,
-                ),
-                'req_id' => $this->request_id(),
-            );
-            $request['params'] = $this->deep_extend($request['params'], $params);
-            $url = $this->urls['api']['ws']['publicV2'];
-            return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, $subscriptionArgs));
-        }) ();
+        }
+        $request = array(
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channelName,
+                'symbol' => $symbols,
+            ),
+            'req_id' => $this->request_id(),
+        );
+        $request['params'] = $this->deep_extend($request['params'], $params);
+        $url = ($this->urls['api'])['ws']['publicV2'];
+        return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, $subscriptionArgs));
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/balances
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            Async\await($this->load_markets());
-            $token = Async\await($this->authenticate());
-            $messageHash = 'balances';
-            $url = $this->urls['api']['ws']['privateV2'];
-            $requestId = $this->request_id();
-            $subscribe = array(
-                'method' => 'subscribe',
-                'req_id' => $requestId,
-                'params' => array(
-                    'channel' => 'balances',
-                    'token' => $token,
-                ),
-            );
-            $request = $this->deep_extend($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        }) ();
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
     }
 
-    public function handle_balance(Client $client, $message) {
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/balances
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        Async\await($this->load_markets());
+        $token = Async\await($this->authenticate());
+        $messageHash = 'balances';
+        $url = ($this->urls['api'])['ws']['privateV2'];
+        $requestId = $this->request_id();
+        $subscribe = array(
+            'method' => 'subscribe',
+            'req_id' => $requestId,
+            'params' => array(
+                'channel' => 'balances',
+                'token' => $token,
+            ),
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+    }
+
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "channel" => "balances",
-        //         "data" => array(
+        //         "channel": "balances",
+        //         "data": [
         //             {
-        //                 "asset" => "BTC",
-        //                 "asset_class" => "currency",
-        //                 "balance" => 1.2,
-        //                 "wallets" => array(
+        //                 "asset": "BTC",
+        //                 "asset_class": "currency",
+        //                 "balance": 1.2,
+        //                 "wallets": [
         //                     {
-        //                         "type" => "spot",
-        //                         "id" => "main",
-        //                         "balance" => 1.2
+        //                         "type": "spot",
+        //                         "id": "main",
+        //                         "balance": 1.2
         //                     }
-        //                 )
+        //                 ]
         //             }
-        //         ),
-        //         "type" => "snapshot",
-        //         "sequence" => 1
+        //         ],
+        //         "type": "snapshot",
+        //         "sequence": 1
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -1543,16 +1621,16 @@ class kraken extends \ccxt\async\kraken {
         }
         $type = 'spot';
         $balance = $this->safe_balance($result);
-        $oldBalance = $this->safe_value($this->balance, $type, array());
+        $oldBalance = $this->safe_dict($this->balance, $type, array());
         $newBalance = $this->deep_extend($oldBalance, $balance);
         $this->balance[$type] = $this->safe_balance($newBalance);
         $channel = $this->safe_string($message, 'channel');
-        $client->resolve ($this->balance[$type], $channel);
+        $client->resolve($this->balance[$type], $channel);
     }
 
     public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {
-        // $unifiedElementName can be : orderbook, trade, ticker, bidask ...
-        // $subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
+        // unifiedElementName can be : orderbook, trade, ticker, bidask ...
+        // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         $withSymbol = $symbol !== null;
         $messageHash = $unifiedElementName;
         if (!$withSymbol) {
@@ -1566,58 +1644,58 @@ class kraken extends \ccxt\async\kraken {
         return $messageHash;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         //
         // public
         //
         //     {
-        //         "channelID" => 210,
-        //         "channelName" => "book-10",
-        //         "event" => "subscriptionStatus",
-        //         "reqid" => 1574146735269,
-        //         "pair" => "ETH/XBT",
-        //         "status" => "subscribed",
-        //         "subscription" => array( depth => 10, name => "book" )
+        //         "channelID": 210,
+        //         "channelName": "book-10",
+        //         "event": "subscriptionStatus",
+        //         "reqid": 1574146735269,
+        //         "pair": "ETH/XBT",
+        //         "status": "subscribed",
+        //         "subscription": { depth: 10, name: "book" }
         //     }
         //
         // private
         //
         //     {
-        //         "channelName" => "openOrders",
-        //         "event" => "subscriptionStatus",
-        //         "reqid" => 1,
-        //         "status" => "subscribed",
-        //         "subscription" => array( maxratecount => 125, name => "openOrders" )
+        //         "channelName": "openOrders",
+        //         "event": "subscriptionStatus",
+        //         "reqid": 1,
+        //         "status": "subscribed",
+        //         "subscription": { maxratecount: 125, name: "openOrders" }
         //     }
         //
         $channelId = $this->safe_string($message, 'channelID');
         if ($channelId !== null) {
             $client->subscriptions[$channelId] = $message;
         }
-        // $requestId = $this->safe_string($message, "reqid");
-        // if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
-        //     unset($client->futures[$requestId]);
+        // const requestId = this.safeString (message, "reqid");
+        // if (requestId in client.futures) {
+        //     delete client.futures[requestId];
         // }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
-        //         "errorMessage" => "Currency pair not in ISO 4217-A3 format foobar",
-        //         "event" => "subscriptionStatus",
-        //         "pair" => "foobar",
-        //         "reqid" => 1574146735269,
-        //         "status" => "error",
-        //         "subscription" => array( name => "ticker" )
+        //         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
+        //         "event": "subscriptionStatus",
+        //         "pair": "foobar",
+        //         "reqid": 1574146735269,
+        //         "status": "error",
+        //         "subscription": { name: "ticker" }
         //     }
         //
         // v2
         //     {
-        //         "error" => "Unsupported field => 'price' for the given msg type => add order",
-        //         "method" => "add_order",
-        //         "success" => false,
-        //         "time_in" => "2025-05-13T08:59:44.803511Z",
-        //         "time_out" => "2025-05-13T08:59:44.803542Z'
+        //         "error": "Unsupported field: 'price' for the given msg type: add order",
+        //         "method": "add_order",
+        //         "success": false,
+        //         "time_in": "2025-05-13T08:59:44.803511Z",
+        //         "time_out": "2025-05-13T08:59:44.803542Z'
         //     }
         //
         $errorMessage = $this->safe_string_2($message, 'errorMessage', 'error');
@@ -1627,19 +1705,19 @@ class kraken extends \ccxt\async\kraken {
             $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
             $exception = null;
             if ($broadKey === null) {
-                $exception = new ExchangeError ($errorMessage); // c# requirement to convert the $errorMessage to string
+                $exception = new ExchangeError($errorMessage); // c# requirement to convert the errorMessage to string
             } else {
-                $exception = new $broad[$broadKey] ($errorMessage);
+                $exception = new $broad[$broadKey]($errorMessage);
             }
             if ($requestId !== null) {
-                $client->reject ($exception, $requestId);
+                $client->reject($exception, $requestId);
             }
             return false;
         }
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, array $message) {
         $channel = $this->safe_string($message, 'channel');
         if ($channel !== null) {
             if ($channel === 'executions') {
@@ -1663,7 +1741,7 @@ class kraken extends \ccxt\async\kraken {
                 $method($client, $message);
             }
         }
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             $event = $this->safe_string_2($message, 'event', 'method');
             $methods = array(
                 'heartbeat' => array($this, 'handle_heartbeat'),

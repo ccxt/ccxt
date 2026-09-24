@@ -1,9 +1,5 @@
-- [Watchpositions](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
+```javascript
+import ccxt from '../../js/ccxt.js';
 async function example() {
     const exchange = new ccxt.pro.binanceusdm({
         'apiKey': 'YOUR_API_KEY',
@@ -15,5 +11,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

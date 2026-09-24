@@ -1,4 +1,4 @@
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testOrderBook from './base/test.orderBook.js';
 
 async function testFetchOrderBook (exchange: Exchange, skippedProperties: object, symbol: string) {

@@ -5,15 +5,17 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Balances, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import UnsubscribeError
 from ccxt.base.precise import Precise
 
 
 class lighter(ccxt.async_support.lighter):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(lighter, self).describe(), {
             'has': {
                 'ws': True,
@@ -46,6 +48,9 @@ class lighter(ccxt.async_support.lighter):
                 'unWatchMarkPrice': True,
                 'unWatchMarkPrices': True,
                 'unWatchOrders': True,
+                'createOrderWs': True,
+                'cancelOrderWs': True,
+                'cancelAllOrdersWs': True,
             },
             'urls': {
                 'api': {
@@ -55,7 +60,9 @@ class lighter(ccxt.async_support.lighter):
                     'ws': 'wss://testnet.zklighter.elliot.ai/stream',
                 },
             },
-            'options': {},
+            'options': {
+                'requestId': self.create_safe_dictionary(),
+            },
         })
 
     def get_message_hash(self, unifiedChannel: str, symbol: Str = None, extra: Str = None):
@@ -68,54 +75,54 @@ class lighter(ccxt.async_support.lighter):
             hash += '::' + extra
         return hash
 
-    async def subscribe_public(self, messageHash, params={}):
+    async def subscribe_public(self, messageHash: str, params: dict = {}):
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'subscribe',
         }
-        subscription: dict = {
+        subscription = {
             'messageHash': messageHash,
             'params': params,
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
-    async def subscribe_public_multiple(self, messageHashes, params={}):
+    async def subscribe_public_multiple(self, messageHashes: list[str], params: dict = {}):
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'subscribe',
         }
-        subscription: dict = {
+        subscription = {
             'messageHashes': messageHashes,
             'params': params,
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscription)
 
-    async def unsubscribe(self, messageHash, params={}):
+    async def unsubscribe(self, messageHash: str, params: dict = {}):
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'unsubscribe',
         }
-        subscription: dict = {
+        subscription = {
             'messageHash': messageHash,
             'params': params,
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
-    async def subscribe_private(self, messageHash, params={}):
+    async def subscribe_private(self, messageHash: str, params: dict = {}):
         await self.preLoadLighterLibrary()
         params['auth'] = self.createAuth(params)
         return await self.subscribe_public(messageHash, params)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: object, delta: object):
         price = self.safe_float(delta, 'price')
         amount = self.safe_float(delta, 'size')
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client: Client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message: dict, orderbook: object):
         data = self.safe_dict(message, 'order_book', {})
         self.handle_deltas(orderbook['asks'], self.safe_list(data, 'asks', []))
         self.handle_deltas(orderbook['bids'], self.safe_list(data, 'bids', []))
@@ -125,7 +132,7 @@ class lighter(ccxt.async_support.lighter):
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # {
         #     "channel": "order_book:0",
@@ -171,7 +178,7 @@ class lighter(ccxt.async_support.lighter):
         messageHash = self.get_message_hash('orderbook', symbol)
         client.resolve(orderbook, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -180,18 +187,20 @@ class lighter(ccxt.async_support.lighter):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        symbol = market['symbol']
+        request = {
             'channel': 'order_book/' + market['id'],
         }
         messageHash = self.get_message_hash('orderbook', symbol)
         orderbook = await self.subscribe_public(messageHash, self.extend(request, params))
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    async def un_watch_order_book(self, symbol: str, params={}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -199,17 +208,20 @@ class lighter(ccxt.async_support.lighter):
 
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        symbol = market['symbol']
+        request = {
             'channel': 'order_book/' + market['id'],
         }
-        messageHash = self.get_message_hash('unsubscribe', symbol)
+        subMessageHash = self.get_message_hash('orderbook', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: dict):
         #
         # watchTicker
         #     {
@@ -281,63 +293,75 @@ class lighter(ccxt.async_support.lighter):
             self.tickers[symbol] = ticker
             client.resolve(ticker, self.get_message_hash('ticker', symbol))
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
 
-        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param str symbol: unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        symbol = market['symbol']
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' watchTicker() is only supported for swap markets')
+        request = {
             'channel': 'market_stats/' + market['id'],
         }
         messageHash = self.get_message_hash('ticker', symbol)
         return await self.subscribe_public(messageHash, self.extend(request, params))
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    async def un_watch_ticker(self, symbol: str, params={}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
 
-        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param str symbol: unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        symbol = market['symbol']
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' unWatchTicker() is only supported for swap markets')
+        request = {
             'channel': 'market_stats/' + market['id'],
         }
-        messageHash = self.get_message_hash('unsubscribe', symbol)
+        subMessageHash = self.get_message_hash('ticker', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        firstMarket = self.get_market_from_symbols(symbols)
+        if (firstMarket is not None) and (firstMarket['swap'] is not True):
+            raise NotSupported(self.id + ' watchTickers() is only supported for swap markets')
+        request = {
             'channel': 'market_stats/all',
         }
         messageHashes = []
         symbolsLength = 0
         if symbols is not None:
             symbolsLength = len(symbols)
-        if symbolsLength == 0:
+        if (symbols is None) or (symbolsLength == 0):
             messageHashes.append(self.get_message_hash('ticker'))
         else:
             for i in range(0, len(symbols)):
@@ -350,24 +374,30 @@ class lighter(ccxt.async_support.lighter):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
 
-        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        firstMarket = self.get_market_from_symbols(symbols)
+        if (firstMarket is not None) and (firstMarket['swap'] is not True):
+            raise NotSupported(self.id + ' unWatchTickers() is only supported for swap markets')
+        request = {
             'channel': 'market_stats/all',
         }
-        messageHash = self.get_message_hash('unsubscribe')
+        subMessageHash = self.get_message_hash('ticker')
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+    def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -377,9 +407,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_ticker(symbol, params)
+        return self.watch_ticker(symbol, params)
 
-    async def watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+    def watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -389,9 +419,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_tickers(symbols, params)
+        return self.watch_tickers(symbols, params)
 
-    async def un_watch_mark_price(self, symbol: str, params={}) -> Any:
+    def un_watch_mark_price(self, symbol: str, params={}) -> object:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -401,9 +431,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_ticker(symbol, params)
+        return self.un_watch_ticker(symbol, params)
 
-    async def un_watch_mark_prices(self, symbols: Strings = None, params={}) -> Any:
+    def un_watch_mark_prices(self, symbols: Strings = None, params={}) -> object:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -413,9 +443,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_tickers(symbols, params)
+        return self.un_watch_tickers(symbols, params)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "trade_id": 526801155,
@@ -431,13 +461,13 @@ class lighter(ccxt.async_support.lighter):
         #         "bid_client_id": 27601,
         #         "ask_account_id": 99349,
         #         "bid_account_id": 243008,
-        #         "is_maker_ask": False,
+        #         "is_maker_ask": false,
         #         "block_height": 102322769,
         #         "timestamp": 1763623734215,
         #         "taker_position_size_before": "0.0346",
         #         "taker_entry_quote_before": "104.359926",
         #         "taker_initial_margin_fraction_before": 500,
-        #         "taker_position_sign_changed": True,
+        #         "taker_position_sign_changed": true,
         #         "maker_fee": 20,
         #         "maker_position_size_before": "2.1277",
         #         "maker_entry_quote_before": "6444.179555",
@@ -449,7 +479,7 @@ class lighter(ccxt.async_support.lighter):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
-        side = 'buy' if isMakerAsk else 'sell'
+        side = 'buy' if (isMakerAsk is True) else 'sell'
         return self.safe_trade({
             'info': trade,
             'id': tradeId,
@@ -466,7 +496,7 @@ class lighter(ccxt.async_support.lighter):
             'fee': None,
         }, market)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "channel": "trade:0",
@@ -487,13 +517,13 @@ class lighter(ccxt.async_support.lighter):
         #                 "bid_client_id": 27601,
         #                 "ask_account_id": 99349,
         #                 "bid_account_id": 243008,
-        #                 "is_maker_ask": False,
+        #                 "is_maker_ask": false,
         #                 "block_height": 102322769,
         #                 "timestamp": 1763623734215,
         #                 "taker_position_size_before": "0.0346",
         #                 "taker_entry_quote_before": "104.359926",
         #                 "taker_initial_margin_fraction_before": 500,
-        #                 "taker_position_sign_changed": True,
+        #                 "taker_position_sign_changed": true,
         #                 "maker_fee": 20,
         #                 "maker_position_size_before": "2.1277",
         #                 "maker_entry_quote_before": "6444.179555",
@@ -526,7 +556,7 @@ class lighter(ccxt.async_support.lighter):
         messageHash = self.get_message_hash('trade', symbol)
         client.resolve(stored, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -538,16 +568,17 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'trade/' + market['id'],
         }
         messageHash = self.get_message_hash('trade', market['symbol'])
         trades = await self.subscribe_public(messageHash, self.extend(request, params))
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    async def un_watch_trades(self, symbol: str, params={}) -> object:
         """
         unsubscribe from the trades channel
 
@@ -557,15 +588,17 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'trade/' + market['id'],
         }
-        messageHash = self.get_message_hash('unsubscribe', symbol)
+        subMessageHash = self.get_message_hash('trade', market['symbol'])
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def parse_ws_order_trade(self, trade, market=None):
+    def parse_ws_order_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "trade_id": 526801155,
@@ -581,13 +614,13 @@ class lighter(ccxt.async_support.lighter):
         #         "bid_client_id": 27601,
         #         "ask_account_id": 99349,
         #         "bid_account_id": 243008,
-        #         "is_maker_ask": False,
+        #         "is_maker_ask": false,
         #         "block_height": 102322769,
         #         "timestamp": 1763623734215,
         #         "taker_position_size_before": "0.0346",
         #         "taker_entry_quote_before": "104.359926",
         #         "taker_initial_margin_fraction_before": 500,
-        #         "taker_position_sign_changed": True,
+        #         "taker_position_sign_changed": true,
         #         "maker_fee": 20,
         #         "maker_position_size_before": "2.1277",
         #         "maker_entry_quote_before": "6444.179555",
@@ -600,17 +633,25 @@ class lighter(ccxt.async_support.lighter):
         amountString = self.safe_string(trade, 'size')
         costString = self.safe_string(trade, 'usd_amount')
         isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
-        side = 'buy' if isMakerAsk else 'sell'
         accountIndex = self.safe_integer(trade, 'accountIndex')
+        bidAccountId = self.safe_integer(trade, 'bid_account_id')
+        askAccountId = self.safe_integer(trade, 'ask_account_id')
+        side = None
         order = None
         takerOrMaker = None
         if accountIndex is not None:
-            if self.safe_integer(trade, 'bid_account_id') == accountIndex:
+            if bidAccountId == accountIndex:
+                # Own trades should use the account's order side
+                side = 'buy'
                 order = self.safe_string(trade, 'bid_id')
-                takerOrMaker = 'taker' if isMakerAsk else 'maker'
-            elif self.safe_integer(trade, 'ask_account_id') == accountIndex:
+                takerOrMaker = 'taker' if (isMakerAsk is True) else 'maker'
+            elif askAccountId == accountIndex:
+                side = 'sell'
                 order = self.safe_string(trade, 'ask_id')
-                takerOrMaker = 'maker' if isMakerAsk else 'taker'
+                takerOrMaker = 'maker' if (isMakerAsk is True) else 'taker'
+        # public trades use Lighter's taker-side convention
+        if side is None:
+            side = 'buy' if (isMakerAsk is True) else 'sell'
         fee = None
         if takerOrMaker is not None:
             feeRateRaw = self.safe_string(trade, 'maker_fee') if (takerOrMaker == 'maker') else self.safe_string(trade, 'taker_fee')
@@ -637,7 +678,7 @@ class lighter(ccxt.async_support.lighter):
             'fee': fee,
         }, market)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "channel": "account_all_trades:723310",
@@ -656,13 +697,13 @@ class lighter(ccxt.async_support.lighter):
         #                  "bid_client_id": 27601,
         #                  "ask_account_id": 99349,
         #                  "bid_account_id": 243008,
-        #                  "is_maker_ask": False,
+        #                  "is_maker_ask": false,
         #                  "block_height": 102322769,
         #                  "timestamp": 1763623734215,
         #                  "taker_position_size_before": "0.0346",
         #                  "taker_entry_quote_before": "104.359926",
         #                  "taker_initial_margin_fraction_before": 500,
-        #                  "taker_position_sign_changed": True,
+        #                  "taker_position_sign_changed": true,
         #                  "maker_fee": 20,
         #                  "maker_position_size_before": "2.1277",
         #                  "maker_entry_quote_before": "6444.179555",
@@ -703,7 +744,7 @@ class lighter(ccxt.async_support.lighter):
         client.resolve(stored, messageHash)
         return True
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         subscribe to recent trades of an account.
 
@@ -715,7 +756,8 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchMyTrades', 'accountIndex', 'account_index')
         messageHash = self.get_message_hash('myTrades')
@@ -723,7 +765,7 @@ class lighter(ccxt.async_support.lighter):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = self.get_message_hash('myTrades', symbol)
-        request: dict = {
+        request = {
             'channel': 'account_all_trades/' + self.number_to_string(accountIndex),
         }
         trades = await self.subscribe_public(messageHash, self.extend(request, params))
@@ -731,30 +773,29 @@ class lighter(ccxt.async_support.lighter):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> Any:
+    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> object:
         """
         unsubscribe from the account trades channel
 
         https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
 
-        :param str [symbol]: unified market symbol
+        :param str [symbol]: not supported by lighter.unWatchMyTrades, the account trades channel covers every market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        :param str [params.accountIndex]: account index
+        :returns any: status of the unwatch request
         """
+        if symbol is not None:
+            raise NotSupported(self.id + ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only')
         accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index')
-        messageHash = self.get_message_hash('unsubscribe', 'myTrades')
-        if symbol is not None:
-            await self.load_markets()
-            market = self.market(symbol)
-            symbol = market['symbol']
-            messageHash = self.get_message_hash('unsubscribe', symbol)
-        request: dict = {
-            'channel': 'account_all_trades/' + accountIndex,
+        subMessageHash = self.get_message_hash('myTrades')
+        messageHash = 'unsubscribe:' + subMessageHash
+        request = {
+            'channel': 'account_all_trades/' + self.number_to_string(accountIndex),
         }
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def parse_ws_liquidation(self, liquidation, market=None):
+    def parse_ws_liquidation(self, liquidation: dict, market: Market = None):
         #
         #     {
         #         "trade_id": 526801155,
@@ -770,13 +811,13 @@ class lighter(ccxt.async_support.lighter):
         #         "bid_client_id": 27601,
         #         "ask_account_id": 99349,
         #         "bid_account_id": 243008,
-        #         "is_maker_ask": False,
+        #         "is_maker_ask": false,
         #         "block_height": 102322769,
         #         "timestamp": 1763623734215,
         #         "taker_position_size_before": "0.0346",
         #         "taker_entry_quote_before": "104.359926",
         #         "taker_initial_margin_fraction_before": 500,
-        #         "taker_position_sign_changed": True,
+        #         "taker_position_sign_changed": true,
         #         "maker_fee": 20,
         #         "maker_position_size_before": "2.1277",
         #         "maker_entry_quote_before": "6444.179555",
@@ -785,12 +826,14 @@ class lighter(ccxt.async_support.lighter):
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
         isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask')
-        side = 'buy' if isMakerAsk else 'sell'
+        side = 'buy' if (isMakerAsk is True) else 'sell'
         contracts = self.safe_string(liquidation, 'size')
         contractSize = self.safe_string(market, 'contractSize')
         price = self.safe_string(liquidation, 'price')
         baseValue = Precise.string_mul(contracts, contractSize)
         quoteValue = Precise.string_mul(baseValue, price)
+        if market is None:
+            return None
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': market['symbol'],
@@ -804,7 +847,7 @@ class lighter(ccxt.async_support.lighter):
             'datetime': self.iso8601(timestamp),
         })
 
-    def handle_liquidation(self, client: Client, message):
+    def handle_liquidation(self, client: Client, message: dict):
         #
         #     {
         #         "channel": "trade:0",
@@ -825,13 +868,13 @@ class lighter(ccxt.async_support.lighter):
         #                 "bid_client_id": 27601,
         #                 "ask_account_id": 99349,
         #                 "bid_account_id": 243008,
-        #                 "is_maker_ask": False,
+        #                 "is_maker_ask": false,
         #                 "block_height": 102322769,
         #                 "timestamp": 1763623734215,
         #                 "taker_position_size_before": "0.0346",
         #                 "taker_entry_quote_before": "104.359926",
         #                 "taker_initial_margin_fraction_before": 500,
-        #                 "taker_position_sign_changed": True,
+        #                 "taker_position_sign_changed": true,
         #                 "maker_fee": 20,
         #                 "maker_position_size_before": "2.1277",
         #                 "maker_entry_quote_before": "6444.179555",
@@ -860,7 +903,7 @@ class lighter(ccxt.async_support.lighter):
         messageHash = self.get_message_hash('liquidations', symbol)
         client.resolve(stored, messageHash)
 
-    async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         watch the public liquidations of a trading pair
 
@@ -872,15 +915,16 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'channel': 'trade/' + market['id'],
         }
         messageHash = self.get_message_hash('liquidations', symbol)
         return await self.subscribe_public(messageHash, self.extend(request, params))
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -890,7 +934,8 @@ class lighter(ccxt.async_support.lighter):
         :param str [params.type]: 'spot' or 'swap', default is 'swap'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = None
         type, params = self.handle_param_string(params, 'type', defaultType)
@@ -905,7 +950,7 @@ class lighter(ccxt.async_support.lighter):
             request['channel'] = 'user_stats/' + self.number_to_string(accountIndex)
             return await self.subscribe_public(messageHash, self.extend(request, params))
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: object) -> bool:
         #
         #    spot balance
         #    {
@@ -976,7 +1021,8 @@ class lighter(ccxt.async_support.lighter):
                 account = self.account()
                 account['used'] = self.safe_string(asset, 'locked_balance')
                 account['total'] = self.safe_string(asset, 'balance')
-                balance[code] = account
+                if code is not None:
+                    balance[code] = account
         else:
             stats = self.safe_dict(message, 'stats', {})
             account = self.account()
@@ -992,7 +1038,7 @@ class lighter(ccxt.async_support.lighter):
         client.resolve(self.balance[type], messageHash)
         return True
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -1004,7 +1050,8 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index')
         messageHash = None
@@ -1021,7 +1068,7 @@ class lighter(ccxt.async_support.lighter):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def un_watch_orders(self, symbol: Str = None, params={}) -> Any:
+    async def un_watch_orders(self, symbol: Str = None, params={}) -> object:
         """
         unWatches information on multiple orders made by the user
 
@@ -1031,28 +1078,148 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountIndex = None
-        accountIndex, params = await self.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index')
-        messageHash = None
+        accountIndex, params = await self.handleAccountIndex(params, 'unWatchOrders', 'accountIndex', 'account_index')
+        subMessageHash = None
         request = {}
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = self.get_message_hash('orders', market['symbol'])
+            subMessageHash = self.get_message_hash('orders', market['symbol'])
             request['channel'] = 'account_orders/' + market['id'] + '/' + self.number_to_string(accountIndex)
         else:
-            messageHash = self.get_message_hash('orders')
+            subMessageHash = self.get_message_hash('orders')
             request['channel'] = 'account_all_orders/' + self.number_to_string(accountIndex)
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def handle_orders(self, client: Client, message):
+    def request_id(self, url: str) -> str:
+        options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
+        previousValue = self.safe_integer(options, url, 0)
+        newValue = self.sum(previousValue, 1)
+        self.options['requestId'][url] = newValue
+        return self.number_to_string(newValue)
+
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
+        """
+        create a trade order
+
+        https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: 'GTT' or 'IOC', default is 'GTT'
+        :param int [params.clientOrderId]: client order id, should be unique for each order, default is a random number
+        :param str [params.triggerPrice]: trigger price for stop loss or take profit orders, in units of the quote currency
+        :param boolean [params.reduceOnly]: whether the order is reduce only, default False
+        :param int [params.nonce]: nonce for the account
+        :param int [params.apiKeyIndex]: apiKeyIndex
+        :param int [params.accountIndex]: accountIndex
+        :param int [params.orderExpiry]: orderExpiry
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        url = self.urls['api']['ws']
+        requestId = self.request_id(url)
+        messageHash = 'jsonapi/sendtx:' + requestId
+        txType, txInfo, order, market = await self.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params)
+        parsedTx = self.parse_json(txInfo)
+        message = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        }
+        subscription = {
+            'id': requestId,
+        }
+        rawMessage = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.parse_order(self.deep_extend(rawMessage, order), market)
+
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        cancel multiple orders
+
+        https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+
+        :param str id: order id
+        :param str [symbol]: unified market symbol, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountIndex]: account index
+        :param str [params.apiKeyIndex]: api key index
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        url = self.urls['api']['ws']
+        requestId = self.request_id(url)
+        messageHash = 'jsonapi/sendtx:' + requestId
+        txType, txInfo, market = await self.signAndCancelOrder('cancelOrderWs', id, symbol, params)
+        parsedTx = self.parse_json(txInfo)
+        message = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        }
+        subscription = {
+            'id': requestId,
+        }
+        rawMessage = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.parse_order(rawMessage, market)
+
+    async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
+        """
+        cancel all open orders in a market
+
+        https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+
+        :param str [symbol]: unified market symbol of the market to cancel orders in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountIndex]: account index
+        :param str [params.apiKeyIndex]: api key index
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        url = self.urls['api']['ws']
+        requestId = self.request_id(url)
+        messageHash = 'jsonapi/sendtx:' + requestId
+        txType, txInfo = await self.signAndCancelAllOrders('cancelAllOrdersWs', symbol, params)
+        parsedTx = self.parse_json(txInfo)
+        message = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        }
+        subscription = {
+            'id': requestId,
+        }
+        rawMessage = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.parse_orders([rawMessage])
+
+    def handle_ws_sendtx_api(self, client: Client, message: dict):
+        #
+        #     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
+        #
+        id = self.safe_string(message, 'id')
+        client.resolve(message, 'jsonapi/sendtx:' + id)
+
+    def handle_orders(self, client: Client, message: object) -> bool:
         #
         #    {
         #        "account": {ACCOUNT_INDEX},
         #        "channel": "account_orders:{MARKET_INDEX}",
         #        "nonce": INTEGER,
         #        "orders": {
-        #            "{MARKET_INDEX}": [Order]  # the only present market index will be the one provided
+        #            "{MARKET_INDEX}": [Order] // the only present market index will be the one provided
         #        },
         #        "type": "update/account_orders"
         #    }
@@ -1089,7 +1256,7 @@ class lighter(ccxt.async_support.lighter):
         client.resolve(stored, messageHash)
         return True
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "error": {
@@ -1102,19 +1269,44 @@ class lighter(ccxt.async_support.lighter):
         try:
             if error is not None:
                 code = self.safe_string(error, 'code')
-                if code is not None:
-                    feedback = self.id + ' ' + self.json(message)
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                errorMessage = self.safe_string(error, 'message')
+                feedback = self.id + ' ' + self.json(message)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+                # the rest handler ends with the same unconditional throw. without it an
+                # unmapped code raises nothing and is dropped by the routing below,
+                # leaving the request that caused it awaiting a response that never comes
+                raise ExchangeError(feedback)
         except Exception as e:
-            client.reject(e)
+            id = self.safe_string(message, 'id')
+            handled = False
+            if id is not None:
+                subscriptionKeys = list(client.subscriptions.keys())
+                for i in range(0, len(subscriptionKeys)):
+                    subscriptionHash = subscriptionKeys[i]
+                    subscriptionId = self.safe_string(client.subscriptions[subscriptionHash], 'id')
+                    subscription = self.safe_string(client.subscriptions[subscriptionHash], 'subscription')
+                    if id == subscriptionId:
+                        client.reject(e, subscriptionHash)
+                        handled = True
+                        if subscription is not None:
+                            del client.subscriptions[subscription]
+            if not handled:
+                client.reject(e)
         return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: dict):
         if not self.handle_error_message(client, message):
             return
         type = self.safe_string(message, 'type', '')
         if type == 'ping':
             self.handle_ping(client, message)
+            return
+        if type == 'jsonapi/sendtx':
+            self.handle_ws_sendtx_api(client, message)
+            return
+        if type == 'unsubscribed':
+            self.handle_un_subscription(client, message)
             return
         channel = self.safe_string(message, 'channel', '')
         if channel.find('order_book:') >= 0:
@@ -1144,43 +1336,129 @@ class lighter(ccxt.async_support.lighter):
         if channel == '':
             self.handle_subscription_status(client, message)
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
         #         "type": "connected"
         #     }
         #
+        return message
+
+    def handle_un_subscription(self, client: Client, message: dict):
+        #
         #     {
         #         "type": "unsubscribed",
         #         "channel": "order_book:0"
         #     }
         #
-        type = self.safe_string(message, 'type', '')
-        id = self.safe_string(message, 'session_id')
-        subscriptionsById = self.index_by(client.subscriptions, 'id')
-        subscription = self.safe_dict(subscriptionsById, id, {})
-        if type == 'unsubscribed':
-            self.handle_un_subscription(client, subscription)
-        return message
-
-    def handle_un_subscription(self, client: Client, subscription: dict):
-        messageHashes = self.safe_list(subscription, 'messageHashes', [])
-        subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-        for i in range(0, len(messageHashes)):
-            unsubHash = messageHashes[i]
-            subHash = subMessageHashes[i]
-            self.clean_unsubscription(client, subHash, unsubHash)
-        self.clean_cache(subscription)
-
-    def handle_ping(self, client: Client, message):
+        # the venue keys every ack by the channel name plus one id segment, whatever the
+        # subscribe arity was: "account_orders/{marketId}/{accountIndex}" acks and errors as
+        # "account_orders:{marketId}", so parts[1] is the market id on every family below
         #
-        #     {"type": "ping"}
+        channel = self.safe_string(message, 'channel', '')
+        parts = channel.split(':')
+        name = self.safe_string(parts, 0, '')
+        channelId = self.safe_string(parts, 1)
+        if name == 'order_book':
+            self.handle_order_book_un_subscription(client, channelId)
+        elif name == 'market_stats':
+            self.handle_ticker_un_subscription(client, channelId)
+        elif name == 'trade':
+            self.handle_trades_un_subscription(client, channelId)
+        elif name == 'account_all_trades':
+            self.handle_my_trades_un_subscription(client)
+        elif name == 'account_orders':
+            self.handle_orders_un_subscription(client, channelId)
+        elif name == 'account_all_orders':
+            self.handle_all_orders_un_subscription(client)
+
+    def handle_order_book_un_subscription(self, client: Client, marketId: Str):
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = self.get_message_hash('orderbook', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.orderbooks:
+            del self.orderbooks[symbol]
+
+    def handle_ticker_un_subscription(self, client: Client, marketId: Str):
+        if marketId == 'all':
+            # a ticker hash is served by the one wire channel that created its subscription
+            # record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
+            # owned by a live market_stats/<marketId> channel must survive this ack. deleting
+            # it here would make the next watchTicker re-subscribe a channel the venue still
+            # considers subscribed, and its "30003 Already Subscribed" frame carries no id,
+            # so handleErrorMessage rejects every future on the socket
+            subscriptionHashes = list(client.subscriptions.keys())
+            for i in range(0, len(subscriptionHashes)):
+                subscriptionHash = subscriptionHashes[i]
+                if subscriptionHash.startswith('ticker'):
+                    subscription = self.safe_dict(client.subscriptions, subscriptionHash)
+                    subscriptionParams = self.safe_dict(subscription, 'params')
+                    subscribedChannel = self.safe_string(subscriptionParams, 'channel')
+                    if subscribedChannel == 'market_stats/all':
+                        del client.subscriptions[subscriptionHash]
+                        if subscriptionHash in client.futures:
+                            error = UnsubscribeError(self.id + ' ' + subscriptionHash)
+                            client.reject(error, subscriptionHash)
+            allMessageHash = 'unsubscribe:' + self.get_message_hash('ticker')
+            if allMessageHash in client.subscriptions:
+                del client.subscriptions[allMessageHash]
+            client.resolve(True, allMessageHash)
+            tickersStructure = {
+                'topic': 'ticker',
+            }
+            self.clean_cache(tickersStructure)
+            return
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = self.get_message_hash('ticker', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.tickers:
+            del self.tickers[symbol]
+
+    def handle_trades_un_subscription(self, client: Client, marketId: Str):
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = self.get_message_hash('trade', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.trades:
+            del self.trades[symbol]
+
+    def handle_my_trades_un_subscription(self, client: Client):
+        # one account-wide channel feeds the plural hash and every per-symbol hash
+        messageHash = 'unsubscribe:' + self.get_message_hash('myTrades')
+        self.clean_unsubscription(client, 'myTrades', messageHash, True)
+        myTradesStructure = {
+            'topic': 'myTrades',
+        }
+        self.clean_cache(myTradesStructure)
+
+    def handle_orders_un_subscription(self, client: Client, marketId: Str):
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = self.get_message_hash('orders', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+
+    def handle_all_orders_un_subscription(self, client: Client):
+        # only the plural hash is awaited on this channel, per-symbol order hashes
+        # belong to the account_orders/<marketId> channels and stay untouched here
+        subMessageHash = self.get_message_hash('orders')
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        ordersStructure = {
+            'topic': 'orders',
+        }
+        self.clean_cache(ordersStructure)
+
+    def handle_ping(self, client: Client, message: object):
+        #
+        #     { "type": "ping" }
         #
         self.spawn(self.pong, client, message)
 
-    async def pong(self, client, message):
-        request: dict = {
+    async def pong(self, client: Client, message: object):
+        request = {
             'type': 'pong',
         }
         await client.send(request)

@@ -1,12 +1,12 @@
-- [Async Instantiate All At Once](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
-import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 
 
 import ccxt.async_support as ccxt  # noqa: E402
@@ -19,11 +19,11 @@ async def main():
         exchange = getattr(ccxt, id)
         exchanges[id] = exchange()
     # now exchanges dictionary contains all exchange instances...
-    print(await exchanges['bittrex'].fetch_order_book('ETH/BTC'))
+    print(await exchanges['kucoin'].fetch_order_book('ETH/BTC'))
     # close the aiohttp session object
     for id in exchanges:
         await exchanges[id].close()
 
-asyncio.run(main())
- 
+run(main())
+
 ```

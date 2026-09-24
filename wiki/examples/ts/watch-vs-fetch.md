@@ -1,8 +1,7 @@
-- [Watch Vs Fetch](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- // see this issue for details
+// see this issue for details
 // https://github.com/ccxt/ccxt/issues/6659
 
 
@@ -36,5 +35,5 @@ async function runRest () {
 
 runWs ();
 runRest ();
- 
+
 ```

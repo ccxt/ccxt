@@ -8,38 +8,44 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchTrades(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testWatchTrades(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchTrades";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        string method = "watchTrades";
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 15000);
+        int maxIdleTime = 5000;
+        bool idle = false;
+        while ((isLessThan(now, ends)) && !idle)
         {
-            object response = null;
-            object success = true;
+            object response = new List<object>() {};
+            bool success = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchTrades(symbol);
+                response = detypeForComparison(await exchange.WatchTrades(((string)symbol)));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            now = exchange.milliseconds();
+            if ((success == true))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
-                now = exchange.milliseconds();
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
-                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, true);
+                }
+                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                {
+                    idle = true;
                 }
             }
         }
+        return true;
     }
 
 }

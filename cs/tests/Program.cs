@@ -40,6 +40,7 @@ public class Tests
     public static bool info = false;
     public static bool debug = false;
     public static bool raceCondition = false;
+    public static bool orderRouterTests = false;
 
     public static string[] args;
 
@@ -50,10 +51,13 @@ public class Tests
         isWs = args.Contains("--ws");
         isBaseTests = args.Contains("--baseTests");
         isExchangeTests = args.Contains("--exchangeTests");
-        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response");
-        isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
+        isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response") || args.Contains("--wsTests");
+        isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests && !args.Contains("--orderRouterTests"); // if neither was chosen
 
         raceCondition = args.Contains("--race");
+        //  the offline OrderRouter suite. It runs as part of --baseTests too, so
+        //  `npm run test-base-rest-cs` covers it; this flag runs it on its own.
+        orderRouterTests = args.Contains("--orderRouterTests");
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
         {
@@ -109,8 +113,18 @@ public class Tests
         try
         {
             Tests.args = args;
-            ReadConfig();
             InitOptions(args);
+
+            if (orderRouterTests)
+            {
+                //  before ReadConfig on purpose: the OrderRouter suite is offline
+                //  and reads nothing but ts/src/test/base/fixtures/orderRouter.json,
+                //  so it must not need exchanges.json or keys.json to run
+                OrderRouterTests();
+                return;
+            }
+
+            ReadConfig();
 
             await RunBaseTests();
 
@@ -141,12 +155,23 @@ public class Tests
             if (isWs)
             {
                 WsCacheTests();
+                WsCacheRegressionTests();
                 WsOrderBookTests();
+                WsOrderBookDefaultsTests();
+                WsOrderBookCopyAtomicityTests();
+                // the client suites are timer-bound (keepalive windows, settle delays) and touch
+                // only their own WebSocketClient instances, so they overlap instead of serializing
+                await Task.WhenAll(WsClientKeepAliveLivenessTests(), WsClientKeepAliveTimeoutTests(), WsClientRetirementRaceTests());
                 Helper.Green("[C#] base WS tests passed");
             }
             else
             {
                 await baseTestInstance.baseTestsInit();
+                //  hand-written, not transpiled, and therefore invisible to
+                //  baseTestsInit's generated import list — so it is called here.
+                //  Without this line the C# OrderRouter suite has no caller at
+                //  all and a C#-only divergence ships green.
+                OrderRouterTests();
                 Helper.Green("[C#] base REST tests passed");
             }
         }
@@ -177,10 +202,58 @@ public class Tests
         Helper.Green(" [C#] ArrayCache tests passed");
     }
 
+    static void WsCacheRegressionTests()
+    {
+        baseTestInstance.testWsCacheRegressions();
+        Helper.Green(" [C#] ArrayCache regression tests passed");
+    }
+
+    static void WsOrderBookDefaultsTests()
+    {
+        baseTestInstance.testWsOrderBookNullSnapshotDefaults();
+        Helper.Green(" [C#] OrderBook null-snapshot defaults tests passed");
+    }
+
+    static void WsOrderBookCopyAtomicityTests()
+    {
+        baseTestInstance.testWsOrderBookCopyAtomicity();
+        baseTestInstance.testWsOrderBookSingleStore();
+        baseTestInstance.testWsOrderBookSideCopyFidelity();
+        Helper.Green(" [C#] OrderBook Copy() atomicity tests passed");
+    }
+
+    static async Task WsClientKeepAliveLivenessTests()
+    {
+        await baseTestInstance.testWsClientKeepAliveLiveness();
+        Helper.Green(" [C#] WebSocketClient keepalive liveness tests passed");
+    }
+
+    static async Task WsClientKeepAliveTimeoutTests()
+    {
+        await baseTestInstance.testWsClientKeepAliveTimeout();
+        Helper.Green(" [C#] WebSocketClient keepalive timeout closes the socket tests passed");
+    }
+
     static void WsOrderBookTests()
     {
         baseTestInstance.testWsOrderBook();
         Helper.Green(" [C#] OrderBook tests passed");
+    }
+
+    static void OrderRouterTests()
+    {
+        var failed = OrderRouterTest.RunAll();
+        if (failed > 0)
+        {
+            throw new Exception("[C#] " + failed.ToString() + " OrderRouter tests failed");
+        }
+        Helper.Green(" [C#] OrderRouter tests passed");
+    }
+
+    static async Task WsClientRetirementRaceTests()
+    {
+        await baseTestInstance.testWsClientRetirementRace();
+        Helper.Green(" [C#] WebSocketClient retirement race tests passed");
     }
 
     static void RaceConditionTests()

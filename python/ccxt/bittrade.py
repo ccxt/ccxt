@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bittrade import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -29,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class bittrade(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bittrade, self).describe(), {
             'id': 'bittrade',
             'name': 'BitTrade',
@@ -100,7 +99,7 @@ class bittrade(Exchange, ImplicitAPI):
                 '1y': '1year',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c5996ed2-0d56-42d8-ac40-7eaf8116dbae',
                 'api': {
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
@@ -116,143 +115,146 @@ class bittrade(Exchange, ImplicitAPI):
             'api': {
                 'v2Public': {
                     'get': {
-                        'reference/currencies': 1,  # 币链参考信息
-                        'market-status': 1,  # 获取当前市场状态
+                        'reference/currencies': {'cost': 1},  # 币链参考信息
+                        'market-status': {'cost': 1},  # 获取当前市场状态
                     },
                 },
                 'v2Private': {
                     'get': {
-                        'account/ledger': 1,
-                        'account/withdraw/quota': 1,
-                        'account/withdraw/address': 1,  # 提币地址查询(限母用户可用)
-                        'account/deposit/address': 1,
-                        'account/repayment': 5,  # 还币交易记录查询
-                        'reference/transact-fee-rate': 1,
-                        'account/asset-valuation': 0.2,  # 获取账户资产估值
-                        'point/account': 5,  # 点卡余额查询
-                        'sub-user/user-list': 1,  # 获取子用户列表
-                        'sub-user/user-state': 1,  # 获取特定子用户的用户状态
-                        'sub-user/account-list': 1,  # 获取特定子用户的账户列表
-                        'sub-user/deposit-address': 1,  # 子用户充币地址查询
-                        'sub-user/query-deposit': 1,  # 子用户充币记录查询
-                        'user/api-key': 1,  # 母子用户API key信息查询
-                        'user/uid': 1,  # 母子用户获取用户UID
-                        'algo-orders/opening': 1,  # 查询未触发OPEN策略委托
-                        'algo-orders/history': 1,  # 查询策略委托历史
-                        'algo-orders/specific': 1,  # 查询特定策略委托
-                        'c2c/offers': 1,  # 查询借入借出订单
-                        'c2c/offer': 1,  # 查询特定借入借出订单及其交易记录
-                        'c2c/transactions': 1,  # 查询借入借出交易记录
-                        'c2c/repayment': 1,  # 查询还币交易记录
-                        'c2c/account': 1,  # 查询账户余额
-                        'etp/reference': 1,  # 基础参考信息
-                        'etp/transactions': 5,  # 获取杠杆ETP申赎记录
-                        'etp/transaction': 5,  # 获取特定杠杆ETP申赎记录
-                        'etp/rebalance': 1,  # 获取杠杆ETP调仓记录
-                        'etp/limit': 1,  # 获取ETP持仓限额
+                        'account/ledger': {'cost': 1},
+                        'account/withdraw/quota': {'cost': 1},
+                        'account/withdraw/address': {'cost': 1},  # 提币地址查询(限母用户可用)
+                        'account/deposit/address': {'cost': 1},
+                        'account/repayment': {'cost': 5},  # 还币交易记录查询
+                        'reference/transact-fee-rate': {'cost': 1},
+                        'account/asset-valuation': {'cost': 0.2},  # 获取账户资产估值
+                        'point/account': {'cost': 5},  # 点卡余额查询
+                        'sub-user/user-list': {'cost': 1},  # 获取子用户列表
+                        'sub-user/user-state': {'cost': 1},  # 获取特定子用户的用户状态
+                        'sub-user/account-list': {'cost': 1},  # 获取特定子用户的账户列表
+                        'sub-user/deposit-address': {'cost': 1},  # 子用户充币地址查询
+                        'sub-user/query-deposit': {'cost': 1},  # 子用户充币记录查询
+                        'user/api-key': {'cost': 1},  # 母子用户API key信息查询
+                        'user/uid': {'cost': 1},  # 母子用户获取用户UID
+                        'algo-orders/opening': {'cost': 1},  # 查询未触发OPEN策略委托
+                        'algo-orders/history': {'cost': 1},  # 查询策略委托历史
+                        'algo-orders/specific': {'cost': 1},  # 查询特定策略委托
+                        'c2c/offers': {'cost': 1},  # 查询借入借出订单
+                        'c2c/offer': {'cost': 1},  # 查询特定借入借出订单及其交易记录
+                        'c2c/transactions': {'cost': 1},  # 查询借入借出交易记录
+                        'c2c/repayment': {'cost': 1},  # 查询还币交易记录
+                        'c2c/account': {'cost': 1},  # 查询账户余额
+                        'etp/reference': {'cost': 1},  # 基础参考信息
+                        'etp/transactions': {'cost': 5},  # 获取杠杆ETP申赎记录
+                        'etp/transaction': {'cost': 5},  # 获取特定杠杆ETP申赎记录
+                        'etp/rebalance': {'cost': 1},  # 获取杠杆ETP调仓记录
+                        'etp/limit': {'cost': 1},  # 获取ETP持仓限额
                     },
                     'post': {
-                        'account/transfer': 1,
-                        'account/repayment': 5,  # 归还借币（全仓逐仓通用）
-                        'point/transfer': 5,  # 点卡划转
-                        'sub-user/management': 1,  # 冻结/解冻子用户
-                        'sub-user/creation': 1,  # 子用户创建
-                        'sub-user/tradable-market': 1,  # 设置子用户交易权限
-                        'sub-user/transferability': 1,  # 设置子用户资产转出权限
-                        'sub-user/api-key-generation': 1,  # 子用户API key创建
-                        'sub-user/api-key-modification': 1,  # 修改子用户API key
-                        'sub-user/api-key-deletion': 1,  # 删除子用户API key
-                        'sub-user/deduct-mode': 1,  # 设置子用户手续费抵扣模式
-                        'algo-orders': 1,  # 策略委托下单
-                        'algo-orders/cancel-all-after': 1,  # 自动撤销订单
-                        'algo-orders/cancellation': 1,  # 策略委托（触发前）撤单
-                        'c2c/offer': 1,  # 借入借出下单
-                        'c2c/cancellation': 1,  # 借入借出撤单
-                        'c2c/cancel-all': 1,  # 撤销所有借入借出订单
-                        'c2c/repayment': 1,  # 还币
-                        'c2c/transfer': 1,  # 资产划转
-                        'etp/creation': 5,  # 杠杆ETP换入
-                        'etp/redemption': 5,  # 杠杆ETP换出
-                        'etp/{transactId}/cancel': 10,  # 杠杆ETP单个撤单
-                        'etp/batch-cancel': 50,  # 杠杆ETP批量撤单
+                        'account/transfer': {'cost': 1},
+                        'account/repayment': {'cost': 5},  # 归还借币（全仓逐仓通用）
+                        'point/transfer': {'cost': 5},  # 点卡划转
+                        'sub-user/management': {'cost': 1},  # 冻结/解冻子用户
+                        'sub-user/creation': {'cost': 1},  # 子用户创建
+                        'sub-user/tradable-market': {'cost': 1},  # 设置子用户交易权限
+                        'sub-user/transferability': {'cost': 1},  # 设置子用户资产转出权限
+                        'sub-user/api-key-generation': {'cost': 1},  # 子用户API key创建
+                        'sub-user/api-key-modification': {'cost': 1},  # 修改子用户API key
+                        'sub-user/api-key-deletion': {'cost': 1},  # 删除子用户API key
+                        'sub-user/deduct-mode': {'cost': 1},  # 设置子用户手续费抵扣模式
+                        'algo-orders': {'cost': 1},  # 策略委托下单
+                        'algo-orders/cancel-all-after': {'cost': 1},  # 自动撤销订单
+                        'algo-orders/cancellation': {'cost': 1},  # 策略委托（触发前）撤单
+                        'c2c/offer': {'cost': 1},  # 借入借出下单
+                        'c2c/cancellation': {'cost': 1},  # 借入借出撤单
+                        'c2c/cancel-all': {'cost': 1},  # 撤销所有借入借出订单
+                        'c2c/repayment': {'cost': 1},  # 还币
+                        'c2c/transfer': {'cost': 1},  # 资产划转
+                        'etp/creation': {'cost': 5},  # 杠杆ETP换入
+                        'etp/redemption': {'cost': 5},  # 杠杆ETP换出
+                        'etp/{transactId}/cancel': {'cost': 10},  # 杠杆ETP单个撤单
+                        'etp/batch-cancel': {'cost': 50},  # 杠杆ETP批量撤单
                     },
                 },
                 'market': {
                     'get': {
-                        'history/kline': 1,  # 获取K线数据
-                        'detail/merged': 1,  # 获取聚合行情(Ticker)
-                        'depth': 1,  # 获取 Market Depth 数据
-                        'trade': 1,  # 获取 Trade Detail 数据
-                        'history/trade': 1,  # 批量获取最近的交易记录
-                        'detail': 1,  # 获取 Market Detail 24小时成交量数据
-                        'tickers': 1,
-                        'etp': 1,  # 获取杠杆ETP实时净值
+                        'history/kline': {'cost': 1},  # 获取K线数据
+                        'detail/merged': {'cost': 1},  # 获取聚合行情(Ticker)
+                        'depth': {'cost': 1},  # 获取 Market Depth 数据
+                        'trade': {'cost': 1},  # 获取 Trade Detail 数据
+                        'history/trade': {'cost': 1},  # 批量获取最近的交易记录
+                        'detail': {'cost': 1},  # 获取 Market Detail 24小时成交量数据
+                        'tickers': {'cost': 1},
+                        'etp': {'cost': 1},  # 获取杠杆ETP实时净值
                     },
                 },
                 'public': {
                     'get': {
-                        'common/symbols': 1,  # 查询系统支持的所有交易对
-                        'common/currencys': 1,  # 查询系统支持的所有币种
-                        'common/timestamp': 1,  # 查询系统当前时间
-                        'common/exchange': 1,  # order limits
-                        'settings/currencys': 1,  # ?language=en-US
+                        'common/symbols': {'cost': 1},  # 查询系统支持的所有交易对
+                        'common/currencys': {'cost': 1},  # 查询系统支持的所有币种
+                        'common/timestamp': {'cost': 1},  # 查询系统当前时间
+                        'common/exchange': {'cost': 1},  # order limits
+                        'settings/currencys': {'cost': 1},  # ?language=en-US
+                        'retail/maintain/time': {'cost': 1},  # 零售维护时间
                     },
                 },
                 'private': {
                     'get': {
-                        'account/accounts': 0.2,  # 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance': 0.2,  # 查询指定账户的余额
-                        'account/accounts/{sub-uid}': 1,
-                        'account/history': 4,
-                        'cross-margin/loan-info': 1,
-                        'margin/loan-info': 1,  # 查询借币币息率及额度
-                        'fee/fee-rate/get': 1,
-                        'order/openOrders': 0.4,
-                        'order/orders': 0.4,
-                        'order/orders/{id}': 0.4,  # 查询某个订单详情
-                        'order/orders/{id}/matchresults': 0.4,  # 查询某个订单的成交明细
-                        'order/orders/getClientOrder': 0.4,
-                        'order/history': 1,  # 查询当前委托、历史委托
-                        'order/matchresults': 1,  # 查询当前成交、历史成交
-                        # 'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址（Deprecated）
-                        'query/deposit-withdraw': 1,
-                        # 'margin/loan-info',  # duplicate
-                        'margin/loan-orders': 0.2,  # 借贷订单
-                        'margin/accounts/balance': 0.2,  # 借贷账户详情
-                        'cross-margin/loan-orders': 1,  # 查询借币订单
-                        'cross-margin/accounts/balance': 1,  # 借币账户详情
-                        'points/actions': 1,
-                        'points/orders': 1,
-                        'subuser/aggregate-balance': 10,
-                        'stable-coin/exchange_rate': 1,
-                        'stable-coin/quote': 1,
+                        'account/accounts': {'cost': 0.2},  # 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance': {'cost': 0.2},  # 查询指定账户的余额
+                        'account/accounts/{sub-uid}': {'cost': 1},
+                        'account/history': {'cost': 4},
+                        'cross-margin/loan-info': {'cost': 1},
+                        'margin/loan-info': {'cost': 1},  # 查询借币币息率及额度
+                        'fee/fee-rate/get': {'cost': 1},
+                        'order/openOrders': {'cost': 0.4},
+                        'order/orders': {'cost': 0.4},
+                        'order/orders/{id}': {'cost': 0.4},  # 查询某个订单详情
+                        'order/orders/{id}/matchresults': {'cost': 0.4},  # 查询某个订单的成交明细
+                        'order/orders/getClientOrder': {'cost': 0.4},
+                        'order/history': {'cost': 1},  # 查询当前委托、历史委托
+                        'order/matchresults': {'cost': 1},  # 查询当前成交、历史成交
+                        # 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
+                        'query/deposit-withdraw': {'cost': 1},
+                        # 'margin/loan-info', // duplicate
+                        'margin/loan-orders': {'cost': 0.2},  # 借贷订单
+                        'margin/accounts/balance': {'cost': 0.2},  # 借贷账户详情
+                        'cross-margin/loan-orders': {'cost': 1},  # 查询借币订单
+                        'cross-margin/accounts/balance': {'cost': 1},  # 借币账户详情
+                        'points/actions': {'cost': 1},
+                        'points/orders': {'cost': 1},
+                        'subuser/aggregate-balance': {'cost': 10},
+                        'stable-coin/exchange_rate': {'cost': 1},
+                        'stable-coin/quote': {'cost': 1},
+                        'retail/order/list': {'cost': 1},  # 零售订单历史
                     },
                     'post': {
-                        'account/transfer': 1,  # 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
-                        'futures/transfer': 1,
-                        'order/batch-orders': 0.4,
-                        'order/orders/place': 0.2,  # 创建并执行一个新订单(一步下单， 推荐使用)
-                        'order/orders/submitCancelClientOrder': 0.2,
-                        'order/orders/batchCancelOpenOrders': 0.4,
-                        # 'order/orders',  # 创建一个新的订单请求 （仅创建订单，不执行下单）
-                        # 'order/orders/{id}/place',  # 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel': 0.2,  # 申请撤销一个订单请求
-                        'order/orders/batchcancel': 0.4,  # 批量撤销订单
-                        # 'dw/balance/transfer',  # 资产划转
-                        'dw/withdraw/api/create': 1,  # 申请提现虚拟币
-                        # 'dw/withdraw-virtual/create',  # 申请提现虚拟币
-                        # 'dw/withdraw-virtual/{id}/place',  # 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel': 1,  # 申请取消提现虚拟币
-                        'dw/transfer-in/margin': 10,  # 现货账户划入至借贷账户
-                        'dw/transfer-out/margin': 10,  # 借贷账户划出至现货账户
-                        'margin/orders': 10,  # 申请借贷
-                        'margin/orders/{id}/repay': 10,  # 归还借贷
-                        'cross-margin/transfer-in': 1,  # 资产划转
-                        'cross-margin/transfer-out': 1,  # 资产划转
-                        'cross-margin/orders': 1,  # 申请借币
-                        'cross-margin/orders/{id}/repay': 1,  # 归还借币
-                        'stable-coin/exchange': 1,
-                        'subuser/transfer': 10,
+                        'account/transfer': {'cost': 1},  # 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
+                        'futures/transfer': {'cost': 1},
+                        'order/batch-orders': {'cost': 0.4},
+                        'order/orders/place': {'cost': 0.2},  # 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder': {'cost': 0.2},
+                        'order/orders/batchCancelOpenOrders': {'cost': 0.4},
+                        # 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
+                        # 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
+                        'order/orders/{id}/submitcancel': {'cost': 0.2},  # 申请撤销一个订单请求
+                        'order/orders/batchcancel': {'cost': 0.4},  # 批量撤销订单
+                        # 'dw/balance/transfer', // 资产划转
+                        'dw/withdraw/api/create': {'cost': 1},  # 申请提现虚拟币
+                        # 'dw/withdraw-virtual/create', // 申请提现虚拟币
+                        # 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
+                        'dw/withdraw-virtual/{id}/cancel': {'cost': 1},  # 申请取消提现虚拟币
+                        'dw/transfer-in/margin': {'cost': 10},  # 现货账户划入至借贷账户
+                        'dw/transfer-out/margin': {'cost': 10},  # 借贷账户划出至现货账户
+                        'margin/orders': {'cost': 10},  # 申请借贷
+                        'margin/orders/{id}/repay': {'cost': 10},  # 归还借贷
+                        'cross-margin/transfer-in': {'cost': 1},  # 资产划转
+                        'cross-margin/transfer-out': {'cost': 1},  # 资产划转
+                        'cross-margin/orders': {'cost': 1},  # 申请借币
+                        'cross-margin/orders/{id}/repay': {'cost': 1},  # 归还借币
+                        'stable-coin/exchange': {'cost': 1},
+                        'subuser/transfer': {'cost': 10},
+                        'retail/order/place': {'cost': 1},  # 零售下单
                     },
                 },
             },
@@ -363,7 +365,7 @@ class bittrade(Exchange, ImplicitAPI):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
-                    'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
+                    'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder,  # {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
                     'order-etp-nav-price-max-error': InvalidOrder,  # {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
                     'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
@@ -372,7 +374,7 @@ class bittrade(Exchange, ImplicitAPI):
                     'api-signature-check-failed': AuthenticationError,
                     'api-signature-not-valid': AuthenticationError,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
                     'base-record-invalid': OrderNotFound,  # https://github.com/ccxt/ccxt/issues/5750
-                    'base-symbol-trade-disabled': BadSymbol,  # {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for self symbol","data":null}
+                    'base-symbol-trade-disabled': BadSymbol,  # {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
                     'base-symbol-error': BadSymbol,  # {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
                     'system-maintenance': OnMaintenance,  # {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     # err-msg
@@ -392,17 +394,28 @@ class bittrade(Exchange, ImplicitAPI):
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
                     'ALGO': 'algo',
-                    'OMNI': '',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
-                'createMarketBuyOrderRequiresPrice': True,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'fetchOrdersByStates': {
+                    'method': 'private_get_order_orders',  # 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                },
+                'fetchOpenOrders': {
+                    'method': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
+                },
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': True,
+                    'method': 'privatePostOrderOrdersPlace',
+                },
+                'fetchMarkets': {
+                    'method': 'publicGetCommonSymbols',
+                },
+                'fetchBalance': {
+                    'method': 'privateGetAccountAccountsIdBalance',
+                },
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'language': 'en-US',
+                'fetchCurrencies': {
+                    'language': 'en-US',
+                },
                 'broker': {
                     'id': 'AA03022abc',
                 },
@@ -411,7 +424,7 @@ class bittrade(Exchange, ImplicitAPI):
                 # https://github.com/ccxt/ccxt/issues/6081
                 # https://github.com/ccxt/ccxt/issues/3365
                 # https://github.com/ccxt/ccxt/issues/2873
-                'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
+                'GET': 'Themis',  # conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
                 'HIT': 'HitChain',
                 # https://github.com/ccxt/ccxt/issues/7399
@@ -424,7 +437,7 @@ class bittrade(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -433,27 +446,30 @@ class bittrade(Exchange, ImplicitAPI):
         response = self.publicGetCommonTimestamp(params)
         return self.safe_integer(response, 'data')
 
-    def fetch_trading_limits(self, symbols: Strings = None, params={}):
-        # self method should not be called directly, use loadTradingLimits() instead
-        #  by default it will try load withdrawal fees of all currencies(with separate requests)
-        #  however if you define symbols = ['ETH/BTC', 'LTC/BTC'] in args it will only load those
-        self.load_markets()
+    def fetch_trading_limits(self, symbols: Strings = None, params: dict = {}) -> dict:
+        # this method should not be called directly, use loadTradingLimits () instead
+        #  by default it will try load withdrawal fees of all currencies (with separate requests)
+        #  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        if self.markets is None:
+            self.load_markets()
         if symbols is None:
             symbols = self.symbols
-        result: dict = {}
+        if symbols is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        result = {}
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
         return result
 
-    def fetch_trading_limits_by_id(self, id: str, params={}):
-        request: dict = {
+    def fetch_trading_limits_by_id(self, id: Str, params: dict = {}):
+        request = {
             'symbol': id,
         }
         response = self.publicGetCommonExchange(self.extend(request, params))
         #
-        #     {status:   "ok",
-        #         "data": {                                 symbol: "aidocbtc",
+        #     { status:   "ok",
+        #         "data": {                                  symbol: "aidocbtc",
         #                              "buy-limit-must-less-than":  1.1,
         #                          "sell-limit-must-greater-than":  0.9,
         #                         "limit-order-must-greater-than":  1,
@@ -465,13 +481,13 @@ class bittrade(Exchange, ImplicitAPI):
         #                       "circuit-break-when-greater-than":  10000,
         #                          "circuit-break-when-less-than":  10,
         #                 "market-sell-order-rate-must-less-than":  0.1,
-        #                  "market-buy-order-rate-must-less-than":  0.1        }}
+        #                  "market-buy-order-rate-must-less-than":  0.1        } }
         #
-        return self.parse_trading_limits(self.safe_value(response, 'data', {}))
+        return self.parse_trading_limits(self.safe_dict(response, 'data', {}))
 
-    def parse_trading_limits(self, limits, symbol: Str = None, params={}):
+    def parse_trading_limits(self, limits: dict, symbol: Str = None, params: dict = {}):
         #
-        #   {                                 symbol: "aidocbtc",
+        #   {                                  symbol: "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,
         #              "sell-limit-must-greater-than":  0.9,
         #             "limit-order-must-greater-than":  1,
@@ -495,17 +511,21 @@ class bittrade(Exchange, ImplicitAPI):
             },
         }
 
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
+    def cost_to_precision(self, symbol: Str, cost: object) -> Str:
+        return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for huobijp
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        method = self.options['fetchMarketsMethod']
-        response = getattr(self, method)(params)
+        method = self.handle_option('fetchMarkets', 'method', 'publicGetCommonSymbols')
+        response = None
+        if method == 'publicGetCommonSymbols':
+            response = self.publicGetCommonSymbols(params)
+        else:
+            raise NotSupported(self.id + ' fetchMarkets() does not support the ' + method + ' method')
         #
         #    {
         #        "status": "ok",
@@ -538,7 +558,7 @@ class bittrade(Exchange, ImplicitAPI):
         #         ]
         #    }
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned empty response: ' + self.json(markets))
@@ -554,6 +574,10 @@ class bittrade(Exchange, ImplicitAPI):
             superLeverageRatio = self.safe_string(market, 'super-margin-leverage-ratio', '1')
             margin = Precise.string_gt(leverageRatio, '1') or Precise.string_gt(superLeverageRatio, '1')
             fee = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
+            if baseId is None:
+                raise ExchangeError(self.id + ' fetchMarkets() missing baseId')
+            if quoteId is None:
+                raise ExchangeError(self.id + ' fetchMarkets() missing quoteId')
             result.append({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
@@ -622,9 +646,9 @@ class bittrade(Exchange, ImplicitAPI):
         #         "count": 265846,
         #         "low": 8988.0,
         #         "version": 209988544334,
-        #         "ask": [9146.87, 0.156134],
+        #         "ask": [ 9146.87, 0.156134 ],
         #         "vol": 2.3822168242201668E8,
-        #         "bid": [9146.86, 0.080758],
+        #         "bid": [ 9146.86, 0.080758 ],
         #     }
         #
         # fetchTickers
@@ -690,17 +714,18 @@ class bittrade(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'type': 'step0',
         }
@@ -712,14 +737,14 @@ class bittrade(Exchange, ImplicitAPI):
         #         "ts": 1583474832790,
         #         "tick": {
         #             "bids": [
-        #                 [9100.290000000000000000, 0.200000000000000000],
-        #                 [9099.820000000000000000, 0.200000000000000000],
-        #                 [9099.610000000000000000, 0.205000000000000000],
+        #                 [ 9100.290000000000000000, 0.200000000000000000 ],
+        #                 [ 9099.820000000000000000, 0.200000000000000000 ],
+        #                 [ 9099.610000000000000000, 0.205000000000000000 ],
         #             ],
         #             "asks": [
-        #                 [9100.640000000000000000, 0.005904000000000000],
-        #                 [9101.010000000000000000, 0.287311000000000000],
-        #                 [9101.030000000000000000, 0.012121000000000000],
+        #                 [ 9100.640000000000000000, 0.005904000000000000 ],
+        #                 [ 9101.010000000000000000, 0.287311000000000000 ],
+        #                 [ 9101.030000000000000000, 0.012121000000000000 ],
         #             ],
         #             "ts":1583474832008,
         #             "version":104999698780
@@ -727,25 +752,26 @@ class bittrade(Exchange, ImplicitAPI):
         #     }
         #
         if 'tick' in response:
-            if not response['tick']:
+            if (response['tick'] is None) or (response['tick'] is None):
                 raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
-            tick = self.safe_value(response, 'tick')
+            tick = self.safe_dict(response, 'tick')
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
             result = self.parse_order_book(tick, symbol, timestamp)
             result['nonce'] = self.safe_integer(tick, 'version')
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.marketGetDetailMerged(self.extend(request, params))
@@ -763,31 +789,33 @@ class bittrade(Exchange, ImplicitAPI):
         #             "count": 265846,
         #             "low": 8988.0,
         #             "version": 209988544334,
-        #             "ask": [9146.87, 0.156134],
+        #             "ask": [ 9146.87, 0.156134 ],
         #             "vol": 2.3822168242201668E8,
-        #             "bid": [9146.86, 0.080758],
+        #             "bid": [ 9146.86, 0.080758 ],
         #         }
         #     }
         #
-        ticker = self.parse_ticker(response['tick'], market)
+        tick = self.safe_dict(response, 'tick', {})
+        ticker = self.parse_ticker(tick, market)
         timestamp = self.safe_integer(response, 'ts')
         ticker['timestamp'] = timestamp
         ticker['datetime'] = self.iso8601(timestamp)
         return ticker
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.marketGetTickers(params)
-        tickers = self.safe_value(response, 'data', [])
+        tickers = self.safe_list(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
-        result: dict = {}
+        result = {}
         for i in range(0, len(tickers)):
             marketId = self.safe_string(tickers[i], 'symbol')
             market = self.safe_market(marketId)
@@ -800,7 +828,7 @@ class bittrade(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "amount": 0.010411000000000000,
@@ -811,7 +839,7 @@ class bittrade(Exchange, ImplicitAPI):
         #         "direction": "sell"
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #          "symbol": "swftcbtc",
@@ -876,7 +904,7 @@ class bittrade(Exchange, ImplicitAPI):
             'fee': fee,
         })
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -886,14 +914,16 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'id': id,
         }
         response = self.privateGetOrderOrdersIdMatchresults(self.extend(request, params))
-        return self.parse_trades(response['data'], None, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_trades(data, None, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -902,9 +932,10 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -912,11 +943,12 @@ class bittrade(Exchange, ImplicitAPI):
             request['size'] = limit  # 1-100 orders, default is 100
         if since is not None:
             request['start-time'] = since  # a date within 120 days from today
-            # request['end-time'] = self.sum(since, 172800000)  # 48 hours window
+            # request['end-time'] = this.sum (since, 172800000); // 48 hours window
         response = self.privateGetOrderMatchresults(self.extend(request, params))
-        return self.parse_trades(response['data'], market, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -925,9 +957,10 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -953,21 +986,21 @@ class bittrade(Exchange, ImplicitAPI):
         #                     }
         #                 ]
         #             },
-        #             # ...
+        #             // ...
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            trades = self.safe_value(data[i], 'data', [])
+            trades = self.safe_list(data[i], 'data', [])
             for j in range(0, len(trades)):
                 trade = self.parse_trade(trades[j], market)
                 result.append(trade)
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "amount":1.2082,
@@ -989,7 +1022,7 @@ class bittrade(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 1000, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 1000, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -997,11 +1030,12 @@ class bittrade(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1023,24 +1057,25 @@ class bittrade(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_accounts(self, params={}) -> List[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountAccounts(params)
-        return response['data']
+        return self.safe_list(response, 'data', [])
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        request: dict = {
-            'language': self.options['language'],
+        request = {
+            'language': self.handle_option('fetchCurrencies', 'language', 'en-US'),
         }
         response = self.publicGetSettingsCurrencys(self.extend(request, params))
         #
@@ -1075,26 +1110,26 @@ class bittrade(Exchange, ImplicitAPI):
         #                 "state":"online",
         #                 "display-name":"USDT",
         #                 "suspend-withdraw-desc":null,
-        #                 "withdraw-desc":"Minimum withdrawal amount: 10 USDT(ERC20). not >_<not To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.not >_<not Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        #                 "withdraw-desc":"Minimum withdrawal amount: 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
         #                 "suspend-deposit-desc":null,
-        #                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. not >_<not Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. not >_<not Minimum deposit amount: 1 USDT. Any deposits less than the minimum will not be credited or refunded.not >_<not Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.not >_<not Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        #                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount: 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
         #                 "suspend-visible-desc":null
         #             }
         #         ]
         #     }
         #
-        currencies = self.safe_value(response, 'data', [])
+        currencies = self.safe_list(response, 'data', [])
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, currency: dict) -> Currency:
-        id = self.safe_value(currency, 'name')
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
+        id = self.safe_string(currency, 'name')
         code = self.safe_currency_code(id)
-        depositEnabled = self.safe_value(currency, 'deposit-enabled')
-        withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
-        countryDisabled = self.safe_value(currency, 'country-disabled')
+        depositEnabled = self.safe_bool(currency, 'deposit-enabled')
+        withdrawEnabled = self.safe_bool(currency, 'withdraw-enabled')
+        countryDisabled = self.safe_bool(currency, 'country-disabled')
         visible = self.safe_bool(currency, 'visible', False)
         state = self.safe_string(currency, 'state')
-        active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
+        active = (visible is True) and (depositEnabled is True) and (withdrawEnabled is True) and (state == 'online') and (countryDisabled is not True)
         name = self.safe_string(currency, 'display-name')
         precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
         return self.safe_currency_structure({
@@ -1103,7 +1138,7 @@ class bittrade(Exchange, ImplicitAPI):
             'type': 'crypto',
             # 'payin': currency['deposit-enabled'],
             # 'payout': currency['withdraw-enabled'],
-            # 'transfer': None,
+            # 'transfer': undefined,
             'name': name,
             'active': active,
             'deposit': depositEnabled,
@@ -1128,54 +1163,69 @@ class bittrade(Exchange, ImplicitAPI):
             'info': currency,
         })
 
-    def parse_balance(self, response) -> Balances:
-        balances = self.safe_value(response['data'], 'list', [])
-        result: dict = {'info': response}
+    def parse_balance(self, response: object) -> Balances:
+        balances = self.safe_list(response['data'], 'list', [])
+        result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = None
-            if code in result:
+            if (code is not None) and (code in result):
                 account = result[code]
             else:
                 account = self.account()
+            if account is None:
+                raise ExchangeError(self.id + ' parseBalance() could not resolve account')
             if balance['type'] == 'trade':
                 account['free'] = self.safe_string(balance, 'balance')
+            if account is None:
+                raise ExchangeError(self.id + ' parseBalance() could not resolve account')
             if balance['type'] == 'frozen':
                 account['used'] = self.safe_string(balance, 'balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.load_accounts()
-        method = self.options['fetchBalanceMethod']
-        request: dict = {
+        method = self.handle_option('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance')
+        request = {
             'id': self.accounts[0]['id'],
         }
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetAccountAccountsIdBalance':
+            response = self.privateGetAccountAccountsIdBalance(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchBalance() does not support the ' + method + ' method')
         return self.parse_balance(response)
 
-    def fetch_orders_by_states(self, states, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
-        request: dict = {
+    def fetch_orders_by_states(self, states: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'states': states,
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders')
-        response = getattr(self, method)(self.extend(request, params))
+        method = self.handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders')
+        response = None
+        if (method == 'private_get_order_history') or (method == 'privateGetOrderHistory'):
+            response = self.privateGetOrderHistory(self.extend(request, params))
+        else:
+            response = self.privateGetOrderOrders(self.extend(request, params))
         #
-        #     {"status":   "ok",
-        #         "data": [{                 id:  13997833016,
+        #     { "status":   "ok",
+        #         "data": [ {                  id:  13997833016,
         #                                "symbol": "ethbtc",
         #                          "account-id":  3398321,
         #                                "amount": "0.045000000000000000",
@@ -1188,11 +1238,11 @@ class bittrade(Exchange, ImplicitAPI):
         #                         "finished-at":  1545837948214,
         #                                "source": "spot-api",
         #                                 "state": "filled",
-        #                         "canceled-at":  0                      }  ]}
+        #                         "canceled-at":  0                      }  ] }
         #
         return self.parse_orders(response['data'], market, since, limit)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
         :param str id: order id
@@ -1200,15 +1250,16 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'id': id,
         }
         response = self.privateGetOrderOrdersId(self.extend(request, params))
-        order = self.safe_dict(response, 'data')
+        order = self.safe_dict(response, 'data', {})
         return self.parse_order(order)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1219,7 +1270,7 @@ class bittrade(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1228,15 +1279,17 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        method = self.safe_string(self.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1')
-        return getattr(self, method)(symbol, since, limit, params)
+        method = self.handle_option('fetchOpenOrders', 'method', 'fetch_open_orders_v1')
+        if (method == 'fetch_open_orders_v2') or (method == 'fetchOpenOrdersV2'):
+            return self.fetch_open_orders_v2(symbol, since, limit, params)
+        return self.fetch_open_orders_v1(symbol, since, limit, params)
 
-    def fetch_open_orders_v1(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_open_orders_v1(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrdersV1() requires a symbol argument')
         return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1247,9 +1300,10 @@ class bittrade(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    def fetch_open_orders_v2(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
-        request: dict = {}
+    def fetch_open_orders_v2(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1294,7 +1348,7 @@ class bittrade(Exchange, ImplicitAPI):
         return self.parse_orders(data, market, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'partial-filled': 'open',
             'partial-canceled': 'canceled',
             'filled': 'closed',
@@ -1305,31 +1359,31 @@ class bittrade(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        #     {                 id:  13997833014,
+        #     {                  id:  13997833014,
         #                    "symbol": "ethbtc",
         #              "account-id":  3398321,
         #                    "amount": "0.045000000000000000",
         #                     "price": "0.034014000000000000",
         #              "created-at":  1545836976871,
         #                      "type": "sell-limit",
-        #            "field-amount": "0.045000000000000000",  # they have fixed it for filled-amount
-        #       "field-cash-amount": "0.001530630000000000",  # they have fixed it for filled-cash-amount
-        #              "field-fees": "0.000003061260000000",  # they have fixed it for filled-fees
+        #            "field-amount": "0.045000000000000000", // they have fixed it for filled-amount
+        #       "field-cash-amount": "0.001530630000000000", // they have fixed it for filled-cash-amount
+        #              "field-fees": "0.000003061260000000", // they have fixed it for filled-fees
         #             "finished-at":  1545837948214,
         #                    "source": "spot-api",
         #                     "state": "filled",
         #             "canceled-at":  0                      }
         #
-        #     {                 id:  20395337822,
+        #     {                  id:  20395337822,
         #                    "symbol": "ethbtc",
         #              "account-id":  5685075,
         #                    "amount": "0.001000000000000000",
         #                     "price": "0.0",
         #              "created-at":  1545831584023,
         #                      "type": "buy-market",
-        #            "field-amount": "0.029100000000000000",  # they have fixed it for filled-amount
-        #       "field-cash-amount": "0.000999788700000000",  # they have fixed it for filled-cash-amount
-        #              "field-fees": "0.000058200000000000",  # they have fixed it for filled-fees
+        #            "field-amount": "0.029100000000000000", // they have fixed it for filled-amount
+        #       "field-cash-amount": "0.000999788700000000", // they have fixed it for filled-cash-amount
+        #              "field-fees": "0.000058200000000000", // they have fixed it for filled-fees
         #             "finished-at":  1545831584181,
         #                    "source": "spot-api",
         #                     "state": "filled",
@@ -1384,7 +1438,7 @@ class bittrade(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1392,14 +1446,15 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1410,17 +1465,18 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'account-id': self.accounts[0]['id'],
             'symbol': market['id'],
             'type': side + '-' + type,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
         if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker', {})
+            broker = self.safe_dict(self.options, 'broker', {})
             brokerId = self.safe_string(broker, 'id')
             request['client-order-id'] = brokerId + self.uuid()
         else:
@@ -1436,7 +1492,7 @@ class bittrade(Exchange, ImplicitAPI):
                 quoteAmount = self.amount_to_precision(symbol, cost)
             elif createMarketBuyOrderRequiresPrice:
                 if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     # despite that cost = amount * price is in quote currency and should have quote precision
                     # the exchange API requires the cost supplied in 'amount' to be of base precision
@@ -1454,8 +1510,12 @@ class bittrade(Exchange, ImplicitAPI):
             request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit' or type == 'ioc' or type == 'limit-maker' or type == 'stop-limit' or type == 'stop-limit-fok':
             request['price'] = self.price_to_precision(symbol, price)
-        method = self.options['createOrderMethod']
-        response = getattr(self, method)(self.extend(request, params))
+        method = self.handle_option('createOrder', 'method', 'privatePostOrderOrdersPlace')
+        response = None
+        if method == 'privatePostOrderOrdersPlace':
+            response = self.privatePostOrderOrdersPlace(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' createOrder() does not support the ' + method + ' method')
         id = self.safe_string(response, 'data')
         return self.safe_order({
             'info': response,
@@ -1478,11 +1538,11 @@ class bittrade(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
         :param str id: order id
-        :param str symbol: not used by bittrade cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1498,18 +1558,19 @@ class bittrade(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
         :param str[] ids: order ids
-        :param str symbol: not used by bittrade cancelOrders()
+        :param str symbol: not used by cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         clientOrderIds = self.safe_value_2(params, 'clientOrderIds', 'client-order-ids')
         params = self.omit(params, ['clientOrderIds', 'client-order-ids'])
-        request: dict = {}
+        request = {}
         if clientOrderIds is None:
             request['order-ids'] = ids
         else:
@@ -1549,7 +1610,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_cancel_orders(response)
 
-    def parse_cancel_orders(self, orders):
+    def parse_cancel_orders(self, orders: dict) -> list[Order]:
         #
         #    {
         #        "success": [
@@ -1603,20 +1664,21 @@ class bittrade(Exchange, ImplicitAPI):
             }))
         return result
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
-            # 'account-id' string False NA The account id used for self cancel Refer to GET /v1/account/accounts
-            # 'symbol': market['id'],  # a list of comma-separated symbols, all symbols by default
+        if self.markets is None:
+            self.load_markets()
+        request = {
+            # 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
+            # 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
             # 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
-            # 'side': 'buy',  # or 'sell'
-            # 'size': 100,  # the number of orders to cancel 1-100
+            # 'side': 'buy', // or 'sell'
+            # 'size': 100, // the number of orders to cancel 1-100
         }
         market = None
         if symbol is not None:
@@ -1640,13 +1702,13 @@ class bittrade(Exchange, ImplicitAPI):
             }),
         ]
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "currency": "usdt",
         #         "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
         #         "addressTag": "",
-        #         "chain": "usdterc20",  # trc20usdt, hrc20usdt, usdt, algousdt
+        #         "chain": "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         #     }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -1655,7 +1717,7 @@ class bittrade(Exchange, ImplicitAPI):
         currency = self.safe_currency(currencyId, currency)
         code = self.safe_currency_code(currencyId, currency)
         networkId = self.safe_string(depositAddress, 'chain')
-        networks = self.safe_value(currency, 'networks', {})
+        networks = self.safe_dict(currency, 'networks', {})
         networksById = self.index_by(networks, 'id')
         networkValue = self.safe_value(networksById, networkId, networkId)
         network = self.safe_string(networkValue, 'network')
@@ -1668,7 +1730,7 @@ class bittrade(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1679,11 +1741,12 @@ class bittrade(Exchange, ImplicitAPI):
         """
         if limit is None or limit > 100:
             limit = 100
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {
+        request = {
             'type': 'deposit',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
@@ -1693,9 +1756,10 @@ class bittrade(Exchange, ImplicitAPI):
             request['size'] = limit  # max 100
         response = self.privateGetQueryDepositWithdraw(self.extend(request, params))
         # return response
-        return self.parse_transactions(response['data'], currency, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1706,11 +1770,12 @@ class bittrade(Exchange, ImplicitAPI):
         """
         if limit is None or limit > 100:
             limit = 100
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request: dict = {
+        request = {
             'type': 'withdraw',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
@@ -1720,7 +1785,8 @@ class bittrade(Exchange, ImplicitAPI):
             request['size'] = limit  # max 100
         response = self.privateGetQueryDepositWithdraw(self.extend(request, params))
         # return response
-        return self.parse_transactions(response['data'], currency, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -1801,7 +1867,7 @@ class bittrade(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             # deposit statuses
             'unknown': 'failed',
             'confirming': 'pending',
@@ -1815,7 +1881,7 @@ class bittrade(Exchange, ImplicitAPI):
             'reject': 'failed',
             'pass': 'pending',
             'wallet-reject': 'failed',
-            # 'confirmed': 'ok',  # present in deposit statuses
+            # 'confirmed': 'ok', // present in deposit statuses
             'confirm-error': 'failed',
             'repealed': 'failed',
             'wallet-transfer': 'pending',
@@ -1823,7 +1889,7 @@ class bittrade(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1834,18 +1900,19 @@ class bittrade(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'address': address,  # only supports existing addresses in your withdraw address list
             'amount': amount,
             'currency': currency['id'].lower(),
         }
         if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        networks = self.safe_dict(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # this line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
         if network is not None:
             # possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
@@ -1863,7 +1930,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = '/'
         if api == 'market':
             url += api
@@ -1876,7 +1943,7 @@ class bittrade(Exchange, ImplicitAPI):
         if api == 'private' or api == 'v2Private':
             self.check_required_credentials()
             timestamp = self.ymdhms(self.milliseconds(), 'T')
-            request: dict = {
+            request = {
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',
                 'AccessKeyId': self.apiKey,
@@ -1903,14 +1970,14 @@ class bittrade(Exchange, ImplicitAPI):
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
         else:
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         }) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:

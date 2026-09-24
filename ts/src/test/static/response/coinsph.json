@@ -378,7 +378,7 @@
                                     }
                                 }
                             },
-                            "ARB": {
+                            "ARBITRUM": {
                                 "info": {
                                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
                                     "memoRegex": "",
@@ -396,7 +396,7 @@
                                     "sameAddress": false
                                 },
                                 "id": "ARBITRUM",
-                                "network": "ARB",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,

@@ -17,7 +17,7 @@ def table(values):
     return "\n".join([string.format(*[str(v[k]) for k in keys]) for v in values])
 
 
-exchange = ccxt.bittrex({
+exchange = ccxt.kucoin({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
 })

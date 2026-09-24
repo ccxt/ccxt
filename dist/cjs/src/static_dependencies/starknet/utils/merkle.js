@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('../../noble-curves/abstract/modular.js');
-require('../../scure-starknet/index.js');
+require('@noble/curves/abstract/poseidon.js');
+require('@scure/starknet');
 require('../constants.js');
-require('../../scure-base/index.js');
-require('../../noble-curves/abstract/utils.js');
+require('@scure/base');
+require('@noble/curves/utils.js');
 var classHash = require('./hash/classHash.js');
 
 // ----------------------------------------------------------------------------

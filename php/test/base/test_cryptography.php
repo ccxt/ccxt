@@ -46,7 +46,7 @@ function rsa(...$arg) {
 
 function test_cryptography () {
 
-    // $exchange = new Exchange ();
+    // const exchange = new Exchange ();
 
     // ---------------------------------------------------------------------------------------------------------------------
 
@@ -63,16 +63,13 @@ function test_cryptography () {
 
     // ---------------------------------------------------------------------------------------------------------------------
 
-
     $privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
-
 
     assert (equals (ecdsa ('1a', $privateKey, 'secp256k1', 'sha256'), array(
         'r' => '23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f',
         's' => '317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667',
         'v' => 0,
     )));
-
 
     assert (equals (ecdsa ($privateKey, $privateKey, 'secp256k1', null), array(
         'r' => 'b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1',
@@ -83,19 +80,19 @@ function test_cryptography () {
     // ---------------------------------------------------------------------------------------------------------------------
 
     //
-    // assert ($exchange->hashMessage ($privateKey) === '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f');
+    // assert (exchange.hashMessage (privateKey) === '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f');
     //
-    // assert (equals ($exchange->signHash ('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', $privateKey), array(
-    //     'r' => '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
-    //     's' => '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
-    //     'v' => 27
-    // )));
+    // assert (equals (exchange.signHash ('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', privateKey), {
+    //     'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
+    //     's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
+    //     'v': 27
+    // }));
     //
-    // assert (equals ($exchange->signMessage ($privateKey, $privateKey), array(
-    //     'r' => '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
-    //     's' => '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
-    //     'v' => 27
-    // )));
+    // assert (equals (exchange.signMessage (privateKey, privateKey), {
+    //     'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
+    //     's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
+    //     'v': 27
+    // }));
     //
     // ---------------------------------------------------------------------------------------------------------------------
 
@@ -129,7 +126,6 @@ function test_cryptography () {
         '-----END RSA PRIVATE KEY-----',
     );
 
-
     $pemKey = implode("\n", $pemKeyArray);
     assert (rsa ('hello', $pemKey, 'sha256') === 'PqHotvSEBvM/AejnMOWBXUcOf3uHtcGu2zAYdlYdnlNSSQ80Uq4lcyAEstnZ2AnQJ9l5TCC53uoRZ26GQ47zlACgqtYglmPhQKLvQ5fldRzeBauYhGgM2C0mUuUGxh074fNGbK+bgmwEmDMIrnSPtXwiCqTAHh+8VEnC7us3t09D61y298dPBJYEBNN3dFZT0w0pCIQg3j3DSiFJOCfywmOKyXqS1pvmk6A38DVclQZORQ5WZXp2yvSKRLjxpzjxDl76h1GfbBl7sMLEFMyzk0wyIhIz8ZELMibYn036G4X1IcSlDcimthEkIbn2QjM0ntyYDZIS4QnsMBjvkV2UHw==');
     assert (rsa ('poopy', $pemKey, 'sha256') === 'or069qHwRDyl162T1s5G5+LfLnvDxlgk9kEsJvwI3vM02KB1LHW4+8gWqsV4TENZpeqed2Tb4na6ex+L/UR8JxJnnZtpVp33nUBgcp3miqp/YhcGN4++qolP4YN/21/AyfLFZW+VYggc+Mhh6PJSm+0dSEWMVsP35uH+35abXVxgB8GVOn7YTOSPaL8aw7hn4wlZWf2ieikKAi7AwAjkxnd7/Bu5+cW8D+ZdPHQfSKj+XHuPXlJNuQX0MDIqhdD2yuYJOQL56eKYs6nHPlClATkndSaAemQSGKet3X3Iz1awG4MGgz2Ei6bOanlNugc0f6Rng6rdwmqiMU3G4it6cw==');
@@ -141,7 +137,7 @@ function test_cryptography () {
     assert (crc32 ('tasty chicken breast :)', true) === 825820175);
     assert (crc32 ('21101:0.00123125:21102:-0.001:21100:0.710705:21103:-0.001:21096:0.71076:21104:-0.001:21094:1.0746:21105:-0.001:21093:0.710854:21106:-0.419:21092:0.01368102:21107:-0.001:21090:0.710975:21109:-0.001:21089:0.63586344:21110:-1.186213:21087:0.299:21111:-0.48751202:21086:0.9493:21112:-0.03702409:21082:0.03537667:21113:-0.712385:21081:0.00101366:21114:-0.2903:21079:0.710713:21115:-0.001:21078:0.997048:21116:-0.60089827:21077:0.23770225:21117:-0.83201:21076:0.03619135:21118:-0.09996142:21075:0.1272433:21119:-1.09681107:21074:0.7447885:21120:-0.04771792:21073:0.0011:21121:-0.91495684:21072:0.73311632:21122:-0.07940416:21071:0.09817:21123:-0.39376843:21070:0.19101052:21124:-1.51692599:21069:0.2757:21125:-0.11107322:21068:0.12480303:21126:-0.12704666:21067:0.4201:21128:-0.12804666', true) === -51055998);
 
-    // assert (eddsa ('1b1b', $privateKey, 'ed25519') === '3DBaaz8z4Pq9n6ncNCjB4pFLWaWTXbjaCUqKQmBgS3w7AP6opeDqANBhPssbV3jyfJB4LfK8kGR6pu6GU8fbjMuy');
+    // assert (eddsa ('1b1b', privateKey, ed25519) === '3DBaaz8z4Pq9n6ncNCjB4pFLWaWTXbjaCUqKQmBgS3w7AP6opeDqANBhPssbV3jyfJB4LfK8kGR6pu6GU8fbjMuy');
 }
 
 

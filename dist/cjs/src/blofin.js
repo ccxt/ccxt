@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var blofin$1 = require('./abstract/blofin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ class blofin extends blofin$1["default"] {
             'name': 'BloFin',
             'countries': ['US'],
             'version': 'v1',
-            'rateLimit': 100,
+            'rateLimit': 200, // 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -109,6 +109,7 @@ class blofin extends blofin$1["default"] {
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
@@ -138,7 +139,7 @@ class blofin extends blofin$1["default"] {
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -157,9 +158,8 @@ class blofin extends blofin$1["default"] {
                 '1w': '1W',
                 '1M': '1M',
             },
-            'hostname': 'www.blofin.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b',
+                'logo': 'https://github.com/user-attachments/assets/67edf117-6217-4cb8-95e7-9b03f314b1b1',
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
@@ -176,100 +176,128 @@ class blofin extends blofin$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'market/instruments': 1,
-                        'market/tickers': 1,
-                        'market/books': 1,
-                        'market/trades': 1,
-                        'market/mark-price': 1,
-                        'market/funding-rate': 1,
-                        'market/funding-rate-history': 1,
-                        'market/candles': 1,
-                        'market/index-candles': 1,
-                        'market/mark-price-candles': 1,
-                        'market/position-tiers': 1,
+                        'market/instruments': { 'cost': 1 },
+                        'market/instruments-history': { 'cost': 1 },
+                        'market/tickers': { 'cost': 1 },
+                        'market/books': { 'cost': 1 },
+                        'market/trades': { 'cost': 1 },
+                        'market/mark-price': { 'cost': 1 },
+                        'market/funding-rate': { 'cost': 1 },
+                        'market/funding-rate-history': { 'cost': 1 },
+                        'market/candles': { 'cost': 1 },
+                        'market/index-candles': { 'cost': 1 },
+                        'market/mark-price-candles': { 'cost': 1 },
+                        'market/position-tiers': { 'cost': 1 },
+                        // spot
+                        'spot/market/instruments': { 'cost': 1 },
+                        'spot/market/tickers': { 'cost': 1 },
+                        'spot/market/books': { 'cost': 1 },
+                        'spot/market/trades': { 'cost': 1 },
+                        'spot/market/candles': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'asset/balances': 1,
-                        'asset/bills': 1,
-                        'asset/withdrawal-history': 1,
-                        'asset/deposit-history': 1,
-                        'account/config': 1,
-                        'asset/currencies': 1,
+                        'asset/balances': { 'cost': 1 },
+                        'asset/bills': { 'cost': 1 },
+                        'asset/withdrawal-history': { 'cost': 1 },
+                        'asset/deposit-history': { 'cost': 1 },
+                        'asset/deposit-address': { 'cost': 1 },
+                        'account/config': { 'cost': 1 },
+                        'asset/currencies': { 'cost': 1 },
                         // trading
-                        'account/balance': 1,
-                        'account/positions': 1,
-                        'account/positions-history': 1,
-                        'account/margin-mode': 1,
-                        'account/position-mode': 1,
-                        'account/leverage-info': 1,
-                        'account/batch-leverage-info': 1,
-                        'trade/orders-pending': 1,
-                        'trade/order-detail': 1,
-                        'trade/orders-tpsl-pending': 1,
-                        'trade/order-tpsl-detail': 1,
-                        'trade/orders-algo-pending': 1,
-                        'trade/orders-history': 1,
-                        'trade/orders-tpsl-history': 1,
-                        'trade/orders-algo-history': 1,
-                        'trade/fills-history': 1,
-                        'trade/order/price-range': 1,
+                        'account/balance': { 'cost': 1 },
+                        'account/positions': { 'cost': 1 },
+                        'account/positions-history': { 'cost': 1 },
+                        'account/funding-fees': { 'cost': 1 },
+                        'account/margin-mode': { 'cost': 1 },
+                        'account/position-mode': { 'cost': 1 },
+                        'account/leverage-info': { 'cost': 1 },
+                        'account/batch-leverage-info': { 'cost': 1 },
+                        'trade/orders-pending': { 'cost': 1.67 },
+                        'trade/order-detail': { 'cost': 1.67 },
+                        'trade/orders-tpsl-pending': { 'cost': 1.67 },
+                        'trade/order-tpsl-detail': { 'cost': 1.67 },
+                        'trade/orders-algo-pending': { 'cost': 1.67 },
+                        'trade/orders-history': { 'cost': 1.67 },
+                        'trade/orders-tpsl-history': { 'cost': 1.67 },
+                        'trade/orders-algo-history': { 'cost': 1.67 }, // todo new
+                        'trade/fills-history': { 'cost': 1.67 },
+                        'trade/order/price-range': { 'cost': 1.67 },
                         // affiliate
-                        'affiliate/basic': 1,
-                        'affiliate/referral-code': 1,
-                        'affiliate/invitees': 1,
-                        'affiliate/sub-invitees': 1,
-                        'affiliate/sub-affiliates': 1,
-                        'affiliate/invitees/daily/info': 1,
+                        'affiliate/basic': { 'cost': 1 },
+                        'affiliate/referral-code': { 'cost': 1 },
+                        'affiliate/invitees': { 'cost': 1 },
+                        'affiliate/sub-invitees': { 'cost': 1 },
+                        'affiliate/sub-affiliates': { 'cost': 1 },
+                        'affiliate/invitees/daily/info': { 'cost': 1 },
                         // copy trading
-                        'copytrading/instruments': 1,
-                        'copytrading/config': 1,
-                        'copytrading/account/balance': 1,
-                        'copytrading/account/positions-by-order': 1,
-                        'copytrading/account/positions-details-by-order': 1,
-                        'copytrading/account/positions-by-contract': 1,
-                        'copytrading/account/position-mode': 1,
-                        'copytrading/account/leverage-info': 1,
-                        'copytrading/trade/orders-pending': 1,
-                        'copytrading/trade/pending-tpsl-by-contract': 1,
-                        'copytrading/trade/position-history-by-order': 1,
-                        'copytrading/trade/orders-history': 1,
-                        'copytrading/trade/pending-tpsl-by-order': 1,
+                        'copytrading/instruments': { 'cost': 1 },
+                        'copytrading/config': { 'cost': 1 },
+                        'copytrading/account/balance': { 'cost': 1 },
+                        'copytrading/account/positions-by-order': { 'cost': 1 },
+                        'copytrading/account/positions-details-by-order': { 'cost': 1 },
+                        'copytrading/account/positions-by-contract': { 'cost': 1 },
+                        'copytrading/account/position-mode': { 'cost': 1 },
+                        'copytrading/account/leverage-info': { 'cost': 1 },
+                        'copytrading/trade/orders-pending': { 'cost': 1.67 },
+                        'copytrading/trade/pending-tpsl-by-contract': { 'cost': 1.67 },
+                        'copytrading/trade/position-history-by-order': { 'cost': 1.67 },
+                        'copytrading/trade/orders-history': { 'cost': 1.67 },
+                        'copytrading/trade/pending-tpsl-by-order': { 'cost': 1.67 },
                         // user
-                        'user/query-apikey': 1,
+                        'user/query-apikey': { 'cost': 1 },
                         // tax
-                        'spot/trade/fills-history': 1,
+                        'spot/trade/fills-history': { 'cost': 1 },
+                        // spot
+                        'spot/trade/orders-pending': { 'cost': 1.67 },
+                        'spot/trade/order-detail': { 'cost': 1.67 },
+                        'spot/trade/orders-algo-pending': { 'cost': 1.67 },
+                        'spot/trade/orders-history': { 'cost': 1.67 },
+                        'spot/trade/orders-algo-history': { 'cost': 1.67 },
+                        'spot/trade/order/price-range': { 'cost': 1.67 },
                     },
                     'post': {
                         // account
-                        'asset/transfer': 1,
-                        'asset/demo-apply-money': 1,
+                        'asset/transfer': { 'cost': 1 },
+                        'asset/demo-apply-money': { 'cost': 1 },
+                        'asset/withdrawal-apply': { 'cost': 1 },
                         // trading
-                        'account/set-margin-mode': 1,
-                        'account/set-position-mode': 1,
-                        'account/set-leverage': 1,
-                        'trade/order': 1,
-                        'trade/batch-orders': 1,
-                        'trade/order-tpsl': 1,
-                        'trade/order-algo': 1,
-                        'trade/cancel-order': 1,
-                        'trade/cancel-batch-orders': 1,
-                        'trade/cancel-tpsl': 1,
-                        'trade/cancel-algo': 1,
-                        'trade/close-position': 1,
+                        'account/set-margin-mode': { 'cost': 1.67 },
+                        'account/set-position-mode': { 'cost': 1.67 },
+                        'account/set-leverage': { 'cost': 1.67 },
+                        'trade/order': { 'cost': 1.67 },
+                        'trade/batch-orders': { 'cost': 1.67 },
+                        'trade/order-tpsl': { 'cost': 1.67 },
+                        'trade/order-algo': { 'cost': 1.67 },
+                        'trade/cancel-order': { 'cost': 1.67 },
+                        'trade/cancel-batch-orders': { 'cost': 1.67 },
+                        'trade/cancel-tpsl': { 'cost': 1.67 },
+                        'trade/cancel-algo': { 'cost': 1.67 },
+                        'trade/amend-order': { 'cost': 1.67 },
+                        'trade/amend-batch-orders': { 'cost': 1.67 },
+                        'trade/amend-tpsl': { 'cost': 1.67 },
+                        'trade/amend-algo': { 'cost': 1.67 },
+                        'trade/close-position': { 'cost': 1.67 },
+                        // spot
+                        'spot/trade/order': { 'cost': 1.67 },
+                        'spot/trade/batch-orders': { 'cost': 1.67 },
+                        'spot/trade/order-algo': { 'cost': 1.67 },
+                        'spot/trade/cancel-order': { 'cost': 1.67 },
+                        'spot/trade/cancel-batch-orders': { 'cost': 1.67 },
+                        'spot/trade/cancel-algo': { 'cost': 1.67 },
                         // copy trading
-                        'copytrading/account/set-position-mode': 1,
-                        'copytrading/account/set-leverage': 1,
-                        'copytrading/trade/place-order': 1,
-                        'copytrading/trade/cancel-order': 1,
-                        'copytrading/trade/place-tpsl-by-contract': 1,
-                        'copytrading/trade/cancel-tpsl-by-contract': 1,
-                        'copytrading/trade/place-tpsl-by-order': 1,
-                        'copytrading/trade/cancel-tpsl-by-order': 1,
-                        'copytrading/trade/close-position-by-order': 1,
-                        'copytrading/trade/close-position-by-contract': 1,
+                        'copytrading/account/set-position-mode': { 'cost': 1.67 },
+                        'copytrading/account/set-leverage': { 'cost': 1.67 },
+                        'copytrading/trade/place-order': { 'cost': 1.67 },
+                        'copytrading/trade/cancel-order': { 'cost': 1.67 },
+                        'copytrading/trade/place-tpsl-by-contract': { 'cost': 1.67 },
+                        'copytrading/trade/cancel-tpsl-by-contract': { 'cost': 1.67 },
+                        'copytrading/trade/place-tpsl-by-order': { 'cost': 1.67 },
+                        'copytrading/trade/cancel-tpsl-by-order': { 'cost': 1.67 },
+                        'copytrading/trade/close-position-by-order': { 'cost': 1.67 },
+                        'copytrading/trade/close-position-by-contract': { 'cost': 1.67 },
                     },
                 },
             },
@@ -351,7 +379,7 @@ class blofin extends blofin$1["default"] {
                     'extends': 'default',
                     'createOrder': {
                         'marginMode': true,
-                        'triggerPrice': false,
+                        'triggerPrice': false, // todo
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': true,
@@ -376,51 +404,91 @@ class blofin extends blofin$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    '400': errors.BadRequest,
-                    '401': errors.AuthenticationError,
-                    '500': errors.ExchangeError,
-                    '404': errors.BadRequest,
-                    '405': errors.BadRequest,
-                    '406': errors.BadRequest,
-                    '429': errors.RateLimitExceeded,
-                    '152001': errors.BadRequest,
-                    '152002': errors.BadRequest,
-                    '152003': errors.BadRequest,
-                    '152004': errors.BadRequest,
-                    '152005': errors.BadRequest,
-                    '152006': errors.InvalidOrder,
-                    '152007': errors.InvalidOrder,
-                    '152008': errors.InvalidOrder,
-                    '152009': errors.InvalidOrder,
-                    '150003': errors.InvalidOrder,
-                    '150004': errors.InvalidOrder,
-                    '542': errors.InvalidOrder,
-                    '102002': errors.InvalidOrder,
-                    '102005': errors.InvalidOrder,
-                    '102014': errors.InvalidOrder,
-                    '102015': errors.InvalidOrder,
-                    '102022': errors.InvalidOrder,
-                    '102037': errors.InvalidOrder,
-                    '102038': errors.InvalidOrder,
-                    '102039': errors.InvalidOrder,
-                    '102040': errors.InvalidOrder,
-                    '102047': errors.InvalidOrder,
-                    '102048': errors.InvalidOrder,
-                    '102049': errors.InvalidOrder,
-                    '102050': errors.InvalidOrder,
-                    '102051': errors.InvalidOrder,
-                    '102052': errors.InvalidOrder,
-                    '102053': errors.InvalidOrder,
-                    '102054': errors.InvalidOrder,
-                    '102055': errors.InvalidOrder,
-                    '102064': errors.BadRequest,
-                    '102065': errors.BadRequest,
-                    '102068': errors.BadRequest,
-                    '103013': errors.ExchangeError,
+                    '400': errors.BadRequest, // Body can not be empty
+                    '401': errors.AuthenticationError, // Invalid signature
+                    '500': errors.ExchangeError, // Internal Server Error
+                    '404': errors.BadRequest, // not found
+                    '405': errors.BadRequest, // Method Not Allowed
+                    '406': errors.BadRequest, // Not Acceptable
+                    '429': errors.RateLimitExceeded, // Too Many Requests
+                    '152001': errors.BadRequest, // Parameter {} cannot be empty - verified live 2026-09-14 (withdrawal-apply without addrType)
+                    '152002': errors.BadRequest, // Parameter {} error - verified live 2026-09-14 (short-form chain id in withdrawal-apply; NOTE the live message omits the field name)
+                    '152003': errors.BadRequest, // Either parameter {} or {} is required
+                    '152004': errors.BadRequest, // JSON syntax error
+                    '152005': errors.BadRequest, // Parameter error: wrong or empty
+                    '152006': errors.InvalidOrder, // Batch orders can be placed for up to 20 at once
+                    '152007': errors.InvalidOrder, // Batch orders can only be placed with the same instId and marginMode
+                    '152008': errors.InvalidOrder, // Only the same field is allowed for bulk cancellation of orders, orderId is preferred
+                    '152009': errors.InvalidOrder, // {} must be a combination of numbers, letters, or underscores, and the maximum length of characters is 32
+                    '150003': errors.InvalidOrder, // clientId already exist
+                    '150004': errors.InvalidOrder, // Insufficient balance. please adjust the amount and try again
+                    '542': errors.InvalidOrder, // Exceeded the maximum order size limit
+                    '102002': errors.InvalidOrder, // Duplicate customized order ID
+                    '102005': errors.InvalidOrder, // Position had been closed
+                    '102014': errors.InvalidOrder, // Limit order exceeds maximum order size limit
+                    '102015': errors.InvalidOrder, // Market order exceeds maximum order size limit
+                    '102022': errors.InvalidOrder, // Failed to place order. You don’t have any positions of this contract. Turn off Reduce-only to continue.
+                    '102037': errors.InvalidOrder, // TP trigger price should be higher than the latest trading price
+                    '102038': errors.InvalidOrder, // SL trigger price should be lower than the latest trading price
+                    '102039': errors.InvalidOrder, // TP trigger price should be lower than the latest trading price
+                    '102040': errors.InvalidOrder, // SL trigger price should be higher than the latest trading price
+                    '102047': errors.InvalidOrder, // Stop loss trigger price should be higher than the order price
+                    '102048': errors.InvalidOrder, // stop loss trigger price must be higher than the best bid price
+                    '102049': errors.InvalidOrder, // Take profit trigger price should be lower than the order price
+                    '102050': errors.InvalidOrder, // stop loss trigger price must be lower than the best ask price
+                    '102051': errors.InvalidOrder, // stop loss trigger price should be lower than the order price
+                    '102052': errors.InvalidOrder, // take profit trigger price should be higher than the order price
+                    '102053': errors.InvalidOrder, // take profit trigger price should be lower than the best bid price
+                    '102054': errors.InvalidOrder, // take profit trigger price should be higher than the best ask price
+                    '102055': errors.InvalidOrder, // stop loss trigger price should be lower than the best ask price
+                    '102064': errors.BadRequest, // Buy price is not within the price limit (Minimum: 310.40; Maximum:1,629.40)
+                    '102065': errors.BadRequest, // Sell price is not within the price limit
+                    '102068': errors.BadRequest, // Cancel failed as the order has been filled, triggered, canceled or does not exist
+                    '103013': errors.ExchangeError, // Internal error; unable to process your request. Please try again.
+                    '102067': errors.OrderNotFound, // Order modification failed as the order has been filled, triggered, canceled or does not exist.
+                    '102089': errors.BadRequest, // Position mode mismatch
+                    '102148': errors.DuplicateOrderId, // Duplicate requestId, request ignored.
+                    '103003': errors.InsufficientFunds, // Order failed. Insufficient USDT margin in account
+                    '110006': errors.InvalidOrder, // You have pending cross orders. Please cancel them before adjusting your leverage.
+                    '110019': errors.InvalidOrder, // Setting failed. Cancel any open orders, and close positions first.
+                    '148082': errors.BadRequest, // Callback percentage range 0.1% - 100%
+                    '148083': errors.BadRequest, // Callback constant range
+                    '152011': errors.PermissionDenied, // Transaction API Key does not support brokerId
+                    '152012': errors.BadRequest, // BrokerId is required
+                    '152013': errors.PermissionDenied, // Unmatched brokerId, please check your API key's bound broker
+                    '152014': errors.BadRequest, // Instrument ID does not exist
+                    '152015': errors.BadRequest, // Number of instId values exceeds the maximum limit of 20
+                    '152020': errors.InvalidAddress, // Address binding not found.
+                    '152022': errors.BadRequest, // Current network is not available.
+                    '152023': errors.PermissionDenied, // This address is still within the 24-hour withdrawal lock period.
+                    '152024': errors.PermissionDenied, // Your account now can only withdraw to whitelist addresses.
+                    '152025': errors.PermissionDenied, // Deposits not supported yet, contact customer support for details.
+                    '152026': errors.BadRequest, // Amount precision error.
+                    '152027': errors.BadRequest, // The withdrawal must exceed the minimum limit.
+                    '152028': errors.InsufficientFunds, // Insufficient balance.
+                    '152029': errors.PermissionDenied, // The maximum daily withdrawal amount has been reached.
+                    '152030': errors.DuplicateOrderId, // Duplicated clientId.
+                    '152031': errors.InvalidAddress, // This address is not marked as verification-free. - verified live 2026-09-14 (account-policy rejection, address must carry the verification-free flag for api withdrawals)
+                    '152032': errors.PermissionDenied, // Quick withdrawal daily limit exceeded. Please complete 2FA verification.
+                    '152401': errors.AuthenticationError, // Access key does not exist
+                    '152402': errors.AuthenticationError, // Access key has expired
+                    '152404': errors.PermissionDenied, // This operation is not supported, Please check the requestPath or API key permissions. - verified live 2026-09-14 (api key without the withdrawal permission)
+                    '152405': errors.InvalidNonce, // Timestamp in header or signature has expired, need to be within 60s
+                    '152406': errors.PermissionDenied, // Your IP is not included in your API key's IP whitelist
+                    '152407': errors.InvalidNonce, // Repeated nonce, Reusing within 60 seconds is not allowed.
+                    '152408': errors.AuthenticationError, // Passphrase error
+                    '152409': errors.AuthenticationError, // Signature verification failed
+                    '152410': errors.InvalidNonce, // The value of ACCESS-TIMESTAMP needs to be a millisecond timestamp
+                    '152420': errors.DuplicateOrderId, // Duplicate order in batch request
+                    '152421': errors.DuplicateOrderId, // requestId already exists, please try again later
+                    '152422': errors.BadRequest, // Exactly one of callbackRatio and callbackSpread must be provided
+                    '152423': errors.InvalidOrder, // New size cannot be less than filled size
+                    '152428': errors.BadRequest, // Invalid trigger price type
+                    '152429': errors.BadRequest, // Request expired, ttl exceeded
                     'Order failed. Insufficient USDT margin in account': errors.InsufficientFunds, // Insufficient USDT margin in account
                 },
                 'broad': {
-                    'Internal Server Error': errors.ExchangeNotAvailable,
+                    'Internal Server Error': errors.ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
                     'server error': errors.ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
@@ -429,7 +497,6 @@ class blofin extends blofin$1["default"] {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
-                'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
                     'funding': 'funding',
@@ -452,10 +519,49 @@ class blofin extends blofin$1["default"] {
                     'USDT': 'TRC20',
                 },
                 'networks': {
+                    // code -> the live withdrawal-apply chain identifier where
+                    // it carries no parenthesized suffix; the suffix family
+                    // ('Tron (TRC20)' and friends) is constructed at runtime
+                    // in networkCodeToChainId from networkPrefixes, because a
+                    // space before a paren inside a source literal is not
+                    // transpiler-safe
                     'BTC': 'Bitcoin',
-                    'BEP20': 'BSC',
-                    'ERC20': 'ERC20',
-                    'TRC20': 'TRC20',
+                    'SOL': 'Solana',
+                    'MATIC': 'Polygon POS',
+                    'AVAXC': 'AVAX C-Chain',
+                    'ARBITRUM': 'Arbitrum One',
+                    'OP': 'Optimism',
+                    'KAIA': 'KAIA',
+                },
+                'networkPrefixes': {
+                    // code -> the display-name prefix; the venue id is
+                    // prefix + space + parenthesized suffix, where the suffix
+                    // defaults to the unified code itself
+                    'TRC20': 'Tron',
+                    'ERC20': 'Ethereum',
+                    'BEP20': 'BNB Smart Chain',
+                    'APT': 'APT',
+                    'TON': 'TON',
+                },
+                'networkSuffixes': {
+                    // only where the parenthesized suffix differs from the code
+                    'TON': 'Toncoin',
+                },
+                'networkCodesBySuffix': {
+                    // reverse of networkSuffixes for parsing venue ids
+                    'Toncoin': 'TON',
+                },
+                'networksById': {
+                    // paren-free venue ids and legacy short forms -> unified;
+                    // ids with a parenthesized suffix are parsed at runtime in
+                    // chainIdToNetworkCode
+                    'Bitcoin': 'BTC',
+                    'Solana': 'SOL',
+                    'Polygon POS': 'MATIC',
+                    'AVAX C-Chain': 'AVAXC',
+                    'Arbitrum One': 'ARBITRUM',
+                    'Optimism': 'OP',
+                    'BSC': 'BEP20',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -469,28 +575,13 @@ class blofin extends blofin$1["default"] {
                         '1D': '1D',
                     },
                 },
-                'fetchOHLCV': {
-                    // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
-                    'timezone': 'UTC', // UTC, HK
-                },
-                'fetchPositions': {
-                    'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
-                },
-                'createOrder': 'privatePostTradeOrder',
-                'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': ['swap'],
                 'defaultType': 'swap',
-                'fetchLedger': {
-                    'method': 'privateGetAssetBills',
-                },
+                'brokerId': 'ec6dd3a7dd982d0b',
                 'fetchOpenOrders': {
                     'method': 'privateGetTradeOrdersPending',
                 },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',
-                },
-                'fetchCanceledOrders': {
-                    'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
@@ -533,7 +624,7 @@ class blofin extends blofin$1["default"] {
         const contract = swap || future;
         const baseId = this.safeString(market, 'baseCurrency');
         const quoteId = this.safeString(market, 'quoteCurrency');
-        const settleId = this.safeString(market, 'quoteCurrency');
+        const settleId = this.safeString(market, 'settleCurrency', quoteId);
         const settle = this.safeCurrencyCode(settleId);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
@@ -552,6 +643,9 @@ class blofin extends blofin$1["default"] {
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const isActive = (this.safeString(market, 'state') === 'live');
         const isMargin = spot && (Precise["default"].stringGt(maxLeverage, '1'));
+        const contractType = this.safeString(market, 'contractType');
+        const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
+        const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -571,8 +665,8 @@ class blofin extends blofin$1["default"] {
             'taker': taker,
             'maker': maker,
             'contract': contract,
-            'linear': contract ? (quoteId === settleId) : undefined,
-            'inverse': contract ? (baseId === settleId) : undefined,
+            'linear': contract ? (contractType === 'linear') : undefined,
+            'inverse': contract ? (contractType === 'inverse') : undefined,
             'contractSize': contract ? this.safeNumber(market, 'contractValue') : undefined,
             'expiry': expiry,
             'expiryDatetime': expiry,
@@ -590,7 +684,7 @@ class blofin extends blofin$1["default"] {
                 },
                 'amount': {
                     'min': this.safeNumber(market, 'minSize'),
-                    'max': undefined,
+                    'max': maxLimitAmount,
                 },
                 'price': {
                     'min': undefined,
@@ -598,7 +692,7 @@ class blofin extends blofin$1["default"] {
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
@@ -612,10 +706,12 @@ class blofin extends blofin$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -678,7 +774,7 @@ class blofin extends blofin$1["default"] {
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(market, 'spot', false);
-        const quoteVolume = spot ? this.safeString(ticker, 'volCurrency24h') : undefined;
+        const quoteVolume = (spot === true) ? this.safeString(ticker, 'volCurrency24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
         const low = this.safeString(ticker, 'low24h');
@@ -717,7 +813,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -738,7 +836,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrice(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -758,7 +858,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetMarketTickers(params);
         const tickers = this.safeList(response, 'data', []);
@@ -889,7 +991,9 @@ class blofin extends blofin$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -949,7 +1053,9 @@ class blofin extends blofin$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
@@ -969,8 +1075,7 @@ class blofin extends blofin$1["default"] {
             request['after'] = until;
             params = this.omit(params, 'until');
         }
-        let response = undefined;
-        response = await this.publicGetMarketCandles(this.extend(request, params));
+        const response = await this.publicGetMarketCandles(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
@@ -991,7 +1096,9 @@ class blofin extends blofin$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1072,9 +1179,11 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
@@ -1217,11 +1326,13 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountType = undefined;
         [accountType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'accountType', 'type');
         const request = {};
-        let response = undefined;
+        let response;
         if (accountType !== undefined && accountType !== 'swap') {
             const options = this.safeDict(this.options, 'accountsByType', {});
             const parsedAccountType = this.safeString(options, accountType, accountType);
@@ -1234,6 +1345,12 @@ class blofin extends blofin$1["default"] {
         return this.parseBalanceByType(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -1249,7 +1366,7 @@ class blofin extends blofin$1["default"] {
         const triggerPriceSlTp = this.safeString2(params, 'stopLossPrice', 'takeProfitPrice');
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         const isHedged = this.safeBool(params, 'hedged', false);
-        if (isHedged) {
+        if (isHedged === true) {
             request['positionSide'] = (side === 'buy') ? 'long' : 'short';
         }
         const isMarketOrder = type === 'market';
@@ -1379,13 +1496,11 @@ class blofin extends blofin$1["default"] {
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const feeCostString = this.safeString(order, 'fee');
         const amount = this.safeString(order, 'size');
-        const leverage = this.safeString(order, 'leverage', '1');
         const contractSize = this.safeString(market, 'contractSize');
         const baseAmount = Precise["default"].stringMul(contractSize, filled);
         let cost = undefined;
         if (average !== undefined) {
             cost = Precise["default"].stringMul(average, baseAmount);
-            cost = Precise["default"].stringDiv(cost, leverage);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         let fee = undefined;
@@ -1468,7 +1583,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const isStopLossPriceDefined = this.safeString(params, 'stopLossPrice') !== undefined;
         const isTakeProfitPriceDefined = this.safeString(params, 'takeProfitPrice') !== undefined;
@@ -1477,7 +1594,7 @@ class blofin extends blofin$1["default"] {
         [isTpslEndpoint, params] = this.handleOptionAndParams(params, 'createOrder', 'tpsl', false);
         const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint;
         const isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
-        let response = undefined;
+        let response;
         const reduceOnly = this.safeBool(params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
@@ -1509,7 +1626,7 @@ class blofin extends blofin$1["default"] {
         const market = this.market(symbol);
         const hedged = this.safeBool(params, 'hedged', false);
         let positionSide = 'net';
-        if (hedged) {
+        if (hedged === true) {
             positionSide = (side === 'buy') ? 'short' : 'long';
         }
         const request = {
@@ -1577,35 +1694,37 @@ class blofin extends blofin$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
         };
-        const isTrigger = this.safeBoolN(params, ['trigger'], false);
+        const isTrigger = this.safeBool(params, 'trigger', false);
         const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         }
         else {
-            if (!isTrigger && !isTpsl) {
+            if ((isTrigger !== true) && (isTpsl !== true)) {
                 request['orderId'] = id.toString();
             }
-            else if (isTpsl) {
+            else if (isTpsl === true) {
                 request['tpslId'] = id.toString();
             }
-            else if (isTrigger) {
+            else if (isTrigger === true) {
                 request['algoId'] = id.toString();
             }
         }
         const query = this.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl']);
-        if (isTpsl) {
+        if (isTpsl === true) {
             const tpslResponse = await this.cancelOrders([id], symbol, params);
             const first = this.safeDict(tpslResponse, 0);
             return first;
         }
-        else if (isTrigger) {
+        else if (isTrigger === true) {
             const triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             const triggerData = this.safeDict(triggerResponse, 'data');
             return this.parseOrder(triggerData, market);
@@ -1625,7 +1744,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1659,7 +1780,9 @@ class blofin extends blofin$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
@@ -1679,11 +1802,11 @@ class blofin extends blofin$1["default"] {
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
-        let response = undefined;
-        if (isTpSl || (method === 'privateGetTradeOrdersTpslPending')) {
+        let response;
+        if ((isTpSl === true) || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         }
-        else if (isTrigger || (method === 'privateGetTradeOrdersAlgoPending')) {
+        else if ((isTrigger === true) || (method === 'privateGetTradeOrdersAlgoPending')) {
             request['orderType'] = 'trigger';
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
         }
@@ -1709,7 +1832,9 @@ class blofin extends blofin$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -1727,7 +1852,7 @@ class blofin extends blofin$1["default"] {
         }
         let type = 'swap';
         [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params, type);
-        let response = undefined;
+        let response;
         if (type === 'spot') {
             request['instType'] = 'SPOT';
             //
@@ -1773,7 +1898,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -1810,7 +1937,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -1833,6 +1962,131 @@ class blofin extends blofin$1["default"] {
         const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
+    networkCodeToChainId(networkCode) {
+        // the live venue identifies chains by display names; the suffix
+        // family is built here as prefix + space + parenthesized suffix
+        // because such literals are not transpiler-safe in source
+        const networks = this.safeDict(this.options, 'networks', {});
+        const direct = this.safeString(networks, networkCode);
+        if (direct !== undefined) {
+            return direct;
+        }
+        const prefixes = this.safeDict(this.options, 'networkPrefixes', {});
+        const prefix = this.safeString(prefixes, networkCode);
+        if (prefix !== undefined) {
+            const suffixes = this.safeDict(this.options, 'networkSuffixes', {});
+            const suffix = this.safeString(suffixes, networkCode, networkCode);
+            return prefix + ' ' + '(' + suffix + ')';
+        }
+        return networkCode;
+    }
+    chainIdToNetworkCode(chainId) {
+        // live history rows and the currencies registry carry display-name
+        // chain ids like Tron with a parenthesized TRC20 suffix (verified
+        // live 2026-09-15), while the doc examples still show short forms -
+        // parse the suffix when present, fall back to the id maps otherwise
+        if (chainId === undefined) {
+            return undefined;
+        }
+        if (chainId.indexOf('(') > -1) {
+            // php-safe suffix extraction: split instead of index arithmetic,
+            // because a stored strpos result and a two-argument slice do not
+            // survive the php conversion (false-vs-int compare; length arg)
+            const parts = chainId.split('(');
+            const tail = this.safeString(parts, 1, '');
+            const tailParts = tail.split(')');
+            const suffix = this.safeString(tailParts, 0);
+            const bySuffix = this.safeDict(this.options, 'networkCodesBySuffix', {});
+            return this.safeString(bySuffix, suffix, suffix);
+        }
+        // delegate the paren-free branch to the base resolver so the
+        // currency-scoped networks and the deprecated-network-code aliases
+        // keep applying alongside options['networksById']
+        return this.networkIdToCode(chainId);
+    }
+    /**
+     * @method
+     * @name blofin#withdraw
+     * @description make a withdrawal
+     * @see https://docs.blofin.com/index.html#withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
+     * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
+     * @param {string} tag additional identifier (memo / payment id) required by certain networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
+     * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
+     * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
+     * @param {string} [params.areaCode] area code for the phone number, required when address is a phone number
+     * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+        // - addrType is documented optional but the live venue rejects
+        //   on-chain withdrawals without it: 152001 "Parameter addrType
+        //   cannot be empty" - defaulted to 1 below
+        // - the chain identifiers accepted here are the DISPLAY NAMES from
+        //   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+        //   the short forms shown in the doc examples ("TRC20") are rejected
+        //   with 152002 "Invalid parameter" - see options["networks"]
+        // - 152002 responses omit the offending field name even though the
+        //   error table documents the message as "Parameter {} error"
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': this.numberToString(amount),
+        };
+        const dest = this.safeString(params, 'dest', 'onchain');
+        request['dest'] = dest;
+        params = this.omit(params, 'dest');
+        if (dest === 'onchain') {
+            this.checkAddress(address);
+            // the doc's Request Parameters table marks addrType "Required:
+            // No", but the live venue rejects on-chain withdrawals without
+            // it (152001 "Parameter addrType cannot be empty") - default to
+            // 1 = wallet address, callers can override for other kinds
+            request['addrType'] = this.safeString(params, 'addrType', '1');
+            params = this.omit(params, 'addrType');
+        }
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        // consume the unified network key unconditionally so it never leaks
+        // onto the wire; an explicit raw params['chain'] takes precedence
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const chain = this.safeString(params, 'chain');
+        if (chain === undefined) {
+            if (networkCode !== undefined) {
+                request['chain'] = this.networkCodeToChainId(networkCode);
+            }
+            else if (dest === 'onchain') {
+                // required for on-chain withdrawals, optional for internal transfers
+                throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals');
+            }
+        }
+        const response = await this.privatePostAssetWithdrawalApply(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "withdrawId": "a1b2c3d4e5",
+        //             "clientId": "broker-20260706-0001"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        // the response carries only withdrawId + clientId, and this class's
+        // parseTransaction reads every field from the payload - seed the
+        // parsed structure from the request so the unified transaction
+        // reflects what was actually submitted
+        return this.parseTransaction(this.extend(request, data), currency);
+    }
     /**
      * @method
      * @name blofin#fetchLedger
@@ -1848,7 +2102,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         if (paginate) {
@@ -1864,8 +2120,7 @@ class blofin extends blofin$1["default"] {
             request['currency'] = currency['id'];
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        let response = undefined;
-        response = await this.privateGetAssetBills(this.extend(request, params));
+        const response = await this.privateGetAssetBills(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         return this.parseLedger(data, currency, since, limit);
     }
@@ -1926,6 +2181,16 @@ class blofin extends blofin$1["default"] {
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const amount = this.safeNumber(transaction, 'amount');
+        // live history rows carry the DISPLAY-NAME chain identifiers
+        // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+        // examples show short forms ('TRC20') - chainIdToNetworkCode parses
+        // the parenthesized suffix for the display-name family, and the
+        // paren-free ids resolve through the base networkIdToCode with
+        // options['networksById']. note the history
+        // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+        // amount 29 + fee 1
+        const networkId = this.safeString(transaction, 'chain');
+        const networkCode = this.chainIdToNetworkCode(networkId);
         const txid = this.safeString(transaction, 'txId');
         const timestamp = this.safeInteger(transaction, 'ts');
         const feeCurrencyId = this.safeString(transaction, 'feeCurrency');
@@ -1936,7 +2201,7 @@ class blofin extends blofin$1["default"] {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': networkCode,
             'addressFrom': undefined,
             'addressTo': addressTo,
             'address': address,
@@ -1979,16 +2244,16 @@ class blofin extends blofin$1["default"] {
     }
     parseLedgerEntryType(type) {
         const types = {
-            '1': 'transfer',
-            '2': 'trade',
-            '3': 'trade',
-            '4': 'rebate',
-            '5': 'trade',
-            '6': 'transfer',
-            '7': 'trade',
-            '8': 'fee',
-            '9': 'trade',
-            '10': 'trade',
+            '1': 'transfer', // transfer
+            '2': 'trade', // trade
+            '3': 'trade', // delivery
+            '4': 'rebate', // auto token conversion
+            '5': 'trade', // liquidation
+            '6': 'transfer', // margin transfer
+            '7': 'trade', // interest deduction
+            '8': 'fee', // funding rate
+            '9': 'trade', // adl
+            '10': 'trade', // clawback
             '11': 'trade', // system token conversion
         };
         return this.safeString(types, type, type);
@@ -2047,16 +2312,16 @@ class blofin extends blofin$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = [];
-        const options = this.safeDict(this.options, 'cancelOrders', {});
-        const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
-        let method = this.safeString(params, 'method', defaultMethod);
+        let method = this.handleOption('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders');
         const clientOrderIds = this.parseIds(this.safeValue(params, 'clientOrderId'));
         const tpslIds = this.parseIds(this.safeValue(params, 'tpslId'));
         const trigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl']);
-        if (trigger) {
+        if (trigger === true) {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
@@ -2070,7 +2335,7 @@ class blofin extends blofin$1["default"] {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (trigger) {
+                if (trigger === true) {
                     request.push({
                         'tpslId': ids[i],
                         'instId': market['id'],
@@ -2092,7 +2357,7 @@ class blofin extends blofin$1["default"] {
                 });
             }
         }
-        let response = undefined;
+        let response;
         if (method === 'privatePostTradeCancelTpsl') {
             response = await this.privatePostTradeCancelTpsl(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
@@ -2115,7 +2380,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2155,7 +2422,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2164,7 +2433,7 @@ class blofin extends blofin$1["default"] {
         const data = this.safeList(response, 'data', []);
         const position = this.safeDict(data, 0);
         if (position === undefined) {
-            return undefined;
+            throw new errors.NullResponse(this.id + ' fetchPosition() returned empty position');
         }
         return this.parsePosition(position, market);
     }
@@ -2179,7 +2448,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.privateGetAccountPositions(params);
         const data = this.safeList(response, 'data', []);
@@ -2194,14 +2465,16 @@ class blofin extends blofin$1["default"] {
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         let market = undefined;
         if (symbols !== undefined) {
@@ -2325,7 +2598,7 @@ class blofin extends blofin$1["default"] {
         const contractSizeString = this.numberToString(contractSize);
         const markPriceString = this.safeString(position, 'markPrice');
         let notionalString = this.safeString(position, 'notionalUsd');
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             notionalString = Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber(notionalString);
@@ -2351,7 +2624,8 @@ class blofin extends blofin$1["default"] {
             initialMarginPercentage = this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            initialMarginString = Precise["default"].stringMul(initialMarginPercentage, notionalString);
+            const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            initialMarginString = Precise["default"].stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
@@ -2403,7 +2677,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverages(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchLeverages() requires a symbols argument');
         }
@@ -2416,9 +2692,10 @@ class blofin extends blofin$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         symbols = this.marketSymbols(symbols);
+        const symbolsList = symbols;
         let instIds = '';
-        for (let i = 0; i < symbols.length; i++) {
-            const entry = symbols[i];
+        for (let i = 0; i < symbolsList.length; i++) {
+            const entry = symbolsList[i];
             const entryMarket = this.market(entry);
             if (i > 0) {
                 instIds = instIds + ',' + entryMarket['id'];
@@ -2459,7 +2736,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params);
         if (marginMode === undefined) {
@@ -2520,7 +2799,9 @@ class blofin extends blofin$1["default"] {
         if ((leverage < 1) || (leverage > 125)) {
             throw new errors.BadRequest(this.id + ' setLeverage() leverage should be between 1 and 125');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params, 'cross');
@@ -2542,7 +2823,7 @@ class blofin extends blofin$1["default"] {
      * @see https://blofin.com/docs#close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2553,7 +2834,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const clientOrderId = this.safeString(params, 'clientOrderId');
         let marginMode = undefined;
@@ -2583,7 +2866,9 @@ class blofin extends blofin$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
@@ -2603,10 +2888,10 @@ class blofin extends blofin$1["default"] {
         }
         const isTrigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
+        [method, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
-        let response = undefined;
-        if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
+        let response;
+        if ((isTrigger === true) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         }
         else {
@@ -2625,7 +2910,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const response = await this.privateGetAccountMarginMode(params);
         //
@@ -2659,7 +2946,9 @@ class blofin extends blofin$1["default"] {
      */
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         this.checkRequiredArgument('setMarginMode', marginMode, 'marginMode', ['cross', 'isolated']);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2678,7 +2967,7 @@ class blofin extends blofin$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseMarginMode(data, market);
+        return this.parseMarginMode(data, market); // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
     /**
      * @method
@@ -2713,7 +3002,7 @@ class blofin extends blofin$1["default"] {
      * @description set hedged to true or false for a market
      * @see https://docs.blofin.com/index.html#set-position-mode
      * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -2742,7 +3031,9 @@ class blofin extends blofin$1["default"] {
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     async fetchPositionsADLRank(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const response = await this.privateGetAccountPositions(params);
         //
@@ -2853,7 +3144,7 @@ class blofin extends blofin$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        let url = this.implodeHostname(this.urls['api']['rest']) + request;
+        let url = this.urls['api']['rest'] + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
             if (!this.isEmpty(query)) {
@@ -2885,7 +3176,7 @@ class blofin extends blofin$1["default"] {
                 headers['Content-Type'] = 'application/json';
             }
             const auth = request + method + timestamp + timestamp + sign_body;
-            const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256));
+            const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256));
             headers['ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

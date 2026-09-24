@@ -7,7 +7,7 @@ import bybiteuRest from '../bybiteu.js';
 // ---------------------------------------------------------------------------
 
 export default class bybiteu extends bybit {
-    describe (): any {
+    override describe (): any {
         // eslint-disable-next-line new-cap
         const restInstance = new bybiteuRest ();
         const restDescribe = restInstance.describe ();

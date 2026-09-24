@@ -1,9 +1,6 @@
 {
     "exchange": "bydfi",
-    "skipKeys": [
-        "timestamp",
-        "datetime"
-    ],
+    "skipKeys": [],
     "options": {},
     "methods": {
         "fetchDeposits": [
@@ -142,8 +139,8 @@
                         "success": true
                     },
                     "id": null,
-                    "timestamp": 1766507705096,
-                    "datetime": "2025-12-23T16:35:05.096Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "currency": "USDC",
                     "amount": 10,
                     "fromAccount": "spot",
@@ -172,8 +169,8 @@
                         "success": true
                     },
                     "id": null,
-                    "timestamp": 1766507675005,
-                    "datetime": "2025-12-23T16:34:35.005Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "currency": "USDC",
                     "amount": 42,
                     "fromAccount": "swap",
@@ -241,8 +238,8 @@
                             "bonusAmount": "0"
                         }
                     ],
-                    "timestamp": 1766507531446,
-                    "datetime": "2025-12-23T16:32:11.446Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "USDT": {
                         "free": 0,
                         "used": 0,
@@ -295,8 +292,8 @@
                             "frozen": "0"
                         }
                     ],
-                    "timestamp": 1766507503293,
-                    "datetime": "2025-12-23T16:31:43.293Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "USDC": {
                         "free": 68,
                         "used": 0,
@@ -1103,7 +1100,7 @@
                         "liquidationPrice": 0,
                         "marginRatio": null,
                         "marginMode": null,
-                        "percentage": null
+                        "percentage": 0.02
                     }
                 ]
             }
@@ -1172,7 +1169,7 @@
                         "liquidationPrice": 0,
                         "marginRatio": null,
                         "marginMode": null,
-                        "percentage": null
+                        "percentage": 0.04
                     }
                 ]
             }
@@ -1972,7 +1969,7 @@
                             "markPrice": "2962.13"
                         },
                         "symbol": "ETH/USDC:USDC",
-                        "fundingRate": 0.00007365,
+                        "fundingRate": 7.365e-05,
                         "timestamp": 1766476800000,
                         "datetime": "2025-12-23T08:00:00.000Z"
                     }
@@ -2011,7 +2008,7 @@
                     "estimatedSettlePrice": null,
                     "timestamp": 1766503065007,
                     "datetime": "2025-12-23T15:17:45.007Z",
-                    "fundingRate": -7.5e-7,
+                    "fundingRate": -7.5e-07,
                     "fundingTimestamp": null,
                     "fundingDatetime": null,
                     "nextFundingRate": null,
@@ -2358,11 +2355,11 @@
                             22805
                         ]
                     ],
-                    "timestamp": 1766502263350,
-                    "datetime": "2025-12-23T15:04:23.350Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "nonce": 20193164
                 }
             }
         ]
-  }
+    }
 }

@@ -16,6 +16,11 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 from ccxt.test.exchange.base.test_trade import test_trade  # noqa E402
 
 def test_order(exchange, skipped_properties, method, entry, symbol, now):
+    # prediction-market orders are keyed by an outcome handle, not a `symbol`
+    if exchange.safe_bool(exchange.has, 'prediction', False):
+        skipped_properties = exchange.extend({
+            'symbol': True,
+        }, skipped_properties)
     format = {
         'info': {},
         'id': '123',
@@ -65,5 +70,5 @@ def test_order(exchange, skipped_properties, method, entry, symbol, now):
         })
         if entry['trades'] is not None:
             for i in range(0, len(entry['trades'])):
-                test_trade(exchange, skipped_new, method, entry['trades'][i], symbol, now)
+                test_trade(exchange, skipped_new, method, entry['trades'][i], symbol, now, False)
     test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry, 'fee')

@@ -7,19 +7,34 @@ import "github.com/ccxt/ccxt/go/v4"
 
 func LogTemplate(exchange ccxt.ICoreExchange, method any, entry any) any {
 	// there are cases when exchange is undefined (eg. base tests)
-	var id any = Ternary(IsTrue((!IsEqual(exchange, nil))), exchange.GetId(), "undefined")
-	var methodString any = Ternary(IsTrue((!IsEqual(method, nil))), method, "undefined")
-	var entryString any = Ternary(IsTrue((IsTrue(!IsEqual(exchange, nil)) && IsTrue(!IsEqual(entry, nil)))), exchange.Json(entry), "")
+	var id any = func() any {
+		if !IsEqual(exchange, nil) {
+			return exchange.GetId()
+		}
+		return "undefined"
+	}()
+	var methodString any = func() any {
+		if method != nil {
+			return method
+		}
+		return "undefined"
+	}()
+	var entryString any = func() any {
+		if !IsEqual(exchange, nil) && (entry != nil) {
+			return exchange.Json(entry)
+		}
+		return ""
+	}()
 	return Add(Add(Add(Add(Add(Add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ")
 }
 func IsTemporaryFailure(e any) any {
-	return IsTrue((IsInstance(e, OperationFailed))) && IsTrue((!IsTrue((IsInstance(e, OnMaintenance)))))
+	return (IsInstance(e, OperationFailed)) && (!(IsInstance(e, OnMaintenance)))
 }
 func StringValue(value any) any {
 	var stringVal any = nil
-	if IsTrue(IsString(value)) {
+	if IsString(value) {
 		stringVal = value
-	} else if IsTrue(IsEqual(value, nil)) {
+	} else if IsEqual(value, nil) {
 		stringVal = "undefined"
 	} else {
 		stringVal = ToString(value)
@@ -27,18 +42,25 @@ func StringValue(value any) any {
 	return stringVal
 }
 func AssertType(exchange ccxt.ICoreExchange, skippedProperties any, entry any, key any, format any) any {
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return nil
 	}
 	// because "typeof" string is not transpilable without === 'name', we list them manually at this moment
 	var entryKeyVal any = exchange.SafeValue(entry, key)
 	var formatKeyVal any = exchange.SafeValue(format, key)
-	var same_string any = IsTrue((IsString(entryKeyVal))) && IsTrue((IsString(formatKeyVal)))
-	var same_numeric any = IsTrue((IsNumber(entryKeyVal))) && IsTrue((IsNumber(formatKeyVal)))
-	var same_boolean any = IsTrue((IsTrue((IsEqual(entryKeyVal, true))) || IsTrue((IsEqual(entryKeyVal, false))))) && IsTrue((IsTrue((IsEqual(formatKeyVal, true))) || IsTrue((IsEqual(formatKeyVal, false)))))
-	var same_array any = IsTrue(IsArray(entryKeyVal)) && IsTrue(IsArray(formatKeyVal))
-	var same_object any = IsTrue((IsObject(entryKeyVal))) && IsTrue((IsObject(formatKeyVal)))
-	var result any = IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(entryKeyVal, nil))) || IsTrue(same_string)) || IsTrue(same_numeric)) || IsTrue(same_boolean)) || IsTrue(same_array)) || IsTrue(same_object)
+	var same_string bool = (IsString(entryKeyVal)) && (IsString(formatKeyVal))
+	var same_numeric bool = (IsNumber(entryKeyVal)) && (IsNumber(formatKeyVal))
+	var same_boolean bool = ((entryKeyVal == true) || (entryKeyVal == false)) && ((formatKeyVal == true) || (formatKeyVal == false))
+	var same_array bool = IsArray(entryKeyVal) && IsArray(formatKeyVal)
+	// PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+	// returns false for an empty {} format marker — accept a dict entry against an empty-array format
+	var formatIsEmptyArray bool = false
+	if IsArray(formatKeyVal) {
+		var formatLen int = GetArrayLength(formatKeyVal)
+		formatIsEmptyArray = (formatLen == 0)
+	}
+	var same_object bool = EvalTruthy(exchange.IsDictionary(entryKeyVal)) && (EvalTruthy(exchange.IsDictionary(formatKeyVal)) || formatIsEmptyArray)
+	var result bool = (IsEqual(entryKeyVal, nil)) || same_string || same_numeric || same_boolean || same_array || same_object
 	return result
 }
 func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, format any, optionalArgs ...any) {
@@ -47,62 +69,56 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 	deep := GetArg(optionalArgs, 1, false)
 	_ = deep
 	var logText any = LogTemplate(exchange, method, entry)
-	Assert(!IsEqual(entry, nil), Add("item is null/undefined", logText))
+	Assert((entry != nil), Add("item is null/undefined", logText))
 	// get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
 	var allowEmptySkips any = exchange.SafeList(skippedProperties, "allowNull", []any{})
-	if IsTrue(!IsEqual(emptyAllowedFor, nil)) {
+	if emptyAllowedFor != nil {
 		emptyAllowedFor = Concat(emptyAllowedFor, allowEmptySkips)
 	}
-	if IsTrue(IsArray(format)) {
+	if IsArray(format) {
 		Assert(IsArray(entry), Add("entry is not an array", logText))
-		var realLength any = GetArrayLength(entry)
-		var expectedLength any = GetArrayLength(format)
-		Assert(IsEqual(realLength, expectedLength), Add(Add("entry length is not equal to expected length of ", ToString(expectedLength)), logText))
-		for i := 0; IsLessThan(i, GetArrayLength(format)); i++ {
-			var emptyAllowedForThisKey any = IsTrue((IsEqual(emptyAllowedFor, nil))) || IsTrue(exchange.InArray(i, emptyAllowedFor))
+		var realLength int = GetArrayLength(entry)
+		var expectedLength int = GetArrayLength(format)
+		Assert((realLength == expectedLength), Add("entry length is not equal to expected length of "+ToString(expectedLength), logText))
+		for i := 0; i < GetArrayLength(format); i++ {
+			var emptyAllowedForThisKey bool = (emptyAllowedFor == nil) || EvalTruthy(exchange.InArray(i, emptyAllowedFor))
 			var value any = GetValue(entry, i)
-			if IsTrue(InOp(skippedProperties, i)) {
-				continue
-			}
 			// check when:
 			// - it's not inside "allowe empty values" list
 			// - it's not undefined
-			if IsTrue(IsTrue(emptyAllowedForThisKey) && IsTrue((IsEqual(value, nil)))) {
+			if (emptyAllowedForThisKey && (IsEqual(value, nil))) || (InOp(skippedProperties, i)) {
 				continue
 			}
-			Assert(!IsEqual(value, nil), Add(Add(ToString(i), " index is expected to have a value"), logText))
+			Assert(!IsEqual(value, nil), Add(ToString(i)+" index is expected to have a value", logText))
 			// because of other langs, this is needed for arrays
-			var typeAssertion any = AssertType(exchange, skippedProperties, entry, i, format)
-			Assert(typeAssertion, Add(Add(ToString(i), " index does not have an expected type "), logText))
+			var typeAssertion any = AssertType(exchange, map[string]any{}, entry, i, format)
+			Assert((typeAssertion == true), Add(ToString(i)+" index does not have an expected type ", logText))
 		}
 	} else {
-		Assert(IsObject(entry), Add("entry is not an object", logText))
-		var keys any = ObjectKeys(format)
-		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-			var key any = GetValue(keys, i)
-			if IsTrue(InOp(skippedProperties, key)) {
+		Assert(exchange.IsDictionary(entry), Add("entry is not a dict", logText))
+		var keys []string = ObjectKeys(format)
+		for i := 0; i < len(keys); i++ {
+			var key string = GetValue(keys, i).(string)
+			if InOp(skippedProperties, key) {
 				continue
 			}
 			Assert(InOp(entry, key), Add(Add(Add("\"", StringValue(key)), "\" key is missing from structure"), logText))
-			if IsTrue(InOp(skippedProperties, key)) {
-				continue
-			}
-			var emptyAllowedForThisKey any = IsTrue((IsEqual(emptyAllowedFor, nil))) || IsTrue(exchange.InArray(key, emptyAllowedFor))
+			var emptyAllowedForThisKey bool = (emptyAllowedFor == nil) || EvalTruthy(exchange.InArray(key, emptyAllowedFor))
 			var value any = GetValue(entry, key)
 			// check when:
-			// - it's not inside "allowe empty values" list
+			// - it's not inside "allowed empty values" list
 			// - it's not undefined
-			if IsTrue(IsTrue(emptyAllowedForThisKey) && IsTrue((IsEqual(value, nil)))) {
+			if emptyAllowedForThisKey && (IsEqual(value, nil)) {
 				continue
 			}
 			// if it was in needed keys, then it should have value.
 			Assert(!IsEqual(value, nil), Add(Add(Add("\"", StringValue(key)), "\" key is expected to have a value"), logText))
 			// add exclusion for info key, as it can be any type
-			if IsTrue(!IsEqual(key, "info")) {
-				var typeAssertion any = AssertType(exchange, skippedProperties, entry, key, format)
-				Assert(typeAssertion, Add(Add(Add("\"", StringValue(key)), "\" key is neither undefined, neither of expected type"), logText))
-				if IsTrue(deep) {
-					if IsTrue(IsObject(value)) {
+			if key != "info" {
+				var typeAssertion any = AssertType(exchange, map[string]any{}, entry, key, format)
+				Assert((typeAssertion == true), Add(Add(Add("\"", StringValue(key)), "\" key is neither undefined, neither of expected type"), logText))
+				if deep == true {
+					if EvalTruthy(exchange.IsDictionary(value)) || IsArray(value) {
 						AssertStructure(exchange, skippedProperties, method, value, GetValue(format, key), emptyAllowedFor, deep)
 					}
 				}
@@ -119,27 +135,27 @@ func AssertTimestamp(exchange ccxt.ICoreExchange, skippedProperties any, method 
 	_ = allowNull
 	var logText any = LogTemplate(exchange, method, entry)
 	var skipValue any = exchange.SafeValue(skippedProperties, keyNameOrIndex)
-	if IsTrue(!IsEqual(skipValue, nil)) {
+	if !IsEqual(skipValue, nil) {
 		return // skipped
 	}
-	var isDateTimeObject any = IsString(keyNameOrIndex)
-	if IsTrue(isDateTimeObject) {
+	var isDateTimeObject bool = IsString(keyNameOrIndex)
+	if isDateTimeObject {
 		Assert((InOp(entry, keyNameOrIndex)), Add(Add(Add("timestamp key \"", keyNameOrIndex), "\" is missing from structure"), logText))
 	} else {
 		// if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
-		Assert(!IsTrue((IsEqual(GetValue(entry, keyNameOrIndex), nil))), Add(Add(Add("timestamp index ", StringValue(keyNameOrIndex)), " is undefined"), logText))
+		Assert(!(IsEqual(GetValue(entry, keyNameOrIndex), nil)), Add(Add(Add("timestamp index ", StringValue(keyNameOrIndex)), " is undefined"), logText))
 	}
 	var ts any = GetValue(entry, keyNameOrIndex)
-	Assert(IsTrue(!IsEqual(ts, nil)) || IsTrue(allowNull), Add("timestamp is null", logText))
-	if IsTrue(!IsEqual(ts, nil)) {
+	Assert(!IsEqual(ts, nil) || (allowNull == true), Add("timestamp is null", logText))
+	if !IsEqual(ts, nil) {
 		Assert(IsNumber(ts), Add("timestamp is not numeric", logText))
 		Assert(IsInt(ts), Add("timestamp should be an integer", logText))
-		var minTs any = 1230940800000                                                                                                       // 03 Jan 2009 - first block
-		var maxTs any = 2147483648000                                                                                                       // 19 Jan 2038 - max int
-		Assert(IsGreaterThan(ts, minTs), Add(Add(Add("timestamp is impossible to be before ", ToString(minTs)), " (03.01.2009)"), logText)) // 03 Jan 2009 - first block
-		Assert(IsLessThan(ts, maxTs), Add(Add(Add("timestamp more than ", ToString(maxTs)), " (19.01.2038)"), logText))                     // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
-		if IsTrue(!IsEqual(nowToCheck, nil)) {
-			var maxMsOffset any = 60000 // 1 min
+		var minTs int = 1230940800000                                                                                           // 03 Jan 2009 - first block
+		var maxTs int = 2147483648000                                                                                           // 19 Jan 2038 - max int
+		Assert(IsGreaterThan(ts, minTs), Add("timestamp is impossible to be before "+ToString(minTs)+" (03.01.2009)", logText)) // 03 Jan 2009 - first block
+		Assert(IsLessThan(ts, maxTs), Add("timestamp more than "+ToString(maxTs)+" (19.01.2038)", logText))                     // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
+		if !IsEqual(nowToCheck, nil) {
+			var maxMsOffset int = 60000 // 1 min
 			Assert(IsLessThan(ts, Add(nowToCheck, maxMsOffset)), Add(Add(Add(Add(Add("returned item timestamp (", exchange.Iso8601(ts)), ") is ahead of the current time ("), exchange.Iso8601(nowToCheck)), ")"), logText))
 		}
 	}
@@ -153,26 +169,29 @@ func AssertTimestampAndDatetime(exchange ccxt.ICoreExchange, skippedProperties a
 	_ = allowNull
 	var logText any = LogTemplate(exchange, method, entry)
 	var skipValue any = exchange.SafeValue(skippedProperties, keyNameOrIndex)
-	if IsTrue(!IsEqual(skipValue, nil)) {
+	if !IsEqual(skipValue, nil) {
 		return
 	}
 	AssertTimestamp(exchange, skippedProperties, method, entry, nowToCheck, keyNameOrIndex)
-	var isDateTimeObject any = IsString(keyNameOrIndex)
+	var isDateTimeObject bool = IsString(keyNameOrIndex)
 	// only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
-	if IsTrue(isDateTimeObject) {
+	if isDateTimeObject {
 		// we also test 'datetime' here because it's certain sibling of 'timestamp'
 		Assert((InOp(entry, "datetime")), Add("\"datetime\" key is missing from structure", logText))
 		var dt any = GetValue(entry, "datetime")
-		Assert(IsTrue(!IsEqual(dt, nil)) || IsTrue(allowNull), Add("timestamp is null", logText))
-		if IsTrue(!IsEqual(dt, nil)) {
+		Assert(!IsEqual(dt, nil) || (allowNull == true), Add("timestamp is null", logText))
+		if !IsEqual(dt, nil) {
 			Assert(IsString(dt), Add("\"datetime\" key does not have a string value", logText))
 			// there are exceptional cases, like getting microsecond-targeted string '2022-08-08T22:03:19.014680Z', so parsed unified timestamp, which carries only 13 digits (millisecond precision) can not be stringified back to microsecond accuracy, causing the bellow Assertion to fail
 			//    Assert (dt === exchange.Getiso8601() (entry['timestamp']))
 			// so, we have to compare with millisecond accururacy
 			var dtParsed any = exchange.Parse8601(dt)
 			var tsMs any = GetValue(entry, "timestamp")
+			if IsEqual(dtParsed, nil) {
+				Assert(false, Add(Add("datetime is not parseable: ", dt), logText))
+			}
 			var diff any = mathAbs(Subtract(dtParsed, tsMs))
-			if IsTrue(IsGreaterThanOrEqual(diff, 500)) {
+			if IsGreaterThanOrEqual(diff, 500) {
 				var dtParsedString any = exchange.Iso8601(dtParsed)
 				var dtEntryString any = exchange.Iso8601(tsMs)
 				Assert(false, Add(Add(Add(Add(Add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText))
@@ -185,16 +204,16 @@ func AssertCurrencyCode(exchange ccxt.ICoreExchange, skippedProperties any, meth
 	_ = expectedCode
 	allowNull := GetArg(optionalArgs, 1, true)
 	_ = allowNull
-	if IsTrue(IsTrue((InOp(skippedProperties, "currency"))) || IsTrue((InOp(skippedProperties, "currencyIdAndCode")))) {
+	if (InOp(skippedProperties, "currency")) || (InOp(skippedProperties, "currencyIdAndCode")) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	Assert(IsTrue(!IsEqual(actualCode, nil)) || IsTrue(allowNull), Add("currency code is null", logText))
-	if IsTrue(!IsEqual(actualCode, nil)) {
+	Assert((actualCode != nil) || (allowNull == true), Add("currency code is null", logText))
+	if actualCode != nil {
 		Assert(IsString(actualCode), Add("currency code should be either undefined or a string", logText))
 		Assert((InOp(exchange.GetCurrencies(), actualCode)), Add(Add(Add("currency code (\"", actualCode), "\") should be present in exchange.currencies"), logText))
-		if IsTrue(!IsEqual(expectedCode, nil)) {
-			Assert(IsEqual(actualCode, expectedCode), Add(Add(Add(Add(Add("currency code in response (\"", StringValue(actualCode)), "\") should be equal to expected code (\""), StringValue(expectedCode)), "\")"), logText))
+		if expectedCode != nil {
+			Assert((actualCode == expectedCode), Add(Add(Add(Add(Add("currency code in response (\"", StringValue(actualCode)), "\") should be equal to expected code (\""), StringValue(expectedCode)), "\")"), logText))
 		}
 	}
 }
@@ -202,21 +221,21 @@ func AssertValidCurrencyIdAndCode(exchange ccxt.ICoreExchange, skippedProperties
 	// this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
 	allowNull := GetArg(optionalArgs, 0, true)
 	_ = allowNull
-	if IsTrue(IsTrue((InOp(skippedProperties, "currency"))) || IsTrue((InOp(skippedProperties, "currencyIdAndCode")))) {
+	if (InOp(skippedProperties, "currency")) || (InOp(skippedProperties, "currencyIdAndCode")) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	var undefinedValues any = IsTrue(IsEqual(currencyId, nil)) && IsTrue(IsEqual(currencyCode, nil))
-	var definedValues any = IsTrue(!IsEqual(currencyId, nil)) && IsTrue(!IsEqual(currencyCode, nil))
-	Assert(IsTrue(undefinedValues) || IsTrue(definedValues), Add("currencyId and currencyCode should be either both defined or both undefined", logText))
-	Assert(IsTrue(definedValues) || IsTrue(allowNull), Add("currency code and id is not defined", logText))
-	if IsTrue(definedValues) {
+	var undefinedValues bool = (currencyId == nil) && (currencyCode == nil)
+	var definedValues bool = (currencyId != nil) && (currencyCode != nil)
+	Assert(undefinedValues || definedValues, Add("currencyId and currencyCode should be either both defined or both undefined", logText))
+	Assert(definedValues || (allowNull == true), Add("currency code and id is not defined", logText))
+	if definedValues {
 		// check by code
 		var currencyByCode any = exchange.Currency(currencyCode)
-		Assert(IsEqual(GetValue(currencyByCode, "id"), currencyId), Add(Add(Add(Add(Add("currencyId \"", StringValue(currencyId)), "\" does not match currency id from instance: \""), StringValue(GetValue(currencyByCode, "id"))), "\""), logText))
+		Assert((GetValue(currencyByCode, "id") == currencyId), Add(Add(Add(Add(Add("currencyId \"", StringValue(currencyId)), "\" does not match currency id from instance: \""), StringValue(GetValue(currencyByCode, "id"))), "\""), logText))
 		// check by id
 		var currencyById any = exchange.SafeCurrency(currencyId)
-		Assert(IsEqual(GetValue(currencyById, "code"), currencyCode), Add(Add(Add(Add("currencyCode ", StringValue(currencyCode)), " does not match currency of id: "), StringValue(currencyId)), logText))
+		Assert((GetValue(currencyById, "code") == currencyCode), Add(Add(Add(Add("currencyCode ", StringValue(currencyCode)), " does not match currency of id: "), StringValue(currencyId)), logText))
 	}
 }
 func AssertSymbol(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, optionalArgs ...any) {
@@ -224,113 +243,113 @@ func AssertSymbol(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	_ = expectedSymbol
 	allowNull := GetArg(optionalArgs, 1, true)
 	_ = allowNull
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
 	var actualSymbol any = exchange.SafeString(entry, key)
-	if IsTrue(!IsEqual(actualSymbol, nil)) {
+	if actualSymbol != nil {
 		Assert(IsString(actualSymbol), Add("symbol should be either undefined or a string", logText))
 	}
-	if IsTrue(!IsEqual(expectedSymbol, nil)) {
-		Assert(IsEqual(actualSymbol, expectedSymbol), Add(Add(Add(Add(Add("symbol in response (\"", StringValue(actualSymbol)), "\") should be equal to expected symbol (\""), StringValue(expectedSymbol)), "\")"), logText))
+	if expectedSymbol != nil {
+		Assert((actualSymbol == expectedSymbol), Add(Add(Add(Add(Add("symbol in response (\"", StringValue(actualSymbol)), "\") should be equal to expected symbol (\""), StringValue(expectedSymbol)), "\")"), logText))
 	}
-	var definedValues any = IsTrue(!IsEqual(actualSymbol, nil)) && IsTrue(!IsEqual(expectedSymbol, nil))
-	Assert(IsTrue(definedValues) || IsTrue(allowNull), Add("symbols are not defined", logText))
+	var definedValues bool = (actualSymbol != nil) && (expectedSymbol != nil)
+	Assert(definedValues || (allowNull == true), Add("symbols are not defined", logText))
 }
 func AssertSymbolInMarkets(exchange ccxt.ICoreExchange, skippedProperties any, method any, symbol any) {
 	var logText any = LogTemplate(exchange, method, map[string]any{})
-	Assert((InOp(exchange.GetMarkets(), symbol)), Add("symbol should be present in exchange.symbols", logText))
+	Assert((!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbol)), Add("symbol should be present in exchange.symbols", logText))
 }
 func AssertGreater(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
 	allowNull := GetArg(optionalArgs, 0, true)
 	_ = allowNull
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
 	var value any = exchange.SafeString(entry, key)
-	Assert(IsTrue(!IsEqual(value, nil)) || IsTrue(allowNull), Add("value is null", logText))
-	if IsTrue(!IsEqual(value, nil)) {
+	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
+	if value != nil {
 		Assert(ccxt.Precise.StringGt(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be > "), StringValue(compareTo)), logText))
 	}
 }
 func AssertGreaterOrEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
 	allowNull := GetArg(optionalArgs, 0, true)
 	_ = allowNull
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
 	var value any = exchange.SafeString(entry, key)
-	Assert(IsTrue(!IsEqual(value, nil)) || IsTrue(allowNull), Add("value is null", logText))
-	if IsTrue(IsTrue(!IsEqual(value, nil)) && IsTrue(!IsEqual(compareTo, nil))) {
+	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
+	if (value != nil) && (compareTo != nil) {
 		Assert(ccxt.Precise.StringGe(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be >= "), StringValue(compareTo)), logText))
 	}
 }
 func AssertLess(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
 	allowNull := GetArg(optionalArgs, 0, true)
 	_ = allowNull
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
 	var value any = exchange.SafeString(entry, key)
-	Assert(IsTrue(!IsEqual(value, nil)) || IsTrue(allowNull), Add("value is null", logText))
-	if IsTrue(IsTrue(!IsEqual(value, nil)) && IsTrue(!IsEqual(compareTo, nil))) {
+	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
+	if (value != nil) && (compareTo != nil) {
 		Assert(ccxt.Precise.StringLt(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be < "), StringValue(compareTo)), logText))
 	}
 }
 func AssertLessOrEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
 	allowNull := GetArg(optionalArgs, 0, true)
 	_ = allowNull
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
 	var value any = exchange.SafeString(entry, key)
-	Assert(IsTrue(!IsEqual(value, nil)) || IsTrue(allowNull), Add("value is null", logText))
-	if IsTrue(IsTrue(!IsEqual(value, nil)) && IsTrue(!IsEqual(compareTo, nil))) {
+	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
+	if (value != nil) && (compareTo != nil) {
 		Assert(ccxt.Precise.StringLe(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be <= "), StringValue(compareTo)), logText))
 	}
 }
 func AssertEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
 	allowNull := GetArg(optionalArgs, 0, true)
 	_ = allowNull
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
 	var value any = exchange.SafeString(entry, key)
-	Assert(IsTrue(!IsEqual(value, nil)) || IsTrue(allowNull), Add("value is null", logText))
-	if IsTrue(IsTrue(!IsEqual(value, nil)) && IsTrue(!IsEqual(compareTo, nil))) {
+	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
+	if (value != nil) && (compareTo != nil) {
 		Assert(ccxt.Precise.StringEq(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be equal to "), StringValue(compareTo)), logText))
 	}
 }
 func AssertNonEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
 	allowNull := GetArg(optionalArgs, 0, true)
 	_ = allowNull
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
 	var value any = exchange.SafeString(entry, key)
-	Assert(IsTrue(!IsEqual(value, nil)) || IsTrue(allowNull), Add("value is null", logText))
-	if IsTrue(!IsEqual(value, nil)) {
-		Assert(!IsTrue(ccxt.Precise.StringEq(value, compareTo)), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected not to be equal to "), StringValue(compareTo)), logText))
+	Assert((value != nil) || (allowNull == true), Add("value is null", logText))
+	if value != nil {
+		Assert(!ccxt.Precise.StringEq(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected not to be equal to "), StringValue(compareTo)), logText))
 	}
 }
 func AssertInArray(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, expectedArray any, optionalArgs ...any) {
 	allowNull := GetArg(optionalArgs, 0, true)
 	_ = allowNull
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
 	var value any = exchange.SafeValue(entry, key)
-	Assert(IsTrue(!IsEqual(value, nil)) || IsTrue(allowNull), Add("value is null", logText))
+	Assert(!IsEqual(value, nil) || (allowNull == true), Add("value is null", logText))
 	// todo: remove undefined check
-	if IsTrue(!IsEqual(value, nil)) {
+	if !IsEqual(value, nil) {
 		var stingifiedArrayValue any = exchange.Json(expectedArray) // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
 		Assert(exchange.InArray(value, expectedArray), Add(Add(Add(Add(Add(Add(Add("\"", StringValue(key)), "\" key (value \""), StringValue(value)), "\") is not from the expected list : ["), stingifiedArrayValue), "]"), logText))
 	}
@@ -340,19 +359,19 @@ func AssertFeeStructure(exchange ccxt.ICoreExchange, skippedProperties any, meth
 	_ = allowNull
 	var logText any = LogTemplate(exchange, method, entry)
 	var keyString any = StringValue(key)
-	if IsTrue(IsInt(key)) {
+	if IsInt(key) {
 		Assert(IsArray(entry), Add("fee container is expected to be an array", logText))
 		Assert(IsLessThan(key, GetArrayLength(entry)), Add(Add(Add("fee key ", keyString), " was expected to be present in entry"), logText))
 	} else {
-		Assert(IsObject(entry), Add("fee container is expected to be an object", logText))
+		Assert(exchange.IsDictionary(entry), Add("fee container is expected to be a dict", logText))
 		Assert(InOp(entry, key), Add(Add(Add("fee key \"", key), "\" was expected to be present in entry"), logText))
 	}
 	var feeObject any = exchange.SafeValue(entry, key)
-	Assert(IsTrue(!IsEqual(feeObject, nil)) || IsTrue(allowNull), Add("fee object is null", logText))
+	Assert(!IsEqual(feeObject, nil) || (allowNull == true), Add("fee object is null", logText))
 	// todo: remove undefined check to make stricter
-	if IsTrue(!IsEqual(feeObject, nil)) {
+	if !IsEqual(feeObject, nil) {
 		Assert(InOp(feeObject, "cost"), Add(Add(keyString, " fee object should contain \"cost\" key"), logText))
-		if IsTrue(IsEqual(GetValue(feeObject, "cost"), nil)) {
+		if IsEqual(GetValue(feeObject, "cost"), nil) {
 			return // todo: remove undefined check to make stricter
 		}
 		Assert(IsNumber(GetValue(feeObject, "cost")), Add(Add(keyString, " \"cost\" must be numeric type"), logText))
@@ -364,13 +383,23 @@ func AssertFeeStructure(exchange ccxt.ICoreExchange, skippedProperties any, meth
 func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol any, items any, optionalArgs ...any) {
 	ascending := GetArg(optionalArgs, 0, true)
 	_ = ascending
-	for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
-		if IsTrue(IsGreaterThan(i, 0)) {
-			var currentTs any = GetValue(GetValue(items, Subtract(i, 1)), "timestamp")
+	for i := 0; i < GetArrayLength(items); i++ {
+		if i > 0 {
+			var currentTs any = GetValue(GetValue(items, i-1), "timestamp")
 			var nextTs any = GetValue(GetValue(items, i), "timestamp")
-			if IsTrue(IsTrue(!IsEqual(currentTs, nil)) && IsTrue(!IsEqual(nextTs, nil))) {
-				var ascendingOrDescending any = Ternary(IsTrue(ascending), "ascending", "descending")
-				var comparison any = Ternary(IsTrue(ascending), (IsLessThanOrEqual(currentTs, nextTs)), (IsGreaterThanOrEqual(currentTs, nextTs)))
+			if !IsEqual(currentTs, nil) && !IsEqual(nextTs, nil) {
+				var ascendingOrDescending string = func() string {
+					if ascending == true {
+						return "ascending"
+					}
+					return "descending"
+				}()
+				var comparison bool = func() bool {
+					if ascending == true {
+						return (IsLessThanOrEqual(currentTs, nextTs))
+					}
+					return (IsGreaterThanOrEqual(currentTs, nextTs))
+				}()
 				Assert(comparison, Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), StringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), ToString(currentTs)), " is opposite with its next "), ToString(nextTs)), " "), exchange.Json(items)))
 			}
 		}
@@ -379,33 +408,38 @@ func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol 
 func AssertInteger(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, optionalArgs ...any) {
 	allowNull := GetArg(optionalArgs, 0, true)
 	_ = allowNull
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	if IsTrue(!IsEqual(entry, nil)) {
+	if entry != nil {
 		var value any = exchange.SafeValue(entry, key)
-		Assert(IsTrue(!IsEqual(value, nil)) || IsTrue(allowNull), Add("value is null", logText))
-		if IsTrue(!IsEqual(value, nil)) {
-			var isInteger any = IsInt(value)
+		Assert(!IsEqual(value, nil) || (allowNull == true), Add("value is null", logText))
+		if !IsEqual(value, nil) {
+			var isInteger bool = IsInt(value)
 			Assert(isInteger, Add(Add(Add(Add(Add("\"", StringValue(key)), "\" key (value \""), StringValue(value)), "\") is not an integer"), logText))
 		}
 	}
 }
 func CheckPrecisionAccuracy(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any) {
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
-	if IsTrue(exchange.IsTickPrecision()) {
+	if EvalTruthy(exchange.IsTickPrecision()) {
 		// TICK_SIZE should be above zero
 		AssertGreater(exchange, skippedProperties, method, entry, key, "0")
 		// the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
-		var decimalNumbers any = []any{"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"}
-		if IsTrue(IsTrue(IsEqual(key, "amount")) && IsTrue(InOp(skippedProperties, "precisionAmountAbnormal"))) {
+		var decimalNumbers []any = []any{"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"}
+		if (key == "amount") && InOp(skippedProperties, "precisionAmountAbnormal") {
 			return
 		}
-		for i := 0; IsLessThan(i, GetArrayLength(decimalNumbers)); i++ {
-			var num any = GetValue(decimalNumbers, i)
+		for i := 0; i < len(decimalNumbers); i++ {
+			var num any = func() any {
+				if i >= 0 && i < len(decimalNumbers) {
+					return DerefScalar(decimalNumbers[i])
+				}
+				return nil
+			}()
 			var numStr any = num
 			AssertNonEqual(exchange, skippedProperties, method, entry, key, numStr)
 		}
@@ -416,115 +450,125 @@ func CheckPrecisionAccuracy(exchange ccxt.ICoreExchange, skippedProperties any, 
 		AssertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8") // in real-world cases, there would not be less than that
 	}
 }
-func FetchBestBidAsk(exchange ccxt.ICoreExchange, method any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var logText any = LogTemplate(exchange, method, map[string]any{})
-		// find out best bid/ask price
-		var bestBid any = nil
-		var bestAsk any = nil
-		var usedMethod any = nil
-		if IsTrue(GetValue(exchange.GetHas(), "fetchOrderBook")) {
-			usedMethod = "fetchOrderBook"
-
-			orderbook := (<-exchange.FetchOrderBook(symbol))
-			PanicOnError(orderbook)
-			var bids any = exchange.SafeList(orderbook, "bids")
-			var asks any = exchange.SafeList(orderbook, "asks")
-			var bestBidArray any = exchange.SafeList(bids, 0)
-			var bestAskArray any = exchange.SafeList(asks, 0)
-			bestBid = exchange.SafeNumber(bestBidArray, 0)
-			bestAsk = exchange.SafeNumber(bestAskArray, 0)
-		} else if IsTrue(GetValue(exchange.GetHas(), "fetchBidsAsks")) {
-			usedMethod = "fetchBidsAsks"
-
-			tickers := (<-exchange.FetchBidsAsks([]any{symbol}))
-			PanicOnError(tickers)
-			var ticker any = exchange.SafeDict(tickers, symbol)
-			bestBid = exchange.SafeNumber(ticker, "bid")
-			bestAsk = exchange.SafeNumber(ticker, "ask")
-		} else if IsTrue(GetValue(exchange.GetHas(), "fetchTicker")) {
-			usedMethod = "fetchTicker"
-
-			ticker := (<-exchange.FetchTicker(symbol))
-			PanicOnError(ticker)
-			bestBid = exchange.SafeNumber(ticker, "bid")
-			bestAsk = exchange.SafeNumber(ticker, "ask")
-		} else if IsTrue(GetValue(exchange.GetHas(), "fetchTickers")) {
-			usedMethod = "fetchTickers"
-
-			tickers := (<-exchange.FetchTickers([]any{symbol}))
-			PanicOnError(tickers)
-			var ticker any = exchange.SafeDict(tickers, symbol)
-			bestBid = exchange.SafeNumber(ticker, "bid")
-			bestAsk = exchange.SafeNumber(ticker, "ask")
-		}
-		//
-		Assert(IsTrue(!IsEqual(bestBid, nil)) && IsTrue(!IsEqual(bestAsk, nil)), Add(Add(Add(Add(Add(Add(Add(Add(logText, " "), exchange.GetId()), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method))
-
-		ch <- []any{bestBid, bestAsk}
-		return nil
-
-	}()
+func FetchBestBidAskAsync(exchange ccxt.ICoreExchange, method any, symbol any) <-chan any {
+	ch := make(chan any, 1)
+	go fetchBestBidAskBody(ch, exchange, method, symbol)
 	return ch
 }
-func FetchOrder(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var fetchedOrder any = nil
-		var originalId any = orderId
-		// set 'since' to 5 minute ago for optimal results
-		var sinceTime any = Subtract(exchange.Milliseconds(), Multiply(Multiply(1000, 60), 5))
-		// iterate
-		var methods_singular any = []any{"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"}
-		for i := 0; IsLessThan(i, GetArrayLength(methods_singular)); i++ {
-			var singularFetchName any = GetValue(methods_singular, i)
-			if IsTrue(GetValue(exchange.GetHas(), singularFetchName)) {
+func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var logText any = LogTemplate(exchange, method, map[string]any{})
+	// find out best bid/ask price
+	var bestBid *float64 = nil
+	var bestAsk *float64 = nil
+	var usedMethod any = nil
+	if (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)) {
+		usedMethod = "fetchOrderBook"
 
-				currentOrder := (<-callDynamically(singularFetchName, originalId, symbol))
-				PanicOnError(currentOrder)
-				// if there is an id inside the order, it means the order was fetched successfully
-				if IsTrue(IsEqual(GetValue(currentOrder, "id"), originalId)) {
-					fetchedOrder = currentOrder
+		orderbook := (<-exchange.FetchOrderBookAsync(symbol))
+		PanicOnError(orderbook)
+		var bids any = exchange.SafeList(orderbook, "bids")
+		var asks any = exchange.SafeList(orderbook, "asks")
+		var bestBidArray any = exchange.SafeList(bids, 0)
+		var bestAskArray any = exchange.SafeList(asks, 0)
+		bestBid = exchange.SafeNumber(bestBidArray, 0)
+		bestAsk = exchange.SafeNumber(bestAskArray, 0)
+	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), false)) {
+		usedMethod = "fetchBidsAsks"
+
+		tickers := (<-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsksAsync([]any{symbol}))
+		PanicOnError(tickers)
+		var ticker any = exchange.SafeDict(tickers, symbol)
+		bestBid = exchange.SafeNumber(ticker, "bid")
+		bestAsk = exchange.SafeNumber(ticker, "ask")
+	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), false)) {
+		usedMethod = "fetchTicker"
+
+		ticker := (<-exchange.FetchTickerAsync(symbol))
+		PanicOnError(ticker)
+		bestBid = exchange.SafeNumber(ticker, "bid")
+		bestAsk = exchange.SafeNumber(ticker, "ask")
+	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), false)) {
+		usedMethod = "fetchTickers"
+
+		tickers := (<-exchange.(ccxt.IFetchTickers).FetchTickersAsync([]any{symbol}))
+		PanicOnError(tickers)
+		var ticker any = exchange.SafeDict(tickers, symbol)
+		bestBid = exchange.SafeNumber(ticker, "bid")
+		bestAsk = exchange.SafeNumber(ticker, "ask")
+	}
+	//
+	Assert(!IsEqual(bestBid, nil) && !IsEqual(bestAsk, nil), Add(Add(Add(Add(Add(Add(Add(Add(logText, " "), exchange.GetId()), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method))
+
+	ch <- []any{bestBid, bestAsk}
+	return nil
+}
+func FetchOrderAsync(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <-chan any {
+	ch := make(chan any, 1)
+	go fetchOrderBody(ch, exchange, symbol, orderId, skippedProperties)
+	return ch
+}
+func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var fetchedOrder any = nil
+	var originalId any = orderId
+	// set 'since' to 5 minute ago for optimal results
+	var sinceTime any = Subtract(exchange.Milliseconds(), Multiply(Multiply(1000, 60), 5))
+	// iterate
+	var methods_singular []any = []any{"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"}
+	for i := 0; i < len(methods_singular); i++ {
+		var singularFetchName any = func() any {
+			if i >= 0 && i < len(methods_singular) {
+				return DerefScalar(methods_singular[i])
+			}
+			return nil
+		}()
+		if (!IsEqual(GetValue(exchange.GetHas(), singularFetchName), nil)) && (!IsEqual(GetValue(exchange.GetHas(), singularFetchName), false)) {
+
+			currentOrder := (<-callDynamically(singularFetchName, originalId, symbol))
+			PanicOnError(currentOrder)
+			// if there is an id inside the order, it means the order was fetched successfully
+			if IsEqual(GetValue(currentOrder, "id"), originalId) {
+				fetchedOrder = currentOrder
+				break
+			}
+		}
+	}
+	//
+	// search through plural methods
+	if IsEqual(fetchedOrder, nil) {
+		var methods_plural []any = []any{"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"}
+		for i := 0; i < len(methods_plural); i++ {
+			var pluralFetchName any = func() any {
+				if i >= 0 && i < len(methods_plural) {
+					return DerefScalar(methods_plural[i])
+				}
+				return nil
+			}()
+			if (!IsEqual(GetValue(exchange.GetHas(), pluralFetchName), nil)) && (!IsEqual(GetValue(exchange.GetHas(), pluralFetchName), false)) {
+
+				orders := (<-callDynamically(pluralFetchName, symbol, sinceTime))
+				PanicOnError(orders)
+				var found bool = false
+				for j := 0; j < GetArrayLength(orders); j++ {
+					var currentOrder any = GetValue(orders, j)
+					if IsEqual(GetValue(currentOrder, "id"), originalId) {
+						fetchedOrder = currentOrder
+						found = true
+						break
+					}
+				}
+				if found {
 					break
 				}
 			}
 		}
-		//
-		// search through plural methods
-		if IsTrue(IsEqual(fetchedOrder, nil)) {
-			var methods_plural any = []any{"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"}
-			for i := 0; IsLessThan(i, GetArrayLength(methods_plural)); i++ {
-				var pluralFetchName any = GetValue(methods_plural, i)
-				if IsTrue(GetValue(exchange.GetHas(), pluralFetchName)) {
+	}
 
-					orders := (<-callDynamically(pluralFetchName, symbol, sinceTime))
-					PanicOnError(orders)
-					var found any = false
-					for j := 0; IsLessThan(j, GetArrayLength(orders)); j++ {
-						var currentOrder any = GetValue(orders, j)
-						if IsTrue(IsEqual(GetValue(currentOrder, "id"), originalId)) {
-							fetchedOrder = currentOrder
-							found = true
-							break
-						}
-					}
-					if IsTrue(found) {
-						break
-					}
-				}
-			}
-		}
-
-		ch <- fetchedOrder
-		return nil
-
-	}()
-	return ch
+	ch <- fetchedOrder
+	return nil
 }
 func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method any, order any, AssertedStatus any, strictCheck any) {
 	// note, `strictCheck` is `true` only from "fetchOrder" cases
@@ -533,23 +577,28 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var filled any = exchange.SafeString(order, "filled")
 	var amount any = exchange.SafeString(order, "amount")
 	// shorthand variables
-	var statusUndefined any = (IsEqual(GetValue(order, "status"), nil))
-	var statusOpen any = (IsEqual(GetValue(order, "status"), "open"))
-	var statusClosed any = (IsEqual(GetValue(order, "status"), "closed"))
-	var statusClanceled any = (IsEqual(GetValue(order, "status"), "canceled"))
-	var filledDefined any = (!IsEqual(filled, nil))
-	var amountDefined any = (!IsEqual(amount, nil))
+	var statusUndefined bool = (IsEqual(GetValue(order, "status"), nil))
+	var statusOpen bool = (IsEqual(GetValue(order, "status"), "open"))
+	var statusClosed bool = (IsEqual(GetValue(order, "status"), "closed"))
+	var statusClanceled bool = (IsEqual(GetValue(order, "status"), "canceled"))
+	var filledDefined bool = (!IsEqual(filled, nil))
+	var amountDefined bool = (!IsEqual(amount, nil))
 	var condition any = nil
 	//
 	// ### OPEN STATUS
 	//
 	// if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
-	var strictOpen any = IsTrue(statusOpen) && IsTrue((IsTrue(IsTrue(filledDefined) && IsTrue(amountDefined)) && IsTrue(IsLessThan(filled, amount))))
+	var strictOpen bool = statusOpen && (filledDefined && amountDefined && IsLessThan(filled, amount))
 	// if non-strict check, then accept & ignore undefined values
-	var nonstrictOpen any = IsTrue((IsTrue(statusOpen) || IsTrue(statusUndefined))) && IsTrue((IsTrue((!IsTrue(filledDefined) || !IsTrue(amountDefined))) || IsTrue(ccxt.Precise.StringLt(filled, amount))))
+	var nonstrictOpen bool = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
-	if IsTrue(IsEqual(AssertedStatus, "open")) {
-		condition = Ternary(IsTrue(strictCheck), strictOpen, nonstrictOpen)
+	if AssertedStatus == "open" {
+		condition = func() bool {
+			if EvalTruthy(strictCheck) {
+				return strictOpen
+			}
+			return nonstrictOpen
+		}()
 		Assert(condition, msg)
 		return
 	}
@@ -557,12 +606,17 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	// ### CLOSED STATUS
 	//
 	// if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
-	var closedStrict any = IsTrue(statusClosed) && IsTrue((IsTrue(IsTrue(filledDefined) && IsTrue(amountDefined)) && IsTrue(ccxt.Precise.StringEq(filled, amount))))
+	var closedStrict bool = statusClosed && (filledDefined && amountDefined && ccxt.Precise.StringEq(filled, amount))
 	// if non-strict check, then accept & ignore undefined values
-	var closedNonStrict any = IsTrue((IsTrue(statusClosed) || IsTrue(statusUndefined))) && IsTrue((IsTrue((!IsTrue(filledDefined) || !IsTrue(amountDefined))) || IsTrue(ccxt.Precise.StringEq(filled, amount))))
+	var closedNonStrict bool = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringEq(filled, amount))
 	// check
-	if IsTrue(IsEqual(AssertedStatus, "closed")) {
-		condition = Ternary(IsTrue(strictCheck), closedStrict, closedNonStrict)
+	if AssertedStatus == "closed" {
+		condition = func() bool {
+			if EvalTruthy(strictCheck) {
+				return closedStrict
+			}
+			return closedNonStrict
+		}()
 		Assert(condition, msg)
 		return
 	}
@@ -570,20 +624,30 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	// ### CANCELED STATUS
 	//
 	// if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
-	var canceledStrict any = IsTrue(statusClanceled) && IsTrue((IsTrue(IsTrue(filledDefined) && IsTrue(amountDefined)) && IsTrue(ccxt.Precise.StringLt(filled, amount))))
+	var canceledStrict bool = statusClanceled && (filledDefined && amountDefined && ccxt.Precise.StringLt(filled, amount))
 	// if non-strict check, then accept & ignore undefined values
-	var canceledNonStrict any = IsTrue((IsTrue(statusClanceled) || IsTrue(statusUndefined))) && IsTrue((IsTrue((!IsTrue(filledDefined) || !IsTrue(amountDefined))) || IsTrue(ccxt.Precise.StringLt(filled, amount))))
+	var canceledNonStrict bool = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
-	if IsTrue(IsEqual(AssertedStatus, "canceled")) {
-		condition = Ternary(IsTrue(strictCheck), canceledStrict, canceledNonStrict)
+	if AssertedStatus == "canceled" {
+		condition = func() bool {
+			if EvalTruthy(strictCheck) {
+				return canceledStrict
+			}
+			return canceledNonStrict
+		}()
 		Assert(condition, msg)
 		return
 	}
 	//
 	// ### CLOSED_or_CANCELED STATUS
 	//
-	if IsTrue(IsEqual(AssertedStatus, "closed_or_canceled")) {
-		condition = Ternary(IsTrue(strictCheck), (IsTrue(closedStrict) || IsTrue(canceledStrict)), (IsTrue(closedNonStrict) || IsTrue(canceledNonStrict)))
+	if AssertedStatus == "closed_or_canceled" {
+		condition = func() any {
+			if EvalTruthy(strictCheck) {
+				return (closedStrict || canceledStrict)
+			}
+			return (closedNonStrict || canceledNonStrict)
+		}()
 		Assert(condition, msg)
 		return
 	}
@@ -591,9 +655,9 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 func GetActiveMarkets(exchange ccxt.ICoreExchange, optionalArgs ...any) any {
 	includeUnknown := GetArg(optionalArgs, 0, true)
 	_ = includeUnknown
-	var filteredActive any = exchange.FilterBy(exchange.GetMarkets(), "active", true)
-	if IsTrue(includeUnknown) {
-		var filteredUndefined any = exchange.FilterBy(exchange.GetMarkets(), "active", nil)
+	var filteredActive []any = exchange.FilterBy(exchange.GetMarkets(), "active", true)
+	if includeUnknown == true {
+		var filteredUndefined []any = exchange.FilterBy(exchange.GetMarkets(), "active", nil)
 		return exchange.ArrayConcat(filteredActive, filteredUndefined)
 	}
 	return filteredActive
@@ -627,36 +691,53 @@ func Concat(optionalArgs ...any) any {
 	_ = a
 	b := GetArg(optionalArgs, 1, nil)
 	_ = b
-	if IsTrue(IsEqual(a, nil)) {
+	if a == nil {
 		return b
-	} else if IsTrue(IsEqual(b, nil)) {
+	} else if b == nil {
 		return a
 	} else {
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(a)); i++ {
-			AppendToArray(&result, GetValue(a, i))
+		var result []any = []any{}
+		for i := 0; i < GetArrayLength(a); i++ {
+			result = append(result, GetValue(a, i))
 		}
-		for j := 0; IsLessThan(j, GetArrayLength(b)); j++ {
-			AppendToArray(&result, GetValue(b, j))
+		for j := 0; j < GetArrayLength(b); j++ {
+			result = append(result, GetValue(b, j))
 		}
 		return result
 	}
+}
+func AssertDictionaryResponse(exchange ccxt.ICoreExchange, method any, response any, optionalArgs ...any) {
+	// php cannot distinguish an empty dict from an empty list, both are a plain array
+	// there, so an empty array response is shape indeterminate and accepted, observed
+	// as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+	hint := GetArg(optionalArgs, 0, nil)
+	_ = hint
+	var isEmptyArrayResponse bool = false
+	if IsArray(response) {
+		var responseLength int = GetArrayLength(response)
+		isEmptyArrayResponse = (responseLength == 0)
+	}
+	var hintText any = ""
+	if hint != nil {
+		hintText = Add(" ", hint)
+	}
+	Assert(EvalTruthy(exchange.IsDictionary(response)) || isEmptyArrayResponse, Add(Add(Add(Add(Add(exchange.GetId(), " "), method), hintText), " must return a dict. "), exchange.Json(response)))
 }
 func AssertNonEmtpyArray(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, optionalArgs ...any) {
 	hint := GetArg(optionalArgs, 0, nil)
 	_ = hint
 	var logText any = LogTemplate(exchange, method, entry)
-	if IsTrue(!IsEqual(hint, nil)) {
+	if hint != nil {
 		logText = Add(Add(logText, " "), hint)
 	}
 	Assert(IsArray(entry), Add("response is expected to be an array", logText))
-	if !IsTrue((InOp(skippedProperties, "emptyResponse"))) {
+	if !(InOp(skippedProperties, "emptyResponse")) {
 		return
 	}
-	Assert(IsGreaterThan(GetArrayLength(entry), 0), Add(Add("response is expected to be a non-empty array", logText), " (add \"emptyResponse\" in skip-tests.json to skip this check)"))
+	Assert((GetArrayLength(entry) > 0), Add(Add("response is expected to be a non-empty array", logText), " (add \"emptyResponse\" in skip-tests.json to skip this check)"))
 }
 func AssertRoundMinuteTimestamp(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any) {
-	if IsTrue(InOp(skippedProperties, key)) {
+	if InOp(skippedProperties, key) {
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
@@ -664,7 +745,7 @@ func AssertRoundMinuteTimestamp(exchange ccxt.ICoreExchange, skippedProperties a
 	Assert(IsEqual(ccxt.Precise.StringMod(ts, "60000"), "0"), Add("timestamp should be a multiple of 60 seconds (1 minute)", logText))
 }
 func DeepEqual(exchange ccxt.ICoreExchange, a any, b any) any {
-	return IsEqual(JsonStringify(a), JsonStringify(b))
+	return (JsonStringify(a) == JsonStringify(b))
 }
 func AssertDeepEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, a any, b any) {
 	var logText any = LogTemplate(exchange, method, map[string]any{})
@@ -674,10 +755,52 @@ func ExchangeProp(exchange ccxt.ICoreExchange, key any, optionalArgs ...any) any
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value any = exchange.GetProperty(exchange, ToString(key))
-	if IsTrue(!IsEqual(value, nil)) {
+	if !IsEqual(value, nil) {
 		return value
 	}
 	// try UpperCase key also, for other langs
-	var keyUpper any = exchange.Capitalize(ToString(key))
+	var keyUpper string = exchange.Capitalize(ToString(key))
 	return exchange.GetProperty(exchange, keyUpper, defaultValue)
+}
+func TickerExceptionNeedsOhlcv(ex any, exchange ccxt.ICoreExchange, ticker any) any {
+	// pure helper (no awaits): files under test/Exchange/base transpile into a single
+	// sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+	// in the per-lane callers - this tells them whether the probe is needed
+	var eMessage any = exchange.ExceptionMessage(ex, false) // typed string so the php transpile uses mb_strpos, not in_array
+	if (GetIndexOf(eMessage, "percentage should be above") >= 0) || (GetIndexOf(eMessage, "percentage should be below") >= 0) {
+		var symbol any = GetValue(ticker, "symbol")
+		if !IsEqual(symbol, nil) {
+			if (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbol)) {
+				if !IsEqual(exchange.FeatureValue(symbol, "fetchOHLCV"), nil) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+func ValidateTickerExceptionForPercentage(ex any, exchange ccxt.ICoreExchange, ticker any, optionalArgs ...any) {
+	// only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+	// pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+	// per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+	ohlcv := GetArg(optionalArgs, 0, nil)
+	_ = ohlcv
+	var eMessage any = exchange.ExceptionMessage(ex, false) // typed string so the php transpile uses mb_strpos, not in_array
+	if (GetIndexOf(eMessage, "percentage should be above") >= 0) || (GetIndexOf(eMessage, "percentage should be below") >= 0) {
+		var symbol any = GetValue(ticker, "symbol")
+		if !IsEqual(symbol, nil) {
+			// if it's not in markets, then maybe newly added symbol, so can can compromise there
+			if (IsEqual(exchange.GetMarkets(), nil)) || !(InOp(exchange.GetMarkets(), symbol)) {
+				return
+			}
+			if !IsEqual(ohlcv, nil) {
+				var ohlcvLength int = GetArrayLength(ohlcv)
+				if ohlcvLength <= 1 {
+					// if only 1 day of listing, then allow it
+					return
+				}
+			}
+		}
+	}
+	Assert((eMessage == ""), eMessage) // trigger error
 }

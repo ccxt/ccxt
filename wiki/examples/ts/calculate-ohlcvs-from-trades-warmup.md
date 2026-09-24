@@ -1,8 +1,7 @@
-- [Calculate Ohlcvs From Trades Warmup](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- 'use strict';
+'use strict';
 
 import ccxt from '../../js/ccxt.js';
 
@@ -85,5 +84,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

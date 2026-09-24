@@ -17,27 +17,35 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
     method = 'watchTradesForSymbols'
+    log_text = exchange.id + ' ' + method + ' [symbols: ' + exchange.json(symbols) + '] '
     now = exchange.milliseconds()
-    ends = now + 15000
+    ends = now + 30000
+    max_idle_time = 5000
+    idle = False
     returned_symbols = []
-    while now < ends or len(returned_symbols) < len(symbols):
+    while (now < ends) and not idle:
         response = None
         success = True
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_trades_for_symbols(symbols)
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
-            now = exchange.milliseconds()
-        if success:
-            assert isinstance(response, list), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an array. ' + exchange.json(response)
-            now = exchange.milliseconds()
-            symbol = None
+            success = False
+        now = exchange.milliseconds()
+        elapsed_ms = now - start_time
+        if (success) and (response is not None):
+            assert isinstance(response, list), log_text + 'must return an array. ' + exchange.json(response)
             for i in range(0, len(response)):
                 trade = response[i]
                 symbol = trade['symbol']
-                test_trade(exchange, skipped_properties, method, trade, symbol, now)
+                assert symbol is not None, log_text + 'returned a trade without a symbol ' + exchange.json(trade)
+                test_trade(exchange, skipped_properties, method, trade, symbol, now, True)
                 test_shared_methods.assert_in_array(exchange, skipped_properties, method, trade, 'symbol', symbols)
                 if not exchange.in_array(symbol, returned_symbols):
                     returned_symbols.append(symbol)
+            if elapsed_ms > max_idle_time:
+                idle = True
+    assert len(returned_symbols) == len(symbols), log_text + 'only received part of symbols: ' + exchange.json(returned_symbols)
     return True

@@ -1,0 +1,119 @@
+[package]
+name = "ccxt-pro"
+version = "4.5.83"
+edition = "2021"
+description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – pro (WebSocket / watch*) exchanges"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+homepage = "https://ccxt.com"
+documentation = "https://docs.rs/ccxt-pro"
+readme = "README.md"
+keywords = ["cryptocurrency", "exchange", "trading", "bitcoin", "ccxt"]
+categories = ["api-bindings", "asynchronous", "finance"]
+
+[lib]
+name = "ccxt_pro"
+path = "src/lib.rs"
+
+[features]
+# `all` (the default) keeps today's behaviour: every WebSocket venue compiles.
+# Pick venues instead to cut build time and memory by two orders of magnitude:
+#   ccxt-pro = { version = "…", default-features = false, features = ["binance", "kraken"] }
+default = ["all"]
+# BEGIN GENERATED FEATURES (emitted by build/generateRustWrappers.ts)
+alpaca = ["ccxt-base/alpaca"]
+apex = ["ccxt-base/apex"]
+aster = ["ccxt-base/aster"]
+backpack = ["ccxt-base/backpack"]
+bequant = ["ccxt-base/bequant", "hitbtc"]
+binance = ["ccxt-base/binance"]
+binancecoinm = ["ccxt-base/binancecoinm", "binance"]
+binanceus = ["ccxt-base/binanceus", "binance"]
+binanceusdm = ["ccxt-base/binanceusdm", "binance"]
+bingx = ["ccxt-base/bingx"]
+bitfinex = ["ccxt-base/bitfinex"]
+bitget = ["ccxt-base/bitget"]
+bithumb = ["ccxt-base/bithumb"]
+bitopro = ["ccxt-base/bitopro"]
+bitrue = ["ccxt-base/bitrue"]
+bitstamp = ["ccxt-base/bitstamp"]
+bittrade = ["ccxt-base/bittrade"]
+bitvavo = ["ccxt-base/bitvavo"]
+blockchaincom = ["ccxt-base/blockchaincom"]
+blofin = ["ccxt-base/blofin"]
+bullish = ["ccxt-base/bullish"]
+bybit = ["ccxt-base/bybit"]
+bybiteu = ["ccxt-base/bybiteu", "bybit"]
+bybitid = ["ccxt-base/bybitid", "bybit"]
+bydfi = ["ccxt-base/bydfi"]
+cex = ["ccxt-base/cex"]
+coinbase = ["ccxt-base/coinbase"]
+coinbaseexchange = ["ccxt-base/coinbaseexchange"]
+coinbaseinternational = ["ccxt-base/coinbaseinternational"]
+coincheck = ["ccxt-base/coincheck"]
+coinex = ["ccxt-base/coinex"]
+coinone = ["ccxt-base/coinone"]
+cryptocom = ["ccxt-base/cryptocom"]
+deepcoin = ["ccxt-base/deepcoin"]
+deribit = ["ccxt-base/deribit"]
+derive = ["ccxt-base/derive"]
+dydx = ["ccxt-base/dydx"]
+extended = ["ccxt-base/extended"]
+gate = ["ccxt-base/gate"]
+gateeu = ["ccxt-base/gateeu", "gate"]
+gemini = ["ccxt-base/gemini"]
+grvt = ["ccxt-base/grvt"]
+hashkey = ["ccxt-base/hashkey"]
+hitbtc = ["ccxt-base/hitbtc"]
+hollaex = ["ccxt-base/hollaex"]
+htx = ["ccxt-base/htx"]
+hyperliquid = ["ccxt-base/hyperliquid"]
+independentreserve = ["ccxt-base/independentreserve"]
+kraken = ["ccxt-base/kraken"]
+krakenfutures = ["ccxt-base/krakenfutures"]
+kucoin = ["ccxt-base/kucoin"]
+kucoinfutures = ["ccxt-base/kucoinfutures", "kucoin"]
+lbank = ["ccxt-base/lbank"]
+lighter = ["ccxt-base/lighter"]
+luno = ["ccxt-base/luno"]
+mexc = ["ccxt-base/mexc"]
+modetrade = ["ccxt-base/modetrade"]
+mudrex = ["ccxt-base/mudrex"]
+myokx = ["ccxt-base/myokx", "okx"]
+nado = ["ccxt-base/nado"]
+ndax = ["ccxt-base/ndax"]
+okx = ["ccxt-base/okx"]
+okxus = ["ccxt-base/okxus", "okx"]
+onetrading = ["ccxt-base/onetrading"]
+p2b = ["ccxt-base/p2b"]
+pacifica = ["ccxt-base/pacifica"]
+paradex = ["ccxt-base/paradex"]
+phemex = ["ccxt-base/phemex"]
+poloniex = ["ccxt-base/poloniex"]
+toobit = ["ccxt-base/toobit"]
+upbit = ["ccxt-base/upbit"]
+weex = ["ccxt-base/weex"]
+whitebit = ["ccxt-base/whitebit"]
+woo = ["ccxt-base/woo"]
+woofipro = ["ccxt-base/woofipro"]
+xt = ["ccxt-base/xt"]
+all = ["alpaca", "apex", "aster", "backpack", "bequant", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bitfinex", "bitget", "bithumb", "bitopro", "bitrue", "bitstamp", "bittrade", "bitvavo", "blockchaincom", "blofin", "bullish", "bybit", "bybiteu", "bybitid", "bydfi", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinex", "coinone", "cryptocom", "deepcoin", "deribit", "derive", "dydx", "extended", "gate", "gateeu", "gemini", "grvt", "hashkey", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "lbank", "lighter", "luno", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "phemex", "poloniex", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt"]
+# END GENERATED FEATURES
+
+[dependencies]
+# The base crate. The transpiled WS venues in `src/pro/<id>.rs` reference the
+# REST cores, runtime helpers and hand-written pro infra (cache / order_book /
+# ws_client) that live in `ccxt`. Splitting the WS venues into their own crate
+# keeps each `rustc` invocation well under the CI runner's memory limit.
+ccxt-base = { path = "../ccxt-base", version = "4.5.83", features = ["engine"] }
+
+# The generated WS venues (`src/pro/<id>.rs`, emitted by build/rustTranspiler.ts)
+# and typed wrappers (`src/pro_typed/`, `typed.rs`, emitted by
+# build/generateRustWrappers.ts) reference exactly three external crates
+# directly: `indexmap::IndexMap` (Value::Map backing store), `futures::FutureExt`
+# (`.boxed()` on watch* futures) and `#[async_trait::async_trait]`. Everything
+# else — HTTP, crypto, WS transport, decimal math — is reached through
+# `ccxt_base::*` re-exports, so it is not re-declared here.
+async-trait = "0.1"
+futures = "0.3"
+indexmap = { version = "2", features = ["serde"] }

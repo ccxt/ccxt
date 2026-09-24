@@ -9,11 +9,13 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class deribit extends \ccxt\async\deribit {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -61,7 +63,7 @@ class deribit extends \ccxt\async\deribit {
                     // watchOrderBook replacement
                     'watchOrderBookForSymbols' => array(
                         'interval' => '100ms', // 100ms, agg2, raw
-                        'useDepthEndpoint' => false, // if true, it will use the array(books.group.depth.interval) endpoint instead of the array(books.interval) endpoint
+                        'useDepthEndpoint' => false, // if true, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
                         'depth' => '20', // 1, 10, 20
                         'group' => 'none', // none, 1, 2, 5, 10, 25, 100, 250
                     ),
@@ -81,265 +83,285 @@ class deribit extends \ccxt\async\deribit {
         return $requestId;
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             *
-             * @see https://docs.deribit.com/#user-portfolio-currency
-             *
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            Async\await($this->authenticate($params));
-            $messageHash = 'balance';
-            $url = $this->urls['api']['ws'];
-            $currencies = $this->safe_value($this->options, 'currencies', array());
-            $channels = array();
-            for ($i = 0; $i < count($currencies); $i++) {
-                $currencyCode = $currencies[$i];
-                $channels[] = 'user.portfolio.' . $currencyCode;
-            }
-            $subscribe = array(
-                'jsonrpc' => '2.0',
-                'method' => 'private/subscribe',
-                'params' => array(
-                    'channels' => $channels,
-                ),
-                'id' => $this->request_id(),
-            );
-            $request = $this->deep_extend($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-        }) ();
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
     }
 
-    public function handle_balance(Client $client, $message) {
+    private function do_watch_balance($params = array()) {
+        /**
+         *
+         * @see https://docs.deribit.com/#user-portfolio-currency
+         *
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        Async\await($this->authenticate($params));
+        $messageHash = 'balance';
+        $url = $this->urls['api']['ws'];
+        $currencies = $this->safe_list($this->options, 'currencies', array());
+        $channels = array();
+        for ($i = 0; $i < count($currencies); $i++) {
+            $currencyCode = $currencies[$i];
+            $channels[] = 'user.portfolio.' . $currencyCode;
+        }
+        $subscribe = array(
+            'jsonrpc' => '2.0',
+            'method' => 'private/subscribe',
+            'params' => array(
+                'channels' => $channels,
+            ),
+            'id' => $this->request_id(),
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
+    }
+
+    public function handle_balance(Client $client, array $message) {
         //
         // subscription
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "user.portfolio.btc",
-        //             "data" => {
-        //                 "total_pl" => 0,
-        //                 "session_upl" => 0,
-        //                 "session_rpl" => 0,
-        //                 "projected_maintenance_margin" => 0,
-        //                 "projected_initial_margin" => 0,
-        //                 "projected_delta_total" => 0,
-        //                 "portfolio_margining_enabled" => false,
-        //                 "options_vega" => 0,
-        //                 "options_value" => 0,
-        //                 "options_theta" => 0,
-        //                 "options_session_upl" => 0,
-        //                 "options_session_rpl" => 0,
-        //                 "options_pl" => 0,
-        //                 "options_gamma" => 0,
-        //                 "options_delta" => 0,
-        //                 "margin_balance" => 0.0015,
-        //                 "maintenance_margin" => 0,
-        //                 "initial_margin" => 0,
-        //                 "futures_session_upl" => 0,
-        //                 "futures_session_rpl" => 0,
-        //                 "futures_pl" => 0,
-        //                 "fee_balance" => 0,
-        //                 "estimated_liquidation_ratio_map" => array(),
-        //                 "estimated_liquidation_ratio" => 0,
-        //                 "equity" => 0.0015,
-        //                 "delta_total_map" => array(),
-        //                 "delta_total" => 0,
-        //                 "currency" => "BTC",
-        //                 "balance" => 0.0015,
-        //                 "available_withdrawal_funds" => 0.0015,
-        //                 "available_funds" => 0.0015
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "user.portfolio.btc",
+        //             "data": {
+        //                 "total_pl": 0,
+        //                 "session_upl": 0,
+        //                 "session_rpl": 0,
+        //                 "projected_maintenance_margin": 0,
+        //                 "projected_initial_margin": 0,
+        //                 "projected_delta_total": 0,
+        //                 "portfolio_margining_enabled": false,
+        //                 "options_vega": 0,
+        //                 "options_value": 0,
+        //                 "options_theta": 0,
+        //                 "options_session_upl": 0,
+        //                 "options_session_rpl": 0,
+        //                 "options_pl": 0,
+        //                 "options_gamma": 0,
+        //                 "options_delta": 0,
+        //                 "margin_balance": 0.0015,
+        //                 "maintenance_margin": 0,
+        //                 "initial_margin": 0,
+        //                 "futures_session_upl": 0,
+        //                 "futures_session_rpl": 0,
+        //                 "futures_pl": 0,
+        //                 "fee_balance": 0,
+        //                 "estimated_liquidation_ratio_map": {},
+        //                 "estimated_liquidation_ratio": 0,
+        //                 "equity": 0.0015,
+        //                 "delta_total_map": {},
+        //                 "delta_total": 0,
+        //                 "currency": "BTC",
+        //                 "balance": 0.0015,
+        //                 "available_withdrawal_funds": 0.0015,
+        //                 "available_funds": 0.0015
         //             }
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $data = $this->safe_value($params, 'data', array());
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
         $this->balance['info'] = $data;
         $currencyId = $this->safe_string($data, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $balance = $this->parse_balance($data);
-        $this->balance[$currencyCode] = $balance;
+        if ($currencyCode !== null) {
+            $this->balance[$currencyCode] = $balance;
+        }
         $messageHash = 'balance';
-        $client->resolve ($this->balance, $messageHash);
+        $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.deribit.com/#ticker-instrument_name-$interval
-             *
-             * watches a price ticker, a statistical calculation with the information for a specific $market->
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $url = $this->urls['api']['ws'];
-            $interval = $this->safe_string($params, 'interval', '100ms');
-            $params = $this->omit($params, 'interval');
-            Async\await($this->load_markets());
-            if ($interval === 'raw') {
-                Async\await($this->authenticate());
-            }
-            $channel = 'ticker.' . $market['id'] . '.' . $interval;
-            $message = array(
-                'jsonrpc' => '2.0',
-                'method' => 'public/subscribe',
-                'params' => array(
-                    'channels' => [ 'ticker.' . $market['id'] . '.' . $interval ],
-                ),
-                'id' => $this->request_id(),
-            );
-            $request = $this->deep_extend($message, $params);
-            return Async\await($this->watch($url, $channel, $request, $channel, $request));
-        }) ();
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.deribit.com/#ticker-instrument_name-$interval
-             *
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://docs.deribit.com/#ticker-instrument_name-$interval
+         *
+         * watches a price ticker, a statistical calculation with the information for a specific $market->
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $url = $this->urls['api']['ws'];
-            $interval = $this->safe_string($params, 'interval', '100ms');
-            $params = $this->omit($params, 'interval');
+        }
+        $market = $this->market($symbol);
+        $url = $this->urls['api']['ws'];
+        $interval = $this->safe_string($params, 'interval', '100ms');
+        $params = $this->omit($params, 'interval');
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            if ($interval === 'raw') {
-                Async\await($this->authenticate());
-            }
-            $channels = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
-                $channels[] = 'ticker.' . $market['id'] . '.' . $interval;
-            }
-            $message = array(
-                'jsonrpc' => '2.0',
-                'method' => 'public/subscribe',
-                'params' => array(
-                    'channels' => $channels,
-                ),
-                'id' => $this->request_id(),
-            );
-            $request = $this->deep_extend($message, $params);
-            $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
-            if ($this->newUpdates) {
-                $tickers = array();
-                $tickers[$newTickers['symbol']] = $newTickers;
-                return $tickers;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        }
+        if ($interval === 'raw') {
+            Async\await($this->authenticate());
+        }
+        $channel = 'ticker.' . $market['id'] . '.' . $interval;
+        $message = array(
+            'jsonrpc' => '2.0',
+            'method' => 'public/subscribe',
+            'params' => array(
+                'channels' => array( 'ticker.' . $market['id'] . '.' . $interval ),
+            ),
+            'id' => $this->request_id(),
+        );
+        $request = $this->deep_extend($message, $params);
+        return Async\await($this->watch($url, $channel, $request, $channel, $request));
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.deribit.com/#ticker-instrument_name-$interval
+         *
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, false);
+        $url = $this->urls['api']['ws'];
+        $interval = $this->safe_string($params, 'interval', '100ms');
+        $params = $this->omit($params, 'interval');
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($interval === 'raw') {
+            Async\await($this->authenticate());
+        }
+        $channels = array();
+        for ($i = 0; $i < count(($symbols)); $i++) {
+            $market = $this->market(($symbols)[$i]);
+            $channels[] = 'ticker.' . $market['id'] . '.' . $interval;
+        }
+        $message = array(
+            'jsonrpc' => '2.0',
+            'method' => 'public/subscribe',
+            'params' => array(
+                'channels' => $channels,
+            ),
+            'id' => $this->request_id(),
+        );
+        $request = $this->deep_extend($message, $params);
+        $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
+        if ($this->newUpdates) {
+            $tickers = array();
+            $tickers[$newTickers['symbol']] = $newTickers;
+            return $tickers;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+    }
+
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "ticker.BTC_USDC-PERPETUAL.raw",
-        //             "data" => {
-        //                 "timestamp" => 1655393725040,
-        //                 "stats" => [Object],
-        //                 "state" => "open",
-        //                 "settlement_price" => 21729.5891,
-        //                 "open_interest" => 164.501,
-        //                 "min_price" => 20792.9376,
-        //                 "max_price" => 21426.225,
-        //                 "mark_price" => 21109.555,
-        //                 "last_price" => 21132,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "index_price" => 21122.3937,
-        //                 "funding_8h" => -0.00022427,
-        //                 "estimated_delivery_price" => 21122.3937,
-        //                 "current_funding" => -0.00010782,
-        //                 "best_bid_price" => 21106,
-        //                 "best_bid_amount" => 1.143,
-        //                 "best_ask_price" => 21113,
-        //                 "best_ask_amount" => 0.327
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "timestamp": 1655393725040,
+        //                 "stats": [Object],
+        //                 "state": "open",
+        //                 "settlement_price": 21729.5891,
+        //                 "open_interest": 164.501,
+        //                 "min_price": 20792.9376,
+        //                 "max_price": 21426.225,
+        //                 "mark_price": 21109.555,
+        //                 "last_price": 21132,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "index_price": 21122.3937,
+        //                 "funding_8h": -0.00022427,
+        //                 "estimated_delivery_price": 21122.3937,
+        //                 "current_funding": -0.00010782,
+        //                 "best_bid_price": 21106,
+        //                 "best_bid_amount": 1.143,
+        //                 "best_ask_price": 21113,
+        //                 "best_ask_amount": 0.327
         //             }
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $data = $this->safe_value($params, 'data', array());
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
         $ticker = $this->parse_ticker($data);
         $messageHash = $this->safe_string($params, 'channel');
         $this->tickers[$symbol] = $ticker;
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $messageHash);
     }
 
-    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.deribit.com/#quote-instrument_name
-             *
-             * watches best bid & ask for $symbols
-             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.deribit.com/#quote-instrument_name
+         *
+         * watches best bid & ask for $symbols
+         * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $url = $this->urls['api']['ws'];
-            $channels = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
-                $channels[] = 'quote.' . $market['id'];
-            }
-            $message = array(
-                'jsonrpc' => '2.0',
-                'method' => 'public/subscribe',
-                'params' => array(
-                    'channels' => $channels,
-                ),
-                'id' => $this->request_id(),
-            );
-            $request = $this->deep_extend($message, $params);
-            $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
-            if ($this->newUpdates) {
-                $tickers = array();
-                $tickers[$newTickers['symbol']] = $newTickers;
-                return $tickers;
-            }
-            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
-        }) ();
+        }
+        $symbols = $this->market_symbols($symbols, null, false);
+        $url = $this->urls['api']['ws'];
+        $channels = array();
+        for ($i = 0; $i < count(($symbols)); $i++) {
+            $market = $this->market(($symbols)[$i]);
+            $channels[] = 'quote.' . $market['id'];
+        }
+        $message = array(
+            'jsonrpc' => '2.0',
+            'method' => 'public/subscribe',
+            'params' => array(
+                'channels' => $channels,
+            ),
+            'id' => $this->request_id(),
+        );
+        $request = $this->deep_extend($message, $params);
+        $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
+        if ($this->newUpdates) {
+            $tickers = array();
+            $tickers[$newTickers['symbol']] = $newTickers;
+            return $tickers;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "quote.BTC_USDT",
-        //             "data" => {
-        //                 "best_bid_amount" => 0.026,
-        //                 "best_ask_amount" => 0.026,
-        //                 "best_bid_price" => 63908,
-        //                 "best_ask_price" => 63940,
-        //                 "instrument_name" => "BTC_USDT",
-        //                 "timestamp" => 1727765131750
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "quote.BTC_USDT",
+        //             "data": {
+        //                 "best_bid_amount": 0.026,
+        //                 "best_ask_amount": 0.026,
+        //                 "best_bid_price": 63908,
+        //                 "best_ask_price": 63940,
+        //                 "instrument_name": "BTC_USDT",
+        //                 "timestamp": 1727765131750
         //             }
         //         }
         //     }
@@ -350,10 +372,10 @@ class deribit extends \ccxt\async\deribit {
         $symbol = $ticker['symbol'];
         $this->bidsasks[$symbol] = $ticker;
         $messageHash = $this->safe_string($params, 'channel');
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'instrument_name');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -370,72 +392,76 @@ class deribit extends \ccxt\async\deribit {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://docs.deribit.com/#trades-instrument_name-interval
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            $params['callerMethodName'] = 'watchTrades';
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        }) ();
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a list of $symbols
-             *
-             * @see https://docs.deribit.com/#$trades-instrument_name-$interval
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            $interval = null;
-            list($interval, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'interval', '100ms');
-            if ($interval === 'raw') {
-                Async\await($this->authenticate());
-            }
-            $trades = Async\await($this->watch_multiple_wrapper('trades', $interval, $symbols, $params));
-            if ($this->newUpdates) {
-                $first = $this->safe_dict($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit ($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.deribit.com/#trades-instrument_name-interval
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        $params['callerMethodName'] = 'watchTrades';
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a list of $symbols
+         *
+         * @see https://docs.deribit.com/#$trades-instrument_name-$interval
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        $interval = null;
+        list($interval, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'interval', '100ms');
+        if ($interval === 'raw') {
+            Async\await($this->authenticate());
+        }
+        $trades = Async\await($this->watch_multiple_wrapper('trades', $interval, $symbols, $params));
+        if ($this->newUpdates) {
+            $first = $this->safe_dict($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "trades.BTC_USDC-PERPETUAL.100ms",
-        //             "data" => [array(
-        //                 "trade_seq" => 501899,
-        //                 "trade_id" => "USDC-2436803",
-        //                 "timestamp" => 1655397355998,
-        //                 "tick_direction" => 2,
-        //                 "price" => 21026,
-        //                 "mark_price" => 21019.9719,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "index_price" => 21031.7847,
-        //                 "direction" => "buy",
-        //                 "amount" => 0.049
-        //             )]
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "trades.BTC_USDC-PERPETUAL.100ms",
+        //             "data": [{
+        //                 "trade_seq": 501899,
+        //                 "trade_id": "USDC-2436803",
+        //                 "timestamp": 1655397355998,
+        //                 "tick_direction": 2,
+        //                 "price": 21026,
+        //                 "mark_price": 21019.9719,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "index_price": 21031.7847,
+        //                 "direction": "buy",
+        //                 "amount": 0.049
+        //             }]
         //         }
         //     }
         //
@@ -447,180 +473,186 @@ class deribit extends \ccxt\async\deribit {
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($marketId);
         $trades = $this->safe_list($params, 'data', array());
-        if ($this->safe_value($this->trades, $symbol) === null) {
+        if ($this->safe_dict($this->trades, $symbol) === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->trades[$symbol] = new ArrayCache ($limit);
+            $this->trades[$symbol] = new ArrayCache($limit);
         }
         $stored = $this->trades[$symbol];
         for ($i = 0; $i < count($trades); $i++) {
             $trade = $trades[$i];
             $parsed = $this->parse_trade($trade, $market);
-            $stored->append ($parsed);
+            $stored->append($parsed);
         }
         $this->trades[$symbol] = $stored;
         $messageHash = 'trades|' . $symbol . '|' . $interval;
-        $client->resolve ($this->trades[$symbol], $messageHash);
+        $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of $trades associated with the user
-             *
-             * @see https://docs.deribit.com/#user-$trades-instrument_name-$interval
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch $trades for. Use 'any' to watch all $trades
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            Async\await($this->authenticate($params));
-            if ($symbol !== null) {
-                Async\await($this->load_markets());
-                $symbol = $this->symbol($symbol);
-            }
-            $url = $this->urls['api']['ws'];
-            $interval = $this->safe_string($params, 'interval', 'raw');
-            $params = $this->omit($params, 'interval');
-            $channel = 'user.trades.any.any.' . $interval;
-            $message = array(
-                'jsonrpc' => '2.0',
-                'method' => 'private/subscribe',
-                'params' => array(
-                    'channels' => array( $channel ),
-                ),
-                'id' => $this->request_id(),
-            );
-            $request = $this->deep_extend($message, $params);
-            $trades = Async\await($this->watch($url, $channel, $request, $channel, $request));
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        }) ();
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of $trades associated with the user
+         *
+         * @see https://docs.deribit.com/#user-$trades-instrument_name-$interval
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch $trades for. Use 'any' to watch all $trades
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        Async\await($this->authenticate($params));
+        if ($symbol !== null) {
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+        }
+        $url = $this->urls['api']['ws'];
+        $interval = $this->safe_string($params, 'interval', 'raw');
+        $params = $this->omit($params, 'interval');
+        $channel = 'user.trades.any.any.' . $interval;
+        $message = array(
+            'jsonrpc' => '2.0',
+            'method' => 'private/subscribe',
+            'params' => array(
+                'channels' => array( $channel ),
+            ),
+            'id' => $this->request_id(),
+        );
+        $request = $this->deep_extend($message, $params);
+        $trades = Async\await($this->watch($url, $channel, $request, $channel, $request));
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+    }
+
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "user.trades.any.any.raw",
-        //             "data" => [array(
-        //                 "trade_seq" => 149546319,
-        //                 "trade_id" => "219381310",
-        //                 "timestamp" => 1655421193564,
-        //                 "tick_direction" => 0,
-        //                 "state" => "filled",
-        //                 "self_trade" => false,
-        //                 "reduce_only" => false,
-        //                 "profit_loss" => 0,
-        //                 "price" => 20236.5,
-        //                 "post_only" => false,
-        //                 "order_type" => "market",
-        //                 "order_id" => "46108941243",
-        //                 "matching_id" => null,
-        //                 "mark_price" => 20233.96,
-        //                 "liquidity" => "T",
-        //                 "instrument_name" => "BTC-PERPETUAL",
-        //                 "index_price" => 20253.31,
-        //                 "fee_currency" => "BTC",
-        //                 "fee" => 2.5e-7,
-        //                 "direction" => "buy",
-        //                 "amount" => 10
-        //             )]
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "user.trades.any.any.raw",
+        //             "data": [{
+        //                 "trade_seq": 149546319,
+        //                 "trade_id": "219381310",
+        //                 "timestamp": 1655421193564,
+        //                 "tick_direction": 0,
+        //                 "state": "filled",
+        //                 "self_trade": false,
+        //                 "reduce_only": false,
+        //                 "profit_loss": 0,
+        //                 "price": 20236.5,
+        //                 "post_only": false,
+        //                 "order_type": "market",
+        //                 "order_id": "46108941243",
+        //                 "matching_id": null,
+        //                 "mark_price": 20233.96,
+        //                 "liquidity": "T",
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "index_price": 20253.31,
+        //                 "fee_currency": "BTC",
+        //                 "fee": 2.5e-7,
+        //                 "direction": "buy",
+        //                 "amount": 10
+        //             }]
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
+        $params = $this->safe_dict($message, 'params', array());
         $channel = $this->safe_string($params, 'channel', '');
-        $trades = $this->safe_value($params, 'data', array());
+        $trades = $this->safe_list($params, 'data', array());
         $cachedTrades = $this->myTrades;
         if ($cachedTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $cachedTrades = new ArrayCacheBySymbolById ($limit);
+            $cachedTrades = new ArrayCacheBySymbolById($limit);
         }
         $parsed = $this->parse_trades($trades);
         $marketIds = array();
         for ($i = 0; $i < count($parsed); $i++) {
             $trade = $parsed[$i];
-            $cachedTrades->append ($trade);
+            $cachedTrades->append($trade);
             $symbol = $trade['symbol'];
             $marketIds[$symbol] = true;
         }
-        $client->resolve ($cachedTrades, $channel);
+        $client->resolve($cachedTrades, $channel);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             *
-             * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
-             *
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->interval] Frequency of notifications. Events will be aggregated over this interval. Possible values => 100ms, raw
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
-             */
-            $params['callerMethodName'] = 'watchOrderBook';
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        }) ();
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.deribit.com/#book-instrument_name-$group-$depth-$interval
-             *
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
-             */
-            $interval = null;
-            list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'interval', '100ms');
-            if ($interval === 'raw') {
-                Async\await($this->authenticate());
-            }
-            $descriptor = '';
-            $useDepthEndpoint = null; // for more info, see comment in .options
-            list($useDepthEndpoint, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
-            if ($useDepthEndpoint) {
-                $depth = null;
-                list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', '20');
-                $group = null;
-                list($group, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'group', 'none');
-                $descriptor = $group . '.' . $depth . '.' . $interval;
-            } else {
-                $descriptor = $interval;
-            }
-            $orderbook = Async\await($this->watch_multiple_wrapper('book', $descriptor, $symbols, $params));
-            return $orderbook->limit ();
-        }) ();
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+         *
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->interval] Frequency of notifications. Events will be aggregated over this interval. Possible values => 100ms, raw
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $params['callerMethodName'] = 'watchOrderBook';
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.deribit.com/#book-instrument_name-$group-$depth-$interval
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $interval = null;
+        list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        if ($interval === 'raw') {
+            Async\await($this->authenticate());
+        }
+        $descriptor = '';
+        $useDepthEndpoint = null; // for more info, see comment in .options
+        list($useDepthEndpoint, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        if ($useDepthEndpoint) {
+            $depth = null;
+            list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', '20');
+            $group = null;
+            list($group, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'group', 'none');
+            $descriptor = $group . '.' . $depth . '.' . $interval;
+        } else {
+            $descriptor = $interval;
+        }
+        $orderbook = Async\await($this->watch_multiple_wrapper('book', $descriptor, $symbols, $params));
+        return $orderbook->limit();
+    }
+
+    public function handle_order_book(Client $client, array $message) {
         //
         //  snapshot
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "book.BTC_USDC-PERPETUAL.raw",
-        //             "data" => {
-        //                 "type" => "snapshot",
-        //                 "timestamp" => 1655395057025,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "change_id" => 1550694837,
-        //                 "bids" => [
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "book.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "type": "snapshot",
+        //                 "timestamp": 1655395057025,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "change_id": 1550694837,
+        //                 "bids": [
         //                     ["new", 20987, 0.487],
         //                     ["new", 20986, 0.238],
         //                 ],
-        //                 "asks" => [
+        //                 "asks": [
         //                     ["new", 20999, 0.092],
         //                     ["new", 21000, 1.238],
         //                 ]
@@ -630,27 +662,27 @@ class deribit extends \ccxt\async\deribit {
         //
         //  change
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "book.BTC_USDC-PERPETUAL.raw",
-        //             "data" => {
-        //                 "type" => "change",
-        //                 "timestamp" => 1655395168086,
-        //                 "prev_change_id" => 1550724481,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "change_id" => 1550724483,
-        //                 "bids" => [
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "book.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "type": "change",
+        //                 "timestamp": 1655395168086,
+        //                 "prev_change_id": 1550724481,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "change_id": 1550724483,
+        //                 "bids": [
         //                     ["new", 20977, 0.109],
         //                     ["delete", 20975, 0]
         //                 ],
-        //                 "asks" => array()
+        //                 "asks": []
         //             }
         //         }
         //     }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $data = $this->safe_value($params, 'data', array());
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
         $channel = $this->safe_string($params, 'channel');
         $parts = explode('.', $channel);
         $descriptor = '';
@@ -668,7 +700,7 @@ class deribit extends \ccxt\async\deribit {
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($data, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->counted_order_book();
         }
         $storedOrderBook = $this->orderbooks[$symbol];
@@ -682,122 +714,126 @@ class deribit extends \ccxt\async\deribit {
         $storedOrderBook['symbol'] = $symbol;
         $this->orderbooks[$symbol] = $storedOrderBook;
         $messageHash = 'book|' . $symbol . '|' . $descriptor;
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function clean_order_book($data) {
+    public function clean_order_book(array $data): array {
         $bids = $this->safe_list($data, 'bids', array());
         $asks = $this->safe_list($data, 'asks', array());
         $cleanedBids = array();
         for ($i = 0; $i < count($bids); $i++) {
-            $cleanedBids[] = [ $bids[$i][1], $bids[$i][2] ];
+            $cleanedBids[] = array( $bids[$i][1], $bids[$i][2] );
         }
         $cleanedAsks = array();
         for ($i = 0; $i < count($asks); $i++) {
-            $cleanedAsks[] = [ $asks[$i][1], $asks[$i][2] ];
+            $cleanedAsks[] = array( $asks[$i][1], $asks[$i][2] );
         }
         $data['bids'] = $cleanedBids;
         $data['asks'] = $cleanedAsks;
         return $data;
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $delta[1];
         $amount = $delta[2];
         if ($delta[0] === 'new' || $delta[0] === 'change') {
-            $bookside->storeArray (array( $price, $amount, 1 ));
+            $bookside->storeArray(array( $price, $amount, 1 ));
         } elseif ($delta[0] === 'delete') {
-            $bookside->storeArray (array( $price, $amount, 0 ));
+            $bookside->storeArray(array( $price, $amount, 0 ));
         }
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.deribit.com/#user-$orders-instrument_name-raw
-             *
-             * watches information on multiple $orders made by the user
-             * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            Async\await($this->load_markets());
-            Async\await($this->authenticate($params));
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-            }
-            $url = $this->urls['api']['ws'];
-            $currency = $this->safe_string($params, 'currency', 'any');
-            $interval = $this->safe_string($params, 'interval', 'raw');
-            $kind = $this->safe_string($params, 'kind', 'any');
-            $params = $this->omit($params, 'interval', 'currency', 'kind');
-            $channel = 'user.orders.' . $kind . '.' . $currency . '.' . $interval;
-            $message = array(
-                'jsonrpc' => '2.0',
-                'method' => 'private/subscribe',
-                'params' => array(
-                    'channels' => array( $channel ),
-                ),
-                'id' => $this->request_id(),
-            );
-            $request = $this->deep_extend($message, $params);
-            $orders = Async\await($this->watch($url, $channel, $request, $channel, $request));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_orders(Client $client, $message) {
-        // Does not return a snapshot of current $orders
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.deribit.com/#user-$orders-instrument_name-raw
+         *
+         * watches information on multiple $orders made by the user
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->authenticate($params));
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+        }
+        $url = $this->urls['api']['ws'];
+        $currency = $this->safe_string($params, 'currency', 'any');
+        $interval = $this->safe_string($params, 'interval', 'raw');
+        $kind = $this->safe_string($params, 'kind', 'any');
+        $params = $this->omit($params, 'interval', 'currency', 'kind');
+        $channel = 'user.orders.' . $kind . '.' . $currency . '.' . $interval;
+        $message = array(
+            'jsonrpc' => '2.0',
+            'method' => 'private/subscribe',
+            'params' => array(
+                'channels' => array( $channel ),
+            ),
+            'id' => $this->request_id(),
+        );
+        $request = $this->deep_extend($message, $params);
+        $orders = Async\await($this->watch($url, $channel, $request, $channel, $request));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+    }
+
+    public function handle_orders(Client $client, array $message) {
+        // Does not return a snapshot of current orders
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "user.orders.any.any.raw",
-        //             "data" => {
-        //                 "web" => true,
-        //                 "time_in_force" => "good_til_cancelled",
-        //                 "replaced" => false,
-        //                 "reduce_only" => false,
-        //                 "profit_loss" => 0,
-        //                 "price" => 50000,
-        //                 "post_only" => false,
-        //                 "order_type" => "limit",
-        //                 "order_state" => "open",
-        //                 "order_id" => "46094375191",
-        //                 "max_show" => 10,
-        //                 "last_update_timestamp" => 1655401625037,
-        //                 "label" => '',
-        //                 "is_liquidation" => false,
-        //                 "instrument_name" => "BTC-PERPETUAL",
-        //                 "filled_amount" => 0,
-        //                 "direction" => "sell",
-        //                 "creation_timestamp" => 1655401625037,
-        //                 "commission" => 0,
-        //                 "average_price" => 0,
-        //                 "api" => false,
-        //                 "amount" => 10
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "user.orders.any.any.raw",
+        //             "data": {
+        //                 "web": true,
+        //                 "time_in_force": "good_til_cancelled",
+        //                 "replaced": false,
+        //                 "reduce_only": false,
+        //                 "profit_loss": 0,
+        //                 "price": 50000,
+        //                 "post_only": false,
+        //                 "order_type": "limit",
+        //                 "order_state": "open",
+        //                 "order_id": "46094375191",
+        //                 "max_show": 10,
+        //                 "last_update_timestamp": 1655401625037,
+        //                 "label": '',
+        //                 "is_liquidation": false,
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "filled_amount": 0,
+        //                 "direction": "sell",
+        //                 "creation_timestamp": 1655401625037,
+        //                 "commission": 0,
+        //                 "average_price": 0,
+        //                 "api": false,
+        //                 "amount": 10
         //             }
         //         }
         //     }
         //
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
-        $params = $this->safe_value($message, 'params', array());
+        $params = $this->safe_dict($message, 'params', array());
         $channel = $this->safe_string($params, 'channel', '');
         $data = $this->safe_value($params, 'data', array());
         $orders = array();
@@ -809,73 +845,79 @@ class deribit extends \ccxt\async\deribit {
         }
         $cachedOrders = $this->orders;
         for ($i = 0; $i < count($orders); $i++) {
-            $cachedOrders->append ($orders[$i]);
+            $cachedOrders->append($orders[$i]);
         }
-        $client->resolve ($this->orders, $channel);
+        $client->resolve($this->orders, $channel);
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
-             *
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+         *
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
-            $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-            return $ohlcvs[$symbol][$timeframe];
-        }) ();
+        }
+        $symbol = $this->symbol($symbol);
+        $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
+        return $ohlcvs[$symbol][$timeframe];
     }
 
-    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of $candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
-             */
-            $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
-                throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
-            }
-            list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple_wrapper('chart.trades', null, $symbolsAndTimeframes, $params));
-            if ($this->newUpdates) {
-                $limit = $candles->getLimit ($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
-        }) ();
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\async(self::do_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $since, $limit, $params);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    private function do_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         */
+        $symbolsLength = count($symbolsAndTimeframes);
+        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple_wrapper('chart.trades', null, $symbolsAndTimeframes, $params));
+        if ($this->newUpdates) {
+            $limit = $candles->getLimit($symbol, $limit);
+        }
+        $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
+        return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+    }
+
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "chart.trades.BTC_USDC-PERPETUAL.1",
-        //             "data" => {
-        //                 "volume" => 0,
-        //                 "tick" => 1655403420000,
-        //                 "open" => 20951,
-        //                 "low" => 20951,
-        //                 "high" => 20951,
-        //                 "cost" => 0,
-        //                 "close" => 20951
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "chart.trades.BTC_USDC-PERPETUAL.1",
+        //             "data": {
+        //                 "volume": 0,
+        //                 "tick": 1655403420000,
+        //                 "open": 20951,
+        //                 "low": 20951,
+        //                 "high": 20951,
+        //                 "cost": 0,
+        //                 "close": 20951
         //             }
         //         }
         //     }
@@ -891,31 +933,31 @@ class deribit extends \ccxt\async\deribit {
         $timeframes = $this->safe_dict($wsOptions, 'timeframes', array());
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-        if ($this->safe_value($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
+        if ($this->safe_dict($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $this->ohlcvs[$symbol][$unifiedTimeframe] = new ArrayCacheByTimestamp ($limit);
+            $this->ohlcvs[$symbol][$unifiedTimeframe] = new ArrayCacheByTimestamp($limit);
         }
         $stored = $this->ohlcvs[$symbol][$unifiedTimeframe];
         $ohlcv = $this->safe_dict($params, 'data', array());
         // data contains a single OHLCV candle
         $parsed = $this->parse_ws_ohlcv($ohlcv, $market);
-        $stored->append ($parsed);
+        $stored->append($parsed);
         $this->ohlcvs[$symbol][$unifiedTimeframe] = $stored;
         $resolveData = array( $symbol, $unifiedTimeframe, $stored );
         $messageHash = 'chart.trades|' . $symbol . '|' . $rawTimeframe;
-        $client->resolve ($resolveData, $messageHash);
+        $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
-        //        "c" => "28909.0",
-        //        "o" => "28915.4",
-        //        "h" => "28915.4",
-        //        "l" => "28896.1",
-        //        "v" => "27.6919",
-        //        "T" => 1696687499999,
-        //        "t" => 1696687440000
+        //        "c": "28909.0",
+        //        "o": "28915.4",
+        //        "h": "28915.4",
+        //        "l": "28896.1",
+        //        "v": "27.6919",
+        //        "T": 1696687499999,
+        //        "t": 1696687440000
         //    }
         //
         return array(
@@ -928,104 +970,114 @@ class deribit extends \ccxt\async\deribit {
         );
     }
 
-    public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, $symbolsArray = null, $params = array ()) {
-        return Async\async(function () use ($channelName, $channelDescriptor, $symbolsArray, $params) {
-            Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
-            $rawSubscriptions = array();
-            $messageHashes = array();
-            $isOHLCV = ($channelName === 'chart.trades');
-            $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
-            $this->market_symbols($symbols, null, false);
-            for ($i = 0; $i < count($symbolsArray); $i++) {
-                $current = $symbolsArray[$i];
-                $market = null;
-                if ($isOHLCV) {
-                    $market = $this->market($current[0]);
-                    $unifiedTf = $current[1];
-                    $rawTf = $this->safe_string($this->timeframes, $unifiedTf, $unifiedTf);
-                    $channelDescriptor = $rawTf;
-                } else {
-                    $market = $this->market($current);
-                }
-                $message = $channelName . '.' . $market['id'] . '.' . $channelDescriptor;
-                $rawSubscriptions[] = $message;
-                $messageHashes[] = $channelName . '|' . $market['symbol'] . '|' . $channelDescriptor;
-            }
-            $request = array(
-                'jsonrpc' => '2.0',
-                'method' => 'public/subscribe',
-                'params' => array(
-                    'channels' => $rawSubscriptions,
-                ),
-                'id' => $this->request_id(),
-            );
-            $extendedRequest = $this->deep_extend($request, $params);
-            $maxMessageByteLimit = 32768 - 1; // 'Message Too Big => limit 32768B'
-            $jsonedText = $this->json($extendedRequest);
-            if (strlen($jsonedText) >= $maxMessageByteLimit) {
-                throw new ExchangeError($this->id . ' requested subscription length over limit, try to reduce $symbols amount');
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, $extendedRequest, $rawSubscriptions));
-        }) ();
+    public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, mixed $symbolsArray = null, $params = array()) {
+        return Async\async(self::do_watch_multiple_wrapper(...))($channelName, $channelDescriptor, $symbolsArray, $params);
     }
 
-    public function handle_message(Client $client, $message) {
+    private function do_watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, mixed $symbolsArray = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $url = $this->urls['api']['ws'];
+        $rawSubscriptions = array();
+        $messageHashes = array();
+        $isOHLCV = ($channelName === 'chart.trades');
+        $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
+        $this->market_symbols($symbols, null, false);
+        if ($symbolsArray === null) {
+            throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() $symbolsArray is required');
+        }
+        for ($i = 0; $i < count($symbolsArray); $i++) {
+            if ($symbolsArray === null) {
+                throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() $symbolsArray is required');
+            }
+            $current = $symbolsArray[$i];
+            $market = null;
+            if ($isOHLCV) {
+                $market = $this->market($current[0]);
+                $unifiedTf = $current[1];
+                $rawTf = $this->safe_string($this->timeframes, $unifiedTf, $unifiedTf);
+                $channelDescriptor = $rawTf;
+            } else {
+                $market = $this->market($current);
+            }
+            $message = $channelName . '.' . $market['id'] . '.' . $channelDescriptor;
+            $rawSubscriptions[] = $message;
+            $messageHashes[] = $channelName . '|' . $market['symbol'] . '|' . $channelDescriptor;
+        }
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => 'public/subscribe',
+            'params' => array(
+                'channels' => $rawSubscriptions,
+            ),
+            'id' => $this->request_id(),
+        );
+        $extendedRequest = $this->deep_extend($request, $params);
+        $maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
+        $jsonedText = $this->json($extendedRequest);
+        if (strlen($jsonedText) >= $maxMessageByteLimit) {
+            throw new ExchangeError($this->id . ' requested subscription length over limit, try to reduce $symbols amount');
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $extendedRequest, $rawSubscriptions));
+    }
+
+    public function handle_message(Client $client, array $message) {
         //
-        // $error
+        // error
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 1,
-        //         "error" => array(
-        //             "message" => "Invalid $params",
-        //             "data" => array(
-        //                 "reason" => "invalid format",
-        //                 "param" => "nonce"
-        //             ),
-        //             "code" => -32602
-        //         ),
-        //         "usIn" => "1655391709417993",
-        //         "usOut" => "1655391709418049",
-        //         "usDiff" => 56,
-        //         "testnet" => false
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "error": {
+        //             "message": "Invalid params",
+        //             "data": {
+        //                 "reason": "invalid format",
+        //                 "param": "nonce"
+        //             },
+        //             "code": -32602
+        //         },
+        //         "usIn": "1655391709417993",
+        //         "usOut": "1655391709418049",
+        //         "usDiff": 56,
+        //         "testnet": false
         //     }
         //
         // subscribe
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 2,
-        //         "result" => ["ticker.BTC_USDC-PERPETUAL.raw"],
-        //         "usIn" => "1655393625889396",
-        //         "usOut" => "1655393625889518",
-        //         "usDiff" => 122,
-        //         "testnet" => false
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": ["ticker.BTC_USDC-PERPETUAL.raw"],
+        //         "usIn": "1655393625889396",
+        //         "usOut": "1655393625889518",
+        //         "usDiff": 122,
+        //         "testnet": false
         //     }
         //
         // notification
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "ticker.BTC_USDC-PERPETUAL.raw",
-        //             "data" => {
-        //                 "timestamp" => 1655393724752,
-        //                 "stats" => [Object],
-        //                 "state" => "open",
-        //                 "settlement_price" => 21729.5891,
-        //                 "open_interest" => 164.501,
-        //                 "min_price" => 20792.9001,
-        //                 "max_price" => 21426.1864,
-        //                 "mark_price" => 21109.4757,
-        //                 "last_price" => 21132,
-        //                 "instrument_name" => "BTC_USDC-PERPETUAL",
-        //                 "index_price" => 21122.3937,
-        //                 "funding_8h" => -0.00022427,
-        //                 "estimated_delivery_price" => 21122.3937,
-        //                 "current_funding" => -0.00011158,
-        //                 "best_bid_price" => 21106,
-        //                 "best_bid_amount" => 1.143,
-        //                 "best_ask_price" => 21113,
-        //                 "best_ask_amount" => 0.402
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "timestamp": 1655393724752,
+        //                 "stats": [Object],
+        //                 "state": "open",
+        //                 "settlement_price": 21729.5891,
+        //                 "open_interest": 164.501,
+        //                 "min_price": 20792.9001,
+        //                 "max_price": 21426.1864,
+        //                 "mark_price": 21109.4757,
+        //                 "last_price": 21132,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "index_price": 21122.3937,
+        //                 "funding_8h": -0.00022427,
+        //                 "estimated_delivery_price": 21122.3937,
+        //                 "current_funding": -0.00011158,
+        //                 "best_bid_price": 21106,
+        //                 "best_bid_amount": 1.143,
+        //                 "best_ask_price": 21113,
+        //                 "best_ask_amount": 0.402
         //             }
         //         }
         //     }
@@ -1034,7 +1086,7 @@ class deribit extends \ccxt\async\deribit {
         if ($error !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($error));
         }
-        $params = $this->safe_value($message, 'params');
+        $params = $this->safe_dict($message, 'params');
         $channel = $this->safe_string($params, 'channel');
         if ($channel !== null) {
             $parts = explode('.', $channel);
@@ -1059,67 +1111,69 @@ class deribit extends \ccxt\async\deribit {
             }
             throw new NotSupported($this->id . ' no $handler found for this $message ' . $this->json($message));
         }
-        $result = $this->safe_value($message, 'result', array());
+        $result = $this->safe_dict($message, 'result', array());
         $accessToken = $this->safe_string($result, 'access_token');
         if ($accessToken !== null) {
             $this->handle_authentication_message($client, $message);
         }
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, array $message): array {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 1,
-        //         "result" => array(
-        //             "token_type" => "bearer",
-        //             "scope" => "account:read_write block_trade:read_write connection custody:read_write mainaccount name:ccxt trade:read_write wallet:read_write",
-        //             "refresh_token" => "1686927372328.1EzFBRmt.logRQWXkPA1oE_Tk0gRsls9Hau7YN6a321XUBnxvR4x6cryhbkKcniUJU-czA8_zKXrqQGpQmfoDwhLIjIsWCvRuu6otbg-LKWlrtTX1GQqLcPaTTHAdZGTMV-HM8HiS03QBd9MIXWRfF53sKj2hdR9nZPZ6MH1XrkpAZPB_peuEEB9wlcc3elzWEZFtCmiy1fnQ8TPHwAJMt3nuUmEcMLt_-F554qrsg_-I66D9xMiifJj4dBemdPfV_PkGPRIwIoKlxDjyv2-xfCw-4eKyo6Hu1m2h6gT1DPOTxSXcBgfBQjpi-_uY3iAIj7U6xjC46PHthEdquhEuCTZl7UfCRZSAWwZA",
-        //             "expires_in" => 31536000,
-        //             "access_token" => "1686923272328.1CkwEx-u.qHradpIulmuoeboKMEi8PkQ1_4DF8yFE2zywBTtkD32sruVC53b1HwL5OWRuh2nYAndXff4xuXIMRkkEfMAFCeq24prihxxinoS8DDVkKBxedGx4CUPJFeXjmh7wuRGqQOLg1plXOpbF3fwF2KPEkAuETwcpcVY6K9HUVjutNRfxFe2TR7CvuS9x8TATvoPeu7H1ezYl-LkKSaRifdTXuwituXgp4oDbPRyQLniEBWuYF9rY7qbABxuOJlXI1VZ63u7Bh0mGWei-KeVeqHGNpy6OgrFRPXPxa9_U7vaxCyHW3zZ9959TQ1QUMLWtUX-NLBEv3BT5eCieW9HORYIOKfsgkpd3"
-        //         ),
-        //         "usIn" => "1655391872327712",
-        //         "usOut" => "1655391872328515",
-        //         "usDiff" => 803,
-        //         "testnet" => false
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": {
+        //             "token_type": "bearer",
+        //             "scope": "account:read_write block_trade:read_write connection custody:read_write mainaccount name:ccxt trade:read_write wallet:read_write",
+        //             "refresh_token": "1686927372328.1EzFBRmt.logRQWXkPA1oE_Tk0gRsls9Hau7YN6a321XUBnxvR4x6cryhbkKcniUJU-czA8_zKXrqQGpQmfoDwhLIjIsWCvRuu6otbg-LKWlrtTX1GQqLcPaTTHAdZGTMV-HM8HiS03QBd9MIXWRfF53sKj2hdR9nZPZ6MH1XrkpAZPB_peuEEB9wlcc3elzWEZFtCmiy1fnQ8TPHwAJMt3nuUmEcMLt_-F554qrsg_-I66D9xMiifJj4dBemdPfV_PkGPRIwIoKlxDjyv2-xfCw-4eKyo6Hu1m2h6gT1DPOTxSXcBgfBQjpi-_uY3iAIj7U6xjC46PHthEdquhEuCTZl7UfCRZSAWwZA",
+        //             "expires_in": 31536000,
+        //             "access_token": "1686923272328.1CkwEx-u.qHradpIulmuoeboKMEi8PkQ1_4DF8yFE2zywBTtkD32sruVC53b1HwL5OWRuh2nYAndXff4xuXIMRkkEfMAFCeq24prihxxinoS8DDVkKBxedGx4CUPJFeXjmh7wuRGqQOLg1plXOpbF3fwF2KPEkAuETwcpcVY6K9HUVjutNRfxFe2TR7CvuS9x8TATvoPeu7H1ezYl-LkKSaRifdTXuwituXgp4oDbPRyQLniEBWuYF9rY7qbABxuOJlXI1VZ63u7Bh0mGWei-KeVeqHGNpy6OgrFRPXPxa9_U7vaxCyHW3zZ9959TQ1QUMLWtUX-NLBEv3BT5eCieW9HORYIOKfsgkpd3"
+        //         },
+        //         "usIn": "1655391872327712",
+        //         "usOut": "1655391872328515",
+        //         "usDiff": 803,
+        //         "testnet": false
         //     }
         //
         $messageHash = 'authenticated';
-        $client->resolve ($message, $messageHash);
+        $client->resolve($message, $messageHash);
         return $message;
     }
 
-    public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $time = $this->milliseconds();
-            $timeString = $this->number_to_string($time);
-            $nonce = $timeString;
-            $messageHash = 'authenticated';
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $this->check_required_credentials();
-                $requestId = $this->request_id();
-                $lineBreak = "\n"; // eslint-disable-line quotes
-                $signature = $this->hmac($this->encode($timeString . $lineBreak . $nonce . $lineBreak), $this->encode($this->secret), 'sha256');
-                $request = array(
-                    'jsonrpc' => '2.0',
-                    'id' => $requestId,
-                    'method' => 'public/auth',
-                    'params' => array(
-                        'grant_type' => 'client_signature',
-                        'client_id' => $this->apiKey,
-                        'timestamp' => $time,
-                        'signature' => $signature,
-                        'nonce' => $nonce,
-                        'data' => '',
-                    ),
-                );
-                $future = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-                $client->subscriptions[$messageHash] = $future;
-            }
-            return $future;
-        }) ();
+    public function authenticate($params = array()) {
+        return Async\async(self::do_authenticate(...))($params);
+    }
+
+    private function do_authenticate($params = array()) {
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $time = $this->milliseconds();
+        $timeString = $this->number_to_string($time);
+        $nonce = $timeString;
+        $messageHash = 'authenticated';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $this->check_required_credentials();
+            $requestId = $this->request_id();
+            $lineBreak = "\n"; // eslint-disable-line quotes
+            $signature = $this->hmac($this->encode($timeString . $lineBreak . $nonce . $lineBreak), $this->encode($this->secret), 'sha256');
+            $request = array(
+                'jsonrpc' => '2.0',
+                'id' => $requestId,
+                'method' => 'public/auth',
+                'params' => array(
+                    'grant_type' => 'client_signature',
+                    'client_id' => $this->apiKey,
+                    'timestamp' => $time,
+                    'signature' => $signature,
+                    'nonce' => $nonce,
+                    'data' => '',
+                ),
+            );
+            $future = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 }

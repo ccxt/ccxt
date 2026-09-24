@@ -969,7 +969,7 @@
             "description": "BTCUSD is a BTC/USD perpetual contract priced on the .BTC Index. Each contract is worth 1 USD of Bitcoin. Funding is paid and received every 8 hours. At UTC time: 00:00, 08:00, 16:00.",
             "status": "Listed",
             "tipOrderQty": "5000000",
-            "listTime": "1574650800000",
+            "listTime": "1574640000000",
             "majorSymbol": true,
             "defaultLeverage": "0",
             "fundingInterval": "8",
@@ -1086,7 +1086,7 @@
             "defaultLeverage": "-10",
             "fundingInterval": "28800",
             "maxLeverage": "100",
-            "leverageMargin": "1007",
+            "leverageMargin": "1036",
             "maxOI": "-1.0",
             "maxOrderQtyRq": "10000",
             "maxPriceRp": "500000",
@@ -1099,7 +1099,7 @@
             "steps": "0K",
             "riskLimits": [
                 {
-                    "limit": "10000000",
+                    "limit": "46000000000",
                     "initialMarginRr": "0.01",
                     "maintenanceMarginRr": "0.005"
                 }

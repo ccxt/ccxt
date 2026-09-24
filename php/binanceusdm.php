@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\binanceusdm as binance;
 
 class binanceusdm extends binance {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
@@ -47,21 +46,21 @@ class binanceusdm extends binance {
             // https://developers.binance.com/docs/derivatives/usds-margined-futures/error-code
             'exceptions' => array(
                 'exact' => array(
-                    '-5021' => '\\ccxt\\InvalidOrder', // array("code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected.")
-                    '-5022' => '\\ccxt\\InvalidOrder', // array("code":-5022,"msg":"Due to the order could not be executed, the Post Only order will be rejected.")
-                    '-5028' => '\\ccxt\\InvalidOrder', // array("code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow.")
+                    '-5021' => '\\ccxt\\InvalidOrder', // {"code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected."}
+                    '-5022' => '\\ccxt\\InvalidOrder', // {"code":-5022,"msg":"Due to the order could not be executed as maker, the Post Only order will be rejected."}
+                    '-5028' => '\\ccxt\\InvalidOrder', // {"code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow."}
                 ),
             ),
         ));
     }
 
-    public function transfer_in(string $code, $amount, $params = array ()) {
+    public function transfer_in(string $code, float $amount, $params = array()): array {
         // transfer from spot wallet to usdm futures wallet
-        return $this->futuresTransfer ($code, $amount, 1, $params);
+        return $this->futuresTransfer($code, $amount, 1, $params);
     }
 
-    public function transfer_out(string $code, $amount, $params = array ()) {
+    public function transfer_out(string $code, float $amount, $params = array()): array {
         // transfer from usdm futures wallet to spot wallet
-        return $this->futuresTransfer ($code, $amount, 2, $params);
+        return $this->futuresTransfer($code, $amount, 2, $params);
     }
 }

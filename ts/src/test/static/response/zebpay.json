@@ -5,6 +5,198 @@
     ],
     "outputType": "both",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "currency": "USDT",
+                            "name": "USDT",
+                            "fullName": "USDT",
+                            "precision": "6",
+                            "type": "crypto",
+                            "isDebitEnabled": false,
+                            "chains": [
+                                {
+                                    "chainName": "TRON(TRC20)",
+                                    "withdrawalMinSize": "9.440000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "8.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "tron",
+                                    "AddressRegex": "^T[a-zA-Z0-9]{33}$"
+                                },
+                                {
+                                    "chainName": "Ethereum(ERC20)",
+                                    "withdrawalMinSize": "3.540000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "3.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "ethereum",
+                                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                                }
+                            ]
+                        }
+                    ],
+                    "statusCode": "200",
+                    "statusDescription": "Success"
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "currency": "USDT",
+                            "name": "USDT",
+                            "fullName": "USDT",
+                            "precision": "6",
+                            "type": "crypto",
+                            "isDebitEnabled": false,
+                            "chains": [
+                                {
+                                    "chainName": "TRON(TRC20)",
+                                    "withdrawalMinSize": "9.440000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "8.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "tron",
+                                    "AddressRegex": "^T[a-zA-Z0-9]{33}$"
+                                },
+                                {
+                                    "chainName": "Ethereum(ERC20)",
+                                    "withdrawalMinSize": "3.540000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "3.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "ethereum",
+                                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": null,
+                        "name": "USDT",
+                        "active": false,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": 3,
+                        "fees": {},
+                        "networks": {
+                            "tron": {
+                                "info": {
+                                    "chainName": "TRON(TRC20)",
+                                    "withdrawalMinSize": "9.440000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "8.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "tron",
+                                    "AddressRegex": "^T[a-zA-Z0-9]{33}$"
+                                },
+                                "id": "tron",
+                                "network": "tron",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": 8,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 9.44,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.000001,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ethereum": {
+                                "info": {
+                                    "chainName": "Ethereum(ERC20)",
+                                    "withdrawalMinSize": "3.540000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "3.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "ethereum",
+                                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                                },
+                                "id": "ethereum",
+                                "network": "ethereum",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": 3,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 3.54,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.000001,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 3.54,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.000001,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "swap candles",

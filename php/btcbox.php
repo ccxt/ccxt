@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\btcbox as Exchange;
 
 class btcbox extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcbox',
@@ -68,6 +67,7 @@ class btcbox extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
+                'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
@@ -122,25 +122,26 @@ class btcbox extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
+                        'depth' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
+                        'balance' => array( 'cost' => 1 ),
+                        'order_history' => array( 'cost' => 1 ),
+                        'trade_add' => array( 'cost' => 1 ),
+                        'trade_cancel' => array( 'cost' => 1 ),
+                        'trade_list' => array( 'cost' => 1 ),
+                        'trade_view' => array( 'cost' => 1 ),
+                        'wallet' => array( 'cost' => 1 ),
                     ),
                 ),
                 'webApi' => array(
                     'get' => array(
-                        'ajax/coin/coinInfo',
+                        'ajax/coin/coinInfo' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -149,7 +150,6 @@ class btcbox extends Exchange {
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 3,
                 ),
-                'amountPrecision' => '0.0001', // exchange has only few pairs and all of them
             ),
             'features' => array(
                 'spot' => array(
@@ -228,13 +228,13 @@ class btcbox extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for ace
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $promise1 = $this->publicGetTickers ();
+        $promise1 = $this->publicGetTickers();
         $promise2 = $this->fetch_web_endpoint('fetchMarkets', 'webApiGetAjaxCoinCoinInfo', true);
         list($response1, $response2) = array( $promise1, $promise2 );
         //
@@ -244,11 +244,11 @@ class btcbox extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $symbolParts = explode('_', $marketId);
-            $baseCurr = $this->safe_string($symbolParts, 0);
-            $quote = $this->safe_string($symbolParts, 1);
+            $baseCurr = $this->safe_string($symbolParts, 0, '');
+            $quote = $this->safe_string($symbolParts, 1, '');
             $quoteId = strtolower($quote);
             $id = strtolower($baseCurr);
-            $res = $response1[$marketId];
+            $res = $this->safe_dict($response1, $marketId, array());
             $symbol = $baseCurr . '/' . $quote;
             $fee = ($id === 'BTC') ? $this->parse_number('0.0005') : $this->parse_number('0.0010');
             $details = $this->safe_dict($result2Data, $id, array());
@@ -315,7 +315,7 @@ class btcbox extends Exchange {
         $quoteId = $this->safe_string($market, 'quote');
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $this->safe_string($market, 'symbol'),
             'uppercaseId' => null,
             'symbol' => $symbol,
@@ -364,10 +364,10 @@ class btcbox extends Exchange {
             'active' => null,
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -375,7 +375,7 @@ class btcbox extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $free = $currencyId . '_balance';
-            if (is_array($response) && array_key_exists($free, $response)) {
+            if (is_array($response) && array_key_exists($free ?? '', $response)) {
                 $account = $this->account();
                 $used = $currencyId . '_lock';
                 $account['free'] = $this->safe_string($response, $free);
@@ -386,7 +386,7 @@ class btcbox extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -395,12 +395,14 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = $this->privatePostBalance ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostBalance($params);
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -409,16 +411,18 @@ class btcbox extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         $numSymbols = count($this->symbols);
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
-        $response = $this->publicGetDepth ($this->extend($request, $params));
+        $response = $this->publicGetDepth($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol']);
     }
 
@@ -449,7 +453,7 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -459,26 +463,30 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         $numSymbols = count($this->symbols);
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
-        $response = $this->publicGetTicker ($this->extend($request, $params));
+        $response = $this->publicGetTicker($this->extend($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
-        $response = $this->publicGetTickers ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetTickers($params);
         return $this->parse_tickers($response, $symbols);
     }
 
@@ -488,7 +496,7 @@ class btcbox extends Exchange {
         //
         //      {
         //          "date":"0",
-        //          "price":3,
+        //          "price":4,
         //          "amount":0.1,
         //          "tid":"1",
         //          "type":"buy"
@@ -518,7 +526,7 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -530,29 +538,31 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         $numSymbols = count($this->symbols);
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
-        $response = $this->publicGetOrders ($this->extend($request, $params));
+        $response = $this->publicGetOrders($this->extend($request, $params));
         //
-        //     array(
-        //          array(
+        //     [
+        //          {
         //              "date":"0",
         //              "price":3,
         //              "amount":0.1,
         //              "tid":"1",
         //              "type":"buy"
-        //          ),
-        //     )
+        //          },
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -566,7 +576,9 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'amount' => $amount,
@@ -574,17 +586,17 @@ class btcbox extends Exchange {
             'type' => $side,
             'coin' => $market['baseId'],
         );
-        $response = $this->privatePostTradeAdd ($this->extend($request, $params));
+        $response = $this->privatePostTradeAdd($this->extend($request, $params));
         //
         //     {
         //         "result":true,
-        //         "id":"11"
+        //         "id":"12"
         //     }
         //
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -595,8 +607,10 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
-        // a special case for btcbox – default $symbol is BTC/JPY
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        // a special case for btcbox – default symbol is BTC/JPY
         if ($symbol === null) {
             $symbol = 'BTC/JPY';
         }
@@ -605,22 +619,25 @@ class btcbox extends Exchange {
             'id' => $id,
             'coin' => $market['baseId'],
         );
-        $response = $this->privatePostTradeCancel ($this->extend($request, $params));
+        $response = $this->privatePostTradeCancel($this->extend($request, $params));
         //
-        //     array("result":true, "id":"11")
+        //     {"result":true, "id":"11"}
         //
         return $this->parse_order($response, $market);
     }
 
     public function parse_order_status(?string $status) {
         $statuses = array(
-            // TODO => complete list
+            // TODO: complete list
             'part' => 'open', // partially or not at all executed
             'all' => 'closed', // fully executed
             'cancelled' => 'canceled',
             'closed' => 'closed', // never encountered, seems to be bug in the doc
             'no' => 'closed', // not clarified in the docs...
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -634,7 +651,7 @@ class btcbox extends Exchange {
         //         "amount_original":1.2,
         //         "amount_outstanding":1.2,
         //         "status":"closed",
-        //         "trades":array() // no clarification of trade value structure of $order endpoint
+        //         "trades":[] // no clarification of trade value structure of order endpoint
         //     }
         //
         $id = $this->safe_string($order, 'id');
@@ -646,15 +663,15 @@ class btcbox extends Exchange {
         $amount = $this->safe_string($order, 'amount_original');
         $remaining = $this->safe_string($order, 'amount_outstanding');
         $price = $this->safe_string($order, 'price');
-        // $status is set by fetchOrder method only
+        // status is set by fetchOrder method only
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        // fetchOrders do not return $status, use heuristic
+        // fetchOrders do not return status, use heuristic
         if ($status === null) {
             if (Precise::string_equals($remaining, '0')) {
                 $status = 'closed';
             }
         }
-        $trades = null; // todo => $this->parse_trades($order['trades']);
+        $trades = null; // todo: this.parseTrades (order['trades']);
         $market = $this->safe_market(null, $market);
         $side = $this->safe_string($order, 'type');
         return $this->safe_order(array(
@@ -682,7 +699,7 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -693,8 +710,10 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
-        // a special case for btcbox – default $symbol is BTC/JPY
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        // a special case for btcbox – default symbol is BTC/JPY
         if ($symbol === null) {
             $symbol = 'BTC/JPY';
         }
@@ -703,7 +722,7 @@ class btcbox extends Exchange {
             'id' => $id,
             'coin' => $market['baseId'],
         ), $params);
-        $response = $this->privatePostTradeView ($this->extend($request, $params));
+        $response = $this->privatePostTradeView($this->extend($request, $params));
         //
         //      {
         //          "id":11,
@@ -713,36 +732,41 @@ class btcbox extends Exchange {
         //          "amount_original":1.2,
         //          "amount_outstanding":1.2,
         //          "status":"closed",
-        //          "trades":array()
+        //          "trades":[]
         //      }
         //
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders_by_type($type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        $this->load_markets();
-        // a special case for btcbox – default $symbol is BTC/JPY
+    public function fetch_orders_by_type(?string $type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        // a special case for btcbox – default symbol is BTC/JPY
+        if ($symbol === null) {
+            $symbol = 'BTC/JPY';
+        }
         $market = $this->market($symbol);
         $request = array(
             'type' => $type, // 'open' or 'all'
             'coin' => $market['baseId'],
         );
-        $response = $this->privatePostTradeList ($this->extend($request, $params));
+        $response = $this->privatePostTradeList($this->extend($request, $params));
         //
-        // array(
-        //      array(
+        // [
+        //      {
         //          "id":"7",
         //          "datetime":"2014-10-20 13:27:38",
         //          "type":"buy",
         //          "price":42750,
         //          "amount_original":0.235,
         //          "amount_outstanding":0.235
-        //      ),
-        // )
+        //      },
+        // ]
         //
         $orders = $this->parse_orders($response, $market, $since, $limit);
-        // status (open/closed/canceled) is null
-        // btcbox does not return status, but we know it's 'open' queried for open $orders
+        // status (open/closed/canceled) is undefined
+        // btcbox does not return status, but we know it's 'open' as we queried for open orders
         if ($type === 'open') {
             for ($i = 0; $i < count($orders); $i++) {
                 $orders[$i]['status'] = 'open';
@@ -751,7 +775,7 @@ class btcbox extends Exchange {
         return $orders;
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
@@ -766,7 +790,7 @@ class btcbox extends Exchange {
         return $this->fetch_orders_by_type('all', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -781,14 +805,14 @@ class btcbox extends Exchange {
         return $this->fetch_orders_by_type('open', $symbol, $since, $limit, $params);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($api === 'webApi') {
@@ -811,25 +835,25 @@ class btcbox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // resort to defaultErrorHandler
         }
-        // typical error $response => array("result":false,"code":"401")
+        // typical error response: {"result":false,"code":"401"}
         if ($httpCode >= 400) {
             return null; // resort to defaultErrorHandler
         }
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_bool($response, 'result');
         if ($result === null || $result === true) {
             return null; // either public API (no error codes expected) or success
         }
-        $code = $this->safe_value($response, 'code');
+        $code = $this->safe_string($response, 'code');
         $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
+    public function request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, mixed $config = array()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json

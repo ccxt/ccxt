@@ -1,5 +1,5 @@
 import bingxRest from '../bingx.js';
-import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict } from '../base/types.js';
+import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bingx extends bingxRest {
     describe(): any;
@@ -15,7 +15,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name bingx#unWatchTicker
@@ -28,8 +28,8 @@ export default class bingx extends bingxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): void;
-    parseWsTicker(message: any, market?: any): Ticker;
+    handleTicker(client: Client, message: Dict): void;
+    parseWsTicker(message: Dict, market?: Market, isInverse?: Bool): Ticker;
     getOrderBookLimitByMarketType(marketType: string, limit?: Int): number;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
     /**
@@ -45,7 +45,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bingx#unWatchTrades
@@ -59,7 +59,7 @@ export default class bingx extends bingxRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name bingx#watchOrderBook
@@ -70,9 +70,9 @@ export default class bingx extends bingxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name bingx#unWatchOrderBook
@@ -82,13 +82,13 @@ export default class bingx extends bingxRest {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleOrderBook(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
-    handleOHLCV(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name bingx#watchOHLCV
@@ -103,7 +103,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name bingx#unWatchOHLCV
@@ -116,7 +116,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bingx#watchOrders
@@ -130,7 +130,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name bingx#watchMyTrades
@@ -144,7 +144,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bingx#watchBalance
@@ -155,9 +155,9 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    setBalanceCache(client: Client, type: any, subType: any, subscriptionHash: any, params: any): void;
-    loadBalanceSnapshot(client: any, messageHash: any, type: any, subType: any): Promise<void>;
+    watchBalance(params?: Dict): Promise<Balances>;
+    setBalanceCache(client: Client, type: any, subType: Str, subscriptionHash: string, params: Dict): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: any, subType: Str): Promise<void>;
     /**
      * @method
      * @name bingx#watchPositions
@@ -169,19 +169,19 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
-    loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
-    parseWsPosition(position: any, market?: any): Position;
-    handlePositions(client: Client, message: any): void;
-    handleErrorMessage(client: any, message: any): boolean;
-    keepAliveListenKey(params?: {}): Promise<void>;
-    authenticate(params?: {}): Promise<void>;
-    pong(client: any, message: any): Promise<void>;
-    handleOrder(client: any, message: any): void;
-    handleMyTrades(client: Client, message: any): void;
-    handleBalance(client: Client, message: any): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
+    setPositionsCache(client: Client, type: Str, symbols?: Strings): void;
+    loadPositionsSnapshot(client: Client, messageHash: string, type: Str): Promise<void>;
+    parseWsPosition(position: Dict, market?: Market): Position;
+    handlePositions(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): boolean;
+    keepAliveListenKey(params?: Dict): Promise<void>;
+    authenticate(params?: Dict): Promise<void>;
+    pong(client: Client, message: any): Promise<void>;
+    handleOrder(client: Client, message: Dict): void;
+    handleMyTrades(client: Client, message: Dict): void;
+    handleBalance(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleUnSubscription(client: Client, subscription: Dict): void;
 }

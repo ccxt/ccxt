@@ -9,24 +9,23 @@ use Exception; // a common import
 use ccxt\abstract\pacifica as Exchange;
 
 class pacifica extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'pacifica',
             'name' => 'Pacifica',
-            'countries' => [ ],
+            'countries' => array(),
             'version' => 'v1',
             'isSandboxModeEnabled' => false, // is testnet api
-            'rateLimit' => 50, // 125 requests per minute without api-key (300 with api-key) ~ 2 req/sec = 1 req/500 ms.
+            'rateLimit' => 600, // 100 credits per minute without an API Config Key (300 with a key)
             'certified' => false,
             'pro' => true,
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
-                'future' => true,
+                'future' => false,
                 'option' => false,
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
@@ -48,7 +47,7 @@ class pacifica extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'editOrders' => false,
-                'fetchAccounts' => true,
+                'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRateHistories' => false,
@@ -62,7 +61,7 @@ class pacifica extends Exchange {
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => false,
-                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
@@ -128,10 +127,12 @@ class pacifica extends Exchange {
                 '8h' => '8h',
                 '12h' => '12h',
                 '1d' => '1d',
+                '1w' => '1w',
+                '1M' => '1M',
             ),
             'hostname' => 'pacifica.fi',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4',
+                'logo' => 'https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610',
                 'api' => array(
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
@@ -149,49 +150,94 @@ class pacifica extends Exchange {
                 'public' => array(
                     'get' => array(
                         // ~12 weight depends on the limit 3 max for api-key, but min without api-key
-                        'info' => 1,
-                        'info/prices' => 1,
-                        'kline' => 12,
-                        'kline/mark' => 12,
-                        'book' => 1,
-                        'trades' => 1, // Recent
-                        'funding_rate/history' => 1,
-                        'account' => 1,
-                        'account/settings' => 1,
-                        'positions' => 1,
-                        'trades/history' => 12,
-                        'funding/history' => 1,
-                        'portfolio' => 1,
-                        'account/balance/history' => 12,
-                        'orders' => 1,
-                        'orders/history' => 12,
-                        'orders/history_by_id' => 1,
-                        'account/builder_codes/approvals' => 1,
+                        'info' => array( 'cost' => 1 ),
+                        'info/fees' => array( 'cost' => 1 ),
+                        'info/prices' => array( 'cost' => 1 ),
+                        'kline' => array( 'cost' => 12 ),
+                        'kline/mark' => array( 'cost' => 12 ),
+                        'book' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ), // Recent
+                        'funding_rate/history' => array( 'cost' => 1 ),
+                        'loan_pool' => array( 'cost' => 1 ),
+                        'account' => array( 'cost' => 1 ),
+                        'account/loan' => array( 'cost' => 1 ),
+                        'account/settings' => array( 'cost' => 1 ),
+                        'positions' => array( 'cost' => 1 ),
+                        'trades/history' => array( 'cost' => 12 ),
+                        'funding/history' => array( 'cost' => 1 ),
+                        'portfolio' => array( 'cost' => 1 ),
+                        'account/balance/history' => array( 'cost' => 12 ),
+                        'account/spot_balance/history' => array( 'cost' => 1 ),
+                        'account/spot_asset/deposit/history' => array( 'cost' => 1 ),
+                        'account/spot_asset/withdraw/history' => array( 'cost' => 1 ),
+                        'account/spot_asset/withdraw/pending' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/history' => array( 'cost' => 12 ),
+                        'orders/history_by_id' => array( 'cost' => 1 ),
+                        'orders/twap' => array( 'cost' => 1 ),
+                        'orders/twap/history' => array( 'cost' => 12 ),
+                        'orders/twap/history_by_id' => array( 'cost' => 1 ),
+                        'spot_assets' => array( 'cost' => 1 ),
+                        'spot_assets/bridge/info' => array( 'cost' => 1 ),
+                        'spot_assets/bridge/parameters/{symbol}' => array( 'cost' => 1 ),
+                        'lake/list' => array( 'cost' => 1 ),
+                        'account/builder_codes/approvals' => array( 'cost' => 1 ),
+                        'builder/overview' => array( 'cost' => 1 ),
+                        'builder/trades' => array( 'cost' => 1 ),
+                        'leaderboard/builder_code' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'account/leverage' => 1,
-                        'account/margin' => 1,
-                        'account/withdraw' => 1,
-                        'account/subaccount/create' => 1,
-                        'account/subaccount/list' => 1,
-                        'account/subaccount/transfer' => 1,
-                        'orders/create' => 1,
-                        'orders/create_market' => 1,
-                        'orders/stop/create' => 1,
-                        'positions/tpsl' => 1,
-                        'orders/cancel' => 0.5,
-                        'orders/cancel_all' => 0.5,
-                        'orders/stop/cancel' => 0.5,
-                        'orders/edit' => 1,
-                        'orders/batch' => 1,
-                        'account/builder_codes/approve' => 1,
-                        'account/builder_codes/revoke' => 1,
-                        'agent/bind' => 1,
-                        'account/api_keys/create' => 1,
-                        'account/api_keys/revoke' => 1,
-                        'account/api_keys' => 1,
+                        'account/leverage' => array( 'cost' => 1 ),
+                        'account/margin' => array( 'cost' => 1 ),
+                        'account/withdraw' => array( 'cost' => 1 ),
+                        'account/settings/auto_lend_disabled' => array( 'cost' => 1 ),
+                        'account/settings/spot' => array( 'cost' => 1 ),
+                        'account/spot_asset/withdraw' => array( 'cost' => 1 ),
+                        'account/subaccount/create' => array( 'cost' => 1 ),
+                        'account/subaccount/list' => array( 'cost' => 1 ),
+                        'account/subaccount/transfer' => array( 'cost' => 1 ),
+                        'account/subaccount/spot_asset/transfer' => array( 'cost' => 1 ),
+                        'positions/add_isolated_margin' => array( 'cost' => 1 ),
+                        'orders/create' => array( 'cost' => 1 ),
+                        'orders/create_market' => array( 'cost' => 1 ),
+                        'orders/stop/create' => array( 'cost' => 1 ),
+                        'positions/tpsl' => array( 'cost' => 1 ),
+                        'orders/cancel' => array( 'cost' => 0.5 ),
+                        'orders/cancel_all' => array( 'cost' => 0.5 ),
+                        'orders/stop/cancel' => array( 'cost' => 0.5 ),
+                        'orders/edit' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
+                        'orders/twap/create' => array( 'cost' => 1 ),
+                        'orders/twap/cancel' => array( 'cost' => 0.5 ),
+                        'account/builder_codes/approve' => array( 'cost' => 1 ),
+                        'account/builder_codes/revoke' => array( 'cost' => 1 ),
+                        'builder/update_fee_rate' => array( 'cost' => 1 ),
+                        'referral/user/code/claim' => array( 'cost' => 1 ),
+                        'agent/bind' => array( 'cost' => 1 ),
+                        'agent/list' => array( 'cost' => 1 ),
+                        'agent/revoke' => array( 'cost' => 1 ),
+                        'agent/revoke_all' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/list' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/add' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/remove' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/toggle' => array( 'cost' => 1 ),
+                        'account/api_keys/create' => array( 'cost' => 1 ),
+                        'account/api_keys/revoke' => array( 'cost' => 1 ),
+                        'account/api_keys' => array( 'cost' => 1 ),
+                        'lake/add_blacklist' => array( 'cost' => 1 ),
+                        'lake/add_max_leverage' => array( 'cost' => 1 ),
+                        'lake/add_whitelist' => array( 'cost' => 1 ),
+                        'lake/claim_manager' => array( 'cost' => 1 ),
+                        'lake/claim_referral_code' => array( 'cost' => 1 ),
+                        'lake/create' => array( 'cost' => 1 ),
+                        'lake/deposit' => array( 'cost' => 1 ),
+                        'lake/remove_blacklist' => array( 'cost' => 1 ),
+                        'lake/remove_max_leverage' => array( 'cost' => 1 ),
+                        'lake/remove_whitelist' => array( 'cost' => 1 ),
+                        'lake/update_deposit_cap' => array( 'cost' => 1 ),
+                        'lake/withdraw' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -200,11 +246,17 @@ class pacifica extends Exchange {
                     'taker' => $this->parse_number('0.0004'),
                     'maker' => $this->parse_number('0.00015'),
                 ),
+                'spot' => array(
+                    // https://docs.pacifica.fi/trading-on-pacifica/trading-fees
+                    // one unified fee schedule for all product types
+                    'taker' => $this->parse_number('0.0004'),
+                    'maker' => $this->parse_number('0.00015'),
+                ),
             ),
             //
             // Reminder:
             // If you're using an agent wallet, its private key must also be in the privateKey field in requiredCredentials.
-            // However, walletAddress must ALWAYS be equal to the main address. For the agent wallet address, there's a field in options => agentAddress
+            // However, walletAddress must ALWAYS be equal to the main address. For the agent wallet address, there's a field in options: agentAddress
             //
             'requiredCredentials' => array(
                 'apiKey' => false,
@@ -214,17 +266,145 @@ class pacifica extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    '400' => '\\ccxt\\BadRequest',
-                    '403' => '\\ccxt\\PermissionDenied',
-                    '404' => '\\ccxt\\BadRequest',
-                    '409' => '\\ccxt\\ExchangeError',
-                    '422' => '\\ccxt\\ExchangeError',
-                    '429' => '\\ccxt\\RateLimitExceeded',
-                    '500' => '\\ccxt\\ExchangeError',
-                    '503' => '\\ccxt\\ExchangeNotAvailable',
-                    '504' => '\\ccxt\\RequestTimeout',
+                    '0' => '\\ccxt\\ExchangeError', // INTERNAL
+                    '1' => '\\ccxt\\ExchangeError', // ACCOUNT_NOT_FOUND
+                    '2' => '\\ccxt\\ExchangeError', // ACCOUNT_ALREADY_EXISTS
+                    '3' => '\\ccxt\\ExchangeError', // BOOK_NOT_FOUND
+                    '4' => '\\ccxt\\InvalidOrder', // INVALID_TICK_LEVEL
+                    '5' => '\\ccxt\\InsufficientFunds', // INSUFFICIENT_BALANCE
+                    '6' => '\\ccxt\\OrderNotFound', // ORDER_NOT_FOUND
+                    '7' => '\\ccxt\\InvalidOrder', // ORDER_AMOUNT_TOO_LOW
+                    '8' => '\\ccxt\\InvalidOrder', // ORDER_AMOUNT_TOO_HIGH
+                    '9' => '\\ccxt\\InsufficientFunds', // OVER_WITHDRAWAL
+                    '10' => '\\ccxt\\InvalidOrder', // OPEN_ORDER_LIMIT_REACHED
+                    '11' => '\\ccxt\\ExchangeError', // INVALID_LEVERAGE
+                    '12' => '\\ccxt\\ExchangeError', // CANNOT_UPDATE_MARGIN
+                    '13' => '\\ccxt\\ExchangeError', // POSITION_NOT_FOUND
+                    '14' => '\\ccxt\\ExchangeError', // DATABASE_ERROR
+                    '15' => '\\ccxt\\BadRequest', // INVALID_DEPOSIT_NONCE
+                    '16' => '\\ccxt\\InvalidOrder', // INVALID_STOP_TICK
+                    '17' => '\\ccxt\\InvalidOrder', // INVALID_STOP_ORDER_SIDE
+                    '18' => '\\ccxt\\InvalidOrder', // INVALID_STOP_ORDER_AMOUNT
+                    '19' => '\\ccxt\\InvalidOrder', // INVALID_STOP_ORDER_REDUCE_ONLY
+                    '20' => '\\ccxt\\InvalidOrder', // INVALID_ORDER_TYPE
+                    '21' => '\\ccxt\\InvalidOrder', // INVALID_REDUCE_ONLY_ORDER_SIDE
+                    '22' => '\\ccxt\\InvalidOrder', // INVALID_REDUCE_ONLY_ORDER_AMOUNT
+                    '23' => '\\ccxt\\InvalidOrder', // NO_POSITION_FOR_REDUCE_ONLY_ORDER
+                    '24' => '\\ccxt\\ExchangeError', // INVALID_LIQUIDATION_SIDE
+                    '25' => '\\ccxt\\InvalidOrder', // NO_REASONABLE_PRICE
+                    '26' => '\\ccxt\\ExchangeError', // CHANNEL_CLOSED
+                    '27' => '\\ccxt\\ExchangeError', // RESPONSE_DROPPED
+                    '28' => '\\ccxt\\InvalidOrder', // IMMEDIATE_LIQUIDATION
+                    '29' => '\\ccxt\\InvalidOrder', // WITHDRAW_AMOUNT_TOO_LOW
+                    '30' => '\\ccxt\\InvalidOrder', // PRICE_TOO_FAR_FROM_MARK
+                    '31' => '\\ccxt\\PermissionDenied', // DAILY_WITHDRAW_LIMIT_EXCEEDED
+                    '32' => '\\ccxt\\PermissionDenied', // WITHDRAWAL_BLOCKED
+                    '33' => '\\ccxt\\BadRequest', // INVALID_TRANSFER_RELATIONSHIP
+                    '34' => '\\ccxt\\PermissionDenied', // SUBACCOUNT_WITHDRAWAL_NOT_ALLOWED
+                    '35' => '\\ccxt\\PermissionDenied', // SUBACCOUNT_CANNOT_CREATE_SUBACCOUNT
+                    '36' => '\\ccxt\\InvalidOrder', // DUPLICATE_CLIENT_ORDER_ID
+                    '37' => '\\ccxt\\InvalidOrder', // UNUSED_CLIENT_ORDER_ID
+                    '38' => '\\ccxt\\PermissionDenied', // TRADING_DISABLED
+                    '39' => '\\ccxt\\BadRequest', // INVALID_FEE_MODE
+                    '40' => '\\ccxt\\PermissionDenied', // NOT_MAIN_ACCOUNT
+                    '41' => '\\ccxt\\InvalidOrder', // OPEN_INTEREST_LIMIT_EXCEEDED
+                    '42' => '\\ccxt\\ExchangeError', // EXCHANGE_WITHDRAW_LIMIT_REACHED
+                    '43' => '\\ccxt\\InvalidOrder', // TWAP_DUPLICATE_CLIENT_ORDER_ID
+                    '44' => '\\ccxt\\InvalidOrder', // TWAP_UNUSED_CLIENT_ORDER_ID
+                    '45' => '\\ccxt\\InvalidOrder', // TWAP_ORDER_FAIL_TO_GET_SUB_ORDER_AMOUNT
+                    '46' => '\\ccxt\\InvalidOrder', // TWAP_ORDER_DURATION_TOO_SHORT
+                    '47' => '\\ccxt\\OrderNotFound', // TWAP_ORDER_NOT_FOUND
+                    '48' => '\\ccxt\\InvalidOrder', // TWAP_ORDER_COUNT_PER_SYMBOL_LIMIT_EXCEEDED
+                    '49' => '\\ccxt\\InvalidOrder', // POSITION_TPSL_LIMIT_EXCEEDED
+                    '50' => '\\ccxt\\BadRequest', // INVALID_BUILDER_CODE
+                    '51' => '\\ccxt\\NotSupported', // UNSUPPORTED_OPERATION
+                    '52' => '\\ccxt\\InvalidOrder', // INVALID_TICK_SIZE
+                    '53' => '\\ccxt\\InvalidOrder', // ORDER_BLOCKED_BY_LOAN_POOL_STRESS
+                    '54' => '\\ccxt\\ExchangeError', // ASSET_ALREADY_EXISTS
+                    '55' => '\\ccxt\\ExchangeError', // ASSET_NOT_FOUND
+                    '56' => '\\ccxt\\ExchangeError', // ASSET_NOT_ACTIVE
+                    '59' => '\\ccxt\\InvalidOrder', // INVALID_AMOUNT
+                    '61' => '\\ccxt\\InsufficientFunds', // SPOT_WITHDRAWAL_EXCEEDS_COLLATERAL
+                    '62' => '\\ccxt\\InsufficientFunds', // INSUFFICIENT_SPOT_BALANCE
+                    '63' => '\\ccxt\\ExchangeError', // MISSING_MARK_PRICE
+                    '64' => '\\ccxt\\BadRequest', // INVALID_FLOOR_PRICE_PCT
+                    '65' => '\\ccxt\\InsufficientFunds', // SPOT_EXCLUSION_BREACHES_COLLATERAL
+                    '66' => '\\ccxt\\ExchangeError', // LAKE_NOT_FOUND
+                    '67' => '\\ccxt\\ExchangeError', // LAKE_ADDRESS_COLLISION
+                    '68' => '\\ccxt\\InvalidOrder', // LAKE_MIN_DEPOSIT_AMOUNT
+                    '69' => '\\ccxt\\InvalidOrder', // LAKE_INVALID_SHARES
+                    '70' => '\\ccxt\\InsufficientFunds', // LAKE_OVER_WITHDRAWAL
+                    '71' => '\\ccxt\\ExchangeError', // LAKE_NICKNAME_ALREADY_EXISTS
+                    '72' => '\\ccxt\\PermissionDenied', // LAKE_WITHDRAWAL_NOT_ALLOWED
+                    '73' => '\\ccxt\\PermissionDenied', // LAKE_MANAGER_IS_SUBLAKE
+                    '74' => '\\ccxt\\PermissionDenied', // LAKE_NOT_CREATOR
+                    '75' => '\\ccxt\\InvalidOrder', // LAKE_DEPOSIT_CAP_EXCEEDED
+                    '76' => '\\ccxt\\PermissionDenied', // LAKE_WITHDRAW_TOO_EARLY
+                    '77' => '\\ccxt\\BadRequest', // LAKE_INVALID_REV_SHARE_CONFIG
+                    '78' => '\\ccxt\\InsufficientFunds', // LAKE_DEPOSITOR_OVER_WITHDRAWAL
+                    '79' => '\\ccxt\\ExchangeError', // LAKE_ALREADY_HAS_MANAGER
+                    '80' => '\\ccxt\\InvalidOrder', // LAKE_MANAGER_BALANCE_PORTION_TOO_LOW
+                    '81' => '\\ccxt\\BadRequest', // LAKE_INVALID_BALANCE_PORTION_CONFIG
+                    '82' => '\\ccxt\\InvalidOrder', // LAKE_LIQUIDATION_PORTION_ABOVE_MIN_PORTION
+                    '83' => '\\ccxt\\ExchangeNotAvailable', // LAKE_TRADING_HALTED
+                    '84' => '\\ccxt\\BadRequest', // INVALID_WITHDRAW_NONCE
+                    '85' => '\\ccxt\\BadRequest', // LAKE_INVALID_WITHDRAW_WINDOW_CONFIG
+                    '86' => '\\ccxt\\BadRequest', // LAKE_WITHDRAW_DURATION_ABOVE_WINDOW
+                    '87' => '\\ccxt\\PermissionDenied', // LAKE_WITHDRAW_WINDOW_CLOSED
+                    '88' => '\\ccxt\\BadRequest', // INVALID_SPOT_DEPOSIT_NONCE
+                    '89' => '\\ccxt\\BadRequest', // SPOT_DEPOSIT_NONCE_GAP
+                    '90' => '\\ccxt\\BadRequest', // INVALID_SPOT_WITHDRAW_NONCE
+                    '91' => '\\ccxt\\ExchangeError', // SPOT_BRIDGE_NOT_FOUND
+                    '92' => '\\ccxt\\ExchangeNotAvailable', // SPOT_BRIDGE_INACTIVE
+                    '93' => '\\ccxt\\BadRequest', // LAKE_SYMBOL_NOT_ALLOWED
+                    '94' => '\\ccxt\\InvalidOrder', // LAKE_MAX_LEVERAGE_EXCEEDED
+                    '95' => '\\ccxt\\ExchangeError', // GAME_CONFIG_NOT_FOUND
+                    '96' => '\\ccxt\\ExchangeError', // GAME_ACCOUNT_NOT_FOUND
+                    '97' => '\\ccxt\\ExchangeError', // GAME_ACCOUNT_ADDRESS_COLLISION
+                    '99' => '\\ccxt\\InvalidOrder', // GAME_DEPOSIT_CAP_EXCEEDED
+                    '100' => '\\ccxt\\PermissionDenied', // GAME_OPERATION_NOT_ALLOWED
+                    '101' => '\\ccxt\\ExchangeNotAvailable', // GAME_ALREADY_ENDED
+                    '102' => '\\ccxt\\BadRequest', // GAME_INVALID_CONFIG
+                    '103' => '\\ccxt\\PermissionDenied', // GAME_ACCOUNT_WITHDRAWAL_NOT_ALLOWED
+                    '104' => '\\ccxt\\InvalidOrder', // GAME_LEVERAGE_EXCEEDED
+                    '105' => '\\ccxt\\InvalidOrder', // GAME_DEPOSIT_BELOW_MINIMUM
+                    '106' => '\\ccxt\\NotSupported', // REDUCE_ONLY_NOT_SUPPORTED_FOR_SPOT
+                    '107' => '\\ccxt\\NotSupported', // TP_SL_NOT_SUPPORTED_FOR_SPOT
+                    '108' => '\\ccxt\\NotSupported', // BUILDER_CODE_NOT_SUPPORTED_FOR_SPOT
+                    '109' => '\\ccxt\\NotSupported', // MARGIN_SETTINGS_NOT_APPLICABLE_FOR_SPOT
+                    '110' => '\\ccxt\\BadRequest', // INVALID_BOOK_CONFIG
+                    '111' => '\\ccxt\\ExchangeNotAvailable', // TAP_GAME_NOT_ACTIVE
+                    '112' => '\\ccxt\\InvalidOrder', // TAP_GAME_INVALID_AMOUNT
+                    '113' => '\\ccxt\\ExchangeError', // TAP_GAME_ERROR
+                    '114' => '\\ccxt\\ExchangeError', // INVALID_COLLATERAL_LIMIT / LAKE_SELF_DEPOSIT_NOT_ALLOWED
+                    '115' => '\\ccxt\\ExchangeError', // SPOT_COLLATERAL_LIMIT_BREACHES_COLLATERAL / LAKE_DEPOSITOR_NOT_WHITELISTED
+                    '116' => '\\ccxt\\ExchangeError', // DAILY_SPOT_WITHDRAW_LIMIT_EXCEEDED / RFQ_SELF_QUOTE_NOT_ALLOWED
+                    '117' => '\\ccxt\\ExchangeError', // EXCHANGE_SPOT_WITHDRAW_LIMIT_REACHED / RFQ_NOT_SUPPORTED_FOR_SPOT
+                    '118' => '\\ccxt\\ExchangeError', // INVALID_SPOT_LIMIT / RFQ_MISSING_CLIENT_ORDER_ID
+                    '119' => '\\ccxt\\ExchangeNotAvailable', // ORACLE_NOT_AVAILABLE
+                    '120' => '\\ccxt\\PermissionDenied', // VAULT_WITHDRAWAL_NOT_ALLOWED
+                    '121' => '\\ccxt\\InvalidOrder', // RFQ_QUOTE_WORSE_THAN_BOOK
+                    '400' => '\\ccxt\\BadRequest', // Bad Request; INVALID_REQUEST_CODE
+                    '401' => '\\ccxt\\AuthenticationError', // INVALID_SIGNATURE_CODE
+                    '402' => '\\ccxt\\AuthenticationError', // INVALID_SIGNER_CODE
+                    '403' => '\\ccxt\\PermissionDenied', // Forbidden: restricted region; UNAUTHORIZED_REQUEST_CODE
+                    '404' => '\\ccxt\\BadRequest', // Not Found
+                    '409' => '\\ccxt\\ExchangeError', // Conflict
+                    '420' => '\\ccxt\\ExchangeError', // ENGINE_ERROR_CODE
+                    '422' => '\\ccxt\\ExchangeError', // Business Logic Error - See below
+                    '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
+                    '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error; UNKNOWN_ERROR_CODE
+                    '503' => '\\ccxt\\ExchangeNotAvailable', // Service Unavailable
+                    '504' => '\\ccxt\\RequestTimeout', // Gateway Timeout
+                    // error_id values, undocumented but present on live error responses
+                    'signature_verification_failed' => '\\ccxt\\AuthenticationError',
+                    'invalid_amount' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array(
+                    'Invalid signature' => '\\ccxt\\AuthenticationError',
+                    'Invalid public key' => '\\ccxt\\AuthenticationError',
+                    'Verification failed' => '\\ccxt\\AuthenticationError',
+                    'Invalid message' => '\\ccxt\\BadRequest', // expired or malformed signed message
                     'UNKNOWN' => '\\ccxt\\ExchangeError',
                     'ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                     'BOOK_NOT_FOUND' => '\\ccxt\\ExchangeError',
@@ -250,8 +430,8 @@ class pacifica extends Exchange {
                 'defaultType' => 'swap',
                 'defaultSlippage' => '0.5',
                 'expiryWindow' => 5000,
-                'maxCostHugeWithApiKey' => 3,
-                'marketHelperProps' => [ ],
+                'maxCostHugeWithApiKey' => 4,
+                'marketHelperProps' => array(),
                 'defaultMarginMode' => 'cross',
                 'builderSupportOperations' => array(
                     'create_market_order' => true,
@@ -390,12 +570,12 @@ class pacifica extends Exchange {
             return false;
         }
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if (!$buildFee) {
-            return false; // skip if $builder fee is not enabled
+        if ($buildFee !== true) {
+            return false; // skip if builder fee is not enabled
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee) {
-            return true; // skip if $builder fee is already approved
+        if ($approvedBuilderFee === true) {
+            return true; // skip if builder fee is already approved
         }
         try {
             $builder = $this->safe_string($this->options, 'builderCode', 'CCXT'); // case sensitive
@@ -403,130 +583,157 @@ class pacifica extends Exchange {
             $this->approve_builder_code($builder, $maxFeeRate);
             $this->options['approvedBuilderFee'] = true;
         } catch (Exception $e) {
-            $this->options['builderFee'] = false; // disable $builder fee if an error occurs
+            $this->options['builderFee'] = false; // disable builder fee if an error occurs
         }
         return true;
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
-         * retrieves data on all markets for pacifica
+         * retrieves data on all $markets for pacifica
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing market data
+         * @return {array[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
          */
-        if ($this->check_required_credentials(false)) {
-            $this->initialize_client();
-            $this->load_account_settings();
-        }
-        $swapMarkets = $this->fetch_swap_markets($params);
-        return $swapMarkets;
+        $response = $this->publicGetInfo($params); // meta
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "symbol": "BTC",
+        //       "tick_size": "1",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.00001",
+        //       "max_leverage": 50,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "5000000",
+        //       "funding_rate": "0.0000125",
+        //       "next_funding_rate": "0.0000125",
+        //       "created_at": 1748881333944,
+        //       "instrument_type": "perpetual",
+        //       "base_asset": "BTC"
+        //     },
+        //     {
+        //       "symbol": "SOL-USDC",
+        //       "tick_size": "0.01",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.001",
+        //       "max_leverage": 1,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "1000000",
+        //       "funding_rate": "0",
+        //       "next_funding_rate": "0",
+        //       "created_at": 1776615970246,
+        //       "instrument_type": "spot",
+        //       "base_asset": "SOL"
+        //     },
+        //   ],
+        //   "error": null,
+        //   "code": null
+        // }
+        $markets = $this->safe_list($response, 'data', array());
+        return $this->parse_markets($markets);
     }
 
-    public function fetch_swap_markets($params = array ()): array {
+    public function fetch_swap_markets($params = array()): array {
         /**
-         * retrieves data on all swap markets for pacifica
+         * retrieves data on all swap $markets for pacifica
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetInfo ($params); // $meta
-        // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "symbol" => "ETH",
-        //       "tick_size" => "0.1",
-        //       "min_tick" => "0",
-        //       "max_tick" => "1000000",
-        //       "lot_size" => "0.0001",
-        //       "max_leverage" => 50,
-        //       "isolated_only" => false,
-        //       "min_order_size" => "10",
-        //       "max_order_size" => "5000000",
-        //       "funding_rate" => "0.0000125",
-        //       "next_funding_rate" => "0.0000125",
-        //       "created_at" => 1748881333944
-        //     ),
-        //     array(
-        //       "symbol" => "BTC",
-        //       "tick_size" => "1",
-        //       "min_tick" => "0",
-        //       "max_tick" => "1000000",
-        //       "lot_size" => "0.00001",
-        //       "max_leverage" => 50,
-        //       "isolated_only" => false,
-        //       "min_order_size" => "10",
-        //       "max_order_size" => "5000000",
-        //       "funding_rate" => "0.0000125",
-        //       "next_funding_rate" => "0.0000125",
-        //       "created_at" => 1748881333944
-        //     ),
-        //     ....
-        //   ),
-        //   "error" => null,
-        //   "code" => null
-        // }
-        $meta = $this->safe_list($response, 'data', array());
-        $results = array();
-        for ($i = 0; $i < count($meta); $i++) {
-            $results[] = $meta[$i];
-        }
-        return $this->parse_markets($results);
+        $markets = $this->fetch_markets($params);
+        return $this->filter_by($markets, 'type', 'swap');
     }
 
     public function parse_market(array $market): array {
-        //     array(
-        //       "symbol" => "ETH",
-        //       "tick_size" => "0.1",
-        //       "min_tick" => "0",
-        //       "max_tick" => "1000000",
-        //       "lot_size" => "0.0001",
-        //       "max_leverage" => 50,
-        //       "isolated_only" => false,
-        //       "min_order_size" => "10",
-        //       "max_order_size" => "5000000",
-        //       "funding_rate" => "0.0000125",
-        //       "next_funding_rate" => "0.0000125",
-        //       "created_at" => 1748881333944
-        //     ),
-        //     array(
-        //       "symbol" => "BTC",
-        //       "tick_size" => "1",
-        //       "min_tick" => "0",
-        //       "max_tick" => "1000000",
-        //       "lot_size" => "0.00001",
-        //       "max_leverage" => 50,
-        //       "isolated_only" => false,
-        //       "min_order_size" => "10",
-        //       "max_order_size" => "5000000",
-        //       "funding_rate" => "0.0000125",
-        //       "next_funding_rate" => "0.0000125",
-        //       "created_at" => 1748881333944
-        //     ),
-        $quoteId = 'usdc';
-        $settleId = 'usdc';
+        //     {
+        //       "symbol": "BTC",
+        //       "tick_size": "1",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.00001",
+        //       "max_leverage": 50,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "5000000",
+        //       "funding_rate": "0.0000125",
+        //       "next_funding_rate": "0.0000125",
+        //       "created_at": 1748881333944,
+        //       "instrument_type": "perpetual",
+        //       "base_asset": "BTC"
+        //     },
+        //     {
+        //       "symbol": "SOL-USDC",
+        //       "tick_size": "0.01",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.001",
+        //       "max_leverage": 1,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "1000000",
+        //       "funding_rate": "0",
+        //       "next_funding_rate": "0",
+        //       "created_at": 1776615970246,
+        //       "instrument_type": "spot",
+        //       "base_asset": "SOL"
+        //     },
         $id = $this->safe_string($market, 'symbol');
-        $baseId = strtolower($id);
-        $baseName = strtoupper($id);
-        $base = $this->safe_currency_code($baseName);
+        $baseId = $this->safe_string($market, 'base_asset', $id);
+        $instrumentType = $this->safe_string($market, 'instrument_type');
+        $isSpot = ($instrumentType === 'spot');
+        $isSwap = !$isSpot;
+        $quoteId = 'USDC';
+        $settleId = null;
+        $type = 'spot';
+        $linear = null;
+        $inverse = null;
+        $contractSize = null;
+        $minLeverage = null;
+        $maxLeverage = null;
+        $crossMargin = null;
+        $isolatedMargin = null;
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing id');
+        }
+        if ($isSpot) {
+            $idParts = explode('-', $id);
+            $quoteId = $this->safe_string($idParts, 1, $quoteId);
+        }
+        $isolatedOnly = $this->safe_bool($market, 'isolated_only', false);
+        if ($isSwap) {
+            $settleId = $quoteId;
+            $type = 'swap';
+            $linear = true;
+            $inverse = false;
+            $contractSize = $this->parse_number('1');
+            $minLeverage = 1;
+            $maxLeverage = $this->safe_integer($market, 'max_leverage');
+            $crossMargin = $isolatedOnly !== true;
+            $isolatedMargin = true;
+        }
+        $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
-        $contract = true;
-        $swap = true;
-        if ($contract) {
-            if ($swap) {
-                $symbol = $symbol . ':' . $settle;
-            }
+        if ($isSwap) {
+            $symbol = $symbol . ':' . $settle;
         }
-        $fees = $this->safe_dict($this->fees, 'swap', array());
+        $fees = $this->safe_dict($this->fees, $type, array());
         $taker = $this->safe_number($fees, 'taker');
         $maker = $this->safe_number($fees, 'maker');
-        $amountPrecisionStr = $this->safe_string($market, 'lot_size');
-        $pricePrecisionStr = $this->safe_string($market, 'tick_size');
-        $active = true; // there is no non-$active markets comes from endpoint $market info
+        $amountPrecision = $this->safe_number($market, 'lot_size');
+        $pricePrecision = $this->safe_number($market, 'tick_size');
+        $active = true; // there is no non-active markets comes from endpoint market info
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -534,138 +741,167 @@ class pacifica extends Exchange {
             'quote' => $quote,
             'settle' => $settle,
             'baseId' => $baseId,
-            'baseName' => $baseName,
             'quoteId' => $quoteId,
             'settleId' => $settleId,
-            'type' => 'swap',
-            'spot' => false,
-            'margin' => null,
-            'swap' => $swap,
+            'type' => $type,
+            'spot' => $isSpot,
+            'margin' => false,
+            'swap' => $isSwap,
             'future' => false,
             'option' => false,
             'active' => $active,
-            'contract' => $contract,
-            'linear' => true,
-            'inverse' => false,
+            'contract' => $isSwap,
+            'linear' => $linear,
+            'inverse' => $inverse,
             'taker' => $taker,
             'maker' => $maker,
-            'contractSize' => $this->parse_number('1'),
+            'contractSize' => $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->parse_number($amountPrecisionStr),
-                'price' => $this->parse_number($pricePrecisionStr),
+                'amount' => $amountPrecision,
+                'price' => $pricePrecision,
             ),
             'limits' => array(
                 'leverage' => array(
-                    'min' => 1,
-                    'max' => $this->safe_integer($market, 'max_leverage'),
+                    'min' => $minLeverage,
+                    'max' => $maxLeverage,
                 ),
                 'amount' => array(
                     'min' => null,
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $this->safe_string($market, 'min_tick'),
-                    'max' => $this->safe_string($market, 'max_tick'),
+                    'min' => $this->safe_number($market, 'min_tick'),
+                    'max' => $this->safe_number($market, 'max_tick'),
                 ),
                 'cost' => array(
-                    'min' => null,
-                    'max' => null,
+                    'min' => $this->safe_number($market, 'min_order_size'),
+                    'max' => $this->safe_number($market, 'max_order_size'),
                 ),
             ),
-            'created' => null,
-            'marginModes' => array( 'cross' => true, 'isolated' => true ),
+            'created' => $this->safe_integer($market, 'created_at'),
+            'marginModes' => array(
+                'cross' => $crossMargin,
+                'isolated' => $isolatedMargin,
+            ),
             'info' => $market,
         ));
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-$account-info
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->account] will default to walletAddress if not provided
-         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
         $userAccount = null;
         list($userAccount, $params) = $this->handle_origin_and_single_address('fetchBalance', $params);
         $request = array(
             'account' => $userAccount,
         );
-        $response = $this->publicGetAccount ($this->extend($request, $params));
+        $response = $this->publicGetAccount($this->extend($request, $params));
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     "balance" => "2000.000000",
-        //     "fee_level" => 0,
-        //     "maker_fee" => "0.00015",
-        //     "taker_fee" => "0.0004",
-        //     "account_equity" => "2150.250000",
-        //     "available_to_spend" => "1800.750000",
-        //     "available_to_withdraw" => "1500.850000",
-        //     "pending_balance" => "0.000000",
-        //     "total_margin_used" => "349.500000",
-        //     "cross_mmr" => "420.690000",
-        //     "positions_count" => 2,
-        //     "orders_count" => 3,
-        //     "stop_orders_count" => 1,
-        //     "updated_at" => 1716200000000,
-        //     "use_ltp_for_stop_orders" => false
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   "success": true,
+        //   "data": {
+        //     "balance": "4970.000323",           // USDC cash (perp collateral)
+        //     "fee_level": 0,
+        //     "maker_fee": "0.00015",
+        //     "taker_fee": "0.0004",
+        //     "account_equity": "5478.140323",     // balance + spot_market_value
+        //     "cross_account_equity": "5376.512323",
+        //     "spot_market_value": "508.14",
+        //     "spot_collateral": "406.512",
+        //     "available_to_spend": "5376.512323",
+        //     "available_to_withdraw": "5376.512323",
+        //     "pending_balance": "0",
+        //     "pending_interest": "0",
+        //     "total_margin_used": "0",
+        //     "cross_mmr": "0",
+        //     "positions_count": 0,
+        //     "orders_count": 0,
+        //     "stop_orders_count": 0,
+        //     "spot_balances": [
+        //       {
+        //         "symbol": "SOL",
+        //         "amount": "5",
+        //         "available_to_withdraw": "5",
+        //         "pending_balance": "0",
+        //         "daily_withdraw_amount_usd": "0",
+        //         "effective_daily_deposit_limit_usd": "50000",
+        //         "effective_daily_withdraw_limit_usd": "250000"
+        //       }
+        //     ],
+        //     "updated_at": 1789394568220
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         $data = $this->safe_dict($response, 'data', array());
         $result = array(
             'info' => $data,
         );
-        $result['free'] = array();
-        $result['used'] = array();
-        $result['total'] = array();
-        $totalBalance = $this->safe_number($data, 'account_equity');
-        $usedMargin = $this->safe_number($data, 'total_margin_used');
-        $freeBalance = $this->safe_number($data, 'available_to_spend');
-        $result['total']['USDC'] = $totalBalance;
-        $result['used']['USDC'] = $usedMargin;
-        $result['free']['USDC'] = $freeBalance;
+        $usdcAccount = $this->account();
+        $usdcAccount['total'] = $this->safe_string($data, 'balance');
+        $usdcAccount['used'] = $this->safe_string($data, 'total_margin_used');
+        $result['USDC'] = $usdcAccount;
+        $spotBalances = $this->safe_list($data, 'spot_balances', array());
+        for ($i = 0; $i < count($spotBalances); $i++) {
+            $balance = $spotBalances[$i];
+            $currencyId = $this->safe_string($balance, 'symbol');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'amount');
+            $account['free'] = $this->safe_string($balance, 'available_to_withdraw');
+            // skip a spot USDC entry so it can't clobber the perp-collateral account above
+            if (($code !== null) && !(is_array($result) && array_key_exists($code ?? '', $result))) {
+                $result[$code] = $account;
+            }
+        }
         $timestamp = $this->safe_integer($data, 'updated_at');
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
         return $this->safe_balance($result);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-$settings
+         *
          * @param {string} $symbol  unified $symbol of the $market
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->load_account_settings();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $userAccount = null;
         list($userAccount, $params) = $this->handle_origin_and_single_address('fetchLeverage', $params);
         $cacheAddress = $this->walletAddress;
         $settings = null;
         if ($userAccount === $cacheAddress) {
-            $settings = $this->handle_option('fetchLeverage', 'settings', null);
+            $settings = $this->handle_option('fetchLeverage', 'settings');
         } else {
             $request = array(
                 'account' => $userAccount,
             );
             $settings = $this->fetch_account_settings($this->extend($request, $params));
         }
-        $setting = $this->safe_dict($settings, $symbol, null);
+        $setting = $this->safe_dict($settings, $symbol);
         if ($setting === null) {
-            // NOTE => Upon account creation, all markets have margin $settings default to cross margin and leverage default to max.
-            // When querying this endpoint, all markets with default margin and leverage $settings on this account will return blank.
+            // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
+            // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return $this->parse_leverage_from_market($market);
         } else {
             return $this->parse_leverage_from_setting($symbol, $setting);
@@ -674,17 +910,17 @@ class pacifica extends Exchange {
 
     public function parse_leverage_from_setting(?string $symbol, array $setting): array {
         // {
-        //   "WLFI/USDC:USDC" => array(
-        //       "symbol" => "WLFI",
-        //       "isolated" => false,
-        //       "leverage" => 5,
-        //       "created_at" => 1758085929703,
-        //       "updated_at" => 1758086074002
-        //    ),
+        //   "WLFI/USDC:USDC": {
+        //       "symbol": "WLFI",
+        //       "isolated": false,
+        //       "leverage": 5,
+        //       "created_at": 1758085929703,
+        //       "updated_at": 1758086074002
+        //    },
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
         $leverage = $this->safe_integer($setting, 'leverage');
-        $marginMode = $isIsolated ? 'isolated' : 'cross';
+        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
         return array(
             'info' => $setting,
             'symbol' => $symbol,
@@ -706,7 +942,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_account_settings($params = array ()): array {
+    public function fetch_account_settings($params = array()): array {
         /**
          * fetch account's market settings. Settings are cached for walletAddress. To refresh the cache, call loadAccountSettings with refresh=true
          *
@@ -721,26 +957,26 @@ class pacifica extends Exchange {
         $request = array(
             'account' => $userAccount,
         );
-        $response = $this->publicGetAccountSettings ($this->extend($request, $params));
+        $response = $this->publicGetAccountSettings($this->extend($request, $params));
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "symbol" => "WLFI",
-        //       "isolated" => false,
-        //       "leverage" => 5,
-        //       "created_at" => 1758085929703,
-        //       "updated_at" => 1758086074002
+        //       "symbol": "WLFI",
+        //       "isolated": false,
+        //       "leverage": 5,
+        //       "created_at": 1758085929703,
+        //       "updated_at": 1758086074002
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   ],
+        //   "error": null,
+        //   "code": null
         // }
         return $this->parse_account_settings($this->safe_list($response, 'data', array()));
     }
 
-    public function load_account_settings(bool $refresh = false, $params = array ()) {
-        $settings = $this->handle_option('loadAccountSettings', 'settings', null);
+    public function load_account_settings(bool $refresh = false, $params = array()) {
+        $settings = $this->handle_option('loadAccountSettings', 'settings');
         if (($settings === null) || ($refresh === true)) {
             $this->options['settings'] = $this->create_safe_dictionary();
             $settings = $this->fetch_account_settings($params);
@@ -763,9 +999,12 @@ class pacifica extends Exchange {
         return $settingsBySymbol;
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+    public function fetch_margin_mode(string $symbol, $params = array()): array {
         /**
          * fetches the margin mode of the trading pair
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-$settings
+         *
          * @param {string} $symbol unified $symbol of the market to fetch the margin mode for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->account] will default to walletAddress if not provided
@@ -777,7 +1016,7 @@ class pacifica extends Exchange {
         $cacheAddress = $this->walletAddress;
         $settings = null;
         if ($userAccount === $cacheAddress) {
-            $settings = $this->handle_option('fetchMarginMode', 'settings', null);
+            $settings = $this->handle_option('fetchMarginMode', 'settings');
         } else {
             $request = array(
                 'account' => $userAccount,
@@ -785,18 +1024,18 @@ class pacifica extends Exchange {
             $settings = $this->fetch_account_settings($this->extend($request, $params));
         }
         // {
-        //   "WLFI/USDC:USDC" => array(
-        //       "symbol" => "WLFI",
-        //       "isolated" => false,
-        //       "leverage" => 5,
-        //       "created_at" => 1758085929703,
-        //       "updated_at" => 1758086074002
-        //    ),
+        //   "WLFI/USDC:USDC": {
+        //       "symbol": "WLFI",
+        //       "isolated": false,
+        //       "leverage": 5,
+        //       "created_at": 1758085929703,
+        //       "updated_at": 1758086074002
+        //    },
         // }
-        $setting = $this->safe_dict($settings, $symbol, null);
+        $setting = $this->safe_dict($settings, $symbol);
         if ($setting === null) {
-            // NOTE => Upon account creation, all markets have margin $settings default to cross margin and leverage default to max.
-            // When querying this endpoint, all markets with default margin and leverage $settings on this account will return blank.
+            // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
+            // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return array(
                 'symbol' => $symbol,
                 'marginMode' => $this->handle_option('fetchMarginMode', 'defaultMarginMode', 'cross'),
@@ -808,15 +1047,15 @@ class pacifica extends Exchange {
 
     public function parse_margin_mode_from_setting(?string $symbol, array $setting): array {
         // {
-        //       "symbol" => "WLFI",
-        //       "isolated" => false,
-        //       "leverage" => 5,
-        //       "created_at" => 1758085929703,
-        //       "updated_at" => 1758086074002
+        //       "symbol": "WLFI",
+        //       "isolated": false,
+        //       "leverage": 5,
+        //       "created_at": 1758085929703,
+        //       "updated_at": 1758086074002
         //
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
-        $marginMode = $isIsolated ? 'isolated' : 'cross';
+        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
         return array(
             'symbol' => $symbol,
             'marginMode' => $marginMode,
@@ -824,7 +1063,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
@@ -834,9 +1073,11 @@ class pacifica extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $aggLevel = null;
         list($aggLevel, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
@@ -844,41 +1085,41 @@ class pacifica extends Exchange {
             'symbol' => $market['id'],
             'agg_level' => $aggLevel,
         );
-        $response = $this->publicGetBook ($this->extend($request, $params));
+        $response = $this->publicGetBook($this->extend($request, $params));
         // {
-        //   "success" => true,
-        //   "data" => {
-        //     "s" => "BTC",
-        //     "l" => array(
-        //       array(
-        //         array(
-        //           "p" => "106504",
-        //           "a" => "0.26203",
-        //           "n" => 1
-        //         ),
-        //         array(
-        //           "p" => "106498",
-        //           "a" => "0.29281",
-        //           "n" => 1
+        //   "success": true,
+        //   "data": {
+        //     "s": "BTC",
+        //     "l": [
+        //       [
+        //         {
+        //           "p": "106504",
+        //           "a": "0.26203",
+        //           "n": 1
+        //         },
+        //         {
+        //           "p": "106498",
+        //           "a": "0.29281",
+        //           "n": 1
         //         }
-        //       ),
-        //       array(
-        //         array(
-        //           "p" => "106559",
-        //           "a" => "0.26802",
-        //           "n" => 1
-        //         ),
-        //         array(
-        //           "p" => "106564",
-        //           "a" => "0.3002",
-        //           "n" => 1
-        //         ),
-        //       )
-        //     ),
-        //     "t" => 1751370536325
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //       ],
+        //       [
+        //         {
+        //           "p": "106559",
+        //           "a": "0.26802",
+        //           "n": 1
+        //         },
+        //         {
+        //           "p": "106564",
+        //           "a": "0.3002",
+        //           "n": 1
+        //         },
+        //       ]
+        //     ],
+        //     "t": 1751370536325
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         $data = $this->safe_dict($response, 'data', array());
         $levels = $this->safe_list($data, 'l', array());
@@ -890,52 +1131,55 @@ class pacifica extends Exchange {
         return $this->parse_order_book($result, $this->safe_symbol(null, $market), $timestamp, 'bids', 'asks', 'p', 'a');
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * retrieves data on all swap markets for pacifica
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+         *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetInfoPrices ($params);
+        $response = $this->publicGetInfoPrices($params);
         //
         //  {
-        //     "success" => true,
-        //     "data" => array(
+        //     "success": true,
+        //     "data": [
         //         {
-        //         "funding" => "0.00010529",
-        //         "mark" => "1.084819",
-        //         "mid" => "1.08615",
-        //         "next_funding" => "0.00011096",
-        //         "open_interest" => "3634796",
-        //         "oracle" => "1.084524",
-        //         "symbol" => "XPL",
-        //         "timestamp" => 1759222967974,
-        //         "volume_24h" => "20896698.0672",
-        //         "yesterday_price" => "1.3412"
+        //         "funding": "0.00010529",
+        //         "mark": "1.084819",
+        //         "mid": "1.08615",
+        //         "next_funding": "0.00011096",
+        //         "open_interest": "3634796",
+        //         "oracle": "1.084524",
+        //         "symbol": "XPL",
+        //         "timestamp": 1759222967974,
+        //         "volume_24h": "20896698.0672",
+        //         "yesterday_price": "1.3412"
         //         }
-        //     ),
-        //     "error" => null,
-        //     "code" => null
+        //     ],
+        //     "error": null,
+        //     "code": null
         //   }
         //
         $result = $this->safe_list($response, 'data', array());
         return $this->parse_funding_rates($result, $symbols);
     }
 
-    public function parse_funding_rate($info, ?array $market = null): array {
+    public function parse_funding_rate(mixed $info, ?array $market = null): array {
         //
         //      {
-        //         "funding" => "0.00010529",
-        //         "mark" => "1.084819",
-        //         "mid" => "1.08615",
-        //         "next_funding" => "0.00011096",
-        //         "open_interest" => "3634796",
-        //         "oracle" => "1.084524",
-        //         "symbol" => "XPL",
-        //         "timestamp" => 1759222967974,
-        //         "volume_24h" => "20896698.0672",
-        //         "yesterday_price" => "1.3412"
+        //         "funding": "0.00010529",
+        //         "mark": "1.084819",
+        //         "mid": "1.08615",
+        //         "next_funding": "0.00011096",
+        //         "open_interest": "3634796",
+        //         "oracle": "1.084524",
+        //         "symbol": "XPL",
+        //         "timestamp": 1759222967974,
+        //         "volume_24h": "20896698.0672",
+        //         "yesterday_price": "1.3412"
         //       }
         //
         $marketId = $this->safe_string($info, 'symbol');
@@ -969,20 +1213,20 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d'
+         * @param {string} $timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch. 'limit' is priority
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($since === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a "since" argument');
@@ -991,7 +1235,9 @@ class pacifica extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a "symbol" argument');
         }
         $defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
@@ -1019,45 +1265,45 @@ class pacifica extends Exchange {
             }
             $request['end_time'] = $until;
         }
-        $response = $this->publicGetKline ($this->extend($request, $params));
+        $response = $this->publicGetKline($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "t" => 1748954160000,
-        //       "T" => 1748954220000,
-        //       "s" => "BTC",
-        //       "i" => "1m",
-        //       "o" => "105376",
-        //       "c" => "105376",
-        //       "h" => "105376",
-        //       "l" => "105376",
-        //       "v" => "0.00022",
-        //       "n" => 2
+        //       "t": 1748954160000,
+        //       "T": 1748954220000,
+        //       "s": "BTC",
+        //       "i": "1m",
+        //       "o": "105376",
+        //       "c": "105376",
+        //       "h": "105376",
+        //       "l": "105376",
+        //       "v": "0.00022",
+        //       "n": 2
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   ],
+        //   "error": null,
+        //   "code": null
         // }
         //
         $candles = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //       "t" => 1748954160000,
-        //       "T" => 1748954220000,
-        //       "s" => "BTC",
-        //       "i" => "1m",
-        //       "o" => "105376",
-        //       "c" => "105376",
-        //       "h" => "105376",
-        //       "l" => "105376",
-        //       "v" => "0.00022",
-        //       "n" => 2
+        //       "t": 1748954160000,
+        //       "T": 1748954220000,
+        //       "s": "BTC",
+        //       "i": "1m",
+        //       "o": "105376",
+        //       "c": "105376",
+        //       "h": "105376",
+        //       "l": "105376",
+        //       "v": "0.00022",
+        //       "n": 2
         //     }
         //
         return array(
@@ -1070,7 +1316,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1082,35 +1328,37 @@ class pacifica extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTrades ($this->extend($request, $params));
+        $response = $this->publicGetTrades($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "event_type" => "fulfill_taker",
-        //       "price" => "104721",
-        //       "amount" => "0.0001",
-        //       "side" => "close_long",
-        //       "cause" => "normal",
-        //       "created_at" => 1765006315306
+        //       "event_type": "fulfill_taker",
+        //       "price": "104721",
+        //       "amount": "0.0001",
+        //       "side": "close_long",
+        //       "cause": "normal",
+        //       "created_at": 1765006315306
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null,
-        //   "last_order_id" => 1557404170
+        //   ],
+        //   "error": null,
+        //   "code": null,
+        //   "last_order_id": 1557404170
         // }
         //
         $recentTrades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($recentTrades, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -1126,7 +1374,9 @@ class pacifica extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1135,7 +1385,7 @@ class pacifica extends Exchange {
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', false);
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchMyTrades', $params);
-        $defaultLimit = 100;  // Default max $limit
+        $defaultLimit = 100;  // Default max limit
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit);
         }
@@ -1143,7 +1393,7 @@ class pacifica extends Exchange {
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
         $request['account'] = $userAddress;
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1151,30 +1401,30 @@ class pacifica extends Exchange {
         if ($since !== null) {
             $request['start_time'] = $since;
         }
-        $response = $this->publicGetTradesHistory ($this->extend($request, $params));
+        $response = $this->publicGetTradesHistory($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "history_id" => 19329801,
-        //       "order_id" => 315293920,
-        //       "client_order_id" => "acf...",
-        //       "symbol" => "LDO",
-        //       "amount" => "0.1",
-        //       "price" => "1.1904",
-        //       "entry_price" => "1.176247",
-        //       "fee" => "0",
-        //       "pnl" => "-0.001415",
-        //       "event_type" => "fulfill_maker",
-        //       "side" => "close_short",
-        //       "created_at" => 1759215599188,
-        //       "cause" => "normal"
-        //     ),
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "history_id": 19329801,
+        //       "order_id": 315293920,
+        //       "client_order_id": "acf...",
+        //       "symbol": "LDO",
+        //       "amount": "0.1",
+        //       "price": "1.1904",
+        //       "entry_price": "1.176247",
+        //       "fee": "0",
+        //       "pnl": "-0.001415",
+        //       "event_type": "fulfill_maker",
+        //       "side": "close_short",
+        //       "created_at": 1759215599188,
+        //       "cause": "normal"
+        //     },
         //     ...
-        //   ),
-        //   "next_cursor" => "11111Z5RK", // not included to info!
-        //   "has_more" => true   // not included to info!
+        //   ],
+        //   "next_cursor": "11111Z5RK", // not included to info!
+        //   "has_more": true   // not included to info!
         // }
         //
         $data = $this->add_pagination_cursor_to_result($response);
@@ -1184,36 +1434,38 @@ class pacifica extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         // user trades:
-        //     array(
-        //       "history_id" => 19329801,
-        //       "order_id" => 315293920,
-        //       "client_order_id" => "acf...",
-        //       "symbol" => "LDO",
-        //       "amount" => "0.1",
-        //       "price" => "1.1904",
-        //       "entry_price" => "1.176247",
-        //       "fee" => "0",
-        //       "pnl" => "-0.001415",
-        //       "event_type" => "fulfill_maker",
-        //       "side" => "close_short",
-        //       "created_at" => 1759215599188,
-        //       "cause" => "normal"
-        //     ),
+        //     {
+        //       "history_id": 19329801,
+        //       "order_id": 315293920,
+        //       "client_order_id": "acf...",
+        //       "symbol": "LDO",
+        //       "amount": "0.1",
+        //       "price": "1.1904",
+        //       "entry_price": "1.176247",
+        //       "fee": "0",
+        //       "pnl": "-0.001415",
+        //       "event_type": "fulfill_maker",
+        //       "side": "close_short",
+        //       "created_at": 1759215599188,
+        //       "cause": "normal"
+        //     },
         // recent public trades:
         //     {
-        //       "event_type" => "fulfill_taker",
-        //       "price" => "104721",
-        //       "amount" => "0.0001",
-        //       "side" => "close_long",
-        //       "cause" => "normal",
-        //       "created_at" => 1765006315306
+        //       "event_type": "fulfill_taker",
+        //       "price": "104721",
+        //       "amount": "0.0001",
+        //       "side": "close_long",
+        //       "cause": "normal",
+        //       "created_at": 1765006315306
         //     }
         //
         $eventType = $this->safe_string($trade, 'event_type');
         $timestamp = $this->safe_integer($trade, 'created_at');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($trade, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'history_id');
         $side = $this->safe_string($trade, 'side');
         if ($side === 'open_long') {
@@ -1231,7 +1483,7 @@ class pacifica extends Exchange {
         if ($eventType !== null) {
             $takerOrMaker = ($eventType === 'fulfill_maker') ? 'maker' : 'taker';
         }
-        // public trades have no $orderId
+        // public trades have no orderId
         if ($orderId === null) {
             $takerOrMaker = null;
         }
@@ -1256,7 +1508,7 @@ class pacifica extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade $order
          *
@@ -1276,38 +1528,42 @@ class pacifica extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
+         * @param {string} [$params->slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client $order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->initialize_client();
         list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $params = $this->omit($params, array(
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ));
         $response = null;
         if ($operationType === 'create_market_order') {
-            $response = $this->privatePostOrdersCreateMarket ($this->extend($request, $params));
+            $response = $this->privatePostOrdersCreateMarket($this->extend($request, $params));
         } elseif ($operationType === 'create_stop_order') {
-            $response = $this->privatePostOrdersStopCreate ($this->extend($request, $params));
+            $response = $this->privatePostOrdersStopCreate($this->extend($request, $params));
         } elseif ($operationType === 'set_position_tpsl') {
-            $response = $this->privatePostPositionsTpsl ($this->extend($request, $params));
+            $response = $this->privatePostPositionsTpsl($this->extend($request, $params));
         } else { // create_order
-            $response = $this->privatePostOrdersCreate ($this->extend($request, $params));
+            $response = $this->privatePostOrdersCreate($this->extend($request, $params));
         }
         //
         // {
-        //   'success' => true,
-        //   'data' => array(
-        //    "order_id" => 12345
-        //    ),
+        //   'success': true,
+        //   'data': {
+        //    "order_id": 12345
+        //    },
         // }
         //
         $success = $this->safe_bool($response, 'success', false);
         $status = null;
-        if (!$success) {
+        if ($success !== true) {
             $status = 'rejected';
         } else {
             $status = 'open';
@@ -1317,7 +1573,13 @@ class pacifica extends Exchange {
         return $this->safe_order(array( 'id' => $orderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * create a trade order
@@ -1329,13 +1591,14 @@ class pacifica extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, but can be used of Trigger Order.
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, but can be used as limit_price of Trigger Order.
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at (optional provide stopLossCloid)
          * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [$params->slippage] the $slippage for $market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an [order structure]
@@ -1414,7 +1677,7 @@ class pacifica extends Exchange {
         if ($amount !== null && ($operationType !== 'create_stop_order' && $operationType !== 'set_position_tpsl')) {
             $sigPayload['amount'] = $this->amount_to_precision($symbol, $amount);
         }
-        $clientOrderId = $this->safe_string_n($params, array( 'clientOrderId' ));
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $sigPayload['client_order_id'] = $clientOrderId;
         }
@@ -1424,10 +1687,10 @@ class pacifica extends Exchange {
 
     public function batch_orders_request(array $actions) {
         //
-        // array(
+        // [
         //     {
         //         "type":"Create",
-        //         "data":array(
+        //         "data":{
         //             "account":"42trU9A5...",
         //             "signature":"5UpRZ14Q...",
         //             "timestamp":1749190500355,
@@ -1440,7 +1703,7 @@ class pacifica extends Exchange {
         //             "tif":"GTC",
         //             "client_order_id":"57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e"
         //         }
-        //     ),
+        //     },
         //     {
         //         "type":"Cancel",
         //         "data":{
@@ -1452,7 +1715,7 @@ class pacifica extends Exchange {
         //             "order_id":42069
         //         }
         //     }
-        // )
+        // ]
         //
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
@@ -1469,7 +1732,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function create_orders_request(array $orders, $params = array ()) {
+    public function create_orders_request(array $orders, $params = array()): array {
         $actions = array();
         $timestamp = $this->milliseconds(); // unified sequence
         for ($i = 0; $i < count($orders); $i++) {
@@ -1496,7 +1759,7 @@ class pacifica extends Exchange {
         return $this->batch_orders_request($actions);
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()): array {
         /**
          * create a list of trade $orders-> It is supports only limit $orders and have a random jitter ~100-300ms!
          *
@@ -1506,26 +1769,28 @@ class pacifica extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->initialize_client();
         $request = $this->create_orders_request($orders);
-        $response = $this->privatePostOrdersBatch ($this->extend($request, $params));
+        $response = $this->privatePostOrdersBatch($this->extend($request, $params));
         // {
-        //   "success" => true,
-        //   "data" => {
-        //     "results" => array(
-        //       array(
-        //         "success" => true,
-        //         "order_id" => 470506,
-        //         "error" => null
-        //       ),
-        //       array(
-        //         "success" => true,
+        //   "success": true,
+        //   "data": {
+        //     "results": [
+        //       {
+        //         "success": true,
+        //         "order_id": 470506,
+        //         "error": null
+        //       },
+        //       {
+        //         "success": true,
         //       }
-        //     )
-        //   ),
-        //     "error" => null,
-        //     "code" => null
+        //     ]
+        //   },
+        //     "error": null,
+        //     "code": null
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1533,10 +1798,10 @@ class pacifica extends Exchange {
         $ordersToReturn = array();
         for ($i = 0; $i < count($results); $i++) {
             $order = $results[$i];
-            $error = $this->safe_string($order, 'error', null);
+            $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'rejected';
             } else {
                 $status = 'open';
@@ -1547,7 +1812,7 @@ class pacifica extends Exchange {
         return $ordersToReturn;
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -1560,31 +1825,33 @@ class pacifica extends Exchange {
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->initialize_client();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a "symbol" argument!');
         }
         $request = $this->cancel_orders_request($ids, $symbol, $params);
         $params = $this->omit($params, array( 'expiryWindow', 'clientOrderIds' ));
-        $response = $this->privatePostOrdersBatch ($this->extend($request, $params));
+        $response = $this->privatePostOrdersBatch($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => {
-        //     "results" => array(
-        //       array(
-        //         "success" => true,
-        //         "order_id" => 470506,
-        //         "error" => null
-        //       ),
-        //       array(
-        //         "success" => true,
+        //   "success": true,
+        //   "data": {
+        //     "results": [
+        //       {
+        //         "success": true,
+        //         "order_id": 470506,
+        //         "error": null
+        //       },
+        //       {
+        //         "success": true,
         //       }
-        //     )
-        //   ),
-        //     "error" => null,
-        //     "code" => null
+        //     ]
+        //   },
+        //     "error": null,
+        //     "code": null
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1592,10 +1859,10 @@ class pacifica extends Exchange {
         $ordersToReturn = array();
         for ($i = 0; $i < count($results); $i++) {
             $order = $results[$i];
-            $error = $this->safe_string($order, 'error', null);
+            $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'closed';
             } else {
                 $status = 'canceled';
@@ -1605,7 +1872,7 @@ class pacifica extends Exchange {
         return $ordersToReturn;
     }
 
-    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array()): array {
         $actions = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
@@ -1633,31 +1900,33 @@ class pacifica extends Exchange {
         return $this->batch_orders_request($actions);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a market
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
          *
-         * @param {string} $symbol (optional) unified market $symbol of the market to cancel orders in.
+         * @param {string} [$symbol] (optional) unified market $symbol of the market to cancel orders in.
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->excludeReduceOnly] whether to exclude reduce-only orders
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->initialize_client();
         $request = $this->cancel_all_orders_request($symbol, $params);
         $params = $this->omit($params, array( 'excludeReduceOnly', 'expiryWindow' ));
-        $response = $this->privatePostOrdersCancelAll ($this->extend($request, $params));
+        $response = $this->privatePostOrdersCancelAll($this->extend($request, $params));
         //
         // {
-        //   success => true,
-        //   data => array(
-        //     "cancelled_count" => 5,
-        //   ),
-        //   code => null,
-        //   error => null
+        //   success: true,
+        //   data: {
+        //     "cancelled_count": 5,
+        //   },
+        //   code: null,
+        //   error: null
         // }
         //
         return array(
@@ -1667,7 +1936,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function cancel_all_orders_request(?string $symbol, $params = array ()) {
+    public function cancel_all_orders_request(?string $symbol, $params = array()): array {
         $operationType = 'cancel_all_orders';
         $sigPayload = array( );
         $excludeReduceOnly = $this->safe_bool($params, 'excludeReduceOnly', false);
@@ -1683,7 +1952,7 @@ class pacifica extends Exchange {
         return $request;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1698,7 +1967,9 @@ class pacifica extends Exchange {
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->initialize_client();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1707,28 +1978,28 @@ class pacifica extends Exchange {
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
         $response = null;
-        if ($isStopOrder) {
-            $response = $this->privatePostOrdersStopCancel ($this->extend($request, $params));
+        if ($isStopOrder === true) {
+            $response = $this->privatePostOrdersStopCancel($this->extend($request, $params));
         } else {
-            $response = $this->privatePostOrdersCancel ($this->extend($request, $params));
+            $response = $this->privatePostOrdersCancel($this->extend($request, $params));
         }
         //
-        // $response:
+        // response:
         // {
-        //   "success" => true,
-        //   "data" => null
+        //   "success": true,
+        //   "data": null
         // }
         //
         $success = $this->safe_bool($response, 'success', false);
-        $status = $success ? 'canceled' : 'closed';
+        $status = ($success === true) ? 'canceled' : 'closed';
         return $this->safe_order(array( 'id' => $id, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function cancel_order_request(?string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order_request(mixed $id, ?string $symbol = null, $params = array()): array {
         $market = $this->market($symbol);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $operationType = null;
-        if ($isStopOrder) {
+        if ($isStopOrder === true) {
             $operationType = 'cancel_stop_order';
         } else {
             $operationType = 'cancel_order';
@@ -1746,7 +2017,7 @@ class pacifica extends Exchange {
         return $request;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -1763,16 +2034,18 @@ class pacifica extends Exchange {
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->initialize_client();
         $market = $this->market($symbol);
         $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $market, $params);
         $params = $this->omit($params, array( 'expiryWindow', 'clientOrderId' ));
-        $response = $this->privatePostOrdersEdit ($this->extend($request, $params));
+        $response = $this->privatePostOrdersEdit($this->extend($request, $params));
         //
         // {
-        //     'data' => {
-        //         "order_id" => 123498765
+        //     'data': {
+        //         "order_id": 123498765
         //     }
         // }
         //
@@ -1781,7 +2054,10 @@ class pacifica extends Exchange {
         return $this->safe_order(array( 'id' => $orderId, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price, array $market, $params = array ()) {
+    public function edit_order_request(string $id, ?string $symbol, string $type, ?string $side, ?float $amount, ?float $price, array $market, $params = array()): array {
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount!');
         }
@@ -1793,7 +2069,7 @@ class pacifica extends Exchange {
         $priceNormalized = $this->price_to_precision($symbol, $price);
         $amountNormalized = $this->amount_to_precision($symbol, $amount);
         $sigPayload = array(
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             'price' => $priceNormalized,
             'amount' => $amountNormalized,
         );
@@ -1809,7 +2085,7 @@ class pacifica extends Exchange {
         return $request;
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1823,14 +2099,16 @@ class pacifica extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         $market = $this->market($symbol);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
-        $defaultLimit = 100;  // Default max $limit
+        $defaultLimit = 100;  // Default max limit
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit);
         }
@@ -1840,23 +2118,23 @@ class pacifica extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetFundingRateHistory ($this->extend($request, $params));
+        $response = $this->publicGetFundingRateHistory($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "oracle_price" => "117170.410304",
-        //       "bid_impact_price" => "117126",
-        //       "ask_impact_price" => "117142",
-        //       "funding_rate" => "0.0000125",
-        //       "next_funding_rate" => "0.0000125",
-        //       "created_at" => 1753806934249
-        //     ),
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "oracle_price": "117170.410304",
+        //       "bid_impact_price": "117126",
+        //       "ask_impact_price": "117142",
+        //       "funding_rate": "0.0000125",
+        //       "next_funding_rate": "0.0000125",
+        //       "created_at": 1753806934249
+        //     },
         //     ...
-        //   ),
-        //   "next_cursor" => "11114Lz77",
-        //   "has_more" => true
+        //   ],
+        //   "next_cursor": "11114Lz77",
+        //   "has_more": true
         // }
         //
         $data = $this->add_pagination_cursor_to_result($response);
@@ -1876,7 +2154,7 @@ class pacifica extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp');
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -1886,28 +2164,30 @@ class pacifica extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetInfoPrices ($params);
+        $response = $this->publicGetInfoPrices($params);
         //
         //  {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "funding" => "0.00010529",
-        //       "mark" => "1.084819",
-        //       "mid" => "1.08615",
-        //       "next_funding" => "0.00011096",
-        //       "open_interest" => "3634796",
-        //       "oracle" => "1.084524",
-        //       "symbol" => "XPL",
-        //       "timestamp" => 1759222967974,
-        //       "volume_24h" => "20896698.0672",
-        //       "yesterday_price" => "1.3412"
+        //       "funding": "0.00010529",
+        //       "mark": "1.084819",
+        //       "mid": "1.08615",
+        //       "next_funding": "0.00011096",
+        //       "open_interest": "3634796",
+        //       "oracle": "1.084524",
+        //       "symbol": "XPL",
+        //       "timestamp": 1759222967974,
+        //       "volume_24h": "20896698.0672",
+        //       "yesterday_price": "1.3412"
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   ],
+        //   "error": null,
+        //   "code": null
         // }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1916,7 +2196,9 @@ class pacifica extends Exchange {
             $info = $data[$i];
             $ticker = $this->parse_ticker($info);
             $symbol = $this->safe_string($ticker, 'symbol');
-            $result[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $result[$symbol] = $ticker;
+            }
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
@@ -1924,16 +2206,16 @@ class pacifica extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //       "funding" => "0.00010529",
-        //       "mark" => "1.084819",
-        //       "mid" => "1.08615",
-        //       "next_funding" => "0.00011096",
-        //       "open_interest" => "3634796",
-        //       "oracle" => "1.084524",
-        //       "symbol" => "XPL",
-        //       "timestamp" => 1759222967974,
-        //       "volume_24h" => "20896698.0672",
-        //       "yesterday_price" => "1.3412"
+        //       "funding": "0.00010529",
+        //       "mark": "1.084819",
+        //       "mid": "1.08615",
+        //       "next_funding": "0.00011096",
+        //       "open_interest": "3634796",
+        //       "oracle": "1.084524",
+        //       "symbol": "XPL",
+        //       "timestamp": 1759222967974,
+        //       "volume_24h": "20896698.0672",
+        //       "yesterday_price": "1.3412"
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -1953,9 +2235,12 @@ class pacifica extends Exchange {
         ), $market);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently closed $orders
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+         *
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open $orders structures to retrieve
@@ -1963,15 +2248,20 @@ class pacifica extends Exchange {
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
-        $orders = $this->fetch_orders($symbol, null, null, $params); // don't filter here because we don't want to catch open $orders
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $orders = $this->fetch_orders($symbol, null, null, $params); // don't filter here because we don't want to catch open orders
         $closedOrders = $this->filter_by_array($orders, 'status', array( 'closed' ), false);
         return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all canceled $orders
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+         *
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open $orders structures to retrieve
@@ -1979,15 +2269,20 @@ class pacifica extends Exchange {
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
-        $orders = $this->fetch_orders($symbol, null, null, $params); // don't filter here because we don't want to catch open $orders
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $orders = $this->fetch_orders($symbol, null, null, $params); // don't filter here because we don't want to catch open orders
         $closedOrders = $this->filter_by_array($orders, 'status', array( 'canceled' ), false);
         return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all closed and canceled $orders
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+         *
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open $orders structures to retrieve
@@ -1995,13 +2290,15 @@ class pacifica extends Exchange {
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
-        $orders = $this->fetch_orders($symbol, null, null, $params); // don't filter here because we don't want to catch open $orders
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $orders = $this->fetch_orders($symbol, null, null, $params); // don't filter here because we don't want to catch open orders
         $closedOrders = $this->filter_by_array($orders, 'status', array( 'canceled', 'closed', 'rejected' ), false);
         return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -2014,7 +2311,9 @@ class pacifica extends Exchange {
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchOpenOrders', $params);
         $request = array(
@@ -2024,38 +2323,38 @@ class pacifica extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = $this->publicGetOrders ($this->extend($request, $params));
+        $response = $this->publicGetOrders($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "order_id" => 315979358,
-        //       "client_order_id" => "add9a4b5-c7f7-4124-b57f-86982d86d479",
-        //       "symbol" => "ASTER",
-        //       "side" => "ask",
-        //       "price" => "1.836",
-        //       "initial_amount" => "85.33",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "0",
-        //       "stop_price" => null,
-        //       "order_type" => "limit",
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224706737,
-        //       "updated_at" => 1759224706737
+        //       "order_id": 315979358,
+        //       "client_order_id": "add9a4b5-c7f7-4124-b57f-86982d86d479",
+        //       "symbol": "ASTER",
+        //       "side": "ask",
+        //       "price": "1.836",
+        //       "initial_amount": "85.33",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "0",
+        //       "stop_price": null,
+        //       "order_type": "limit",
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224706737,
+        //       "updated_at": 1759224706737
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null,
-        //   "last_order_id" => 1557370337
+        //   ],
+        //   "error": null,
+        //   "code": null,
+        //   "last_order_id": 1557370337
         // }
         //
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $orders
          *
@@ -2070,7 +2369,9 @@ class pacifica extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
         $defaultLimit = 100; // max default 100
@@ -2089,33 +2390,33 @@ class pacifica extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrdersHistory ($this->extend($request, $params));
+        $response = $this->publicGetOrdersHistory($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "initial_price" => "1.0865",
-        //       "average_filled_price" => "0",
-        //       "amount" => "984",
-        //       "filled_amount" => "0",
-        //       "order_status" => "open",
-        //       "order_type" => "limit",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "reason" => null,
-        //       "created_at" => 1759224893638,
-        //       "updated_at" => 1759224893638
-        //     ),
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "initial_price": "1.0865",
+        //       "average_filled_price": "0",
+        //       "amount": "984",
+        //       "filled_amount": "0",
+        //       "order_status": "open",
+        //       "order_type": "limit",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "reason": null,
+        //       "created_at": 1759224893638,
+        //       "updated_at": 1759224893638
+        //     },
         //     ...
-        //   ),
-        //   "next_cursor" => "1111Hyd74",
-        //   "has_more" => true
+        //   ],
+        //   "next_cursor": "1111Hyd74",
+        //   "has_more": true
         // }
         //
         $data = $this->add_pagination_cursor_to_result($response);
@@ -2123,12 +2424,12 @@ class pacifica extends Exchange {
         return $orders;
     }
 
-    public function add_pagination_cursor_to_result($response) {
+    public function add_pagination_cursor_to_result(array $response): array {
         $data = $this->safe_list($response, 'data', array());
         $paginationCursor = $this->safe_string($response, 'next_cursor');
         $hasMore = $this->safe_bool($response, 'has_more', false);
         $dataLength = count($data);
-        if ($hasMore) {
+        if ($hasMore === true) {
             if (($paginationCursor !== null) && ($dataLength > 0)) {
                 $first = $data[0];
                 $first['next_cursor'] = $paginationCursor;
@@ -2139,7 +2440,7 @@ class pacifica extends Exchange {
         return $data;
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -2150,7 +2451,9 @@ class pacifica extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2158,55 +2461,55 @@ class pacifica extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->publicGetOrdersHistoryById ($this->extend($request, $params));
+        $response = $this->publicGetOrdersHistoryById($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "history_id" => 641452639,
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade1aa6...",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "price" => "1.0865",
-        //       "initial_amount" => "984",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "984",
-        //       "event_type" => "cancel",
-        //       "order_type" => "limit",
-        //       "order_status" => "cancelled",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224895038
-        //     ),
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "history_id" => 641452513,
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade1aa6...",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "price" => "1.0865",
-        //       "initial_amount" => "984",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "0",
-        //       "event_type" => "make",
-        //       "order_type" => "limit",
-        //       "order_status" => "open",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224893638
+        //       "history_id": 641452639,
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade1aa6...",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "price": "1.0865",
+        //       "initial_amount": "984",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "984",
+        //       "event_type": "cancel",
+        //       "order_type": "limit",
+        //       "order_status": "cancelled",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224895038
+        //     },
+        //     {
+        //       "history_id": 641452513,
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade1aa6...",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "price": "1.0865",
+        //       "initial_amount": "984",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "0",
+        //       "event_type": "make",
+        //       "order_type": "limit",
+        //       "order_status": "open",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224893638
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   ],
+        //   "error": null,
+        //   "code": null
         // }
         //
         $data = $this->safe_list($response, 'data', array());
-        // return last state
-        $sorted = $this->sort_by($data, 'created_at');
+        // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
+        $sorted = $this->sort_by($data, 'history_id', true);
         $lastIdx = count($sorted);
         $lastInfo = array();
         if ($lastIdx > 0) {
@@ -2240,10 +2543,10 @@ class pacifica extends Exchange {
         if ($tifRaw !== null) {
             $tif = strtoupper($tifRaw);
         }
-        return $this->safe_string($tifMap, $tif, null);
+        return $this->safe_string($tifMap, $tif);
     }
 
-    public function map_side(string $sideRaw) {
+    public function map_side(?string $sideRaw) {
         $sideMap = array(
             'sell' => 'ask',
             'buy' => 'bid',
@@ -2251,7 +2554,7 @@ class pacifica extends Exchange {
         return $this->safe_string($sideMap, $sideRaw, $sideRaw);
     }
 
-    public function parse_order_type(string $status) {
+    public function parse_order_type(?string $status) {
         $statuses = array(
             'stop_limit' => 'limit',
             'stop_market' => 'market',
@@ -2266,96 +2569,93 @@ class pacifica extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOpenOrders
-        //   array(
+        //   [
         //     {
-        //       "order_id" => 315979358,
-        //       "client_order_id" => "add9a4b5-c7f7-4124-b57f-86982d86d479",
-        //       "symbol" => "ASTER",
-        //       "side" => "ask",
-        //       "price" => "1.836",
-        //       "initial_amount" => "85.33",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "0",
-        //       "stop_price" => null,
-        //       "order_type" => "limit",
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224706737,
-        //       "updated_at" => 1759224706737
+        //       "order_id": 315979358,
+        //       "client_order_id": "add9a4b5-c7f7-4124-b57f-86982d86d479",
+        //       "symbol": "ASTER",
+        //       "side": "ask",
+        //       "price": "1.836",
+        //       "initial_amount": "85.33",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "0",
+        //       "stop_price": null,
+        //       "order_type": "limit",
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224706737,
+        //       "updated_at": 1759224706737
         //     }
-        //   ),
+        //   ],
         //
         // fetchOrders
-        //  array(
-        //     array(
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "initial_price" => "1.0865",
-        //       "average_filled_price" => "0",
-        //       "amount" => "984",
-        //       "filled_amount" => "0",
-        //       "order_status" => "open",
-        //       "order_type" => "limit",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "reason" => null,
-        //       "created_at" => 1759224893638,
-        //       "updated_at" => 1759224893638
-        //     ),
-        //  )
+        //  [
+        //     {
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "initial_price": "1.0865",
+        //       "average_filled_price": "0",
+        //       "amount": "984",
+        //       "filled_amount": "0",
+        //       "order_status": "open",
+        //       "order_type": "limit",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "reason": null,
+        //       "created_at": 1759224893638,
+        //       "updated_at": 1759224893638
+        //     },
+        //  ]
         //
         // fetchOrder
         //     {
-        //       "history_id" => 641452639,
-        //       "order_id" => 315992721,
-        //       "client_order_id" => "ade1aa6...",
-        //       "symbol" => "XPL",
-        //       "side" => "ask",
-        //       "price" => "1.0865",
-        //       "initial_amount" => "984",
-        //       "filled_amount" => "0",
-        //       "cancelled_amount" => "984",
-        //       "event_type" => "cancel",
-        //       "order_type" => "limit",
-        //       "order_status" => "cancelled",
-        //       "stop_price" => null,
-        //       "stop_parent_order_id" => null,
-        //       "reduce_only" => false,
-        //       "created_at" => 1759224895038
+        //       "history_id": 641452639,
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade1aa6...",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "price": "1.0865",
+        //       "initial_amount": "984",
+        //       "filled_amount": "0",
+        //       "cancelled_amount": "984",
+        //       "event_type": "cancel",
+        //       "order_type": "limit",
+        //       "order_status": "cancelled",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "created_at": 1759224895038
         //     }
         //
         // websocket watchOrders
         //     {
-        //       "i" => 1559665358,
-        //       "I" => null,
-        //       "u" => "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",
-        //       "s" => "BTC",
-        //       "d" => "bid",
-        //       "p" => "89501",
-        //       "ip" => "89501",
-        //       "lp" => "89501",
-        //       "a" => "0.00012",
-        //       "f" => "0.00012",
-        //       "oe" => "fulfill_limit",
-        //       "os" => "filled",
-        //       "ot" => "limit",
-        //       "sp" => null,
-        //       "si" => null,
-        //       "r" => false,
-        //       "ct" => 1765017049008,
-        //       "ut" => 1765017219639,
-        //       "li" => 1559696133
+        //       "i": 1559665358,
+        //       "I": null,
+        //       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",
+        //       "s": "BTC",
+        //       "d": "bid",
+        //       "p": "89501",
+        //       "ip": "89501",
+        //       "lp": "89501",
+        //       "a": "0.00012",
+        //       "f": "0.00012",
+        //       "oe": "fulfill_limit",
+        //       "os": "filled",
+        //       "ot": "limit",
+        //       "sp": null,
+        //       "si": null,
+        //       "r": false,
+        //       "ct": 1765017049008,
+        //       "ut": 1765017219639,
+        //       "li": 1559696133
         //     }
         //
         $marketId = $this->safe_string_2($order, 'symbol', 's');
-        $symbol = null;
-        if ($symbol !== null) {
-            $market = $this->safe_market($marketId, $market);
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($order, 'created_at', 'ct');
         $status = $this->safe_string_2($order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         $side = $this->safe_string($order, 'side', 'd');
@@ -2365,6 +2665,12 @@ class pacifica extends Exchange {
         $totalAmount = $this->safe_string_2($order, 'initial_amount', 'a');
         $filledAmount = $this->safe_string_2($order, 'filled_amount', 'f');
         $remaining = Precise::string_sub($totalAmount, $filledAmount);
+        $average = $this->safe_string_2($order, 'average_filled_price', 'p');
+        $eventType = $this->safe_string($order, 'event_type');
+        $isFillEvent = $this->in_array($eventType, array( 'fulfill_market', 'fulfill_limit' ));
+        if (($average === null) && $isFillEvent) {
+            $average = $this->safe_string($order, 'price'); // on a matching event price is the fill price
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_2($order, 'order_id', 'i'),
@@ -2383,7 +2689,7 @@ class pacifica extends Exchange {
             'triggerPrice' => $this->safe_number_2($order, 'stop_price', 'sp'),
             'amount' => $totalAmount,
             'cost' => null,
-            'average' => $this->safe_string_2($order, 'average_filled_price', 'p'),
+            'average' => $average,
             'filled' => $filledAmount,
             'remaining' => $remaining,
             'status' => $this->parse_order_status($status),
@@ -2392,7 +2698,7 @@ class pacifica extends Exchange {
         ), $market);
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open position
          *
@@ -2407,7 +2713,7 @@ class pacifica extends Exchange {
         return $this->safe_dict($positions, 0, array());
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -2418,32 +2724,34 @@ class pacifica extends Exchange {
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchPositions', $params);
         $symbols = $this->market_symbols($symbols);
         $request = array(
             'account' => $userAddress,
         );
-        $response = $this->publicGetPositions ($this->extend($request, $params));
+        $response = $this->publicGetPositions($this->extend($request, $params));
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "symbol" => "AAVE",
-        //       "side" => "ask",
-        //       "amount" => "223.72",
-        //       "entry_price" => "279.283134",
-        //       "margin" => "0", // only shown for isolated margin
-        //       "funding" => "13.159593",
-        //       "isolated" => false,
-        //       "created_at" => 1754928414996,
-        //       "updated_at" => 1759223365538
+        //       "symbol": "AAVE",
+        //       "side": "ask",
+        //       "amount": "223.72",
+        //       "entry_price": "279.283134",
+        //       "margin": "0", // only shown for isolated margin
+        //       "funding": "13.159593",
+        //       "isolated": false,
+        //       "created_at": 1754928414996,
+        //       "updated_at": 1759223365538
         //     }
-        //   ),
-        //   "error" => null,
-        //   "code" => null,
-        //   "last_order_id" => 1557431179
+        //   ],
+        //   "error": null,
+        //   "code": null,
+        //   "last_order_id": 1557431179
         // }
         $data = $this->safe_list($response, 'data', array());
         $result = array();
@@ -2453,18 +2761,18 @@ class pacifica extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
-        //       "symbol" => "AAVE",
-        //       "side" => "ask",
-        //       "amount" => "223.72",
-        //       "entry_price" => "279.283134",
-        //       "margin" => "0", // only shown for isolated $margin
-        //       "funding" => "13.159593",
-        //       "isolated" => false,
-        //       "created_at" => 1754928414996,
-        //       "updated_at" => 1759223365538
+        //       "symbol": "AAVE",
+        //       "side": "ask",
+        //       "amount": "223.72",
+        //       "entry_price": "279.283134",
+        //       "margin": "0", // only shown for isolated margin
+        //       "funding": "13.159593",
+        //       "isolated": false,
+        //       "created_at": 1754928414996,
+        //       "updated_at": 1759223365538
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
@@ -2505,7 +2813,7 @@ class pacifica extends Exchange {
         ));
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         /**
          * set margin mode ($symbol)
          *
@@ -2521,7 +2829,9 @@ class pacifica extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $isIsolated = ($marginMode === 'isolated');
         $sigPayload = array(
@@ -2530,14 +2840,14 @@ class pacifica extends Exchange {
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
         $params = $this->omit($params, array( 'expiryWindow' ));
-        $response = $this->privatePostAccountMargin ($request);
+        $response = $this->privatePostAccountMargin($request);
         // {
-        //     "success" => true
+        //     "success": true
         // }
         return $response;
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -2553,7 +2863,9 @@ class pacifica extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $sigPayload = array(
             'symbol' => $market['id'],
@@ -2561,14 +2873,14 @@ class pacifica extends Exchange {
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
         $params = $this->omit($params, array( 'expiryWindow' ));
-        $response = $this->privatePostAccountLeverage ($request);
+        $response = $this->privatePostAccountLeverage($request);
         // {
-        //     "success" => true
+        //     "success": true
         // }
         return $response;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal (only support native USDC)
          *
@@ -2583,18 +2895,20 @@ class pacifica extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $operationType = 'withdraw';
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->check_address($address);
         $sigPayload = array(
             'amount' => (string) $amount,
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
         $params = $this->omit($params, array( 'expiryWindow' ));
-        $response = $this->privatePostAccountWithdraw ($this->extend($request, $params));
+        $response = $this->privatePostAccountWithdraw($this->extend($request, $params));
         return array( 'info' => $response );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -2605,35 +2919,37 @@ class pacifica extends Exchange {
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchTradingFee', $params);
         $market = $this->market($symbol);
         $request = array(
             'account' => $userAddress,
         );
-        $response = $this->publicGetAccount ($this->extend($request, $params));
+        $response = $this->publicGetAccount($this->extend($request, $params));
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     "balance" => "2000.000000",
-        //     "fee_level" => 0,
-        //     "maker_fee" => "0.00015",
-        //     "taker_fee" => "0.0004",
-        //     "account_equity" => "2150.250000",
-        //     "available_to_spend" => "1800.750000",
-        //     "available_to_withdraw" => "1500.850000",
-        //     "pending_balance" => "0.000000",
-        //     "total_margin_used" => "349.500000",
-        //     "cross_mmr" => "420.690000",
-        //     "positions_count" => 2,
-        //     "orders_count" => 3,
-        //     "stop_orders_count" => 1,
-        //     "updated_at" => 1716200000000,
-        //     "use_ltp_for_stop_orders" => false
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   "success": true,
+        //   "data": {
+        //     "balance": "2000.000000",
+        //     "fee_level": 0,
+        //     "maker_fee": "0.00015",
+        //     "taker_fee": "0.0004",
+        //     "account_equity": "2150.250000",
+        //     "available_to_spend": "1800.750000",
+        //     "available_to_withdraw": "1500.850000",
+        //     "pending_balance": "0.000000",
+        //     "total_margin_used": "349.500000",
+        //     "cross_mmr": "420.690000",
+        //     "positions_count": 2,
+        //     "orders_count": 3,
+        //     "stop_orders_count": 1,
+        //     "updated_at": 1716200000000,
+        //     "use_ltp_for_stop_orders": false
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_trading_fee($data, $market);
@@ -2642,21 +2958,21 @@ class pacifica extends Exchange {
     public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //   {
-        //     "balance" => "2000.000000",
-        //     "fee_level" => 0,
-        //     "maker_fee" => "0.00015",
-        //     "taker_fee" => "0.0004",
-        //     "account_equity" => "2150.250000",
-        //     "available_to_spend" => "1800.750000",
-        //     "available_to_withdraw" => "1500.850000",
-        //     "pending_balance" => "0.000000",
-        //     "total_margin_used" => "349.500000",
-        //     "cross_mmr" => "420.690000",
-        //     "positions_count" => 2,
-        //     "orders_count" => 3,
-        //     "stop_orders_count" => 1,
-        //     "updated_at" => 1716200000000,
-        //     "use_ltp_for_stop_orders" => false
+        //     "balance": "2000.000000",
+        //     "fee_level": 0,
+        //     "maker_fee": "0.00015",
+        //     "taker_fee": "0.0004",
+        //     "account_equity": "2150.250000",
+        //     "available_to_spend": "1800.750000",
+        //     "available_to_withdraw": "1500.850000",
+        //     "pending_balance": "0.000000",
+        //     "total_margin_used": "349.500000",
+        //     "cross_mmr": "420.690000",
+        //     "positions_count": 2,
+        //     "orders_count": 3,
+        //     "stop_orders_count": 1,
+        //     "updated_at": 1716200000000,
+        //     "use_ltp_for_stop_orders": false
         //   }
         //
         //
@@ -2671,45 +2987,60 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): array {
         /**
          * Retrieves the open interest for a list of $symbols
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+         *
          * @param {string[]} [$symbols] Unified CCXT market symbol
          * @param {array} [$params] exchange specific parameters
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $swapMarkets = $this->fetch_swap_markets();
-        return $this->parse_open_interests($swapMarkets, $symbols);
+        $response = $this->publicGetInfoPrices($params);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_open_interests($data, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a contract trading pair
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+         *
          * @param {string} $symbol unified CCXT market $symbol
          * @param {array} [$params] exchange specific parameters
          * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
          */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbol = $this->symbol($symbol);
-        $this->load_markets();
         $ois = $this->fetch_open_interests(array( $symbol ), $params);
-        return $ois[$symbol];
+        $oi = $this->safe_dict($ois, $symbol);
+        if ($oi === null) {
+            throw new BadSymbol($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbol);
+        }
+        return $oi;
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
-        //       "funding" => "0.00010529",
-        //       "mark" => "1.084819",
-        //       "mid" => "1.08615",
-        //       "next_funding" => "0.00011096",
-        //       "open_interest" => "3634796",
-        //       "oracle" => "1.084524",
-        //       "symbol" => "XPL",
-        //       "timestamp" => 1759222967974,
-        //       "volume_24h" => "20896698.0672",
-        //       "yesterday_price" => "1.3412"
+        //       "funding": "0.00010529",
+        //       "mark": "1.084819",
+        //       "mid": "1.08615",
+        //       "next_funding": "0.00011096",
+        //       "open_interest": "3634796",
+        //       "oracle": "1.084524",
+        //       "symbol": "XPL",
+        //       "timestamp": 1759222967974,
+        //       "volume_24h": "20896698.0672",
+        //       "yesterday_price": "1.3412"
         //     }
         //
         $marketId = $this->safe_string($interest, 'symbol');
@@ -2735,7 +3066,7 @@ class pacifica extends Exchange {
         ), $market);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -2750,12 +3081,14 @@ class pacifica extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate', false);
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchLedger', $params);
-        $defaultLimit = 100; // Default max $limit
+        $defaultLimit = 100; // Default max limit
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit);
         }
@@ -2765,21 +3098,21 @@ class pacifica extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetAccountBalanceHistory ($this->extend($request, $params));
+        $response = $this->publicGetAccountBalanceHistory($this->extend($request, $params));
         // {
-        //   "success" => true,
-        //   "data" => array(
+        //   "success": true,
+        //   "data": [
         //     {
-        //       "amount" => "100.000000",
-        //       "balance" => "1200.000000",
-        //       "pending_balance" => "0.000000",
-        //       "event_type" => "deposit",
-        //       "created_at" => 1716200000000
+        //       "amount": "100.000000",
+        //       "balance": "1200.000000",
+        //       "pending_balance": "0.000000",
+        //       "event_type": "deposit",
+        //       "created_at": 1716200000000
         //     }
         //     ...
-        //   ),
-        //   "next_cursor" => "11114Lz77",
-        //   "has_more" => true
+        //   ],
+        //   "next_cursor": "11114Lz77",
+        //   "has_more": true
         // }
         $data = $this->add_pagination_cursor_to_result($response);
         return $this->parse_ledger($data, null, $since, $limit);
@@ -2788,11 +3121,11 @@ class pacifica extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
-        //       "amount" => "100.000000",
-        //       "balance" => "1200.000000",
-        //       "pending_balance" => "0.000000",
-        //       "event_type" => "deposit",
-        //       "created_at" => 1716200000000
+        //       "amount": "100.000000",
+        //       "balance": "1200.000000",
+        //       "pending_balance": "0.000000",
+        //       "event_type": "deposit",
+        //       "created_at": 1716200000000
         //     }
         //
         $timestamp = $this->safe_integer($item, 'created_at');
@@ -2818,7 +3151,7 @@ class pacifica extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'subaccount_transfer' => 'transfer',
             'deposit' => 'transaction',
@@ -2839,9 +3172,12 @@ class pacifica extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding payments paid and received on this account
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
+         *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -2851,7 +3187,9 @@ class pacifica extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2870,38 +3208,38 @@ class pacifica extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit);
         }
-        $response = $this->publicGetFundingHistory ($this->extend($request, $params));
+        $response = $this->publicGetFundingHistory($this->extend($request, $params));
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     array(
-        //       "history_id" => 2287920,
-        //       "symbol" => "PUMP",
-        //       "side" => "ask",
-        //       "amount" => "39033804",
-        //       "payout" => "2.617479",
-        //       "rate" => "0.0000125",
-        //       "created_at" => 1759222804122
-        //     ),
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "history_id": 2287920,
+        //       "symbol": "PUMP",
+        //       "side": "ask",
+        //       "amount": "39033804",
+        //       "payout": "2.617479",
+        //       "rate": "0.0000125",
+        //       "created_at": 1759222804122
+        //     },
         //     ...
-        //   ),
-        //   "next_cursor" => "11114Lz77",
-        //   "has_more" => true
+        //   ],
+        //   "next_cursor": "11114Lz77",
+        //   "has_more": true
         // }
         $data = $this->add_pagination_cursor_to_result($response);
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         //     {
-        //       "history_id" => 2287920,
-        //       "symbol" => "PUMP",
-        //       "side" => "ask",
-        //       "amount" => "39033804",
-        //       "payout" => "2.617479",
-        //       "rate" => "0.0000125",
-        //       "created_at" => 1759222804122
+        //       "history_id": 2287920,
+        //       "symbol": "PUMP",
+        //       "side": "ask",
+        //       "amount": "39033804",
+        //       "payout": "2.617479",
+        //       "rate": "0.0000125",
+        //       "created_at": 1759222804122
         //     }
         //
         $id = $this->safe_string($income, 'history_id');
@@ -2924,13 +3262,13 @@ class pacifica extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
-         * transfer currency internally between wallets on the same account
+         * transfer $currency internally between wallets on the same account
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
          *
-         * @param {string} $code unified currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from *spot, swap*
          * @param {string} $toAccount account to transfer to *swap, spot or address*
@@ -2938,57 +3276,73 @@ class pacifica extends Exchange {
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $currency = $this->currency($code);
         $operationType = 'transfer_funds';
         $sigPayload = array(
             'to_account' => $toAccount,
-            'amount' => $amount,
+            'amount' => $this->number_to_string($amount),
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
         $params = $this->omit($params, array( 'expiryWindow' ));
-        $response = $this->privatePostAccountSubaccountTransfer ($this->extend($request, $params));
+        $response = $this->privatePostAccountSubaccountTransfer($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     "success" => true,
-        //     "error" => null
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   "success": true,
+        //   "data": {
+        //     "success": true,
+        //     "error": null
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_transfer($data);
+        return $this->extend($this->parse_transfer($data, $currency), array(
+            'amount' => $amount,
+            'fromAccount' => $this->safe_string($request, 'account'),
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // {
-        //   "success" => true,
-        //   "data" => array(
-        //     "success" => true,
-        //     "error" => null
-        //   ),
-        //   "error" => null,
-        //   "code" => null
+        //   "success": true,
+        //   "data": {
+        //     "success": true,
+        //     "error": null
+        //   },
+        //   "error": null,
+        //   "code": null
         // }
         //
+        $success = $this->safe_bool($transfer, 'success');
+        $status = null;
+        if ($success !== null) {
+            $status = ($success === true) ? 'ok' : 'failed';
+        }
         return array(
             'info' => $transfer,
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'currency' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,
-            'status' => 'ok',
+            'status' => $status,
         );
     }
 
-    public function create_sub_account(string $name, $params = array ()) {
+    public function create_sub_account(string $name, $params = array()) {
         /**
          * creates a sub-account under the main account
+         *
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
+         *
          * @param {string} $name unused argument
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->expiryWindow] time to live in milliseconds
@@ -2998,7 +3352,7 @@ class pacifica extends Exchange {
          */
         $finalHeaders = array( );
         $agentAddress = null;
-        list($agentAddress, $params) = $this->handle_option('createSubAccount', 'agentAddress', null);
+        list($agentAddress, $params) = $this->handle_option_and_params($params, 'createSubAccount', 'agentAddress');
         $originAddress = null;
         list($originAddress, $params) = $this->handle_origin_and_single_address('createSubAccount', $params);
         if ($originAddress === null) {
@@ -3017,7 +3371,8 @@ class pacifica extends Exchange {
         if ($subAccountPrivateKey === null) {
             throw new ArgumentsRequired($this->id . ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        $timestamp = $this->milliseconds();
+        $timestamp = null;
+        list($timestamp, $params) = $this->handle_param_integer($params, 'timestamp', $this->milliseconds());
         $expiryWindow = null;
         list($expiryWindow, $params) = $this->handle_option_and_params_2($params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         $subaccountSignatureHeader = array(
@@ -3045,79 +3400,79 @@ class pacifica extends Exchange {
         $finalHeaders['timestamp'] = $timestamp;
         $finalHeaders['expiry_window'] = $expiryWindow;
         $request = $finalHeaders;
-        $response = $this->privatePostAccountSubaccountCreate ($request);
+        $response = $this->privatePostAccountSubaccountCreate($this->extend($request, $params));
         //
         // {
-        //   "success" => true,
-        //   "data" => null,
-        //   "error" => null,
-        //   "code" => null,
+        //   "success": true,
+        //   "data": null,
+        //   "error": null,
+        //   "code": null,
         // }
         //
         return $response;
     }
 
-    public function bind_agent_wallet(string $agentAddress, $params = array ()) {
+    public function bind_agent_wallet(string $agentAddress, $params = array()): array {
         $operationType = 'bind_agent_wallet';
         $sigPayload = array(
             'agent_wallet' => $agentAddress,
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        return $this->privatePostAgentBind ($this->extend($request, $params));
+        return $this->privatePostAgentBind($this->extend($request, $params));
     }
 
-    public function create_api_key($params = array ()) {
+    public function create_api_key($params = array()): array {
         $operationType = 'create_api_key';
         $sigPayload = array();
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        return $this->privatePostAccountApiKeysCreate ($this->extend($request, $params));
+        return $this->privatePostAccountApiKeysCreate($this->extend($request, $params));
     }
 
-    public function revoke_api_key(string $apiKey, $params = array ()) {
+    public function revoke_api_key(string $apiKey, $params = array()): array {
         $operationType = 'revoke_api_key';
         $sigPayload = array(
             'api_key' => $apiKey,
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        return $this->privatePostAccountApiKeysRevoke ($this->extend($request, $params));
+        return $this->privatePostAccountApiKeysRevoke($this->extend($request, $params));
     }
 
-    public function fetch_api_keys($params = array ()) {
+    public function fetch_api_keys($params = array()): array {
         $operationType = 'list_api_keys';
         $sigPayload = array();
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        return $this->privatePostAccountApiKeys ($this->extend($request, $params));
+        return $this->privatePostAccountApiKeys($this->extend($request, $params));
     }
 
-    public function approve_builder_code(string $builderCode, string $maxFeeRate, $params = array ()) {
+    public function approve_builder_code(string $builderCode, string $maxFeeRate, $params = array()): array {
         $operationType = 'approve_builder_code';
         $sigPayload = array(
             'builder_code' => $builderCode,
             'max_fee_rate' => $maxFeeRate,
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        return $this->privatePostAccountBuilderCodesApprove ($this->extend($request, $params));
+        return $this->privatePostAccountBuilderCodesApprove($this->extend($request, $params));
     }
 
     public function fetch_builder_approvals(string $address) {
         $request = array(
             'account' => $address,
         );
-        return $this->publicGetAccountBuilderCodesApprovals ($this->extend($request));
+        return $this->publicGetAccountBuilderCodesApprovals($this->extend($request));
     }
 
-    public function revoke_builder_code(string $builderCode, $params = array ()) {
+    public function revoke_builder_code(string $builderCode, $params = array()): array {
         $operationType = 'revoke_builder_code';
         $sigPayload = array(
             'builder_code' => $builderCode,
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
-        return $this->privatePostAccountBuilderCodesRevoke ($this->extend($request, $params));
+        return $this->privatePostAccountBuilderCodesRevoke($this->extend($request, $params));
     }
 
-    public function handle_origin_and_single_address(string $methodName, array $params) {
+    public function handle_origin_and_single_address(string $methodName, array $params): array {
         $address = null;
-        list($address, $params) = $this->handle_param_string_2($params, 'account', 'address', null); // this is for get endpoints that accept account or $address
+        list($address, $params) = $this->handle_param_string_2($params, 'account', 'address', null); // this is for get endpoints that accept account or address
         if ($address !== null) {
             return array( $address, $params );
         }
@@ -3125,22 +3480,28 @@ class pacifica extends Exchange {
         if ($address1 !== null) {
             return array( $address1, $params );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or or "address" in params');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         //
-        //     array("success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta $code->","code":403)
-        //     array("success":false,"data":null,"error":"Agent not authorized for account","code":400)
-        //     array("success":false,"data":null,"error":"Internal server $error","code":500)
+        //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
+        //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
+        //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        $inCode = $this->safe_integer($response, 'code'); // actually if all ok -> $code = null or $code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        $errorCode = $this->safe_string($response, 'code');
+        $errorId = $this->safe_string($response, 'error_id'); // undocumented, present on live errors and more specific than code
         $message = $this->safe_string($response, 'error');
         $error = null;
-        if ($inCode === null || $inCode === 200) {
+        if ($errorCode === null || $errorCode === '200') {
             $error = false;
         } else {
             $error = true;
@@ -3148,43 +3509,46 @@ class pacifica extends Exchange {
         $nonEmptyMessage = (($message !== null) && ($message !== ''));
         if ($error || $nonEmptyMessage) {
             $feedback = $this->id . ' ' . $body;
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback); // Try deeper catch first
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $inCode, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorId, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback); // documented message prefixes are more specific than the http-status echo
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $codeAsString = (string) $code;
+            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+                throw new ExchangeError($feedback); // unknown message
+            }
         }
         return null;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = ($isTestnet) ? 'test' : 'api';
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
         $url = $host . '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
-        $paramsLen = $params;
+        $paramsLen = count($params);
         $headers = array(
             'Content-Type' => 'application/json',
         );
-        if ($method === 'GET' && $paramsLen) {
+        if (($method === 'GET') && ($paramsLen > 0)) {
             $url .= '?' . $this->urlencode($params);
             $headers['Accept'] = '*/*';
         }
         if ($method === 'POST') {
             $body = $this->json($params);
         }
-        if ($this->handle_option('sign', 'apiKey', null) !== null) {
+        if ($this->handle_option('sign', 'apiKey') !== null) {
             $headers['PF-API-KEY'] = $this->options['apiKey'];
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if ($costNumber > 1) {
-            if ($this->handle_option($method, 'apiKey', null) !== null) {
+            if ($this->handle_option($method, 'apiKey') !== null) {
                 $costWithKey = $this->handle_option(
                     $method,
                     'maxCostHugeWithApiKey',
@@ -3197,7 +3561,7 @@ class pacifica extends Exchange {
     }
 
     public function sort_json_keys(mixed $value): mixed {
-        if (gettype($value) === 'array') {
+        if ($this->is_dictionary($value)) {
             $result = array();
             $keys = is_array($value) ? array_keys($value) : array();
             $sortedKeys = $this->sort($keys);
@@ -3245,12 +3609,12 @@ class pacifica extends Exchange {
         if (!$this->isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             $useBuilder = $this->handle_option('postActionRequest', 'builderFee', true);
             $builderCode = null;
-            if ($useBuilder) {
+            if ($useBuilder === true) {
                 $builderCode = $this->handle_option('postActionRequest', 'builderCode');
             }
             if ($builderCode !== null) {
                 $isOperationSupportBuilder = $this->safe_bool($this->options['builderSupportOperations'], $operationType, false);
-                if ($isOperationSupportBuilder) {
+                if ($isOperationSupportBuilder === true) {
                     $sigPayload['builder_code'] = $builderCode;
                 }
             }

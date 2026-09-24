@@ -1362,6 +1362,32 @@
                 ]
             }
         ],
+        "closeAllPositions": [
+            {
+                "description": "close all swap positions",
+                "method": "closeAllPositions",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": []
+                },
+                "parsedResponse": []
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all spot orders without a symbol",
+                "method": "cancelAllOrders",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "success",
+                    "timestamp": 1778744778528
+                },
+                "parsedResponse": []
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "fetchTransfers",
@@ -1938,6 +1964,72 @@
                             {
                                 "currency":"USDT",
                                 "cost":0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "swap user trade preserves maker flag from isTaker",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "987654321",
+                            "symbol": "BTC_USDT",
+                            "side": "1",
+                            "vol": "10",
+                            "price": "45000.5",
+                            "feeCurrency": "USDT",
+                            "fee": "0.225",
+                            "timestamp": "1760942212000",
+                            "isTaker": true,
+                            "category": "1",
+                            "orderId": "123456789",
+                            "positionMode": "1"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "987654321",
+                        "order": "123456789",
+                        "timestamp": 1760942212000,
+                        "datetime": "2025-10-20T06:36:52.000Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 45000.5,
+                        "amount": 10,
+                        "cost": 45.0005,
+                        "fee": {
+                            "cost": 0.225,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "id": "987654321",
+                            "symbol": "BTC_USDT",
+                            "side": "1",
+                            "vol": "10",
+                            "price": "45000.5",
+                            "feeCurrency": "USDT",
+                            "fee": "0.225",
+                            "timestamp": "1760942212000",
+                            "isTaker": true,
+                            "category": "1",
+                            "orderId": "123456789",
+                            "positionMode": "1"
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.225
                             }
                         ]
                     }

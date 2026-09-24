@@ -5,15 +5,16 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 
 
 class bithumb(ccxt.async_support.bithumb):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bithumb, self).describe(), {
             'has': {
                 'ws': True,
@@ -29,132 +30,297 @@ class bithumb(ccxt.async_support.bithumb):
                 'api': {
                     'ws': {
                         'public': 'wss://pubwss.bithumb.com/pub/ws',  # v1.2.0
-                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1',  # v2.1.5
-                        'privateV2': 'wss://ws-api.bithumb.com/websocket/v1/private',  # v2.1.5
+                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1',  # backwards compatible alias
+                        'privateV2': 'wss://ws-api.bithumb.com/websocket/v2/private',  # backwards compatible alias
+                        'publicGen2': 'wss://ws-api.bithumb.com/websocket/v1',  # v2.1.5
+                        'privateGen2': 'wss://ws-api.bithumb.com/websocket/v2/private',  # v2.1.5
                     },
                 },
             },
             'options': {},
-            'streaming': {},
+            'streaming': {
+                'keepAlive': 30000,
+                'maxPingPongMisses': 2,
+            },
             'exceptions': {},
         })
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def pong(self, client: Client, message: object):
+        ping = self.safe_integer(message, 'ping')
+        if ping is not None:
+            await client.send({'pong': ping})
+        else:
+            await client.send('PONG')
+
+    def handle_ping(self, client: Client, message: object):
+        self.spawn(self.pong, client, message)
+
+    def handle_pong(self, client: Client, message: object):
+        client.lastPong = self.milliseconds()
+
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+        https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-ticker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        :param str [params.tickTypes]: generation 1 only, the tick type to subscribe to, '24H' by default(30M, 1H, 12H, 24H, MID)
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
-        url = self.urls['api']['ws']['public']
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'watchTicker', 'generation', 2)
+        isGenerationTwo = (generation == 2)
+        url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
-        request: dict = {
+        tickTypes = self.safe_string(params, 'tickTypes', '24H')
+        params = self.omit(params, 'tickTypes')
+        request = {
             'type': 'ticker',
             'symbols': [market['base'] + '_' + market['quote']],
-            'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
+            'tickTypes': [tickTypes],
         }
+        if isGenerationTwo:
+            marketIdRequest = self.getGen2MarketId(market)
+            request = [
+                {'ticket': self.uuid()},
+                self.extend({
+                    'type': 'ticker',
+                    'codes': [marketIdRequest],
+                }, params),
+            ]
+            return await self.watch(url, messageHash, request, messageHash)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+        https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-ticker
 
-        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param str[] symbols: unified symbols of the markets to fetch tickers for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        :param str [params.tickTypes]: generation 1 only, the tick type to subscribe to, '24H' by default(30M, 1H, 12H, 24H, MID)
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>` indexed by market symbols
         """
-        await self.load_markets()
-        url = self.urls['api']['ws']['public']
-        marketIds = []
-        messageHashes = []
+        if self.markets is None:
+            await self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'watchTickers', 'generation', 2)
+        isGenerationTwo = (generation == 2)
         symbols = self.market_symbols(symbols, None, False, True, True)
-        for i in range(0, len(symbols)):
+        symbolsLength = 0 if (symbols is None) else len(symbols)
+        if isGenerationTwo and (symbolsLength == 0):
+            raise ArgumentsRequired(self.id + ' watchTickers() requires symbols for the generation 2 API')
+        if symbols is None:
+            symbols = self.symbols
+        symbolsLengthDefined = len(symbols)
+        url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
+        streamMarketIds = []
+        messageHashes = []
+        for i in range(0, symbolsLengthDefined):
             symbol = symbols[i]
             market = self.market(symbol)
-            marketIds.append(market['base'] + '_' + market['quote'])
+            streamMarketId = None
+            if isGenerationTwo:
+                streamMarketId = self.getGen2MarketId(market)
+            else:
+                streamMarketId = (market['base'] + '_' + market['quote'])
+            streamMarketIds.append(streamMarketId)
             messageHashes.append('ticker:' + market['symbol'])
-        request: dict = {
+        tickTypes = self.safe_string(params, 'tickTypes', '24H')
+        params = self.omit(params, 'tickTypes')
+        message = {
             'type': 'ticker',
-            'symbols': marketIds,
-            'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
+            'symbols': streamMarketIds,
+            'tickTypes': [tickTypes],
         }
-        message = self.extend(request, params)
+        if isGenerationTwo:
+            message = [
+                {'ticket': self.uuid()},
+                self.extend({
+                    'type': 'ticker',
+                    'codes': streamMarketIds,
+                }, params),
+            ]
+        else:
+            message = self.extend(message, params)
         newTicker = await self.watch_multiple(url, messageHashes, message, messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: dict):
+        #
+        # generation 1
         #
         #    {
         #        "type" : "ticker",
         #        "content" : {
-        #            "symbol" : "BTC_KRW",           # 통화코드
-        #            "tickType" : "24H",                 # 변동 기준시간- 30M, 1H, 12H, 24H, MID
-        #            "date" : "20200129",                # 일자
-        #            "time" : "121844",                  # 시간
-        #            "openPrice" : "2302",               # 시가
-        #            "closePrice" : "2317",              # 종가
-        #            "lowPrice" : "2272",                # 저가
-        #            "highPrice" : "2344",               # 고가
-        #            "value" : "2831915078.07065789",    # 누적거래금액
-        #            "volume" : "1222314.51355788",  # 누적거래량
-        #            "sellVolume" : "760129.34079004",   # 매도누적거래량
-        #            "buyVolume" : "462185.17276784",    # 매수누적거래량
-        #            "prevClosePrice" : "2326",          # 전일종가
-        #            "chgRate" : "0.65",                 # 변동률
-        #            "chgAmt" : "15",                    # 변동금액
-        #            "volumePower" : "60.80"         # 체결강도
+        #            "symbol" : "BTC_KRW",           // 통화코드
+        #            "tickType" : "24H",                 // 변동 기준시간- 30M, 1H, 12H, 24H, MID
+        #            "date" : "20200129",                // 일자
+        #            "time" : "121844",                  // 시간
+        #            "openPrice" : "2302",               // 시가
+        #            "closePrice" : "2317",              // 종가
+        #            "lowPrice" : "2272",                // 저가
+        #            "highPrice" : "2344",               // 고가
+        #            "value" : "2831915078.07065789",    // 누적거래금액
+        #            "volume" : "1222314.51355788",  // 누적거래량
+        #            "sellVolume" : "760129.34079004",   // 매도누적거래량
+        #            "buyVolume" : "462185.17276784",    // 매수누적거래량
+        #            "prevClosePrice" : "2326",          // 전일종가
+        #            "chgRate" : "0.65",                 // 변동률
+        #            "chgAmt" : "15",                    // 변동금액
+        #            "volumePower" : "60.80"         // 체결강도
         #        }
         #    }
         #
-        content = self.safe_dict(message, 'content', {})
-        marketId = self.safe_string(content, 'symbol')
-        symbol = self.safe_symbol(marketId, None, '_')
-        ticker = self.parse_ws_ticker(content)
+        # generation 2
+        #
+        #     {
+        #         "type": "ticker",
+        #         "code": "KRW-BTC",
+        #         "opening_price": 94223000,
+        #         "high_price": 95465000,
+        #         "low_price": 93601000,
+        #         "trade_price": 95299000,
+        #         "prev_closing_price": 94201000,
+        #         "change": "RISE",
+        #         "change_price": 1098000,
+        #         "signed_change_price": 1098000,
+        #         "change_rate": 0.01165593,
+        #         "signed_change_rate": 0.01165593,
+        #         "trade_volume": 0.0094,
+        #         "acc_trade_volume": 151.44914647,
+        #         "acc_trade_volume_24h": 310.44065227,
+        #         "acc_trade_price": 14330306973.41015,
+        #         "acc_trade_price_24h": 29226371799.56915,
+        #         "trade_date": "20260710",
+        #         "trade_time": "124548",
+        #         "trade_timestamp": 1783655148303,
+        #         "ask_bid": "BID",
+        #         "acc_ask_volume": 52.30413928,
+        #         "acc_bid_volume": 99.14500719,
+        #         "highest_52_week_price": 179734000,
+        #         "highest_52_week_date": "2025-10-09",
+        #         "lowest_52_week_price": 81110000,
+        #         "lowest_52_week_date": "2026-02-06",
+        #         "market_state": "ACTIVE",
+        #         "is_trading_suspended": false,
+        #         "delisting_date": "",
+        #         "market_warning": "NONE",
+        #         "timestamp": 1783655148485,
+        #         "stream_type": "REALTIME"
+        #     }
+        #
+        content = self.safe_dict(message, 'content')
+        isGenerationTwo = (content is None)
+        tickerMessage = None
+        if isGenerationTwo:
+            tickerMessage = message
+        else:
+            tickerMessage = content
+        marketId = self.safe_string_2(tickerMessage, 'symbol', 'code')
+        if marketId is None:
+            return
+        symbol = None
+        if isGenerationTwo:
+            symbol = self.safe_symbol(marketId, None, '-')
+        else:
+            symbol = self.safe_symbol(marketId, None, '_')
+        if symbol is None:
+            return
+        ticker = self.parse_ws_ticker(tickerMessage)
         messageHash = 'ticker:' + symbol
         self.tickers[symbol] = ticker
         client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #    {
-        #        "symbol" : "BTC_KRW",           # 통화코드
-        #        "tickType" : "24H",                 # 변동 기준시간- 30M, 1H, 12H, 24H, MID
-        #        "date" : "20200129",                # 일자
-        #        "time" : "121844",                  # 시간
-        #        "openPrice" : "2302",               # 시가
-        #        "closePrice" : "2317",              # 종가
-        #        "lowPrice" : "2272",                # 저가
-        #        "highPrice" : "2344",               # 고가
-        #        "value" : "2831915078.07065789",    # 누적거래금액
-        #        "volume" : "1222314.51355788",  # 누적거래량
-        #        "sellVolume" : "760129.34079004",   # 매도누적거래량
-        #        "buyVolume" : "462185.17276784",    # 매수누적거래량
-        #        "prevClosePrice" : "2326",          # 전일종가
-        #        "chgRate" : "0.65",                 # 변동률
-        #        "chgAmt" : "15",                    # 변동금액
-        #        "volumePower" : "60.80"         # 체결강도
+        #        "symbol" : "BTC_KRW",           // 통화코드
+        #        "tickType" : "24H",                 // 변동 기준시간- 30M, 1H, 12H, 24H, MID
+        #        "date" : "20200129",                // 일자
+        #        "time" : "121844",                  // 시간
+        #        "openPrice" : "2302",               // 시가
+        #        "closePrice" : "2317",              // 종가
+        #        "lowPrice" : "2272",                // 저가
+        #        "highPrice" : "2344",               // 고가
+        #        "value" : "2831915078.07065789",    // 누적거래금액
+        #        "volume" : "1222314.51355788",  // 누적거래량
+        #        "sellVolume" : "760129.34079004",   // 매도누적거래량
+        #        "buyVolume" : "462185.17276784",    // 매수누적거래량
+        #        "prevClosePrice" : "2326",          // 전일종가
+        #        "chgRate" : "0.65",                 // 변동률
+        #        "chgAmt" : "15",                    // 변동금액
+        #        "volumePower" : "60.80"         // 체결강도
         #    }
         #
+        # generation 2
+        #
+        #     {
+        #         "type": "ticker",
+        #         "code": "KRW-BTC",
+        #         "opening_price": 94223000,
+        #         "high_price": 95465000,
+        #         "low_price": 93601000,
+        #         "trade_price": 95299000,
+        #         "prev_closing_price": 94201000,
+        #         "change": "RISE",
+        #         "change_price": 1098000,
+        #         "signed_change_price": 1098000,
+        #         "change_rate": 0.01165593,
+        #         "signed_change_rate": 0.01165593,
+        #         "trade_volume": 0.0094,
+        #         "acc_trade_volume": 151.44914647,
+        #         "acc_trade_volume_24h": 310.44065227,
+        #         "acc_trade_price": 14330306973.41015,
+        #         "acc_trade_price_24h": 29226371799.56915,
+        #         "trade_date": "20260710",
+        #         "trade_time": "124548",
+        #         "trade_timestamp": 1783655148303,
+        #         "ask_bid": "BID",
+        #         "acc_ask_volume": 52.30413928,
+        #         "acc_bid_volume": 99.14500719,
+        #         "highest_52_week_price": 179734000,
+        #         "highest_52_week_date": "2025-10-09",
+        #         "lowest_52_week_price": 81110000,
+        #         "lowest_52_week_date": "2026-02-06",
+        #         "market_state": "ACTIVE",
+        #         "is_trading_suspended": false,
+        #         "delisting_date": "",
+        #         "market_warning": "NONE",
+        #         "timestamp": 1783655148485,
+        #         "stream_type": "REALTIME"
+        #     }
+        #
+        code = self.safe_string(ticker, 'code')
+        if code is not None:
+            ticker['market'] = self.safe_string(ticker, 'market', code)
+            return self.parse_ticker(ticker, market)
         date = self.safe_string(ticker, 'date', '')
         time = self.safe_string(ticker, 'time', '')
-        datetime = date[0:4] + '-' + date[4:6] + '-' + date[6:8] + 'T' + time[0:2] + ':' + time[2:4] + ':' + time[4:6]
+        kstDatetime = date[0:4] + '-' + date[4:6] + '-' + date[6:8] + 'T' + time[0:2] + ':' + time[2:4] + ':' + time[4:6]
+        # date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
+        timestamp = self.parse8601(kstDatetime)
+        if timestamp is not None:
+            timestamp = (timestamp - 32400000)
         marketId = self.safe_string(ticker, 'symbol')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, '_'),
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'highPrice'),
             'low': self.safe_string(ticker, 'lowPrice'),
             'bid': None,
@@ -174,30 +340,49 @@ class bithumb(ccxt.async_support.bithumb):
             'info': ticker,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+        https://apidocs.bithumb.com/reference/%ED%98%B8%EA%B0%80-orderbook
 
-        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
-        url = self.urls['api']['ws']['public']
+        if self.markets is None:
+            await self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'watchOrderBook', 'generation', 2)
+        isGenerationTwo = (generation == 2)
+        url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook' + ':' + symbol
-        request: dict = {
+        request = {
             'type': 'orderbookdepth',
             'symbols': [market['base'] + '_' + market['quote']],
         }
-        orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        if isGenerationTwo:
+            marketIdRequest = self.getGen2MarketId(market)
+            request = [
+                {'ticket': self.uuid()},
+                self.extend({
+                    'type': 'orderbook',
+                    'codes': [marketIdRequest],
+                }, params),
+            ]
+        else:
+            request = self.extend(request, params)
+        orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: dict):
+        #
+        # generation 1
         #
         #    {
         #        "type" : "orderbookdepth",
@@ -205,10 +390,10 @@ class bithumb(ccxt.async_support.bithumb):
         #            "list" : [
         #                {
         #                    "symbol" : "BTC_KRW",
-        #                    "orderType" : "ask",        # 주문타입 – bid / ask
-        #                    "price" : "10593000",       # 호가
-        #                    "quantity" : "1.11223318",  # 잔량
-        #                    "total" : "3"               # 건수
+        #                    "orderType" : "ask",        // 주문타입 – bid / ask
+        #                    "price" : "10593000",       // 호가
+        #                    "quantity" : "1.11223318",  // 잔량
+        #                    "total" : "3"               // 건수
         #                },
         #                {"symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10596000", "quantity" : "0.5495", "total" : "8"},
         #                {"symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10598000", "quantity" : "18.2085", "total" : "10"},
@@ -217,29 +402,90 @@ class bithumb(ccxt.async_support.bithumb):
         #                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10571000", "quantity" : "1.469", "total" : "3"},
         #                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10569000", "quantity" : "0.5152", "total" : "2"}
         #            ],
-        #            "datetime":1580268255864325     # 일시
+        #            "datetime":1580268255864325     // 일시
         #        }
         #    }
         #
-        content = self.safe_dict(message, 'content', {})
-        list = self.safe_list(content, 'list', [])
-        first = self.safe_dict(list, 0, {})
-        marketId = self.safe_string(first, 'symbol')
-        symbol = self.safe_symbol(marketId, None, '_')
-        timestampStr = self.safe_string(content, 'datetime')
-        timestamp = self.parse_to_int(timestampStr[0:13])
-        if not (symbol in self.orderbooks):
-            ob = self.order_book()
-            ob['symbol'] = symbol
-            self.orderbooks[symbol] = ob
+        # generation 2
+        #
+        #     {
+        #         "type": "orderbook",
+        #         "code": "KRW-BTC",
+        #         "total_ask_size": 4.7398,
+        #         "total_bid_size": 0.2889,
+        #         "orderbook_units": [
+        #             {
+        #                 "ask_price": 95340000,
+        #                 "bid_price": 95339000,
+        #                 "ask_size": 0.0007,
+        #                 "bid_size": 0.0024
+        #             },
+        #         ],
+        #         "level": 1,
+        #         "timestamp": "1783657882348968",
+        #         "stream_type": "SNAPSHOT"
+        #     }
+        #
+        content = self.safe_dict(message, 'content')
+        if content is not None:
+            list = self.safe_list(content, 'list', [])
+            first = self.safe_dict(list, 0, {})
+            legacyMarketId = self.safe_string(first, 'symbol')
+            if legacyMarketId is None:
+                return
+            legacySymbol = self.safe_symbol(legacyMarketId, None, '_')
+            timestampStr = self.safe_string(content, 'datetime')
+            if timestampStr is None:
+                return
+            legacyTimestamp = self.parse_to_int(timestampStr[0:13])
+            if not (legacySymbol in self.orderbooks):
+                ob = self.order_book()
+                ob['symbol'] = legacySymbol
+                self.orderbooks[legacySymbol] = ob
+            legacyOrderbook = self.orderbooks[legacySymbol]
+            self.handle_deltas(legacyOrderbook, list)
+            legacyOrderbook['timestamp'] = legacyTimestamp
+            legacyOrderbook['datetime'] = self.iso8601(legacyTimestamp)
+            legacyMessageHash = 'orderbook' + ':' + legacySymbol
+            client.resolve(legacyOrderbook, legacyMessageHash)
+            return
+        marketId = self.safe_string(message, 'code')
+        symbol = self.safe_symbol(marketId, None, '-')
+        if symbol is None:
+            return
+        streamType = self.safe_string(message, 'stream_type')
+        options = self.safe_dict(self.options, 'watchOrderBook', {})
+        obLimit = self.safe_integer(options, 'limit', 1000)
+        if not (symbol in self.orderbooks) or (streamType == 'SNAPSHOT'):
+            self.orderbooks[symbol] = self.order_book({}, obLimit)
         orderbook = self.orderbooks[symbol]
-        self.handle_deltas(orderbook, list)
+        orderbook.reset({})
+        orderbook['symbol'] = symbol
+        bids = orderbook['bids']
+        asks = orderbook['asks']
+        units = self.safe_list(message, 'orderbook_units', [])
+        for i in range(0, len(units)):
+            entry = units[i]
+            bidPrice = self.safe_number(entry, 'bid_price')
+            bidSize = self.safe_number(entry, 'bid_size')
+            askPrice = self.safe_number(entry, 'ask_price')
+            askSize = self.safe_number(entry, 'ask_size')
+            if (bidPrice is not None) and (bidSize is not None):
+                bids.store(bidPrice, bidSize)
+            if (askPrice is not None) and (askSize is not None):
+                asks.store(askPrice, askSize)
+        gen2TimestampStr = self.safe_string_2(message, 'timestamp', 'datetime')
+        timestamp = None
+        if gen2TimestampStr is not None:
+            timestamp = self.parse_to_int(gen2TimestampStr[0:13])
+        if timestamp is None:
+            timestamp = self.milliseconds()
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         messageHash = 'orderbook' + ':' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, orderbook, delta):
+    def handle_delta(self, orderbook: object, delta: object):
         #
         #    {
         #        symbol: "ETH_BTC",
@@ -251,41 +497,60 @@ class bithumb(ccxt.async_support.bithumb):
         #
         sideId = self.safe_string(delta, 'orderType')
         side = 'bids' if (sideId == 'bid') else 'asks'
-        bidAsk = self.parse_bid_ask(delta, 'price', 'quantity')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'quantity')
         orderbookSide = orderbook[side]
         orderbookSide.storeArray(bidAsk)
 
-    def handle_deltas(self, orderbook, deltas):
+    def handle_deltas(self, orderbook: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
         https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+        https://apidocs.bithumb.com/reference/%EC%B2%B4%EA%B2%B0-trade
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        await self.load_markets()
-        url = self.urls['api']['ws']['public']
+        if self.markets is None:
+            await self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'watchTrades', 'generation', 2)
+        isGenerationTwo = (generation == 2)
+        url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
-        request: dict = {
+        request = {
             'type': 'transaction',
             'symbols': [market['base'] + '_' + market['quote']],
         }
-        trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        if isGenerationTwo:
+            marketIdRequest = self.getGen2MarketId(market)
+            request = [
+                {'ticket': self.uuid()},
+                self.extend({
+                    'type': 'trade',
+                    'codes': [marketIdRequest],
+                }, params),
+            ]
+        else:
+            request = self.extend(request, params)
+        trades = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message: dict):
+        #
+        # generation 1
         #
         #    {
         #        "type" : "transaction",
@@ -304,23 +569,55 @@ class bithumb(ccxt.async_support.bithumb):
         #        }
         #    }
         #
-        content = self.safe_dict(message, 'content', {})
-        rawTrades = self.safe_list(content, 'list', [])
+        # generation 2
+        #
+        #     {
+        #         "type": "trade",
+        #         "code": "KRW-BTC",
+        #         "trade_price": 95539000,
+        #         "trade_volume": 0.00022664,
+        #         "ask_bid": "ASK",
+        #         "prev_closing_price": 94201000,
+        #         "change": "RISE",
+        #         "change_price": 1338000,
+        #         "trade_date": "2026-07-10",
+        #         "trade_time": "13:39:41",
+        #         "trade_timestamp": 1783658381138,
+        #         "sequential_id": "862683813820523888",
+        #         "timestamp": 1783658381398,
+        #         "stream_type": "REALTIME"
+        #     }
+        #
+        content = self.safe_dict(message, 'content')
+        rawTrades = self.safe_list(content, 'list')
+        if rawTrades is None:
+            rawTrades = [message]
         for i in range(0, len(rawTrades)):
             rawTrade = rawTrades[i]
-            marketId = self.safe_string(rawTrade, 'symbol')
-            symbol = self.safe_symbol(marketId, None, '_')
+            marketId = self.safe_string_2(rawTrade, 'symbol', 'code')
+            if marketId is None:
+                continue
+            code = self.safe_string(rawTrade, 'code')
+            isGenerationTwo = (code is not None)
+            fallbackSymbol = None
+            if isGenerationTwo:
+                fallbackSymbol = self.safe_symbol(marketId, None, '-')
+            else:
+                fallbackSymbol = self.safe_symbol(marketId, None, '_')
+            parsed = self.parse_ws_trade(rawTrade)
+            symbol = self.safe_string(parsed, 'symbol', fallbackSymbol)
             if not (symbol in self.trades):
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
                 stored = ArrayCache(limit)
                 self.trades[symbol] = stored
             trades = self.trades[symbol]
-            parsed = self.parse_ws_trade(rawTrade)
             trades.append(parsed)
             messageHash = 'trade' + ':' + symbol
             client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
+        #
+        # generation 1
         #
         #    {
         #        "symbol" : "BTC_KRW",
@@ -332,10 +629,37 @@ class bithumb(ccxt.async_support.bithumb):
         #        "updn" : "dn"
         #    }
         #
+        # generation 2
+        #
+        #     {
+        #         "type": "trade",
+        #         "code": "KRW-BTC",
+        #         "trade_price": 95539000,
+        #         "trade_volume": 0.00022664,
+        #         "ask_bid": "ASK",
+        #         "prev_closing_price": 94201000,
+        #         "change": "RISE",
+        #         "change_price": 1338000,
+        #         "trade_date": "2026-07-10",
+        #         "trade_time": "13:39:41",
+        #         "trade_timestamp": 1783658381138,
+        #         "sequential_id": "862683813820523888",
+        #         "timestamp": 1783658381398,
+        #         "stream_type": "REALTIME"
+        #     }
+        #
+        marketCode = self.safe_string(trade, 'code')
+        if marketCode is not None:
+            tradeTimestamp = self.safe_integer(trade, 'trade_timestamp')
+            normalized = self.extend(trade, {
+                'market': marketCode,
+                'timestamp': tradeTimestamp,
+            })
+            return self.parse_trade(normalized, market)
         marketId = self.safe_string(trade, 'symbol')
         datetime = self.safe_string(trade, 'contDtm')
         # that date is not UTC iso8601, but exchange's local time, -9hr difference
-        timestamp = self.parse8601(datetime) - 32400000
+        timestamp = self.parse_to_int(self.parse8601(datetime)) - 32400000
         sideId = self.safe_string(trade, 'buySellGb')
         return self.safe_trade({
             'id': None,
@@ -353,46 +677,62 @@ class bithumb(ccxt.async_support.bithumb):
             'fee': None,
         }, market)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #    {
         #        "status" : "5100",
         #        "resmsg" : "Invalid Filter Syntax"
         #    }
         #
+        error = self.safe_dict(message, 'error')
+        if error is not None:
+            errorName = self.safe_string(error, 'name', 'Error')
+            errorMessage = self.safe_string(error, 'message', '')
+            addedMessage = None
+            if (len(errorMessage) > 0):
+                addedMessage = (' ' + errorMessage)
+            else:
+                addedMessage = ''
+            client.reject(ExchangeError(self.id + ' websocket error ' + errorName + addedMessage))
+            return False
         if not ('status' in message):
             return True
         errorCode = self.safe_string(message, 'status')
         try:
+            if (errorCode == 'UP') or (errorCode == '0000'):
+                return True
             if errorCode != '0000':
                 msg = self.safe_string(message, 'resmsg')
                 raise ExchangeError(self.id + ' ' + msg)
             return True
         except Exception as e:
             client.reject(e)
-        return True
+            return False
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
         https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'watchBalance', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' watchBalance() is only supported for the generation 2 API')
         await self.authenticate()
-        url = self.urls['api']['ws']['privateV2']
+        url = self.urls['api']['ws']['privateGen2']
         messageHash = 'myAsset'
-        request = [
-            {'ticket': 'ccxt'},
-            {'type': messageHash},
-        ]
+        request = self.build_gen2_subscription_request(messageHash, {'type': messageHash})
         balance = await self.watch(url, messageHash, request, messageHash)
         return balance
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: dict):
         #
         #    {
         #        "type": "myAsset",
@@ -419,7 +759,8 @@ class bithumb(ccxt.async_support.bithumb):
             account = self.account()
             account['free'] = self.safe_string(asset, 'balance')
             account['used'] = self.safe_string(asset, 'locked')
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
         self.balance['info'] = message
         timestamp = self.safe_integer(message, 'timestamp')
         self.balance['timestamp'] = timestamp
@@ -427,12 +768,36 @@ class bithumb(ccxt.async_support.bithumb):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
-    async def authenticate(self, params={}):
+    def build_gen2_subscription_request(self, subscriptionType: str, subscription: dict) -> list[object]:
+        """
+ @ignore
+        builds the SUBSCRIBE frame for the generation 2 private socket - the venue replaces
+ the socket's whole subscription list with every SUBSCRIBE frame, so the frame always carries the
+ union of everything subscribed so far, otherwise a second stream(e.g. watchOrders after
+ watchBalance) would silently cancel the first one
+        :param str subscriptionType: the venue subscription type('myAsset' / 'myOrder')
+        :param dict subscription: the subscription entry for that type
+        :returns dict[]: the SUBSCRIBE frame to send
+        """
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        subscriptions = self.safe_dict(wsOptions, 'gen2Subscriptions', {})
+        subscriptions[subscriptionType] = subscription
+        wsOptions['gen2Subscriptions'] = subscriptions
+        self.options['ws'] = wsOptions
+        request = [
+            {'ticket': 'ccxt'},
+        ]
+        keys = list(subscriptions.keys())
+        for i in range(0, len(keys)):
+            request.append(subscriptions[keys[i]])
+        return request
+
+    async def authenticate(self, params: dict = {}) -> Client:
         self.check_required_credentials()
-        wsOptions: dict = self.safe_dict(self.options, 'ws', {})
+        wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
         if authenticated is None:
-            payload: dict = {
+            payload = {
                 'access_key': self.apiKey,
                 'nonce': self.uuid(),
                 'timestamp': self.milliseconds(),
@@ -445,11 +810,11 @@ class bithumb(ccxt.async_support.bithumb):
                 },
             }
             self.options['ws'] = wsOptions
-        url = self.urls['api']['ws']['privateV2']
+        url = self.urls['api']['ws']['privateGen2']
         client = self.client(url)
         return client
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -460,17 +825,20 @@ class bithumb(ccxt.async_support.bithumb):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.codes]: market codes to filter orders
+        :param int [params.generation]: *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
+        generation = None
+        generation, params = self.handle_option_and_params(params, 'watchOrders', 'generation', 2)
+        if generation != 2:
+            raise BadRequest(self.id + ' watchOrders() is only supported for the generation 2 API')
         await self.authenticate()
-        url = self.urls['api']['ws']['privateV2']
+        url = self.urls['api']['ws']['privateGen2']
         messageHash = 'myOrder'
         codes = self.safe_list(params, 'codes', [])
-        request = [
-            {'ticket': 'ccxt'},
-            {'type': messageHash, 'codes': codes},
-        ]
+        request = self.build_gen2_subscription_request(messageHash, {'type': messageHash, 'codes': codes})
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -480,7 +848,7 @@ class bithumb(ccxt.async_support.bithumb):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message):
+    def handle_orders(self, client: Client, message: dict):
         #
         #    {
         #        "type": "myOrder",
@@ -508,7 +876,7 @@ class bithumb(ccxt.async_support.bithumb):
         messageHash = 'myOrder'
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
-        # orderId = self.safe_string(parsed, 'id')
+        # const orderId = this.safeString (parsed, 'id');
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -518,7 +886,7 @@ class bithumb(ccxt.async_support.bithumb):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "type": "myOrder",
@@ -547,7 +915,9 @@ class bithumb(ccxt.async_support.bithumb):
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(order, 'order_timestamp')
         sideId = self.safe_string(order, 'ask_bid')
-        side = ('buy') if (sideId == 'BID') else ('sell')
+        side = self.safe_string_lower(order, 'side')
+        if sideId is not None:
+            side = ('buy') if (sideId == 'BID') else ('sell')
         typeId = self.safe_string(order, 'order_type')
         type = None
         if typeId == 'limit':
@@ -566,8 +936,8 @@ class bithumb(ccxt.async_support.bithumb):
             status = 'closed'
         elif stateId == 'cancel':
             status = 'canceled'
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'volume')
+        price = self.safe_string_2(order, 'price', 'order_price')
+        amount = self.safe_string_2(order, 'volume', 'order_quantity')
         remaining = self.safe_string(order, 'remaining_volume')
         filled = self.safe_string(order, 'executed_volume')
         cost = self.safe_string(order, 'executed_funds')
@@ -582,7 +952,7 @@ class bithumb(ccxt.async_support.bithumb):
             }
         return self.safe_order({
             'info': order,
-            'id': self.safe_string(order, 'uuid'),
+            'id': self.safe_string_2(order, 'uuid', 'order_id'),
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -605,15 +975,36 @@ class bithumb(ccxt.async_support.bithumb):
             'trades': None,
         }, market)
 
-    def handle_message(self, client: Client, message):
-        if not self.handle_error_message(client, message):
+    def handle_message(self, client: Client, message: object):
+        if isinstance(message, str):
+            content = message.lower()
+            if content == 'pong':
+                self.handle_pong(client, message)
+                return
+            if content == 'ping':
+                self.handle_ping(client, message)
+                return
+            return
+        status = self.safe_string(message, 'status')
+        if status == 'UP':
+            self.handle_pong(client, message)
+            return
+        if ('pong' in message) or ('PINGPONG' in message):
+            self.handle_pong(client, message)
+            return
+        if 'ping' in message:
+            self.handle_ping(client, message)
+            return
+        if self.handle_error_message(client, message) is not True:
             return
         topic = self.safe_string(message, 'type')
         if topic is not None:
-            methods: dict = {
+            methods = {
                 'ticker': self.handle_ticker,
                 'orderbookdepth': self.handle_order_book,
+                'orderbook': self.handle_order_book,
                 'transaction': self.handle_trades,
+                'trade': self.handle_trades,
                 'myAsset': self.handle_balance,
                 'myOrder': self.handle_orders,
             }

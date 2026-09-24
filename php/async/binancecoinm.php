@@ -7,10 +7,10 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\binancecoinm as binance;
-use \React\Async;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class binancecoinm extends binance {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binancecoinm',
@@ -44,17 +44,21 @@ class binancecoinm extends binance {
         ));
     }
 
-    public function transfer_in(string $code, $amount, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $params) {
-            // transfer from spot wallet to coinm futures wallet
-            return Async\await($this->futuresTransfer ($code, $amount, 3, $params));
-        }) ();
+    public function transfer_in(string $code, float $amount, $params = array()): PromiseInterface {
+        return Async\async(self::do_transfer_in(...))($code, $amount, $params);
     }
 
-    public function transfer_out(string $code, $amount, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $params) {
-            // transfer from coinm futures wallet to spot wallet
-            return Async\await($this->futuresTransfer ($code, $amount, 4, $params));
-        }) ();
+    private function do_transfer_in(string $code, float $amount, $params = array()) {
+        // transfer from spot wallet to coinm futures wallet
+        return Async\await($this->futuresTransfer($code, $amount, 3, $params));
+    }
+
+    public function transfer_out(string $code, float $amount, $params = array()): PromiseInterface {
+        return Async\async(self::do_transfer_out(...))($code, $amount, $params);
+    }
+
+    private function do_transfer_out(string $code, float $amount, $params = array()) {
+        // transfer from coinm futures wallet to spot wallet
+        return Async\await($this->futuresTransfer($code, $amount, 4, $params));
     }
 }

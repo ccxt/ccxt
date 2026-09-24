@@ -1,18 +1,18 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha384 } from '@noble/hashes/sha2.js';
 import bitfinexRest from '../bitfinex.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class bitfinex extends bitfinexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -49,8 +49,10 @@ export default class bitfinex extends bitfinexRest {
         });
     }
 
-    async subscribe (channel, symbol, params = {}) {
-        await this.loadMarkets ();
+    async subscribe (channel: any, symbol: any, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
@@ -63,9 +65,9 @@ export default class bitfinex extends bitfinexRest {
         };
         const result = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, { 'checksum': false });
         const checksum = this.safeBool (this.options, 'checksum', true);
-        if (checksum && (channel === 'book')) {
+        if ((checksum === true) && (channel === 'book')) {
             const sub = client.subscriptions[messageHash];
-            if (sub && !sub['checksum']) {
+            if ((sub !== undefined) && (sub['checksum'] !== true)) {
                 client.subscriptions[messageHash]['checksum'] = true;
                 await client.send ({
                     'event': 'conf',
@@ -76,8 +78,10 @@ export default class bitfinex extends bitfinexRest {
         return result;
     }
 
-    async unSubscribe (channel, topic, symbol, params = {}) {
-        await this.loadMarkets ();
+    async unSubscribe (channel: any, topic: any, symbol: any, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
@@ -92,7 +96,7 @@ export default class bitfinex extends bitfinexRest {
         };
         const unSubChanMsg = 'unsubscribe:' + channelId;
         client.subscriptions[unSubChanMsg] = subMessageHash;
-        const subscription = {
+        const subscription: Dict = {
             'messageHashes': [ messageHash ],
             'subMessageHashes': [ subMessageHash ],
             'topic': topic,
@@ -102,8 +106,10 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (messageHash) {
-        await this.loadMarkets ();
+    async subscribePrivate (messageHash: any) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         return await this.watch (url, messageHash, undefined, 1);
@@ -120,8 +126,10 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -151,8 +159,10 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} true if successfully unsubscribed, false otherwise
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}) {
-        await this.loadMarkets ();
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -169,7 +179,7 @@ export default class bitfinex extends bitfinexRest {
         };
         const unSubChanMsg = 'unsubscribe:' + channelId;
         client.subscriptions[unSubChanMsg] = subMessageHash;
-        const subscription = {
+        const subscription: Dict = {
             'messageHashes': [ messageHash ],
             'subMessageHashes': [ subMessageHash ],
             'topic': 'ohlcv',
@@ -179,7 +189,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    handleOHLCV (client: Client, message, subscription) {
+    handleOHLCV (client: Client, message: any[], subscription: Dict) {
         //
         // initial snapshot
         //   [
@@ -225,9 +235,9 @@ export default class bitfinex extends bitfinexRest {
         //       ]
         //   ]
         //
-        const data = this.safeValue (message, 1, []);
-        let ohlcvs = undefined;
-        const first = this.safeValue (data, 0);
+        const data = this.safeList (message, 1, []);
+        let ohlcvs: any[] = [];
+        const first = this.safeList (data, 0);
         if (Array.isArray (first)) {
             // snapshot
             ohlcvs = data;
@@ -235,8 +245,8 @@ export default class bitfinex extends bitfinexRest {
             // update
             ohlcvs = [ data ];
         }
-        const channel = this.safeValue (subscription, 'channel');
-        const key = this.safeString (subscription, 'key');
+        const channel = this.safeString (subscription, 'channel');
+        const key = this.safeString (subscription, 'key', '');
         const keyParts = key.split (':');
         const interval = this.safeString (keyParts, 1);
         let marketId = key;
@@ -246,12 +256,12 @@ export default class bitfinex extends bitfinexRest {
         const timeframe = this.findTimeframe (interval);
         const symbol = market['symbol'];
         const messageHash = channel + ':' + interval + ':' + marketId;
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][(timeframe as string)] = stored;
         }
         const ohlcvsLength = ohlcvs.length;
         for (let i = 0; i < ohlcvsLength; i++) {
@@ -272,7 +282,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.subscribe ('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -288,8 +298,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}) {
-        return await this.unSubscribe ('trades', 'trades', symbol, params);
+    override unWatchTrades (symbol: string, params = {}): Promise<any> {
+        return this.unSubscribe ('trades', 'trades', symbol, params);
     }
 
     /**
@@ -302,8 +312,10 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'myTrade';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -324,8 +336,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        return await this.subscribe ('ticker', symbol, params);
+    override watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        return this.subscribe ('ticker', symbol, params);
     }
 
     /**
@@ -336,11 +348,11 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}) {
-        return await this.unSubscribe ('ticker', 'ticker', symbol, params);
+    override unWatchTicker (symbol: string, params = {}): Promise<any> {
+        return this.unSubscribe ('ticker', 'ticker', symbol, params);
     }
 
-    handleMyTrade (client: Client, message, subscription = {}) {
+    handleMyTrade (client: Client, message: any[], subscription: Dict = {}) {
         //
         // trade execution
         // [
@@ -381,7 +393,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    handleTrades (client: Client, message, subscription) {
+    handleTrades (client: Client, message: any[], subscription: Dict) {
         //
         // initial snapshot
         //
@@ -412,7 +424,7 @@ export default class bitfinex extends bitfinexRest {
         //    ]
         //
         //
-        const channel = this.safeValue (subscription, 'channel');
+        const channel = this.safeString (subscription, 'channel');
         const marketId = this.safeString (subscription, 'symbol');
         const market = this.safeMarket (marketId);
         const messageHash = channel + ':' + marketId;
@@ -442,14 +454,14 @@ export default class bitfinex extends bitfinexRest {
                 // since te and tu updates are duplicated on the public stream
                 return;
             }
-            const trade = this.safeValue (message, 2, []);
+            const trade = this.safeList (message, 2, []);
             const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -514,13 +526,13 @@ export default class bitfinex extends bitfinexRest {
         const price = this.safeString (trade, priceKey);
         const amountString = this.safeString (trade, amountKey);
         const amount = this.parseNumber (Precise.stringAbs (amountString));
-        let side = undefined;
+        let side: Str = undefined;
         if (amount !== undefined) {
             side = Precise.stringGt (amountString, '0') ? 'buy' : 'sell';
         }
         const symbol = this.safeSymbol (marketId, market);
         const feeValue = this.safeString (trade, 9);
-        let fee = undefined;
+        let fee: FeeString = undefined;
         if (feeValue !== undefined) {
             const currencyId = this.safeString (trade, 10);
             const code = this.safeCurrencyCode (currencyId);
@@ -530,7 +542,7 @@ export default class bitfinex extends bitfinexRest {
             };
         }
         const maker = this.safeInteger (trade, 8);
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (maker !== undefined) {
             takerOrMaker = (maker === -1) ? 'taker' : 'maker';
         }
@@ -551,7 +563,7 @@ export default class bitfinex extends bitfinexRest {
         }, market);
     }
 
-    handleTicker (client: Client, message, subscription) {
+    handleTicker (client: Client, message: any[], subscription: Dict) {
         //
         // [
         //    340432, // channel ID
@@ -561,7 +573,7 @@ export default class bitfinex extends bitfinexRest {
         //         236.88,        // 3 ASK float Price of last lowest ask
         //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
         //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
-        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         0,             // 6 DAILY_CHANGE_RELATIVE float Relative change (array index 5); parseWsTicker multiplies by 100.
         //         236.52,        // 7 LAST_PRICE float Price of the last trade.
         //         5191.36754297, // 8 VOLUME float Daily volume
         //         250.01,        // 9 HIGH float Daily high
@@ -580,7 +592,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (parsed, messageHash);
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid
@@ -588,7 +600,7 @@ export default class bitfinex extends bitfinexRest {
         //         236.88,        // 3 ASK float Price of last lowest ask
         //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
         //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
-        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         0,             // 6 DAILY_CHANGE_RELATIVE float Relative change (array index 5); parseWsTicker multiplies by 100.
         //         236.52,        // 7 LAST_PRICE float Price of the last trade.
         //         5191.36754297, // 8 VOLUME float Daily volume
         //         250.01,        // 9 HIGH float Daily high
@@ -615,7 +627,7 @@ export default class bitfinex extends bitfinexRest {
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': this.safeString (ticker, 5),
+            'percentage': Precise.stringMul (this.safeString (ticker, 5), '100'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 7),
             'quoteVolume': undefined,
@@ -630,15 +642,15 @@ export default class bitfinex extends bitfinexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (limit !== undefined) {
             if ((limit !== 25) && (limit !== 100)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
             }
         }
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const prec = this.safeString (options, 'prec', 'P0');
         const freq = this.safeString (options, 'freq', 'F0');
         const request: Dict = {
@@ -652,7 +664,7 @@ export default class bitfinex extends bitfinexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message, subscription) {
+    handleOrderBook (client: Client, message: any[], subscription: Dict) {
         //
         // first message (snapshot)
         //
@@ -674,7 +686,7 @@ export default class bitfinex extends bitfinexRest {
         //         358169, // channel id
         //         [
         //            1807.1, // price
-        //            0, // cound
+        //            0, // count
         //            1 // size
         //         ]
         //     ]
@@ -713,6 +725,9 @@ export default class bitfinex extends bitfinexRest {
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
                     const amount = this.safeNumber (delta, 2);
+                    if (amount === undefined) {
+                        continue;
+                    }
                     const counter = this.safeNumber (delta, 1);
                     const price = this.safeNumber (delta, 0);
                     const size = (amount < 0) ? -amount : amount;
@@ -750,7 +765,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    handleChecksum (client: Client, message, subscription) {
+    handleChecksum (client: Client, message: any[], subscription: Dict) {
         //
         // [ 173904, "cs", -890884919 ]
         //
@@ -758,12 +773,12 @@ export default class bitfinex extends bitfinexRest {
         const symbol = this.safeSymbol (marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
-        const book = this.safeValue (this.orderbooks, symbol);
+        const book = this.safeDict (this.orderbooks, symbol);
         if (book === undefined) {
             return;
         }
         const depth = 25; // covers the first 25 bids and asks
-        const stringArray = [];
+        const stringArray: string[] = [];
         const bids = book['bids'];
         const asks = book['asks'];
         const prec = this.safeString (subscription, 'prec', 'P0');
@@ -771,14 +786,14 @@ export default class bitfinex extends bitfinexRest {
         const idToCheck = isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            const bid = this.safeValue (bids, i);
-            const ask = this.safeValue (asks, i);
+            const bid = this.safeList (bids, i);
+            const ask = this.safeList (asks, i);
             if (bid !== undefined) {
-                stringArray.push (this.numberToString (bids[i][idToCheck]));
-                stringArray.push (this.numberToString (bids[i][1]));
+                stringArray.push (this.numberToString (bids[i][idToCheck]) as string);
+                stringArray.push (this.numberToString (bids[i][1]) as string);
             }
             if (ask !== undefined) {
-                stringArray.push (this.numberToString (asks[i][idToCheck]));
+                stringArray.push (this.numberToString (asks[i][idToCheck]) as string);
                 const aski1 = asks[i][1];
                 stringArray.push (this.numberToString (-aski1));
             }
@@ -790,7 +805,7 @@ export default class bitfinex extends bitfinexRest {
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
-            if (checksum) {
+            if (checksum === true) {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 client.reject (error, messageHash);
             }
@@ -805,15 +820,17 @@ export default class bitfinex extends bitfinexRest {
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const balanceType = this.safeString (params, 'wallet', 'exchange'); // exchange, margin
         params = this.omit (params, 'wallet');
         const messageHash = 'balance:' + balanceType;
         return await this.subscribePrivate (messageHash);
     }
 
-    handleBalance (client: Client, message, subscription) {
+    handleBalance (client: Client, message: any[], subscription: Dict) {
         //
         // snapshot (exchange + margin together)
         //   [
@@ -877,7 +894,7 @@ export default class bitfinex extends bitfinexRest {
         //   ]
         //
         const updateType = this.safeValue (message, 1);
-        let data = undefined;
+        let data: any[] = [];
         if (updateType === 'ws') {
             data = this.safeValue (message, 2);
         } else {
@@ -890,11 +907,13 @@ export default class bitfinex extends bitfinexRest {
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.parseWsBalance (rawBalance);
             const balanceType = this.safeString (rawBalance, 0);
-            const oldBalance = this.safeValue (this.balance, balanceType, {});
-            oldBalance[code] = balance;
+            const oldBalance = this.safeDict (this.balance, balanceType, {});
+            if (code !== undefined) {
+                oldBalance[code] = balance;
+            }
             oldBalance['info'] = message;
-            this.balance[balanceType] = this.safeBalance (oldBalance);
-            updatedTypes[balanceType] = true;
+            this.balance[(balanceType as string)] = this.safeBalance (oldBalance);
+            updatedTypes[(balanceType as string)] = true;
         }
         const updatesKeys = Object.keys (updatedTypes);
         for (let i = 0; i < updatesKeys.length; i++) {
@@ -904,7 +923,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    parseWsBalance (balance) {
+    parseWsBalance (balance: any) {
         //
         //     [
         //         "exchange",
@@ -926,7 +945,7 @@ export default class bitfinex extends bitfinexRest {
         return account;
     }
 
-    handleSystemStatus (client: Client, message) {
+    handleSystemStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "event": "info",
@@ -938,7 +957,7 @@ export default class bitfinex extends bitfinexRest {
         return message;
     }
 
-    handleUnsubscriptionStatus (client: Client, message) {
+    handleUnsubscriptionStatus (client: Client, message: Dict): boolean {
         //
         // {
         //     "event": "unsubscribed",
@@ -962,7 +981,7 @@ export default class bitfinex extends bitfinexRest {
         return true;
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "event": "subscribed",
@@ -983,7 +1002,7 @@ export default class bitfinex extends bitfinexRest {
         //  }
         //
         const channelId = this.safeString (message, 'chanId');
-        client.subscriptions[channelId] = message;
+        client.subscriptions[(channelId as string)] = message;
         // store the opposite direction too for unWatch
         const mappings: Dict = {
             'book': 'orderbook',
@@ -1008,7 +1027,7 @@ export default class bitfinex extends bitfinexRest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -1032,7 +1051,7 @@ export default class bitfinex extends bitfinexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: Dict) {
         const messageHash = 'authenticated';
         const status = this.safeString (message, 'status');
         if (status === 'OK') {
@@ -1059,8 +1078,10 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -1073,7 +1094,7 @@ export default class bitfinex extends bitfinexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message, subscription) {
+    handleOrders (client: Client, message: any[], subscription: Dict) {
         //
         // limit order
         //    [
@@ -1098,7 +1119,7 @@ export default class bitfinex extends bitfinexRest {
         //           null,
         //           30, // price
         //           0, // price average
-        //           0, // price_trailling
+        //           0, // price_trailing
         //           0, // price_aux_limit
         //           null,
         //           null,
@@ -1114,7 +1135,7 @@ export default class bitfinex extends bitfinexRest {
         //        ]
         //    ]
         //
-        const data = this.safeValue (message, 2, []);
+        const data = this.safeList (message, 2, []);
         const messageType = this.safeString (message, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1131,14 +1152,14 @@ export default class bitfinex extends bitfinexRest {
                 const value = data[i];
                 const parsed = this.parseWsOrder (value);
                 const symbol = parsed['symbol'];
-                symbolIds[symbol] = true;
+                symbolIds[(symbol as string)] = true;
                 orders.append (parsed);
             }
         } else {
             const parsed = this.parseWsOrder (data);
             orders.append (parsed);
             const symbol = parsed['symbol'];
-            symbolIds[symbol] = true;
+            symbolIds[(symbol as string)] = true;
         }
         const name = 'orders';
         client.resolve (this.orders, name);
@@ -1151,7 +1172,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    parseWsOrderStatus (status) {
+    parseWsOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
@@ -1161,7 +1182,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrder (order, market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //   [
         //       97084883506, // order id
@@ -1182,7 +1203,7 @@ export default class bitfinex extends bitfinexRest {
         //       null,
         //       42.799, // price
         //       42.821, // price average
-        //       0, // price trailling
+        //       0, // price trailing
         //       0, // price_aux_limit
         //       null,
         //       null,
@@ -1210,13 +1231,13 @@ export default class bitfinex extends bitfinexRest {
             side = 'sell';
         }
         const remaining = Precise.stringAbs (this.safeString (order, 6));
-        let type = this.safeString (order, 8);
+        let type = this.safeString (order, 8, '');
         if (type.indexOf ('LIMIT') > -1) {
             type = 'limit';
         } else if (type.indexOf ('MARKET') > -1) {
             type = 'market';
         }
-        const rawState = this.safeString (order, 13);
+        const rawState = this.safeString (order, 13, '');
         const stateParts = rawState.split (' ');
         const trimmedStatus = this.safeString (stateParts, 0);
         const status = this.parseWsOrderStatus (trimmedStatus);
@@ -1248,7 +1269,7 @@ export default class bitfinex extends bitfinexRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const channelId = this.safeString (message, 0);
         //
         //     [
@@ -1279,7 +1300,7 @@ export default class bitfinex extends bitfinexRest {
             if (message[1] === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
-            const subscription = this.safeValue (client.subscriptions, channelId, {});
+            const subscription = this.safeDict (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
             const publicMethods: Dict = {
@@ -1298,7 +1319,7 @@ export default class bitfinex extends bitfinexRest {
                 'ws': this.handleBalance,
                 'tu': this.handleMyTrade,
             };
-            let method = undefined;
+            let method: any = undefined;
             if (channelId === '0') {
                 method = this.safeValue (privateMethods, name);
             } else {

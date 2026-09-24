@@ -11,10 +11,10 @@ func TestEncode() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var input any = "encode-test"
-	var encoded any = exchange.Encode(input)
-	var decoded any = exchange.Decode(encoded)
-	assert(ccxt.IsEqual(decoded, input), ccxt.Add(ccxt.Add(ccxt.Add("decoded should be equal to input, got ", decoded), " instead of "), input))
+	var input string = "encode-test"
+	var encoded string = exchange.Encode(input)
+	var decoded string = exchange.Decode(encoded)
+	assert((decoded == input), "decoded should be equal to input, got "+decoded+" instead of "+input)
 }
 func TestDecode() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -22,10 +22,10 @@ func TestDecode() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var input any = "decode-test"
-	var encoded any = exchange.Encode(input)
-	var decoded any = exchange.Decode(encoded)
-	assert(ccxt.IsEqual(decoded, input), ccxt.Add(ccxt.Add(ccxt.Add("decoded should be equal to input, got ", decoded), " instead of "), input))
+	var input string = "decode-test"
+	var encoded string = exchange.Encode(input)
+	var decoded string = exchange.Decode(encoded)
+	assert((decoded == input), "decoded should be equal to input, got "+decoded+" instead of "+input)
 }
 func TestEncodeDecode() {
 	TestEncode()

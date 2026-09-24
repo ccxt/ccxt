@@ -2,14 +2,15 @@
 
 import independentreserveRest from '../independentreserve.js';
 import { NotSupported, ChecksumError } from '../base/errors.js';
+import { ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from '../base/functions/number.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Dict } from '../base/types.js';
+import type { Int, OrderBook, Trade, Dict , Market, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class independentreserve extends independentreserveRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -50,8 +51,10 @@ export default class independentreserve extends independentreserveRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
@@ -60,7 +63,7 @@ export default class independentreserve extends independentreserveRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: Dict) {
         //
         //    {
         //        "Channel": "ticker-btc-usd",
@@ -79,7 +82,7 @@ export default class independentreserve extends independentreserveRest {
         //        "Event": "Trade"
         //    }
         //
-        const data = this.safeValue (message, 'Data', {});
+        const data = this.safeDict (message, 'Data', {});
         const marketId = this.safeString (data, 'Pair');
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'trades:' + symbol;
@@ -95,7 +98,7 @@ export default class independentreserve extends independentreserveRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //    {
         //        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -134,10 +137,12 @@ export default class independentreserve extends independentreserveRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         if (limit === undefined) {
@@ -153,7 +158,7 @@ export default class independentreserve extends independentreserveRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "Channel": "orderbook/1/eth/aud",
@@ -178,6 +183,9 @@ export default class independentreserve extends independentreserveRest {
         //
         const event = this.safeString (message, 'Event');
         const channel = this.safeString (message, 'Channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('/');
         const depth = this.safeString (parts, 1);
         const baseId = this.safeString (parts, 2);
@@ -187,7 +195,7 @@ export default class independentreserve extends independentreserveRest {
         const symbol = base + '/' + quote;
         const orderBook = this.safeDict (message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const receivedSnapshot = this.safeBool (subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger (message, 'Time');
         // let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -198,7 +206,11 @@ export default class independentreserve extends independentreserveRest {
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             orderbook.reset (snapshot);
-            subscription['receivedSnapshot'] = true;
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            client.subscriptions[messageHash] = this.extend (subscription, {
+                'receivedSnapshot': true,
+            });
         } else {
             const asks = this.safeList (orderBook, 'Offers', []);
             const bids = this.safeList (orderBook, 'Bids', []);
@@ -208,7 +220,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
         const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
-        if (checksum && receivedSnapshot) {
+        if ((checksum === true) && (receivedSnapshot === true)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
@@ -224,7 +236,7 @@ export default class independentreserve extends independentreserveRest {
                     payload = payload + this.valueToChecksum (storedAsks[i][0]) + this.valueToChecksum (storedAsks[i][1]);
                 }
             }
-            const calculatedChecksum = this.crc32 (payload, true);
+            const calculatedChecksum = this.crc32 (payload, false);
             const responseChecksum = this.safeInteger (orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
@@ -234,13 +246,16 @@ export default class independentreserve extends independentreserveRest {
                 return;
             }
         }
-        if (receivedSnapshot) {
+        if (receivedSnapshot === true) {
             client.resolve (orderbook, messageHash);
         }
     }
 
-    valueToChecksum (value) {
-        let result = value.toFixed (8);
+    valueToChecksum (value: Num): string {
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        let result: any = this.decimalToPrecision (value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
         result = result.replace ('.', '');
         // remove leading zeros
         result = this.parseNumber (result);
@@ -248,18 +263,18 @@ export default class independentreserve extends independentreserveRest {
         return result;
     }
 
-    handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 'Price', 'Volume');
+    override handleDelta (bookside: any, delta: any) {
+        const bidAsk = this.parseOrderBookBidAsk (delta, 'Price', 'Volume');
         bookside.storeArray (bidAsk);
     }
 
-    handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleHeartbeat (client: Client, message) {
+    handleHeartbeat (client: Client, message: Dict): Dict {
         //
         //    {
         //        "Time": 1676156208182,
@@ -269,7 +284,7 @@ export default class independentreserve extends independentreserveRest {
         return message;
     }
 
-    handleSubscriptions (client: Client, message) {
+    handleSubscriptions (client: Client, message: Dict): Dict {
         //
         //    {
         //        "Data": [ "ticker-btc-sgd" ],
@@ -280,7 +295,7 @@ export default class independentreserve extends independentreserveRest {
         return message;
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: Dict) {
         const event = this.safeString (message, 'Event');
         const handlers: Dict = {
             'Subscriptions': this.handleSubscriptions,
@@ -289,7 +304,7 @@ export default class independentreserve extends independentreserveRest {
             'OrderBookSnapshot': this.handleOrderBook,
             'OrderBookChange': this.handleOrderBook,
         };
-        const handler = this.safeValue (handlers, event);
+        const handler = (event === undefined) ? undefined : this.safeValue (handlers, event);
         if (handler !== undefined) {
             handler.call (this, client, message);
             return;

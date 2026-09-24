@@ -10,6 +10,12 @@ namespace ccxt;
 include_once __DIR__ . '/test_trade.php';
 
 function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
+    // prediction-market orders are keyed by an outcome handle, not a `symbol`
+    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
+        $skipped_properties = $exchange->extend(array(
+            'symbol' => true,
+        ), $skipped_properties);
+    }
     $format = array(
         'info' => array(),
         'id' => '123',
@@ -59,7 +65,7 @@ function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $n
         ));
         if ($entry['trades'] !== null) {
             for ($i = 0; $i < count($entry['trades']); $i++) {
-                test_trade($exchange, $skipped_new, $method, $entry['trades'][$i], $symbol, $now);
+                test_trade($exchange, $skipped_new, $method, $entry['trades'][$i], $symbol, $now, false);
             }
         }
     }

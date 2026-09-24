@@ -1,8 +1,9 @@
-- [Ws_test_load](./examples/py/)
+```python
+import asyncio
+from importlib import import_module
+from importlib.util import find_spec
 
-
- ```python
- import asyncio
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 import psutil
@@ -97,7 +98,7 @@ async def main():
     await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    run(main())
 
 # Results Using asyncio 3.12^
 # Performance Metrics at 2025-05-18 20:24:04:
@@ -116,5 +117,5 @@ if __name__ == '__main__':
 # Memory usage: 79.78 MB
 # CPU usage: 7.5%
 # Elapsed time: 401.3 seconds
- 
+
 ```

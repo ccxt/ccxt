@@ -1,8 +1,5 @@
-- [Fetch Bitfinex Ohlcv History](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -39,5 +36,5 @@ while from_timestamp < now:
 
         print('Got an error', type(error).__name__, error.args, ', retrying in', hold, 'seconds...')
         time.sleep(hold)
- 
+
 ```

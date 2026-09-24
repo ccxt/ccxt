@@ -1,10 +1,10 @@
-- [Exchange Save Load Markets Cache](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
+from importlib import import_module
+from importlib.util import find_spec
 
- ```python
- # -*- coding: utf-8 -*-
-
-import asyncio
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 from random import randint
 import sys
@@ -71,11 +71,11 @@ async def main():
     await exchange.close()
 
 
-asyncio.run(main())
+run(main())
 
 
 # it should output something like this
 # CCXT Version: 4.4.38
 # Time to load markets: 1582 ms
-# Time to load markets with cache: 0 ms 
+# Time to load markets with cache: 0 ms
 ```

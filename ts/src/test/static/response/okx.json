@@ -1902,9 +1902,9 @@
                         "fee": 0,
                         "fees": {},
                         "networks": {
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "id": "USDT-Arbitrum One",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -2004,9 +2004,9 @@
                                     "wdTickSz": "6"
                                 }
                             },
-                            "Plasma": {
+                            "PLASMA": {
                                 "id": "USDT-Plasma",
-                                "network": "Plasma",
+                                "network": "PLASMA",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -2412,9 +2412,9 @@
                                     "wdTickSz": "6"
                                 }
                             },
-                            "OPTIMISM": {
+                            "OP": {
                                 "id": "USDT-Optimism",
-                                "network": "OPTIMISM",
+                                "network": "OP",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -3989,9 +3989,9 @@
                                     "wdTickSz": "8"
                                 }
                             },
-                            "OPTIMISM": {
+                            "OP": {
                                 "id": "ETH-Optimism",
-                                "network": "OPTIMISM",
+                                "network": "OP",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -4244,9 +4244,9 @@
                                     "wdTickSz": "8"
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "id": "ETH-Arbitrum One",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -8696,11 +8696,11 @@
                     "msg": ""
                 },
                 "parsedResponse": {
-                    "ARBONE": {
+                    "ARBITRUM": {
                         "currency": "USDT",
                         "address": "add1",
                         "tag": null,
-                        "network": "ARBONE",
+                        "network": "ARBITRUM",
                         "info": {
                             "chain": "USDT-Arbitrum One",
                             "ctAddr": "9fcbb9",
@@ -8726,11 +8726,11 @@
                             "selected": true
                         }
                     },
-                    "OPTIMISM": {
+                    "OP": {
                         "currency": "USDT",
                         "address": "add1",
                         "tag": null,
-                        "network": "OPTIMISM",
+                        "network": "OP",
                         "info": {
                             "chain": "USDT-Optimism",
                             "ctAddr": "e58e58",
@@ -9822,6 +9822,166 @@
                         }
                     ]
                 }
+            },
+            {
+                "description": "fetch swap order canceled by market maker protection (mmp_canceled), reduceOnly true",
+                "method": "fetchOrder",
+                "input": [
+                  "680633458122754049",
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                        "accFillSz": "0",
+                        "algoClOrdId": "",
+                        "algoId": "",
+                        "attachAlgoClOrdId": "",
+                        "attachAlgoOrds": [],
+                        "avgPx": "",
+                        "cTime": "1725000000000",
+                        "cancelSource": "",
+                        "cancelSourceReason": "",
+                        "category": "normal",
+                        "ccy": "",
+                        "clOrdId": "e847386590ce4dBC6f7ae74854f6a999",
+                        "fee": "0",
+                        "feeCcy": "USDT",
+                        "fillPx": "",
+                        "fillSz": "",
+                        "fillTime": "",
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "isTpLimit": "false",
+                        "lever": "10",
+                        "linkedAlgoOrd": {
+                            "algoId": ""
+                        },
+                        "ordId": "680633458122754049",
+                        "ordType": "limit",
+                        "pnl": "0",
+                        "posSide": "net",
+                        "px": "50000",
+                        "pxType": "",
+                        "pxUsd": "",
+                        "pxVol": "",
+                        "quickMgnType": "",
+                        "rebate": "0",
+                        "rebateCcy": "USDT",
+                        "reduceOnly": "true",
+                        "side": "sell",
+                        "slOrdPx": "",
+                        "slTriggerPx": "",
+                        "slTriggerPxType": "",
+                        "source": "",
+                        "state": "mmp_canceled",
+                        "stpId": "",
+                        "stpMode": "cancel_maker",
+                        "sz": "1",
+                        "tag": "",
+                        "tdMode": "cross",
+                        "tgtCcy": "",
+                        "tpOrdPx": "",
+                        "tpTriggerPx": "",
+                        "tpTriggerPxType": "",
+                        "tradeId": "",
+                        "uTime": "1725000000500"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accFillSz": "0",
+                        "algoClOrdId": "",
+                        "algoId": "",
+                        "attachAlgoClOrdId": "",
+                        "attachAlgoOrds": [],
+                        "avgPx": "",
+                        "cTime": "1725000000000",
+                        "cancelSource": "",
+                        "cancelSourceReason": "",
+                        "category": "normal",
+                        "ccy": "",
+                        "clOrdId": "e847386590ce4dBC6f7ae74854f6a999",
+                        "fee": "0",
+                        "feeCcy": "USDT",
+                        "fillPx": "",
+                        "fillSz": "",
+                        "fillTime": "",
+                        "instId": "BTC-USDT-SWAP",
+                        "instType": "SWAP",
+                        "isTpLimit": "false",
+                        "lever": "10",
+                        "linkedAlgoOrd": {
+                        "algoId": ""
+                        },
+                        "ordId": "680633458122754049",
+                        "ordType": "limit",
+                        "pnl": "0",
+                        "posSide": "net",
+                        "px": "50000",
+                        "pxType": "",
+                        "pxUsd": "",
+                        "pxVol": "",
+                        "quickMgnType": "",
+                        "rebate": "0",
+                        "rebateCcy": "USDT",
+                        "reduceOnly": "true",
+                        "side": "sell",
+                        "slOrdPx": "",
+                        "slTriggerPx": "",
+                        "slTriggerPxType": "",
+                        "source": "",
+                        "state": "mmp_canceled",
+                        "stpId": "",
+                        "stpMode": "cancel_maker",
+                        "sz": "1",
+                        "tag": "",
+                        "tdMode": "cross",
+                        "tgtCcy": "",
+                        "tpOrdPx": "",
+                        "tpTriggerPx": "",
+                        "tpTriggerPxType": "",
+                        "tradeId": "",
+                        "uTime": "1725000000500"
+                    },
+                    "id": "680633458122754049",
+                    "clientOrderId": "e847386590ce4dBC6f7ae74854f6a999",
+                    "timestamp": 1725000000000,
+                    "datetime": "2024-08-30T06:40:00.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1725000000500,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 50000,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 1,
+                    "filled": 0,
+                    "remaining": 1,
+                    "status": "canceled",
+                    "fee": {
+                        "cost": 0,
+                        "currency": "USDT"
+                    },
+                    "trades": [],
+                    "reduceOnly": true,
+                    "fees": [
+                        {
+                        "cost": 0,
+                        "currency": "USDT"
+                        }
+                    ]
+                }
             }
         ],
         "fetchLedger": [
@@ -10877,7 +11037,7 @@
                 "parsedResponse": {
                     "currency": "USDC",
                     "rate": 0.00004453,
-                    "period": 86400000,
+                    "period": 3600000,
                     "timestamp": null,
                     "datetime": null,
                     "info": {
@@ -10966,9 +11126,7 @@
                             "tag": ""
                         },
                         "id": "2903938004064555008",
-                        "clientOrderId": [
-                            "1234abcd"
-                        ],
+                        "clientOrderId": null,
                         "timestamp": null,
                         "datetime": null,
                         "lastTradeTimestamp": null,
@@ -10992,10 +11150,215 @@
                         "trades": [],
                         "reduceOnly": false,
                         "fees": [],
-                        "stopPrice": null,
-                        "trigger": true
+                        "stopPrice": null
                     }
                 ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates with explicit swap and XPERP future symbols",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USD:BTC",
+                        "ETH/USD:USD-310404"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "20000.0000000000000000",
+                            "instId": "BTC-USD-SWAP",
+                            "instType": "SWAP",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.00375",
+                            "method": "current_period",
+                            "minFundingRate": "-0.00375",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0005386400502937",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785351549573"
+                        },
+                        {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "10000.0000000000000000",
+                            "instId": "ETH-USD_UM_XPERP-310404",
+                            "instType": "FUTURES",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.0075",
+                            "method": "current_period",
+                            "minFundingRate": "-0.0075",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0001263443654703",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785350592833"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "BTC/USD:BTC": {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "20000.0000000000000000",
+                            "instId": "BTC-USD-SWAP",
+                            "instType": "SWAP",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.00375",
+                            "method": "current_period",
+                            "minFundingRate": "-0.00375",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0005386400502937",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785351549573"
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": 0,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.0001,
+                        "fundingTimestamp": 1785369600000,
+                        "fundingDatetime": "2026-07-30T00:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1785398400000,
+                        "nextFundingDatetime": "2026-07-30T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    },
+                    "ETH/USD:USD-310404": {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "10000.0000000000000000",
+                            "instId": "ETH-USD_UM_XPERP-310404",
+                            "instType": "FUTURES",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.0075",
+                            "method": "current_period",
+                            "minFundingRate": "-0.0075",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0001263443654703",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785350592833"
+                        },
+                        "symbol": "ETH/USD:USD-310404",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": 0,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.0001,
+                        "fundingTimestamp": 1785369600000,
+                        "fundingDatetime": "2026-07-30T00:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1785398400000,
+                        "nextFundingDatetime": "2026-07-30T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate on an XPERP future (long-dated future that still pays funding)",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH-USD_UM_XPERP-310404"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "10000.0000000000000000",
+                            "instId": "ETH-USD_UM_XPERP-310404",
+                            "instType": "FUTURES",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.0075",
+                            "method": "current_period",
+                            "minFundingRate": "-0.0075",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0001263443654703",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785350592833"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "formulaType": "withRate",
+                        "fundingRate": "0.0001000000000000",
+                        "fundingTime": "1785369600000",
+                        "impactValue": "10000.0000000000000000",
+                        "instId": "ETH-USD_UM_XPERP-310404",
+                        "instType": "FUTURES",
+                        "interestRate": "0.0001000000000000",
+                        "maxFundingRate": "0.0075",
+                        "method": "current_period",
+                        "minFundingRate": "-0.0075",
+                        "nextFundingRate": "",
+                        "nextFundingTime": "1785398400000",
+                        "premium": "-0.0001263443654703",
+                        "prevFundingTime": "1785340800000",
+                        "settFundingRate": "0.0001000000000000",
+                        "settState": "settled",
+                        "ts": "1785350592833"
+                    },
+                    "symbol": "ETH/USD:USD-310404",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": 1785369600000,
+                    "fundingDatetime": "2026-07-30T00:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1785398400000,
+                    "nextFundingDatetime": "2026-07-30T08:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
             }
         ],
         "fetchFundingHistory": [

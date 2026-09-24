@@ -6,14 +6,13 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 import json
-from ccxt.base.types import Any, Int, OrderBook, Ticker, Trade
+from ccxt.base.types import Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 
 
 class ndax(ccxt.async_support.ndax):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(ndax, self).describe(), {
             'has': {
                 'ws': True,
@@ -43,7 +42,7 @@ class ndax(ccxt.async_support.ndax):
         self.options['requestId'] = requestId
         return requestId
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -54,18 +53,19 @@ class ndax(ccxt.async_support.ndax):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'SubscribeLevel1'
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
         requestId = self.request_id()
-        payload: dict = {
+        payload = {
             'OMSId': omsId,
-            'InstrumentId': int(market['id']),  # conditionally optional
-            # 'Symbol': market['info']['symbol'],  # conditionally optional
+            'InstrumentId': self.safe_integer(market, 'id'),  # conditionally optional
+            # 'Symbol': market['info']['symbol'], // conditionally optional
         }
-        request: dict = {
+        request = {
             'm': 0,  # message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId,  # sequence number identifies an individual request or request-and-response pair, to your application
             'n': name,  # function name is the name of the function being called or that the server is responding to, the server echoes your call
@@ -74,8 +74,8 @@ class ndax(ccxt.async_support.ndax):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ticker(self, client: Client, message):
-        payload = self.safe_value(message, 'o', {})
+    def handle_ticker(self, client: Client, message: dict):
+        payload = self.safe_dict(message, 'o', {})
         #
         #     {
         #         "OMSId": 1,
@@ -104,12 +104,13 @@ class ndax(ccxt.async_support.ndax):
         ticker = self.parse_ticker(payload)
         symbol = ticker['symbol']
         market = self.market(symbol)
-        self.tickers[symbol] = ticker
+        if symbol is not None:
+            self.tickers[symbol] = ticker
         name = 'SubscribeLevel1'
         messageHash = name + ':' + market['id']
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -122,19 +123,20 @@ class ndax(ccxt.async_support.ndax):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'SubscribeTrades'
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
         requestId = self.request_id()
-        payload: dict = {
+        payload = {
             'OMSId': omsId,
-            'InstrumentId': int(market['id']),  # conditionally optional
+            'InstrumentId': self.safe_integer(market, 'id'),  # conditionally optional
             'IncludeLastCount': 100,  # the number of previous trades to retrieve in the immediate snapshot, 100 by default
         }
-        request: dict = {
+        request = {
             'm': 0,  # message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId,  # sequence number identifies an individual request or request-and-response pair, to your application
             'n': name,  # function name is the name of the function being called or that the server is responding to, the server echoes your call
@@ -146,39 +148,41 @@ class ndax(ccxt.async_support.ndax):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
-        payload = self.safe_value(message, 'o', [])
+    def handle_trades(self, client: Client, message: dict):
+        payload = self.safe_list(message, 'o', [])
         #
         # initial snapshot
         #
         #     [
         #         [
-        #             6913253,       #  0 TradeId
-        #             8,             #  1 ProductPairCode
-        #             0.03340802,    #  2 Quantity
-        #             19116.08,      #  3 Price
-        #             2543425077,    #  4 Order1
-        #             2543425482,    #  5 Order2
-        #             1606935922416,  #  6 Tradetime
-        #             0,             #  7 Direction
-        #             1,             #  8 TakerSide
-        #             0,             #  9 BlockTrade
-        #             0,             # 10 Either Order1ClientId or Order2ClientId
+        #             6913253,       //  0 TradeId
+        #             8,             //  1 ProductPairCode
+        #             0.03340802,    //  2 Quantity
+        #             19116.08,      //  3 Price
+        #             2543425077,    //  4 Order1
+        #             2543425482,    //  5 Order2
+        #             1606935922416, //  6 Tradetime
+        #             0,             //  7 Direction
+        #             1,             //  8 TakerSide
+        #             0,             //  9 BlockTrade
+        #             0,             // 10 Either Order1ClientId or Order2ClientId
         #         ]
         #     ]
         #
         name = 'SubscribeTrades'
-        updates: dict = {}
+        updates = {}
         for i in range(0, len(payload)):
             trade = self.parse_trade(payload[i])
             symbol = trade['symbol']
-            tradesArray = self.safe_value(self.trades, symbol)
+            tradesArray = None if (symbol is None) else self.safe_value(self.trades, symbol)
             if tradesArray is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
                 tradesArray = ArrayCache(limit)
             tradesArray.append(trade)
-            self.trades[symbol] = tradesArray
-            updates[symbol] = True
+            if symbol is not None:
+                self.trades[symbol] = tradesArray
+            if symbol is not None:
+                updates[symbol] = True
         symbols = list(updates.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
@@ -187,7 +191,7 @@ class ndax(ccxt.async_support.ndax):
             tradesArray = self.safe_value(self.trades, symbol)
             client.resolve(tradesArray, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -198,23 +202,24 @@ class ndax(ccxt.async_support.ndax):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'SubscribeTicker'
         messageHash = name + ':' + timeframe + ':' + market['id']
         url = self.urls['api']['ws']
         requestId = self.request_id()
-        payload: dict = {
+        payload = {
             'OMSId': omsId,
-            'InstrumentId': int(market['id']),  # conditionally optional
+            'InstrumentId': self.safe_integer(market, 'id'),  # conditionally optional
             'Interval': int(self.safe_string(self.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100,  # the number of previous candles to retrieve in the immediate snapshot, 100 by default
         }
-        request: dict = {
+        request = {
             'm': 0,  # message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId,  # sequence number identifies an individual request or request-and-response pair, to your application
             'n': name,  # function name is the name of the function being called or that the server is responding to, the server echoes your call
@@ -226,7 +231,7 @@ class ndax(ccxt.async_support.ndax):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         "m": 1,
@@ -235,37 +240,40 @@ class ndax(ccxt.async_support.ndax):
         #         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         #     }
         #
-        payload = self.safe_value(message, 'o', [])
+        payload = self.safe_list(message, 'o', [])
         #
         #     [
         #         [
-        #             1501603632000,      # 0 DateTime
-        #             2700.33,            # 1 High
-        #             2687.01,            # 2 Low
-        #             2687.01,            # 3 Open
-        #             2687.01,            # 4 Close
-        #             24.86100992,        # 5 Volume
-        #             0,                  # 6 Inside Bid Price
-        #             2870.95,            # 7 Inside Ask Price
-        #             1                   # 8 InstrumentId
-        #             1608290188062.7678,  # 9 candle timestamp
+        #             1501603632000,      // 0 DateTime
+        #             2700.33,            // 1 High
+        #             2687.01,            // 2 Low
+        #             2687.01,            // 3 Open
+        #             2687.01,            // 4 Close
+        #             24.86100992,        // 5 Volume
+        #             0,                  // 6 Inside Bid Price
+        #             2870.95,            // 7 Inside Ask Price
+        #             1                   // 8 InstrumentId
+        #             1608290188062.7678, // 9 candle timestamp
         #         ]
         #     ]
         #
-        updates: dict = {}
+        updates = {}
         for i in range(0, len(payload)):
             ohlcv = payload[i]
             marketId = self.safe_string(ohlcv, 8)
             market = self.safe_market(marketId)
             symbol = market['symbol']
-            updates[marketId] = {}
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            if marketId is not None:
+                updates[marketId] = {}
+            self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             keys = list(self.timeframes.keys())
             for j in range(0, len(keys)):
                 timeframe = keys[j]
                 interval = self.safe_string(self.timeframes, timeframe, timeframe)
                 duration = int(interval) * 1000
                 timestamp = self.safe_integer(ohlcv, 0)
+                if timestamp is None:
+                    continue
                 parsed = [
                     self.parse_to_int((timestamp / duration) * duration),
                     self.safe_float(ohlcv, 3),
@@ -276,26 +284,38 @@ class ndax(ccxt.async_support.ndax):
                 ]
                 stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
                 length = len(stored)
-                if length and (parsed[0] == stored[length - 1][0]):
+                if (length > 0) and (parsed[0] == stored[length - 1][0]):
                     previous = stored[length - 1]
+                    high = parsed[1]
+                    if parsed[1] is None:
+                        high = previous[1]
+                    elif previous[1] is not None:
+                        high = max(parsed[1], previous[1])
+                    low = parsed[2]
+                    if parsed[2] is None:
+                        low = previous[2]
+                    elif previous[2] is not None:
+                        low = min(parsed[2], previous[2])
                     stored[length - 1] = [
                         parsed[0],
                         previous[1],
-                        max(parsed[1], previous[1]),
-                        min(parsed[2], previous[2]),
+                        high,
+                        low,
                         parsed[4],
                         self.sum(parsed[5], previous[5]),
                     ]
-                    updates[marketId][timeframe] = True
+                    if (marketId is not None) and (timeframe is not None):
+                        updates[marketId][timeframe] = True
                 else:
-                    if length and (parsed[0] < stored[length - 1][0]):
+                    if (length > 0) and (self.parse_to_int(parsed[0]) < self.parse_to_int(stored[length - 1][0])):
                         continue
                     else:
                         stored.append(parsed)
                         limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                         if length >= limit:
                             stored.pop(0)
-                        updates[marketId][timeframe] = True
+                        if (marketId is not None) and (timeframe is not None):
+                            updates[marketId][timeframe] = True
                 self.ohlcvs[symbol][timeframe] = stored
         name = 'SubscribeTicker'
         marketIds = list(updates.keys())
@@ -307,10 +327,10 @@ class ndax(ccxt.async_support.ndax):
                 messageHash = name + ':' + timeframe + ':' + marketId
                 market = self.safe_market(marketId)
                 symbol = market['symbol']
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+                stored = self.safe_list(self.ohlcvs[symbol], timeframe, [])
                 client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -319,10 +339,11 @@ class ndax(ccxt.async_support.ndax):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'SubscribeLevel2'
@@ -330,19 +351,19 @@ class ndax(ccxt.async_support.ndax):
         url = self.urls['api']['ws']
         requestId = self.request_id()
         limit = 100 if (limit is None) else limit
-        payload: dict = {
+        payload = {
             'OMSId': omsId,
-            'InstrumentId': int(market['id']),  # conditionally optional
-            # 'Symbol': market['info']['symbol'],  # conditionally optional
+            'InstrumentId': self.safe_integer(market, 'id'),  # conditionally optional
+            # 'Symbol': market['info']['symbol'], // conditionally optional
             'Depth': limit,  # default 100
         }
-        request: dict = {
+        request = {
             'm': 0,  # message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId,  # sequence number identifies an individual request or request-and-response pair, to your application
             'n': name,  # function name is the name of the function being called or that the server is responding to, the server echoes your call
             'o': self.json(payload),  # JSON-formatted string containing the data being sent with the message
         }
-        subscription: dict = {
+        subscription = {
             'id': requestId,
             'messageHash': messageHash,
             'name': name,
@@ -356,7 +377,7 @@ class ndax(ccxt.async_support.ndax):
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "m": 3,
@@ -365,22 +386,22 @@ class ndax(ccxt.async_support.ndax):
         #         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         #     }
         #
-        payload = self.safe_value(message, 'o', [])
+        payload = self.safe_list(message, 'o', [])
         #
         #     [
-        #         0,   # 0 MDUpdateId
-        #         1,   # 1 Number of Unique Accounts
-        #         123,  # 2 ActionDateTime in Posix format X 1000
-        #         0,   # 3 ActionType 0(New), 1(Update), 2(Delete)
-        #         0.0,  # 4 LastTradePrice
-        #         0,   # 5 Number of Orders
-        #         0.0,  # 6 Price
-        #         0,   # 7 ProductPairCode
-        #         0.0,  # 8 Quantity
-        #         0,   # 9 Side
+        #         0,   // 0 MDUpdateId
+        #         1,   // 1 Number of Unique Accounts
+        #         123, // 2 ActionDateTime in Posix format X 1000
+        #         0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
+        #         0.0, // 4 LastTradePrice
+        #         0,   // 5 Number of Orders
+        #         0.0, // 6 Price
+        #         0,   // 7 ProductPairCode
+        #         0.0, // 8 Quantity
+        #         0,   // 9 Side
         #     ],
         #
-        firstBidAsk = self.safe_value(payload, 0, [])
+        firstBidAsk = self.safe_list(payload, 0, [])
         marketId = self.safe_string(firstBidAsk, 7)
         if marketId is None:
             return
@@ -397,12 +418,16 @@ class ndax(ccxt.async_support.ndax):
                 timestamp = self.safe_integer(bidask, 2)
             else:
                 newTimestamp = self.safe_integer(bidask, 2)
-                timestamp = max(timestamp, newTimestamp)
+                currentTimestampValue = 0 if (timestamp is None) else timestamp
+                newTimestampValue = 0 if (newTimestamp is None) else newTimestamp
+                timestamp = max(currentTimestampValue, newTimestampValue)
             if nonce is None:
                 nonce = self.safe_integer(bidask, 0)
             else:
                 newNonce = self.safe_integer(bidask, 0)
-                nonce = max(nonce, newNonce)
+                currentNonceValue = 0 if (nonce is None) else nonce
+                newNonceValue = 0 if (newNonce is None) else newNonce
+                nonce = max(currentNonceValue, newNonceValue)
             # 0 new, 1 update, 2 remove
             type = self.safe_integer(bidask, 3)
             price = self.safe_float(bidask, 6)
@@ -425,7 +450,7 @@ class ndax(ccxt.async_support.ndax):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_order_book_subscription(self, client: Client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message: dict, subscription: dict):
         #
         #     {
         #         "m": 1,
@@ -434,20 +459,20 @@ class ndax(ccxt.async_support.ndax):
         #         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         #     }
         #
-        payload = self.safe_value(message, 'o', [])
+        payload = self.safe_list(message, 'o', [])
         #
         #     [
         #         [
-        #             0,   # 0 MDUpdateId
-        #             1,   # 1 Number of Unique Accounts
-        #             123,  # 2 ActionDateTime in Posix format X 1000
-        #             0,   # 3 ActionType 0(New), 1(Update), 2(Delete)
-        #             0.0,  # 4 LastTradePrice
-        #             0,   # 5 Number of Orders
-        #             0.0,  # 6 Price
-        #             0,   # 7 ProductPairCode
-        #             0.0,  # 8 Quantity
-        #             0,   # 9 Side
+        #             0,   // 0 MDUpdateId
+        #             1,   // 1 Number of Unique Accounts
+        #             123, // 2 ActionDateTime in Posix format X 1000
+        #             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
+        #             0.0, // 4 LastTradePrice
+        #             0,   // 5 Number of Orders
+        #             0.0, // 6 Price
+        #             0,   // 7 ProductPairCode
+        #             0.0, // 8 Quantity
+        #             0,   // 9 Side
         #         ],
         #     ]
         #
@@ -455,11 +480,12 @@ class ndax(ccxt.async_support.ndax):
         snapshot = self.parse_order_book(payload, symbol)
         limit = self.safe_integer(subscription, 'limit')
         orderbook = self.order_book(snapshot, limit)
-        self.orderbooks[symbol] = orderbook
+        if symbol is not None:
+            self.orderbooks[symbol] = orderbook
         messageHash = self.safe_string(subscription, 'messageHash')
         client.resolve(orderbook, messageHash)
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: dict):
         #
         #     {
         #         "m": 1,
@@ -470,19 +496,19 @@ class ndax(ccxt.async_support.ndax):
         #
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         id = self.safe_integer(message, 'i')
-        subscription = self.safe_value(subscriptionsById, id)
+        subscription = None if (id is None) else self.safe_dict(subscriptionsById, id)
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
             if method is not None:
                 method(client, message, subscription)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: dict):
         #
         #     {
-        #         "m": 0,  # message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
-        #         "i": 0,  # sequence number identifies an individual request or request-and-response pair, to your application
-        #         "n":"function name",  # function name is the name of the function being called or that the server is responding to, the server echoes your call
-        #         "o":"payload",  # JSON-formatted string containing the data being sent with the message
+        #         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+        #         "i": 0, // sequence number identifies an individual request or request-and-response pair, to your application
+        #         "n":"function name", // function name is the name of the function being called or that the server is responding to, the server echoes your call
+        #         "o":"payload", // JSON-formatted string containing the data being sent with the message
         #     }
         #
         #     {
@@ -503,7 +529,7 @@ class ndax(ccxt.async_support.ndax):
         if payload is None:
             return
         message['o'] = json.loads(payload)
-        methods: dict = {
+        methods = {
             'SubscribeLevel2': self.handle_subscription_status,
             'SubscribeLevel1': self.handle_ticker,
             'Level2UpdateEvent': self.handle_order_book,
@@ -514,6 +540,6 @@ class ndax(ccxt.async_support.ndax):
             'TickerDataUpdateEvent': self.handle_ohlcv,
         }
         event = self.safe_string(message, 'n')
-        method = self.safe_value(methods, event)
+        method = None if (event is None) else self.safe_value(methods, event)
         if method is not None:
             method(client, message)

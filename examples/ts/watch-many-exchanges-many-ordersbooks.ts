@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 
 'use strict';
 

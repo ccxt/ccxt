@@ -5,13 +5,13 @@
 
 from ccxt.binance import binance
 from ccxt.abstract.binanceusdm import ImplicitAPI
-from ccxt.base.types import Any
+from ccxt.base.types import TransferEntry
 from ccxt.base.errors import InvalidOrder
 
 
 class binanceusdm(binance, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(binanceusdm, self).describe(), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
@@ -49,16 +49,16 @@ class binanceusdm(binance, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     '-5021': InvalidOrder,  # {"code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected."}
-                    '-5022': InvalidOrder,  # {"code":-5022,"msg":"Due to the order could not be executed, the Post Only order will be rejected."}
-                    '-5028': InvalidOrder,  # {"code":-5028,"msg":"Timestamp for self request is outside of the ME recvWindow."}
+                    '-5022': InvalidOrder,  # {"code":-5022,"msg":"Due to the order could not be executed as maker, the Post Only order will be rejected."}
+                    '-5028': InvalidOrder,  # {"code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow."}
                 },
             },
         })
 
-    def transfer_in(self, code: str, amount, params={}):
+    def transfer_in(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
         # transfer from spot wallet to usdm futures wallet
         return self.futuresTransfer(code, amount, 1, params)
 
-    def transfer_out(self, code: str, amount, params={}):
+    def transfer_out(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
         # transfer from usdm futures wallet to spot wallet
         return self.futuresTransfer(code, amount, 2, params)

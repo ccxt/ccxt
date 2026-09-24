@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\paymium as Exchange;
 
 class paymium extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'paymium',
@@ -63,38 +62,39 @@ class paymium extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'countries',
-                        'currencies',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
+                        'countries' => array( 'cost' => 1 ),
+                        'currencies' => array( 'cost' => 1 ),
+                        'data/{currency}/ticker' => array( 'cost' => 1 ),
+                        'data/{currency}/trades' => array( 'cost' => 1 ),
+                        'data/{currency}/depth' => array( 'cost' => 1 ),
+                        'bitcoin_charts/{id}/trades' => array( 'cost' => 1 ),
+                        'bitcoin_charts/{id}/depth' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
+                        'user' => array( 'cost' => 1 ),
+                        'user/addresses' => array( 'cost' => 1 ),
+                        'user/addresses/{address}' => array( 'cost' => 1 ),
+                        'user/orders' => array( 'cost' => 1 ),
+                        'user/orders/{uuid}' => array( 'cost' => 1 ),
+                        'user/price_alerts' => array( 'cost' => 1 ),
+                        'user/withdrawals' => array( 'cost' => 1 ),
+                        'merchant/get_payment/{uuid}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
+                        'user/addresses' => array( 'cost' => 1 ),
+                        'user/orders' => array( 'cost' => 1 ),
+                        'user/withdrawals' => array( 'cost' => 1 ),
+                        'user/email_transfers' => array( 'cost' => 1 ),
+                        'user/payment_requests' => array( 'cost' => 1 ),
+                        'user/price_alerts' => array( 'cost' => 1 ),
+                        'merchant/create_payment' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
+                        'user/orders/{uuid}' => array( 'cost' => 1 ),
+                        'user/orders/{uuid}/cancel' => array( 'cost' => 1 ),
+                        'user/price_alerts/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -153,7 +153,7 @@ class paymium extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($currencies); $i++) {
@@ -161,7 +161,7 @@ class paymium extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $free = 'balance_' . $currencyId;
-            if (is_array($response) && array_key_exists($free, $response)) {
+            if (is_array($response) && array_key_exists($free ?? '', $response)) {
                 $account = $this->account();
                 $used = 'locked_' . $currencyId;
                 $account['free'] = $this->safe_string($response, $free);
@@ -172,7 +172,7 @@ class paymium extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -181,12 +181,14 @@ class paymium extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = $this->privateGetUser ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateGetUser($params);
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -195,14 +197,16 @@ class paymium extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
         );
-        $response = $this->publicGetDataCurrencyDepth ($this->extend($request, $params));
+        $response = $this->publicGetDataCurrencyDepth($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -255,7 +259,7 @@ class paymium extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -265,12 +269,14 @@ class paymium extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
         );
-        $ticker = $this->publicGetDataCurrencyTicker ($this->extend($request, $params));
+        $ticker = $this->publicGetDataCurrencyTicker($this->extend($request, $params));
         //
         // {
         //     "high":"33740.82",
@@ -317,7 +323,7 @@ class paymium extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -329,16 +335,18 @@ class paymium extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
         );
-        $response = $this->publicGetDataCurrencyTrades ($this->extend($request, $params));
+        $response = $this->publicGetDataCurrencyTrades($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_deposit_address(string $code, $params = array ()): array {
+    public function create_deposit_address(string $code, $params = array()): array {
         /**
          * create a currency deposit address
          *
@@ -348,20 +356,22 @@ class paymium extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
-        $response = $this->privatePostUserAddresses ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostUserAddresses($params);
         //
         //     {
-        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-        //         "valid_until" => 1620041926,
-        //         "currency" => "BTC",
-        //         "label" => "Savings"
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
         //     }
         //
         return $this->parse_deposit_address($response);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit address for a currency associated with this account
          *
@@ -371,23 +381,25 @@ class paymium extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'address' => $code,
         );
-        $response = $this->privateGetUserAddressesAddress ($this->extend($request, $params));
+        $response = $this->privateGetUserAddressesAddress($this->extend($request, $params));
         //
         //     {
-        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-        //         "valid_until" => 1620041926,
-        //         "currency" => "BTC",
-        //         "label" => "Savings"
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
         //     }
         //
         return $this->parse_deposit_address($response);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit addresses for multiple currencies and chain types
          *
@@ -397,28 +409,30 @@ class paymium extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=address-structure address structures~
          */
-        $this->load_markets();
-        $response = $this->privateGetUserAddresses ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateGetUserAddresses($params);
         //
-        //     array(
+        //     [
         //         {
-        //             "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-        //             "valid_until" => 1620041926,
-        //             "currency" => "BTC",
-        //             "label" => "Savings"
+        //             "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //             "valid_until": 1620041926,
+        //             "currency": "BTC",
+        //             "label": "Savings"
         //         }
-        //     )
+        //     ]
         //
-        return $this->parse_deposit_addresses($response, $codes);
+        return $this->parse_deposit_addresses($response, $codes, false);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
-        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-        //         "valid_until" => 1620041926,
-        //         "currency" => "BTC",
-        //         "label" => "Savings"
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -432,7 +446,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -446,7 +460,9 @@ class paymium extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'type' => $this->capitalize($type) . 'Order',
@@ -457,34 +473,34 @@ class paymium extends Exchange {
         if ($type !== 'market') {
             $request['price'] = $price;
         }
-        $response = $this->privatePostUserOrders ($this->extend($request, $params));
+        $response = $this->privatePostUserOrders($this->extend($request, $params));
         return $this->safe_order(array(
             'info' => $response,
-            'id' => $response['uuid'],
+            'id' => $this->safe_string($response, 'uuid'),
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
          * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by paymium cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $request = array(
             'uuid' => $id,
         );
-        $response = $this->privateDeleteUserOrdersUuidCancel ($this->extend($request, $params));
+        $response = $this->privateDeleteUserOrdersUuidCancel($this->extend($request, $params));
         return $this->safe_order(array(
             'info' => $response,
         ));
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          *
@@ -497,7 +513,9 @@ class paymium extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         if (mb_strpos($toAccount, '@') === false) {
             throw new ExchangeError($this->id . ' transfer() only allows transfers to an email address');
@@ -509,39 +527,39 @@ class paymium extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
             'email' => $toAccount,
-            // 'comment' => 'a small note explaining the transfer'
+            // 'comment': 'a small note explaining the transfer'
         );
-        $response = $this->privatePostUserEmailTransfers ($this->extend($request, $params));
+        $response = $this->privatePostUserEmailTransfers($this->extend($request, $params));
         //
         //     {
-        //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //         "type" => "Transfer",
-        //         "currency" => "BTC",
-        //         "currency_amount" => "string",
-        //         "created_at" => "2013-10-24T10:34:37.000Z",
-        //         "updated_at" => "2013-10-24T10:34:37.000Z",
-        //         "amount" => "1.0",
-        //         "state" => "executed",
-        //         "currency_fee" => "0.0",
-        //         "btc_fee" => "0.0",
-        //         "comment" => "string",
-        //         "traded_btc" => "string",
-        //         "traded_currency" => "string",
-        //         "direction" => "buy",
-        //         "price" => "string",
-        //         "account_operations" => array(
+        //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type": "Transfer",
+        //         "currency": "BTC",
+        //         "currency_amount": "string",
+        //         "created_at": "2013-10-24T10:34:37.000Z",
+        //         "updated_at": "2013-10-24T10:34:37.000Z",
+        //         "amount": "1.0",
+        //         "state": "executed",
+        //         "currency_fee": "0.0",
+        //         "btc_fee": "0.0",
+        //         "comment": "string",
+        //         "traded_btc": "string",
+        //         "traded_currency": "string",
+        //         "direction": "buy",
+        //         "price": "string",
+        //         "account_operations": [
         //             {
-        //                 "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //                 "amount" => "1.0",
-        //                 "currency" => "BTC",
-        //                 "created_at" => "2013-10-24T10:34:37.000Z",
-        //                 "created_at_int" => 1389094259,
-        //                 "name" => "account_operation",
-        //                 "address" => "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
-        //                 "tx_hash" => "string",
-        //                 "is_trading_account" => true
+        //                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount": "1.0",
+        //                 "currency": "BTC",
+        //                 "created_at": "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int": 1389094259,
+        //                 "name": "account_operation",
+        //                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash": "string",
+        //                 "is_trading_account": true
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $this->parse_transfer($response, $currency);
@@ -550,41 +568,41 @@ class paymium extends Exchange {
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
-        //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //         "type" => "Transfer",
-        //         "currency" => "BTC",
-        //         "currency_amount" => "string",
-        //         "created_at" => "2013-10-24T10:34:37.000Z",
-        //         "updated_at" => "2013-10-24T10:34:37.000Z",
-        //         "amount" => "1.0",
-        //         "state" => "executed",
-        //         "currency_fee" => "0.0",
-        //         "btc_fee" => "0.0",
-        //         "comment" => "string",
-        //         "traded_btc" => "string",
-        //         "traded_currency" => "string",
-        //         "direction" => "buy",
-        //         "price" => "string",
-        //         "account_operations" => array(
+        //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type": "Transfer",
+        //         "currency": "BTC",
+        //         "currency_amount": "string",
+        //         "created_at": "2013-10-24T10:34:37.000Z",
+        //         "updated_at": "2013-10-24T10:34:37.000Z",
+        //         "amount": "1.0",
+        //         "state": "executed",
+        //         "currency_fee": "0.0",
+        //         "btc_fee": "0.0",
+        //         "comment": "string",
+        //         "traded_btc": "string",
+        //         "traded_currency": "string",
+        //         "direction": "buy",
+        //         "price": "string",
+        //         "account_operations": [
         //             {
-        //                 "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //                 "amount" => "1.0",
-        //                 "currency" => "BTC",
-        //                 "created_at" => "2013-10-24T10:34:37.000Z",
-        //                 "created_at_int" => 1389094259,
-        //                 "name" => "account_operation",
-        //                 "address" => "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
-        //                 "tx_hash" => "string",
-        //                 "is_trading_account" => true
+        //                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount": "1.0",
+        //                 "currency": "BTC",
+        //                 "created_at": "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int": 1389094259,
+        //                 "name": "account_operation",
+        //                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash": "string",
+        //                 "is_trading_account": true
         //             }
-        //         )
+        //         ]
         //     }
         //
         $currencyId = $this->safe_string($transfer, 'currency');
         $updatedAt = $this->safe_string($transfer, 'updated_at');
         $timetstamp = $this->parse_date($updatedAt);
-        $accountOperations = $this->safe_value($transfer, 'account_operations');
-        $firstOperation = $this->safe_value($accountOperations, 0, array());
+        $accountOperations = $this->safe_list($transfer, 'account_operations');
+        $firstOperation = $this->safe_dict($accountOperations, 0, array());
         $status = $this->safe_string($transfer, 'state');
         return array(
             'info' => $transfer,
@@ -602,16 +620,16 @@ class paymium extends Exchange {
     public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'executed' => 'ok',
-            // what are the other $statuses?
+            // what are the other statuses?
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -623,13 +641,13 @@ class paymium extends Exchange {
                 'Api-Nonce' => $nonce,
             );
             if ($method === 'POST') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $auth .= $body;
                     $headers['Content-Type'] = 'application/json';
                 }
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $queryString = $this->urlencode($query);
                     $auth .= $queryString;
                     $url .= '?' . $queryString;
@@ -640,7 +658,7 @@ class paymium extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

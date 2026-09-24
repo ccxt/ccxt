@@ -70,7 +70,7 @@ function test_un_watch_positions($exchange, $skipped_properties, $symbol) {
             if (!is_temporary_failure($e)) {
                 throw $e;
             }
-            throw new Error($exchange->id . ' ' . $method . ' failed to resubscribe after unwatch, indicating potential cleanup issues');
+            throw new Exception($exchange->id . ' ' . $method . ' failed to resubscribe after unwatch, indicating potential cleanup issues');
         }
         // Verify resubscription works
         assert(gettype($resubscribe_response) === 'array' && array_is_list($resubscribe_response), $exchange->id . ' ' . $method . ' must allow resubscription after unwatch, returned ' . $exchange->json($resubscribe_response));

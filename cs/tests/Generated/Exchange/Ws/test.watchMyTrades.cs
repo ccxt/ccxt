@@ -10,16 +10,16 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchMyTrades(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchMyTrades";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
+        string method = "watchMyTrades";
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 15000);
         while (isLessThan(now, ends))
         {
-            object success = true;
-            object response = null;
+            bool success = true;
+            object response = new List<object>() {};
             try
             {
-                response = await exchange.watchMyTrades(symbol);
+                response = detypeForComparison(await exchange.WatchMyTrades(((string)symbol)));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -30,13 +30,13 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            if ((success == true))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
-                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, false);
                 }
                 testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
             }

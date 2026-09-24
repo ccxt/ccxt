@@ -13,6 +13,8 @@
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTickers](#fetchtickers)
 * [fetchTicker](#fetchticker)
+* [fetchFundingRates](#fetchfundingrates)
+* [fetchFundingRate](#fetchfundingrate)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTrades](#fetchtrades)
 * [fetchOpenInterest](#fetchopeninterest)
@@ -71,7 +73,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-paradex.fetchTime ([params])
+paradex.fetchTime (params?)
 ```
 
 
@@ -91,7 +93,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-paradex.fetchStatus ([params])
+paradex.fetchStatus (params?)
 ```
 
 
@@ -111,7 +113,7 @@ retrieves data on all markets for paradex
 
 
 ```javascript
-paradex.fetchMarkets ([params])
+paradex.fetchMarkets (params?)
 ```
 
 
@@ -132,7 +134,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-paradex.fetchTradingFee (symbol[, params])
+paradex.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -152,7 +154,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-paradex.fetchTradingFees ([params])
+paradex.fetchTradingFees (params?)
 ```
 
 
@@ -178,7 +180,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-paradex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+paradex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -199,7 +201,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-paradex.fetchTickers (symbols[, params])
+paradex.fetchTickers (symbols, params?)
 ```
 
 
@@ -220,7 +222,49 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-paradex.fetchTicker (symbol[, params])
+paradex.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetches the current funding rate for multiple markets
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchFundingRates (symbols?, params?)
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetches the current funding rate
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -230,7 +274,7 @@ paradex.fetchTicker (symbol[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.paradex.trade/api/prod/markets/get-orderbook  
 
@@ -242,7 +286,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-paradex.fetchOrderBook (symbol[, limit, params])
+paradex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -267,7 +311,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-paradex.fetchTrades (symbol[, since, limit, params])
+paradex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -288,7 +332,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-paradex.fetchOpenInterest (symbol[, params])
+paradex.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -321,7 +365,7 @@ create a trade order
 
 
 ```javascript
-paradex.createOrder (symbol, type, side, amount[, price, params])
+paradex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -333,7 +377,7 @@ edit an open limit order or TPSL order
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.paradex.trade/api-reference/prod/orders/modify  
+**See**: https://docs.paradex.trade/api/prod/orders/modify  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -349,7 +393,7 @@ edit an open limit order or TPSL order
 
 
 ```javascript
-paradex.editOrder (id, symbol, type, side, amount, price[, params])
+paradex.editOrder (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -370,7 +414,7 @@ create a list of trade orders
 
 
 ```javascript
-paradex.createOrders (orders[, params])
+paradex.createOrders (orders, params?)
 ```
 
 
@@ -397,7 +441,7 @@ cancels an open order
 
 
 ```javascript
-paradex.cancelOrder (id, symbol[, params])
+paradex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -414,13 +458,13 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | No | unified market symbol, not used by paradex cancelOrders() |
+| symbol | <code>string</code> | No | unified market symbol, not used by cancelOrders() |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
 
 
 ```javascript
-paradex.cancelOrders (ids[, symbol, params])
+paradex.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -441,7 +485,7 @@ cancel all open orders in a market
 
 
 ```javascript
-paradex.cancelAllOrders (symbol[, params])
+paradex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -468,7 +512,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-paradex.fetchOrder (id, symbol[, params])
+paradex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -494,7 +538,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-paradex.fetchOrders (symbol[, since, limit, params])
+paradex.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -517,7 +561,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-paradex.fetchOpenOrders (symbol[, since, limit, params])
+paradex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -537,7 +581,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-paradex.fetchBalance ([params])
+paradex.fetchBalance (params?)
 ```
 
 
@@ -562,7 +606,7 @@ fetch all trades made by the user
 
 
 ```javascript
-paradex.fetchMyTrades (symbol[, since, limit, params])
+paradex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -583,7 +627,7 @@ fetch data on an open position
 
 
 ```javascript
-paradex.fetchPosition (symbol[, params])
+paradex.fetchPosition (symbol, params?)
 ```
 
 
@@ -604,7 +648,7 @@ fetch all open positions
 
 
 ```javascript
-paradex.fetchPositions ([symbols, params])
+paradex.fetchPositions (symbols?, params?)
 ```
 
 
@@ -628,7 +672,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-paradex.fetchMyLiquidations ([symbol, since, limit, params])
+paradex.fetchMyLiquidations (symbol?, since?, limit?, params?)
 ```
 
 
@@ -653,7 +697,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-paradex.fetchDeposits (code[, since, limit, params])
+paradex.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -678,7 +722,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-paradex.fetchWithdrawals (code[, since, limit, params])
+paradex.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -703,7 +747,7 @@ fetch a history of transfers made on an account
 
 
 ```javascript
-paradex.fetchTransfers (code[, since, limit, params])
+paradex.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -724,7 +768,7 @@ fetches the margin mode of a specific symbol
 
 
 ```javascript
-paradex.fetchMarginMode (symbol[, params])
+paradex.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -747,7 +791,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-paradex.setMarginMode (marginMode, symbol[, params])
+paradex.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -768,7 +812,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-paradex.fetchLeverage (symbol[, params])
+paradex.fetchLeverage (symbol, params?)
 ```
 
 
@@ -791,7 +835,7 @@ set the level of leverage for a market
 
 
 ```javascript
-paradex.setLeverage (leverage[, symbol, params])
+paradex.setLeverage (leverage, symbol?, params?)
 ```
 
 
@@ -812,7 +856,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-paradex.fetchGreeks (symbol[, params])
+paradex.fetchGreeks (symbol, params?)
 ```
 
 
@@ -822,7 +866,7 @@ paradex.fetchGreeks (symbol[, params])
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 **See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
 
@@ -833,7 +877,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 
 
 ```javascript
-paradex.fetchAllGreeks ([symbols, params])
+paradex.fetchAllGreeks (symbols?, params?)
 ```
 
 
@@ -859,7 +903,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-paradex.fetchFundingHistory (symbol[, since, limit, params])
+paradex.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -883,6 +927,6 @@ fetches historical funding rate prices
 
 
 ```javascript
-paradex.fetchFundingRateHistory (symbol[, since, limit, params])
+paradex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 

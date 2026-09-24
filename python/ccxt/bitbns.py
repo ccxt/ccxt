@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitbns import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class bitbns(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitbns, self).describe(), {
             'id': 'bitbns',
             'name': 'Bitbns',
@@ -92,54 +91,59 @@ class bitbns(Exchange, ImplicitAPI):
             },
             'api': {
                 'www': {
-                    'get': [
-                        'order/fetchMarkets',
-                        'order/fetchTickers',
-                        'order/fetchOrderbook',
-                        'order/getTickerWithVolume',
-                        'exchangeData/ohlc',  # ?coin=${coin_name}&page=${page}
-                        'exchangeData/orderBook',
-                        'exchangeData/tradedetails',
-                    ],
+                    'get': {
+                        'order/fetchMarkets': {'cost': 1},
+                        'order/fetchTickers': {'cost': 1},
+                        'order/fetchOrderbook': {'cost': 1},
+                        'order/getTickerWithVolume': {'cost': 1},
+                        'exchangeData/ohlc': {'cost': 1},
+                        'exchangeData/orderBook': {'cost': 1},
+                        'exchangeData/tradedetails': {'cost': 1},
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'platform/status',
-                        'tickers',
-                        'orderbook/sell/{symbol}',
-                        'orderbook/buy/{symbol}',
-                    ],
-                    'post': [
-                        'currentCoinBalance/EVERYTHING',
-                        'getApiUsageStatus/USAGE',
-                        'getOrderSocketToken/USAGE',
-                        'currentCoinBalance/{symbol}',
-                        'orderStatus/{symbol}',
-                        'depositHistory/{symbol}',
-                        'withdrawHistory/{symbol}',
-                        'withdrawHistoryAll/{symbol}',
-                        'depositHistoryAll/{symbol}',
-                        'listOpenOrders/{symbol}',
-                        'listOpenStopOrders/{symbol}',
-                        'getCoinAddress/{symbol}',
-                        'placeSellOrder/{symbol}',
-                        'placeBuyOrder/{symbol}',
-                        'buyStopLoss/{symbol}',
-                        'sellStopLoss/{symbol}',
-                        'cancelOrder/{symbol}',
-                        'cancelStopLossOrder/{symbol}',
-                        'listExecutedOrders/{symbol}',
-                        'placeMarketOrder/{symbol}',
-                        'placeMarketOrderQnty/{symbol}',
-                    ],
+                    'get': {
+                        'platform/status': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'orderbook/sell/{symbol}': {'cost': 1},
+                        'orderbook/buy/{symbol}': {'cost': 1},
+                    },
+                    'post': {
+                        'currentCoinBalance/EVERYTHING': {'cost': 1},
+                        'getApiUsageStatus/USAGE': {'cost': 1},
+                        'getOrderSocketToken/USAGE': {'cost': 1},
+                        'currentCoinBalance/{symbol}': {'cost': 1},
+                        'orderStatus/{symbol}': {'cost': 1},
+                        'depositHistory/{symbol}': {'cost': 1},
+                        'withdrawHistory/{symbol}': {'cost': 1},
+                        'withdrawHistoryAll/{symbol}': {'cost': 1},
+                        'depositHistoryAll/{symbol}': {'cost': 1},
+                        'userHistoryNew': {'cost': 1},
+                        'listOpenOrders/{symbol}': {'cost': 1},
+                        'listOpenOrdersOther/{symbol}': {'cost': 1},
+                        'listOpenStopOrders/{symbol}': {'cost': 1},
+                        'getCoinAddress/{symbol}': {'cost': 1},
+                        'placeSellOrder/{symbol}': {'cost': 1},
+                        'placeSellOrderOther/{symbol}': {'cost': 1},
+                        'placeBuyOrder/{symbol}': {'cost': 1},
+                        'placeBuyOrderOther/{symbol}': {'cost': 1},
+                        'buyStopLoss/{symbol}': {'cost': 1},
+                        'sellStopLoss/{symbol}': {'cost': 1},
+                        'cancelOrder/{symbol}': {'cost': 1},
+                        'cancelOrderOther/{symbol}': {'cost': 1},
+                        'cancelStopLossOrder/{symbol}': {'cost': 1},
+                        'listExecutedOrders/{symbol}': {'cost': 1},
+                        'placeMarketOrder/{symbol}': {'cost': 1},
+                        'placeMarketOrderQnty/{symbol}': {'cost': 1},
+                    },
                 },
                 'v2': {
-                    'post': [
-                        'orders',
-                        'cancel',
-                        'getordersnew',
-                        'marginOrders',
-                    ],
+                    'post': {
+                        'orders': {'cost': 1},
+                        'cancel': {'cost': 1},
+                        'getordersnew': {'cost': 1},
+                        'marginOrders': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -226,7 +230,7 @@ class bitbns(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -254,7 +258,7 @@ class bitbns(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bitbns
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -285,8 +289,9 @@ class bitbns(Exchange, ImplicitAPI):
         #     ]
         #
         result = []
-        for i in range(0, len(response)):
-            market = response[i]
+        rawMarkets = self.to_array(response)
+        for i in range(0, len(rawMarkets)):
+            market = rawMarkets[i]
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
@@ -352,17 +357,18 @@ class bitbns(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -446,14 +452,15 @@ class bitbns(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.wwwGetOrderFetchTickers(params)
         #
         #     {
@@ -489,9 +496,9 @@ class bitbns(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         timestamp = None
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -511,24 +518,26 @@ class bitbns(Exchange, ImplicitAPI):
                 if currencyId == 'Money':
                     currencyId = 'INR'
                 code = self.safe_currency_code(currencyId)
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v1PostCurrentCoinBalanceEVERYTHING(params)
         #
         #     {
         #         "data":{
-        #             "availableorderMoney":12.34,  # INR
+        #             "availableorderMoney":12.34, // INR
         #             "availableorderBTC":0,
         #             "availableorderXRP":0,
-        #             "inorderMoney":0,  # INR
+        #             "inorderMoney":0, // INR
         #             "inorderBTC":0,
         #             "inorderXRP":0,
         #             "inorderNEO":0,
@@ -541,8 +550,8 @@ class bitbns(Exchange, ImplicitAPI):
         # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
-    def parse_status(self, status):
-        statuses: dict = {
+    def parse_status(self, status: object):
+        statuses = {
             '-1': 'cancelled',
             '0': 'open',
             '1': 'open',
@@ -550,7 +559,7 @@ class bitbns(Exchange, ImplicitAPI):
             # 'PARTIALLY_FILLED': 'open',
             # 'FILLED': 'closed',
             # 'CANCELED': 'canceled',
-            # 'PENDING_CANCEL': 'canceling',  # currently unused
+            # 'PENDING_CANCEL': 'canceling', // currently unused
             # 'REJECTED': 'rejected',
             # 'EXPIRED': 'expired',
         }
@@ -577,8 +586,8 @@ class bitbns(Exchange, ImplicitAPI):
         #        "time": "2021-04-25T17:05:42.000Z",
         #        "type": 0,
         #        "status": 0
-        #        "t_rate": 0.45,                       # only stop orders
-        #        "trail": 0                            # only stop orders
+        #        "t_rate": 0.45,                       // only stop orders
+        #        "trail": 0                            // only stop orders
         #    }
         #
         # cancelOrder
@@ -631,7 +640,7 @@ class bitbns(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -651,25 +660,26 @@ class bitbns(Exchange, ImplicitAPI):
         :param float [params.trail_rate]: *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 't_rate'])
         targetRate = self.safe_string(params, 'target_rate')
         trailRate = self.safe_string(params, 'trail_rate')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate'])
-        request: dict = {
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
             'quantity': self.amount_to_precision(symbol, amount),
-            # 'target_rate': self.price_to_precision(symbol, targetRate),
-            # 't_rate': self.price_to_precision(symbol, stopPrice),
-            # 'trail_rate': self.price_to_precision(symbol, trailRate),
+            # 'target_rate': this.priceToPrecision (symbol, targetRate),
+            # 't_rate': this.priceToPrecision (symbol, stopPrice),
+            # 'trail_rate': this.priceToPrecision (symbol, trailRate),
         }
-        method = 'v2PostOrders'
         if type == 'limit':
             request['rate'] = self.price_to_precision(symbol, price)
         else:
-            method = 'v1PostPlaceMarketOrderQntySymbol'
             request['market'] = market['quoteId']
         if triggerPrice is not None:
             request['t_rate'] = self.price_to_precision(symbol, triggerPrice)
@@ -677,7 +687,11 @@ class bitbns(Exchange, ImplicitAPI):
             request['target_rate'] = self.price_to_precision(symbol, targetRate)
         if trailRate is not None:
             request['trail_rate'] = self.price_to_precision(symbol, trailRate)
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if type == 'limit':
+            response = self.v2PostOrders(self.extend(request, params))
+        else:
+            response = self.v1PostPlaceMarketOrderQntySymbol(self.extend(request, params))
         #
         #     {
         #         "data":"Successfully placed bid to purchase currency",
@@ -687,9 +701,10 @@ class bitbns(Exchange, ImplicitAPI):
         #         "code":200
         #     }
         #
-        return self.parse_order(response, market)
+        parsed = {} if (response is None) else response
+        return self.parse_order(parsed, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -704,23 +719,25 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
-        request: dict = {
+        request = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
         }
         response = None
-        tail = 'StopLossOrder' if isTrigger else 'Order'
+        tail = 'StopLossOrder' if (isTrigger is True) else 'Order'
         quoteSide = 'usdtcancel' if (market['quoteId'] == 'USDT') else 'cancel'
         quoteSide += tail
         request['side'] = quoteSide
         response = self.v2PostCancel(self.extend(request, params))
-        return self.parse_order(response, market)
+        parsed = {} if (response is None) else response
+        return self.parse_order(parsed, market)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -733,14 +750,15 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'entry_id': id,
         }
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
-        if trigger:
+        if trigger is True:
             raise BadRequest(self.id + ' fetchOrder cannot fetch stop orders')
         response = self.v1PostOrderStatusSymbol(self.extend(request, params))
         #
@@ -769,10 +787,10 @@ class bitbns(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        first = self.safe_dict(data, 0)
+        first = self.safe_dict(data, 0, {})
         return self.parse_order(first, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -788,15 +806,16 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         quoteSide = 'usdtListOpen' if (market['quoteId'] == 'USDT') else 'listOpen'
-        request: dict = {
+        request = {
             'symbol': market['uppercaseId'],
             'page': 0,
-            'side': (quoteSide + 'StopOrders') if isTrigger else (quoteSide + 'Orders'),
+            'side': (quoteSide + 'StopOrders') if (isTrigger is True) else (quoteSide + 'Orders'),
         }
         response = self.v2PostGetordersnew(self.extend(request, params))
         #
@@ -809,9 +828,9 @@ class bitbns(Exchange, ImplicitAPI):
         #                 "time":"2021-04-25T17:05:42.000Z",
         #                 "type":0,
         #                 "status":0
-        #                 "t_rate":0.45,                       # only stop orders
-        #                 "type":1,                            # only stop orders
-        #                 "trail":0                            # only stop orders
+        #                 "t_rate":0.45,                       // only stop orders
+        #                 "type":1,                            // only stop orders
+        #                 "trail":0                            // only stop orders
         #             }
         #         ],
         #         "status":1,
@@ -898,7 +917,7 @@ class bitbns(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -909,9 +928,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'page': 0,
         }
@@ -962,7 +982,7 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -973,9 +993,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin': market['baseId'],
             'market': market['quoteId'],
         }
@@ -989,7 +1010,7 @@ class bitbns(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1000,9 +1021,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
             'page': 0,
         }
@@ -1033,7 +1055,7 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1044,9 +1066,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
             'page': 0,
         }
@@ -1057,15 +1080,15 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status, type=None):
-        statusesByType: dict = {
+    def parse_transaction_status_by_type(self, status: object, type: Str = None):
+        statusesByType = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
             },
             'withdrawal': {
                 '0': 'pending',  # Email Sent
-                '1': 'canceled',  # Cancelled(different from 1 = ok in deposits)
+                '1': 'canceled',  # Cancelled (different from 1 = ok in deposits)
                 '2': 'pending',  # Awaiting Approval
                 '3': 'failed',  # Rejected
                 '4': 'pending',  # Processing
@@ -1111,7 +1134,7 @@ class bitbns(Exchange, ImplicitAPI):
                 status = 'ok'
             elif type.find('withdraw') >= 0 or expTime.find('withdraw') >= 0:
                 type = 'withdrawal'
-        # status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
+        # const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         amount = self.safe_number(transaction, 'amount')
         feeCost = self.safe_number(transaction, 'fee')
         fee = None
@@ -1140,16 +1163,17 @@ class bitbns(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
         }
         response = self.v1PostGetCoinAddressSymbol(self.extend(request, params))
@@ -1175,10 +1199,10 @@ class bitbns(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path, api='www', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api='www', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         urls = self.urls
         if not (api in urls['api']):
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
@@ -1192,25 +1216,26 @@ class bitbns(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif method == 'POST':
-            if query:
+            if len(query) > 0:
                 body = self.json(query)
             else:
                 body = '{}'
-            auth: dict = {
+            auth = {
                 'timeStamp_nonce': nonce,
                 'body': body,
             }
             payload = self.string_to_base64(self.json(auth))
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
+            headers = {} if (headers is None) else headers
             headers['X-BITBNS-PAYLOAD'] = payload
             headers['X-BITBNS-SIGNATURE'] = signature
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

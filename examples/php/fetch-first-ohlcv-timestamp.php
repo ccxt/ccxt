@@ -16,7 +16,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // ###### Description ######
 //
 // This function tries to fetch the "listing time" of a symbol by fetching the earliest available bar in daily resolution.

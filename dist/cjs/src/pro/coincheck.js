@@ -52,10 +52,12 @@ class coincheck extends coincheck$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
@@ -89,7 +91,7 @@ class coincheck extends coincheck$1["default"] {
         //     ]
         //
         const symbol = this.symbol(this.safeString(message, 0));
-        const data = this.safeValue(message, 1, {});
+        const data = this.safeDict(message, 1, {});
         const timestamp = this.safeTimestamp(data, 'last_update_at');
         const snapshot = this.parseOrderBook(data, symbol, timestamp);
         let orderbook = this.safeValue(this.orderbooks, symbol);
@@ -116,7 +118,9 @@ class coincheck extends coincheck$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
@@ -147,7 +151,7 @@ class coincheck extends coincheck$1["default"] {
         //         ]
         //     ]
         //
-        const first = this.safeValue(message, 0, []);
+        const first = this.safeList(message, 0, []);
         const symbol = this.symbol(this.safeString(first, 2));
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {

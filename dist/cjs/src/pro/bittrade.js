@@ -14,11 +14,11 @@ class bittrade extends bittrade$1["default"] {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchBalance': false,
+                'watchBalance': false, // for now
                 'watchOHLCV': true,
             },
             'urls': {
@@ -34,7 +34,7 @@ class bittrade extends bittrade$1["default"] {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'api': 'api',
+                'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
                     'gunzip': true,
                 },
@@ -57,7 +57,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         // only supports a limit of 150 at this time
@@ -96,13 +98,16 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
+        const tick = this.safeDict(message, 'tick', {});
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return message;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const ticker = this.parseTicker(tick, market);
-        const timestamp = this.safeValue(message, 'ts');
+        const timestamp = this.safeInteger(message, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601(timestamp);
         const symbol = ticker['symbol'];
@@ -121,7 +126,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         // only supports a limit of 150 at this time
@@ -167,9 +174,12 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
-        const data = this.safeValue(tick, 'data', {});
+        const tick = this.safeDict(message, 'tick', {});
+        const data = this.safeList(tick, 'data', []);
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return message;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
@@ -199,7 +209,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -243,13 +255,16 @@ class bittrade extends bittrade$1["default"] {
         //     }
         //
         const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const interval = this.safeString(parts, 3);
         const timeframe = this.findTimeframe(interval);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -268,13 +283,15 @@ class bittrade extends bittrade$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if ((limit !== undefined) && (limit !== 150)) {
             throw new errors.ExchangeError(this.id + ' watchOrderBook accepts limit = 150 only');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         // only supports a limit of 150 at this time
@@ -325,7 +342,7 @@ class bittrade extends bittrade$1["default"] {
         const messageHash = this.safeString(subscription, 'messageHash');
         const timestamp = this.safeInteger(message, 'ts');
         const orderbook = this.orderbooks[symbol];
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data');
         const snapshot = this.parseOrderBook(data, symbol);
         snapshot['nonce'] = this.safeInteger(data, 'seqNum');
         snapshot['timestamp'] = timestamp;
@@ -403,12 +420,15 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
+        const tick = this.safeDict(message, 'tick', {});
         const seqNum = this.safeInteger(tick, 'seqNum');
         const prevSeqNum = this.safeInteger(tick, 'prevSeqNum');
+        if ((prevSeqNum === undefined) || (seqNum === undefined)) {
+            return orderbook;
+        }
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
-            const asks = this.safeValue(tick, 'asks', []);
-            const bids = this.safeValue(tick, 'bids', []);
+            const asks = this.safeList(tick, 'asks', []);
+            const bids = this.safeList(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;
@@ -457,6 +477,9 @@ class bittrade extends bittrade$1["default"] {
     }
     handleOrderBookSubscription(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const limit = this.safeInteger(subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
@@ -475,8 +498,11 @@ class bittrade extends bittrade$1["default"] {
         //     }
         //
         const id = this.safeString(message, 'id');
+        if (id === undefined) {
+            return message;
+        }
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeValue(subscriptionsById, id);
+        const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
@@ -563,8 +589,11 @@ class bittrade extends bittrade$1["default"] {
         const status = this.safeString(message, 'status');
         if (status === 'error') {
             const id = this.safeString(message, 'id');
+            if (id === undefined) {
+                return false;
+            }
             const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-            const subscription = this.safeValue(subscriptionsById, id);
+            const subscription = this.safeDict(subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString(message, 'err-code');
                 try {
@@ -581,10 +610,10 @@ class bittrade extends bittrade$1["default"] {
             }
             return false;
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //

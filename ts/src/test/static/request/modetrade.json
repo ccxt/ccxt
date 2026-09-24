@@ -17,7 +17,7 @@
                     "buy",
                     0.1
                 ],
-                "output": "{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXTMODE\"}"
+                "output": { "order_quantity": "0.1", "order_type": "MARKET", "side": "BUY", "symbol": "PERP_LTC_USDC", "order_tag": "CCXTMODE" }
             },
             {
                 "description": "Swap market sell with reduceOnly",
@@ -33,7 +33,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXTMODE\",\"reduce_only\":true}"
+                "output": { "order_quantity": "0.1", "order_type": "MARKET", "side": "SELL", "symbol": "PERP_LTC_USDC", "order_tag": "CCXTMODE", "reduce_only": true }
             },
             {
                 "description": "Swap stop reduceOnly order",
@@ -49,7 +49,7 @@
                         "triggerPrice": "50000"
                     }
                 ],
-                "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"CCXTMODE\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\"}"
+                "output": { "quantity": "0.0001", "type": "MARKET", "side": "SELL", "symbol": "PERP_BTC_USDC", "order_tag": "CCXTMODE", "algo_type": "STOP", "trigger_price": "50000" }
             },
             {
                 "description": "Swap stop reduceOnly order",
@@ -66,7 +66,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"CCXTMODE\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\",\"reduce_only\":true}"
+                "output": { "quantity": "0.0001", "type": "MARKET", "side": "SELL", "symbol": "PERP_BTC_USDC", "order_tag": "CCXTMODE", "algo_type": "STOP", "trigger_price": "50000", "reduce_only": true }
             },
             {
                 "description": "postOnly order",
@@ -82,7 +82,7 @@
                     "postOnly": true
                   }
                 ],
-                "output": "{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXTMODE\",\"order_type\":\"POST_ONLY\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
+                "output": { "order_price": "0.5", "order_quantity": "20", "order_tag": "CCXTMODE", "order_type": "POST_ONLY", "side": "BUY", "symbol": "PERP_XRP_USDC" }
             },
             {
                 "description": "limit order",
@@ -95,7 +95,7 @@
                   20,
                   0.5
                 ],
-                "output": "{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXTMODE\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
+                "output": { "order_price": "0.5", "order_quantity": "20", "order_tag": "CCXTMODE", "order_type": "LIMIT", "side": "BUY", "symbol": "PERP_XRP_USDC" }
             },
             {
                 "description": "order with clientOrderId",
@@ -111,7 +111,7 @@
                     "clientOrderId": "myOrder"
                   }
                 ],
-                "output": "{\"client_order_id\":\"myOrder\",\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXTMODE\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
+                "output": { "client_order_id": "myOrder", "order_price": "0.5", "order_quantity": "20", "order_tag": "CCXTMODE", "order_type": "LIMIT", "side": "BUY", "symbol": "PERP_XRP_USDC" }
             }
         ],
         "createOrders": [
@@ -129,7 +129,7 @@
                         }
                     ]
                 ],
-                "output": "{\"orders\":[{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXTMODE\"}]}"
+                "output": { "orders": [ { "order_quantity": "0.1", "order_type": "MARKET", "side": "BUY", "symbol": "PERP_LTC_USDC", "order_tag": "CCXTMODE" } ] }
             },
             {
                 "description": "Swap market sell with reduceOnly",
@@ -148,7 +148,7 @@
                         }
                     ]
                 ],
-                "output": "{\"orders\":[{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXTMODE\",\"reduce_only\":true}]}"
+                "output": { "orders": [ { "order_quantity": "0.1", "order_type": "MARKET", "side": "SELL", "symbol": "PERP_LTC_USDC", "order_tag": "CCXTMODE", "reduce_only": true } ] }
             },
             {
                 "description": "postOnly order",
@@ -168,7 +168,7 @@
                         }
                     ]
                 ],
-                "output": "{\"orders\":[{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXTMODE\",\"order_type\":\"POST_ONLY\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}]}"
+                "output": { "orders": [ { "order_price": "0.5", "order_quantity": "20", "order_tag": "CCXTMODE", "order_type": "POST_ONLY", "side": "BUY", "symbol": "PERP_XRP_USDC" } ] }
             },
             {
                 "description": "limit order",
@@ -185,7 +185,7 @@
                         }
                     ]
                 ],
-                "output": "{\"orders\":[{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXTMODE\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}]}"
+                "output": { "orders": [ { "order_price": "0.5", "order_quantity": "20", "order_tag": "CCXTMODE", "order_type": "LIMIT", "side": "BUY", "symbol": "PERP_XRP_USDC" } ] }
             }
         ],
         "fetchOrder": [
@@ -227,6 +227,29 @@
                   "XRP/USDC:USDC",
                   null,
                   null,
+                  {
+                    "trigger": true
+                  }
+                ]
+            },
+            {
+                "description": "limit above the plain-order cap is clamped to 500",
+                "method": "fetchOrders",
+                "url": "https://api-evm.orderly.org/v1/orders?size=500&symbol=PERP_LTC_USDC",
+                "input": [
+                  "LTC/USDC:USDC",
+                  null,
+                  1000
+                ]
+            },
+            {
+                "description": "limit above the trigger-order cap is clamped to 100",
+                "method": "fetchOrders",
+                "url": "https://api-evm.orderly.org/v1/algo/orders?algo_type=STOP&size=100&symbol=PERP_XRP_USDC",
+                "input": [
+                  "XRP/USDC:USDC",
+                  null,
+                  1000,
                   {
                     "trigger": true
                   }
@@ -284,7 +307,7 @@
                     5,
                     "LTC/USDC:USDC"
                 ],
-                "output": "{\"leverage\":5}"
+                "output": { "leverage": 5 }
             }
         ],
         "fetchDeposits": [
@@ -305,11 +328,31 @@
         ],
         "fetchLedger": [
             {
-                "description": "fetch ledger",
+                "description": "fetch ledger filtered by code",
                 "method": "fetchLedger",
-                "url": "https://api-evm.orderly.org/v1/asset/history?balance_token=USDC",
+                "url": "https://api-evm.orderly.org/v1/asset/history?token=USDC",
                 "input": [
                     "USDC"
+                ]
+            },
+            {
+                "description": "fetch ledger with a limit",
+                "method": "fetchLedger",
+                "url": "https://api-evm.orderly.org/v1/asset/history?size=30",
+                "input": [
+                    null,
+                    null,
+                    30
+                ]
+            },
+            {
+                "description": "fetch ledger filtered by code with a limit",
+                "method": "fetchLedger",
+                "url": "https://api-evm.orderly.org/v1/asset/history?size=30&token=USDC",
+                "input": [
+                    "USDC",
+                    null,
+                    30
                 ]
             }
         ],
@@ -329,7 +372,7 @@
                         "triggerPrice": 1
                     }
                 ],
-                "output": "{\"order_tag\":\"CCXTMODE\",\"order_id\":\"1111779\",\"quantity\":\"0.0001\",\"triggerPrice\":\"1\"}"
+                "output": { "order_tag": "CCXTMODE", "order_id": "1111779", "quantity": "0.0001", "triggerPrice": "1" }
             },
             {
                 "description": "edit limit order",
@@ -343,7 +386,7 @@
                   25,
                   0.45
                 ],
-                "output": "{\"order_id\":\"1088643232\",\"order_price\":\"0.45\",\"order_quantity\":\"25\",\"order_tag\":\"CCXTMODE\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
+                "output": { "order_id": "1088643232", "order_price": "0.45", "order_quantity": "25", "order_tag": "CCXTMODE", "order_type": "LIMIT", "side": "BUY", "symbol": "PERP_XRP_USDC" }
             }
         ],
         "fetchOHLCV": [

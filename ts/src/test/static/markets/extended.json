@@ -1,0 +1,118 @@
+{
+    "BTC/USDC:USDC": {
+        "id": "BTC-USD",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC:USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": 15000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1752829532673,
+        "info": {
+            "name": "BTC-USD",
+            "uiName": "BTC-USD",
+            "category": "Crypto",
+            "subCategory": "L1",
+            "assetName": "BTC",
+            "assetPrecision": 5,
+            "collateralAssetName": "USD",
+            "collateralAssetPrecision": 6,
+            "description": "Bitcoin",
+            "active": true,
+            "status": "ACTIVE",
+            "marketStats": {
+                "dailyVolume": "231016077.512960",
+                "dailyVolumeBase": "3025.00058",
+                "dailyPriceChange": "420",
+                "dailyPriceChangePercentage": "0.0055",
+                "dailyLow": "75635",
+                "dailyHigh": "77399",
+                "lastPrice": "77259",
+                "askPrice": "77260",
+                "bidPrice": "77259",
+                "markPrice": "77259.680250000004",
+                "indexPrice": "77299.020412500001",
+                "fundingRate": "0.000013",
+                "nextFundingRate": 1777442400000,
+                "openInterest": "115861923.311902",
+                "openInterestBase": "1500.40958"
+            },
+            "tradingConfig": {
+                "minOrderSize": "0.0001",
+                "minOrderSizeChange": "0.00001",
+                "minPriceChange": "1",
+                "maxMarketOrderValue": "3000000",
+                "maxLimitOrderValue": "15000000",
+                "maxPositionValue": "60000000",
+                "maxLeverage": "50.00",
+                "hourlyFundingRateCap": "0.25",
+                "maxNumOrders": "200",
+                "limitPriceCap": "0.05",
+                "limitPriceFloor": "0.05",
+                "riskFactorConfig": [
+                    {
+                        "upperBound": "4000000",
+                        "riskFactor": "0.02",
+                        "isAvailableForUsers": true
+                    }
+                ]
+            },
+            "l2Config": {
+                "type": "STARKX",
+                "collateralId": "0x1",
+                "syntheticId": "0x4254432d3600000000000000000000",
+                "syntheticResolution": 1000000,
+                "collateralResolution": 1000000
+            },
+            "visibleOnUi": true,
+            "createdAt": 1752829532673
+        }
+    }
+}

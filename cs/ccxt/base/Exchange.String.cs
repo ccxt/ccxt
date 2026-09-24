@@ -1,6 +1,6 @@
 namespace ccxt;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
 
@@ -9,14 +9,9 @@ public partial class Exchange
         return Guid.NewGuid().ToString().Replace("-", "");
     }
 
-    public string uuid2()
-    {
-        return Guid.NewGuid().ToString();
-    }
-
     public string uuid()
     {
-        return uuid2();
+        return Guid.NewGuid().ToString();
     }
 
     public string uuid16()

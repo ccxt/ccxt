@@ -7,9 +7,18 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testTrade(Exchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
+    public static void testTrade(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol, object now, object isPublicTrade)
     {
-        object format = new Dictionary<string, object>() {
+        // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+        // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+                { "fees", true },
+            }, skippedProperties);
+        }
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "12345-67890:09876/54321" },
             { "timestamp", 1502962946216 },
@@ -22,24 +31,35 @@ public partial class testMainClass : BaseTest
             { "amount", exchange.parseNumber("1.5") },
             { "cost", exchange.parseNumber("0.10376526") },
             { "fees", new List<object>() {} },
-            { "fee", new Dictionary<string, object>() {} },
+            { "fee", new Dictionary<string, object>() {
+                { "cost", exchange.parseNumber("0.001") },
+                { "currency", "USDT" },
+            } },
         };
         // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
         // removed side because some public endpoints return trades without side
-        object emptyAllowedFor = new List<object>() {"fees", "fee", "symbol", "order", "id", "takerOrMaker"};
+        List<object> emptyAllowedFor = new List<object>() {"fees", "fee", "symbol", "order", "id", "takerOrMaker"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
         //
         testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "side", new List<object>() {"buy", "sell"});
-        testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new List<object>() {"taker", "maker"});
+        if (isTrue(isPublicTrade))
+        {
+            // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new List<object>() {"taker", null});
+        } else
+        {
+            // for private trades (fetchMyTrades & watchMyTrades), it can be any
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new List<object>() {"taker", "maker", null});
+        }
         testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry, "fee");
-        if (!isTrue((inOp(skippedProperties, "fees"))))
+        if (!(inOp(skippedProperties, "fees")))
         {
             // todo: remove undefined check and probably non-empty array check later
-            if (isTrue(!isEqual(getValue(entry, "fees"), null)))
+            if (!isEqual(getValue(entry, "fees"), null))
             {
-                for (object i = 0; isLessThan(i, getArrayLength(getValue(entry, "fees"))); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(getValue(entry, "fees")); i++)
                 {
                     testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, getValue(entry, "fees"), i);
                 }

@@ -2,15 +2,15 @@
 //  ---------------------------------------------------------------------------
 
 import deepcoinRest from '../deepcoin.js';
-import { BadRequest, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
+import type { Dict, FeeString, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class deepcoin extends deepcoinRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -79,11 +79,19 @@ export default class deepcoin extends deepcoinRest {
             },
             'streaming': {
                 'ping': this.ping,
+                // the public stream drops the connection after 20 s without a
+                // text 'ping' from the client (https://www.deepcoin.com/docs/publicWS/public),
+                // and the base default of 30 s only sends the first one at
+                // 30 s. raw probes: no ping and a 20 s or 25 s cadence all
+                // died at 20.7 s with close 1000 'heartbeat timeout', a 10 s
+                // and a 15 s cadence stayed up. 15 s leaves the widest window
+                // that still fits under the 20 s cut-off
+                'keepAlive': 15000,
             },
         });
     }
 
-    ping (client: Client) {
+    override ping (client: Client): Str {
         const url = client.url;
         if (url.indexOf ('private') >= 0) {
             client.lastPong = this.milliseconds ();
@@ -92,7 +100,7 @@ export default class deepcoin extends deepcoinRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: Dict): Dict {
         client.lastPong = this.milliseconds ();
         return message;
     }
@@ -106,16 +114,16 @@ export default class deepcoin extends deepcoinRest {
         return newValue;
     }
 
-    createPublicRequest (market: Market, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
+    createPublicRequest (market: any, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
         let marketId = market['symbol']; // spot markets use symbol with slash
         if (market['type'] === 'swap') {
-            marketId = market['baseId'] + market['quoteId']; // swap markets use symbol without slash
+            marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash
         }
         let action = '1'; // subscribe
         if (unWatch) {
             action = '0'; // unsubscribe
         }
-        const request = {
+        const request: Dict = {
             'sendTopicAction': {
                 'Action': action,
                 'FilterValue': 'DeepCoin_' + marketId + suffix,
@@ -127,7 +135,7 @@ export default class deepcoin extends deepcoinRest {
         return request;
     }
 
-    async watchPublic (market: Market, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
+    async watchPublic (market: any, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
         const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const request = this.createPublicRequest (market, requestId, topicID, suffix);
@@ -138,7 +146,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    async unWatchPublic (market: Market, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
+    async unWatchPublic (market: any, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
         const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const client = this.client (url);
@@ -147,7 +155,7 @@ export default class deepcoin extends deepcoinRest {
             throw new BadRequest (this.id + ' no subscription for ' + messageHash);
         }
         const subId = this.safeInteger (existingSubscription, 'id');
-        const request = this.createPublicRequest (market, subId, topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
+        const request = this.createPublicRequest (market, (subId as number), topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
         const unsubHash = 'unsubscribe::' + messageHash;
         subscription = this.extend (subscription, {
             'subHash': messageHash,
@@ -164,34 +172,71 @@ export default class deepcoin extends deepcoinRest {
         return await this.watch (url, messageHash, undefined, 'private', params);
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const time = this.milliseconds ();
-        let listenKeyExpiryTimestamp = this.safeInteger (this.options, 'listenKeyExpiryTimestamp', time);
-        const expired = (time - listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
-        let listenKey = this.safeString (this.options, 'listenKey');
-        let response = undefined;
-        if (listenKey === undefined) {
-            response = await this.privateGetDeepcoinListenkeyAcquire (params);
-        } else if (expired) {
-            const method = this.safeString (this.options, 'method', 'privateGetDeepcoinListenkeyExtend');
-            const getNewKey = (method === 'privateGetDeepcoinListenkeyAcquire');
-            if (getNewKey) {
+        // single-flight leader election on a never-dialed client, see
+        // https://github.com/ccxt/ccxt/issues/29393: the key rides the private ws url query string, so racing
+        // acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
+        // check-then-fetch (acquire vs extend) is the critical section; the flight IS the client.futures entry,
+        // settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
+        const messageHash = 'authenticate';
+        const client = this.client ('authenticationFlights');
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader
+            // settles it: the listenKey is then in the bucket
+            await client.future (messageHash);
+            return this.safeString (this.options, 'listenKey');
+        }
+        const future = client.reusableFuture (messageHash);
+        let listenKey: Str = undefined;
+        try {
+            let listenKeyExpiryTimestamp = this.safeInteger (this.options, 'listenKeyExpiryTimestamp', time);
+            const expired = (time - listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
+            listenKey = this.safeString (this.options, 'listenKey');
+            let response = undefined;
+            if (listenKey === undefined) {
                 response = await this.privateGetDeepcoinListenkeyAcquire (params);
-            } else {
-                const request: Dict = {
-                    'listenkey': listenKey,
-                };
-                response = await this.privateGetDeepcoinListenkeyExtend (this.extend (request, params));
+            } else if (expired) {
+                const method = this.safeString (this.options, 'method', 'privateGetDeepcoinListenkeyExtend');
+                const getNewKey = (method === 'privateGetDeepcoinListenkeyAcquire');
+                if (getNewKey) {
+                    response = await this.privateGetDeepcoinListenkeyAcquire (params);
+                } else {
+                    const request: Dict = {
+                        'listenkey': listenKey,
+                    };
+                    response = await this.privateGetDeepcoinListenkeyExtend (this.extend (request, params));
+                }
             }
+            if (response !== undefined) {
+                const data = this.safeDict (response, 'data', {});
+                listenKey = this.safeString (data, 'listenkey');
+                if (listenKey === undefined) {
+                    // reject the flight BEFORE any cache write: a hollow 200
+                    // would otherwise cache an empty credential together with a
+                    // fresh expiry, parking every caller on a query string with
+                    // no key and no retry until that expiry lapses - the catch
+                    // below rejects the flight instead, so the waiters throw
+                    // and the next caller re-leads
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
+                }
+                listenKeyExpiryTimestamp = this.safeTimestamp (data, 'expire_time') as number;
+                this.options['listenKey'] = listenKey;
+                this.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp;
+            }
+            // settle the flight: client.resolve wakes every waiter and drops
+            // the future from the registry under the client's own lock, so the
+            // next refresh cycle elects a fresh leader
+            client.resolve (listenKey, messageHash);
+        } catch (e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            client.reject (e, messageHash);
         }
-        if (response !== undefined) {
-            const data = this.safeDict (response, 'data', {});
-            listenKey = this.safeString (data, 'listenkey');
-            listenKeyExpiryTimestamp = this.safeTimestamp (data, 'expire_time');
-            this.options['listenKey'] = listenKey;
-            this.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp;
-        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from killing the process
+        await future;
         return listenKey;
     }
 
@@ -204,8 +249,10 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'ticker' + '::' + market['symbol'];
         return await this.watchPublic (market, messageHash, '7', params);
@@ -220,8 +267,10 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'ticker' + '::' + market['symbol'];
         const subscription = {
@@ -230,7 +279,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.unWatchPublic (market, messageHash, '7', params, subscription);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     a: 'PO',
         //     m: 'Success',
@@ -305,13 +354,13 @@ export default class deepcoin extends deepcoinRest {
         const ask = this.safeNumber (ticker, 'AP1');
         let baseVolume = this.safeNumber (ticker, 'V');
         let quoteVolume = this.safeNumber (ticker, 'T');
-        if (market['inverse']) {
+        if (this.safeBool (market, 'inverse') === true) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
         }
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': high,
@@ -345,8 +394,10 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'trades' + '::' + market['symbol'];
         const trades = await this.watchPublic (market, messageHash, '2', params);
@@ -365,8 +416,10 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}) {
-        await this.loadMarkets ();
+    override async unWatchTrades (symbol: string, params: Dict = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'trades' + '::' + market['symbol'];
         const subscription = {
@@ -375,7 +428,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.unWatchPublic (market, messageHash, '2', params, subscription);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "a": "PMT",
@@ -415,7 +468,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (strored, messageHash);
     }
 
-    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // watchTrades
         //     {
@@ -452,7 +505,7 @@ export default class deepcoin extends deepcoinRest {
         const direction = this.safeString (trade, 'D');
         const timestamp = this.safeTimestamp2 (trade, 'TT', 'T');
         const matchRole = this.safeString (trade, 'm');
-        let fee = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'F');
         if (feeCost !== undefined) {
             fee = {
@@ -464,7 +517,7 @@ export default class deepcoin extends deepcoinRest {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'id': this.safeString2 (trade, 'TradeID', 'TI'),
             'order': this.safeString (trade, 'OS'),
             'type': undefined,
@@ -482,7 +535,7 @@ export default class deepcoin extends deepcoinRest {
             '0': 'buy',
             '1': 'sell',
         };
-        return this.safeString (sides, direction, direction);
+        return this.safeString (sides, (direction as string), direction);
     }
 
     handleTakerOrMaker (matchRole: Str): Str {
@@ -490,7 +543,7 @@ export default class deepcoin extends deepcoinRest {
             '0': 'maker',
             '1': 'taker',
         };
-        return this.safeString (roles, matchRole, matchRole);
+        return this.safeString (roles, (matchRole as string), matchRole);
     }
 
     /**
@@ -505,8 +558,10 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const timeframes = this.safeDict (this.options, 'timeframes', {});
@@ -530,8 +585,10 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        await this.loadMarkets ();
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const timeframes = this.safeDict (this.options, 'timeframes', {});
@@ -545,7 +602,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.unWatchPublic (market, messageHash, '11', params, subscription, suffix);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "a": "PK",
@@ -580,11 +637,11 @@ export default class deepcoin extends deepcoinRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][(timeframe as string)];
         if (data !== undefined) {
             const ohlcv = this.parseWsOHLCV (data, market);
             stored.append (ohlcv);
@@ -593,7 +650,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "I": "BTC/USDT",
@@ -625,13 +682,17 @@ export default class deepcoin extends deepcoinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @param {string} [params.aggregation] price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
-        const suffix = '_0.1';
+        let suffix: Str = undefined;
+        [ suffix, params ] = this.orderBookSuffix (market, 'watchOrderBook', params);
         const orderbook = await this.watchPublic (market, messageHash, '25', params, suffix);
         return orderbook.limit ();
     }
@@ -643,20 +704,50 @@ export default class deepcoin extends deepcoinRest {
      * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
-        const suffix = '_0.1';
+        let suffix: Str = undefined;
+        [ suffix, params ] = this.orderBookSuffix (market, 'unWatchOrderBook', params);
         const subscription = {
             'topic': 'orderbook',
         };
         return await this.unWatchPublic (market, messageHash, '25', params, subscription, suffix);
     }
 
-    handleOrderBook (client: Client, message) {
+    orderBookSuffix (market: Market, methodName: string, params: Dict = {}): [Str, Dict] {
+        // the 25-level book is published per price-aggregation level and the
+        // level is part of the FilterValue ('DeepCoin_BTC/USDT_0.1'). the
+        // venue only serves the levels that exist for that market, from the
+        // tick size up to a few coarser steps: subscribing to a level the
+        // market does not have is answered with 'orderbook does not exist:
+        // XRP/USDT_0.1, no available orderbook data' and nothing is
+        // streamed. a fixed '_0.1' therefore only worked for markets whose
+        // tick happens to be 0.1 or finer by a step or two (23 of the first
+        // 120 spot markets, 52 of 120 swaps in a live probe); the tick size
+        // itself was accepted on 116 and 117 of them, and the handful whose
+        // tick was rejected accepted the next coarser level
+        const symbol = this.safeString (market, 'symbol');
+        let aggregation: Str = undefined;
+        [ aggregation, params ] = this.handleOptionAndParams (params, methodName, 'aggregation');
+        if (aggregation === undefined) {
+            const precision = this.safeDict (market, 'precision', {});
+            const tickSize = this.safeNumber (precision, 'price');
+            if (tickSize === undefined) {
+                throw new BadRequest (this.id + ' ' + methodName + '() requires a params["aggregation"] price level for ' + symbol + ' because the market has no price precision');
+            }
+            aggregation = this.numberToString (tickSize);
+        }
+        return [ '_' + aggregation, params ];
+    }
+
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "a": "PMO",
@@ -699,7 +790,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    handleOrderBookSnapshot (client: Client, message) {
+    handleOrderBookSnapshot (client: Client, message: Dict) {
         const entries = this.safeList (message, 'r', []);
         const first = this.safeDict (entries, 0, {});
         const data = this.safeDict (first, 'd', {});
@@ -725,7 +816,7 @@ export default class deepcoin extends deepcoinRest {
                 orderedEntries['asks'].push ([ price, volume ]);
             }
         }
-        const timestamp = this.safeInteger (message, 'mt');
+        const timestamp = this.safeInteger (message, 'mt', 0);
         const snapshot = this.parseOrderBook (orderedEntries, symbol, timestamp);
         orderbook.reset (snapshot);
         const cachedMessages = orderbook.cache;
@@ -738,7 +829,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: any) {
         //     {
         //         "a": "PMO",
         //         "t": "i", // i - update, f - snapshot
@@ -754,7 +845,7 @@ export default class deepcoin extends deepcoinRest {
         //         "mt": 1760975816446
         //     }
         //
-        const timestamp = this.safeInteger (message, 'mt');
+        const timestamp = this.safeInteger (message, 'mt', 0);
         if (timestamp > orderbook['timestamp']) {
             const response = this.safeList (message, 'r', []);
             this.handleDeltas (orderbook, response);
@@ -763,7 +854,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    handleDelta (orderbook, entry) {
+    override handleDelta (orderbook: any, entry: any) {
         const data = this.safeDict (entry, 'd', {});
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
@@ -790,9 +881,11 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         let messageHash = 'myTrades';
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += '::' + symbol;
@@ -804,7 +897,7 @@ export default class deepcoin extends deepcoinRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //     {
         //         "action": "PushTrade",
@@ -867,9 +960,11 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let messageHash = 'orders';
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += '::' + symbol;
@@ -881,7 +976,7 @@ export default class deepcoin extends deepcoinRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         "action": "PushOrder",
@@ -932,7 +1027,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    parseWsOrder (order, market: Market = undefined): Order {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "D": "0",
@@ -966,7 +1061,7 @@ export default class deepcoin extends deepcoinRest {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeTimestamp (order, 'U'),
             'status': this.parseWsOrderStatus (state),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'type': undefined,
             'timeInForce': undefined,
             'side': this.parseTradeSide (direction),
@@ -993,7 +1088,7 @@ export default class deepcoin extends deepcoinRest {
             '4': 'open',
             '6': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -1007,12 +1102,14 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const listenKey = await this.authenticate ();
         symbols = this.marketSymbols (symbols);
         const messageHash = 'positions';
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -1030,7 +1127,7 @@ export default class deepcoin extends deepcoinRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePosition (client: Client, message) {
+    handlePosition (client: Client, message: Dict) {
         //
         //     {
         //         "action": "PushPosition",
@@ -1073,7 +1170,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    parseWsPosition (position, market: Market = undefined): Position {
+    parseWsPosition (position: any, market: Market = undefined): Position {
         //
         //     {
         //         "A": "9256245",
@@ -1093,7 +1190,7 @@ export default class deepcoin extends deepcoinRest {
         const direction = this.safeString (position, 'p');
         const marginMode = this.safeString (position, 'i');
         return this.safePosition ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1101,7 +1198,7 @@ export default class deepcoin extends deepcoinRest {
             'contractSize': undefined,
             'side': this.parsePositionSide (direction),
             'notional': undefined,
-            'leverage': this.omitZero (this.safeString (position, 'l')),
+            'leverage': this.omitZero ((this.safeString (position, 'l') as string)),
             'unrealizedPnl': undefined,
             'realizedPnl': undefined,
             'collateral': undefined,
@@ -1146,7 +1243,7 @@ export default class deepcoin extends deepcoinRest {
         return this.safeString (modes, marginMode, marginMode);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (message === 'pong') {
             this.handlePong (client, message);
         } else {
@@ -1175,7 +1272,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         //
         //     {
         //         "a": "RecvTopicAction",
@@ -1215,7 +1312,7 @@ export default class deepcoin extends deepcoinRest {
         this.cleanCache (subscription);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message: Dict) {
         //
         //     {
         //         "a": "RecvTopicAction",

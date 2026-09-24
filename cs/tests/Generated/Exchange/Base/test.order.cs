@@ -7,9 +7,16 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testOrder(Exchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
+    public static void testOrder(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
     {
-        object format = new Dictionary<string, object>() {
+        // prediction-market orders are keyed by an outcome handle, not a `symbol`
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+            }, skippedProperties);
+        }
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "123" },
             { "clientOrderId", "1234" },
@@ -32,7 +39,7 @@ public partial class testMainClass : BaseTest
             { "fee", new Dictionary<string, object>() {} },
             { "trades", new List<object>() {} },
         };
-        object emptyAllowedFor = new List<object>() {"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"}; // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
+        List<object> emptyAllowedFor = new List<object>() {"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"}; // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         //
@@ -50,18 +57,18 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "remaining"));
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "filled"));
-        if (!isTrue((inOp(skippedProperties, "trades"))))
+        if (!(inOp(skippedProperties, "trades")))
         {
-            object skippedNew = exchange.deepExtend(skippedProperties, new Dictionary<string, object>() {
+            Dictionary<string, object> skippedNew = exchange.deepExtend(skippedProperties, new Dictionary<string, object>() {
                 { "timestamp", true },
                 { "datetime", true },
                 { "side", true },
             });
-            if (isTrue(!isEqual(getValue(entry, "trades"), null)))
+            if (!isEqual(getValue(entry, "trades"), null))
             {
-                for (object i = 0; isLessThan(i, getArrayLength(getValue(entry, "trades"))); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(getValue(entry, "trades")); i++)
                 {
-                    testTrade(exchange, skippedNew, method, getValue(getValue(entry, "trades"), i), symbol, now);
+                    testTrade(exchange, skippedNew, method, getValue(getValue(entry, "trades"), i), symbol, now, false);
                 }
             }
         }

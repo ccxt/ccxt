@@ -1,8 +1,5 @@
-- [Poloniex Fetch Order Books](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -32,5 +29,5 @@ pprint(result)
 # this will not work (too many symbols)
 result = exchange.fetch_order_books(exchange.symbols)
 pprint(result)
- 
+
 ```

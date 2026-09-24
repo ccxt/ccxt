@@ -3,7 +3,7 @@ import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, St
 import Client from '../base/ws/Client.js';
 export default class hashkey extends hashkeyRest {
     describe(): any;
-    wathPublic(market: Market, topic: string, messageHash: string, params?: {}): Promise<any>;
+    wathPublic(market: Market, topic: string, messageHash: string, params?: Dict): Promise<any>;
     watchPrivate(messageHash: any): Promise<any>;
     getPrivateUrl(listenKey: any): string;
     /**
@@ -19,12 +19,12 @@ export default class hashkey extends hashkeyRest {
      * @param {bool} [params.binary] true or false - default false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
-     * @name hahskey#watchTicker
+     * @name hashkey#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -33,7 +33,7 @@ export default class hashkey extends hashkeyRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    handleTicker(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name hashkey#watchTrades
@@ -47,7 +47,7 @@ export default class hashkey extends hashkeyRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): void;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name hashkey#watchOrderBook
@@ -56,10 +56,10 @@ export default class hashkey extends hashkeyRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name hashkey#watchOrders
@@ -71,8 +71,8 @@ export default class hashkey extends hashkeyRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrder(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -85,9 +85,9 @@ export default class hashkey extends hashkeyRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrade(client: Client, message: any, subscription?: {}): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleMyTrade(client: Client, message: Dict, subscription?: Dict): void;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name hashkey#watchPositions
@@ -99,8 +99,8 @@ export default class hashkey extends hashkeyRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    handlePosition(client: Client, message: any): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
+    handlePosition(client: Client, message: Dict): void;
     parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
@@ -111,11 +111,11 @@ export default class hashkey extends hashkeyRest {
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    setBalanceCache(client: Client, type: any, subscribeHash: any): void;
-    loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
-    handleBalance(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<string>;
-    keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
+    watchBalance(params?: Dict): Promise<Balances>;
+    setBalanceCache(client: Client, type: string, subscribeHash: string): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
+    handleBalance(client: Client, message: Dict): void;
+    authenticate(params?: Dict): Promise<Str>;
+    keepAliveListenKey(listenKey: Str, params?: Dict): Promise<void>;
     handleMessage(client: Client, message: any): void;
 }

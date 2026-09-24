@@ -1,5 +1,5 @@
 import bittradeRest from '../bittrade.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Bool } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bittrade extends bittradeRest {
     describe(): any;
@@ -12,8 +12,8 @@ export default class bittrade extends bittradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    handleTicker(client: Client, message: any): any;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    handleTicker(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name bittrade#watchTrades
@@ -24,8 +24,8 @@ export default class bittrade extends bittradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): any;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleTrades(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name bittrade#watchOHLCV
@@ -37,8 +37,8 @@ export default class bittrade extends bittradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name bittrade#watchOrderBook
@@ -46,21 +46,21 @@ export default class bittrade extends bittradeRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBookSnapshot(client: Client, message: any, subscription: any): void;
-    watchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): void;
+    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
-    handleOrderBook(client: Client, message: any): void;
-    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    handleSystemStatus(client: Client, message: any): any;
-    handleSubject(client: Client, message: any): void;
-    pong(client: any, message: any): Promise<void>;
-    handlePing(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
+    handleSubscriptionStatus(client: Client, message: Dict): any;
+    handleSystemStatus(client: Client, message: Dict): Dict;
+    handleSubject(client: Client, message: Dict): void;
+    pong(client: Client, message: Dict): Promise<void>;
+    handlePing(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: any): void;
 }

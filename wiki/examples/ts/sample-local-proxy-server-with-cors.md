@@ -1,8 +1,7 @@
-- [Sample Local Proxy Server With Cors](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- // @ts-nocheck
+// @ts-nocheck
 // JavaScript sample Proxy with CORS support
 
 // Save this in a file like cors.js and run with:
@@ -17,5 +16,5 @@ cors.createServer ({
     // setHeaders: { 'origin': 'https://www.bitmex.com' }
 }).listen (port, 'localhost');
 console.log ('Running CORS Anywhere on localhost:' + port);
- 
+
 ```

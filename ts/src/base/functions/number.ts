@@ -1,16 +1,8 @@
+import { Precise } from '../Precise.js';
 
-// ------------------------------------------------------------------------
-//
-//  NB: initially, I used objects for options passing:
-//
-//          decimalToPrecision ('123.456', { digits: 2, round: true, afterPoint: true })
-//
-//  ...but it turns out it's hard to port that across different languages and it is also
-//     probably has a performance penalty -- while it's a performance critical code! So
-//     I switched to using named constants instead, as it is actually more readable and
-//     succinct, and surely doesn't come with any inherent performance downside:
-//
-//          decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)
+// NB: options are passed as named constants, not an options object:
+//         decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)
+// object options are hard to port across languages and cost performance in this hot path
 
 const TRUNCATE = 0;                // rounding mode
 const ROUND = 1;
@@ -33,16 +25,19 @@ const precisionConstants = {
     PAD_WITH_ZERO,
 };
 
-const assert = (x, y) => { if (!x) throw new Error (y || 'assertion failed'); };
+const assert = (x: any, y: string | undefined = undefined) => { if (!x) throw new Error (y || 'assertion failed'); };
 
 /*  ------------------------------------------------------------------------ */
 
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
+function numberToString (x: number | string): string;
+function numberToString (x: any): string | undefined;
 function numberToString (x: any): string | undefined { // avoids scientific notation for too large and too small numbers
     if (x === undefined) return undefined;
     if (typeof x !== 'number') return x.toString ();
     const s = x.toString ();
+    if (s.indexOf ('e') < 0) return s; // fast path: nothing to expand without scientific notation
     if (Math.abs (x) < 1.0) {
         const n_e = s.split ('e-');
         const n = n_e[0].replace ('.', '');
@@ -72,6 +67,36 @@ function numberToString (x: any): string | undefined { // avoids scientific nota
 // expects non-scientific notation
 
 const truncate_regExpCache: any[] = [];
+// Enough places for the quotient to reach the last tick exactly: a tick is at
+// most 18 decimals and the widest amount the exchanges quote is 18 more.
+const TICK_QUOTIENT_DIGITS = 36;
+
+const stripDecimals = (value: string): string => {
+    if (value.indexOf ('.') < 0) {
+        return value;
+    }
+    let end = value.length;
+    while ((end > 0) && (value[end - 1] === '0')) {
+        end--;
+    }
+    if ((end > 0) && (value[end - 1] === '.')) {
+        end--;
+    }
+    const stripped = value.slice (0, end);
+    return (stripped === '') ? '0' : stripped;
+};
+
+const padDecimals = (value: string, places: number): string => {
+    if (places <= 0) {
+        const point = value.indexOf ('.');
+        return (point < 0) ? value : value.slice (0, point);
+    }
+    const point = value.indexOf ('.');
+    const whole = (point < 0) ? value : value.slice (0, point);
+    const fraction = (point < 0) ? '' : value.slice (point + 1);
+    return whole + '.' + (fraction + '0'.repeat (places)).slice (0, places);
+};
+
 const truncate_to_string = (num: number | string, precision = 0) => {
     num = numberToString (num) as string;
     if (precision > 0) {
@@ -83,10 +108,16 @@ const truncate_to_string = (num: number | string, precision = 0) => {
 };
 const truncate = (num: number | string, precision = 0): number => parseFloat (truncate_to_string (num, precision));
 
-function precisionFromString (str: string) {
-    // support string formats like '1e-4'
+function precisionFromString (str: string | undefined): number {
+    if (str === undefined) {
+        return 0;
+    }
+    // support string formats like '1e-4' and signed mantissas like '-8e-8'
+    // (tiny float residues serialize with a negative mantissa - without the
+    // sign in the prefix the leftover is '--8', which is NaN in js and a
+    // FormatException in the ported languages)
     if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
-        const numStr = str.replace (/\d\.?\d*[eE]/, '')
+        const numStr = str.replace (/^[-+]?\d\.?\d*[eE]/, '')
         return parseInt (numStr) * -1
     }
     // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
@@ -94,14 +125,34 @@ function precisionFromString (str: string) {
     //     return str.length * -1
     // }
     // default strings like '0.0001'
-    const split = str.replace (/0+$/g, '').split ('.')
-    return (split.length > 1) ? (split[1].length) : 0
+    // equivalent to str.replace (/0+$/g, '').split ('.') but without the intermediate allocations
+    let dot = -1;
+    let secondDot = -1;
+    let lastNonZero = -1;
+    const strLength = str.length;
+    for (let i = 0; i < strLength; i++) {
+        const c = str.charCodeAt (i);
+        if (c !== 48) {              // '0'
+            lastNonZero = i;
+            if (c === 46) {          // '.'
+                if (dot < 0) {
+                    dot = i;
+                } else if (secondDot < 0) {
+                    secondDot = i;
+                }
+            }
+        }
+    }
+    if (dot < 0) {
+        return 0
+    }
+    return ((secondDot < 0) ? (lastNonZero + 1) : secondDot) - dot - 1
 }
 
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x: string,
+    x: string | number | undefined,
     roundingMode: number,
     numPrecisionDigits: any,
     countingMode: number = DECIMAL_PLACES,
@@ -110,7 +161,7 @@ const decimalToPrecision = (
     return _decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
 }
 
-const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING) => {
+const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING): string => {
     assert (numPrecisionDigits !== undefined, 'numPrecisionDigits should not be undefined');
 
     if (typeof numPrecisionDigits === 'string') {
@@ -131,7 +182,7 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * _decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
+            return (toNearest * parseFloat (_decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString ();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ();
@@ -143,19 +194,29 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
         
         if (roundingMode === TRUNCATE) {
-            // First, truncate the string to avoid floating-point precision issues
-            const xStr = numberToString(x);
-            const truncatedX = truncate_to_string(xStr, Math.max(0, newNumPrecisionDigits));
-            const xNum = Number(truncatedX);
-            const scale = Math.pow (10, newNumPrecisionDigits);
-            const xScaled = Math.round (xNum * scale);
-            const tickScaled = Math.round (numPrecisionDigits * scale);
-            const ticks = Math.trunc (xScaled / tickScaled);
-            x = (ticks * tickScaled) / scale;
-            if (paddingMode === NO_PADDING) {
-                return String (Number (x.toFixed (newNumPrecisionDigits)));
+            // The tick step stays in decimal strings. A float64 round trip prints a
+            // result under 1e-6 as '1e-8', which decimalToPrecision itself then
+            // rejects, and drops digits above 2^53.
+            const tickString = numberToString (numPrecisionDigits);
+            const xString = numberToString (x);
+            // stringDiv answers undefined on a zero tick, which the caller reaches
+            // through a market whose precision is missing rather than through a price.
+            const quotient = Precise.stringDiv (xString, tickString, TICK_QUOTIENT_DIGITS);
+            if (quotient === undefined) {
+                return '0';
             }
-            return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
+            const point = quotient.indexOf ('.');
+            let ticks = (point < 0) ? quotient : quotient.slice (0, point);
+            if ((ticks === '') || (ticks === '-')) {
+                ticks = '0';
+            }
+            let result = Precise.stringMul (ticks, tickString) as string;
+            if (paddingMode === PAD_WITH_ZERO) {
+                result = padDecimals (result, newNumPrecisionDigits);
+            } else {
+                result = stripDecimals (result);
+            }
+            return (result === '-0') ? '0' : result;
         }
         let missing = x % numPrecisionDigits;
         // See: https://github.com/ccxt/ccxt/pull/6486
@@ -197,7 +258,6 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
 
     /*  Char code constants         */
 
-    const MINUS = 45;
     const DOT = 46;
     const ZERO = 48;
     const ONE = (ZERO + 1);
@@ -299,22 +359,18 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
     const padEnd = (padStart + pad);                    //  -123.456     ( )
     const isInteger = (nAfterDot + pad) === 0;             //  -123
 
-    /*  Fill the output buffer with characters    */
+    /*  Build the output string from characters    */
 
-    const out = new Uint8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad);
-    // ------------------------------------------------------------------------------------------ // ---------------------
-    if (signNeeded) out[0] = MINUS;     // -     minus sign
-    for (i = nSign, j = readStart; i < nBeforeDot; i++, j++) out[i] = chars[j];  // 123   before dot
-    if (!isInteger) out[nBeforeDot] = DOT;       // .     dot
-    for (i = nBeforeDot + 1, j = afterDot; i < padStart; i++, j++) out[i] = chars[j];  // 456   after dot
-    for (i = padStart; i < padEnd; i++) out[i] = ZERO;      // 000   padding
+    let out = signNeeded ? '-' : '';                                                                // -     minus sign
+    for (i = nSign, j = readStart; i < nBeforeDot; i++, j++) out += String.fromCharCode (chars[j]);  // 123   before dot
+    if (!isInteger) out += '.';       // .     dot
+    for (i = nBeforeDot + 1, j = afterDot; i < padStart; i++, j++) out += String.fromCharCode (chars[j]);  // 456   after dot
+    for (i = padStart; i < padEnd; i++) out += '0';      // 000   padding
 
-    /*  Build a string from the output buffer     */
-
-    return String.fromCharCode (...out);
+    return out;
 };
 
-function omitZero (stringNumber: string) {
+function omitZero (stringNumber: string | undefined) {
     try {
         if (stringNumber === undefined || stringNumber === '') {
             return undefined;

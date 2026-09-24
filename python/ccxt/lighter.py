@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lighter import ImplicitAPI
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class lighter(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(lighter, self).describe(), {
             'id': 'lighter',
             'name': 'Lighter',
@@ -32,7 +31,7 @@ class lighter(Exchange, ImplicitAPI):
             'quoteJsonNumbers': False,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -148,7 +147,7 @@ class lighter(Exchange, ImplicitAPI):
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0',
+                'logo': 'https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b',
                 'api': {
                     'root': 'https://mainnet.{hostname}',
                     'public': 'https://mainnet.{hostname}',
@@ -163,7 +162,7 @@ class lighter(Exchange, ImplicitAPI):
                 'doc': 'https://apidocs.lighter.xyz/',
                 'fees': 'https://docs.lighter.xyz/perpetual-futures/fees',
                 'referral': {
-                    'url': 'app.lighter.xyz/?referral=715955W9',
+                    'url': 'https://app.lighter.xyz/?referral=715955W9',
                     'discount': 0.1,  # user gets 10% of the points
                 },
             },
@@ -171,81 +170,96 @@ class lighter(Exchange, ImplicitAPI):
                 'root': {
                     'get': {
                         # root
-                        '': 1,  # status
-                        'info': 1,
+                        '': {'cost': 1},  # status
+                        'info': {'cost': 1},
                     },
                 },
                 'public': {
                     'get': {
                         # account
-                        'account': 1,
-                        'accountsByL1Address': 1,
-                        'apikeys': 1,
+                        'account': {'cost': 1},
+                        'accountsByL1Address': {'cost': 1},
+                        'apikeys': {'cost': 1},
                         # order
-                        'exchangeStats': 1,
-                        'assetDetails': 1,
-                        'orderBookDetails': 1,
-                        'orderBookOrders': 1,
-                        'orderBooks': 1,
-                        'recentTrades': 1,
+                        'exchangeStats': {'cost': 1},
+                        'assetDetails': {'cost': 1},
+                        'orderBookDetails': {'cost': 1},
+                        'orderBookOrders': {'cost': 1},
+                        'orderBooks': {'cost': 1},
+                        'recentTrades': {'cost': 1},
                         # transaction
-                        'blockTxs': 1,
-                        'nextNonce': 1,
-                        'tx': 1,
-                        'txFromL1TxHash': 1,
-                        'txs': 1,
+                        'blockTxs': {'cost': 1},
+                        'nextNonce': {'cost': 1},
+                        'tx': {'cost': 1},
+                        'txFromL1TxHash': {'cost': 1},
+                        'txs': {'cost': 1},
                         # announcement
-                        'announcement': 1,
+                        'announcement': {'cost': 1},
                         # block
-                        'block': 1,
-                        'blocks': 1,
-                        'currentHeight': 1,
+                        'block': {'cost': 1},
+                        'blocks': {'cost': 1},
+                        'currentHeight': {'cost': 1},
                         # candlestick
-                        'candles': 1,
-                        'fundings': 1,
+                        'candles': {'cost': 1},
+                        'markPriceCandles': {'cost': 1},
+                        'fundings': {'cost': 1},
                         # bridge
-                        'fastbridge/info': 1,
+                        'fastbridge/info': {'cost': 1},
                         # funding
-                        'funding-rates': 1,
+                        'funding-rates': {'cost': 1},
                         # info
-                        'withdrawalDelay': 1,
+                        'withdrawalDelay': {'cost': 1},
+                        'partnerStats': {'cost': 1},
+                        'syntheticSpotInfo': {'cost': 1},
+                        'tokenlist': {'cost': 1},
                     },
                     'post': {
                         # transaction
-                        'sendTx': 1,
-                        'sendTxBatch': 1,
+                        'sendTx': {'cost': 1},
+                        'sendTxBatch': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         # account
-                        'accountLimits': 1,
-                        'accountMetadata': 1,
-                        'pnl': 1,
-                        'l1Metadata': 1,
-                        'liquidations': 1,
-                        'positionFunding': 1,
-                        'publicPoolsMetadata': 1,
+                        'accountLimits': {'cost': 1},
+                        'accountMetadata': {'cost': 1},
+                        'pnl': {'cost': 1},
+                        'l1Metadata': {'cost': 1},
+                        'liquidations': {'cost': 1},
+                        'positionFunding': {'cost': 1},
+                        'publicPoolsMetadata': {'cost': 1},
+                        'getMakerOnlyApiKeys': {'cost': 1},
                         # order
-                        'accountActiveOrders': 1,
-                        'accountInactiveOrders': 1,
-                        'export': 1,
-                        'trades': 1,
+                        'accountActiveOrders': {'cost': 1},
+                        'accountInactiveOrders': {'cost': 1},
+                        'accountOrders': {'cost': 1},
+                        'export': {'cost': 1},
+                        'export/historicalTrades': {'cost': 1},
+                        'trades': {'cost': 1},
                         # transaction
-                        'accountTxs': 1,
-                        'deposit/history': 1,
-                        'transfer/history': 1,
-                        'withdraw/history': 1,
+                        'accountTxs': {'cost': 1},
+                        'deposit/history': {'cost': 1},
+                        'transfer/history': {'cost': 1},
+                        'withdraw/history': {'cost': 1},
                         # referral
-                        'referral/points': 1,
+                        'referral/points': {'cost': 1},
                         # info
-                        'transferFeeInfo': 1,
+                        'transferFeeInfo': {'cost': 1},
+                        # rfq
+                        'rfq/get': {'cost': 1},
+                        'rfq/list': {'cost': 1},
                     },
                     'post': {
                         # account
-                        'changeAccountTier': 1,
+                        'changeAccountTier': {'cost': 1},
+                        'setMakerOnlyApiKeys': {'cost': 1},
                         # notification
-                        'notification/ack': 1,
+                        'notification/ack': {'cost': 1},
+                        # rfq
+                        'rfq/create': {'cost': 1},
+                        'rfq/respond': {'cost': 1},
+                        'rfq/update': {'cost': 1},
                     },
                 },
             },
@@ -311,7 +325,7 @@ class lighter(Exchange, ImplicitAPI):
                     '21730': InvalidOrder,  # order status is not pending
                     '21731': InvalidOrder,  # order can not be triggered
                     '21732': InvalidOrder,  # reduce only increases position
-                    '21733': InvalidOrder,  # order price flagged accidental price
+                    '21733': InvalidOrder,  # order price flagged as an accidental price
                     '21734': InvalidOrder,  # limit order price is too far from the mark price
                     '21735': InvalidOrder,  # SL/TP order price is too far from the trigger price
                     '21736': InvalidOrder,  # invalid order trigger status
@@ -382,7 +396,7 @@ class lighter(Exchange, ImplicitAPI):
             },
         })
 
-    def load_account(self, chainId, privateKey, apiKeyIndex: str, accountIndex: str, params={}):
+    def load_account(self, chainId: object, privateKey: object, apiKeyIndex: str, accountIndex: str, params: dict = {}):
         self.init_auth_object(accountIndex, apiKeyIndex)
         cachedAuths = self.safe_dict(self.options['auths'][accountIndex], apiKeyIndex)
         signer = self.safe_value(cachedAuths, 'signer')
@@ -399,7 +413,7 @@ class lighter(Exchange, ImplicitAPI):
         privateKeyIsSet = (self.privateKey is not None) and (self.privateKey != '')
         if privateKeyIsSet and (apiKeyIndex is not None) and (accountIndex is not None):
             if len(self.privateKey) > 66:
-                raise NotSupported(self.id + ' after the latest update(v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
+                raise NotSupported(self.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
             # load lighter library without creating lighter client
             signer = self.load_lighter_library(libraryPath, chainId, '', self.parse_to_int(apiKeyIndex), self.parse_to_int(accountIndex), False)
             self.options['auths'][accountIndex][apiKeyIndex]['signer'] = signer
@@ -432,7 +446,7 @@ class lighter(Exchange, ImplicitAPI):
             return None
         return self.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey']
 
-    def pre_load_lighter_library(self, params={}):
+    def pre_load_lighter_library(self, params: dict = {}) -> bool:
         """
         if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -454,23 +468,23 @@ class lighter(Exchange, ImplicitAPI):
         self.handle_builder_fee_approval(accountIndex, apiKeyIndex)
         return(signer is not None)
 
-    def handle_api_key_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None) -> List[Any]:
+    def handle_api_key_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: object = None) -> list[object]:
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
         if (apiKeyIndex is None) or (apiKeyIndex < 4) or (apiKeyIndex > 254):
-            # apiKeyIndex = self.rand_number(2)
+            # apiKeyIndex = this.randNumber (2);
             apiKeyIndex = 254
             self.options['apiKeyIndex'] = apiKeyIndex  # default to a value to avoid overriding other keys
         return [self.parse_to_int(apiKeyIndex), params]
 
-    def handle_account_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None) -> List[Any]:
+    def handle_account_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: object = None) -> list[object]:
         accountIndex = None
         accountIndex, params = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
         if accountIndex is None:
             walletAddress = self.walletAddress
             if self.privateKey is not None:
                 if len(self.privateKey) > 66:
-                    raise NotSupported(self.id + ' after the latest update(v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
+                    raise NotSupported(self.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey)
             if walletAddress is None or walletAddress == '':
                 raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + '/' + optionName2 + ' parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.')
@@ -507,13 +521,13 @@ class lighter(Exchange, ImplicitAPI):
                 self.options['accountIndex'] = accountIndex
         return [self.parse_to_int(accountIndex), params]
 
-    def create_sub_account(self, name: str, params={}):
+    def create_sub_account(self, name: str, params: dict = {}) -> dict:
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'createSubAccount', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'createSubAccount', 'accountIndex', 'account_index')
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
-        signRaw: dict = {
+        signRaw = {
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -522,13 +536,13 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         txType, txInfo = self.lighter_sign_create_sub_account(signer, self.extend(signRaw, params))
-        request: dict = {
+        request = {
             'tx_type': txType,
             'tx_info': txInfo,
         }
         return self.publicPostSendTx(request)
 
-    def create_auth(self, params={}):
+    def create_auth(self, params: dict = {}) -> Str:
         # don't omit [accountIndex, apiKeyIndex], request may need them
         apiKeyIndex = self.safe_string_2(params, 'apiKeyIndex', 'api_key_index')
         if apiKeyIndex is None:
@@ -543,10 +557,10 @@ class lighter(Exchange, ImplicitAPI):
         cachedAuth = self.safe_dict(accountAuths, apiKeyIndex)
         cachedDeadline = self.safe_integer(cachedAuth, 'deadline')
         if cachedDeadline is not None:
-            minimumDeadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineMinimumRemaining')
+            minimumDeadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineMinimumRemaining', 60)
             if cachedDeadline >= minimumDeadline:
                 return self.safe_string(cachedAuth, 'token')
-        deadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineExpiry')
+        deadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineExpiry', 28800)
         request = {
             'deadline': deadline,
             'api_key_index': self.parse_to_int(apiKeyIndex),
@@ -578,7 +592,7 @@ class lighter(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: object, privateKey: object):
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -586,7 +600,7 @@ class lighter(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_l1_and_prepare_tx_info(self, txInfo, message, privateKey):
+    def sign_l1_and_prepare_tx_info(self, txInfo: object, message: object, privateKey: object):
         hashMessage = self.hash_message(message)
         signature = self.sign_hash(hashMessage, privateKey)
         decTxInfo = self.parse_json(txInfo)
@@ -595,10 +609,10 @@ class lighter(Exchange, ImplicitAPI):
 
     def handle_builder_fee_approval(self, accountIndex: float, apiKeyIndex: float):
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if not buildFee:
+        if buildFee is not True:
             return False
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee:
+        if approvedBuilderFee is True:
             return True
         try:
             builder = self.safe_integer(self.options, 'integratorAccountIndex', 718718)
@@ -610,7 +624,7 @@ class lighter(Exchange, ImplicitAPI):
             self.options['builderFee'] = False
         return True
 
-    def approve_builder_fee(self, builder: float, takerFeeRate: float, makerFeeRate: float, accountIndex: float, apiKeyIndex: float, params: object = {}):
+    def approve_builder_fee(self, builder: float, takerFeeRate: float, makerFeeRate: float, accountIndex: float, apiKeyIndex: float, params: dict = {}) -> dict:
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
@@ -634,7 +648,7 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicPostSendTx(request)
         return response
 
-    def change_api_key(self, params: object = {}):
+    def change_api_key(self, params: dict = {}):
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'changeApiKey', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -669,7 +683,11 @@ class lighter(Exchange, ImplicitAPI):
         self.options['sandboxMode'] = enable
         self.options['chainId'] = 300 if enable else 304
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> List[Any]:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build the request
@@ -687,11 +705,11 @@ class lighter(Exchange, ImplicitAPI):
         """
         if price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)  # default False
+        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)  # default false
         orderType = type.upper()
         market = self.market(symbol)
         orderSide = side.upper()
-        request: dict = {
+        request = {
             'market_index': self.parse_to_int(market['id']),
         }
         nonce = None
@@ -709,11 +727,11 @@ class lighter(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        stopLoss = self.safe_value(params, 'stopLoss')
-        takeProfit = self.safe_value(params, 'takeProfit')
+        stopLoss = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
         hasStopLoss = (stopLoss is not None)
         hasTakeProfit = (takeProfit is not None)
-        isConditional = (stopLossPrice or takeProfitPrice)
+        isConditional = ((stopLossPrice is not None) or (takeProfitPrice is not None))
         isMarketOrder = (orderType == 'MARKET')
         timeInForce = self.safe_string_lower(params, 'timeInForce', 'gtt')
         postOnly = self.is_post_only(isMarketOrder, None, params)
@@ -731,6 +749,7 @@ class lighter(Exchange, ImplicitAPI):
             request['is_ask'] = 1
         if postOnly:
             timeInForceNum = 2
+            orderExpiry = -1
         else:
             if not isMarketOrder:
                 if timeInForce == 'ioc':
@@ -739,7 +758,7 @@ class lighter(Exchange, ImplicitAPI):
                 elif timeInForce == 'gtt':
                     timeInForceNum = 1
                     orderExpiry = -1
-        marketInfo = self.safe_dict(market, 'info')
+        marketInfo = self.safe_dict(market, 'info', {})
         amountStr = None
         priceStr = self.price_to_precision(symbol, price)
         amountScale = self.pow('10', marketInfo['size_decimals'])
@@ -767,7 +786,7 @@ class lighter(Exchange, ImplicitAPI):
         request['order_expiry'] = orderExpiry
         request['order_type'] = orderTypeNum
         request['time_in_force'] = timeInForceNum
-        request['reduce_only'] = 1 if (reduceOnly) else 0
+        request['reduce_only'] = 1 if (reduceOnly is True) else 0
         request['client_order_index'] = clientOrderId
         request['base_amount'] = self.parse_to_int(Precise.string_mul(amountStr, amountScale))
         request['avg_execution_price'] = self.parse_to_int(Precise.string_mul(priceStr, priceScale))
@@ -786,12 +805,12 @@ class lighter(Exchange, ImplicitAPI):
                 triggerOrderSide = 'sell'
             else:
                 triggerOrderSide = 'buy'
-            stopLossOrderTriggerPrice = self.safe_number_n(stopLoss, ['triggerPrice', 'stopPrice'])
+            stopLossOrderTriggerPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'stopPrice')
             stopLossOrderType = self.safe_string(stopLoss, 'type', 'limit')
-            stopLossOrderLimitPrice = self.safe_number_n(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice)
-            takeProfitOrderTriggerPrice = self.safe_number_n(takeProfit, ['triggerPrice', 'stopPrice'])
+            stopLossOrderLimitPrice = self.safe_number_2(stopLoss, 'price', 'stopLossPrice', stopLossOrderTriggerPrice)
+            takeProfitOrderTriggerPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'stopPrice')
             takeProfitOrderType = self.safe_string(takeProfit, 'type', 'limit')
-            takeProfitOrderLimitPrice = self.safe_number_n(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice)
+            takeProfitOrderLimitPrice = self.safe_number_2(takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice)
             # amount should be 0 for child orders
             if stopLoss is not None:
                 orderObj = self.create_order_request(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, self.extend(params, {
@@ -809,7 +828,7 @@ class lighter(Exchange, ImplicitAPI):
                 orders.append(orderObj)
         return orders
 
-    def fetch_nonce(self, accountIndex, apiKeyIndex, params={}):
+    def fetch_nonce(self, accountIndex: object, apiKeyIndex: object, params: dict = {}) -> Int:
         if (accountIndex is None) or (apiKeyIndex is None):
             raise ArgumentsRequired(self.id + ' fetchNonce() requires accountIndex and apiKeyIndex.')
         if 'nonce' in params:
@@ -825,7 +844,48 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
         return self.safe_integer(response, 'nonce')
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def sign_and_create_order(self, method: str, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
+        if self.markets is None:
+            self.load_markets()
+        accountIndex = None
+        accountIndex, params = self.handle_account_index(params, method, 'accountIndex', 'account_index')
+        params['accountIndex'] = accountIndex
+        market = self.market(symbol)
+        groupingType = None
+        groupingType, params = self.handle_option_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        orderRequests = self.create_order_request(symbol, type, side, amount, price, params)
+        totalOrderRequests = len(orderRequests)
+        apiKeyIndex = None
+        order = None
+        if totalOrderRequests > 0:
+            order = orderRequests[0]
+            apiKeyIndex = order['api_key_index']
+        strAccountIndex = self.number_to_string(accountIndex)
+        strApiKeyIndex = self.number_to_string(apiKeyIndex)
+        signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
+        # the nonce could be updated
+        if self.safe_integer(order, 'nonce') is None:
+            order['nonce'] = self.fetch_nonce(accountIndex, apiKeyIndex)
+        txType = None
+        txInfo: dict
+        if totalOrderRequests < 2:
+            txType, txInfo = self.lighter_sign_create_order(signer, order)
+        else:
+            signingPayload = {
+                'grouping_type': groupingType,
+                'orders': orderRequests,
+                'nonce': order['nonce'],
+                'api_key_index': apiKeyIndex,
+                'account_index': accountIndex,
+            }
+            if self.safe_bool(self.options, 'builderFee', True):
+                signingPayload['integrator_account_index'] = order['integrator_account_index']
+                signingPayload['integrator_taker_fee'] = order['integrator_taker_fee']
+                signingPayload['integrator_maker_fee'] = order['integrator_maker_fee']
+            txType, txInfo = self.lighter_sign_create_grouped_orders(signer, signingPayload)
+        return [txType, txInfo, order, market]
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -844,44 +904,7 @@ class lighter(Exchange, ImplicitAPI):
         :param int [params.orderExpiry]: orderExpiry
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        accountIndex = None
-        accountIndex, params = self.handle_account_index(params, 'createOrder', 'accountIndex', 'account_index')
-        params['accountIndex'] = accountIndex
-        market = self.market(symbol)
-        groupingType = None
-        groupingType, params = self.handle_option_and_params(params, 'createOrder', 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
-        orderRequests = self.create_order_request(symbol, type, side, amount, price, params)
-        # for php
-        totalOrderRequests = len(orderRequests)
-        apiKeyIndex = None
-        order = None
-        if totalOrderRequests > 0:
-            order = orderRequests[0]
-            apiKeyIndex = order['api_key_index']
-        strAccountIndex = self.number_to_string(accountIndex)
-        strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
-        # the nonce could be updated
-        if self.safe_integer(order, 'nonce') is None:
-            order['nonce'] = self.fetch_nonce(accountIndex, apiKeyIndex)
-        txType = None
-        txInfo = None
-        if totalOrderRequests < 2:
-            txType, txInfo = self.lighter_sign_create_order(signer, order)
-        else:
-            signingPayload = {
-                'grouping_type': groupingType,
-                'orders': orderRequests,
-                'nonce': order['nonce'],
-                'api_key_index': apiKeyIndex,
-                'account_index': accountIndex,
-            }
-            if self.safe_bool(self.options, 'builderFee', True):
-                signingPayload['integrator_account_index'] = order['integrator_account_index']
-                signingPayload['integrator_taker_fee'] = order['integrator_taker_fee']
-                signingPayload['integrator_maker_fee'] = order['integrator_maker_fee']
-            txType, txInfo = self.lighter_sign_create_grouped_orders(signer, signingPayload)
+        txType, txInfo, order, market = self.sign_and_create_order('createOrder', symbol, type, side, amount, price, params)
         request = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -897,7 +920,7 @@ class lighter(Exchange, ImplicitAPI):
         #
         return self.parse_order(self.deep_extend(response, order), market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         cancels an order and places a new order
         :param str id: order id
@@ -911,7 +934,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.apiKeyIndex]: api key index
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'editOrder', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -920,7 +944,7 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         market = self.market(symbol)
-        marketInfo = self.safe_dict(market, 'info')
+        marketInfo = self.safe_dict(market, 'info', {})
         amountScale = self.pow('10', marketInfo['size_decimals'])
         priceScale = self.pow('10', marketInfo['price_decimals'])
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
@@ -934,7 +958,7 @@ class lighter(Exchange, ImplicitAPI):
         else:
             amountStr = self.amount_to_precision(symbol, amount)
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
-        signRaw: dict = {
+        signRaw = {
             'market_index': self.parse_to_int(market['id']),
             'index': self.parse_to_int(id),
             'base_amount': self.parse_to_int(Precise.string_mul(amountStr, amountScale)),
@@ -943,19 +967,20 @@ class lighter(Exchange, ImplicitAPI):
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
-            'integrator_account_index': self.options['integratorAccountIndex'],
-            'integrator_taker_fee': self.options['integratorTakerFee'],
-            'integrator_maker_fee': self.options['integratorMakerFee'],
         }
+        if self.safe_bool(self.options, 'builderFee', True):
+            signRaw['integrator_account_index'] = self.options['integratorAccountIndex']
+            signRaw['integrator_taker_fee'] = self.options['integratorTakerFee']
+            signRaw['integrator_maker_fee'] = self.options['integratorMakerFee']
         txType, txInfo = self.lighter_sign_modify_order(signer, self.extend(signRaw, params))
-        request: dict = {
+        request = {
             'tx_type': txType,
             'tx_info': txInfo,
         }
         response = self.publicPostSendTx(request)
         return self.parse_order(response, market)
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -981,7 +1006,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1000,7 +1025,7 @@ class lighter(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'timestamp')
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for lighter
 
@@ -1051,10 +1076,10 @@ class lighter(Exchange, ImplicitAPI):
         #                    "market_margin_mode": 0,
         #                    "insurance_fund_account_index": 281474976710655,
         #                    "liquidation_mode": 0,
-        #                    "force_reduce_only": False,
-        #                    "funding_fee_discounts_enabled": True,
+        #                    "force_reduce_only": false,
+        #                    "funding_fee_discounts_enabled": true,
         #                    "trading_hours": "",
-        #                    "hidden": True
+        #                    "hidden": true
         #                },
         #                "strategy_index": 0
         #            }
@@ -1168,7 +1193,7 @@ class lighter(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -1201,7 +1226,7 @@ class lighter(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'asset_details', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'asset_id')
         code = self.safe_currency_code(self.safe_string(rawCurrency, 'symbol'))
         decimals = self.safe_string(rawCurrency, 'decimals')
@@ -1235,7 +1260,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1244,13 +1269,14 @@ class lighter(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market_id': market['id'],
             'limit': 100,
         }
@@ -1325,7 +1351,7 @@ class lighter(Exchange, ImplicitAPI):
         #             "market_margin_mode": 0,
         #             "insurance_fund_account_index": 281474976710654,
         #             "liquidation_mode": 0,
-        #             "force_reduce_only": False,
+        #             "force_reduce_only": false,
         #             "trading_hours": ""
         #         }
         #     }
@@ -1386,7 +1412,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1398,9 +1424,10 @@ class lighter(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTicker() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market_id': market['id'],
         }
         response = self.publicGetOrderBookDetails(self.extend(request, params))
@@ -1441,7 +1468,7 @@ class lighter(Exchange, ImplicitAPI):
         #                     "market_margin_mode": 0,
         #                     "insurance_fund_account_index": 281474976710655,
         #                     "liquidation_mode": 0,
-        #                     "force_reduce_only": False,
+        #                     "force_reduce_only": false,
         #                     "trading_hours": ""
         #                 }
         #             }
@@ -1454,7 +1481,7 @@ class lighter(Exchange, ImplicitAPI):
         first = self.safe_dict(tickers, 0, {})
         return self.parse_ticker(first, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1464,7 +1491,8 @@ class lighter(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetOrderBookDetails(params)
         spotTickers = self.safe_list(response, 'spot_order_book_details', [])
@@ -1472,7 +1500,7 @@ class lighter(Exchange, ImplicitAPI):
         tickers = self.array_concat(spotTickers, swapTickers)
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         # {
         #     "t": 1767700500000,
@@ -1498,7 +1526,7 @@ class lighter(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1510,11 +1538,12 @@ class lighter(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['until'])
@@ -1537,7 +1566,7 @@ class lighter(Exchange, ImplicitAPI):
                 startTs = endTs - self.parse_timeframe(timeframe) * 1000 * limit
             else:
                 startTs = endTs - self.parse_timeframe(timeframe) * 1000 * defaultLimit
-        request: dict = {
+        request = {
             'market_id': market['id'],
             'count_back': 0,
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -1570,7 +1599,7 @@ class lighter(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'c', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "market_id": 0,
@@ -1601,7 +1630,7 @@ class lighter(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the current funding rate for multiple symbols
 
@@ -1611,7 +1640,8 @@ class lighter(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetFundingRates(self.extend(params))
         #
         #     {
@@ -1634,7 +1664,7 @@ class lighter(Exchange, ImplicitAPI):
                 result.append(data[i])
         return self.parse_funding_rates(result, symbols)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1646,12 +1676,13 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot', 'swap', default is 'swap'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchBalance', 'accountIndex', 'account_index')
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        request: dict = {
+        request = {
             'by': self.safe_string(params, 'by', 'index'),
             'value': accountIndex,
         }
@@ -1676,7 +1707,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "account_index": "1077",
         #                 "name": "",
         #                 "description": "",
-        #                 "can_invite": True,
+        #                 "can_invite": true,
         #                 "referral_points_percentage": "",
         #                 "positions": [],
         #                 "assets": [
@@ -1700,7 +1731,7 @@ class lighter(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {'info': response}
+        result = {'info': response}
         accounts = self.safe_list(response, 'accounts', [])
         for i in range(0, len(accounts)):
             account = accounts[i]
@@ -1713,17 +1744,20 @@ class lighter(Exchange, ImplicitAPI):
                     balance = self.safe_dict(result, code, self.account())
                     balance['total'] = Precise.string_add(balance['total'], self.safe_string(asset, 'balance'))
                     balance['used'] = Precise.string_add(balance['used'], self.safe_string(asset, 'locked_balance'))
-                    result[code] = balance
+                    if code is not None:
+                        result[code] = balance
             else:
                 perpBalance = self.safe_dict(result, 'USDC', self.account())
-                perpUSDCTotal = self.safe_string(account, 'collateral')
-                perpUSDCFree = self.safe_string(account, 'available_balance')
-                perpBalance['total'] = Precise.string_add(perpBalance['total'], perpUSDCTotal)
-                perpBalance['free'] = Precise.string_add(perpBalance['free'], perpUSDCFree)
+                perpTotal = self.safe_string(perpBalance, 'total', '0')
+                perpFree = self.safe_string(perpBalance, 'free', '0')
+                perpUSDCTotal = self.safe_string(account, 'collateral', '0')
+                perpUSDCFree = self.safe_string(account, 'available_balance', '0')
+                perpBalance['total'] = Precise.string_add(perpTotal, perpUSDCTotal)
+                perpBalance['free'] = Precise.string_add(perpFree, perpUSDCFree)
                 result['USDC'] = perpBalance
         return self.safe_balance(result)
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on an open position
 
@@ -1738,7 +1772,7 @@ class lighter(Exchange, ImplicitAPI):
         positions = self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1750,10 +1784,11 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.value]: fetch balance value, account index or l1 address
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchPositions', 'accountIndex', 'account_index')
-        request: dict = {
+        request = {
             'by': self.safe_string(params, 'by', 'index'),
             'value': accountIndex,
         }
@@ -1778,7 +1813,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "account_index": 1077,
         #                 "name": "",
         #                 "description": "",
-        #                 "can_invite": True,
+        #                 "can_invite": true,
         #                 "referral_points_percentage": "",
         #                 "positions": [
         #                     {
@@ -1816,7 +1851,7 @@ class lighter(Exchange, ImplicitAPI):
                 allPositions.append(positions[j])
         return self.parse_positions(allPositions, symbols)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "market_id": 0,
@@ -1878,7 +1913,7 @@ class lighter(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def fetch_accounts(self, params={}) -> List[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -1889,10 +1924,11 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.value]: fetch balance value, account index or l1 address
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=accounts-structure>` indexed by the account type
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchAccounts', 'accountIndex', 'account_index')
-        request: dict = {
+        request = {
             'by': self.safe_string(params, 'by', 'index'),
             'value': accountIndex,
         }
@@ -1917,7 +1953,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "account_index": "1077",
         #                 "name": "",
         #                 "description": "",
-        #                 "can_invite": True,
+        #                 "can_invite": true,
         #                 "referral_points_percentage": "",
         #                 "positions": [],
         #                 "assets": [],
@@ -1931,7 +1967,7 @@ class lighter(Exchange, ImplicitAPI):
         accounts = self.safe_list(response, 'accounts', [])
         return self.parse_accounts(accounts, params)
 
-    def parse_account(self, account):
+    def parse_account(self, account: dict) -> Account:
         #
         #     {
         #         "code": "0",
@@ -1948,7 +1984,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "account_index": "1077",
         #         "name": "",
         #         "description": "",
-        #         "can_invite": True,
+        #         "can_invite": true,
         #         "referral_points_percentage": "",
         #         "positions": [],
         #         "assets": [],
@@ -1965,7 +2001,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1980,7 +2016,8 @@ class lighter(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchOpenOrders', 'accountIndex', 'account_index')
         apiKeyIndex = None
@@ -1989,7 +2026,7 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market_id': market['id'],
             'account_index': accountIndex,
         }
@@ -2009,7 +2046,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "price": "2221.60",
         #                 "nonce": 643418,
         #                 "remaining_base_amount": "0.0000",
-        #                 "is_ask": True,
+        #                 "is_ask": true,
         #                 "base_size": 0,
         #                 "base_price": 222160,
         #                 "filled_base_amount": "0.0000",
@@ -2017,7 +2054,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "side": "",
         #                 "type": "market",
         #                 "time_in_force": "immediate-or-cancel",
-        #                 "reduce_only": False,
+        #                 "reduce_only": false,
         #                 "trigger_price": "0.00",
         #                 "order_expiry": 0,
         #                 "status": "canceled-margin-not-allowed",
@@ -2039,7 +2076,7 @@ class lighter(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'orders', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently closed orders
 
@@ -2054,7 +2091,8 @@ class lighter(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchClosedOrders', 'accountIndex', 'account_index')
         apiKeyIndex = None
@@ -2063,7 +2101,7 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market_id': market['id'],
             'account_index': accountIndex,
             'limit': 100,  # required, max 100
@@ -2086,7 +2124,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "price": "2221.60",
         #                 "nonce": 643418,
         #                 "remaining_base_amount": "0.0000",
-        #                 "is_ask": True,
+        #                 "is_ask": true,
         #                 "base_size": 0,
         #                 "base_price": 222160,
         #                 "filled_base_amount": "0.0000",
@@ -2094,7 +2132,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "side": "",
         #                 "type": "market",
         #                 "time_in_force": "immediate-or-cancel",
-        #                 "reduce_only": False,
+        #                 "reduce_only": false,
         #                 "trigger_price": "0.00",
         #                 "order_expiry": 0,
         #                 "status": "canceled-margin-not-allowed",
@@ -2129,7 +2167,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "price": "2221.60",
         #         "nonce": 643418,
         #         "remaining_base_amount": "0.0000",
-        #         "is_ask": True,
+        #         "is_ask": true,
         #         "base_size": 0,
         #         "base_price": 222160,
         #         "filled_base_amount": "0.0000",
@@ -2137,7 +2175,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "side": "",
         #         "type": "market",
         #         "time_in_force": "immediate-or-cancel",
-        #         "reduce_only": False,
+        #         "reduce_only": false,
         #         "trigger_price": "0.00",
         #         "order_expiry": 0,
         #         "status": "canceled-margin-not-allowed",
@@ -2177,7 +2215,7 @@ class lighter(Exchange, ImplicitAPI):
                 stopLossPrice = triggerPrice
             if type.find('take-profit') >= 0:
                 takeProfitPrice = triggerPrice
-        # Try to parse to integer first, because parsing an integer to a string wouldn't result in None
+        # Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         tif = None
         tifAsInteger = self.safe_integer(order, 'time_in_force')
         if tifAsInteger is not None:
@@ -2193,7 +2231,7 @@ class lighter(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'order_id'),
-            'clientOrderId': self.omit_zero(self.safe_string_2(order, 'client_order_id', 'client_order_index')),
+            'clientOrderId': self.omit_zero((self.safe_string_2(order, 'client_order_id', 'client_order_index'))),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -2219,7 +2257,7 @@ class lighter(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'in-progress': 'open',
             'pending': 'open',
             'open': 'open',
@@ -2239,8 +2277,8 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type):
-        types: dict = {
+    def parse_order_type(self, type: object):
+        types = {
             'limit': 'limit',
             'market': 'market',
             'stop-loss': 'market',
@@ -2253,10 +2291,10 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order_type_integer(self, typeInteger):
+    def parse_order_type_integer(self, typeInteger: object):
         if typeInteger is None:
             return None
-        types: dict = {
+        types = {
             '0': 'limit',
             '1': 'market',
             '2': 'stop-loss',
@@ -2269,8 +2307,8 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, str(typeInteger))
 
-    def parse_order_time_in_force(self, tif):
-        timeInForces: dict = {
+    def parse_order_time_in_force(self, tif: object):
+        timeInForces = {
             'immediate-or-cancel': 'IOC',
             'good-till-time': 'GTC',
             'post-only': 'PO',
@@ -2278,15 +2316,15 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, tif, tif)
 
-    def parse_order_time_in_force_integer(self, tifInteger):
-        timeInForces: dict = {
+    def parse_order_time_in_force_integer(self, tifInteger: object):
+        timeInForces = {
             '0': 'immediate-or-cancel',
             '1': 'good-till-time',
             '2': 'post-only',
         }
         return self.safe_string(timeInForces, str(tifInteger))
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2300,7 +2338,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.memo]: hex encoding memo
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'transfer', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -2322,7 +2361,7 @@ class lighter(Exchange, ImplicitAPI):
         memo = self.safe_string(params, 'memo', '0x000000000000000000000000000000')
         params = self.omit(params, ['memo'])
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
-        signRaw: dict = {
+        signRaw = {
             'to_account_index': toAccountIndex,
             'asset_index': self.parse_to_int(currency['id']),
             'from_route_type': fromRouteType,
@@ -2335,14 +2374,14 @@ class lighter(Exchange, ImplicitAPI):
             'account_index': accountIndex,
         }
         txType, txInfo = self.lighter_sign_transfer(signer, self.extend(signRaw, params))
-        request: dict = {
+        request = {
             'tx_type': txType,
             'tx_info': txInfo,
         }
         response = self.publicPostSendTx(request)
         return self.parse_transfer(response)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2356,14 +2395,15 @@ class lighter(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', None, 50)
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchTransfers', 'accountIndex', 'account_index')
-        request: dict = {
+        request = {
             'account_index': accountIndex,
         }
         apiKeyIndex = None
@@ -2440,7 +2480,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2455,7 +2495,8 @@ class lighter(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
@@ -2466,7 +2507,7 @@ class lighter(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires an address parameter')
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchDeposits', 'accountIndex', 'account_index')
-        request: dict = {
+        request = {
             'account_index': accountIndex,
             'l1_address': address,
         }
@@ -2503,7 +2544,7 @@ class lighter(Exchange, ImplicitAPI):
             data[0]['cursor'] = cursor
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2523,8 +2564,9 @@ class lighter(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'cursor', 'cursor', None, 50)
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchWithdrawals', 'accountIndex', 'account_index')
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'account_index': accountIndex,
         }
         apiKeyIndex = None
@@ -2614,7 +2656,7 @@ class lighter(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'failed': 'failed',
             'pending': 'pending',
             'completed': 'ok',
@@ -2622,7 +2664,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2635,7 +2677,8 @@ class lighter(Exchange, ImplicitAPI):
         :param int [params.routeType]: wallet type, 0: perp, 1: spot, default is 0
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'withdraw', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -2653,7 +2696,7 @@ class lighter(Exchange, ImplicitAPI):
         routeType = self.safe_integer(params, 'routeType', 0)  # 0: perp, 1: spot
         params = self.omit(params, 'routeType')
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
-        signRaw: dict = {
+        signRaw = {
             'asset_index': self.parse_to_int(currency['id']),
             'route_type': routeType,
             'amount': amount,
@@ -2662,14 +2705,14 @@ class lighter(Exchange, ImplicitAPI):
             'account_index': accountIndex,
         }
         txType, txInfo = self.lighter_sign_withdraw(signer, self.extend(signRaw, params))
-        request: dict = {
+        request = {
             'tx_type': txType,
             'tx_info': txInfo,
         }
         response = self.publicPostSendTx(request)
         return self.parse_transaction(response)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2684,7 +2727,8 @@ class lighter(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest trade to fetch
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -2696,7 +2740,7 @@ class lighter(Exchange, ImplicitAPI):
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
-        request: dict = {
+        request = {
             'sort_by': 'timestamp',
             'limit': 100,
             'account_index': accountIndex,
@@ -2730,12 +2774,12 @@ class lighter(Exchange, ImplicitAPI):
         #                 "bid_client_id": 0,
         #                 "ask_account_id": 20,
         #                 "bid_account_id": 1077,
-        #                 "is_maker_ask": True,
+        #                 "is_maker_ask": true,
         #                 "block_height": 102070,
         #                 "timestamp": 1766386112741,
         #                 "taker_position_size_before": "0.0000",
         #                 "taker_entry_quote_before": "0.000000",
-        #                 "taker_position_sign_changed": True,
+        #                 "taker_position_sign_changed": true,
         #                 "maker_position_size_before": "-1856.8547",
         #                 "maker_entry_quote_before": "5491685.069325",
         #                 "maker_initial_margin_fraction_before": 500
@@ -2768,12 +2812,12 @@ class lighter(Exchange, ImplicitAPI):
         #         "bid_client_id": 0,
         #         "ask_account_id": 20,
         #         "bid_account_id": 1077,
-        #         "is_maker_ask": True,
+        #         "is_maker_ask": true,
         #         "block_height": 102070,
         #         "timestamp": 1766386112741,
         #         "taker_position_size_before": "0.0000",
         #         "taker_entry_quote_before": "0.000000",
-        #         "taker_position_sign_changed": True,
+        #         "taker_position_sign_changed": true,
         #         "maker_position_size_before": "-1856.8547",
         #         "maker_entry_quote_before": "5491685.069325",
         #         "maker_initial_margin_fraction_before": 500
@@ -2815,7 +2859,7 @@ class lighter(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}) -> dict:
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2834,7 +2878,7 @@ class lighter(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires an marginMode parameter')
         return self.modify_leverage_and_margin_mode(leverage, marginMode, symbol, params)
 
-    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}) -> dict:
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -2848,13 +2892,14 @@ class lighter(Exchange, ImplicitAPI):
         if marginMode is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires an marginMode parameter')
         leverage = None
-        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', 'leverage')
+        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage')
         if leverage is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires an leverage parameter')
         return self.modify_leverage_and_margin_mode(leverage, marginMode, symbol, params)
 
-    def modify_leverage_and_margin_mode(self, leverage: int, marginMode: str, symbol: Str = None, params={}):
-        self.load_markets()
+    def modify_leverage_and_margin_mode(self, leverage: int, marginMode: str, symbol: Str = None, params: dict = {}) -> dict:
+        if self.markets is None:
+            self.load_markets()
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated')
         apiKeyIndex = None
@@ -2868,7 +2913,7 @@ class lighter(Exchange, ImplicitAPI):
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         market = self.market(symbol)
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
-        signRaw: dict = {
+        signRaw = {
             'market_index': self.parse_to_int(market['id']),
             'initial_margin_fraction': self.parse_to_int(10000 / leverage),
             'margin_mode': 0 if (marginMode == 'cross') else 1,  # 0: CROSS, 1: ISOLATED
@@ -2877,37 +2922,29 @@ class lighter(Exchange, ImplicitAPI):
             'account_index': accountIndex,
         }
         txType, txInfo = self.lighter_sign_update_leverage(signer, self.extend(signRaw, params))
-        request: dict = {
+        request = {
             'tx_type': txType,
             'tx_info': txInfo,
         }
         return self.publicPostSendTx(request)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
-        """
-        cancels an open order
-        :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.accountIndex]: account index
-        :param str [params.apiKeyIndex]: api key index
-        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
-        """
-        self.load_markets()
-        apiKeyIndex = None
-        apiKeyIndex, params = self.handle_api_key_index(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index')
+    def sign_and_cancel_order(self, method: str, id: str, symbol: Str = None, params: dict = {}) -> list[object]:
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' ' + method + ' requires a symbol argument')
+        apiKeyIndex = None
+        apiKeyIndex, params = self.handle_api_key_index(params, method, 'apiKeyIndex', 'api_key_index')
+        accountIndex = None
+        accountIndex, params = self.handle_account_index(params, method, 'accountIndex', 'account_index')
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'client_order_index', 'clientOrderId')
         params = self.omit(params, ['client_order_index', 'clientOrderId'])
-        accountIndex = None
-        accountIndex, params = self.handle_account_index(params, 'cancelOrder', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
-        signRaw: dict = {
+        signRaw = {
             'market_index': self.parse_to_int(market['id']),
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
@@ -2918,16 +2955,50 @@ class lighter(Exchange, ImplicitAPI):
         elif id is not None:
             signRaw['order_index'] = self.parse_to_int(id)
         else:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires order id or client order id')
+            raise ArgumentsRequired(self.id + ' ' + method + ' requires order id or client order id')
         txType, txInfo = self.lighter_sign_cancel_order(signer, self.extend(signRaw, params))
-        request: dict = {
+        return [txType, txInfo, market]
+
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountIndex]: account index
+        :param str [params.apiKeyIndex]: api key index
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        txType, txInfo, market = self.sign_and_cancel_order('cancelOrder', id, symbol, params)
+        request = {
             'tx_type': txType,
             'tx_info': txInfo,
         }
         response = self.publicPostSendTx(request)
         return self.parse_order(response, market)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def sign_and_cancel_all_orders(self, method: str, symbol: Str = None, params: dict = {}) -> list[object]:
+        if self.markets is None:
+            self.load_markets()
+        apiKeyIndex = None
+        apiKeyIndex, params = self.handle_api_key_index(params, method, 'apiKeyIndex', 'api_key_index')
+        accountIndex = None
+        accountIndex, params = self.handle_account_index(params, method, 'accountIndex', 'account_index')
+        strAccountIndex = self.number_to_string(accountIndex)
+        strApiKeyIndex = self.number_to_string(apiKeyIndex)
+        signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
+        nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
+        signRaw = {
+            'time_in_force': 0,  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            'time': 0,  # if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        }
+        txType, txInfo = self.lighter_sign_cancel_all_orders(signer, self.extend(signRaw, params))
+        return [txType, txInfo]
+
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -2936,38 +3007,23 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.apiKeyIndex]: api key index
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        apiKeyIndex = None
-        apiKeyIndex, params = self.handle_api_key_index(params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index')
-        accountIndex = None
-        accountIndex, params = self.handle_account_index(params, 'cancelAllOrders', 'accountIndex', 'account_index')
-        strAccountIndex = self.number_to_string(accountIndex)
-        strApiKeyIndex = self.number_to_string(apiKeyIndex)
-        signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
-        nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
-        signRaw: dict = {
-            'time_in_force': 0,  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time': 0,  # if time_in_force is not IMMEDIATE, set the timestamp_ms here
-            'nonce': nonce,
-            'api_key_index': apiKeyIndex,
-            'account_index': accountIndex,
-        }
-        txType, txInfo = self.lighter_sign_cancel_all_orders(signer, self.extend(signRaw, params))
-        request: dict = {
+        txType, txInfo = self.sign_and_cancel_all_orders('cancelAllOrdersWs', symbol, params)
+        request = {
             'tx_type': txType,
             'tx_info': txInfo,
         }
         response = self.publicPostSendTx(request)
         return self.parse_orders([response])
 
-    def cancel_all_orders_after(self, timeout: Int, params={}):
+    def cancel_all_orders_after(self, timeout: Int, params: dict = {}) -> dict:
         """
         dead man's switch, cancel all orders after the given timeout
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the api result
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if (timeout < 300000) or (timeout > 1296000000):
             raise BadRequest(self.id + ' timeout should be between 5 minutes and 15 days.')
         apiKeyIndex = None
@@ -2978,7 +3034,7 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
-        signRaw: dict = {
+        signRaw = {
             'time_in_force': 1,  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
             'time': self.milliseconds() + timeout,  # if time_in_force is not IMMEDIATE, set the timestamp_ms here
             'nonce': nonce,
@@ -2986,14 +3042,14 @@ class lighter(Exchange, ImplicitAPI):
             'account_index': accountIndex,
         }
         txType, txInfo = self.lighter_sign_cancel_all_orders(signer, self.extend(signRaw, params))
-        request: dict = {
+        request = {
             'tx_type': txType,
             'tx_info': txInfo,
         }
         response = self.publicPostSendTx(request)
         return response
 
-    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol
@@ -3001,12 +3057,12 @@ class lighter(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
-        request: dict = {
+        request = {
             'direction': 1,
         }
         return self.set_margin(symbol, amount, self.extend(request, params))
 
-    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -3014,29 +3070,30 @@ class lighter(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
         """
-        request: dict = {
+        request = {
             'direction': 0,
         }
         return self.set_margin(symbol, amount, self.extend(request, params))
 
-    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def set_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
-        :param dict [params]: parameters specific to the bingx api endpoint
+        :param dict [params]: parameters specific to the exchange API endpoint
         :param str [params.accountIndex]: account index
         :param str [params.apiKeyIndex]: api key index
         :returns dict: A `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'setMargin', 'apiKeyIndex', 'api_key_index')
         direction = self.safe_integer(params, 'direction')  # 1 increase margin 0 decrease margin
         if direction is None:
-            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1(increase margin) or 0(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)')
         if not self.in_array(direction, [0, 1]):
-            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1(increase margin) or 0(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)')
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMargin() requires a symbol argument')
         accountIndex = None
@@ -3046,7 +3103,7 @@ class lighter(Exchange, ImplicitAPI):
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
         market = self.market(symbol)
         nonce = self.fetch_nonce(accountIndex, apiKeyIndex, params)
-        signRaw: dict = {
+        signRaw = {
             'market_index': self.parse_to_int(market['id']),
             'usdc_amount': self.parse_to_int(Precise.string_mul(self.pow('10', '6'), self.currency_to_precision('USDC', amount))),
             'direction': direction,
@@ -3055,7 +3112,7 @@ class lighter(Exchange, ImplicitAPI):
             'account_index': accountIndex,
         }
         txType, txInfo = self.lighter_sign_update_margin(signer, self.extend(signRaw, params))
-        request: dict = {
+        request = {
             'tx_type': txType,
             'tx_info': txInfo,
         }
@@ -3077,7 +3134,7 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = None
         if api == 'root':
             url = self.implode_hostname(self.urls['api']['public'])
@@ -3087,7 +3144,7 @@ class lighter(Exchange, ImplicitAPI):
             headers = {
                 'Authorization': self.create_auth(params),
             }
-        if params:
+        if len(params) > 0:
             if method == 'POST':
                 headers = {
                     'Content-Type': 'multipart/form-data',
@@ -3097,8 +3154,8 @@ class lighter(Exchange, ImplicitAPI):
                 url += '?' + self.rawencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     {

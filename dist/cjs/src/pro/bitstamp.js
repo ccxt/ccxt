@@ -14,6 +14,10 @@ class bitstamp extends bitstamp$1["default"] {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'watchBalance': false,
+                'watchFundingRate': true,
+                'watchFundingRates': false,
+                'watchMyTrades': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTrades': true,
@@ -21,6 +25,10 @@ class bitstamp extends bitstamp$1["default"] {
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,
+                'unWatchMyTrades': true,
+                'unWatchOrderBook': true,
+                'unWatchOrders': true,
+                'unWatchTrades': true,
             },
             'urls': {
                 'api': {
@@ -52,10 +60,12 @@ class bitstamp extends bitstamp$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
@@ -70,6 +80,52 @@ class bitstamp extends bitstamp$1["default"] {
         const message = this.extend(request, params);
         const orderbook = await this.watch(url, messageHash, message, messageHash);
         return orderbook.limit();
+    }
+    /**
+     * @method
+     * @name bitstamp#unWatchOrderBook
+     * @description unsubscribe from the order book channel
+     * @see https://www.bitstamp.net/websocket/v2/
+     * @param {string} symbol unified symbol of the market to unwatch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOrderBook(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const channel = 'diff_order_book_' + market['id'];
+        const subHash = 'orderbook:' + symbol;
+        return await this.unWatchChannel(channel, subHash, 'orderbook', [symbol], params);
+    }
+    /**
+     * @ignore
+     * @method
+     * @description sends an unsubscribe request for a channel and cleans the related caches on confirmation
+     * @param {string} channel the raw channel name to unsubscribe from
+     * @param {string} subHash the subscription hash whose future and cache entry should be cleaned
+     * @param {string} topic the cache topic, one of 'trades', 'orderbook', 'orders' or 'myTrades'
+     * @param {string[]} symbols the symbols to clean from the cache
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchChannel(channel, subHash, topic, symbols, params = {}) {
+        const url = this.urls['api']['ws'];
+        const unsubHash = 'unsubscribe:' + channel;
+        const request = {
+            'event': 'bts:unsubscribe',
+            'data': {
+                'channel': channel,
+            },
+        };
+        const subscription = {
+            'subHash': subHash,
+            'topic': topic,
+            'symbols': symbols,
+        };
+        return await this.watch(url, unsubHash, this.extend(request, params), unsubHash, subscription);
     }
     handleOrderBook(client, message) {
         //
@@ -96,13 +152,19 @@ class bitstamp extends bitstamp$1["default"] {
         //     }
         //
         const channel = this.safeString(message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split('_');
         const marketId = this.safeString(parts, 3);
         const symbol = this.safeSymbol(marketId);
         const storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        const nonce = this.safeValue(storedOrderBook, 'nonce');
-        const delta = this.safeValue(message, 'data');
+        const nonce = this.safeInteger(storedOrderBook, 'nonce');
+        const delta = this.safeDict(message, 'data');
         const deltaNonce = this.safeInteger(delta, 'microtimestamp');
+        if (deltaNonce === undefined) {
+            return;
+        }
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -126,8 +188,8 @@ class bitstamp extends bitstamp$1["default"] {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         orderbook['nonce'] = this.safeInteger(delta, 'microtimestamp');
-        const bids = this.safeValue(delta, 'bids', []);
-        const asks = this.safeValue(delta, 'asks', []);
+        const bids = this.safeList(delta, 'bids', []);
+        const asks = this.safeList(delta, 'asks', []);
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
         this.handleBidAsks(storedBids, bids);
@@ -135,7 +197,7 @@ class bitstamp extends bitstamp$1["default"] {
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk(bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             bookSide.storeArray(bidAsk);
         }
     }
@@ -143,8 +205,11 @@ class bitstamp extends bitstamp$1["default"] {
         // we will consider it a fail
         const firstElement = deltas[0];
         const firstElementNonce = this.safeInteger(firstElement, 'microtimestamp');
+        if (firstElementNonce === undefined) {
+            return -1;
+        }
         const nonce = this.safeInteger(orderbook, 'nonce');
-        if (nonce < firstElementNonce) {
+        if ((nonce === undefined) || (nonce < firstElementNonce)) {
             return -1;
         }
         for (let i = 0; i < deltas.length; i++) {
@@ -167,7 +232,9 @@ class bitstamp extends bitstamp$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
@@ -186,6 +253,25 @@ class bitstamp extends bitstamp$1["default"] {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    /**
+     * @method
+     * @name bitstamp#unWatchTrades
+     * @description unsubscribe from the trades channel
+     * @see https://www.bitstamp.net/websocket/v2/
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const channel = 'live_trades_' + market['id'];
+        const subHash = 'trades:' + symbol;
+        return await this.unWatchChannel(channel, subHash, 'trades', [symbol], params);
+    }
     parseWsTrade(trade, market = undefined) {
         //
         //     {
@@ -201,11 +287,14 @@ class bitstamp extends bitstamp$1["default"] {
         //         "price": 6294.77
         //     }
         //
-        const microtimestamp = this.safeInteger(trade, 'microtimestamp');
+        const microtimestamp = this.safeInteger(trade, 'microtimestamp', 0);
         const id = this.safeString(trade, 'id');
         const timestamp = this.parseToInt(microtimestamp / 1000);
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'amount');
+        if (market === undefined) {
+            market = this.safeMarket(undefined, market);
+        }
         const symbol = market['symbol'];
         const sideRaw = this.safeInteger(trade, 'type');
         const side = (sideRaw === 0) ? 'buy' : 'sell';
@@ -247,6 +336,9 @@ class bitstamp extends bitstamp$1["default"] {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const channel = this.safeString(message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split('_');
         const marketId = this.safeString(parts, 2);
         const market = this.safeMarket(marketId);
@@ -265,6 +357,61 @@ class bitstamp extends bitstamp$1["default"] {
     }
     /**
      * @method
+     * @name bitstamp#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.bitstamp.net/websocket/v2/
+     * @param {string} symbol unified market symbol of a swap market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const messageHash = 'fundingRate:' + symbol;
+        const url = this.urls['api']['ws'];
+        const channel = 'funding_rate_' + market['id'];
+        const request = {
+            'event': 'bts:subscribe',
+            'data': {
+                'channel': channel,
+            },
+        };
+        const message = this.extend(request, params);
+        return await this.watch(url, messageHash, message, messageHash);
+    }
+    handleFundingRate(client, message) {
+        //
+        //     {
+        //         "data": {
+        //             "market": "btcusd-perp",
+        //             "mark_price": "77291.94844771",
+        //             "index_price": "77276.264",
+        //             "funding_rate": "0.00013",
+        //             "timestamp": "1789455924",
+        //             "next_funding_time": "1789459200"
+        //         },
+        //         "channel": "funding_rate_btcusd-perp",
+        //         "event": "funding_rate_saved"
+        //     }
+        //
+        const channel = this.safeString(message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
+        const parts = channel.split('_');
+        const marketId = this.safeString(parts, 2);
+        const market = this.safeMarket(marketId);
+        const symbol = market['symbol'];
+        const data = this.safeDict(message, 'data', {});
+        const fundingRate = this.parseFundingRate(data, market);
+        this.fundingRates[symbol] = fundingRate;
+        client.resolve(fundingRate, 'fundingRate:' + symbol);
+    }
+    /**
+     * @method
      * @name bitstamp#watchOrders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -277,7 +424,9 @@ class bitstamp extends bitstamp$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const channel = 'private-my_orders';
@@ -294,33 +443,209 @@ class bitstamp extends bitstamp$1["default"] {
         }
         return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
-    handleOrders(client, message) {
+    /**
+     * @method
+     * @name bitstamp#unWatchOrders
+     * @description unsubscribe from the orders channel
+     * @see https://www.bitstamp.net/websocket/v2/
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOrders(symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' unWatchOrders() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        await this.authenticate();
+        const channel = 'private-my_orders_' + market['id'] + '-' + this.options['userId'];
+        return await this.unWatchChannel(channel, channel, 'orders', [symbol], params);
+    }
+    /**
+     * @method
+     * @name bitstamp#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://www.bitstamp.net/websocket/v2/
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const channel = 'private-my_trades';
+        const messageHash = channel + '_' + market['id'];
+        const subscription = {
+            'symbol': symbol,
+            'limit': limit,
+            'type': channel,
+            'params': params,
+        };
+        const trades = await this.subscribePrivate(subscription, messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit(symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+    }
+    /**
+     * @method
+     * @name bitstamp#unWatchMyTrades
+     * @description unsubscribe from the myTrades channel
+     * @see https://www.bitstamp.net/websocket/v2/
+     * @param {string} symbol unified market symbol of the market the trades were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchMyTrades(symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' unWatchMyTrades() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        await this.authenticate();
+        const channel = 'private-my_trades_' + market['id'] + '-' + this.options['userId'];
+        return await this.unWatchChannel(channel, channel, 'myTrades', [symbol], params);
+    }
+    handleMyTrades(client, message) {
         //
-        // {
-        //     "data":{
-        //        "id":"1463471322288128",
-        //        "id_str":"1463471322288128",
-        //        "order_type":1,
-        //        "datetime":"1646127778",
-        //        "microtimestamp":"1646127777950000",
-        //        "amount":0.05,
-        //        "amount_str":"0.05000000",
-        //        "price":1000,
-        //        "price_str":"1000.00"
-        //     },
-        //     "channel":"private-my_orders_ltcusd-4848701",
-        //     "event": "order_deleted" // field only present for cancelOrder
-        // }
+        //     {
+        //         "data": {
+        //             "id": 635698396,
+        //             "amount": "0.005000",
+        //             "price": "2468.04",
+        //             "microtimestamp": "1789459694223000",
+        //             "fee": "0.04936",
+        //             "order_id": "2050558851342339",
+        //             "trade_account_id": 0,
+        //             "side": "buy"
+        //         },
+        //         "channel": "private-my_trades_ethusdt-4416057",
+        //         "event": "trade",
+        //         "trade_account_id": 0
+        //     }
         //
         const channel = this.safeString(message, 'channel');
-        const order = this.safeValue(message, 'data', {});
+        const data = this.safeDict(message, 'data', {});
+        const subscription = (channel === undefined) ? undefined : this.safeDict(client.subscriptions, channel);
+        const symbol = this.safeString(subscription, 'symbol');
+        if (symbol === undefined) {
+            // cleanUnsubscription deletes the subscription, so a trade frame
+            // arriving after an unsubscribe has no subscription to resolve
+            // the symbol from - drop the message instead of throwing
+            return;
+        }
+        const market = this.market(symbol);
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
+            this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
+        }
+        const stored = this.myTrades;
+        const trade = this.parseWsMyTrade(data, market);
+        stored.append(trade);
+        client.resolve(stored, channel);
+    }
+    parseWsMyTrade(trade, market = undefined) {
+        //
+        //     {
+        //         "id": 635698396,
+        //         "amount": "0.005000",
+        //         "price": "2468.04",
+        //         "microtimestamp": "1789459694223000",
+        //         "fee": "0.04936",
+        //         "order_id": "2050558851342339",
+        //         "trade_account_id": 0,
+        //         "side": "buy"
+        //     }
+        //
+        // the api docs also document id_str, trade_uti, client_order_id,
+        // position_id, is_liquidation and trade_type, which the live feed
+        // omits for plain spot orderbook fills
+        //
+        const microtimestamp = this.safeInteger(trade, 'microtimestamp', 0);
+        const timestamp = this.parseToInt(microtimestamp / 1000);
+        market = this.safeMarket(undefined, market);
+        const symbol = market['symbol'];
+        const feeCost = this.safeString(trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': market['quote'],
+            };
+        }
+        return this.safeTrade({
+            'info': trade,
+            'id': this.safeString2(trade, 'id_str', 'id'),
+            'order': this.safeString(trade, 'order_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': this.safeString(trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString(trade, 'price'),
+            'amount': this.safeString(trade, 'amount'),
+            'cost': undefined,
+            'fee': fee,
+        }, market);
+    }
+    handleOrders(client, message) {
+        //
+        //     {
+        //         "data": {
+        //             "id": "2050558851342339",
+        //             "id_str": "2050558851342339",
+        //             "order_type": 0,
+        //             "order_subtype": 2,
+        //             "datetime": "1789459694",
+        //             "microtimestamp": "1789459694223000",
+        //             "amount": 0.005,
+        //             "amount_str": "0.005000",
+        //             "amount_traded": "0",
+        //             "amount_at_create": "0.005000",
+        //             "price": 999999999,
+        //             "price_str": "999999999.00",
+        //             "is_liquidation": false,
+        //             "trade_account_id": 0
+        //         },
+        //         "channel": "private-my_orders_ethusdt-4416057",
+        //         "event": "order_created", // order_created | order_changed | order_deleted | order_replaced | stop_active | stop_inactive
+        //         "trade_account_id": 0,
+        //         "event_id": "00065b81-0d69-fe98-0000-006902000020",
+        //         "pre_event_id": "00065b81-0d68-6088-0000-006901000020",
+        //         "order_source": "orderbook"
+        //     }
+        //
+        const channel = this.safeString(message, 'channel');
+        const order = this.safeDict(message, 'data', {});
+        const subscription = (channel === undefined) ? undefined : this.safeDict(client.subscriptions, channel);
+        const symbol = this.safeString(subscription, 'symbol');
+        if (symbol === undefined) {
+            // cleanUnsubscription deletes the subscription, so an order frame
+            // arriving after an unsubscribe has no subscription to resolve
+            // the symbol from - drop the message instead of throwing
+            return;
+        }
         const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const stored = this.orders;
-        const subscription = this.safeValue(client.subscriptions, channel);
-        const symbol = this.safeString(subscription, 'symbol');
         const market = this.market(symbol);
         order['event'] = this.safeString(message, 'event');
         const parsed = this.parseWsOrder(order, market);
@@ -329,19 +654,22 @@ class bitstamp extends bitstamp$1["default"] {
     }
     parseWsOrder(order, market = undefined) {
         //
+        // order_deleted after a full fill - amount_str carries the amount
+        // left to be executed, amount_at_create the original order amount
+        //
         //    {
-        //        "id": "1894876776091648",
-        //        "id_str": "1894876776091648",
+        //        "id": "2050558851342339",
+        //        "id_str": "2050558851342339",
         //        "order_type": 0,
-        //        "order_subtype": 0,
-        //        "datetime": "1751451375",
-        //        "microtimestamp": "1751451375070000",
-        //        "amount": 1.1,
-        //        "amount_str": "1.10000000",
-        //        "amount_traded": "0",
-        //        "amount_at_create": "1.10000000",
-        //        "price": 10.23,
-        //        "price_str": "10.23",
+        //        "order_subtype": 2,
+        //        "datetime": "1789459694",
+        //        "microtimestamp": "1789459694223000",
+        //        "amount": 0,
+        //        "amount_str": "0",
+        //        "amount_traded": "0.005000",
+        //        "amount_at_create": "0.005000",
+        //        "price": 2468.04,
+        //        "price_str": "2468.04",
         //        "is_liquidation": false,
         //        "trade_account_id": 0
         //    }
@@ -371,7 +699,17 @@ class bitstamp extends bitstamp$1["default"] {
             timeInForce = 'GTD';
         }
         const price = this.safeString(order, 'price_str');
-        const amount = this.safeString(order, 'amount_str');
+        const amountLeft = this.safeString(order, 'amount_str');
+        const amountAtCreate = this.safeString(order, 'amount_at_create');
+        // amount_str carries the amount left to be executed, while
+        // amount_at_create is the original order amount - older messages
+        // do not carry amount_at_create, so fall back to the old behaviour
+        let amount = amountLeft;
+        let remaining = undefined;
+        if (amountAtCreate !== undefined) {
+            amount = amountAtCreate;
+            remaining = amountLeft;
+        }
         const filled = this.safeString(order, 'amount_traded');
         const event = this.safeString(order, 'event');
         let status = undefined;
@@ -381,6 +719,7 @@ class bitstamp extends bitstamp$1["default"] {
         else if (event === 'order_deleted') {
             status = 'canceled';
         }
+        const triggerPrice = this.safeString(order, 'stop_price');
         const timestamp = this.safeTimestamp(order, 'datetime');
         market = this.safeMarket(undefined, market);
         const symbol = market['symbol'];
@@ -388,7 +727,7 @@ class bitstamp extends bitstamp$1["default"] {
             'info': order,
             'symbol': symbol,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
@@ -397,13 +736,13 @@ class bitstamp extends bitstamp$1["default"] {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
             'filled': filled,
-            'remaining': undefined,
+            'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
@@ -411,6 +750,9 @@ class bitstamp extends bitstamp$1["default"] {
     }
     handleOrderBookSubscription(client, message) {
         const channel = this.safeString(message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split('_');
         const marketId = this.safeString(parts, 3);
         const symbol = this.safeSymbol(marketId);
@@ -430,9 +772,71 @@ class bitstamp extends bitstamp$1["default"] {
         //     }
         //
         const channel = this.safeString(message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         if (channel.indexOf('order_book') > -1) {
             this.handleOrderBookSubscription(client, message);
         }
+    }
+    handleUnsubscriptionStatus(client, message) {
+        //
+        //     {
+        //         "event": "bts:unsubscription_succeeded",
+        //         "channel": "live_trades_btcusd",
+        //         "data": {}
+        //     }
+        //
+        const channel = this.safeString(message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
+        const unsubHash = 'unsubscribe:' + channel;
+        const subscription = this.safeDict(client.subscriptions, unsubHash);
+        if (subscription === undefined) {
+            return;
+        }
+        const subHash = this.safeString(subscription, 'subHash');
+        const topic = this.safeString(subscription, 'topic');
+        const symbols = this.safeList(subscription, 'symbols', []);
+        // the base cleanCache only prunes trades/orderbooks per symbol and
+        // would wipe the whole orders/myTrades cache - rebuild those without
+        // the unsubscribed symbols instead, so the markets that are still
+        // subscribed keep their cached history
+        if ((topic === 'orders') && (this.orders !== undefined)) {
+            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
+            const freshOrdersCache = new Cache.ArrayCacheBySymbolById(limit);
+            this.orders = this.pruneCachedBySymbols(freshOrdersCache, this.orders, symbols);
+        }
+        else if ((topic === 'myTrades') && (this.myTrades !== undefined)) {
+            const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
+            const freshTradesCache = new Cache.ArrayCacheBySymbolById(limit);
+            this.myTrades = this.pruneCachedBySymbols(freshTradesCache, this.myTrades, symbols);
+        }
+        else {
+            this.cleanCache(subscription);
+        }
+        this.cleanUnsubscription(client, subHash, unsubHash);
+    }
+    /**
+     * @ignore
+     * @method
+     * @description refills a fresh ArrayCacheBySymbolById with the entries of the old cache except the given symbols, so unsubscribing one market keeps the cached entries of the others
+     * @param {object} newCache an empty ArrayCacheBySymbolById to fill
+     * @param {object} cache the old ArrayCacheBySymbolById to prune
+     * @param {string[]} symbols the symbols to remove from the cache
+     * @returns {object} the new cache holding the remaining entries
+     */
+    pruneCachedBySymbols(newCache, cache, symbols) {
+        const entries = this.toArray(cache);
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            const entrySymbol = this.safeString(entry, 'symbol');
+            if (!this.inArray(entrySymbol, symbols)) {
+                newCache.append(entry);
+            }
+        }
+        return newCache;
     }
     handleSubject(client, message) {
         //
@@ -473,10 +877,15 @@ class bitstamp extends bitstamp$1["default"] {
         //     }
         //
         const channel = this.safeString(message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const methods = {
             'live_trades': this.handleTrade,
             'diff_order_book': this.handleOrderBook,
+            'funding_rate': this.handleFundingRate,
             'private-my_orders': this.handleOrders,
+            'private-my_trades': this.handleMyTrades,
         };
         const keys = Object.keys(methods);
         for (let i = 0; i < keys.length; i++) {
@@ -496,14 +905,14 @@ class bitstamp extends bitstamp$1["default"] {
         const event = this.safeString(message, 'event');
         if (event === 'bts:error') {
             const feedback = this.id + ' ' + this.json(message);
-            const data = this.safeValue(message, 'data', {});
+            const data = this.safeDict(message, 'data', {});
             const code = this.safeNumber(data, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
         }
         return true;
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         //
@@ -542,6 +951,9 @@ class bitstamp extends bitstamp$1["default"] {
         if (event === 'bts:subscription_succeeded') {
             this.handleSubscriptionStatus(client, message);
         }
+        else if (event === 'bts:unsubscription_succeeded') {
+            this.handleUnsubscriptionStatus(client, message);
+        }
         else {
             this.handleSubject(client, message);
         }
@@ -551,22 +963,59 @@ class bitstamp extends bitstamp$1["default"] {
         const time = this.milliseconds();
         const expiresIn = this.safeInteger(this.options, 'expiresIn');
         if ((expiresIn === undefined) || (time > expiresIn)) {
-            const response = await this.privatePostWebsocketsToken(params);
-            //
-            // {
-            //     "valid_sec":60,
-            //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-            //     "user_id":4848701
-            // }
-            //
-            const sessionToken = this.safeString(response, 'token');
-            if (sessionToken !== undefined) {
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+            // minted by a private REST call and cached in this.options, so N
+            // concurrent subscribePrivate () calls on a cold instance all pass
+            // the staleness check above and each mint their own token - the
+            // tokens are short lived (valid_sec is 60), so this burns the
+            // private endpoint and only the last write survives.
+            // the flight is registered in client.futures and settled through
+            // client.resolve / client.reject, so every mutation of that map
+            // goes through the client's own accessors in the ported languages
+            const messageHash = 'authenticateFlight';
+            const client = this.client('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in this.options
+                await client.future(messageHash);
+                return;
+            }
+            const future = client.reusableFuture(messageHash);
+            try {
+                const response = await this.privatePostWebsocketsToken(params);
+                //
+                // {
+                //     "valid_sec":60,
+                //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+                //     "user_id":4848701
+                // }
+                //
+                const sessionToken = this.safeString(response, 'token');
+                if (sessionToken === undefined) {
+                    // reject the flight BEFORE any cache write: a hollow 200
+                    // used to be swallowed silently, leaving expiresIn stale
+                    // and every caller subscribing with an empty auth field
+                    // until the validity window reopened
+                    throw new errors.AuthenticationError(this.id + ' authenticate() received an empty token');
+                }
                 const userId = this.safeString(response, 'user_id');
                 const validity = this.safeIntegerProduct(response, 'valid_sec', 1000);
                 this.options['expiresIn'] = this.sum(time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
+                // settle the flight: client.resolve deletes the future from
+                // client.futures and wakes every waiter parked on it
+                client.resolve(sessionToken, messageHash);
             }
+            catch (e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash);
+            }
+            // rethrows to the leader and marks the promise handled, so an
+            // alone leader's rejection is never unhandled
+            await future;
         }
     }
     async subscribePrivate(subscription, messageHash, params = {}) {

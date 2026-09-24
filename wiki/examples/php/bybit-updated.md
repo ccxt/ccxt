@@ -1,8 +1,5 @@
-- [Bybit Updated](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -176,5 +173,5 @@ function main($exchange) {
 main($exchange)
 
 ?>
- 
+
 ```

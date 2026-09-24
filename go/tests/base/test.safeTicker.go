@@ -126,4 +126,30 @@ func TestSafeTicker() {
 	Assert(PreciseEqualStr(exchange, result8, "indexPrice", "5.8"))
 	Assert(PreciseEqualStr(exchange, result8, "markPrice", "5.9"))
 	Assert(!ccxt.IsEqual(ccxt.GetValue(result8, "info"), nil))
+	// CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
+	var ticker9 map[string]any = map[string]any{
+		"open":       6,
+		"close":      6,
+		"last":       6,
+		"change":     0,
+		"percentage": 0,
+	}
+	var result9 any = exchange.SafeTicker(ticker9)
+	Assert(PreciseEqualStr(exchange, result9, "change", "0"))
+	Assert(PreciseEqualStr(exchange, result9, "percentage", "0"))
+	Assert(PreciseEqualStr(exchange, result9, "open", "6.0"))
+	Assert(PreciseEqualStr(exchange, result9, "last", "6.0"))
+	// CASE 10 - by open and average, the pair that derives close from average
+	var ticker10 map[string]any = map[string]any{
+		"open":    5,
+		"average": 5.5,
+	}
+	var result10 any = exchange.SafeTicker(ticker10)
+	Assert(PreciseEqualStr(exchange, result10, "close", "6.0"))
+	Assert(PreciseEqualStr(exchange, result10, "last", "6.0"))
+	// the supplied average must survive untouched, and this path deliberately
+	// leaves change and percentage underived - pin that boundary
+	Assert(PreciseEqualStr(exchange, result10, "average", "5.5"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(result10, "change"), nil))
+	Assert(ccxt.IsEqual(ccxt.GetValue(result10, "percentage"), nil))
 }

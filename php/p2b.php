@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\p2b as Exchange;
 
 class p2b extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'p2b',
@@ -141,9 +140,8 @@ class p2b extends Exchange {
                 '1d' => '1d',
             ),
             'urls' => array(
-                'extension' => '.json',
                 'referral' => 'https://p2pb2b.com?referral=ee784c53',
-                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
+                'logo' => 'https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696',
                 'api' => array(
                     'public' => 'https://api.p2pb2b.com/api/v2/public',
                     'private' => 'https://api.p2pb2b.com/api/v2',
@@ -155,28 +153,28 @@ class p2b extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'markets' => 1,
-                        'market' => 1,
-                        'tickers' => 1,
-                        'ticker' => 1,
-                        'book' => 1,
-                        'history' => 1,
-                        'depth/result' => 1,
-                        'market/kline' => 1,
+                        'markets' => array( 'cost' => 1 ),
+                        'market' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'book' => array( 'cost' => 1 ),
+                        'history' => array( 'cost' => 1 ),
+                        'depth/result' => array( 'cost' => 1 ),
+                        'market/kline' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'account/balances' => 1,
-                        'account/balance' => 1,
-                        'order/new' => 1,
-                        'order/cancel' => 1,
-                        'orders' => 1,
-                        'account/market_order_history' => 1,
-                        'account/market_deal_history' => 1,
-                        'account/order' => 1,
-                        'account/order_history' => 1,
-                        'account/executed_history' => 1,
+                        'account/balances' => array( 'cost' => 1 ),
+                        'account/balance' => array( 'cost' => 1 ),
+                        'order/new' => array( 'cost' => 1 ),
+                        'order/cancel' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'account/market_order_history' => array( 'cost' => 1 ),
+                        'account/market_deal_history' => array( 'cost' => 1 ),
+                        'account/order' => array( 'cost' => 1 ),
+                        'account/order_history' => array( 'cost' => 1 ),
+                        'account/executed_history' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -281,93 +279,95 @@ class p2b extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                '1001' => '\\ccxt\\AuthenticationError',    // Key not provided. X-TXC-APIKEY header is missing in the request or empty.
-                '1002' => '\\ccxt\\AuthenticationError',    // Payload not provided. X-TXC-PAYLOAD header is missing in the request or empty.
-                '1003' => '\\ccxt\\AuthenticationError',    // Signature not provided. X-TXC-SIGNATURE header is missing in the request or empty.
-                '1004' => '\\ccxt\\AuthenticationError',    // Nonce and url not provided. Request body is empty. Missing required parameters "request", "nonce".
-                '1005' => '\\ccxt\\AuthenticationError',    // Invalid body data. Invalid request body
-                '1006' => '\\ccxt\\AuthenticationError',    // Nonce not provided. Request body missing required parameter "nonce".
-                '1007' => '\\ccxt\\AuthenticationError',    // Request not provided. Request body missing required parameter "request".
-                '1008' => '\\ccxt\\AuthenticationError',    // Invalid request in body. The passed request parameter does not match the URL of this request.
-                '1009' => '\\ccxt\\AuthenticationError',    // Invalid payload. The transmitted payload value (X-TXC-PAYLOAD header) does not match the request body.
-                '1010' => '\\ccxt\\AuthenticationError',    // This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
-                '1011' => '\\ccxt\\AuthenticationError',    // This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
-                '1012' => '\\ccxt\\AuthenticationError',    // Invalid nonce. Parameter "nonce" is not a number.
-                '1013' => '\\ccxt\\AuthenticationError',    // Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
-                '1014' => '\\ccxt\\AuthenticationError',    // Unauthorized request. Signature value passed (in the X-TXC-SIGNATURE header) does not match the request body.
-                '1015' => '\\ccxt\\AuthenticationError',    // Temporary block. Temporary blocking. There is a cancellation of orders.
-                '1016' => '\\ccxt\\AuthenticationError',    // Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
-                '2010' => '\\ccxt\\BadRequest',             // Currency not found. Currency not found.
-                '2020' => '\\ccxt\\BadRequest',             // Market is not available. Market is not available.
-                '2021' => '\\ccxt\\BadRequest',             // Unknown market. Unknown market.
-                '2030' => '\\ccxt\\BadRequest',             // Order not found. Order not found.
-                '2040' => '\\ccxt\\InsufficientFunds',      // Balance not enough. Insufficient balance.
-                '2050' => '\\ccxt\\BadRequest',             // Amount less than the permitted minimum. Amount less than the permitted minimum.
-                '2051' => '\\ccxt\\BadRequest',             // Amount is greater than the maximum allowed. Amount exceeds the allowed maximum.
-                '2052' => '\\ccxt\\BadRequest',             // Amount step size error. Amount step size error.
-                '2060' => '\\ccxt\\BadRequest',             // Price less than the permitted minimum. Price is less than the permitted minimum.
-                '2061' => '\\ccxt\\BadRequest',             // Price is greater than the maximum allowed. Price exceeds the allowed maximum.
-                '2062' => '\\ccxt\\BadRequest',             // Price pick size error. Price pick size error.
-                '2070' => '\\ccxt\\BadRequest',             // Total less than the permitted minimum. Total less than the permitted minimum.
-                '3001' => '\\ccxt\\BadRequest',             // Validation exception. The given data was invalid.
-                '3020' => '\\ccxt\\BadRequest',             // Invalid currency value. Incorrect parameter, check your request.
-                '3030' => '\\ccxt\\BadRequest',             // Invalid market value. Incorrect "market" parameter, check your request.
-                '3040' => '\\ccxt\\BadRequest',             // Invalid amount value. Incorrect "amount" parameter, check your request.
-                '3050' => '\\ccxt\\BadRequest',             // Invalid price value. Incorrect "price" parameter, check your request.
-                '3060' => '\\ccxt\\BadRequest',             // Invalid limit value. Incorrect "limit" parameter, check your request.
-                '3070' => '\\ccxt\\BadRequest',             // Invalid offset value. Incorrect "offset" parameter, check your request.
-                '3080' => '\\ccxt\\BadRequest',             // Invalid orderId value. Incorrect "orderId" parameter, check your request.
-                '3090' => '\\ccxt\\BadRequest',             // Invalid lastId value. Incorrect "lastId" parameter, check your request.
-                '3100' => '\\ccxt\\BadRequest',             // Invalid side value. Incorrect "side" parameter, check your request.
-                '3110' => '\\ccxt\\BadRequest',             // Invalid interval value. Incorrect "interval" parameter, check your request.
-                '4001' => '\\ccxt\\ExchangeNotAvailable',   // Service temporary unavailable. An unexpected system error has occurred. Try again after a while. If the error persists, please contact support.
-                '6010' => '\\ccxt\\InsufficientFunds',      // Balance not enough. Insufficient balance.
+                'exact' => array(
+                    '1001' => '\\ccxt\\AuthenticationError',    // Key not provided. X-TXC-APIKEY header is missing in the request or empty.
+                    '1002' => '\\ccxt\\AuthenticationError',    // Payload not provided. X-TXC-PAYLOAD header is missing in the request or empty.
+                    '1003' => '\\ccxt\\AuthenticationError',    // Signature not provided. X-TXC-SIGNATURE header is missing in the request or empty.
+                    '1004' => '\\ccxt\\AuthenticationError',    // Nonce and url not provided. Request body is empty. Missing required parameters "request", "nonce".
+                    '1005' => '\\ccxt\\AuthenticationError',    // Invalid body data. Invalid request body
+                    '1006' => '\\ccxt\\AuthenticationError',    // Nonce not provided. Request body missing required parameter "nonce".
+                    '1007' => '\\ccxt\\AuthenticationError',    // Request not provided. Request body missing required parameter "request".
+                    '1008' => '\\ccxt\\AuthenticationError',    // Invalid request in body. The passed request parameter does not match the URL of this request.
+                    '1009' => '\\ccxt\\AuthenticationError',    // Invalid payload. The transmitted payload value (X-TXC-PAYLOAD header) does not match the request body.
+                    '1010' => '\\ccxt\\AuthenticationError',    // This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
+                    '1011' => '\\ccxt\\AuthenticationError',    // This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
+                    '1012' => '\\ccxt\\AuthenticationError',    // Invalid nonce. Parameter "nonce" is not a number.
+                    '1013' => '\\ccxt\\RateLimitExceeded',      // Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
+                    '1014' => '\\ccxt\\AuthenticationError',    // Unauthorized request. Signature value passed (in the X-TXC-SIGNATURE header) does not match the request body.
+                    '1015' => '\\ccxt\\ExchangeNotAvailable',   // Temporary block. Temporary blocking. There is a cancellation of orders.
+                    '1016' => '\\ccxt\\AuthenticationError',    // Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
+                    '2010' => '\\ccxt\\BadRequest',             // Currency not found. Currency not found.
+                    '2020' => '\\ccxt\\BadRequest',             // Market is not available. Market is not available.
+                    '2021' => '\\ccxt\\BadRequest',             // Unknown market. Unknown market.
+                    '2030' => '\\ccxt\\BadRequest',             // Order not found. Order not found.
+                    '2040' => '\\ccxt\\InsufficientFunds',      // Balance not enough. Insufficient balance.
+                    '2050' => '\\ccxt\\BadRequest',             // Amount less than the permitted minimum. Amount less than the permitted minimum.
+                    '2051' => '\\ccxt\\BadRequest',             // Amount is greater than the maximum allowed. Amount exceeds the allowed maximum.
+                    '2052' => '\\ccxt\\BadRequest',             // Amount step size error. Amount step size error.
+                    '2060' => '\\ccxt\\BadRequest',             // Price less than the permitted minimum. Price is less than the permitted minimum.
+                    '2061' => '\\ccxt\\BadRequest',             // Price is greater than the maximum allowed. Price exceeds the allowed maximum.
+                    '2062' => '\\ccxt\\BadRequest',             // Price pick size error. Price pick size error.
+                    '2070' => '\\ccxt\\BadRequest',             // Total less than the permitted minimum. Total less than the permitted minimum.
+                    '3001' => '\\ccxt\\BadRequest',             // Validation exception. The given data was invalid.
+                    '3020' => '\\ccxt\\BadRequest',             // Invalid currency value. Incorrect parameter, check your request.
+                    '3030' => '\\ccxt\\BadRequest',             // Invalid market value. Incorrect "market" parameter, check your request.
+                    '3040' => '\\ccxt\\BadRequest',             // Invalid amount value. Incorrect "amount" parameter, check your request.
+                    '3050' => '\\ccxt\\BadRequest',             // Invalid price value. Incorrect "price" parameter, check your request.
+                    '3060' => '\\ccxt\\BadRequest',             // Invalid limit value. Incorrect "limit" parameter, check your request.
+                    '3070' => '\\ccxt\\BadRequest',             // Invalid offset value. Incorrect "offset" parameter, check your request.
+                    '3080' => '\\ccxt\\BadRequest',             // Invalid orderId value. Incorrect "orderId" parameter, check your request.
+                    '3090' => '\\ccxt\\BadRequest',             // Invalid lastId value. Incorrect "lastId" parameter, check your request.
+                    '3100' => '\\ccxt\\BadRequest',             // Invalid side value. Incorrect "side" parameter, check your request.
+                    '3110' => '\\ccxt\\BadRequest',             // Invalid interval value. Incorrect "interval" parameter, check your request.
+                    '4001' => '\\ccxt\\ExchangeNotAvailable',   // Service temporary unavailable. An unexpected system error has occurred. Try again after a while. If the error persists, please contact support.
+                    '6010' => '\\ccxt\\InsufficientFunds',      // Balance not enough. Insufficient balance.
+                ),
             ),
             'options' => array(
             ),
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
-         * retrieves data on all $markets for bigone
+         * retrieves data on all $markets for p2b
          *
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$markets
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetMarkets ($params);
+        $response = $this->publicGetMarkets($params);
         //
         //    {
-        //        "success" => true,
-        //        "errorCode" => "",
-        //        "message" => "",
-        //        "result" => array(
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": [
         //            {
-        //                "name" => "ETH_BTC",
-        //                "stock" => "ETH",
-        //                "money" => "BTC",
-        //                "precision" => array(
-        //                    "money" => "6",
-        //                    "stock" => "4",
-        //                    "fee" => "4"
-        //                ),
-        //                "limits" => array(
-        //                    "min_amount" => "0.001",
-        //                    "max_amount" => "100000",
-        //                    "step_size" => "0.0001",
-        //                    "min_price" => "0.00001",
-        //                    "max_price" => "922327",
-        //                    "tick_size" => "0.00001",
-        //                    "min_total" => "0.0001"
+        //                "name": "ETH_BTC",
+        //                "stock": "ETH",
+        //                "money": "BTC",
+        //                "precision": {
+        //                    "money": "5",
+        //                    "stock": "4",
+        //                    "fee": "4"
+        //                },
+        //                "limits": {
+        //                    "min_amount": "0.0001",
+        //                    "max_amount": "100000",
+        //                    "step_size": "0.0001",
+        //                    "min_price": "0.00001",
+        //                    "max_price": "922327",
+        //                    "tick_size": "0.00001",
+        //                    "min_total": "0.0001"
         //                }
-        //            ),
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
-        $markets = $this->safe_value($response, 'result', array());
+        $markets = $this->safe_list($response, 'result', array());
         return $this->parse_markets($markets);
     }
 
@@ -377,7 +377,7 @@ class p2b extends Exchange {
         $quoteId = $this->safe_string($market, 'money');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $limits = $this->safe_value($market, 'limits');
+        $limits = $this->safe_dict($market, 'limits');
         $maxAmount = $this->safe_string($limits, 'max_amount');
         $maxPrice = $this->safe_string($limits, 'max_price');
         return array(
@@ -422,7 +422,7 @@ class p2b extends Exchange {
                     'max' => $this->parse_number($this->omit_zero($maxPrice)),
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $this->safe_number($limits, 'min_total'),
                     'max' => null,
                 ),
             ),
@@ -431,48 +431,50 @@ class p2b extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
-         * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#tickers
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
-        $response = $this->publicGetTickers ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetTickers($params);
         //
         //    {
-        //        success => true,
-        //        errorCode => '',
-        //        message => '',
-        //        $result => {
-        //            KNOLIX_BTC => array(
-        //                at => '1699252631',
-        //                ticker => array(
-        //                    bid => '0.0000332',
-        //                    ask => '0.0000333',
-        //                    low => '0.0000301',
-        //                    high => '0.0000338',
-        //                    last => '0.0000333',
-        //                    vol => '15.66',
-        //                    deal => '0.000501828',
-        //                    change => '10.63'
+        //        success: true,
+        //        errorCode: '',
+        //        message: '',
+        //        result: {
+        //            KNOLIX_BTC: {
+        //                at: '1699252631',
+        //                ticker: {
+        //                    bid: '0.0000332',
+        //                    ask: '0.0000333',
+        //                    low: '0.0000301',
+        //                    high: '0.0000338',
+        //                    last: '0.0000333',
+        //                    vol: '15.66',
+        //                    deal: '0.000501828',
+        //                    change: '10.63'
         //                }
-        //            ),
+        //            },
         //            ...
-        //        ),
-        //        cache_time => '1699252631.103631',
-        //        current_time => '1699252644.487566'
+        //        },
+        //        cache_time: '1699252631.103631',
+        //        current_time: '1699252644.487566'
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_tickers($result, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -482,33 +484,35 @@ class p2b extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetTicker ($this->extend($request, $params));
+        $response = $this->publicGetTicker($this->extend($request, $params));
         //
         //    {
-        //        success => true,
-        //        errorCode => '',
-        //        message => '',
-        //        $result => array(
-        //            bid => '0.342',
-        //            ask => '0.3421',
-        //            open => '0.3317',
-        //            high => '0.3499',
-        //            low => '0.3311',
-        //            last => '0.3421',
-        //            volume => '17855383.1',
-        //            deal => '6107478.3423',
-        //            change => '3.13'
-        //        ),
-        //        cache_time => '1699252953.832795',
-        //        current_time => '1699252958.859391'
+        //        success: true,
+        //        errorCode: '',
+        //        message: '',
+        //        result: {
+        //            bid: '0.342',
+        //            ask: '0.3421',
+        //            open: '0.3317',
+        //            high: '0.3499',
+        //            low: '0.3311',
+        //            last: '0.3421',
+        //            volume: '17855383.1',
+        //            deal: '6107478.3423',
+        //            change: '3.13'
+        //        },
+        //        cache_time: '1699252953.832795',
+        //        current_time: '1699252958.859391'
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $timestamp = $this->safe_integer_product($response, 'cache_time', 1000);
         return $this->extend(
             array( 'timestamp' => $timestamp, 'datetime' => $this->iso8601($timestamp) ),
@@ -516,41 +520,41 @@ class p2b extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null) {
+    public function parse_ticker(mixed $ticker, ?array $market = null) {
         //
         // parseTickers
         //
         //    {
-        //        at => '1699252631',
-        //        $ticker => {
-        //            bid => '0.0000332',
-        //            ask => '0.0000333',
-        //            low => '0.0000301',
-        //            high => '0.0000338',
-        //            $last => '0.0000333',
-        //            vol => '15.66',
-        //            deal => '0.000501828',
-        //            change => '10.63'
+        //        at: '1699252631',
+        //        ticker: {
+        //            bid: '0.0000332',
+        //            ask: '0.0000333',
+        //            low: '0.0000301',
+        //            high: '0.0000338',
+        //            last: '0.0000333',
+        //            vol: '15.66',
+        //            deal: '0.000501828',
+        //            change: '10.63'
         //        }
         //    }
         //
         // parseTicker
         //
         //    {
-        //        bid => '0.342',
-        //        ask => '0.3421',
-        //        open => '0.3317',
-        //        high => '0.3499',
-        //        low => '0.3311',
-        //        $last => '0.3421',
-        //        volume => '17855383.1',
-        //        deal => '6107478.3423',
-        //        change => '3.13'
+        //        bid: '0.342',
+        //        ask: '0.3421',
+        //        open: '0.3317',
+        //        high: '0.3499',
+        //        low: '0.3311',
+        //        last: '0.3421',
+        //        volume: '17855383.1',
+        //        deal: '6107478.3423',
+        //        change: '3.13'
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
-        if (is_array($ticker) && array_key_exists('ticker', $ticker)) {
-            $ticker = $this->safe_value($ticker, 'ticker');
+        if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
+            $ticker = $this->safe_dict($ticker, 'ticker');
         }
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
@@ -577,7 +581,7 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -589,9 +593,11 @@ class p2b extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -599,38 +605,38 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetDepthResult ($this->extend($request, $params));
+        $response = $this->publicGetDepthResult($this->extend($request, $params));
         //
         //    {
-        //        "success" => true,
-        //        "errorCode" => "",
-        //        "message" => "",
-        //        "result" => array(
-        //            "asks" => array(
-        //                array(
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "asks": [
+        //                [
         //                    "4.53",     // Price
         //                    "523.95"    // Amount
-        //                ),
+        //                ],
         //                ...
-        //            ),
-        //            "bids" => array(
-        //                array(
+        //            ],
+        //            "bids": [
+        //                [
         //                    "4.51",
         //                    "244.75"
-        //                ),
+        //                ],
         //                ...
-        //            )
-        //        ),
-        //        "cache_time" => 1698733470.469175,
-        //        "current_time" => 1698733470.469274
+        //            ]
+        //        },
+        //        "cache_time": 1698733470.469175,
+        //        "current_time": 1698733470.469274
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $timestamp = $this->safe_integer_product($response, 'current_time', 1000);
         return $this->parse_order_book($result, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -643,7 +649,9 @@ class p2b extends Exchange {
          * @param {int} $params->lastId order id
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $lastId = $this->safe_integer($params, 'lastId');
         if ($lastId === null) {
             throw new ArgumentsRequired($this->id . ' fetchTrades () requires an extra parameter $params["lastId"]');
@@ -656,69 +664,69 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetHistory ($this->extend($request, $params));
+        $response = $this->publicGetHistory($this->extend($request, $params));
         //
         //    {
-        //        success => true,
-        //        errorCode => '',
-        //        message => '',
-        //        $result => array(
-        //            array(
-        //                id => '7495738622',
-        //                type => 'sell',
-        //                time => '1699255565.445418',
-        //                amount => '252.6',
-        //                price => '0.3422'
-        //            ),
+        //        success: true,
+        //        errorCode: '',
+        //        message: '',
+        //        result: [
+        //            {
+        //                id: '7495738622',
+        //                type: 'sell',
+        //                time: '1699255565.445418',
+        //                amount: '252.6',
+        //                price: '0.3422'
+        //            },
         //            ...
-        //        ),
-        //        cache_time => '1699255571.413633',
-        //        current_time => '1699255571.413828'
+        //        ],
+        //        cache_time: '1699255571.413633',
+        //        current_time: '1699255571.413828'
         //    }
         //
         $result = $this->safe_list($response, 'result', array());
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function parse_trade(array $trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
         //    {
-        //        id => '7495738622',
-        //        type => 'sell',
-        //        time => '1699255565.445418',
-        //        amount => '252.6',
-        //        price => '0.3422'
+        //        id: '7495738622',
+        //        type: 'sell',
+        //        time: '1699255565.445418',
+        //        amount: '252.6',
+        //        price: '0.3422'
         //    }
         //
         // fetchMyTrades
         //
         //    {
-        //        "deal_id" => 7450617292,              // Deal id
-        //        "deal_time" => 1698506956.66224,      // Deal execution time
-        //        "deal_order_id" => 171955225751,      // Deal order id
-        //        "opposite_order_id" => 171955110512,  // Opposite order id
-        //        "side" => "sell",                     // Deal side
-        //        "price" => "0.05231",                 // Deal price
-        //        "amount" => "0.002",                  // Deal amount
-        //        "deal" => "0.00010462",               // Total (price * amount)
-        //        "deal_fee" => "0.000000188316",       // Deal fee
-        //        "role" => "taker",                    // Role. Taker or maker
-        //        "isSelfTrade" => false                // is self $trade
+        //        "deal_id": 7450617292,              // Deal id
+        //        "deal_time": 1698506956.66224,      // Deal execution time
+        //        "deal_order_id": 171955225751,      // Deal order id
+        //        "opposite_order_id": 171955110512,  // Opposite order id
+        //        "side": "sell",                     // Deal side
+        //        "price": "0.05231",                 // Deal price
+        //        "amount": "0.002",                  // Deal amount
+        //        "deal": "0.00010462",               // Total (price * amount)
+        //        "deal_fee": "0.000000188316",       // Deal fee
+        //        "role": "taker",                    // Role. Taker or maker
+        //        "isSelfTrade": false                // is self trade
         //    }
         //
         // fetchOrderTrades
         //
         //    {
-        //        "id" => 7429883128,             // Deal id
-        //        "time" => 1698237535.41196,     // Deal execution time
-        //        "fee" => "0.01755848704",       // Deal fee
-        //        "price" => "34293.92",          // Deal price
-        //        "amount" => "0.00032",          // Deal amount
-        //        "dealOrderId" => 171366551416,  // Deal order id
-        //        "role" => 1,                    // Deal role (1 - maker, 2 - taker)
-        //        "deal" => "10.9740544"          // Total (price * amount)
+        //        "id": 7429883128,             // Deal id
+        //        "time": 1698237535.41196,     // Deal execution time
+        //        "fee": "0.01755848704",       // Deal fee
+        //        "price": "34293.92",          // Deal price
+        //        "amount": "0.00032",          // Deal amount
+        //        "dealOrderId": 171366551416,  // Deal order id
+        //        "role": 1,                    // Deal role (1 - maker, 2 - taker)
+        //        "deal": "10.9740544"          // Total (price * amount)
         //    }
         //
         $timestamp = $this->safe_integer_product_2($trade, 'time', 'deal_time', 1000);
@@ -742,13 +750,13 @@ class p2b extends Exchange {
             'amount' => $this->safe_string($trade, 'amount'),
             'cost' => $this->safe_string($trade, 'deal'),
             'fee' => array(
-                'currency' => $market['quote'],
+                'currency' => $this->safe_string($market, 'quote'),
                 'cost' => $this->safe_string_2($trade, 'fee', 'deal_fee'),
             ),
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -760,9 +768,11 @@ class p2b extends Exchange {
          * @param {int} [$limit] 1-500, default=50
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->offset] default=0, with this value the last candles are returned
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -771,14 +781,14 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetMarketKline ($this->extend($request, $params));
+        $response = $this->publicGetMarketKline($this->extend($request, $params));
         //
         //    {
-        //        success => true,
-        //        errorCode => '',
-        //        message => '',
-        //        $result => array(
-        //            array(
+        //        success: true,
+        //        errorCode: '',
+        //        message: '',
+        //        result: [
+        //            [
         //                1699253400,       // Kline open time
         //                '0.3429',         // Open price
         //                '0.3427',         // Close price
@@ -787,20 +797,20 @@ class p2b extends Exchange {
         //                '1900.4',         // Volume for stock currency
         //                '651.46278',      // Volume for money currency
         //                'ADA_USDT'        // Market name
-        //            ),
+        //            ],
         //            ...
-        //        ),
-        //        cache_time => '1699256375.030292',
-        //        current_time => '1699256375.030494'
+        //        ],
+        //        cache_time: '1699256375.030292',
+        //        current_time: '1699256375.030494'
         //    }
         //
         $result = $this->safe_list($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //    array(
+        //    [
         //        1699253400,       // Kline open time
         //        '0.3429',         // Open price
         //        '0.3427',         // Close price
@@ -809,7 +819,7 @@ class p2b extends Exchange {
         //        '1900.4',         // Volume for stock currency
         //        '651.46278',      // Volume for money currency
         //        'ADA_USDT'        // Market name
-        //    ),
+        //    ],
         //
         return array(
             $this->safe_integer_product($ohlcv, 0, 1000),
@@ -821,7 +831,7 @@ class p2b extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -830,39 +840,41 @@ class p2b extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = $this->privatePostAccountBalances ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privatePostAccountBalances($params);
         //
         //    {
-        //        "success" => true,
-        //        "errorCode" => "",
-        //        "message" => "",
-        //        "result" => {
-        //            "USDT" => array(
-        //              "available" => "71.81328046",
-        //              "freeze" => "10.46103091"
-        //            ),
-        //            "BTC" => {
-        //              "available" => "0.00135674",
-        //              "freeze" => "0.00020003"
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "USDT": {
+        //              "available": "71.81328046",
+        //              "freeze": "10.46103091"
+        //            },
+        //            "BTC": {
+        //              "available": "0.00135674",
+        //              "freeze": "0.00020003"
         //            }
         //        }
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_balance($result);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance(mixed $response): array {
         //
         //    {
-        //        "USDT" => array(
-        //            "available" => "71.81328046",
-        //            "freeze" => "10.46103091"
-        //        ),
-        //        "BTC" => {
-        //            "available" => "0.00135674",
-        //            "freeze" => "0.00020003"
+        //        "USDT": {
+        //            "available": "71.81328046",
+        //            "freeze": "10.46103091"
+        //        },
+        //        "BTC": {
+        //            "available": "0.00135674",
+        //            "freeze": "0.00020003"
         //        }
         //    }
         //
@@ -885,7 +897,7 @@ class p2b extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -899,7 +911,9 @@ class p2b extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($type === 'market') {
             throw new BadRequest($this->id . ' createOrder () can only accept orders with $type "limit"');
         }
@@ -910,26 +924,26 @@ class p2b extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'price' => $this->price_to_precision($symbol, $price),
         );
-        $response = $this->privatePostOrderNew ($this->extend($request, $params));
+        $response = $this->privatePostOrderNew($this->extend($request, $params));
         //
         //    {
-        //        "success" => true,
-        //        "errorCode" => "",
-        //        "message" => "",
-        //        "result" => {
-        //            "orderId" => 171906478744,          // Order id
-        //            "market" => "ETH_BTC",              // Market name
-        //            "price" => "0.04348",               // Price
-        //            "side" => "buy",                    // Side
-        //            "type" => "limit",                  // Order $type
-        //            "timestamp" => 1698484861.746517,   // Order creation time
-        //            "dealMoney" => "0",                 // Filled total
-        //            "dealStock" => "0",                 // Filled $amount
-        //            "amount" => "0.0277",               // Original $amount
-        //            "takerFee" => "0.002",              // taker fee
-        //            "makerFee" => "0.002",              // maker fee
-        //            "left" => "0.0277",                 // Unfilled $amount
-        //            "dealFee" => "0"                    // Filled fee
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "orderId": 171906478744,          // Order id
+        //            "market": "ETH_BTC",              // Market name
+        //            "price": "0.04348",               // Price
+        //            "side": "buy",                    // Side
+        //            "type": "limit",                  // Order type
+        //            "timestamp": 1698484861.746517,   // Order creation time
+        //            "dealMoney": "0",                 // Filled total
+        //            "dealStock": "0",                 // Filled amount
+        //            "amount": "0.0277",               // Original amount
+        //            "takerFee": "0.002",              // taker fee
+        //            "makerFee": "0.002",              // maker fee
+        //            "left": "0.0277",                 // Unfilled amount
+        //            "dealFee": "0"                    // Filled fee
         //        }
         //    }
         //
@@ -937,7 +951,7 @@ class p2b extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -951,32 +965,34 @@ class p2b extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'orderId' => $id,
         );
-        $response = $this->privatePostOrderCancel ($this->extend($request, $params));
+        $response = $this->privatePostOrderCancel($this->extend($request, $params));
         //
         //    {
-        //        "success" => true,
-        //        "errorCode" => "",
-        //        "message" => "",
-        //        "result" => {
-        //            "orderId" => 171906478744,
-        //            "market" => "ETH_BTC",
-        //            "price" => "0.04348",
-        //            "side" => "buy",
-        //            "type" => "limit",
-        //            "timestamp" => 1698484861.746517,
-        //            "dealMoney" => "0",
-        //            "dealStock" => "0",
-        //            "amount" => "0.0277",
-        //            "takerFee" => "0.002",
-        //            "makerFee" => "0.002",
-        //            "left" => "0.0277",
-        //            "dealFee" => "0"
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "orderId": 171906478744,
+        //            "market": "ETH_BTC",
+        //            "price": "0.04348",
+        //            "side": "buy",
+        //            "type": "limit",
+        //            "timestamp": 1698484861.746517,
+        //            "dealMoney": "0",
+        //            "dealStock": "0",
+        //            "amount": "0.0277",
+        //            "takerFee": "0.002",
+        //            "makerFee": "0.002",
+        //            "left": "0.0277",
+        //            "dealFee": "0"
         //        }
         //    }
         //
@@ -984,7 +1000,7 @@ class p2b extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1002,7 +1018,9 @@ class p2b extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders () requires the $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1010,37 +1028,37 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostOrders ($this->extend($request, $params));
+        $response = $this->privatePostOrders($this->extend($request, $params));
         //
         //    {
-        //        "success" => true,
-        //        "errorCode" => "",
-        //        "message" => "",
-        //        "result" => array(
-        //            array(
-        //                "orderId" => 171913325964,
-        //                "market" => "ETH_BTC",
-        //                "price" => "0.06534",
-        //                "side" => "sell",
-        //                "type" => "limit",
-        //                "timestamp" => 1698487986.836821,
-        //                "dealMoney" => "0",
-        //                "dealStock" => "0",
-        //                "amount" => "0.0018",
-        //                "takerFee" => "0.0018",
-        //                "makerFee" => "0.0016",
-        //                "left" => "0.0018",
-        //                "dealFee" => "0"
-        //            ),
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": [
+        //            {
+        //                "orderId": 171913325964,
+        //                "market": "ETH_BTC",
+        //                "price": "0.06534",
+        //                "side": "sell",
+        //                "type": "limit",
+        //                "timestamp": 1698487986.836821,
+        //                "dealMoney": "0",
+        //                "dealStock": "0",
+        //                "amount": "0.0018",
+        //                "takerFee": "0.0018",
+        //                "makerFee": "0.0016",
+        //                "left": "0.0018",
+        //                "dealFee": "0"
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         $result = $this->safe_list($response, 'result', array());
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -1056,7 +1074,9 @@ class p2b extends Exchange {
          * @param {int} [$params->offset] 0-10000, default=0
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->safe_market($symbol);
         $request = array(
             'orderId' => $id,
@@ -1064,36 +1084,36 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostAccountOrder ($this->extend($request, $params));
+        $response = $this->privatePostAccountOrder($this->extend($request, $params));
         //
         //    {
-        //        "success" => true,
-        //        "errorCode" => "",
-        //        "message" => "",
-        //        "result" => {
-        //            "offset" => 0,
-        //            "limit" => 50,
-        //            "records" => array(
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "offset": 0,
+        //            "limit": 50,
+        //            "records": [
         //                {
-        //                    "id" => 7429883128,             // Deal $id
-        //                    "time" => 1698237535.41196,     // Deal execution time
-        //                    "fee" => "0.01755848704",       // Deal fee
-        //                    "price" => "34293.92",          // Deal price
-        //                    "amount" => "0.00032",          // Deal amount
-        //                    "dealOrderId" => 171366551416,  // Deal order $id
-        //                    "role" => 1,                    // Deal role (1 - maker, 2 - taker)
-        //                    "deal" => "10.9740544"          // Total (price * amount)
+        //                    "id": 7429883128,             // Deal id
+        //                    "time": 1698237535.41196,     // Deal execution time
+        //                    "fee": "0.01755848704",       // Deal fee
+        //                    "price": "34293.92",          // Deal price
+        //                    "amount": "0.00032",          // Deal amount
+        //                    "dealOrderId": 171366551416,  // Deal order id
+        //                    "role": 1,                    // Deal role (1 - maker, 2 - taker)
+        //                    "deal": "10.9740544"          // Total (price * amount)
         //                }
-        //            )
+        //            ]
         //        }
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $records = $this->safe_list($result, 'records', array());
         return $this->parse_trades($records, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between $since and $params["until"] cannot be longer than 24 hours
          *
@@ -1112,7 +1132,9 @@ class p2b extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, 'until');
         if ($until === null) {
@@ -1139,41 +1161,41 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostAccountMarketDealHistory ($this->extend($request, $params));
+        $response = $this->privatePostAccountMarketDealHistory($this->extend($request, $params));
         //
         //    {
-        //        "success" => true,
-        //        "errorCode" => "",
-        //        "message" => "",
-        //        "result" => {
-        //            "total" => 2,                                 // Total records in the queried range
-        //            "deals" => array(
-        //                array(
-        //                    "deal_id" => 7450617292,              // Deal id
-        //                    "deal_time" => 1698506956.66224,      // Deal execution time
-        //                    "deal_order_id" => 171955225751,      // Deal order id
-        //                    "opposite_order_id" => 171955110512,  // Opposite order id
-        //                    "side" => "sell",                     // Deal side
-        //                    "price" => "0.05231",                 // Deal price
-        //                    "amount" => "0.002",                  // Deal amount
-        //                    "deal" => "0.00010462",               // Total (price * amount)
-        //                    "deal_fee" => "0.000000188316",       // Deal fee
-        //                    "role" => "taker",                    // Role. Taker or maker
-        //                    "isSelfTrade" => false                // is self trade
-        //                ),
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "total": 2,                                 // Total records in the queried range
+        //            "deals": [
+        //                {
+        //                    "deal_id": 7450617292,              // Deal id
+        //                    "deal_time": 1698506956.66224,      // Deal execution time
+        //                    "deal_order_id": 171955225751,      // Deal order id
+        //                    "opposite_order_id": 171955110512,  // Opposite order id
+        //                    "side": "sell",                     // Deal side
+        //                    "price": "0.05231",                 // Deal price
+        //                    "amount": "0.002",                  // Deal amount
+        //                    "deal": "0.00010462",               // Total (price * amount)
+        //                    "deal_fee": "0.000000188316",       // Deal fee
+        //                    "role": "taker",                    // Role. Taker or maker
+        //                    "isSelfTrade": false                // is self trade
+        //                },
         //                ...
-        //            )
+        //            ]
         //        }
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $deals = $this->safe_list($result, 'deals', array());
         return $this->parse_trades($deals, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetches information on multiple closed $orders made by the user, the time between $since and $params["untnil"] cannot be longer than 24 hours
+         * fetches information on multiple closed $orders made by the user, the time between $since and $params["until"] cannot be longer than 24 hours
          *
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$orders-history-by-$market
          *
@@ -1187,7 +1209,9 @@ class p2b extends Exchange {
          * @param {int} [$params->offset] 0-10000, default=0
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, 'until');
         $market = null;
@@ -1219,34 +1243,34 @@ class p2b extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privatePostAccountOrderHistory ($this->extend($request, $params));
+        $response = $this->privatePostAccountOrderHistory($this->extend($request, $params));
         //
         //    {
-        //        "success" => true,
-        //        "errorCode" => "",
-        //        "message" => "",
-        //        "result" => {
-        //            "LTC_USDT" => array(
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "LTC_USDT": [
         //                {
-        //                    "id" => 173985944395,
-        //                    "amount" => "0.1",
-        //                    "price" => "73",
-        //                    "type" => "limit",
-        //                    "side" => "sell",
-        //                    "ctime" => 1699436194.390845,
-        //                    "ftime" => 1699436194.390847,
-        //                    "market" => "LTC_USDT",
-        //                    "takerFee" => "0.002",
-        //                    "makerFee" => "0.002",
-        //                    "dealFee" => "0.01474",
-        //                    "dealStock" => "0.1",
-        //                    "dealMoney" => "7.37"
+        //                    "id": 173985944395,
+        //                    "amount": "0.1",
+        //                    "price": "73",
+        //                    "type": "limit",
+        //                    "side": "sell",
+        //                    "ctime": 1699436194.390845,
+        //                    "ftime": 1699436194.390847,
+        //                    "market": "LTC_USDT",
+        //                    "takerFee": "0.002",
+        //                    "makerFee": "0.002",
+        //                    "dealFee": "0.01474",
+        //                    "dealStock": "0.1",
+        //                    "dealMoney": "7.37"
         //                }
-        //            )
+        //            ]
         //        }
         //    }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         $orders = array();
         $keys = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1263,37 +1287,37 @@ class p2b extends Exchange {
         // cancelOrder, fetchOpenOrders, createOrder
         //
         //    {
-        //        "orderId" => 171906478744,
-        //        "market" => "ETH_BTC",
-        //        "price" => "0.04348",
-        //        "side" => "buy",
-        //        "type" => "limit",
-        //        "timestamp" => 1698484861.746517,
-        //        "dealMoney" => "0",
-        //        "dealStock" => "0",
-        //        "amount" => "0.0277",
-        //        "takerFee" => "0.002",
-        //        "makerFee" => "0.002",
-        //        "left" => "0.0277",
-        //        "dealFee" => "0"
+        //        "orderId": 171906478744,
+        //        "market": "ETH_BTC",
+        //        "price": "0.04348",
+        //        "side": "buy",
+        //        "type": "limit",
+        //        "timestamp": 1698484861.746517,
+        //        "dealMoney": "0",
+        //        "dealStock": "0",
+        //        "amount": "0.0277",
+        //        "takerFee": "0.002",
+        //        "makerFee": "0.002",
+        //        "left": "0.0277",
+        //        "dealFee": "0"
         //    }
         //
         // fetchClosedOrders
         //
         //    {
-        //        "id" => 171366547790,           // Order id
-        //        "amount" => "0.00032",          // Original amount
-        //        "price" => "34293.92",          // Order price
-        //        "type" => "limit",              // Order type
-        //        "side" => "sell",               // Order side
-        //        "ctime" => 1698237533.497241,   // Order creation time
-        //        "ftime" => 1698237535.41196,    // Order fill time
-        //        "market" => "BTC_USDT",         // Market name
-        //        "takerFee" => "0.0018",         // Taker fee
-        //        "makerFee" => "0.0016",         // Market fee
-        //        "dealFee" => "0.01755848704",   // Deal fee
-        //        "dealStock" => "0.00032",       // Filled amount
-        //        "dealMoney" => "10.9740544"     // Filled total
+        //        "id": 171366547790,           // Order id
+        //        "amount": "0.00032",          // Original amount
+        //        "price": "34293.92",          // Order price
+        //        "type": "limit",              // Order type
+        //        "side": "sell",               // Order side
+        //        "ctime": 1698237533.497241,   // Order creation time
+        //        "ftime": 1698237535.41196,    // Order fill time
+        //        "market": "BTC_USDT",         // Market name
+        //        "takerFee": "0.0018",         // Taker fee
+        //        "makerFee": "0.0016",         // Market fee
+        //        "dealFee": "0.01755848704",   // Deal fee
+        //        "dealStock": "0.00032",       // Filled amount
+        //        "dealMoney": "10.9740544"     // Filled total
         //    }
         //
         $timestamp = $this->safe_integer_product_2($order, 'timestamp', 'ctime', 1000);
@@ -1327,11 +1351,11 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         }
@@ -1350,16 +1374,26 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
-        if ($code === 400) {
-            $error = $this->safe_value($response, 'error');
-            $errorCode = $this->safe_string($error, 'code');
-            $feedback = $this->id . ' ' . $this->json($response);
-            $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
-            // fallback to default $error handler
+        //
+        //     {"success":false,"errorCode":2021,"message":"Unknown market.","result":[]}
+        //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
+        //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
+        //
+        $success = $this->safe_bool($response, 'success', true);
+        if ($success !== true) {
+            $errorCode = $this->safe_string($response, 'errorCode');
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $codeAsString = (string) $code;
+            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
+                throw new ExchangeError($feedback);
+            }
+            // unmapped codes on the remaining error statuses fall through to the default http-status handler
         }
         return null;
     }

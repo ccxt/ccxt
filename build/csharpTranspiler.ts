@@ -1,28 +1,35 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { setupCsharpPrinter } from './csharp-worker.js'
+// the positional core-argument type tables live in the classifier module so the pooled
+// workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
+import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
+import os from 'os'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
-import { promisify } from 'util';
+import {Transpiler as OldTranspiler } from "./transpile.js";
+import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
+import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 
 ansi.nice
 
 type dict = { [key: string]: string }
 
-const promisedWriteFile = promisify (fs.writeFile);
-
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
+const wsIds: string[] = exchanges.ws || []
+const predictionIds: string[] = exchanges.prediction || []
+const predictionWsIds: string[] = exchanges.predictionWs || []
 
 // @ts-expect-error
 const metaUrl = import.meta.url
@@ -34,8 +41,10 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
+    // overwriteFile() already opens+truncates+writes the file; the extra
+    // fs.writeFileSync below wrote every generated file a second time
+    // (~50 MB of redundant I/O per full build)
     overwriteFile (path, content);
-    writeFile (path, content);
 }
 
 // this is necessary because for some reason
@@ -48,13 +57,1322 @@ if (platform === 'win32') {
     }
 }
 
+// `callDynamically(x, "resolve"/"reject", ...)` whose receiver class the file itself declares —
+// `Future f = ...` / `WebSocketClient c = ...`, an `x as Future|WebSocketClient` receiver, or a read
+// of the ws client's `futures` map (`IDictionary<string, Future>`, cs/ccxt/ws/Client.cs) — binds the
+// same method the reflective dispatch resolves, so the direct call is emitted instead. Only the
+// methods those two hand-written classes declare, and only when the argument count binds the
+// signature; every other receiver keeps the helper.
+const WS_DECLARED_CLASSES_TYPED: dict = {
+    'Future': 'Future',
+    'Exchange.Future': 'Future',
+    'ccxt.Exchange.Future': 'Future',
+    'WebSocketClient': 'WebSocketClient',
+    'Exchange.WebSocketClient': 'WebSocketClient',
+    'ccxt.Exchange.WebSocketClient': 'WebSocketClient',
+}
+// class -> method -> rewritable argument counts, from the hand-written declarations
+// (cs/ccxt/ws/Future.cs: `resolve(object data = null)`, `reject(object data)`;
+// cs/ccxt/ws/Client.cs: `resolve(object content, object messageHash2)`, `reject(object content,
+// object messageHash2 = null)`). An empty `new object[] {}` stays: the helper coerces it to {null}.
+const WS_DECLARED_METHODS_TYPED: { [cls: string]: { [method: string]: number[] } } = {
+    'Future': { 'resolve': [1, 1], 'reject': [1, 1] },
+    'WebSocketClient': { 'resolve': [2, 2], 'reject': [1, 2] },
+}
+const CSHARP_DECLARATION_RE = /^[ \t]*([A-Za-z_][\w.]*(?:<[^=;{}]*>)?)[ \t]+(\w+)[ \t]*=[ \t]*(.+?);?[ \t]*$/gm
+// a value read out of the ws client's `futures` map is a Future by the field's declared type
+const CSHARP_FUTURES_READ_RE = /^(?:this\.)?(?:safeValue|getValue)\([^,]*\.futures,/
+
+function csharpClassOfDeclaration (content: string, receiver: string, callAt: number): { cls: string, cast: boolean } | undefined {
+    CSHARP_DECLARATION_RE.lastIndex = 0
+    let declared: { cls: string, cast: boolean } | undefined = undefined
+    let declarationCount = 0
+    let match
+    while ((match = CSHARP_DECLARATION_RE.exec (content)) !== null) {
+        if (match[2] !== receiver) {
+            continue
+        }
+        declarationCount += 1
+        if (match.index >= callAt) {
+            continue
+        }
+        const declaredClass = WS_DECLARED_CLASSES_TYPED[match[1]]
+        if (declaredClass !== undefined) {
+            declared = { cls: declaredClass, cast: false }
+        } else if (CSHARP_FUTURES_READ_RE.test (match[3])) {
+            declared = { cls: 'Future', cast: true }
+        } else {
+            declared = undefined
+        }
+    }
+    // any `receiver = ...` beyond its own declarations is a rebind that could box another class (D2)
+    const assignments = (content.match (new RegExp ('\\b' + receiver + '\\s*=(?![=>])', 'g')) || []).length
+    if (assignments !== declarationCount) {
+        return undefined
+    }
+    return declared
+}
+
+function csharpBalancedBraceEnd (content: string, openAt: number): number {
+    let depth = 0
+    let inString = false
+    let quote = ''
+    for (let i = openAt; i < content.length; i++) {
+        const c = content[i]
+        if (inString) {
+            if (c === '\\') {
+                i += 1
+            } else if (c === quote) {
+                inString = false
+            }
+            continue
+        }
+        if (c === '"' || c === "'") {
+            inString = true
+            quote = c
+        } else if (c === '{') {
+            depth += 1
+        } else if (c === '}') {
+            depth -= 1
+            if (depth === 0) {
+                return i
+            }
+        }
+    }
+    return -1
+}
+
+function csharpArgumentCount (args: string): number {
+    if (args.trim () === '') {
+        return 0
+    }
+    let depth = 0
+    let count = 1
+    let inString = false
+    let quote = ''
+    for (let i = 0; i < args.length; i++) {
+        const c = args[i]
+        if (inString) {
+            if (c === '\\') {
+                i += 1
+            } else if (c === quote) {
+                inString = false
+            }
+            continue
+        }
+        if (c === '"' || c === "'") {
+            inString = true
+            quote = c
+        } else if (c === '(' || c === '[' || c === '{') {
+            depth += 1
+        } else if (c === ')' || c === ']' || c === '}') {
+            depth -= 1
+        } else if (c === ',' && depth === 0) {
+            count += 1
+        }
+    }
+    return count
+}
+
+
+// ===== native getArrayLength / inOp / getValue on a receiver the EMITTED text declares =====
+//
+// The printer's helper-to-native arms (csharpDeclaredLengthExpression / csharpNativeInExpression)
+// read the print-time declared-local table, so a receiver whose C# type is produced later — a
+// parameter narrowed by typeCoreArgs / retypeSignatureArgs, a local retyped by the classifier's
+// post-print wrapper, a copy a later pass renamed — keeps the runtime helper. This pass reads the
+// emitted signature and declarations and rewrites the call into the member the helper's own
+// runtime branch performs: `Count` / `Length` for getArrayLength, `ContainsKey` / `Contains` for
+// inOp, and the key-tested indexer read for getValue. Nothing is retyped here and no cast is
+// added: a receiver the emitted text does not name, and a key that is not a literal or a
+// non-nullable `string`, keep the helper.
+
+// declared C# types whose `Count` counts the elements getArrayLength's IList / ICollection
+// branches count (the helper answers 0 for null, which `x?.Count ?? 0` reproduces)
+const CSHARP_DECLARED_COUNT_TYPES = [ 'List<', 'IList<', 'Collection<', 'Dictionary<', 'IDictionary<',
+    'ConcurrentDictionary<', 'IReadOnlyDictionary<', 'SortedDictionary<', 'SortedList<', 'HashSet<',
+    'ConcurrentQueue<' ];
+// declared C# types whose `Length` is getArrayLength's own byte[] / string branch
+const CSHARP_DECLARED_LENGTH_TYPES = [ 'byte[]', 'string', 'string?' ];
+// declared C# dictionary types whose `ContainsKey` is InOp's IDictionary<string, object> branch
+const CSHARP_DECLARED_DICT_TYPES = [ 'Dictionary<', 'IDictionary<', 'ConcurrentDictionary<',
+    'IReadOnlyDictionary<', 'SortedDictionary<', 'SortedList<' ];
+// space-normalized dictionary types whose indexer hands back an `object`: the box GetValue's
+// dictionary branch returns, and the only value the `: null` branch can join
+const CSHARP_DECLARED_OBJECT_DICT_TYPES = [ 'Dictionary<string,object>', 'IDictionary<string,object>',
+    'ConcurrentDictionary<string,object>', 'IReadOnlyDictionary<string,object>', 'SortedDictionary<string,object>' ];
+// declared C# list types whose `Contains` is InOp's IList<object> branch (a List<string> /
+// List<Int64> receiver casts the key in the helper, so it keeps the helper)
+const CSHARP_DECLARED_LIST_TYPES = [ 'List<object>', 'IList<object>' ];
+
+// a method signature line inside a class body: indented, a member name, an argument list;
+// the return type accepts a trailing `?` (`bool?` / `double?`), or the region boundary
+// drifts and a later method's body reads the previous method's parameter types
+const CSHARP_HELPER_SIGNATURE_RE = /^[ ]{4,}(?:(?:public|private|protected|internal)[ ]+)?(?:static[ ]+|async[ ]+|virtual[ ]+|override[ ]+|sealed[ ]+|new[ ]+|partial[ ]+|extern[ ]+|unsafe[ ]+)*(?:[A-Za-z_][\w<>,.\[\]?]*(?:[ ][A-Za-z_][\w<>,.\[\]?]*)*)[ ]+([A-Za-z_]\w*)[ ]*\(/;
+// a declaration of one variable: `Type name = value;` / `Type name;`
+const CSHARP_HELPER_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*(=[ ]*([^;]*))?;[ ]*$/;
+// the same declaration with a collection/object initializer that spans lines (`= new X () {`)
+const CSHARP_HELPER_NEW_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*=[ ]*new\b[^;]*\{[ ]*$/;
+const CSHARP_HELPER_TYPE_RE = /^[A-Za-z_][\w.]*(?:[ ]*<[^<>=;(){}]*>)?(?:[ ]*\[\])?[?]?$/;
+// statement keywords a declaration-shaped line may start with
+const CSHARP_HELPER_KEYWORDS = [ 'return', 'throw', 'if', 'else', 'while', 'for', 'foreach', 'using',
+    'lock', 'yield', 'case', 'switch', 'do', 'try', 'catch', 'break', 'continue', 'goto', 'new',
+    'fixed', 'checked', 'unchecked', 'await', 'base', 'this', 'var' ];
+
+// string / char literal bodies and line comments blanked out, offsets and quotes preserved
+function csharpHelperMaskLine (line: string): string {
+    let out = '';
+    let i = 0;
+    while (i < line.length) {
+        const ch = line[i];
+        if ((ch === '/') && (line[i + 1] === '/')) {
+            out += ' '.repeat (line.length - i);
+            break;
+        }
+        if ((ch === '"') || (ch === "'")) {
+            const quote = ch;
+            let j = i + 1;
+            out += (quote === '"') ? '"' : ' ';
+            while (j < line.length) {
+                if (line[j] === '\\') { out += '  '; j += 2; continue; }
+                if (line[j] === quote) break;
+                out += ' '; j++;
+            }
+            if (j < line.length) { out += (quote === '"') ? '"' : ' '; j++; }
+            i = j;
+            continue;
+        }
+        out += ch;
+        i++;
+    }
+    return out;
+}
+
+// the parameter types a signature line (and its continuation lines) declares
+function csharpHelperSignatureParams (masked: string[], start: number): { [name: string]: string } {
+    let depth = 0;
+    let text = '';
+    for (let i = start; (i < masked.length) && (i < start + 14); i++) {
+        text += masked[i].split ('{')[0] + ' ';
+            depth += (masked[i].match (/\(/g) ?? []).length;
+            depth -= (masked[i].match (/\)/g) ?? []).length;
+        if ((depth <= 0) && text.includes ('(')) {
+            break;
+        }
+    }
+    const open = text.indexOf ('(');
+    const close = text.lastIndexOf (')');
+    if ((open < 0) || (close <= open)) {
+        return {};
+    }
+    const params: { [name: string]: string } = {};
+    const parts = [];
+    let current = '';
+    let nesting = 0;
+    for (const ch of text.substring (open + 1, close)) {
+        if ((ch === '(') || (ch === '<') || (ch === '[')) nesting++;
+        if ((ch === ')') || (ch === '>') || (ch === ']')) nesting--;
+        if ((ch === ',') && (nesting === 0)) { parts.push (current); current = ''; continue; }
+        current += ch;
+    }
+    if (current.trim ()) parts.push (current);
+    for (const part of parts) {
+        const tokens = part.trim ().split ('=')[0].trim ().split (/\s+/).filter ((t) => t.length > 0);
+        if (tokens.length < 2) continue;
+        const name = tokens[tokens.length - 1];
+        let type = tokens.slice (0, tokens.length - 1).join (' ');
+        type = type.replace (/^(ref|out|in|params|this)\s+/, '');
+        if (!/^[A-Za-z_]\w*$/.test (name) || !CSHARP_HELPER_TYPE_RE.test (type)) continue;
+        params[name] = type;
+    }
+    return params;
+}
+
+// the declaration a line carries, or undefined: `Type name = value;` / `Type name;` /
+// `Type name = new ...() {` (the initializer continues on the next lines)
+function csharpHelperDeclarationOfLine (line: string): { type: string, name: string, value: string } | undefined {
+    const match = CSHARP_HELPER_DECL_RE.exec (line);
+    if (match === null) {
+        const opened = CSHARP_HELPER_NEW_DECL_RE.exec (line);
+        if (opened === null) {
+            return undefined;
+        }
+        const type = opened[1].trim ();
+        if (CSHARP_HELPER_KEYWORDS.includes (type.split (' ')[0]) || !CSHARP_HELPER_TYPE_RE.test (type)) {
+            return undefined;
+        }
+        return { type, name: opened[2], value: 'new' };
+    }
+    const type = match[1].trim ();
+    const name = match[2];
+    if (CSHARP_HELPER_KEYWORDS.includes (type.split (' ')[0]) || !CSHARP_HELPER_TYPE_RE.test (type)) {
+        return undefined;
+    }
+    return { type, name, value: (match[4] ?? '').trim () };
+}
+
+// the C# type the emitted text declares for `name` at `line`: a local declared before the read,
+// else a parameter of the enclosing signature. A name the region declares with two different
+// types is left to the helper (the read may sit behind either binding)
+function csharpHelperReceiverType (region, name: string, line: number, params: { [name: string]: string }): { type: string, kind: string, value: string } | undefined {
+    const all = region.declarations.filter ((d) => d.name === name);
+    const types = [];
+    for (const declaration of all) {
+        if (!types.includes (declaration.type)) types.push (declaration.type);
+    }
+    if (types.length > 1) {
+        return undefined; // the read may sit behind either binding
+    }
+    const declarations = all.filter ((d) => d.line < line);
+    if (declarations.length > 0) {
+        const last = declarations[declarations.length - 1];
+        return { type: last.type, kind: 'local', value: last.value };
+    }
+    if (all.length > 0) {
+        return undefined; // bound only after the read: not the binding the read uses
+    }
+    if (params[name] !== undefined) {
+        return { type: params[name], kind: 'param', value: '' };
+    }
+    return undefined;
+}
+
+// whether the value a local holds at `line` can be null: only a freshly constructed initializer
+// that nothing has reassigned is provably non-null
+function csharpHelperLocalIsNonNull (region, name: string, line: number, value: string): boolean {
+    if (!/^new\b/.test (value)) {
+        return false;
+    }
+    return !region.lines.some ((maskedLine, i) => (i > region.start) && (i < line)
+        && new RegExp ('^[ ]*' + name + '[ ]*=[^=]').test (maskedLine));
+}
+
+// rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
+// from the original line
+function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType): string | undefined {
+    const edits = [];
+    const lengthCall = /getArrayLength[ ]*\(/g;
+    let match;
+    while ((match = lengthCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const name = masked.substring (open + 1, close).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        const member = CSHARP_DECLARED_COUNT_TYPES.some ((p) => receiver.type.startsWith (p)) ? 'Count'
+            : (CSHARP_DECLARED_LENGTH_TYPES.includes (receiver.type) ? 'Length' : undefined);
+        if (member === undefined) continue;
+        edits.push ({ start: match.index, end: close + 1, text: `(${name}?.${member} ?? 0)` });
+    }
+    const inCall = /(?<![A-Za-z_])inOp[ ]*\(/g;
+    while ((match = inCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const firstComma = csharpHelperTopLevelComma (masked, open, close);
+        if (firstComma === undefined) continue;
+        const name = masked.substring (open + 1, firstComma).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
+        if (secondComma !== undefined) continue; // more than two arguments
+        const keyMask = masked.substring (firstComma + 1, close).trim ();
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        if (!takeKeyType (keyMask)) continue;
+        const isDict = CSHARP_DECLARED_DICT_TYPES.some ((p) => receiver.type.startsWith (p));
+        const isList = CSHARP_DECLARED_LIST_TYPES.includes (receiver.type);
+        if (!isDict && !isList) continue;
+        const keyText = original.substring (firstComma + 1, close).trim ();
+        const call = `${name}.${isDict ? 'ContainsKey' : 'Contains'}(${keyText})`;
+        const guarded = (receiver.type.endsWith ('?')
+            || (receiver.kind === 'param' && !receiver.paramsBag)
+            || (receiver.kind === 'local' && !receiver.nonNull));
+        edits.push ({ start: match.index, end: close + 1, text: guarded ? `(${name} != null && ${call})` : call });
+    }
+    const valueCall = /(?<![A-Za-z_.])getValue[ ]*\(/g;
+    while ((match = valueCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const firstComma = csharpHelperTopLevelComma (masked, open, close);
+        if (firstComma === undefined) continue;
+        const name = masked.substring (open + 1, firstComma).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
+        if (secondComma !== undefined) continue; // more than two arguments
+        const keyMask = masked.substring (firstComma + 1, close).trim ();
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        // the helper's dictionary branch hands back the boxed value; a value-typed dictionary
+        // (int/Int64/double) cannot join the `: null` branch, so only object-valued dictionaries
+        if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, ''))) continue;
+        if (!takeKeyType (keyMask)) continue;
+        const keyText = original.substring (firstComma + 1, close).trim ();
+        edits.push ({ start: match.index, end: close + 1,
+            text: `(${name} != null && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
+    }
+    if (edits.length === 0) {
+        return undefined;
+    }
+    let out = original;
+    for (const edit of edits.sort ((a, b) => b.start - a.start)) {
+        out = out.substring (0, edit.start) + edit.text + out.substring (edit.end);
+    }
+    return out;
+}
+
+// the index of the `)` closing the call whose `(` sits at `open`
+function csharpHelperCallEnd (line: string, open: number): number | undefined {
+    let depth = 0;
+    for (let i = open; i < line.length; i++) {
+        if (line[i] === '(') depth++;
+        if (line[i] === ')') {
+            depth--;
+            if (depth === 0) return i;
+        }
+    }
+    return undefined;
+}
+
+// the index of the first comma at the argument level between `open` and `close`
+function csharpHelperTopLevelComma (line: string, open: number, close: number): number | undefined {
+    let depth = 0;
+    for (let i = open + 1; i < close; i++) {
+        const ch = line[i];
+        if ((ch === '(') || (ch === '[') || (ch === '{')) depth++;
+        if ((ch === ')') || (ch === ']') || (ch === '}')) depth--;
+        if ((ch === ',') && (depth === 0)) return i;
+    }
+    return undefined;
+}
+
+// `getArrayLength(x)` -> `(x?.Count ?? 0)` / `(x?.Length ?? 0)`, `inOp(x, k)` ->
+// `x.ContainsKey(k)` / `x.Contains(k)` (with a null test where the emitted declaration allows a
+// null receiver) for every receiver the emitted signature / declarations type as a collection
+export function nativeDeclaredHelperCalls (content: string): string {
+    if (!content.includes ('getArrayLength') && !content.includes ('inOp') && !content.includes ('getValue')) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
+            signatures.push (i);
+        }
+    }
+    if (signatures.length === 0) {
+        return content;
+    }
+    const regions = [];
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const params = csharpHelperSignatureParams (masked, start);
+        const declarations = [];
+        for (let i = start; i < end; i++) {
+            const declaration = csharpHelperDeclarationOfLine (masked[i]);
+            if (declaration !== undefined) {
+                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
+            }
+        }
+        regions.push ({ start, end, params, declarations, lines: masked });
+    }
+    const regionOfLine = (line: number) => {
+        let current = regions[0];
+        for (const region of regions) {
+            if (region.start <= line) current = region;
+        }
+        return current;
+    };
+    let changed = false;
+    const out = lines.map ((line, i) => {
+        if ((line.indexOf ('getArrayLength') < 0) && (line.indexOf ('inOp') < 0) && (line.indexOf ('getValue') < 0)) {
+            return line;
+        }
+        const region = regionOfLine (i);
+        if ((i <= region.start) || (i >= region.end)) {
+            return line;
+        }
+        const rewrite = (name, isKey = false) => {
+            if (isKey) {
+                if (!/^[A-Za-z_]\w*$/.test (name)) return false;
+                const key = csharpHelperReceiverType (region, name, i, region.params);
+                return (key !== undefined) && (key.type === 'string');
+            }
+            const receiver = csharpHelperReceiverType (region, name, i, region.params);
+            if (receiver === undefined) {
+                return undefined;
+            }
+            if (receiver.kind === 'local') {
+                receiver.nonNull = csharpHelperLocalIsNonNull (region, name, i, receiver.value);
+            }
+            if (receiver.kind === 'param') {
+                const bag = new RegExp ('^[ ]*' + name + '[ ]*\\?\\?=');
+                receiver.paramsBag = masked.some ((maskedLine, k) => (k > region.start) && (k < i) && bag.test (maskedLine));
+            }
+            return receiver;
+        };
+        const takeType = (name) => rewrite (name, false);
+        const takeKeyType = (keyMask) => {
+            if (keyMask.startsWith ('"')) return true; // a string literal is never null
+            return rewrite (keyMask, true) === true;
+        };
+        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType);
+        if (rewritten === undefined) {
+            return line;
+        }
+        changed = true;
+        return rewritten;
+    });
+    return changed ? out.join ('\n') : content;
+}
+
+export function nativeDeclaredWsCalls (content: string): string {
+    const opener = 'callDynamically('
+    let out = ''
+    let cursor = 0
+    let search = 0
+    while (true) {
+        const at = content.indexOf (opener, search)
+        if (at < 0) {
+            break
+        }
+        const receiverAt = at + opener.length
+        // statement position only: a value-position call would have to bind the helper's object
+        // result, which the void `resolve`/`reject` declarations cannot
+        const lineStart = content.lastIndexOf ('\n', at - 1) + 1
+        if (!/^[ \t]*$/.test (content.slice (lineStart, at))) {
+            search = receiverAt
+            continue
+        }
+        const head = /^(\w+)(?: as (WebSocketClient|Future))?\s*,\s*"(\w+)"\s*,\s*new object\[\]\s*\{/.exec (content.slice (receiverAt))
+        if (!head) {
+            search = receiverAt
+            continue
+        }
+        const receiver = head[1]
+        const castClass = head[2]
+        const method = head[3]
+        const argsAt = receiverAt + head[0].length
+        const argsEnd = csharpBalancedBraceEnd (content, argsAt - 1)
+        if (argsEnd < 0) {
+            search = argsAt
+            continue
+        }
+        const statementEnd = /^\s*\)\s*;/.exec (content.slice (argsEnd + 1))
+        if (!statementEnd) {
+            search = argsEnd
+            continue
+        }
+        const args = content.slice (argsAt, argsEnd)
+        const target = castClass !== undefined ? { cls: castClass, cast: true } : csharpClassOfDeclaration (content, receiver, at)
+        const arities = (target !== undefined) ? WS_DECLARED_METHODS_TYPED[target.cls]?.[method] : undefined
+        const argc = csharpArgumentCount (args)
+        if (arities === undefined || argc < arities[0] || argc > arities[1]) {
+            search = argsEnd
+            continue
+        }
+        const receiverText = target!.cast ? `(${receiver} as ${target!.cls})` : receiver
+        out += content.slice (cursor, at) + receiverText + '.' + method + '(' + args + ');'
+        cursor = argsEnd + 1 + statementEnd[0].length
+        search = cursor
+    }
+    return out + content.slice (cursor)
+}
+
+// watchOHLCVForSymbols returns `{ symbol: { timeframe: OHLCV[] } }`. That nested map is not a
+// types.ts struct, so it has no generated To*/From* pair — the hand-written
+// ToOHLCVDict / FromOHLCVDict in Exchange.TranspileHelpers.cs (built on ToOHLCVList /
+// FromOHLCVList) carry it, keyed on this exact type string.
+const OHLCV_DICT_TYPE = 'Dictionary<string, Dictionary<string, List<OHLCV>>>';
+
+// core methods whose `Task<object>` return is rewritten to a typed `Task<T>` / `Task<List<T>>`,
+// moving the `new T(item)` conversion out of the PascalCase wrapper and onto the core return path.
+// only methods whose every intra-core call site is a plain `return await this.X(...);` from a core
+// of the same typed shape are listed — anything feeding an untyped helper or reflective pagination
+// (fetchPaginatedCall*, callDynamically) stays object, since there is no reverse From helper.
+const TYPED_CORES: Record<string, string> = {
+    'cancelAllContractOrders': 'List<Order>',
+    'cancelAllOrders': 'List<Order>',
+    'cancelAllOrdersAfter': 'Dictionary<string, object>',
+    'cancelAllOrdersWs': 'List<Order>',
+    'cancelAllSpotOrders': 'List<Order>',
+    'cancelAllUtaOrders': 'List<Order>',
+    'cancelContractOrder': 'Order',
+    'cancelOrder': 'Order',
+    'cancelOrderWithClientOrderId': 'Order',
+    'cancelOrderWs': 'Order',
+    // okx#cancelOrders omits request-only keys (clientOrderId[], trigger, …) before parseOrders
+    'cancelOrders': 'List<Order>',
+    'cancelOrdersForSymbols': 'List<Order>',
+    'cancelOrdersWithClientOrderIds': 'List<Order>',
+    'cancelOrdersWs': 'List<Order>',
+    'cancelSpotOrder': 'Order',
+    'cancelTwapOrder': 'Order',
+    'cancelUnifiedOrder': 'Order',
+    'cancelUtaOrder': 'Order',
+    'cancelUtaOrders': 'List<Order>',
+    'createAmmOrder': 'PredictionOrder',
+    'createApiKey': 'Dictionary<string, object>',
+    'createContractOrder': 'Order',
+    'createContractOrders': 'List<Order>',
+    'createConvertTrade': 'Conversion',
+    'createDepositAddress': 'DepositAddress',
+    'createExtendedOrderRequest': 'Dictionary<string, object>',
+    'createGiftCode': 'Dictionary<string, object>',
+    'createLimitBuyOrder': 'Order',
+    'createLimitBuyOrderWs': 'Order',
+    'createLimitOrder': 'Order',
+    'createLimitOrderWs': 'Order',
+    'createLimitSellOrder': 'Order',
+    'createLimitSellOrderWs': 'Order',
+    'createMarketBuyOrder': 'Order',
+    'createMarketBuyOrderWithCost': 'Order',
+    'createMarketBuyOrderWs': 'Order',
+    'createMarketOrder': 'Order',
+    'createMarketOrderWithCost': 'Order',
+    'createMarketOrderWithCostWs': 'Order',
+    'createMarketOrderWs': 'Order',
+    'createMarketSellOrder': 'Order',
+    'createMarketSellOrderWithCost': 'Order',
+    'createMarketSellOrderWs': 'Order',
+    'createOrder': 'Order',
+    'createOrderWithTakeProfitAndStopLoss': 'Order',
+    'createOrderWithTakeProfitAndStopLossWs': 'Order',
+    'createOrderWs': 'Order',
+    'createOrderbookOrder': 'PredictionOrder',
+    'createOrDeriveApiKey': 'Dictionary<string, object>',
+    'createOrders': 'List<Order>',
+    'createOrdersWs': 'List<Order>',
+    'createPostOnlyOrder': 'Order',
+    'createPostOnlyOrderWs': 'Order',
+    'createReduceOnlyOrder': 'Order',
+    'createReduceOnlyOrderWs': 'Order',
+    'createSubAccount': 'Dictionary<string, object>',
+    'createSpotOrder': 'Order',
+    'createSpotOrders': 'List<Order>',
+    'createStopLimitOrder': 'Order',
+    'createStopLimitOrderWs': 'Order',
+    'createStopLossOrder': 'Order',
+    'createStopLossOrderWs': 'Order',
+    'createStopMarketOrder': 'Order',
+    'createStopMarketOrderWs': 'Order',
+    'createStopOrder': 'Order',
+    'createStopOrderWs': 'Order',
+    'createSwapOrder': 'Order',
+    'createTakeProfitOrder': 'Order',
+    'createTakeProfitOrderWs': 'Order',
+    'createTrailingAmountOrder': 'Order',
+    'createTrailingAmountOrderWs': 'Order',
+    'createTrailingPercentOrder': 'Order',
+    'createTrailingPercentOrderWs': 'Order',
+    'createTriggerOrder': 'Order',
+    'createTriggerOrderWs': 'Order',
+    'createTwapOrder': 'Order',
+    'createUtaOrder': 'Order',
+    'createUtaOrders': 'List<Order>',
+    'createVault': 'Dictionary<string, object>',
+    'editContractOrder': 'Order',
+    'editLimitBuyOrder': 'Order',
+    'editLimitOrder': 'Order',
+    'editLimitSellOrder': 'Order',
+    'editOrder': 'Order',
+    'editOrderWithClientOrderId': 'Order',
+    'editOrderWs': 'Order',
+    'editOrders': 'List<Order>',
+    'editSpotOrder': 'Order',
+    'fetchADLRank': 'ADL',
+    'fetchAccount': 'Account',
+    // htx: every path is safeString(...) — the params override is stringified in TS too
+    'fetchAccountIdByType': 'string',
+    'fetchAccountPositions': 'List<Position>',
+    'fetchAccounts': 'List<Account>',
+    'fetchAccountSettings': 'Dictionary<string, object>',
+    'fetchAccountsV2': 'List<Account>',
+    'fetchAccountsV3': 'List<Account>',
+    // parseAllGreeks() ends in filterByArray(results, 'symbol', symbols), whose `indexed`
+    // parameter defaults to TRUE, so the runtime value is a symbol-keyed dict, not the
+    // Greeks[] the TS annotation used to claim. AllGreeks is that dict.
+    'fetchAllGreeks': 'AllGreeks',
+    'fetchAmmOrders': 'List<PredictionOrder>',
+    'fetchApiKey': 'Dictionary<string, object>',
+    'fetchApiKeys': 'Dictionary<string, object>',
+    // The dictionary-like container families (Balances, Tickers, MarginModes, ...) splat the
+    // payload into a Dictionary<string, T>; their From* helpers write every entry back under
+    // its own key, so a consuming site (`object x = await this.fetchTickers(...)` then
+    // indexed / safeDict()ed) is funnelled through the reverse helper by typeCores. Every
+    // consumer must sit inside a method body typeCores visits: Task<object> AND void Task
+    // (loadBalanceSnapshot / loadPositionsSnapshot are void).
+    // setLeverage is NOT typed: on master its wrapper is cast-only
+    // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
+    // every venue-specific key from the public C# return - an API regression, not a win.
+    'fetchBalance': 'Balances',
+    'fetchBalanceWs': 'Balances',
+    'fetchBidsAsks': 'Tickers',
+    'fetchBorrowRate': 'Dictionary<string, object>',
+    'fetchBorrowRateHistories': 'Dictionary<string, object>',
+    'fetchBorrowRateHistory': 'List<Dictionary<string, object>>',
+    'fetchBuilderApprovals': 'List<Dictionary<string, object>>',
+    'fetchContractBalance': 'Balances',
+    'fetchContractTickers': 'Tickers',
+    'fetchCrossBorrowRates': 'CrossBorrowRates',
+    'fetchCurrenciesFromCache': 'Dictionary<string, object>',
+    // gemini: parseCurrencies dict, or `{}` when the web scrape is empty. Currencies
+    // is reversible and Currency already has the extra bag, so the struct is lossless.
+    'fetchCurrenciesFromWeb': 'Currencies',
+    'fetchCurrency': 'Dictionary<string, object>',
+    'fetchCurrencyById': 'Dictionary<string, object>',
+    'fetchDepositMethodId': 'Dictionary<string, object>',
+    'fetchDepositMethodIds': 'List<Dictionary<string, object>>',
+    'fetchDepositWithdrawFees': 'DepositWithdrawFees',
+    'fetchDydxAccount': 'Dictionary<string, object>',
+    'fetchFundingIntervals': 'FundingRates',
+    'fetchFundingLimits': 'Dictionary<string, object>',
+    'fetchFundingRates': 'FundingRates',
+    'fetchIsolatedBorrowRates': 'IsolatedBorrowRates',
+    'fetchLatestBlockHeight': 'Int64',
+    'fetchLeverages': 'Leverages',
+    'fetchMarginModes': 'MarginModes',
+    'fetchMarkPrices': 'Tickers',
+    'fetchMarketsByTypeAndSubType': 'List<MarketInterface>',
+    'fetchMarketsFromAPI': 'List<MarketInterface>',
+    'fetchMarketsFromWeb': 'List<MarketInterface>',
+    // bitstamp: publicGetMarkets returns a list of market dicts (cached). The
+    // previous Dictionary wrapper was a runtime InvalidCastException.
+    'fetchMarketsFromCache': 'List<Dictionary<string, object>>',
+    // kraken: privatePostDepositMethods['result'] is a list of method dicts.
+    'fetchDepositMethods': 'List<Dictionary<string, object>>',
+    // mexc: both spot and (after wrapping the swap asset list) swap return an
+    // account dict with a `balances` array.
+    'fetchAccountHelper': 'Dictionary<string, object>',
+    'fetchMarketsV1': 'List<MarketInterface>',
+    'fetchMyDustTrades': 'List<Trade>',
+    'fetchNetworkDepositAddress': 'Dictionary<string, object>',
+    'fetchOpenInterests': 'OpenInterests',
+    'fetchOrderBooks': 'OrderBooks',
+    'fetchOutcome': 'Dictionary<string, object>',
+    'fetchPaymentMethods': 'List<Dictionary<string, object>>',
+    'fetchPortfolioDetails': 'List<Dictionary<string, object>>',
+    'fetchPrivateDepositWithdrawFees': 'Dictionary<string, object>',
+    'fetchPrivateTradingFee': 'Dictionary<string, object>',
+    'fetchPrivateTransactionFees': 'Dictionary<string, object>',
+    'fetchPublicDepositWithdrawFees': 'Dictionary<string, object>',
+    'fetchPublicTradingFee': 'Dictionary<string, object>',
+    'fetchPublicTransactionFees': 'Dictionary<string, object>',
+    'fetchSpotTickers': 'Tickers',
+    'fetchSwapAndFutureMarkets': 'List<MarketInterface>',
+    'fetchTickers': 'Tickers',
+    'fetchTickersV2': 'Tickers',
+    'fetchTickersV3': 'Tickers',
+    'fetchTickersWs': 'Tickers',
+    'fetchBorrowInterest': 'List<BorrowInterest>',
+    'fetchCanceledAndClosedOrders': 'List<Order>',
+    'fetchCanceledOrders': 'List<Order>',
+    'fetchClosedContractOrders': 'List<Order>',
+    'fetchClosedOrder': 'Order',
+    'fetchClosedOrders': 'List<Order>',
+    'fetchClosedOrdersWs': 'List<Order>',
+    'fetchClosedSpotOrders': 'List<Order>',
+    'fetchContractDepositAddress': 'DepositAddress',
+    'fetchContractDeposits': 'List<Transaction>',
+    'fetchContractMarkets': 'List<MarketInterface>',
+    'fetchContractOHLCV': 'List<OHLCV>',
+    'fetchContractOrder': 'Order',
+    'fetchContractOrders': 'List<Order>',
+    'fetchContractOrdersByStatus': 'List<Order>',
+    'fetchContractWithdrawals': 'List<Transaction>',
+    'fetchConvertCurrencies': 'Currencies',
+    'fetchConvertQuote': 'Conversion',
+    'fetchConvertTrade': 'Conversion',
+    'fetchConvertTradeHistory': 'List<Conversion>',
+    'fetchCrossBorrowRate': 'CrossBorrowRate',
+    'fetchDefaultMarkets': 'List<MarketInterface>',
+    'fetchDeposit': 'Transaction',
+    'fetchDepositAddress': 'DepositAddress',
+    // parseDepositAddresses(indexed=true) returns a network-keyed dict on every venue;
+    // the old List<DepositAddress> wrapper was a shape lie that threw at runtime
+    'fetchDepositAddressesByNetwork': 'DepositAddresses',
+    'fetchDepositAddressDefault': 'DepositAddress',
+    'fetchDepositAddressSupplement': 'DepositAddress',
+    'fetchDepositAddresses': 'List<DepositAddress>',
+    // fetchDepositAddressesByNetwork is deliberately NOT typed: parseDepositAddresses()
+    // is called with indexed=true by every venue that has this method, and then returns
+    // a dict keyed by currency - not the DepositAddress[] the TS return annotation
+    // claims. ToDepositAddressList then throws on a Dictionary.
+    'fetchDepositWithdrawFee': 'DepositWithdrawFee',
+    'fetchDeposits': 'List<Transaction>',
+    'fetchDepositsOrWithdrawalsHelper': 'List<Transaction>',
+    'fetchDepositsWithdrawals': 'List<Transaction>',
+    'fetchDepositsWs': 'List<Transaction>',
+    'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchDerivativesOpenInterestHistory': 'List<OpenInterest>',
+    'fetchExtendedAccount': 'Dictionary<string, object>',
+    'fetchFinancialBalance': 'Balances',
+    'fetchFreeBalance': 'Balance',
+    'fetchFundingHistory': 'List<FundingHistory>',
+    'fetchFundingInterval': 'FundingRate',
+    'fetchFundingRate': 'FundingRate',
+    'fetchFundingRateHistory': 'List<FundingRateHistory>',
+    'fetchFutureMarkets': 'List<MarketInterface>',
+    'fetchGreeks': 'Greeks',
+    'fetchHip3Markets': 'List<MarketInterface>',
+    'fetchIndexOHLCV': 'List<OHLCV>',
+    'fetchInverseSwapMarkets': 'List<MarketInterface>',
+    'fetchIsolatedBorrowRate': 'IsolatedBorrowRate',
+    'fetchLastPrices': 'LastPrices',
+    'fetchLedger': 'List<LedgerEntry>',
+    'fetchLedgerByEntries': 'List<LedgerEntry>',
+    'fetchLedgerEntriesByIds': 'List<LedgerEntry>',
+    'fetchLedgerEntry': 'LedgerEntry',
+    'fetchLeverage': 'Leverage',
+    // parseLeverageTiers returns a symbol-keyed dict with NO top-level `info`; the struct ctor
+    // splats it (Helper.GetInfo yields null), so FromLeverageTiers inverts it exactly — the
+    // consuming base site (fetchMarketLeverageTiers reads tiers[symbol]) is routed through it
+    'fetchLeverageTiers': 'LeverageTiers',
+    'fetchLiquidations': 'List<Liquidation>',
+    'fetchLongShortRatio': 'LongShortRatio',
+    'fetchLongShortRatioHistory': 'List<LongShortRatio>',
+    'fetchMarginBalance': 'Balances',
+    'fetchMarginAdjustmentHistory': 'List<MarginModification>',
+    'fetchMarginMode': 'MarginMode',
+    'fetchMarket': 'MarketInterface',
+    'fetchMarketById': 'MarketInterface',
+    'fetchMarkOHLCV': 'List<OHLCV>',
+    'fetchMarkPrice': 'Ticker',
+    'fetchMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchMarkets': 'List<MarketInterface>',
+    'fetchMarketsByType': 'List<MarketInterface>',
+    'fetchMarketsV2': 'List<MarketInterface>',
+    'fetchMarketsV3': 'List<MarketInterface>',
+    'fetchMarketsWs': 'List<MarketInterface>',
+    'fetchMyBuys': 'List<Trade>',
+    'fetchMyContractTrades': 'List<Trade>',
+    'fetchMyLiquidations': 'List<Liquidation>',
+    'fetchMySells': 'List<Trade>',
+    'fetchMySpotTrades': 'List<Trade>',
+    'fetchMyTrades': 'List<Trade>',
+    'fetchMyTradesWs': 'List<Trade>',
+    'fetchMyUtaTrades': 'List<Trade>',
+    'fetchMySettlementHistory': 'List<Dictionary<string, object>>',
+    'fetchOHLCV': 'List<OHLCV>',
+    'fetchOHLCVWs': 'List<OHLCV>',
+    'fetchL2OrderBook': 'OrderBook',
+    'fetchL3OrderBook': 'OrderBook',
+    'fetchNonce': 'Int64',
+    'fetchOpenInterest': 'OpenInterest',
+    'fetchOpenInterestHistory': 'List<OpenInterest>',
+    'fetchOpenOrder': 'Order',
+    'fetchOpenOrders': 'List<Order>',
+    'fetchOpenOrdersV1': 'List<Order>',
+    'fetchOpenOrdersV2': 'List<Order>',
+    'fetchOpenOrdersWs': 'List<Order>',
+    'fetchOpenSpotOrders': 'List<Order>',
+    'fetchOpenSwapOrders': 'List<Order>',
+    'fetchOption': 'Option',
+    'fetchOptionChain': 'OptionChain',
+    'fetchOptionMarkets': 'List<MarketInterface>',
+    'fetchOptionUnderlyings': 'List<string>',
+    'fetchOptionOHLCV': 'List<OHLCV>',
+    'fetchOptionPositions': 'List<Position>',
+    'fetchOrder': 'Order',
+    'fetchOrderBook': 'OrderBook',
+    'fetchOrderBookWs': 'OrderBook',
+    'fetchOrderStatus': 'string',
+    'fetchOrderClassic': 'Order',
+    'fetchOrderDefault': 'Order',
+    'fetchOrderSupplement': 'Order',
+    'fetchOrderTrades': 'List<Trade>',
+    'fetchOrderWithClientOrderId': 'Order',
+    'fetchOrderWs': 'Order',
+    'fetchOrders': 'List<Order>',
+    'fetchOrdersByIds': 'List<Order>',
+    'fetchOrdersByState': 'List<Order>',
+    'fetchOrdersByStates': 'List<Order>',
+    'fetchOrdersByStatus': 'List<Order>',
+    'fetchOrdersByStatusWs': 'List<Order>',
+    'fetchOrdersByType': 'List<Order>',
+    'fetchOrdersClassic': 'List<Order>',
+    'fetchOrdersWithMethod': 'List<Order>',
+    'fetchOrdersWs': 'List<Order>',
+    'fetchOutcomes': 'Dictionary<string, object>',
+    'fetchPartialBalance': 'Balance',
+    'fetchPortfolios': 'List<Account>',
+    'fetchPosition': 'Position',
+    'fetchPositionADLRank': 'ADL',
+    'fetchPositionHistory': 'List<Position>',
+    'fetchPositionMode': 'PositionModeInfo',
+    'fetchPositionWs': 'List<Position>',
+    'fetchPositions': 'List<Position>',
+    'fetchPositionsADLRank': 'List<ADL>',
+    'fetchPositionsForSymbol': 'List<Position>',
+    'fetchPositionsForSymbolWs': 'List<Position>',
+    'fetchPositionsHistory': 'List<Position>',
+    'fetchPositionsRisk': 'List<Position>',
+    'fetchPositionsWs': 'List<Position>',
+    'fetchPremiumIndexOHLCV': 'List<OHLCV>',
+    'fetchRestOrderBookSafe': 'OrderBook',
+    'fetchSettlementHistory': 'List<Dictionary<string, object>>',
+    'fetchSettlements': 'List<PredictionSettlement>',
+    'fetchSpotBalance': 'Balances',
+    'fetchSpotMarkets': 'List<MarketInterface>',
+    'fetchSpotOHLCV': 'List<OHLCV>',
+    'fetchSpotOrder': 'Order',
+    'fetchSpotOrderTrades': 'List<Trade>',
+    'fetchSpotOrders': 'List<Order>',
+    'fetchSpotOrdersByStates': 'List<Order>',
+    'fetchSpotOrdersByStatus': 'List<Order>',
+    'fetchStatus': 'Status',
+    'fetchSwapBalance': 'Balances',
+    'fetchSwapMarkets': 'List<MarketInterface>',
+    'fetchTicker': 'Ticker',
+    'fetchTicker2': 'Ticker',
+    'fetchTickerV1': 'Ticker',
+    'fetchTickerV1AndV2': 'Ticker',
+    'fetchTickerV2': 'Ticker',
+    'fetchTickerV3': 'Ticker',
+    'fetchTickerWs': 'Ticker',
+    'fetchTime': 'Int64',
+    'fetchTotalBalance': 'Balance',
+    'fetchTrades': 'List<Trade>',
+    'fetchTradesWs': 'List<Trade>',
+    'fetchTradingFee': 'TradingFeeInterface',
+    // TradingFeeInterface.tiers (ts/src/base/types.ts) carries the cryptomus/onetrading
+    // volume-tier schedule, so the TradingFees struct is now lossless for every venue.
+    'fetchTradingFees': 'TradingFees',
+    'fetchPrivateTradingFees': 'TradingFees',
+    'fetchPublicTradingFees': 'TradingFees',
+    'fetchQuote': 'Dictionary<string, object>',
+    'fetchRawEventByTicker': 'Dictionary<string, object>',
+    'fetchRawMarketById': 'Dictionary<string, object>',
+    'fetchRawQuestionById': 'Dictionary<string, object>',
+    'fetchRawTopicDetail': 'Dictionary<string, object>',
+    'fetchTradeQuote': 'Dictionary<string, object>',
+    'fetchTradingFeesWs': 'TradingFees',
+    'fetchTradingLimits': 'Dictionary<string, object>',
+    'fetchTradingLimitsById': 'Dictionary<string, object>',
+    'fetchTransactionFee': 'Dictionary<string, object>',
+    'fetchTransactionFees': 'Dictionary<string, object>',
+    'fetchTransactions': 'List<Transaction>',
+    'fetchTransactionsByType': 'List<Transaction>',
+    // fetchTransactionsHelper is deliberately NOT typed: dydx holds its result in an
+    // object local and runs filterBy() / arrayConcat() / parseTransfers() over it
+    // (ts/src/dydx.ts:1854,2071,2219), so the struct list escapes into untyped code
+    // and filterBy throws InvalidCastException on List<Transaction>.
+    'fetchTransactionsWithMethod': 'List<Transaction>',
+    'fetchTransfer': 'TransferEntry',
+    'fetchTransfers': 'List<TransferEntry>',
+    'fetchUSDTMarkets': 'List<MarketInterface>',
+    'fetchUnderlyingAssets': 'List<string>',
+    'fetchUTAMarkets': 'List<MarketInterface>',
+    'fetchUtaMarkets': 'List<MarketInterface>',
+    'fetchUTAOHLCV': 'List<OHLCV>',
+    'fetchUnifiedOrder': 'Order',
+    'fetchUsedBalance': 'Balance',
+    'fetchUtaBalance': 'Balances',
+    'fetchUtaCanceledAndClosedOrders': 'List<Order>',
+    'fetchUtaOrder': 'Order',
+    'fetchUtaOrdersByStatus': 'List<Order>',
+    'fetchVolatilityHistory': 'List<Dictionary<string, object>>',
+    'fetchWallet': 'Dictionary<string, object>',
+    'fetchWithdrawAddresses': 'List<Dictionary<string, object>>',
+    'fetchWithdrawal': 'Transaction',
+    'fetchWithdrawals': 'List<Transaction>',
+    'fetchWithdrawalsWs': 'List<Transaction>',
+    'fetchWithdrawalWhitelist': 'List<Dictionary<string, object>>',
+    'setLeverage': 'Dictionary<string, object>',
+    'setMargin': 'MarginModification',
+    'setMarginMode': 'Dictionary<string, object>',
+    'setPositionMode': 'Dictionary<string, object>',
+    'transfer': 'TransferEntry',
+    'transferBetweenMainAndSubAccount': 'TransferEntry',
+    'transferBetweenSubAccounts': 'TransferEntry',
+    'transferClassic': 'TransferEntry',
+    'transferIn': 'TransferEntry',
+    'transferOut': 'TransferEntry',
+    'transferUta': 'TransferEntry',
+    // --- watch* -------------------------------------------------------------------
+    // A watch core hands back the LIVE ws structure (ArrayCache*, the shared balance /
+    // ticker dictionaries). Every To* helper materialises a NEW List/struct from the rows,
+    // which is exactly the snapshot the deleted PascalCase wrapper produced with
+    // `.Select(item => new T(item))` / `new T(res)`. Typing the core therefore keeps the
+    // public C# semantics byte for byte while removing the second declaration.
+    // The names below have zero consuming call sites outside the wrapper layer
+    // (build/tmp_watch_analysis.py in the PR description); the ones that do have them
+    // stay untyped and keep their wrapper:
+    //   watchTickers        16 sites (binance, okx, kraken, gate, ... ) + Tickers is not invertible
+    //   watchOHLCVForSymbols 11 sites; its wrapper conversion is Helper.ConvertToDictionaryOHLCVList
+    //   watchMarkPrices      3 sites (okx, binance, aster) + Tickers is not invertible
+    //   watchFundingRates    1 site  (okx) + FundingRates is not invertible
+    // and the venue-internal plumbing (watchPublic/watchPrivate/watchTopics/...) whose
+    // wrapper is cast-only, so typing it would drop venue keys.
+    'watchBalance': 'Balances',
+    'watchBidsAsks': 'Tickers',
+    'watchFundingRate': 'FundingRate',
+    'watchFundingRatesForSymbols': 'FundingRates',
+    'watchLiquidations': 'List<Liquidation>',
+    'watchLiquidationsForSymbols': 'List<Liquidation>',
+    'watchMarkPrice': 'Ticker',
+    'watchMyLiquidations': 'List<Liquidation>',
+    'watchMyLiquidationsForSymbols': 'List<Liquidation>',
+    'watchMyTrades': 'List<Trade>',
+    'watchMyTradesForSymbols': 'List<Trade>',
+    'watchOHLCV': 'List<OHLCV>',
+    'watchOHLCVForSymbols': OHLCV_DICT_TYPE,
+    'watchOrders': 'List<Order>',
+    'watchOrdersForSymbols': 'List<Order>',
+    'watchPosition': 'Position',
+    'watchPositionForSymbols': 'List<Position>',
+    'watchPositions': 'List<Position>',
+    'watchTicker': 'Ticker',
+    'watchTrades': 'List<Trade>',
+    'watchTradesForSymbols': 'List<Trade>',
+    'watchUtaTickers': 'Tickers',
+    'withdraw': 'Transaction',
+    'withdrawWs': 'Transaction',
+    // the ws container families below snapshot the live cache exactly as the wrapper's
+    // `new Tickers(res)` / `new FundingRates(res)` did: the ctor re-materialises every row
+    // into a fresh struct, so the caller never holds the live dictionary
+    'watchTickers': 'Tickers',
+    'watchMarkPrices': 'Tickers',
+    'watchFundingRates': 'FundingRates',
+};
+
+// watch* cores whose public shape is a SNAPSHOT of a live ws structure rather than a
+// re-materialised unified struct. `.Copy()` is load-bearing: without it the caller holds
+// the live book and sees updates it must not see, so the copy moves onto the core return.
+const SNAPSHOT_CORES: Record<string, { type: string; helper: string; predictionType?: string; predictionHelper?: string }> = {
+    'watchOrderBook': {
+        'type': 'ccxt.pro.IOrderBook',
+        'helper': 'ccxt.BaseExchange.ToOrderBookSnapshot',
+        'predictionType': 'ccxt.PredictionOrderBook',
+        'predictionHelper': 'ccxt.BaseExchange.ToPredictionOrderBookSnapshot',
+    },
+    'watchOrderBookForSymbols': {
+        'type': 'ccxt.pro.IOrderBook',
+        'helper': 'ccxt.BaseExchange.ToOrderBookSnapshot',
+    },
+};
+
+
+
+
+
+
+
+
+
+
+
+
+// the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
+// structures, so the same method name is typed differently there — no invariance conflict
+// struct families that have a reverse `FromX` / `FromXList` helper in
+// cs/ccxt/base/Exchange.TypedCores.cs, i.e. that can be handed back to the untyped
+// object pipeline. Produced by `python3 build/generateTypedCoreHelpers.py --capabilities`.
+// The dictionary-like containers (Tickers, Balances, OrderBook, ...) are included since the
+// generator learned to invert their splat constructors: the loop copies every non-"info"
+// key verbatim, so writing each entry back under its own key restores the source dict.
+// OHLCV's ctor is positional so the generator cannot invert it; FromOHLCVList is hand-written
+// in Exchange.TranspileHelpers.cs, which is why the family is still listed here.
+const REVERSIBLE_FAMILIES: string[] = [
+    'ADL', 'Account', 'Balance', 'BalanceAccount', 'Balances', 'BorrowInterest',
+    'CancellationRequest', 'Conversion', 'CrossBorrowRate', 'CrossBorrowRates', 'Currencies',
+    'Currency', 'CurrencyLimits', 'DepositAddress', 'DepositAddresses', 'DepositWithdrawFee',
+    'DepositWithdrawFeeNetwork', 'DepositWithdrawFees', 'Fee', 'FundingHistory', 'FundingRate',
+    'FundingRateHistory', 'FundingRates', 'Greeks', 'IsolatedBorrowRate', 'IsolatedBorrowRates',
+    'LastPrice', 'LastPrices', 'LedgerEntry', 'Leverage', 'LeverageTier', 'LeverageTiers',
+    'Leverages', 'Limits', 'Liquidation', 'LongShortRatio', 'MarginLoan', 'MarginMode',
+    'MarginModes', 'MarginModification', 'Market', 'MarketInterface', 'MarketMarginModes',
+    'MinMax', 'Network', 'NetworkLimits', 'OHLCV', 'OpenInterest', 'OpenInterests', 'Option',
+    'OptionChain', 'Order', 'OrderBook', 'OrderBooks', 'OrderRequest', 'Position',
+    'PositionModeInfo', 'Precision', 'PredictionEvent', 'PredictionFees', 'PredictionMarket',
+    'PredictionOpenInterest', 'PredictionOrder', 'PredictionOrderBook',
+    'PredictionOrderRequest', 'PredictionOutcome', 'PredictionPosition', 'PredictionSettlement',
+    'PredictionTicker', 'PredictionTickers', 'PredictionTrade', 'PredictionTradingFee',
+    'AllGreeks',
+    'Status', 'Ticker', 'Tickers', 'Trade', 'TradingFeeInterface', 'TradingFees', 'Transaction',
+    'TransferEntry', 'WithdrawalResponse',
+];
+
+// the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
+// structures, so the same method name is typed differently there — no invariance conflict
+const PREDICTION_TYPED_CORES: Record<string, string> = {
+    'cancelAllOrders': 'List<PredictionOrder>',
+    'cancelOrder': 'PredictionOrder',
+    'cancelOrders': 'List<PredictionOrder>',
+    'createMarketBuyOrderWithCost': 'PredictionOrder',
+    'createMarketOrderWithCost': 'PredictionOrder',
+    'createMarketSellOrderWithCost': 'PredictionOrder',
+    'createOrder': 'PredictionOrder',
+    'createOrders': 'List<PredictionOrder>',
+    'editOrder': 'PredictionOrder',
+    'fetchAccounts': 'List<Account>',
+    'fetchCanceledOrders': 'List<PredictionOrder>',
+    'fetchClosedOrders': 'List<PredictionOrder>',
+    // fetchEvent/fetchEvents/fetchEventsByQuery: the nested PredictionMarket carries the
+    // unified market-interface keys (base/quote/precision/limits/...) in its `extra` bag,
+    // which FromPredictionMarket writes back, so the round trip is lossless.
+    'fetchEvent': 'PredictionEvent',
+    'fetchEvents': 'List<PredictionEvent>',
+    'fetchEventsByQuery': 'List<Dictionary<string, object>>',
+    // venue-internal raw-page helpers: each returns one locally-built list of API rows and
+    // every consumer reads it through getArrayLength/getValue/safeList/promiseAll
+    'fetchRawActiveMarkets': 'List<Dictionary<string, object>>',
+    'fetchRawEventsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawEventsList': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsByTags': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsList': 'List<Dictionary<string, object>>',
+    'fetchRawQuestionsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawQuestionsList': 'List<Dictionary<string, object>>',
+    'fetchRawTopics': 'List<Dictionary<string, object>>',
+    'fetchSeriesEvents': 'List<Dictionary<string, object>>',
+    // the fetchMarkets family is deliberately absent so it falls through to TYPED_CORES
+    // 'List<MarketInterface>': FetchMarkets is declared on BaseExchange and C# overrides are
+    // invariant, so the prediction tier cannot diverge (CS0508).
+    'fetchMyTrades': 'List<PredictionTrade>',
+    'fetchOpenInterest': 'PredictionOpenInterest',
+    'fetchOpenOrders': 'List<PredictionOrder>',
+    'fetchOrder': 'PredictionOrder',
+    'fetchOrderTrades': 'List<PredictionTrade>',
+    'fetchOrders': 'List<PredictionOrder>',
+    'fetchOrdersByIds': 'List<PredictionOrder>',
+    'fetchOrderBook': 'PredictionOrderBook',
+    'fetchPosition': 'PredictionPosition',
+    'fetchPositions': 'List<PredictionPosition>',
+    'fetchTicker': 'PredictionTicker',
+    'fetchTickers': 'PredictionTickers',
+    // the prediction tier caches PredictionTicker rows, so its watchTickers snapshot is a
+    // PredictionTickers — it is a sibling hierarchy declaration, no invariance conflict
+    'watchTickers': 'PredictionTickers',
+    'fetchTrades': 'List<PredictionTrade>',
+    'fetchTradingFee': 'PredictionTradingFee',
+};
+
+// Per-venue typed cores: one method name can legitimately carry different shapes on
+// different classes (dydx fetchTransactionsHelper is a raw row list feeding filterBy, alpaca's
+// is a parsed Transaction[]). The table is consulted BEFORE the name-keyed tables, keyed by
+// the ts/src file id the core is declared in; derived venues (bequant : hitbtc) resolve
+// through their parent. An empty string opts a venue out of a name-keyed entry.
+const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
+    'alpaca': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'bydfi': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'hitbtc': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'dydx': { 'fetchTransactionsHelper': 'List<Dictionary<string, object>>' },
+    'poloniex': { 'fetchTransactionsHelper': 'Dictionary<string, object>' },
+    // sync homonyms: hashkey/kucoin/mexc/weex declare a SYNC createSpotOrderRequest and
+    // 29 venues a sync createOrderRequest — only these async declarations are typed
+    'htx': { 'createSpotOrderRequest': 'Dictionary<string, object>' },
+    'nado': {
+        'cancelAllOrdersRequest': 'Dictionary<string, object>',
+        'cancelOrdersRequest': 'Dictionary<string, object>',
+        'createOrderRequest': 'Dictionary<string, object>',
+        'editOrderRequest': 'Dictionary<string, object>',
+    },
+};
+
+// Sync cores retyped from `object` to a concrete C# type. Unlike TYPED_CORES (async
+// Task<object> -> Task<T>, where a To*/From* helper pair moves a boxed struct across the
+// boundary), these are plain sync methods whose runtime value ALREADY is the named type:
+// this.markets / this.currencies / this.markets_by_id / this.currencies_by_id hold plain
+// Dictionary<string, object> rows (setMarkets builds each row with deepExtend and toArray
+// de-types the typed fetchMarkets list before the merge), so naming the type moves no box.
+// The row BUILDERS (parseMarket / parseCurrency / createExpiredOptionMarket) return the
+// same family of rows: a census of all 119 declarations found every return path ending in
+// safeMarketStructure / safeCurrencyStructure, this.extend / deepExtend, a fresh
+// Dictionary literal, or a peer builder that resolves to one of those (poloniex's
+// parseMarket forwards to parseSpot/SwapMarket, both ending in safeMarketStructure), so
+// the ToDict funnel below is identity for them too.
+// Every declaration (the BaseExchange original and every venue override — C# overrides are
+// invariant) is rewritten, and each return expression is funnelled through ToDict (`as`
+// cast: identity for these rows, null for null) unless it already hands the dictionary back
+// unchanged. Registered in build/csharp-local-types.js so `object x = this.market(symbol)`
+// locals can be typed downstream.
+const SYNC_TYPED_CORES: Record<string, string> = {
+    'safeMarketStructure': 'Dictionary<string, object>',
+    'safeCurrencyStructure': 'Dictionary<string, object>',
+    'safeMarket': 'Dictionary<string, object>',
+    'safeCurrency': 'Dictionary<string, object>',
+    'market': 'Dictionary<string, object>',
+    'currency': 'Dictionary<string, object>',
+    'parseMarket': 'Dictionary<string, object>',
+    'parseCurrency': 'Dictionary<string, object>',
+    'createExpiredOptionMarket': 'Dictionary<string, object>',
+};
+
+
+// Collection-returning helpers whose every return site yields a list (or null) at runtime but
+// whose generated declaration still said `object`. Every site was checked mechanically (a
+// return-site census over cs/ccxt/*.cs and cs/ccxt/exchanges/*.cs): `new List<object>()`, a
+// `List<object>` local, `null`, a call to another name in this list, or one of the three shapes
+// typeCollectionReturns() normalizes:
+//   return <own object param>;         -> return this.toArray(<param>);
+//   return this.arraySlice(...);       -> return this.toArray(this.arraySlice(...));
+//   return ((object)this.<name>(...)); -> return this.<name>(...);
+// Deliberately absent: filterByArray / filterOutByArray / filterByArray* / filterBySymbols*
+// (they hand back a DICTIONARY when `indexed` is true - argument-dependent, so not a list
+// type), parseTickers / parsePositions / parseFundingRates / parseOpenInterests (funelled
+// through filterByArray), parseFundingHistory (returns a Dictionary), parseWsTrade /
+// parseWsTrades (46 ws-file overrides - a full ws regeneration is out of scope here) and
+// arraySlice (byte[] callers receive byte[] / List<byte> back, so it keeps its object
+// signature; its list returns are funnelled through toArray at the call sites above).
+const COLLECTION_RETURN_METHODS: string[] = [
+    'filterByKey', 'filterBySymbol', 'filterByLimit', 'filterBySinceLimit',
+    'filterByValueSinceLimit', 'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
+    'filterBySymbolsSinceLimit', 'filterByOutcomeSinceLimit',
+    'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCVs', 'parseTransactions',
+    'parseLedger', 'parseLiquidations', 'marketIds', 'currencyIds', 'marketCodes',
+    'marketSymbols', 'marketsForSymbols', 'parseMarkets',
+];
+
+// Same idea for the one collection helper that hands back a keyed dictionary: parseCurrencies
+// accumulates `Dictionary<string, object> result` (keyed by currency code) and returns it —
+// both the base implementation and the bitstamp override. No return-site normalizations are
+// needed (every return is that dict local); only the declaration changes.
+const COLLECTION_RETURN_DICT_METHODS: string[] = [
+    'parseCurrencies',
+];
+
+// Uses of a `typeCoreArgs` shadow local (`object nameVar = name;`, inserted when the body assigns
+// to the narrowed parameter `name`) that cannot change the resolved C# code when the shadow is
+// declared with the parameter's own type: the copy is the same box (Nullable<T> boxes as T) and
+// every proven use is an identity cast `((T)nameVar)`, a cast to `object` (same box), a bare
+// argument to a callee whose parameter there is `object` (same overload, same box), a direct
+// element of an object-valued initializer, an `IDictionary<string, object>` element assignment,
+// `return nameVar;` from an object-returning method, or a write whose right hand side is a literal
+// (string/bool/real only) or a cast/helper returning that same type. An integer literal is not one
+// of them for `Int64?`: `Int64? x = 1000` converts the literal, so the box becomes an Int64 where
+// the `object` spelling boxes an Int32. Everything else keeps `object` -- notably `add (...)`,
+// whose add(string, string) overload would win and differs from add(object, object).
+const CORE_ARG_SHADOW_TYPES = [ 'string', 'Int64?', 'double?', 'bool?' ];
+
+// Callees where every definition in cs/** (base, generated and ws tiers) declares `object` in the
+// position an argument lands in, so an `object` argument and a `string`/nullable-numeric argument
+// select the same overload and hand it the same box. `subtract`/`multiply`/`divide`/`sum` only add
+// int/Int64/double overloads, which no nullable numeric or string converts to implicitly.
+const CORE_ARG_SHADOW_CALLEES = [
+    'parseTimeframe', 'safeString', 'safeString2', 'safeStringN', 'safeBool', 'safeInteger',
+    'safeNumber', 'safeDict', 'safeValue', 'safeList', 'safeTicker', 'safeOrder', 'safeTrade',
+    'safeSymbol', 'getValue', 'isEqual', 'isTrue', 'isGreaterThan', 'isLessThan',
+    'isGreaterThanOrEqual', 'isLessThanOrEqual', 'mathMin', 'mathMax', 'subtract', 'multiply',
+    'divide', 'sum', 'filterBySymbolSinceLimit', 'filterBySinceLimit', 'filterBySymbol',
+    'handleWithdrawTagAndParams', 'fetchPaginatedCallIncremental', 'fetchPaginatedCallCursor',
+    'fetchPaginatedCallDynamic', 'fetchPaginatedCallDeterministic', 'unWatchOHLCVForSymbols',
+    'WatchOHLCVForSymbols', 'checkAddress', 'ToInt64Arg', 'ToDoubleArg', 'ToDoubleArgRequired',
+    'ToOHLCVList', 'ToTradeList', 'ToOrderList', 'ToTransactionList', 'ToFundingRateHistoryList',
+    'ToOpenInterestList', 'ToTransferEntryList', 'FromOHLCVDict', 'FromOHLCVList',
+    'FromOpenInterests', 'symbol', 'market', 'marketId', 'parseToInt', 'parseOHLCVs', 'parseOrders',
+    'parseTrades', 'parseTransactions', 'findNearestCeiling',
+];
+
+// parseOHLCVs/fetchPaginatedCallDeterministic carry a narrowed `string timeframe` inside an
+// otherwise `object` parameter list; a bare argument in those positions would not convert.
+const CORE_ARG_SHADOW_SKIP_POSITIONS: Record<string, number[]> = {
+    'parseOHLCVs': [ 2 ],
+    'fetchPaginatedCallDeterministic': [ 4 ],
+};
+
+
+
+
+
+
+
+
+
+
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
+// the fine-split moves the 62 symbol-based trading methods onto the concrete `Exchange` tier
+// (not BaseExchange), so the sibling PredictionExchange tier does not inherit them
+const GLOBAL_TRADING_WRAPPER_FILE = './cs/ccxt/base/Exchange.TradingWrappers.cs';
+const BASE_TRADING_METHODS_FILE = './cs/ccxt/base/Exchange.TradingMethods.cs';
 const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
-const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
+// ws + prediction class aliases are consolidated into one file each, mirroring the REST
+// Exchange.Wrappers.cs, so no per-exchange wrapper directory survives
+const WS_CLASS_ALIAS_FILE = './cs/ccxt/ws/Exchange.WsAliases.cs'
+const PREDICTION_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionAliases.cs'
+const PREDICTION_WS_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionWsAliases.cs'
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
+
+// The safeDict/safeList family is generated from ts/src/base/Exchange.ts, but its return
+// annotations (`Dictionary<any>` / `any[]`, each unioned with `undefined`) do not reach the
+// C# printer: getTypeFromRawType() has no member for a dictionary alias and a union falls
+// back to DEFAULT_RETURN_TYPE, so every one of the six prints `public virtual object`
+// (probed against the pinned ast-transpiler: bare `Dict`, `Dictionary<any>`, `Array<any>`,
+// `any[]` and every `| undefined` variant all emit `object`). The bodies, however, return
+// the real type on every path, so the emitted method text is retyped here: signature to the
+// concrete C# type, every `return <x>;` through an explicit cast. build/csharp-local-types.js
+// then names the locals fed by these calls.
+//
+// The dictionary three return the INTERFACE, not the concrete class: the found value only
+// passed `isDictionary`, which accepts any IDictionary<string, object> — this port hands
+// ConcurrentDictionary<string, object> through these paths for real (options itself is one,
+// createSafeDictionary() builds one, and paradex stores one in options['paradexAccount']),
+// and `(Dictionary<string, object>)` on such a value throws InvalidCastException. The cast
+// to the interface is identity-preserving for every value the guard passes and never throws
+// where the previous `object` return did not.
+//
+// Lists keep the concrete List<object>: every value the List<> guard passes that is NOT a
+// List<object> also fails the consumer-side IList<object> casts this port already emits, so
+// narrowing to List<object> changes nothing a caller could previously have used.
+//
+// The FOUND value is cast (the guard proves it); the DEFAULT is handed back with `as`, so a
+// default that is not the declared collection drops to null instead of throwing — the same
+// convention the hand-written SafeString/SafeStringN use (`return defaultValue as string`).
+// This is reachable in the real tree: myriad's fetchOHLCV passes a dictionary as the list
+// default (`safeDict`-shaped data read through `safeList (chart, 'data', chart)`), which the
+// fixture suite catches the moment a hard cast is used there.
+//
+// The rewrite is exact-match and throws if the generated shape ever changes.
+const SAFE_COLLECTION_HELPER_TYPES: Record<string, string> = {
+    'safeDict': 'IDictionary<string, object>',
+    'safeDict2': 'IDictionary<string, object>',
+    'safeDictN': 'IDictionary<string, object>',
+    'safeList': 'List<object>',
+    'safeList2': 'List<object>',
+    'safeListN': 'List<object>',
+};
+
+// locate a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any)
+// by name — the span stripCSharpMethod() cuts out, kept addressable so a rewritten method
+// can be spliced back at its original position
+function findCSharpMethodSpan (body: string, name: string): { start: number, end: number, method: string } | undefined {
+    const sigRe = new RegExp ('\\n([ \\t]*)public [^\\n]*\\b' + name + '\\s*\\(');
+    const m = sigRe.exec (body);
+    if (!m) {
+        return undefined;
+    }
+    let start = m.index; // the '\n' just before the signature line
+    const before = body.substring (0, start);
+    const docMatch = before.match (/\n[ \t]*\/\*\*[\s\S]*?\*\/[ \t]*$/);
+    if (docMatch) {
+        start = docMatch.index as number;
+    }
+    let depth = 0;
+    let end = body.indexOf ('{', m.index + m[0].length - 1);
+    for (; end < body.length; end++) {
+        const c = body[end];
+        if (c === '{') {
+            depth++;
+        } else if (c === '}') {
+            depth--;
+            if (depth === 0) {
+                end++;
+                break;
+            }
+        }
+    }
+    return { start, end, method: body.substring (start, end) };
+}
 const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './cs/ccxt/exchanges/pro/';
+const EXCHANGES_PREDICTION_FOLDER = './cs/ccxt/exchanges/prediction/';
+const EXCHANGE_PREDICTION_WRAPPER_FOLDER = './cs/ccxt/wrappers/prediction/';
+const EXCHANGES_PREDICTION_WS_FOLDER = './cs/ccxt/exchanges/prediction/pro/';
 const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './cs/tests/Generated/Base';
 const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
@@ -64,11 +1382,34 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
 const csharpComments: any = {};
 
+// default min(2, AP): 2w + shared-Program chunks is within ~10–15% of 4w and uses fewer cores.
+// Override with CCXT_TRANSPILE_PROCESSES.
+function csharpWorkerThreads () {
+    const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
+    if (requested > 0) {
+        return requested;
+    }
+    return Math.max (1, Math.min (2, os.availableParallelism ()));
+}
+
 class NewTranspiler {
 
     transpiler!: Transpiler;
     pythonStandardLibraries;
+    piscina: Piscina | undefined;
     oldTranspiler = new OldTranspiler();
+    // true while transpiling the prediction-market exchanges (ts/src/prediction/),
+    // which live in the ccxt.prediction / ccxt.prediction.pro namespaces
+    isPrediction = false;
+    // the ts/src id of the class currently being emitted ('' for the base tiers and the
+    // tests), so VENUE_TYPED_CORES can type one method name per class
+    currentVenue = '';
+    // derived venue -> parent venue (bequant -> hitbtc), read off the `class X : Y` line
+    venueParents: Record<string, string> = {};
+    // set once PredictionExchange.cs has been emitted in this process. A full run reaches
+    // transpilePredictionBaseMethods twice (recursive prediction pass, then the main pass)
+    // with identical inputs, so the second call would only rewrite the same bytes.
+    private _predictionBaseWritten = false;
 
     constructor() {
 
@@ -97,6 +1438,12 @@ class NewTranspiler {
             [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
+            // reads of the cached orderbook map go through the typed helpers added next to
+            // safeValue in cs/ccxt/ws/Exchange.WsBridge.cs (both return ccxt.pro.IOrderBook;
+            // the map only ever holds this.orderBook()/indexedOrderBook()/countedOrderBook()
+            // instances, so the value inside the box is unchanged)
+            [/this\.safeValue\((this\.orderbooks),/gm, 'this.safeOrderBook($1,'],
+            [/getValue\((this\.orderbooks),/gm, 'this.getOrderBook($1,'],
             [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
             [/(object \w+) = client\.futures/, '$1 = (client as WebSocketClient).futures'],
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
@@ -120,7 +1467,7 @@ class NewTranspiler {
             [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
             [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
             [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
-            [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
+            [/this\.delay\(([^,\n]+),([^,\n]+),([^\n]+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
             // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
             [/future(\.reject.+)/gm, '((Future)future)$1'],
@@ -131,6 +1478,11 @@ class NewTranspiler {
             [/\(object client\)/gm, '(WebSocketClient client)'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
+            // `resolve` on a receiver the arg pass already typed (`client as WebSocketClient`,
+            // or Future for the ws promise) targets a method that class declares, so it needs no
+            // reflective dispatch: the direct call binds the same method, with the same
+            // object-typed arguments and the same void result.
+            [/callDynamically\((\w+) as (WebSocketClient|Future), "resolve", new object\[\] \{(.+)\}\);/gm, '($1 as $2).resolve($3);'],
         ]
     }
 
@@ -281,8 +1633,30 @@ class NewTranspiler {
 
     setupTranspiler() {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
-        this.transpiler.setVerboseMode(false);
+        setupCsharpPrinter (this.transpiler);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        this.patchCsharpPropertyTypes ();
+    }
+
+    // Same ast-transpiler field-type hole as Java: getType() returns raw TS aliases
+    // (Dict/Str/Num/...) for class fields without VariableTypeReplacements. Without this,
+    // `skippedMethods: Dict = {}` emits `public Dict ...` and CS0246. Route field types
+    // through the existing map (exact key only).
+    patchCsharpPropertyTypes () {
+        const csharpTranspiler = (this.transpiler as any)?.csharpTranspiler;
+        if (!csharpTranspiler || typeof csharpTranspiler.getType !== 'function' || csharpTranspiler._propertyTypesPatched) {
+            return;
+        }
+        const originalGetType = csharpTranspiler.getType.bind (csharpTranspiler);
+        csharpTranspiler.getType = (node: any) => {
+            const type = originalGetType (node);
+            const replacements = csharpTranspiler.VariableTypeReplacements ?? {};
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call (replacements, type)) {
+                return replacements[type];
+            }
+            return type;
+        };
+        csharpTranspiler._propertyTypesPatched = true;
     }
 
     createGeneratedHeader() {
@@ -293,12 +1667,24 @@ class NewTranspiler {
         ]
     }
 
+    getNamespace(ws = false) {
+        if (this.isPrediction) {
+            return ws ? 'namespace ccxt.prediction.pro;' : 'namespace ccxt.prediction;';
+        }
+        return ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+    }
+
     getCsharpImports(file: any, ws = false) {
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+        const namespace = this.getNamespace (ws);
         const values = [
             // "using ccxt;",
             namespace,
         ]
+        if (this.isPrediction) {
+            // prediction exchanges merge REST + WS in one class and need the ws
+            // infrastructure types (IOrderBook, ArrayCache, ...) from ccxt.pro
+            values.push ("using ccxt.pro;");
+        }
         // if (ws) {
         //     values.push("using System.Reflection;");
         // }
@@ -310,7 +1696,7 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')))
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || (type === 'NullableDict') || ((type.startsWith('{')) && (type.endsWith('}')))
     }
 
     isStringType(type: string) {
@@ -333,7 +1719,7 @@ class NewTranspiler {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
         if (name.startsWith('watchOrderBook')) {
-            return `Task<ccxt.pro.IOrderBook>`;
+            return this.isPrediction ? `Task<ccxt.PredictionOrderBook>` : `Task<ccxt.pro.IOrderBook>`;
         }
 
         if (name === 'watchOHLCVForSymbols') {
@@ -348,6 +1734,32 @@ class NewTranspiler {
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
 
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers inline object literal types for
+        // methods without an explicit annotation (e.g. `{ info: any; hedged: boolean; }`).
+        // Map them to a plain dictionary (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.trim().startsWith('{')) {
+            if (wrappedType.trim().endsWith('[]')) {
+                isList = true; // e.g. `{ id: Str; ... }[]` → List<Dictionary<string, object>>
+            }
+            return addTaskIfNeeded('Dictionary<string, object>');
+        }
+
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers union return types for methods
+        // without an explicit annotation (e.g. `OpenInterest | undefined`, `Dict | Leverage`).
+        // Normalize them here: drop undefined/null members and collapse remaining
+        // multi-member unions to the first member (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.includes(' | ') && !wrappedType.includes('<')) {
+            const members = wrappedType.split(' | ').map (m => m.trim()).filter (m => m !== 'undefined' && m !== 'null' && m !== 'Undefined');
+            wrappedType = members.length > 0 ? members[0] : 'object';
+        }
+
+        // TS >= 5/6 keeps type alias names (e.g. `Market[]`) instead of expanding them;
+        // map the nullable alias back to its concrete interface (matches the previous
+        // TS 4.9 output, e.g. `List<MarketInterface>` in the committed wrappers).
+        if (wrappedType === 'Market' || wrappedType === 'Market[]') {
+            wrappedType = wrappedType.replace ('Market', 'MarketInterface');
+        }
+
         function addTaskIfNeeded(type: string) {
             if (type == 'void') {
                 return isPromise ? `Task` : 'void';
@@ -360,10 +1772,30 @@ class NewTranspiler {
         const csharpReplacements: dict = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
+            'fetchEventsParams': 'Dictionary<string, object>', // params bag; surface as a dict
+            // TS interface names whose C# structs are Currency / Fee (cs/ccxt/base/Exchange.Types.cs)
+            'CurrencyInterface': 'Currency',
+            'FeeInterface': 'Fee',
         }
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
             return addTaskIfNeeded('object'); // default if type is unknown;
+        }
+
+        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
+        // to `any[]` so it flows through the array branch below instead of leaking the
+        // bare `List` identifier, which is not a valid C# type without a generic arg.
+        if (wrappedType === 'List') {
+            wrappedType = 'any[]';
+        }
+
+        // Tuple return types like `[Dict, Str]` belong to internal multi-return helpers
+        // (e.g. createOrderRequest) that aren't part of the unified API. C# has no inline
+        // tuple syntax matching `[A, B]`, so treat them as an untyped array — exactly how
+        // they transpiled before being annotated (they were `any[]`). The generated
+        // wrapper only needs to compile; these helpers are never called through it.
+        if (wrappedType.startsWith('[') && wrappedType.endsWith(']')) {
+            wrappedType = 'any[]';
         }
 
         if (wrappedType === 'string[][]') {
@@ -416,6 +1848,26 @@ class NewTranspiler {
         return addTaskIfNeeded(wrappedType);
     }
 
+    /**
+     * @description Single source of truth for the C# type of an optional scalar parameter.
+     * The wrapper signature declares it as `<type>? name = null` and passes it straight into
+     * the core call, so the nullable scalar type is computed here and nowhere else.
+     * Returns undefined for parameters that are not optional numeric scalars.
+     */
+    optionalScalarCsharpType(param: any): string | undefined {
+        const isOptional = param.optional || param.initializer === 'undefined';
+        if (!isOptional) {
+            return undefined;
+        }
+        if (this.isIntegerType(param.type)) {
+            return 'Int64';
+        }
+        if (this.isNumberType(param.type)) {
+            return 'double';
+        }
+        return undefined;
+    }
+
     safeCsharpName(name: string): string {
         const csharpReservedWordsReplacement: dict = {
             'params': 'parameters',
@@ -431,9 +1883,9 @@ class NewTranspiler {
         const op = isOptional ? '?' : '';
         let paramType: any = undefined;
         
-        // Special case for setMarketsFromExchange method
+        // Special case for setMarketsFromExchange method — base tier accepts any exchange
         if (name === 'sourceExchange' && param.type === undefined) {
-            paramType = 'Exchange';
+            paramType = 'BaseExchange';
         } else if (param.type == undefined) {
             paramType = 'object';
         } else {
@@ -448,20 +1900,23 @@ class NewTranspiler {
                     if (paramType  === 'bool') {
                         return `${paramType}? ${safeName} = false`
                     }
-                    if (paramType === 'double' || paramType  === 'float') {
-                        return `${paramType}? ${safeName}2 = 0`
-                    }
-                    if (paramType  === 'Int64') {
-                        return `${paramType}? ${safeName}2 = 0`
+                    const scalarType = this.optionalScalarCsharpType(param);
+                    if (scalarType !== undefined) {
+                        return `${scalarType}? ${safeName} = null`
                     }
                     return `${paramType}? ${safeName}`
                 }
             }
         } else {
+            // generated ccxt types (Currencies, MarketInterface, ...) are C# structs (value
+            // types) — an optional param can only default to null if declared nullable (CS1750)
+            const isStructType = paramType !== 'object' && paramType !== 'string'
+                && !paramType.startsWith('List<') && !paramType.startsWith('Dictionary<')
+                && paramType !== 'BaseExchange' && paramType !== 'Exchange';
             if (isOptional) {
                 if (param.initializer !== undefined) {
                         if (param.initializer === 'undefined' || param.initializer === '{}' || paramType === 'object') {
-                            return `${paramType} ${safeName} = null`
+                            return isStructType ? `${paramType}? ${safeName} = null` : `${paramType} ${safeName} = null`
                         }
                         return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
                 }
@@ -494,9 +1949,18 @@ class NewTranspiler {
             'setSandBoxMode',
             'loadOrderBook',
             'fetchCurrencies',
+            // same as fetchCurrencies: a hand-written PascalCase public method already
+            // lives on Exchange.cs (new Currencies(await fetchCurrenciesWs())). Emitting
+            // a generated wrapper is a second overload (object vs Dictionary params) and
+            // bitvavo's ws override stays on the camelCase core that the hand-written
+            // method already calls. Blacklist, don't type — the BaseExchange decl is
+            // never rewritten, so a typed override would be CS0508.
+            'fetchCurrenciesWs',
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'watch',
@@ -504,8 +1968,43 @@ class NewTranspiler {
             'watchMultiple',
             'watchPrivate',
             'watchPublic',
+            // venue-internal ws transport plumbing: each of these resolves 2+ runtime
+            // shapes across its call sites (ticker dict / live orderbook / ArrayCache /
+            // [symbol, timeframe, stored] tuple / raw message), so no closed C# type
+            // fits and a cast-only `Dictionary<string, object>` wrapper is a lie
+            'watchExecuteRequest',
+            'watchHeartbeat',
+            'watchMany',
+            'watchMultiHelper',
+            'watchMultiTickerHelper',
+            'watchMultipleWrapper',
+            'watchPrivateMultiple',
+            'watchPrivateRequest',
+            'watchPrivateSubscribe',
+            'watchPublicMultiple',
+            'watchRequest',
+            'watchSpotPrivate',
+            'watchSpotPublic',
+            'watchStockMarketStream',
+            'watchSwapPrivate',
+            'watchSwapPublic',
+            'watchTopics',
             'setPositionsCache',
-            'setPositionCache'
+            'setPositionCache',
+            // internal HTTP / pagination transport: not public API (users never call
+            // fetch2 / fetchPaginatedCallCursor). fetch2 and fetchWebEndpoint return
+            // polymorphic JSON (dict | list | string). fetchPaginatedCall* return a
+            // concatenated List<object> of whatever the inner method produced, and
+            // ~80 consumers immediately wrap that in ToTradeList / ToOrderList / …
+            // which still hard-cast `(IList<object>)` — List<T> is invariant, so
+            // typing them as List<Dictionary<string, object>> would throw at those
+            // sites even after the toArray re-box. Blacklist, don't force a type.
+            'fetch2',
+            'fetchWebEndpoint',
+            'fetchPaginatedCallDynamic',
+            'fetchPaginatedCallDeterministic',
+            'fetchPaginatedCallCursor',
+            'fetchPaginatedCallIncremental',
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -515,6 +2014,1202 @@ class NewTranspiler {
         const isBlackListed = blacklistMethods.includes(methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
         return !isBlackListed && startsWithAllowedPrefix;
+    }
+
+    // the typed C# return of a core method, or '' when the method keeps `Task<object>`
+    typedCoreType (methodName: string, isPredictionTier = false, venue: string = this.currentVenue): string {
+        // the per-venue axis wins: walk the venue and its parents (bequant -> hitbtc)
+        let v: string | undefined = venue;
+        while (v !== undefined && v !== '') {
+            const perVenue = VENUE_TYPED_CORES[v];
+            if (perVenue !== undefined && (methodName in perVenue)) {
+                return perVenue[methodName];
+            }
+            v = this.venueParents[v];
+        }
+        const snapshot = SNAPSHOT_CORES[methodName];
+        if (snapshot !== undefined) {
+            return (isPredictionTier && snapshot.predictionType !== undefined) ? snapshot.predictionType : snapshot.type;
+        }
+        if (isPredictionTier && (methodName in PREDICTION_TYPED_CORES)) {
+            return PREDICTION_TYPED_CORES[methodName];
+        }
+        return TYPED_CORES[methodName] ?? '';
+    }
+
+    // the To* helper that materialises a typed core's return, or the snapshot helper for
+    // the live ws structures whose public shape is a `.Copy()` rather than a `new T(...)`
+    typedCoreToHelper (methodName: string, isPredictionTier: boolean, csharpType: string): string {
+        const snapshot = SNAPSHOT_CORES[methodName];
+        if (snapshot !== undefined) {
+            return (isPredictionTier && snapshot.predictionHelper !== undefined) ? snapshot.predictionHelper : snapshot.helper;
+        }
+        if (csharpType === 'Dictionary<string, object>') {
+            return 'ccxt.BaseExchange.ToDict';
+        }
+        if (csharpType === 'List<Dictionary<string, object>>') {
+            return 'ccxt.BaseExchange.ToDictList';
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'ccxt.BaseExchange.ToOHLCVDict';
+        }
+        if (csharpType === 'Int64') {
+            return 'ccxt.BaseExchange.ToInt64Value';
+        }
+        if (csharpType === 'string') {
+            return 'ccxt.BaseExchange.ToStringValue';
+        }
+        if (csharpType === 'List<string>') {
+            return 'ccxt.BaseExchange.ToStringList';
+        }
+        return 'ccxt.BaseExchange.To' + this.typedCoreHelperSuffix (csharpType);
+    }
+
+    // the prediction tier is detected from the emitted content, not from `this.isPrediction`:
+    // the recursive prediction pass and the main pass both reach these files, and only the text
+    // reliably says which class hierarchy the method is being emitted into
+
+
+    // `List<OrderBook>` -> `List<ccxt.OrderBook>`. Required because ccxt.pro declares its own
+    // OrderBook / Trade classes, which would otherwise win name resolution inside pro files
+    qualifyTypedCoreType (csharpType: string): string {
+        if (csharpType.startsWith ('ccxt.')) {
+            return csharpType; // SNAPSHOT_CORES already spell the fully qualified name
+        }
+        // raw / primitive core types are not ccxt. structs
+        if (csharpType === 'Int64' || csharpType === 'string' || csharpType === 'List<string>' || csharpType === 'Dictionary<string, object>' || csharpType === 'List<Dictionary<string, object>>') {
+            return csharpType;
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>';
+        }
+        if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
+            return 'List<ccxt.' + csharpType.substring (5, csharpType.length - 1) + '>';
+        }
+        return 'ccxt.' + csharpType;
+    }
+
+    // helper suffix used by ToXxx: `List<Order>` -> `OrderList`, `Ticker` -> `Ticker`
+    typedCoreHelperSuffix (csharpType: string): string {
+        if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
+            return csharpType.substring (5, csharpType.length - 1) + 'List';
+        }
+        return csharpType;
+    }
+
+    // locates the terminating `;` of a `return <expr>;` statement starting at line `start`,
+    // tolerating multi-line expressions by only stopping on a `;` outside brackets/strings
+    collectReturnStatement (lines: string[], start: number): number[] {
+        let depth = 0;
+        let inString = false;
+        for (let i = start; i < lines.length; i++) {
+            const line = lines[i];
+            for (let j = 0; j < line.length; j++) {
+                const ch = line[j];
+                if (inString) {
+                    if (ch === '\\') { j++; continue; }
+                    if (ch === '"') { inString = false; }
+                    continue;
+                }
+                if (ch === '"') { inString = true; continue; }
+                if (ch === '/' && line[j + 1] === '/') { break; }
+                if (ch === '(' || ch === '[' || ch === '{') { depth++; continue; }
+                if (ch === ')' || ch === ']' || ch === '}') { depth--; continue; }
+                if (ch === ';' && depth <= 0) { return [ i, j ]; }
+            }
+        }
+        return [ start, lines[start].length ];
+    }
+
+    // the reverse helper for a typed core's shape: `List<Order>` -> `FromOrderList`, or ''
+    // when the family is not invertible. Reflective pagination and any
+    // `object x = await this.fetchOrders(...)` consumer reads dictionary keys off the
+    // result, so a boxed struct has to be de-typed first.
+    typedCoreFromHelper (csharpType: string): string {
+        if (csharpType === 'Dictionary<string, object>') {
+            return 'ccxt.BaseExchange.FromDict';
+        }
+        if (csharpType === 'List<Dictionary<string, object>>') {
+            return 'ccxt.BaseExchange.FromDictList';
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'ccxt.BaseExchange.FromOHLCVDict';
+        }
+        if (csharpType === 'Int64') {
+            return 'ccxt.BaseExchange.FromInt64';
+        }
+        if (csharpType === 'string') {
+            return 'ccxt.BaseExchange.FromStringValue';
+        }
+        if (csharpType === 'List<string>') {
+            return 'ccxt.BaseExchange.FromStringList';
+        }
+        const family = csharpType.startsWith ('List<') ? csharpType.slice (5, -1) : csharpType;
+        if (!REVERSIBLE_FAMILIES.includes (family)) {
+            return '';
+        }
+        return 'ccxt.BaseExchange.From' + this.typedCoreHelperSuffix (csharpType);
+    }
+
+    // finds the `)` closing the call that starts at `open` (the `(` index), skipping
+    // string literals — generated argument lists carry `(`/`)` inside url templates
+    matchingParen (line: string, open: number): number {
+        let depth = 0;
+        let inString = false;
+        for (let i = open; i < line.length; i++) {
+            const ch = line[i];
+            if (inString) {
+                if (ch === '\\') { i++; continue; }
+                if (ch === '"') { inString = false; }
+                continue;
+            }
+            if (ch === '"') { inString = true; continue; }
+            if (ch === '(') { depth++; continue; }
+            if (ch === ')') { depth--; if (depth === 0) { return i; } }
+        }
+        return -1;
+    }
+
+    // wraps every `await this.<typedCore>(...)` on one line in its From* helper, so a typed
+    // struct never lands in an `object` local. Occurrences already funnelled through a
+    // To*/From* helper, and the tail-call returns typeCores deliberately left bare, are skipped.
+    wrapTypedCoreConsumers (line: string, names: string[], predictionTier: boolean, skipReturn: boolean): string {
+        let out = line;
+        for (const name of names) {
+            const typedType = this.typedCoreType (name, predictionTier);
+            if (typedType === '') {
+                continue;
+            }
+            const needle = 'await this.' + name + '(';
+            let from = 0;
+            while (true) {
+                const at = out.indexOf (needle, from);
+                if (at === -1) {
+                    break;
+                }
+                const before = out.substring (0, at);
+                const close = this.matchingParen (out, at + needle.length - 1);
+                if (close === -1) {
+                    // a call spanning several lines is left alone rather than mangled;
+                    // the runtime FromTyped dispatcher still de-types it if it is awaited reflectively
+                    break;
+                }
+                if (/ccxt\.BaseExchange\.(To|From)\w+\($/.test (before) || (skipReturn && /^\s*return $/.test (before))) {
+                    from = close;
+                    continue;
+                }
+                const helper = this.typedCoreFromHelper (typedType);
+                if (helper === '') {
+                    // a non-invertible family (Tickers / Balances / OrderBook): leave the call
+                    // exactly as it was before this pass. Those names are typed only where the
+                    // wrapper conversion was the sole consumer, so nothing regresses; the
+                    // analyzer refuses to ADD any such name that has consuming call sites.
+                    from = close;
+                    continue;
+                }
+                out = before + helper + '(' + out.substring (at, close + 1) + ')' + out.substring (close + 1);
+                from = close + helper.length + 2;
+            }
+        }
+        return out;
+    }
+
+    // rewrites every typed core so the generated core returns its typed shape:
+    //   - the signature `Task<object> fetchOrder(` becomes `Task<Order>`
+    //   - every return site inside it is funnelled through `BaseExchange.ToOrder(...)`,
+    //     except a tail call to another already-typed core of the same shape
+    //   - an untyped core returning a typed core needs the reverse conversion; only OHLCV has a
+    //     lossless one, so any other family reaching that branch is a table bug and throws
+    // every method name that may carry a typed return: the two TYPED_CORES tables plus the
+    // ws snapshot cores, whose type differs per tier but is never ''
+    typedCoreNames (): string[] {
+        const names = Object.keys (TYPED_CORES)
+            .concat (Object.keys (PREDICTION_TYPED_CORES).filter ((n) => !(n in TYPED_CORES)))
+            .concat (Object.keys (SNAPSHOT_CORES).filter ((n) => !(n in TYPED_CORES)));
+        for (const venue of Object.keys (VENUE_TYPED_CORES)) {
+            for (const name of Object.keys (VENUE_TYPED_CORES[venue])) {
+                if (!names.includes (name)) {
+                    names.push (name);
+                }
+            }
+        }
+        return names;
+    }
+
+    typeCores (content: string, predictionTier = this.isPrediction): string {
+        const names = this.typedCoreNames ();
+        if (!names.some (name => content.includes (' ' + name + '('))) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        // void `Task` bodies (loadBalanceSnapshot, loadPositionsSnapshot) are visited too: they
+        // consume typed cores into `object` locals and need the From* funnel like anyone else
+        // `Task<...>` with a concrete argument is matched too: a typed core can itself consume
+        // another typed core into an `object` local (okx FetchDepositAddress reads
+        // FetchDepositAddressesByNetwork), and that boxed struct needs the same From* funnel
+        const sigRe = /^(\s*)public async (virtual|override) Task(?:<[\w.<>, ]+>)? (\w+)\(/;
+        const typedCallRe = new RegExp ('^await this\\.(' + names.join ('|') + ')\\(');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ , indent, modifier, methodName ] = sig;
+            const isObjectTask = lines[i].indexOf (' Task<object> ') !== -1;
+            const typedType = isObjectTask ? this.typedCoreType (methodName, predictionTier) : '';
+            const isTyped = typedType !== '';
+            // the method body ends at its closing brace, which is the first line indented exactly
+            // like the signature — brace counting is unusable here because generated bodies carry
+            // `{`/`}` inside string literals (url templates, json payloads)
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            if (isTyped) {
+                lines[i] = `${indent}public async ${modifier} Task<${this.qualifyTypedCoreType (typedType)}> ${methodName}(` + lines[i].split (methodName + '(').slice (1).join (methodName + '(');
+            }
+            const tailOk: Record<number, boolean> = {};
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                if (!lines[j].trim ().startsWith ('return ')) {
+                    continue;
+                }
+                const [ lastLine, semi ] = this.collectReturnStatement (lines, j);
+                const head = lines[j].substring (lines[j].indexOf ('return ') + 7);
+                const middle = lines.slice (j + 1, lastLine);
+                const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
+                const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
+                const calledCore = typedCallRe.exec (expr);
+                const calledType = calledCore ? this.typedCoreType (calledCore[1], predictionTier) : '';
+                let wrapper = '';
+                if (isTyped && calledType !== typedType) {
+                    wrapper = this.typedCoreToHelper (methodName, predictionTier, typedType);
+                } else if (!isTyped && calledType !== '') {
+                    // an untyped core forwarding a typed one has to hand back the untyped shape
+                    wrapper = this.typedCoreFromHelper (calledType);
+                    if (wrapper === '') {
+                        throw new Error (`typeCores: untyped ${methodName} returns typed core ${calledCore[1]} (${calledType}) — drop it from TYPED_CORES or add a From helper`);
+                    }
+                }
+                if (wrapper === '') {
+                    tailOk[j] = true;
+                    j = lastLine;
+                    continue;
+                }
+                const pad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
+                const trailing = lines[lastLine].substring (semi + 1);
+                lines[j] = `${pad}return ${wrapper}(${expr});${trailing}`;
+                for (let k = j + 1; k <= lastLine; k++) {
+                    lines[k] = null as any;
+                }
+                tailOk[j] = true;
+                j = lastLine;
+            }
+            // every remaining `await this.<typedCore>(...)` in the body is a consuming site —
+            // its result lands in an `object` local or a bigger expression, where a boxed
+            // struct would read as null. Funnel those through the reverse From* helper.
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                if (lines[j] === null || lines[j].indexOf ('await this.') === -1) {
+                    continue;
+                }
+                // a consuming call whose argument list spans several lines has to be joined
+                // first, or matchingParen gives up and the boxed struct escapes untouched
+                // (binance watchTicker -> `object tickers = await this.WatchTickers(` + 3 lines)
+                let end = j;
+                if (this.matchingParen (lines[j], lines[j].indexOf ('await this.')) === -1) {
+                    const [ last ] = this.collectReturnStatement (lines, j);
+                    if (last > j && last < bodyEnd) {
+                        end = last;
+                    }
+                }
+                if (end > j) {
+                    const pad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
+                    const joined = lines.slice (j, end + 1).map ((l, k) => (k === 0 ? l : l.trim ())).join (' ');
+                    const wrapped = this.wrapTypedCoreConsumers (joined, names, predictionTier, tailOk[j] === true);
+                    if (wrapped !== joined) {
+                        lines[j] = pad + wrapped.trim ();
+                        for (let k = j + 1; k <= end; k++) {
+                            lines[k] = null as any;
+                        }
+                        j = end;
+                        continue;
+                    }
+                }
+                lines[j] = this.wrapTypedCoreConsumers (lines[j], names, predictionTier, tailOk[j] === true);
+            }
+            i = bodyEnd;
+        }
+        return lines.filter (line => line !== null).join ('\n');
+    }
+
+    // rewrites every sync core declared in SYNC_TYPED_CORES — the BaseExchange original and
+    // every venue override — from `object` to its concrete type, and funnels each return
+    // expression through `ccxt.BaseExchange.ToDict(...)`. ToDict is `value as
+    // Dictionary<string, object>`: identity for the rows these paths build, null for null,
+    // so the typed signature compiles without touching the box. Return expressions that
+    // already carry the dictionary statically stay bare: extend/deepExtend are declared
+    // Dictionary<string, object> in Exchange.Generic.cs, and a retyped core hands the same
+    // row back unmodified (this.safeMarketStructure(, base.safeMarket(, ...).
+    typeSyncCores (content: string): string {
+        const names = Object.keys (SYNC_TYPED_CORES);
+        if (!names.some (name => content.includes ('object ' + name + '('))) {
+            return content;
+        }
+        const sigRe = new RegExp ('^(\\s*)public (virtual|override) object (' + names.join ('|') + ')\\(');
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ full, indent, modifier, methodName ] = sig;
+            lines[i] = indent + 'public ' + modifier + ' ' + SYNC_TYPED_CORES[methodName] + ' ' + methodName + '(' + lines[i].substring (full.length);
+            // the body ends at its closing brace: the first line indented exactly like the
+            // signature (brace counting is unusable — generated bodies carry braces inside
+            // string literals)
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                if (!lines[j].trim ().startsWith ('return ')) {
+                    continue;
+                }
+                const [ lastLine, semi ] = this.collectReturnStatement (lines, j);
+                const head = lines[j].substring (lines[j].indexOf ('return ') + 7);
+                const middle = lines.slice (j + 1, lastLine);
+                const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
+                const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
+                if (this.syncCoreReturnIsAlreadyTyped (expr)) {
+                    j = lastLine;
+                    continue;
+                }
+                const retAt = lines[j].indexOf ('return ') + 7;
+                if (lastLine === j) {
+                    lines[j] = lines[j].substring (0, retAt) + 'ccxt.BaseExchange.ToDict(' + lines[j].substring (retAt, semi) + ')' + lines[j].substring (semi);
+                } else {
+                    // multi-line expression: open the helper on the first line, close it
+                    // before the `;` on the last — formatting is preserved
+                    lines[j] = lines[j].substring (0, retAt) + 'ccxt.BaseExchange.ToDict(' + lines[j].substring (retAt);
+                    lines[lastLine] = lines[lastLine].substring (0, semi) + ')' + lines[lastLine].substring (semi);
+                }
+                j = lastLine;
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // the returns of a SYNC_TYPED_CORES method that already hand the dictionary back, so a
+    // ToDict funnel would only add noise
+    syncCoreReturnIsAlreadyTyped (expr: string): boolean {
+        const unchanged = [ 'ccxt.BaseExchange.ToDict(', 'this.extend(', 'base.extend(', 'this.deepExtend(', 'base.deepExtend(' ];
+        for (const name of Object.keys (SYNC_TYPED_CORES)) {
+            unchanged.push ('this.' + name + '(', 'base.' + name + '(');
+        }
+        return unchanged.some ((prefix) => expr.startsWith (prefix));
+    }
+
+    // A typed core needs no PascalCase forwarding wrapper: the core itself carries the public
+    // name. The key set matches typedCoreType(), which falls back to TYPED_CORES on the
+    // prediction tier, so a single union map covers both hierarchies.
+    pascalTypedCoreNames (predictionTier: boolean): Record<string, string> {
+        const names = this.typedCoreNames ();
+        const map: Record<string, string> = {};
+        for (const name of names) {
+            if (this.typedCoreType (name, predictionTier) !== '') {
+                map[name] = name.charAt (0).toUpperCase () + name.slice (1);
+            }
+        }
+        return map;
+    }
+
+    // renames every typed core (declaration + call site) to PascalCase, so the generated core
+    // *is* the public API and createWrapper stops emitting a thin duplicate. Method-name string
+    // literals are deliberately NOT touched: they double as `has`/`describe()` capability keys
+    // (`"createOrder": true`) — reflective lookup resolves the case instead (ResolveMethod).
+    pascalizeTypedCores (content: string, predictionTier = this.isPrediction, receivers = [ 'this.', 'base.' ], declarations = true): string {
+        const map = this.pascalTypedCoreNames (predictionTier);
+        if (declarations) {
+            const declRe = /(public\s+(?:async\s+)?(?:virtual\s+|override\s+)?Task<[^\n]*?>\s+)(\w+)\(/g;
+            content = content.replace (declRe, (whole, head, name) => (map[name] !== undefined ? head + map[name] + '(' : whole));
+        }
+        const escaped = receivers.map ((r) => r.replace (/[.*+?^${}()|[\]\\]/g, '\\$&')).join ('|');
+        const callRe = new RegExp ('(' + escaped + ')(\\w+)\\(', 'g');
+        content = content.replace (callRe, (whole, receiver, name) => (map[name] !== undefined ? receiver + map[name] + '(' : whole));
+        return content;
+    }
+
+    // WS tests bind the unified methods STATICALLY, so unlike the REST tests they never pass
+    // through invokeExchangeDynamically -> detypeForComparison and receive the raw struct.
+    // `assert (exchange.isDictionary (response))` then sees a boxed Tickers/Ticker, not the
+    // symbol-keyed dictionary the unified test asserts. Project on the TEST path only.
+    detypeWsTypedCoreCalls (content: string): string {
+        const map = this.pascalTypedCoreNames (false);
+        const pascals = new Set<string> ();
+        for (const name of Object.keys (map)) {
+            // the snapshot cores hand back the live ws structure on purpose; the ws tests
+            // already `.Copy()` them and assert on the book's own accessors
+            if (!(name in SNAPSHOT_CORES)) {
+                pascals.add (map[name]);
+            }
+        }
+        const callRe = /await exchange\.(\w+)\(/g;
+        let out = '';
+        let last = 0;
+        let match = callRe.exec (content);
+        while (match !== null) {
+            if (pascals.has (match[1])) {
+                const open = match.index + match[0].length - 1;
+                const close = this.matchingParen (content, open);
+                if (close !== -1) {
+                    out += content.slice (last, match.index);
+                    out += 'detypeForComparison(' + content.slice (match.index, close + 1) + ')';
+                    last = close + 1;
+                    callRe.lastIndex = last;
+                }
+            }
+            match = callRe.exec (content);
+        }
+        return out + content.slice (last);
+    }
+
+    // index of the `)` closing the `(` at `open`, skipping string and char literals
+    matchingParen (content: string, open: number): number {
+        let depth = 0;
+        let i = open;
+        while (i < content.length) {
+            const ch = content[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                i += 1;
+                while (i < content.length && content[i] !== quote) {
+                    i += (content[i] === '\\') ? 2 : 1;
+                }
+            } else if (ch === '(') {
+                depth += 1;
+            } else if (ch === ')') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+            i += 1;
+        }
+        return -1;
+    }
+
+    // right hand side whose C# static type is exactly the shadow's type
+    coreArgShadowRhsIsTyped (rhs: string, targetType: string): boolean {
+        if (targetType === 'string') {
+            if (/^"(?:[^"\\]|\\.)*"$/.test (rhs)) {
+                return true;
+            }
+            if (/^this\.(?:safeString|symbol)\s*\(/.test (rhs)) {
+                return true;
+            }
+            if (/^\(\(string\)[\w.]+\)\.(?:ToLower|ToUpper|Trim)\s*\(\s*\)$/.test (rhs)) {
+                return true;
+            }
+        } else if (targetType === 'bool?') {
+            if (/^(?:true|false)$/.test (rhs)) {
+                return true;
+            }
+        } else if (targetType === 'double?') {
+            // an integer literal would be converted (int -> double), boxing a Double instead of
+            // the Int32 the `object` spelling boxes -- a real literal needs no conversion
+            if (/^-?\d+\.\d*(?:[eE][-+]?\d+)?$/.test (rhs) || /^-?\d+[eE][-+]?\d+$/.test (rhs)) {
+                return true;
+            }
+        }
+        const cast = /^\(\(([^()]*)\)/.exec (rhs) || /^\(([\w<>, ?\[\].]+)\)/.exec (rhs);
+        if (cast) {
+            const inner = cast[1].trim ();
+            if (inner === targetType) {
+                return true;
+            }
+        }
+        if (targetType !== 'string') {
+            if (/^(?:this|ccxt\.BaseExchange)\.(?:safeInteger|safeFloat|safeNumber|parseToInt|ToInt64Arg|ToDoubleArg)\s*\(/.test (rhs)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // `((T)x)` / `(T)x` immediately wrapping the occurrence at `at`, or null
+    coreArgShadowCastBefore (line: string, at: number): string | null {
+        let m = /\(\(([^()]*)\)$/.exec (line.slice (0, at));
+        if (m !== null) {
+            return m[1].trim ();
+        }
+        m = /(?:^|[^\w(])\(([\w<>, ?\[\].]+)\)$/.exec (line.slice (0, at));
+        return m === null ? null : m[1].trim ();
+    }
+
+    // innermost call whose argument list holds `at`; returns [ name, openParen ]. The scan stops
+    // at a `;` or at a `{` that does not open a `new List/object[]/Dictionary` initializer, so it
+    // never walks out of the statement the occurrence belongs to.
+    coreArgShadowCallee (line: string, at: number): [ string, number ] | null {
+        let depth = 0;
+        let i = at - 1;
+        while (i >= 0) {
+            const ch = line[i];
+            if (ch === ')') {
+                depth += 1;
+            } else if (ch === '(') {
+                depth -= 1;
+                if (depth < 0) {
+                    const name = /([\w.]+)\s*$/.exec (line.slice (0, i));
+                    return name === null ? null : [ name[1], i ];
+                }
+            } else if (ch === ';' || (ch === '}' && depth === 0)) {
+                return null;
+            } else if (ch === '{' && depth === 0) {
+                if (!/(?:new List<object>|new object\[\]|new Dictionary<string, object>)\s*\(?\s*\)?\s*$/.test (line.slice (0, i))) {
+                    return null;
+                }
+            }
+            i -= 1;
+        }
+        return null;
+    }
+
+    coreArgShadowCalleeAllows (callee: string, line: string, at: number, openParen: number): boolean {
+        const name = callee.split ('.').pop () as string;
+        if (CORE_ARG_SHADOW_CALLEES.indexOf (name) === -1) {
+            return false;
+        }
+        const skips = CORE_ARG_SHADOW_SKIP_POSITIONS[name];
+        if (skips === undefined) {
+            return true;
+        }
+        let depth = 0;
+        let index = 0;
+        for (let i = openParen + 1; i < at; i++) {
+            const ch = line[i];
+            if (ch === '(') { depth += 1; } else if (ch === ')') { depth -= 1; } else if (ch === ',' && depth === 0) { index += 1; }
+        }
+        return skips.indexOf (index) === -1;
+    }
+
+    // classification of one occurrence: 'write', 'read', or '' when not provable
+    coreArgShadowUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean): string {
+        const pre = line.slice (0, at);
+        const post = line.slice (at + alias.length);
+        const postl = post.replace (/^\s+/, '');
+        if (/(?:ref|out)\s+$/.test (pre)) {
+            return '';
+        }
+        if (pre.trim () === '') {
+            const m = /^\s*(\?\?=|\+=|-=|\*=|%=|\/=|=(?!=))\s*(.*?);?\s*$/.exec (post);
+            if (m !== null) {
+                const op = m[1];
+                const rhs = m[2].trim ();
+                if ((op === '??=' || op === '=') && this.coreArgShadowRhsIsTyped (rhs, targetType)) {
+                    return 'write';
+                }
+                return '';
+            }
+        }
+        const cast = this.coreArgShadowCastBefore (line, at);
+        if (cast !== null) {
+            // an identity cast, or a cast to object (boxes the same value / null)
+            return (cast === targetType || cast === 'object') ? 'read' : '';
+        }
+        // `(alias == null)` / `(alias != null)`: the native spelling of the isEqual(alias, null)
+        // guard this classifier already accepts at an argument position. The null test reads the
+        // box itself and answers the same for `object` and every narrowed type here.
+        if (/^[!=]=\s*null\s*\)/.test (postl)) {
+            return 'read';
+        }
+        // `(alias == "lit")` / `(alias != "lit")`: the native spelling of the isEqual(alias, "lit")
+        // comparison this classifier already accepts at an argument position (the narrowed copy is
+        // a `string` in the emitted declaration, which is what makes the operator a value compare)
+        if (/^[!=]=\s*(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')\s*\)/.test (postl)) {
+            return 'read';
+        }
+        if (pre.trim () === 'return' && postl.trim () === ';') {
+            return methodReturnType.includes ('object') ? 'read' : '';
+        }
+        if (postl.trim () === ';' && /[\}\]]\s*=\s*$/.test (pre) && /I?Dictionary<string,\s*object>/.test (pre)) {
+            return 'read';
+        }
+        if (/[{,]\s*$/.test (pre) && /(?:new List<object>|new object\[\]|new Dictionary<string, object>)\s*\(?\s*\)?\s*\{[^{}]*$/.test (pre)) {
+            return 'read';
+        }
+        if (inDictInit && /^\s*\{\s*"(?:[^"\\]|\\.)*"\s*,\s*$/.test (pre)) {
+            return 'read';
+        }
+        if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
+            const callee = this.coreArgShadowCallee (line, at);
+            if (callee !== null && this.coreArgShadowCalleeAllows (callee[0], line, at, callee[1])) {
+                return 'read';
+            }
+            return '';
+        }
+        if (postl.charAt (0) === '}' && /\{\s*"[^"]*"\s*,\s*$/.test (pre)) {
+            return 'read';
+        }
+        return '';
+    }
+
+    // True when the shadow `alias` (copy of the narrowed parameter, targetType its type) is used
+    // only in the proven ways above and is read at least once (a write-only local is CS0219).
+    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1): boolean {
+        if (CORE_ARG_SHADOW_TYPES.indexOf (targetType) === -1) {
+            return false;
+        }
+        // strip `//` and block comments, then track the brace depth so a `{ "key", x }` entry is
+        // only accepted inside a `Dictionary<string, object>` initializer
+        const lines: string[] = [];
+        const dictInits: boolean[] = [];
+        const frames: number[][] = [];
+        let inBlock = false;
+        let depth = 0;
+        for (const raw of bodyLines) {
+            let line = raw;
+            if (inBlock) {
+                const end = line.indexOf ('*/');
+                if (end === -1) { line = ''; } else { line = line.slice (end + 2); inBlock = false; }
+            }
+            const open = line.indexOf ('/*');
+            if (open !== -1) {
+                const end = line.indexOf ('*/', open);
+                if (end === -1) { line = line.slice (0, open); inBlock = true; } else { line = line.slice (0, open) + line.slice (end + 2); }
+            }
+            const slash = this.coreArgShadowCommentAt (line);
+            if (slash !== -1) {
+                line = line.slice (0, slash);
+            }
+            while (frames.length > 0 && frames[frames.length - 1][0] > depth) {
+                frames.pop ();
+            }
+            dictInits.push (frames.some ((frame) => frame[1] === 1));
+            if (/(?:new Dictionary<string, object>|new List<object>|new object\[\])\s*\(?\s*\)?\s*\{/.test (line)) {
+                const isDict = /new Dictionary<string, object>\s*\(?\s*\)?\s*\{/.test (line);
+                frames.push ([ depth + this.coreArgShadowBraceDelta (line), isDict ? 1 : 0 ]);
+            }
+            depth += this.coreArgShadowBraceDelta (line);
+            lines.push (line);
+        }
+        let reads = 0;
+        for (let k = 0; k < lines.length; k++) {
+            if (k === skipLine) {
+                continue;
+            }
+            const line = lines[k];
+            for (const at of this.coreArgShadowOccurrences (line, alias)) {
+                const kind = this.coreArgShadowUseKind (line, at, alias, targetType, methodReturnType, dictInits[k]);
+                if (kind === '') {
+                    return false;
+                }
+                if (kind === 'read') {
+                    reads += 1;
+                }
+            }
+        }
+        return reads > 0;
+    }
+
+    // index of the `//` comment start outside string/char literals, or -1
+    coreArgShadowCommentAt (line: string): number {
+        let i = 0;
+        while (i < line.length) {
+            const ch = line[i];
+            if (ch === '"' || ch === '\'') {
+                i = this.coreArgShadowSkipLiteral (line, i);
+                continue;
+            }
+            if (ch === '/' && line[i + 1] === '/') {
+                return i;
+            }
+            i += 1;
+        }
+        return -1;
+    }
+
+    // first index past the string/char literal that starts at `start`
+    coreArgShadowSkipLiteral (line: string, start: number): number {
+        const quote = line[start];
+        let i = start + 1;
+        while (i < line.length) {
+            if (line[i] === '\\') { i += 2; continue; }
+            if (line[i] === quote) { return i + 1; }
+            i += 1;
+        }
+        return i;
+    }
+
+    // net `{` minus `}` outside string/char literals
+    coreArgShadowBraceDelta (line: string): number {
+        let delta = 0;
+        let i = 0;
+        while (i < line.length) {
+            const ch = line[i];
+            if (ch === '"' || ch === '\'') {
+                i = this.coreArgShadowSkipLiteral (line, i);
+                continue;
+            }
+            if (ch === '{') { delta += 1; } else if (ch === '}') { delta -= 1; }
+            i += 1;
+        }
+        return delta;
+    }
+
+    // positions of `alias` outside string/char literals and `//` comments
+    coreArgShadowOccurrences (line: string, alias: string): number[] {
+        const out: number[] = [];
+        let i = 0;
+        while (i <= line.length - alias.length) {
+            const ch = line[i];
+            if (ch === '"' || ch === '\'') {
+                i = this.coreArgShadowSkipLiteral (line, i);
+                continue;
+            }
+            if (ch === '/' && line[i + 1] === '/') {
+                break;
+            }
+            if (line.startsWith (alias, i)) {
+                const before = i === 0 ? '' : line[i - 1];
+                const after = i + alias.length < line.length ? line[i + alias.length] : '';
+                if (!/[\w.]/.test (before) && !/\w/.test (after)) {
+                    out.push (i);
+                    i += alias.length;
+                    continue;
+                }
+            }
+            i += 1;
+        }
+        return out;
+    }
+
+    // narrows the `object` parameters listed in CORE_STRING_ARGS to `string` on every
+    // generated declaration. Positional, because the prediction tier renames the first
+    // parameter (`symbol` -> `outcome`) while C# invariance is on types only.
+    // merged view of both tables: position -> narrowed C# type, per method name
+    coreArgTypes (methodName: string): Record<number, string> | undefined {
+        const strings = CORE_STRING_ARGS[methodName];
+        const numerics = CORE_NUMERIC_ARGS[methodName];
+        if (strings === undefined && numerics === undefined) {
+            return undefined;
+        }
+        const merged: Record<number, string> = {};
+        for (const pos of strings || []) {
+            merged[pos] = 'string';
+        }
+        for (const pos of Object.keys (numerics || {})) {
+            merged[Number (pos)] = (numerics as any)[pos];
+        }
+        return merged;
+    }
+
+    // renames every free occurrence of `name` to `alias` inside a generated method body,
+    // skipping string literals and member access (`.name`) so dictionary keys such as
+    // "timeframe" and properties such as `this.timeframe` are left untouched.
+    renameLocalInBody (body: string, name: string, alias: string): string {
+        let out = '';
+        let i = 0;
+        while (i < body.length) {
+            const ch = body[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                let j = i + 1;
+                while (j < body.length) {
+                    if (body[j] === '\\') { j += 2; continue; }
+                    if (body[j] === quote) { j++; break; }
+                    j++;
+                }
+                out += body.substring (i, j);
+                i = j;
+                continue;
+            }
+            if (/[A-Za-z_]/.test (ch)) {
+                let j = i;
+                while (j < body.length && /[\w]/.test (body[j])) {
+                    j++;
+                }
+                const word = body.substring (i, j);
+                const prev = out[out.length - 1];
+                out += (word === name && prev !== '.') ? alias : word;
+                i = j;
+                continue;
+            }
+            out += ch;
+            i++;
+        }
+        return out;
+    }
+
+    typeCoreArgs (content: string): string {
+        const names = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS));
+        if (!names.some (name => content.includes (' ' + name + '('))) {
+            return content;
+        }
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
+            const positions = this.coreArgTypes (methodName);
+            if (positions === undefined) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd).join ('\n');
+            const params = this.splitCsharpParams (plist);
+            const shadows: string[] = [];
+            const renames: string[][] = [];
+            let changed = false;
+            for (const posKey of Object.keys (positions)) {
+                const pos = Number (posKey);
+                const targetType = positions[pos];
+                const param = params[pos];
+                if (param === undefined || !param.trimStart ().startsWith ('object ')) {
+                    continue;
+                }
+                const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
+                // a body that assigns to the parameter cannot hold the narrowed type (the RHS
+                // is `object`), so the body's uses are renamed to an `object` local seeded from
+                // the parameter. The PUBLIC parameter keeps its original name and gains the
+                // narrowed type — no `<name>Typed` appears in any signature. `ref name` counts
+                // as an assignment: the helper mutates in place and needs an `object` slot.
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body)
+                    || new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
+                params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
+                if (reassigned) {
+                    const alias = paramName + 'Var';
+                    shadows.push (`${indent}    object ${alias} = ${paramName};`);
+                    renames.push ([ paramName, alias ]);
+                }
+                changed = true;
+            }
+            if (!changed) {
+                continue;
+            }
+            if (renames.length) {
+                for (let k = bodyStart + 1; k < bodyEnd; k++) {
+                    for (const [ name, alias ] of renames) {
+                        lines[k] = this.renameLocalInBody (lines[k], name, alias);
+                    }
+                }
+            }
+            lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
+            if (shadows.length) {
+                lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // Copies of a `typeCoreArgs`-narrowed parameter -- `object symbol2 = symbol;` and the
+    // `object nameVar = name;` shadow that pass inserts for a reassigned parameter -- may name the
+    // parameter's own type instead: the copy is the same box (Nullable<T> boxes as T, a reference
+    // copy stays a reference). Runs after typeCoreArgs so the narrowed signature is visible;
+    // coreArgShadowIsProvable then decides from the printed body whether every other use of the
+    // local keeps the same overload resolution, box and control flow. Only the declaration line
+    // changes.
+    retypeCoreArgCopies (content: string): string {
+        if (!/^\s*object \w+ = \w+;/m.test (content)) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            const [ , indent, , , returnType, , plist ] = sig;
+            const types: Record<string, string> = {};
+            for (const param of this.splitCsharpParams (plist)) {
+                const parts = param.split ('=')[0].trim ().split (/\s+/);
+                if (parts.length >= 2) {
+                    types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
+                }
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
+            let changed = false;
+            for (let k = 0; k < bodyLines.length; k++) {
+                const decl = /^(\s*)object (\w+) = (\w+);\s*$/.exec (bodyLines[k]);
+                if (decl === null) {
+                    continue;
+                }
+                const [ , dindent, alias, source ] = decl;
+                const type = types[source];
+                if (type === undefined || type === 'object' || CORE_ARG_SHADOW_TYPES.indexOf (type) === -1) {
+                    continue;
+                }
+                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k)) {
+                    bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
+                    changed = true;
+                }
+            }
+            if (changed) {
+                for (let k = 0; k < bodyLines.length; k++) {
+                    lines[bodyStart + 1 + k] = bodyLines[k];
+                }
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // Retypes the helpers in COLLECTION_RETURN_METHODS from `object` to `IList<object>` (same
+    // runtime box, now nameable) and normalizes the return sites that would stop compiling; see
+    // the COLLECTION_RETURN_METHODS comment for the exact shapes. In-place, line-preserving:
+    // only the signature line and specific single-line return statements change. The list is
+    // also registered in build/csharp-local-types.js so `object x = this.<name>(...)` locals
+    // become `IList<object>`.
+    typeCollectionReturns (content: string): string {
+        if (!COLLECTION_RETURN_METHODS.concat (COLLECTION_RETURN_DICT_METHODS).some ((name) => content.includes (' object ' + name + '('))) {
+            return content;
+        }
+        const targets = new Map<string, string> ();
+        for (const name of COLLECTION_RETURN_METHODS) {
+            targets.set (name, 'IList<object>');
+        }
+        for (const name of COLLECTION_RETURN_DICT_METHODS) {
+            targets.set (name, 'Dictionary<string, object>');
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public (async )?(virtual|override) object (\w+)\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig || !targets.has (sig[4])) {
+                continue;
+            }
+            const [ , indent, , , methodName, plist ] = sig;
+            const target = targets.get (methodName) as string;
+            // body span: opening brace on its own line, closing brace at the signature indent
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const paramNames = this.splitCsharpParams (plist)
+                .map ((p) => p.split ('=')[0].trim ().split (/\s+/).pop ())
+                .filter ((p) => p !== undefined) as string[];
+            lines[i] = lines[i].replace (' object ' + methodName + '(', ' ' + target + ' ' + methodName + '(');
+            if (target !== 'IList<object>') {
+                continue; // dict returns need no return-site normalization
+            }
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                const line = lines[j];
+                const trimmed = line.trim ();
+                if (!trimmed.startsWith ('return ')) {
+                    continue;
+                }
+                const pad = line.substring (0, line.length - line.trimStart ().length);
+                // arraySlice keeps its object signature (byte[] callers get byte[] / List<byte>
+                // back); toArray is an identity on the list inputs these helpers receive
+                const slice = /^return this\.arraySlice\((.*)\);\s*$/.exec (trimmed);
+                if (slice) {
+                    lines[j] = `${pad}return this.toArray(this.arraySlice(${slice[1]}));`;
+                    continue;
+                }
+                // `return ((object)this.<another listed name>(...));` — the (object) cast was a
+                // no-op while both sides were `object`; drop it so the typed return compiles
+                if (trimmed.startsWith ('return ((object)this.')) {
+                    const inner = trimmed.substring ('return ((object)this.'.length);
+                    const called = /^(\w+)\(/.exec (inner);
+                    if (called && targets.has (called[1])) {
+                        lines[j] = pad + 'return this.' + inner.replace (/\)\);\s*$/, ');');
+                        continue;
+                    }
+                }
+                // `return <own object param>;` — the null/empty guards hand the input straight
+                // back; toArray keeps null null and an IList<object>/List<object> identical
+                const ident = /^return (\w+);\s*$/.exec (trimmed);
+                if (ident && paramNames.includes (ident[1])) {
+                    lines[j] = `${pad}return this.toArray(${ident[1]});`;
+                    continue;
+                }
+            }
+        }
+        return lines.join ('\n');
+    }
+
+    // narrowing a core parameter to `string` breaks every intra-core call site that still
+    // holds the value in an `object` local, so each such argument gets an explicit
+    // `((string)expr)`. The value is a string by contract (the TS signature says so); the
+    // cast only makes the existing assumption explicit to the C# compiler.
+    castCoreArgCallSites (content: string, receivers = [ 'this.', 'base.' ]): string {
+        const allNames = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS).filter ((n) => !(n in CORE_STRING_ARGS)));
+        for (const methodName of allNames) {
+            const positions = this.coreArgTypes (methodName) as Record<number, string>;
+            for (const receiver of receivers) {
+                const needle = receiver + methodName + '(';
+                let from = 0;
+            for (;;) {
+                const at = content.indexOf (needle, from);
+                if (at === -1) {
+                    break;
+                }
+                const before = content[at - 1];
+                if (before !== undefined && /[\w.]/.test (before)) {
+                    from = at + needle.length;
+                    continue;
+                }
+                const open = at + needle.length - 1;
+                const close = this.matchingParen (content, open);
+                if (close === -1) {
+                    from = at + needle.length;
+                    continue;
+                }
+                const args = this.splitCsharpParams (content.substring (open + 1, close));
+                let changed = false;
+                for (const posKey of Object.keys (positions)) {
+                    const pos = Number (posKey);
+                    const targetType = positions[pos];
+                    const arg = args[pos];
+                    if (arg === undefined) {
+                        continue;
+                    }
+                    const trimmed = arg.trim ();
+                    if (trimmed === '') {
+                        continue;
+                    }
+                    if (targetType === 'string') {
+                        if (trimmed.startsWith ('(string)') || trimmed.startsWith ('((string)') || trimmed.startsWith ('"')) {
+                            continue;
+                        }
+                        args[pos] = '((string)' + trimmed + ')';
+                        changed = true;
+                        continue;
+                    }
+                    // numeric: a direct unbox-cast of a boxed Int32 throws, so convert
+                    const helper = (targetType === 'Int64?') ? 'ToInt64Arg'
+                        : (targetType === 'Int64') ? 'ToInt64ArgRequired'
+                            : (targetType === 'double?') ? 'ToDoubleArg' : 'ToDoubleArgRequired';
+                    if (trimmed.startsWith (helper + '(') || trimmed.startsWith ('ccxt.BaseExchange.' + helper + '(')) {
+                        continue;
+                    }
+                    args[pos] = 'ccxt.BaseExchange.' + helper + '(' + trimmed + ')';
+                    changed = true;
+                }
+                const replacement = changed ? needle + args.join (',') + ')' : content.substring (at, close + 1);
+                content = content.substring (0, at) + replacement + content.substring (close + 1);
+                from = at + replacement.length;
+                }
+            }
+        }
+        return content;
+    }
+
+    // index of the `)` closing the `(` at `open`, skipping string literals and comments
+    matchingParen (text: string, open: number): number {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const ch = text[i];
+            if (ch === '"') {
+                i++;
+                while (i < text.length && text[i] !== '"') {
+                    if (text[i] === '\\') {
+                        i++;
+                    }
+                    i++;
+                }
+                continue;
+            }
+            if (ch === '/' && text[i + 1] === '/') {
+                while (i < text.length && text[i] !== '\n') {
+                    i++;
+                }
+                continue;
+            }
+            if (ch === '(') {
+                depth++;
+            } else if (ch === ')') {
+                depth--;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    // top-level comma split of a C# parameter/argument list. Skips string and char
+    // literals, whose embedded commas would otherwise shift every later position.
+    splitCsharpParams (plist: string): string[] {
+        const out: string[] = [];
+        let depth = 0;
+        let cur = '';
+        for (let i = 0; i < plist.length; i++) {
+            const ch = plist[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                let j = i + 1;
+                while (j < plist.length) {
+                    if (plist[j] === '\\') { j += 2; continue; }
+                    if (plist[j] === quote) { j++; break; }
+                    j++;
+                }
+                cur += plist.substring (i, j);
+                i = j - 1;
+                continue;
+            }
+            if (ch === '<' || ch === '(' || ch === '[' || ch === '{') {
+                depth++;
+            } else if (ch === '>' || ch === ')' || ch === ']' || ch === '}') {
+                depth--;
+            }
+            if (ch === ',' && depth === 0) {
+                out.push (cur);
+                cur = '';
+            } else {
+                cur += ch;
+            }
+        }
+        if (cur !== '') {
+            out.push (cur);
+        }
+        return out;
     }
 
     unwrapTaskIfNeeded(type: string): string {
@@ -530,11 +3225,16 @@ class NewTranspiler {
     }
 
     createReturnStatement(methodName: string,  unwrappedType:string ) {
+        // typed cores already return the struct/list (see typeCores), so the wrapper no longer
+        // re-materialises it — it just forwards the typed core result
+        if (this.typedCoreType (methodName, this.isPrediction) !== '') {
+            return `return res;`;
+        }
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
-            return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+            // copy first to snapshot the live book, then reshape to the prediction structure for prediction venues
+            return this.isPrediction ? `return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());` : `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
         }
-
         if (methodName === 'watchOHLCVForSymbols') {
             return `return Helper.ConvertToDictionaryOHLCVList(res);`
         }
@@ -548,8 +3248,8 @@ class NewTranspiler {
             return `return (double)res;`;
         }
 
-        // handle the typescript type Dict
-        if (unwrappedType === 'Dict') {
+        // handle the typescript type Dict (and its nullable alias from TS >= 5/6 inference)
+        if (unwrappedType === 'Dict' || unwrappedType === 'NullableDict') {
             return `return (Dictionary<string, object>)res;`;
         }
 
@@ -558,6 +3258,9 @@ class NewTranspiler {
         if (unwrappedType.startsWith('List<')) {
             if (unwrappedType === 'List<Dictionary<string, object>>') {
                 returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
+            } else if (unwrappedType === 'List<string>' || unwrappedType === 'List<String>') {
+                // string is a primitive with no `new string(object)` constructor — cast each element instead
+                returnStatement = `return ((IList<object>)res).Select(item => (item as string)).ToList();`
             } else {
                 returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
             }
@@ -579,34 +3282,33 @@ class NewTranspiler {
         return returnStatement;
     }
 
-    getDefaultParamsWrappers(rawParameters: any []) {
-        const res: string[] = [];
-
-        rawParameters.forEach(param => {
-            const isOptional =  param.optional || param.initializer === 'undefined';
-            // const isOptional =  param.optional || param.initializer !== undefined;
-            if (isOptional && (this.isIntegerType(param.type) || this.isNumberType(param.type))) {
-                const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
-                res.push(decl);
-            }
-        });
-
-        return res.join("\n");
-    }
-
     inden(level: number) {
         return '    '.repeat(level);
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // the PascalCase core IS the public C# API. Method wrappers (cast-only and
+        // converting) have been retired; only the `class Binance : binance` aliases
+        // remain, emitted by createExchangesWrappers / needsCapitalizedClass.
+        return '';
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
+        // a typed core is emitted PascalCase (pascalizeTypedCores), so it already *is* the public
+        // API — a wrapper here would be a duplicate declaration of the same name
+        if (isAsync && this.typedCoreType (methodName, this.isPrediction, exchangeName) !== '') {
+            return '';
+        }
         const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
+        // a typed core's wrapper is `return res;`, so the wrapper's own return type must be the
+        // exact type the core emits — unqualified `OrderBook` binds to ccxt.pro.OrderBook here
+        const typedCore = this.typedCoreType (methodName, this.isPrediction, exchangeName);
+        const wrapperReturnType = (typedCore !== '' && isAsync) ? `Task<${this.qualifyTypedCoreType (typedCore)}>` : returnType;
         const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         const params = methodWrapper.parameters.map((param: any) => this.safeCsharpName(param.name)).join(', ');
@@ -618,9 +3320,8 @@ class NewTranspiler {
             methodDoc.push(csharpComments[exchangeName][methodName]);
         }
         const method = [
-            `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
+            `${one}public ${isAsync ? 'async ' : ''}${wrapperReturnType} ${methodNameCapitalized}(${stringArgs})`,
             `${one}{`,
-            this.getDefaultParamsWrappers(methodWrapper.parameters),
             `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
             `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
@@ -640,34 +3341,56 @@ class NewTranspiler {
         return res;
     }
 
-    createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false) {
-        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
-        const shouldCreateClassWrappers = exchange === 'Exchange';
-        const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
-        // const exchangeName = ws ? exchange + 'Ws' : exchange;
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
-        const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-        const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
-        const file = [
-            namespace,
-            '',
-            this.createGeneratedHeader().join('\n'),
-            capitalizeStatement,
-            `public partial class ${exchange}`,
-            '{',
-            wrappersIndented,
-            '}',
-            classes
-        ].join('\n')
+    createClassAliasFile (ids: string[], path: string, namespace: string) {
+        // one file per tier holding every `class Binance : binance` alias, so the
+        // generator never recreates a per-exchange wrapper directory
+        if (!ids.length) {
+            if (fs.existsSync (path)) {
+                fs.unlinkSync (path);
+                log.magenta ('×', (path as any).yellow)
+            }
+            return;
+        }
+        const header = this.createGeneratedHeader().join('\n');
+        const classes = [ '// class wrappers' ];
+        ids.forEach ((exchange: string) => {
+            const capitalized = exchange.charAt(0).toUpperCase() + exchange.slice(1);
+            const constructor = `public ${capitalized}(object args = null) : base(args) { }`;
+            classes.push (`public class  ${capitalized}: ${exchange} { ${constructor} }`);
+        });
+        const file = [ namespace, '', header, classes.join('\n') ].join('\n') + '\n';
         log.magenta ('→', (path as any).yellow)
-
         overwriteFileAndFolder (path, file);
     }
 
-    transpileErrorHierarchy () {
+    createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
+        // Method wrappers have been retired: the PascalCase core is the public C# API.
+        // This emitter now only writes the documented `class Binance : binance` aliases,
+        // consolidated into one file per tier (createClassAliasFile). Any per-exchange
+        // wrapper file that would be an empty partial class is deleted instead.
+        const namespace = this.getNamespace (ws);
+        const header = this.createGeneratedHeader().join('\n');
+        if (exchange === 'BaseExchange') {
+            const classes = this.createExchangesWrappers().filter(e => !!e).join('\n');
+            const file = [ namespace, '', header, classes ].join('\n') + '\n';
+            log.magenta ('→', (path as any).yellow)
+            overwriteFileAndFolder (path, file);
+            return;
+        }
+        if (fs.existsSync (path)) {
+            fs.unlinkSync (path);
+            log.magenta ('×', (path as any).yellow)
+        }
+    }
+
+    transpileErrorHierarchy (force = true) {
 
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
+
+        if (skipUpToDateStage ('csharp', 'error hierarchy', force, [ errorHierarchyFilename ], [ ERRORS_FILE ])) {
+            return;
+        }
 
         let js = fs.readFileSync (errorHierarchyPath, 'utf8')
 
@@ -734,18 +3457,138 @@ class NewTranspiler {
 
     }
 
-    transpileBaseMethods(baseExchangeFile: string) {
+    // the method names declared directly in the second (`export default class Exchange extends
+    // BaseExchange`) class of ts/src/base/Exchange.ts — the 62 symbol-based trading methods that the
+    // fine split moved off BaseExchange onto the concrete Exchange tier
+    getExchangeTierMethodNames (baseExchangeFile: string): Set<string> {
+        const src = fs.readFileSync (baseExchangeFile, 'utf8');
+        const markerIdx = src.indexOf ('export default class Exchange extends BaseExchange');
+        const names = new Set<string> ();
+        if (markerIdx === -1) {
+            return names;
+        }
+        const body = src.substring (markerIdx);
+        // top-level (4-space indented) method declarations only; deeper indentation = method bodies
+        const re = /^ {4}(?:async\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm;
+        let m;
+        while ((m = re.exec (body)) !== null) {
+            names.add (m[1]);
+        }
+        return names;
+    }
+
+    // cut a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any) out of
+    // `body`, returning the remaining body and the removed method text (for relocation)
+    stripCSharpMethod (body: string, name: string): { body: string, method: string } {
+        const sigRe = new RegExp ('\\n([ \\t]*)public [^\\n]*\\b' + name + '\\s*\\(');
+        const m = sigRe.exec (body);
+        if (!m) {
+            return { 'body': body, 'method': '' };
+        }
+        let start = m.index; // the '\n' just before the signature line
+        const before = body.substring (0, start);
+        const docMatch = before.match (/\n[ \t]*\/\*\*[\s\S]*?\*\/[ \t]*$/);
+        if (docMatch) {
+            start = docMatch.index as number;
+        }
+        // brace-match the method body
+        let depth = 0;
+        let end = body.indexOf ('{', m.index + m[0].length - 1);
+        for (; end < body.length; end++) {
+            const c = body[end];
+            if (c === '{') {
+                depth++;
+            } else if (c === '}') {
+                depth--;
+                if (depth === 0) {
+                    end++;
+                    break;
+                }
+            }
+        }
+        const method = body.substring (start, end);
+        const newBody = body.substring (0, start) + body.substring (end);
+        return { 'body': newBody, 'method': method };
+    }
+
+    // retype the generated safeDict/safeList family in Exchange.BaseMethods.cs (see
+    // SAFE_COLLECTION_HELPER_TYPES for why the printer cannot do it from the TS annotations).
+    // The found value is proven by the method's own guard, so it goes through an explicit
+    // cast; the fallback hands the caller's default back with `as` (drop to null when it is
+    // not the declared collection, the SafeString convention). Throws if a method is
+    // missing, its signature moved, or any return survived without the rewrite.
+    retypeSafeCollectionHelpers (baseMethods: string): string {
+        for (const [ name, csharpType ] of Object.entries (SAFE_COLLECTION_HELPER_TYPES)) {
+            const found = findCSharpMethodSpan (baseMethods, name);
+            if (!found) {
+                throw new Error (`[csharp] retypeSafeCollectionHelpers: ${name} not found in the generated base methods`);
+            }
+            const signature = 'public virtual object ' + name + '(';
+            if (!found.method.includes (signature)) {
+                throw new Error (`[csharp] retypeSafeCollectionHelpers: ${name} does not carry the expected \`${signature}\` signature`);
+            }
+            let rewritten = found.method.replace (signature, 'public virtual ' + csharpType + ' ' + name + '(');
+            for (const returned of [ 'value', 'value2' ]) {
+                rewritten = rewritten.replaceAll ('return ' + returned + ';', 'return (' + csharpType + ')' + returned + ';');
+            }
+            rewritten = rewritten.replaceAll ('return defaultValue;', 'return defaultValue as ' + csharpType + ';');
+            const returns = (found.method.match (/return\s/g) ?? []).length;
+            const typedReturns = (rewritten.match (/return\s(?:\(|defaultValue as )/g) ?? []).length;
+            const bareReturns = (rewritten.match (/return\s(?!(?:\(|defaultValue as ))/g) ?? []).length;
+            if (returns === 0 || typedReturns !== returns || bareReturns !== 0) {
+                throw new Error (`[csharp] retypeSafeCollectionHelpers: ${name} lost return statements in the rewrite (${returns} -> ${typedReturns} typed, ${bareReturns} bare)`);
+            }
+            baseMethods = baseMethods.substring (0, found.start) + rewritten + baseMethods.substring (found.end);
+        }
+        return baseMethods;
+    }
+
+    transpileBaseMethods(baseExchangeFile: string, force = true) {
+        // the four generated base files all come out of this one pass; `exchanges.json`
+        // is a real input too — createExchangesWrappers() emits one `public class <Id>`
+        // per listed exchange into Exchange.Wrappers.cs, so adding an exchange must
+        // invalidate this stage even when ts/src/base/Exchange.ts did not change
+        if (skipUpToDateStage ('csharp', 'base methods', force, [
+            baseExchangeFile,
+            './ts/src/base/types.ts',
+            './exchanges.json',
+        ], [
+            BASE_METHODS_FILE,
+            BASE_TRADING_METHODS_FILE,
+            GLOBAL_WRAPPER_FILE,
+            GLOBAL_TRADING_WRAPPER_FILE,
+        ])) {
+            return;
+        }
         const csharpExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
-        const baseFile: any = this.transpiler.transpileCSharpByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileCSharpByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
-        // create wrappers with specific types
-        this.createCSharpWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
+        // the 62 symbol-based trading methods declared in TS `class Exchange extends BaseExchange`
+        const exchangeTierNames = this.getExchangeTierMethodNames (baseExchangeFile);
+        // loadOrderBook is hand-written on partial class Exchange (WsBridge.cs); drop the
+        // transpiled copy. fetchOrderBook / fetchRestOrderBookSafe stay on the Exchange tier
+        // so the prediction sibling can type fetchOrderBook as PredictionOrderBook (CS0508
+        // if either name is declared on shared BaseExchange).
+        const droppedOnBase = [ 'loadOrderBook' ];
+        const retainedOnBase: string[] = [];
+        const isExchangeTier = (methodName: string) => exchangeTierNames.has (methodName) && !retainedOnBase.includes (methodName) && !droppedOnBase.includes (methodName);
+
+        // create wrappers with specific types — base-tier wrappers stay on BaseExchange (inherited by
+        // both Exchange and the sibling PredictionExchange); the trading-tier wrappers land on the
+        // concrete Exchange tier so PredictionExchange does NOT inherit the crypto-typed wrappers
+        const allWrapperTypes = baseFile.methodsTypes || [];
+        const baseTierWrapperTypes = allWrapperTypes.filter ((w: any) => !isExchangeTier (w.name));
+        const exchangeTierWrapperTypes = allWrapperTypes.filter ((w: any) => isExchangeTier (w.name));
+        this.createCSharpWrappers('BaseExchange', GLOBAL_WRAPPER_FILE, baseTierWrapperTypes)
+        this.createCSharpWrappers('Exchange', GLOBAL_TRADING_WRAPPER_FILE, exchangeTierWrapperTypes)
 
 
         // custom transformations needed for c#
@@ -755,8 +3598,13 @@ class NewTranspiler {
         baseClass = baseClass.replaceAll("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replaceAll(/(\w+)(\.storeArray\(.+\))/gm, '($1 as ccxt.pro.IOrderBookSide)$2'); // tmp fix for c#
         
-        // Fix setMarketsFromExchange parameter type
-        baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual Exchange setMarketsFromExchange(Exchange sourceExchange)');
+        // Fix setMarketsFromExchange parameter type — typed as BaseExchange so it lives on the base
+        // tier (returning `this`) and accepts both Exchange and PredictionExchange source instances
+        baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual BaseExchange setMarketsFromExchange(BaseExchange sourceExchange)');
+        // implodeHostname forwards implodeParams (object -> string in Exchange.Misc.cs), so its
+        // generated `object` signature only erased the string it already returns; the local-typing
+        // classifier (build/csharp-local-types.js) relies on the honest `string` here.
+        baseClass = baseClass.replaceAll(/public virtual object implodeHostname\(object url\)/g, 'public virtual string implodeHostname(object url)');
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
@@ -774,15 +3622,97 @@ class NewTranspiler {
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
         if (parts.length > 1) {
-            const baseMethods = parts[1]
+            const rest = parts[1];
+            // parts[1] holds the BaseExchange methods below the delimiter, its closing brace, then the
+            // whole transpiled `class Exchange : BaseExchange { ...62 trading methods... }`. Split the
+            // two tiers apart: base methods go to Exchange.BaseMethods.cs (partial class BaseExchange),
+            // the trading methods to Exchange.TradingMethods.cs (partial class Exchange).
+            const exchangeClassMatch = /class Exchange\s*:\s*BaseExchange\s*\{/.exec (rest);
+            let baseMethods = rest;
+            let exchangeBody = '';
+            if (exchangeClassMatch) {
+                baseMethods = rest.substring (0, exchangeClassMatch.index); // BaseExchange methods + its closing }
+                exchangeBody = rest.substring (exchangeClassMatch.index + exchangeClassMatch[0].length).replace (/\}\s*$/, ''); // Exchange class body
+                // drop the hand-written-elsewhere method(s)
+                for (const name of droppedOnBase) {
+                    exchangeBody = this.stripCSharpMethod (exchangeBody, name).body;
+                }
+                // relocate the WS-bridge dependency methods back onto BaseExchange
+                for (const name of retainedOnBase) {
+                    const cut = this.stripCSharpMethod (exchangeBody, name);
+                    exchangeBody = cut.body;
+                    if (cut.method) {
+                        baseMethods = baseMethods.replace (/\}\s*$/, cut.method + '\n}\n');
+                    }
+                }
+            } else {
+                // no second class (older single-class layout): keep prior behaviour
+                baseMethods = rest.replace (/\s*class Exchange\s*:\s*BaseExchange\s*\{\s*\}\s*$/, '\n');
+            }
             const fileHeader = this.getCsharpImports(undefined).concat([
                 this.createGeneratedHeader().join('\n'),
-                "public partial class Exchange\n{\n\n"
+                "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-
-            const file = fileHeader + baseMethods + "\n";
+            const file = fileHeader + nativeDeclaredHelperCalls (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))), false))) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
+            if (exchangeClassMatch) {
+                const tradingHeader = this.getCsharpImports(undefined).concat([
+                    this.createGeneratedHeader().join('\n'),
+                    "public partial class Exchange\n{\n\n"
+                ]).join("\n");
+                const tradingFile = tradingHeader + nativeDeclaredHelperCalls (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))), false)) + "\n}\n";
+                fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
+                log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
+            }
+        }
+    }
+
+    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts', force = true) {
+        // PredictionExchange is the base class for prediction-market exchanges; it lives
+        // in the ccxt namespace (like Exchange) and is transpiled the same way as the base
+        const predictionBase = './cs/ccxt/base/PredictionExchange.cs';
+        // PredictionExchange extends BaseExchange and returns prediction-typed wrappers,
+        // so Exchange.ts and types.ts are inputs as well. Note a full run reaches this
+        // twice (once from the recursive prediction pass, once from the main pass) —
+        // the gate also makes the second call free.
+        if (skipUpToDateStage ('csharp', 'prediction base methods', force, [
+            predictionBaseFile,
+            './ts/src/base/Exchange.ts',
+            './ts/src/base/types.ts',
+        ], [ predictionBase ])) {
+            return;
+        }
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+        const baseFile: any = this.transpiler.transpileCSharpByPath(predictionBaseFile);
+        let baseClass = baseFile.content as any;
+        baseClass = baseClass.replaceAll(/(\w+)(\.storeArray\(.+\))/gm, '($1 as ccxt.pro.IOrderBookSide)$2');
+        const jsDelimiter = '// ' + delimiter
+        const parts = baseClass.split (jsDelimiter)
+        if (parts.length > 1) {
+            // fetchOrderBook lives on the Exchange / PredictionExchange siblings, not on
+            // BaseExchange, so the prediction declaration is virtual (not override).
+            const baseMethods = parts[1];
+            const fields = [
+                '    public PredictionExchange(object args = null) : base(args) {}',
+                '',
+                '    public object outcomes { get; set; } = null;',
+                '    public object outcomes_by_id { get; set; } = null;',
+                '    public object events { get; set; } = null;',
+                '    public object events_by_slug { get; set; } = null;',
+                '    public bool reloadingEvents { get; set; } = false;',
+                '    public Task<object> eventsLoading { get; set; } = null;',
+                '',
+            ].join('\n')
+            const fileHeader = this.getCsharpImports(undefined).concat([
+                this.createGeneratedHeader().join('\n'),
+                "public partial class PredictionExchange : BaseExchange\n{\n\n"
+            ]).join("\n");
+            // method wrappers retired: PascalCase cores on PredictionExchange are the public API
+            const file = fileHeader + fields + nativeDeclaredHelperCalls (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))), true)) + "\n";
+            fs.writeFileSync (predictionBase, file);
+            this._predictionBaseWritten = true;
+            log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
         }
     }
 
@@ -848,36 +3778,68 @@ class NewTranspiler {
         }
     }
 
-    async transpileWS(force = false) {
-        const tsFolder = './ts/src/pro/';
+    async transpileWS(force = false, prediction = false) {
+        // prediction WS methods now live in the REST prediction classes (no ts/src/prediction/pro)
+        if (prediction && !fs.existsSync ('./ts/src/prediction/pro')) {
+            return;
+        }
+        const tsFolder = prediction ? './ts/src/prediction/pro/' : './ts/src/pro/';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        const scopedRun = inputExchanges.length > 0;
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
-        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges }
+        if (prediction && (!inputExchanges || !inputExchanges.length)) {
+            inputExchanges = predictionWsIds;
+        }
+        const csharpFolder = prediction ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_WS_FOLDER;
+        const options = { csharpFolder, exchanges:inputExchanges }
         // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
+        if (scopedRun) {
+            force = true; // a scoped run (CI `transpileCsSingle -- --ws <exchange>`) always writes, same as the REST path
+        }
+        this.isPrediction = prediction
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true )
+        this.isPrediction = false
     }
 
-    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {
+    async transpileEverything (force = false, baseOnly = false, examplesOnly = false, prediction = false) {
 
-        const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , csharpFolder = EXCHANGES_FOLDER
-            , tsFolder = './ts/src/'
+        let exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+        const csharpFolder = prediction ? EXCHANGES_PREDICTION_FOLDER : EXCHANGES_FOLDER
+            , tsFolder = prediction ? './ts/src/prediction/' : './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
-        if (!child) {
-            createFolderRecursively (csharpFolder)
-        }
+        createFolderRecursively (csharpFolder)
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
+        if (prediction) {
+            // a scoped run (e.g. `csharpTranspiler.ts binance`) carries regular ids in argv —
+            // the prediction pass must not try to transpile those from ts/src/prediction/
+            // (the files don't exist there)
+            const predictionOnly = exchanges.filter ((x: string) => predictionIds.includes (x))
+            if (exchanges.length && !predictionOnly.length) {
+                return;
+            }
+            exchanges = predictionOnly.length ? predictionOnly : predictionIds;
+        }
         const options = { csharpFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            this.isPrediction = prediction
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force)
+            this.isPrediction = false
+        }
+
+        if (prediction) {
+            // the venues override methods declared in the prediction base — regenerate it
+            // in the same pass so a scoped prediction run can't leave the base stale
+            this.transpilePredictionBaseMethods (undefined, force)
+            log.bright.green ('Transpiled prediction exchanges successfully.')
+            return;
         }
 
         this.transpileExamples(); // disabled for now
@@ -889,46 +3851,79 @@ class NewTranspiler {
         if (transpilingSingleExchange) {
             return;
         }
-        if (child) {
-            return;
-        }
 
-        this.transpileBaseMethods (exchangeBase)
+        // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
+        await this.transpileEverything (force, false, false, true)
+
+        this.transpileBaseMethods (exchangeBase, force)
+
+        // the recursive prediction pass above already regenerated PredictionExchange.cs from
+        // the same inputs, so this second call would re-transpile and rewrite identical bytes
+        if (!this._predictionBaseWritten) {
+            this.transpilePredictionBaseMethods (undefined, force)
+        }
 
         if (baseOnly) {
             return;
         }
 
 
-        this.transpileTests()
+        await this.transpileTests(force)
 
-        this.transpileErrorHierarchy ()
+        this.transpileErrorHierarchy (force)
 
         log.bright.green ('Transpiled successfully.')
     }
 
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
-        // create worker
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'csharp-worker.js')
-        });
+        // one shared pool — concurrent callers (base/exchange/ws tests) queue into the
+        // same threads instead of each spawning their own full-size pool
+        const maxThreads = csharpWorkerThreads ();
+        if (!this.piscina) {
+            this.piscina = new Piscina({
+                filename: resolve(__dirname, 'csharp-worker.ts'),
+                maxThreads,
+            });
+        }
+        const piscina = this.piscina;
+        const configKey = JSON.stringify (parserConfig);
 
-        const chunkSize = 20;
+        // One file per task. `roots` is the FULL stage list on every task so each worker
+        // builds ONE sticky ts.Program (build/worker-program-batch.ts) and prints off it.
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            const chunk = allFiles.slice(i, i + chunkSize);
-            promises.push(piscina.run({transpilerConfig:parserConfig, files:chunk}));
+        for (const file of allFiles) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: [file]}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
+        const flatResult: any[] = [];
+        for (const chunk of workerResult) {
+            flatResult.push (...chunk.result);
+            // csharpComments lives on the main thread (the wrapper writer reads it), so
+            // replay the raw comments the worker saw through the same transform
+            for (const comment of chunk.comments) {
+                this.transformLeadingComment (comment);
+            }
+        }
         return flatResult;
     }
 
-    async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false) {
+    async transpilePrediction (force = false) {
+        const ws = process.argv.includes ('--ws');
+        const tsFolder = ws ? './ts/src/prediction/pro/' : './ts/src/prediction/';
+        let inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        if (inputExchanges === undefined || inputExchanges.length === 0) {
+            inputExchanges = ws ? exchanges.predictionWs : exchanges.prediction;
+        }
+        const csharpFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
+        const options = { csharpFolder, exchanges: inputExchanges }
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, ws, true)
+    }
+
+    async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, ws = false, prediction = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -941,53 +3936,93 @@ class NewTranspiler {
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-        // let exchanges
+        // local file list — must NOT clobber the module-level `exchanges` (the parsed
+        // exchanges.json), which this function reads `.ids` off of on the next call.
+        // Assigning to it worked only because each stage ran in its own process;
+        // --rest-and-ws reuses one.
+        let exchangeFiles: string[]
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map ((x: string) => x + pattern)
+            exchangeFiles = options.exchanges.map ((x: string) => x + pattern)
         } else {
-            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
+            exchangeFiles = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
+        }
+
+        // the wrapper folder is needed up front: a skipped exchange must have BOTH its
+        // transpiled class and its wrapper already up to date. ws/prediction-ws aliases
+        // live in one consolidated file, so only the REST tiers have a folder stamp.
+        const wrapperFolder = ws
+            ? undefined
+            : (this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER);
+
+        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
+        // drop the exchanges whose output is newer than their ts source. This has to
+        // happen BEFORE the pool is fed, because `allFilesPath` doubles as the sticky
+        // ts.Program root list — leaving a clean exchange in it would transpile and
+        // rewrite it anyway. `--force` (and any single-exchange run) keeps everything.
+        exchangeFiles = filterDirtyExchangeFiles ('csharp', exchangeFiles, force, (file: string) => {
+            const csName = file.replace ('.ts', '.cs');
+            const outputs: string[] = [];
+            if (options.csharpFolder) {
+                outputs.push (options.csharpFolder + csName);
+            }
+            if (wrapperFolder) {
+                outputs.push (wrapperFolder + csName);
+            }
+            return { 'tsPath': jsFolder + file, 'outputs': outputs };
+        })
+
+        if (!exchangeFiles.length) {
+            return {}
         }
 
         // transpile using webworker
-        const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
-        log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
+        const allFilesPath = exchangeFiles.map ((file: string) => jsFolder + file );
+        log.blue('[csharp] Transpiling [', exchangeFiles.join(', '), ']');
+        // a single exchange (scoped/debug run) is not worth a cold pool
+        const transpiledFiles = (allFilesPath.length > 1)
+            ? await this.webworkerTranspile (allFilesPath, this.getTranspilerConfig())
+            : allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.cs';
+                const exchangeName = exchangeFiles[i].replace('.ts','');
+                const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
-        } else {
-            //
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
-                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
-            }
         }
-        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
+        // ws / prediction-ws class aliases are written once, from the full id list, so a
+        // scoped run cannot truncate the file to just the exchanges it transpiled
+        if (ws) {
+            if (this.isPrediction) {
+                this.createClassAliasFile (predictionWsIds, PREDICTION_WS_CLASS_ALIAS_FILE, this.getNamespace (true));
+            } else {
+                this.createClassAliasFile (wsIds, WS_CLASS_ALIAS_FILE, this.getNamespace (true));
+            }
+        } else if (this.isPrediction) {
+            this.createClassAliasFile (predictionIds, PREDICTION_CLASS_ALIAS_FILE, this.getNamespace (false));
+        }
+        exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
 
         return classes
     }
 
-    createCSharpClass(csharpVersion: any, ws = false) {
-        const csharpImports = this.getCsharpImports(csharpVersion, ws).join("\n") + "\n\n";
+    createCSharpClass(csharpVersion: any, ws = false, prediction = false) {
+        const csharpImports = this.getCsharpImports(csharpVersion, ws, prediction).join("\n") + "\n\n";
         let content = csharpVersion.content;
 
         const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
         const baseWsClassExec = baseWsClassRegex.exec(content);
         const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
+        const restNamespacePrefix = this.isPrediction ? 'ccxt.prediction.' : 'ccxt.';
         if (!ws) {
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
+            // prediction exchanges extend PredictionExchange; both partial declarations
+            // (api/ abstract and exchanges/ file) must agree on the base class
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, (m, p1, p2) => `public partial class ${p1} : ${(this.isPrediction && p2 === 'Exchange') ? 'PredictionExchange' : p2}`);
         } else {
-            const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
+            const wsParent =  baseWsClass.endsWith('Rest') ? restNamespacePrefix + baseWsClass.replace('Rest', '') : baseWsClass;
             content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
         }
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
@@ -995,30 +4030,47 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
+            content = nativeDeclaredWsCalls (content);
             content = this.replaceImportedRestClasses (content, csharpVersion.imports);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
             const className = classNameExec ? classNameExec[1] : '';
             const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
             content = constructorLine  + content;
+        } else if (this.isPrediction) {
+            // prediction exchanges merge REST + WS in one class, so the WS transforms
+            // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
+            content = this.regexAll (content, this.getWsRegexes());
+            content = nativeDeclaredWsCalls (content);
         }
+        const classDecl = /public partial class (\w+) : ([\w.]+)/.exec (content);
+        if (classDecl) {
+            this.currentVenue = classDecl[1];
+            const parent = classDecl[2].split ('.').pop () as string;
+            if (parent !== 'Exchange' && parent !== 'PredictionExchange' && parent !== this.currentVenue) {
+                this.venueParents[this.currentVenue] = parent;
+            }
+        }
+        content = nativeDeclaredHelperCalls (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))));
+        this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }
 
     replaceImportedRestClasses (content: string, imports: any[]) {
+        const restNamespacePrefix = this.isPrediction ? 'ccxt.prediction.' : 'ccxt.';
         for (const imp of imports) {
             // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
             // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
             const name = imp.name;
             if (name.endsWith('Rest')) {
-                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
+                content = content.replaceAll(name, restNamespacePrefix + name.replace('Rest', ''));
             }
         }
         return content;
     }
 
-    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false) {
+    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false, prediction = false) {
 
         const tsPath = tsFolder + filename
 
@@ -1028,7 +4080,7 @@ class NewTranspiler {
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const csharp  = this.createCSharpClass (csharpResult, ws)
+        const csharp  = this.createCSharpClass (csharpResult, ws, prediction)
 
         if (csharpFolder) {
             overwriteFileAndFolder (csharpFolder + csharpFilename, csharp)
@@ -1037,10 +4089,14 @@ class NewTranspiler {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToCSharp (outDir: string) {
+    transpileWsOrderbookTestsToCSharp (outDir: string, force = true) {
 
         const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
         const csharpFile = `${outDir}/Ws/test.orderBook.cs`;
+
+        if (skipUpToDateStage ('csharp', 'ws orderbook test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1077,10 +4133,14 @@ class NewTranspiler {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToCSharp (outDir: string) {
+    transpileWsCacheTestsToCSharp (outDir: string, force = true) {
 
         const jsFile = './ts/src/pro/test/base/test.cache.ts';
         const csharpFile = `${outDir}/Ws/test.cache.cs`;
+
+        if (skipUpToDateStage ('csharp', 'ws cache test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1118,10 +4178,14 @@ class NewTranspiler {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpileCryptoTestsToCSharp (outDir: string) {
+    transpileCryptoTestsToCSharp (outDir: string, force = true) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const csharpFile = `${outDir}/test.cryptography.cs`;
+
+        if (skipUpToDateStage ('csharp', 'crypto test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
 
@@ -1198,18 +4262,18 @@ class NewTranspiler {
         const inputFiles = fs.readdirSync('./ts/src/test/exchange');
         const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
         const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.cs', file[1])))
+        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
     }
 
-    transpileBaseTestsToCSharp () {
+    async transpileBaseTestsToCSharp (force = true) {
         const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir);
-        this.transpileCryptoTestsToCSharp(outDir);
-        this.transpileWsCacheTestsToCSharp(outDir);
-        this.transpileWsOrderbookTestsToCSharp(outDir);
+        await this.transpileBaseTests(outDir, force);
+        this.transpileCryptoTestsToCSharp(outDir, force);
+        this.transpileWsCacheTestsToCSharp(outDir, force);
+        this.transpileWsOrderbookTestsToCSharp(outDir, force);
     }
 
-    transpileBaseTests (outDir: string) {
+    async transpileBaseTests (outDir: string, force = true) {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
@@ -1217,18 +4281,31 @@ class NewTranspiler {
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
-        for (const testName of baseFunctionTests) {
+        // filter out NO_AUTO_TRANSPILE files first, then transpile the rest through the
+        // worker pool — the previous serial loop was ~1s per file and dominated the build
+        const eligible = baseFunctionTests.filter ((testName) => {
+            const tsContent = fs.readFileSync (baseFolders.ts + testName + '.ts').toString ();
+            return !tsContent.includes ('// NO_AUTO_TRANSPILE');
+        });
+
+        // whole-stage gate: `paths` below doubles as the sticky ts.Program root list, so
+        // this stage is skipped all-or-nothing rather than per file
+        if (skipUpToDateStage ('csharp', 'base tests', force, testStageInputs (), eligible.map ((testName) => `${outDir}/${testName}.cs`))) {
+            return;
+        }
+
+        const paths = eligible.map ((testName) => baseFolders.ts + testName + '.ts');
+        const transpiled = await this.webworkerTranspile (paths, this.getTranspilerConfig ());
+
+        for (let i = 0; i < eligible.length; i++) {
+            const testName = eligible[i];
             const tsFile = baseFolders.ts + testName + '.ts';
-            const tsContent = fs.readFileSync(tsFile).toString();
-            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
-                continue;
-            }
 
             const csharpFile = `${outDir}/${testName}.cs`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 
-            const csharp = this.transpiler.transpileCSharpByPath(tsFile);
+            const csharp = transpiled[i];
             let content = csharp.content;
             content = this.regexAll (content, [
                 [/object  = functions;/g, '' ], // tmp fix
@@ -1249,7 +4326,7 @@ class NewTranspiler {
             ]).trim ()
 
             const contentLines = content.split ('\n');
-            const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+            const contentIdented = contentLines.map ((line: string) => '        ' + line).join ('\n');
 
             const file = [
                 'using ccxt;',
@@ -1290,12 +4367,29 @@ class NewTranspiler {
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
             [ /object mockedExchange =/g, 'var mockedExchange =' ],
-            [ /public virtual object initOfflineExchange/g, 'public virtual Exchange initOfflineExchange' ],
-            [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
-            [ /object exchange =/g, 'Exchange exchange =' ],
+            // The shared static-test harness holds either a regular Exchange or a prediction
+            // PredictionExchange (both extend BaseExchange, as siblings), so type the shared `exchange`
+            // variable as the common base and drive the tested method by reflection. The legacy
+            // request-builders that call a symbol-trading method (createOrder/fetchTicker) directly are
+            // cast back to Exchange below — they run only against regular venues.
+            [ /public virtual object initOfflineExchange/g, 'public virtual BaseExchange initOfflineExchange' ],
+            [ /object exchange(?=[,)])/g, 'BaseExchange exchange' ],
+            [ /object exchange =/g, 'BaseExchange exchange =' ],
+            // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues,
+            // so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
+            [ /BaseExchange exchange = (initExchange\("Exchange"[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)' ],
+            [ /BaseExchange exchange = this\.initOfflineExchange\(("[a-z]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))' ],
+            [ /testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)' ],
             [ /throw new Error/g, 'throw new Exception' ],
             [/class testMainClass/g, 'public partial class testMainClass'],
+            // noImplicitAny bags: keep object so safeValue assignments typecheck
+            [ /public (?:Dict|Dictionary<string, object>) skippedMethods\b/g, 'public object skippedMethods' ],
+            [ /public (?:Dict|Dictionary<string, object>) checkedPublicTests\b/g, 'public object checkedPublicTests' ],
         ])
+
+        // the legacy request-builders bind Exchange statically, so the typed cores'
+        // PascalCase rename applies to their call sites too (declarations left alone)
+        contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
 
         const file = [
             'using ccxt;',
@@ -1308,12 +4402,7 @@ class NewTranspiler {
         overwriteFileAndFolder (files.csharpFile, file);
     }
 
-    transpileExchangeTests(){
-        this.transpileMainTest({
-            'tsFile': './ts/src/test/tests.ts',
-            'csharpFile': BASE_TESTS_FILE,
-        });
-
+    transpileExchangeTests(force = true){
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
@@ -1345,10 +4434,21 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests);
+        // whole-stage gate — TestMethods.cs is included because transpileMainTest below
+        // writes it from ./ts/src/test/tests.ts, which is part of testStageInputs()
+        if (skipUpToDateStage ('csharp', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.csharpFile)))) {
+            return;
+        }
+
+        this.transpileMainTest({
+            'tsFile': './ts/src/test/tests.ts',
+            'csharpFile': BASE_TESTS_FILE,
+        });
+
+        return this.transpileAndSaveCsharpExchangeTests (tests);
     }
 
-    transpileWsExchangeTests(){
+    transpileWsExchangeTests(force = true){
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
@@ -1367,7 +4467,11 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests, true);
+        if (skipUpToDateStage ('csharp', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.csharpFile))) {
+            return;
+        }
+
+        return this.transpileAndSaveCsharpExchangeTests (tests, true);
     }
 
     async transpileAndSaveCsharpExchangeTests(tests: any[], isWs = false) {
@@ -1377,7 +4481,12 @@ class NewTranspiler {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
 
             let regexes = [
-                [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
+                // REST test functions serve BOTH tiers (regular Exchange and prediction
+                // PredictionExchange are siblings under BaseExchange), so type the exchange
+                // param as the common base and late-bind the unified-method calls through
+                // `dynamic` — the DLR resolves them on the concrete tier at runtime.
+                // WS tests only run against regular venues, keep them statically typed.
+                [ /object exchange(?=[,)])/g, isWs ? 'Exchange exchange' : 'BaseExchange exchange' ],
                 [ /throw new Error/g, 'throw new Exception' ],
                 [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void'],
@@ -1386,8 +4495,21 @@ class NewTranspiler {
                 [/exchange.jsonStringifyWithNull/g, 'json'],
             ];
 
+            if (!isWs) {
+                // REST tests hold the exchange as `BaseExchange`, so a unified call can bind
+                // neither statically (prediction is a sibling tier) nor through `dynamic`:
+                // the DLR picks the overload from the arguments' STATIC type, which is
+                // `object`, so every narrowed core parameter (`string symbol`, `Int64? limit`)
+                // is rejected with RuntimeBinderException. Route through the reflective helper
+                // instead -- it resolves the PascalCase rename and coerces the boxed scalars.
+                regexes = regexes.concat([
+                    [ /await exchange\.(\w+)\(\s*\)/g, 'await invokeExchangeDynamically(exchange, "$1")' ],
+                    [ /await exchange\.(\w+)\(/g, 'await invokeExchangeDynamically(exchange, "$1", ' ],
+                ]);
+            }
+
             if (isWs) {
-                // add ws-tests specific regeces
+                // add ws-tests specific regexes
                 regexes = regexes.concat([
                     [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
                     [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
@@ -1395,6 +4517,16 @@ class NewTranspiler {
             }
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
+            // narrowed core parameters (`string code`, `string timeframe`) also need an explicit
+            // cast in tests: REST tests route only the awaited `await exchange.X(` calls through
+            // invokeExchangeDynamically, so synchronous helpers (currency, parseOHLCVs, ...) stay
+            // static calls against `BaseExchange`; WS tests bind statically throughout.
+            contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
+            if (isWs) {
+                contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
+                // must run last: it matches the PascalCase names the previous pass produced
+                contentIndentend = this.detypeWsTypedCoreCalls (contentIndentend);
+            }
             const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
             const fileHeaders = [
                 namespace,
@@ -1429,45 +4561,78 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             }
-            overwriteFileAndFolder (tests[idx].csharpFile, csharp);
+            overwriteFileAndFolder (tests[idx].csharpFile, nativeDeclaredHelperCalls (csharp));
         });
     }
 
-    transpileTests(){
+    async transpileTests(force = true){
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToCSharp();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
+        const baseTestsOnly = process.argv.includes ('--baseTests')
+        if (baseTestsOnly) {
+            await this.transpileBaseTestsToCSharp(force);
+            return;
+        }
+
+        // the three groups are independent — run them concurrently
+        await Promise.all ([
+            this.transpileBaseTestsToCSharp(force),
+            this.transpileExchangeTests(force),
+            this.transpileWsExchangeTests(force),
+        ]);
     }
 }
 
 async function runMain () {
     const ws = process.argv.includes ('--ws')
-    const baseOnly = process.argv.includes ('--baseTests')
+    // bare prediction-only ids (e.g. `csharpTranspiler.ts kalshi`) auto-route to the
+    // prediction namespace so scoped CI steps don't need to know it
+    const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+    const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => predictionIds.includes (x) && !exchangeIds.includes (x))
+    const prediction = process.argv.includes ('--prediction') || allArePredictionOnly
+    const baseTestsOnly = process.argv.includes ('--baseTests')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
-    const child = process.argv.includes ('--child')
     const baseClassOnly = process.argv.includes ('--baseClass')
-    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    // single-process REST+WS (default via npm run transpileCS / CI): keeps the one
+    // piscina pool (and its warm per-thread Transpilers) alive across both stages
+    // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
+    const restAndWs = process.argv.includes ('--rest-and-ws')
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
-    if (!child && !multiprocess) {
-        log.bright.green ({ force })
-    }
+    log.bright.green ({ force })
     const transpiler = new NewTranspiler ();
+    const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
-    } else if (ws) {
+        transpiler.transpilePredictionBaseMethods ()
+    } else if (restAndWs) {
+        // same work as `transpileCS --force` followed by `transpileCSWs --force`, but on
+        // one transpiler instance, so the single piscina pool (and its warm per-thread
+        // Transpilers) survives into the ws stage instead of paying a second process
+        // boot + cold pool. `npm run transpileCS` is the default full path; --ws stays ws-only.
+        await transpiler.transpileEverything (force, false, examples, prediction)
         await transpiler.transpileWS (force)
-    } else if (test) {
-        transpiler.transpileTests ()
-    } else if (multiprocess) {
-        await parallelizeTranspiling (exchangeIds)
+        if (!inputExchanges.length) {
+            // full ws builds also transpile the prediction ws exchanges
+            await transpiler.transpileWS (force, true)
+        }
+    } else if (ws) {
+        if (prediction) {
+            await transpiler.transpileWS (force, true)
+        } else {
+            await transpiler.transpileWS (force)
+            if (!inputExchanges.length) {
+                // full ws builds also transpile the prediction ws exchanges
+                await transpiler.transpileWS (force, true)
+            }
+        }
+    } else if (test || baseTestsOnly) {
+        await transpiler.transpileTests () 
     } else {
-        await transpiler.transpileEverything (force, child, baseOnly, examples)
+        await transpiler.transpileEverything (force, false, examples, prediction)
     }
 }
 
