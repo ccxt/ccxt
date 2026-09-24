@@ -6498,11 +6498,14 @@ function resolveReference (csharp, node) {
 }
 
 // the C# type of `x` in `const y = x;`, or undefined. Only a variable declaration has a
-// printed `x = ...` whose type can be named: parameters print `object` (the typed-core
+// printed `x = ...` whose type can be named (or a retyped trailing `params`): parameters print `object` (the typed-core
 // narrowing to string / Int64? happens after printing — see the header) and a field read
 // prints `this.x`, a different expression.
 function identifierType (csharp, node) {
     const reference = resolveReference (csharp, node);
+    if (reference?.kind === ts.SyntaxKind.Parameter) {
+        return dictionaryParameterType (csharp, reference);
+    }
     if (reference?.kind !== ts.SyntaxKind.VariableDeclaration) {
         return undefined;
     }
@@ -15179,6 +15182,26 @@ export default installCsharpLocalTypes;
 // and this file's element-read proof read ONE copy: a parameter that pass narrowed to a list
 // is a list receiver in the emitted C#, which is exactly what stringListParameterElementType
 // has to know (and the reason a position added there can never be typed here by accident).
+// Method names (C# spelling) whose trailing `params` prints `Dictionary<string, object> parameters = null`
+// (build/csharpTranspiler.ts#retypeParameterArgs). Admitted only when every declaration, body write
+// and call-site argument is a dictionary (fixpoint census over the whole generated tree).
+export const PARAMETERS_ARG_TYPED_METHODS = [ 'FetchMyBuys', 'FetchMySells', 'WatchPosition', 'isUTAEnabled', 'redeem' ];
+
+// the retyped trailing `params` of an admitted method, read inside its own body and never written
+function dictionaryParameterType (csharp, declaration) {
+    const owner = declaration.parent;
+    if ((owner?.kind !== ts.SyntaxKind.MethodDeclaration) || (declaration.name?.escapedText !== 'params')
+            || (owner.parameters[owner.parameters.length - 1] !== declaration)) {
+        return undefined;
+    }
+    const name = owner.name?.escapedText ?? '';
+    const pascal = name.charAt (0).toUpperCase () + name.slice (1);
+    if ((PARAMETERS_ARG_TYPED_METHODS.indexOf (name) === -1) && (PARAMETERS_ARG_TYPED_METHODS.indexOf (pascal) === -1)) {
+        return undefined;
+    }
+    return csharpParameterIsWritten (csharp, owner, declaration) ? undefined : 'Dictionary<string, object>';
+}
+
 // Generated C# core parameters that can be narrowed from `object` to a list type: the C#
 // spelling of the TS `Strings` parameter (every array the printer builds is a `List<object>`,
 // the bodies only read it as a list, and the dominant writer `symbols = this.marketSymbols
