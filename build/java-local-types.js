@@ -3682,6 +3682,8 @@ const HANDLE_VENUE_ELEMENT_TYPES = {
     'handleUTAAndParams': { element0: 'Boolean', file: /(?:^|[\\/])ts[\\/]src[\\/]bitget\.ts$/ },
     // overrides that only rewrite params, then return the audited base producer's tuple
     'handleMarketTypeAndParams': { element0: 'String', stringDefaultArg: 3, file: /(?:^|[\\/])ts[\\/]src[\\/](?:okx|deepcoin)\.ts$/ },
+    // the base producer's String element 0, or the literal 'cross'
+    'handleMarginModeAndParams': { element0: 'String', stringDefaultArg: 2, file: /(?:^|[\\/])ts[\\/]src[\\/]digifinex\.ts$/ },
 };
 
 function handleVenueElementType (printer, node) {
@@ -11960,6 +11962,59 @@ export function patchJavaListHelperLocalTypes (transpiler) {
         typed.set (declaration, info.type);
         const cast = info.cast ? `(${info.type}) ` : '';
         return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${cast}` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// ===== 30. order-book cache locals =====
+// `const x = orderbook.cache` prints `orderbook.cache`, which postProcessWsJava rewrites to
+// `((java.util.List<Object>)Helpers.GetValue(orderbook, "cache"))`: the read already carries the
+// List checkcast (WsOrderBook.cache is a List), so the declaration adds none.
+function orderBookCacheLocalInfo (printer, declaration) {
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isPropertyAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || String (read.name.escapedText) !== 'cache' || !/^[a-z]\w+$/.test (String (read.expression.escapedText))
+        || !/[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName)) {
+        return undefined;
+    }
+    return collectionIsSafeToNarrow (printer, declaration, declaration.name.escapedText, JAVA_ARRAY_TYPE, true)
+        ? JAVA_ARRAY_TYPE : undefined;
+}
+
+export function patchJavaOrderBookCacheLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaOrderBookCacheLocalsPatched) {
+        return;
+    }
+    printer._javaOrderBookCacheLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        let type;
+        try {
+            type = orderBookCacheLocalInfo (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (type === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${name} = `;
+        const at = printed.lastIndexOf (marker);
+        const rhs = printer.printNode (unwrapParens (declaration.initializer), 0);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== rhs) {
+            return printed;
+        }
+        typed.set (declaration, type);
+        return printed.slice (0, at) + `${iden}${type} ${name} = ` + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
