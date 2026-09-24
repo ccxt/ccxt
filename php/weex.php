@@ -1789,9 +1789,9 @@ class weex extends Exchange {
             $feeCurrency = $this->safe_currency_code($commissionAsset);
             if ($isSpot === true) {
                 if ($side === 'buy') {
-                    $feeCurrency = $market['base'];
+                    $feeCurrency = $this->safe_string($market, 'base');
                 } else {
-                    $feeCurrency = $market['quote'];
+                    $feeCurrency = $this->safe_string($market, 'quote');
                 }
             }
             $fee = array(

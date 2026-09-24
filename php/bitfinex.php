@@ -2586,7 +2586,7 @@ class bitfinex extends Exchange {
             $data = $this->safe_list($transaction, 4, array());
             $timestamp = $this->safe_integer($transaction, 0);
             if ($currency !== null) {
-                $code = $currency['code'];
+                $code = $this->safe_string($currency, 'code');
             }
             $feeCost = $this->safe_string($data, 8);
             if ($feeCost !== null) {

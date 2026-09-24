@@ -1446,7 +1446,7 @@ class mudrex extends Exchange {
             $rebate = null;
             for ($j = 0; $j < count($rebateKeys); $j++) {
                 if ($rebateKeys[$j] === $transactionKeys[$i]) {
-                    $rebate = $rebateAmounts[$j];
+                    $rebate = $this->safe_string($rebateAmounts, $j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     $rebateKeys[$j] = null;
                     break;

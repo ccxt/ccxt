@@ -1193,13 +1193,13 @@ class btcmarkets extends Exchange {
         $currency = null;
         $cost = null;
         if ($market['quote'] === 'AUD') {
-            $currency = $market['quote'];
+            $currency = $this->safe_string($market, 'quote');
             $amountString = $this->number_to_string($amount);
             $priceString = $this->number_to_string($price);
             $otherUnitsAmount = Precise::string_mul($amountString, $priceString);
             $cost = $this->cost_to_precision($symbol, $otherUnitsAmount);
         } else {
-            $currency = $market['base'];
+            $currency = $this->safe_string($market, 'base');
             $cost = $this->amount_to_precision($symbol, $amount);
         }
         $rate = $this->safe_value($market, $takerOrMaker);

@@ -1903,7 +1903,7 @@ class okx extends \ccxt\async\okx {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $type = $market['type'];
+            $type = $this->safe_string($market, 'type');
             $messageHash = $messageHash . '::' . $symbol;
         }
         if ($type === 'future') {
@@ -2108,7 +2108,7 @@ class okx extends \ccxt\async\okx {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $type = $market['type'];
+            $type = $this->safe_string($market, 'type');
         }
         if ($type === 'future') {
             $type = 'futures';

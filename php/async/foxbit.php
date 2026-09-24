@@ -1945,7 +1945,7 @@ class foxbit extends Exchange {
             $market = $this->market($symbol);
         }
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
         }
         $timestamp = $this->parse_date($this->safe_string($order, 'created_at'));
         $price = $this->safe_string($order, 'price');

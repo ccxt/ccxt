@@ -1800,7 +1800,7 @@ class coinsph extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'time', 'transactTime');
-        $trades = $this->safe_value($order, 'fills');
+        $trades = $this->safe_list($order, 'fills');
         $triggerPrice = $this->safe_string($order, 'stopPrice');
         if (Precise::string_eq($triggerPrice, '0')) {
             $triggerPrice = null;

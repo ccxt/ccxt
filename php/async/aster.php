@@ -3731,7 +3731,7 @@ class aster extends Exchange {
             if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
-            $maintenanceMarginPercentageString = $bracket[1];
+            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
         }
         $notional = $this->parse_number($notionalStringAbs);
         $contractsAbs = Precise::string_abs($this->safe_string($position, 'positionAmt'));
@@ -4043,7 +4043,7 @@ class aster extends Exchange {
             if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
-            $maintenanceMarginPercentageString = $bracket[1];
+            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
         }
         $maintenanceMarginPercentage = $this->parse_number($maintenanceMarginPercentageString);
         $unrealizedPnlString = $this->safe_string($position, 'unrealizedProfit');

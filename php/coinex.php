@@ -1381,7 +1381,7 @@ class coinex extends Exchange {
         $timestamp = $this->safe_integer($trade, 'created_at');
         $defaultType = $this->safe_string($this->options, 'defaultType');
         if ($market !== null) {
-            $defaultType = $market['type'];
+            $defaultType = $this->safe_string($market, 'type');
         }
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
@@ -2123,7 +2123,7 @@ class coinex extends Exchange {
         $feeCurrencyId = $this->safe_string($order, 'fee_ccy');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         if ($feeCurrency === null) {
-            $feeCurrency = $market['quote'];
+            $feeCurrency = $this->safe_string($market, 'quote');
         }
         $side = $this->safe_string($order, 'side');
         if ($side === 'long') {

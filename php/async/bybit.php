@@ -2730,7 +2730,7 @@ class bybit extends Exchange {
                     $market = $this->market($symbol);
                 }
                 if ($currentType === null) {
-                    $currentType = $market['type'];
+                    $currentType = $this->safe_string($market, 'type');
                 } elseif ($market['type'] !== $currentType) {
                     throw new BadRequest($this->id . ' fetchTickers can only accept a list of $symbols of the same type');
                 }
@@ -2739,7 +2739,7 @@ class bybit extends Exchange {
                         throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all $symbols, this endpoint only supports one base currency at a time. Read more about it here => https://bybit-exchange.github.io/docs/v5/market/tickers');
                     }
                     if ($code === null) {
-                        $code = $market['base'];
+                        $code = $this->safe_string($market, 'base');
                     }
                     $params = $this->omit($params, array( 'code', 'currency' ));
                 }

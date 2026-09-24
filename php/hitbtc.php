@@ -1601,7 +1601,7 @@ class hitbtc extends Exchange {
         $addressTo = $address;
         $tag = $this->safe_string($native, 'payment_id');
         $tagTo = $tag;
-        $sender = $this->safe_value($native, 'senders');
+        $sender = $this->safe_list($native, 'senders');
         $addressFrom = $this->safe_string($sender, 0);
         $amount = $this->safe_number($native, 'amount');
         $subType = $this->safe_string($transaction, 'subtype');
@@ -2619,7 +2619,7 @@ class hitbtc extends Exchange {
         $symbol = $market['symbol'];
         $postOnly = $this->safe_value($order, 'post_only');
         $timeInForce = $this->safe_string($order, 'time_in_force');
-        $rawTrades = $this->safe_value($order, 'trades');
+        $rawTrades = $this->safe_list($order, 'trades');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,

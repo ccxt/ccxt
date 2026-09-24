@@ -11426,7 +11426,7 @@ class binance extends Exchange {
             if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
-            $maintenanceMarginPercentageString = $bracket[1];
+            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
         }
         $maintenanceMarginPercentage = $this->parse_number($maintenanceMarginPercentageString);
         $unrealizedPnlString = $this->safe_string($position, 'unrealizedProfit');
@@ -11647,7 +11647,7 @@ class binance extends Exchange {
             if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
-            $maintenanceMarginPercentageString = $bracket[1];
+            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
         }
         $notional = $this->parse_number($notionalStringAbs);
         $contractsAbs = Precise::string_abs($this->safe_string($position, 'positionAmt'));
@@ -13650,10 +13650,10 @@ class binance extends Exchange {
         $response = null;
         $code = null;
         if ($market['linear'] === true) {
-            $code = $market['quote'];
+            $code = $this->safe_string($market, 'quote');
             $response = Async\await($this->fapiPrivatePostPositionMargin($this->extend($request, $params)));
         } else {
-            $code = $market['base'];
+            $code = $this->safe_string($market, 'base');
             $response = Async\await($this->dapiPrivatePostPositionMargin($this->extend($request, $params)));
         }
         //

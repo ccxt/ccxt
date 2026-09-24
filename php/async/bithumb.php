@@ -2314,7 +2314,7 @@ class bithumb extends Exchange {
         if ($feeCost !== null) {
             $currency = null;
             if ($market !== null) {
-                $currency = $market['quote'];
+                $currency = $this->safe_string($market, 'quote');
             }
             $fee = array(
                 'currency' => $currency,
