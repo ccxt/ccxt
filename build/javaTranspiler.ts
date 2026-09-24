@@ -465,6 +465,11 @@ function retypeUseIsAudited (line: string, name: string, token?: string): boolea
 // the text indentation of the printer's spliced wrappers does not track block
 // nesting, so the indent guard keeps missing declarations that ARE in scope (240 sites at the pin).
 // The lookup below replaces it with a real brace-depth test; the scanner carries the block-comment
+function retypeBraceDelta (line: string): number {
+    const d = retypeDepthScan ([line, '']);
+    return d[1];
+}
+
 function retypeDepthScan (lines: string[]): number[] {
     const depths: number[] = [];
     let depth = 0;
@@ -4367,6 +4372,8 @@ class NewTranspiler {
     retypeFinalVarDeclarations (content: string): string {
         const lines = content.split ('\n');
         const debug = process.env.CCXT_JAVA_FINAL_HOIST_DEBUG === '1';
+        // brace depths are rescanned only after a rewrite changes a line's brace balance
+        let depthCache: number[] | undefined = undefined;
         for (let i = 0; i < lines.length; i++) {
             const hoistMatch = lines[i].match (RETYPE_HOIST_LINE);
             const snapshotMatch = hoistMatch === null ? lines[i].match (RETYPE_SNAPSHOT_LINE) : null;
@@ -4385,7 +4392,7 @@ class NewTranspiler {
             //    member, or — for the async snapshot shape — the parameter type from the signature
             let typeToken: string | undefined;
             if (!isSnapshot) {
-                const depths = retypeDepthScan (lines);
+                const depths = (depthCache ??= retypeDepthScan (lines));
                 let sawDeclaration = false;
                 for (let j = i - 1; j > start; j--) {
                     const decl = lines[j].match (new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`));
@@ -4448,11 +4455,14 @@ class NewTranspiler {
                 if (debug) console.log (`final-hoist decline ${hoistedName} (use not audited)`);
                 continue;
             }
+            const before = [...rewrites.map (([j]) => j), i].map ((j) => lines[j]);
             for (const [j, text] of rewrites) lines[j] = text;
 
             lines[i] = isCopy
                 ? `${indent}${reference} ${hoistedName} = ${sourceName};`
                 : `${indent}final ${reference} ${hoistedName} = ${sourceName};`;
+            const after = [...rewrites.map (([j]) => j), i].map ((j) => lines[j]);
+            if (before.concat (after).some ((l) => /\/\*|\*\//.test (l)) || before.some ((l, k) => retypeBraceDelta (l) !== retypeBraceDelta (after[k]))) depthCache = undefined;
             if (debug) console.log (`final-hoist retype ${hoistedName} -> ${reference} (source ${sourceName})`);
         }
         return lines.join ('\n');
