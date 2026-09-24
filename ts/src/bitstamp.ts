@@ -2595,7 +2595,7 @@ export default class bitstamp extends Exchange {
         return code.toLowerCase ();
     }
 
-    isFiat (code: any): boolean {
+    isFiat (code: Str): boolean {
         return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
