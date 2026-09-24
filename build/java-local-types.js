@@ -11340,3 +11340,119 @@ export function patchJavaTypedListElementLocals (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
 }
+
+// ===== 24. null-initialised scalar locals joined over their writes =====
+// `Object x = null;` whose every non-null write already prints one scalar box (String / Long /
+// Double / Boolean) with no cast. Uses resolve by symbol, so a same-named sibling block local
+// is its own candidate; the one-box families' use scans gate the retype.
+function nullScalarWriteType (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return 'null';
+    }
+    const numeric = numericFamilyCallType (printer, value);
+    if (numeric === 'Long' || numeric === 'Double') {
+        return numeric;
+    }
+    if (literalTypeOfValue (printer, value)?.type === LITERAL_BOOLEAN_TYPE) {
+        return 'Boolean';
+    }
+    if (isStaticallyStringExpression (printer, value, undefined)) {
+        return JAVA_DATAFLOW_STRING;
+    }
+    if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
+        const callee = value.expression;
+        if (ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Precise') {
+            return PRECISE_STRING_STATICS.has (String (callee.name.escapedText)) ? JAVA_DATAFLOW_STRING : undefined;
+        }
+        if (isThisCall (value) && (dataflowThisCallType (printer, value) ?? joinBaseProducerType (printer, value)) === JAVA_DATAFLOW_STRING) {
+            return JAVA_DATAFLOW_STRING;
+        }
+    }
+    return undefined;
+}
+
+function nullScalarLocalType (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || !isNullishInitializer (declaration.initializer)
+        || declaration.parent?.declarations?.length !== 1 || declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    if (symbol === undefined) {
+        return undefined;
+    }
+    const sourceName = String (declaration.name.escapedText);
+    let type;
+    for (const n of (identifierIndex (scope).get (sourceName) ?? [])) {
+        if (n === declaration.name || dataflowNotAUse (n) || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        if (enclosingFunction (n) !== scope || isClassThrowArgument (n)) {
+            return undefined;
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (parent !== undefined && (ts.isReturnStatement (parent)
+            || (ts.isConditionalExpression (parent) && parent.condition !== host))) {
+            return undefined; // returns / ternary arms move javac's inferred types
+        }
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host
+            && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            const written = nullScalarWriteType (printer, parent.right);
+            if (written === undefined || (written !== 'null' && type !== undefined && written !== type)) {
+                return undefined;
+            }
+            type = (written === 'null') ? type : written;
+        }
+    }
+    if (type === undefined || literalTypeTokenShadowed (scope, type)) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    if (type === 'Long' || type === 'Double') {
+        return numericIsSafeToNarrow (printer, declaration, sourceName, type, isProFile) ? type : undefined;
+    }
+    const writeOk = (right) => {
+        const written = nullScalarWriteType (printer, right);
+        return written === 'null' || written === type;
+    };
+    return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk }) ? type : undefined;
+}
+
+export function installJavaNullScalarLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaNullScalarPatched) {
+        return;
+    }
+    printer._javaNullScalarPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = null`;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== '') {
+            return printed;
+        }
+        let type;
+        try {
+            type = nullScalarLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        return type === undefined ? printed : printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
+    };
+}
