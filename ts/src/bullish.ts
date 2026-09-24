@@ -2263,7 +2263,7 @@ export default class bullish extends Exchange {
 
     async loadAccount (params: Dict = {}): Promise<string> {
         let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
+        [ tradingAccountId, params ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (params);
             const accounts = this.toArray (response);

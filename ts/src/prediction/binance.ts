@@ -913,7 +913,7 @@ export default class binance extends Exchange {
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         let type = undefined;
-        [ type, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'type', 'SPOT');
+        [ type, params ] = this.handleOptionStringAndParams (params, 'fetchBalance', 'type', 'SPOT');
         const response = await this.sapiPrivateGetBalancePaymentOptions (params);
         //
         // {
@@ -1581,7 +1581,7 @@ export default class binance extends Exchange {
             return cachedWallet;
         }
         let walletAddress = undefined;
-        [ walletAddress, params ] = this.handleOptionAndParams (params, methodName, 'walletAddress', this.walletAddress);
+        [ walletAddress, params ] = this.handleOptionStringAndParams (params, methodName, 'walletAddress', this.walletAddress);
         const response = await this.sapiPrivateGetWalletList ();
         //
         // {

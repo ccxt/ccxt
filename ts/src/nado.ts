@@ -411,7 +411,7 @@ export default class nado extends Exchange {
         let subaccount: Str = undefined;
         [ subaccount, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'subaccount', 'default');
         let expiration: Str = undefined;
-        [ expiration, params ] = this.handleOptionAndParams (params, 'createOrder', 'expiration', '4294967295');
+        [ expiration, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'expiration', '4294967295');
         let recvWindow: Int = undefined;
         [ recvWindow, params ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'recvWindow', 5000);
         const nonce = this.createOrderNonce (recvWindow);
@@ -459,16 +459,16 @@ export default class nado extends Exchange {
             };
             placeOrder['trigger'] = trigger;
         } else if (isStopLossOrder || isTakeProfitOrder) {
-            let triggerDirection = '';
+            let oracleSide = '';
             if (isBuy) {
-                triggerDirection = isStopLossOrder ? 'above' : 'below';
+                oracleSide = isStopLossOrder ? 'above' : 'below';
             } else {
-                triggerDirection = isStopLossOrder ? 'below' : 'above';
+                oracleSide = isStopLossOrder ? 'below' : 'above';
             }
             triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
-            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18;
+            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18;
             const trigger: Dict = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
