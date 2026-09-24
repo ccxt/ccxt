@@ -19,7 +19,6 @@ pub mod bingx_typed;
 pub mod bitfinex_typed;
 pub mod bitget_typed;
 pub mod bithumb_typed;
-pub mod bitmex_typed;
 pub mod bitopro_typed;
 pub mod bitrue_typed;
 pub mod bitstamp_typed;
