@@ -422,7 +422,7 @@ public final class SafeMethods {
     public static Long safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue2) {
         Object defaultValue = opt(defaultValue2);
         if (multiplier == null) multiplier = 1;
-        Object result = SafeValueN(obj, Arrays.asList(key), defaultValue);
+        Object result = SafeValueN(obj, Arrays.asList(key));
         Long convertedDefault = (defaultValue == null) ? null : toLongQuiet(defaultValue);
         if (result == null) return convertedDefault;
 
@@ -437,7 +437,8 @@ public final class SafeMethods {
 
     public static Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object multiplier, Object... defaultValue2) {
         Object defaultValue = opt(defaultValue2);
-        Object result = SafeValueN(obj, Arrays.asList(key1, key2), defaultValue);
+        Object result = SafeValueN(obj, Arrays.asList(key1, key2));
+        if (result == null) return defaultValue;
         Object parsedValue = null;
         try {
             double r = Double.parseDouble(String.valueOf(result));
@@ -450,7 +451,7 @@ public final class SafeMethods {
 
     public static Object safeIntegerProductN(Object obj, List<Object> keys, Object multiplier, Object... defaultValue2) {
         Object defaultValue = opt(defaultValue2);
-        Object result = SafeValueN(obj, keys, defaultValue);
+        Object result = SafeValueN(obj, keys);
         if (result == null) return defaultValue;
         Object parsedValue = null;
         try {
