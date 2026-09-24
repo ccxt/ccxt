@@ -949,16 +949,16 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var makerFeeRate *float64 = this.SafeNumber(response, "tradeMakerFeeRate")
 	var takerFeeRate *float64 = this.SafeNumber(response, "tradeTakerFeeRate")
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      makerFeeRate,
 			"taker":      takerFeeRate,
 			"percentage": true,
-		})
+		}
 	}
 
 	ch <- result
@@ -2791,7 +2791,7 @@ func (this *Hibachi) FetchMySettlementHistoryAsync(optionalArgs ...any) <-chan a
 func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2808,7 +2808,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["contractId"] = GetValue(market, "numericId")
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 	}
 	if since != nil {
 		request["startTime"] = this.ParseToInt(Divide(since, 1000))

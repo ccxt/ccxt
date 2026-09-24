@@ -214,7 +214,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
-            Object channel = "ticker24h";
+            String channel = "ticker24h";
             Object tickers = (this.watchPublicMultiple(channel, channel, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -295,7 +295,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
-            Object channel = "ticker24h";
+            String channel = "ticker24h";
             Object tickers = (this.watchPublicMultiple("bidask", channel, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -2190,7 +2190,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             Object request = this.fetchOHLCVRequest((String) (symbol), timeframe, since, limit, parameters);
-            Object action = "getCandles";
+            String action = "getCandles";
             Object ohlcv = (this.watchRequest(action, (Map<String, Object>) (request))).join();
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));

@@ -923,15 +923,15 @@ func (this *Blockchaincom) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var makerFee *float64 = this.SafeNumber(response, "makerRate")
 	var takerFee *float64 = this.SafeNumber(response, "takerRate")
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		result[symbol] = map[string]any{
 			"info":   response,
 			"symbol": symbol,
 			"maker":  makerFee,
 			"taker":  takerFee,
-		})
+		}
 	}
 
 	ch <- result

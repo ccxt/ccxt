@@ -2851,8 +2851,8 @@ public class Grvt extends GrvtApi
                 put( "reduce_only", isReduceOnly );
             }};
             String timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
-            Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
-            if (Boolean.TRUE.equals(postOnly))
+            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, null, parameters));
+            if (postOnly)
             {
                 ((Map<String, Object>)orderRequest).put("post_only", true);
             }
@@ -2871,7 +2871,7 @@ public class Grvt extends GrvtApi
             ((Map<String, Object>)orderRequest).put("time_in_force", timeInForce);
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
-                if (Boolean.TRUE.equals(postOnly))
+                if (postOnly)
                 {
                     timeInForce = "POST_ONLY";
                 } else if (java.util.Objects.equals(timeInForce, "ioc"))

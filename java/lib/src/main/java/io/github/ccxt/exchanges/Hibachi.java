@@ -1099,7 +1099,7 @@ public class Hibachi extends HibachiApi
         // - Quantity: Internal = External * (10^underlyingDecimals)
         // - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
         // - FeeRate: Internal = External * (10^8)
-        Object amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
+        String amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
         String feeRateStr = this.numberToString(feeRate);
         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info");
         String underlying = ("1e" + this.safeString(info, "underlyingDecimals"));
@@ -1128,7 +1128,7 @@ public class Hibachi extends HibachiApi
         Object encodedPrice = this.binaryConcat();
         if (java.util.Objects.equals(type, "limit"))
         {
-            Object priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
+            String priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
             String priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             String price16 = this.intToBase16(this.parseToInt(priceInternal));
             String pricePadded = Helpers.padStart(price16, ((Number)16).intValue(), ((String)"0").charAt(0));
@@ -1167,7 +1167,7 @@ public class Hibachi extends HibachiApi
         {
             sideInternal = "BID";
         }
-        Object priceInternal = "";
+        String priceInternal = "";
         if ((!java.util.Objects.equals(price, null)) && (!Helpers.isEqual(price, 0)))
         {
             priceInternal = this.priceToPrecision(symbol, price);
@@ -1176,7 +1176,7 @@ public class Hibachi extends HibachiApi
         Object signature = this.signMessage(message, this.privateKey);
         final String finalSideInternal = sideInternal;
         final String finalType = type;
-        final Object finalPriceInternal = priceInternal;
+        final String finalPriceInternal = priceInternal;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Hibachi.this.safeString(market, "id") );
             put( "nonce", nonce );
@@ -1187,11 +1187,11 @@ public class Hibachi extends HibachiApi
             put( "signature", signature );
             put( "maxFeesPercent", Hibachi.this.numberToString(feeRate) );
         }};
-        Object postOnly = this.isPostOnly(java.util.Objects.equals(((String)type).toUpperCase(), "MARKET"), null, parameters);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(((String)type).toUpperCase(), "MARKET"), null, parameters));
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        if (Boolean.TRUE.equals(postOnly))
+        if (postOnly)
         {
             ((Map<String, Object>)request).put("orderFlags", "POST_ONLY");
         } else if (java.util.Objects.equals(timeInForce, "ioc"))

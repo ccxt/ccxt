@@ -4703,7 +4703,7 @@ func (this *Kucoin) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4728,9 +4728,9 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	if uta == true {
 		var limitString string = "20"
-		if (limit == nil) || (IsGreaterThanOrEqual(limit, 100)) {
+		if (limit == nil) || (limit != nil && *limit >= 100) {
 			limitString = "FULL"
-		} else if IsGreaterThan(limit, 20) {
+		} else if limit != nil && *limit > 20 {
 			limitString = "100"
 		}
 		request["limit"] = limitString
@@ -4754,7 +4754,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 			response = (<-this.FuturesPublicGetLevel2Snapshot(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(limit, 20) {
+		} else if limit != nil && *limit == 20 {
 			//
 			//     {
 			//         "code": "200000",
@@ -4776,7 +4776,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 			response = (<-this.FuturesPublicGetLevel2Depth20(this.Extend(request, params))).Raw
 			PanicOnError(response)
-		} else if IsEqual(limit, 100) {
+		} else if limit != nil && *limit == 100 {
 
 			response = (<-this.FuturesPublicGetLevel2Depth100(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -4787,7 +4787,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		if level != nil && *level == 2 {
 			request["level"] = level
 			if limit != nil {
-				if (IsEqual(limit, 20)) || (IsEqual(limit, 100)) {
+				if (limit != nil && *limit == 20) || (limit != nil && *limit == 100) {
 					request["limit"] = limit
 				} else {
 					panic(ExchangeError(this.Id + " fetchOrderBook() limit argument must be 20 or 100"))
@@ -11805,9 +11805,9 @@ func (this *Kucoin) FetchBorrowRateHistoryAsync(code any, optionalArgs ...any) <
 func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params

@@ -1795,7 +1795,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> meta = (Map<String, Object>) this.safeDict(parameters, "meta", new HashMap<String, Object>() {{}});
             Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
             Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-            Object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
+            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters));
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
@@ -1804,7 +1804,7 @@ public class Hollaex extends HollaexApi
             {
                 ((Map<String, Object>)request).put("stop", this.priceToPrecision(symbol, triggerPrice));
             }
-            if (Boolean.TRUE.equals(postOnly))
+            if (postOnly)
             {
                 ((Map<String, Object>)request).put("meta", new HashMap<String, Object>() {{
         put( "post_only", true );

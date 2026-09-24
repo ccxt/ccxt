@@ -3277,7 +3277,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object marketIds = this.marketIds(symbols);
+                List<Object> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("market", marketIds);
             }
             Map<String, Object> response = (this.v1PrivateGetUserPositions(this.extend(request, parameters))).join();
@@ -3398,7 +3398,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object marketIds = this.marketIds(symbols);
+                List<Object> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("market", marketIds);
             }
             Map<String, Object> response = (this.v1PrivateGetUserPositionsHistory(this.extend(request, parameters))).join();
@@ -3749,8 +3749,8 @@ public class Extended extends ExtendedApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
             }
-            Object amountString = this.amountToPrecision(symbol, amount);
-            Object priceString = this.priceToPrecision(symbol, price);
+            String amountString = this.amountToPrecision(symbol, amount);
+            String priceString = this.priceToPrecision(symbol, price);
             Object postOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), null, parameters);
             Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
@@ -3847,7 +3847,7 @@ public class Extended extends ExtendedApi
             {
                 ((Map<String, Object>)request).put("cancelId", cancelId);
             }
-            Object settlement = this.createOrderSettlementData(isBuy, ((String)amountString), ((String)priceString), settlementParams);
+            Object settlement = this.createOrderSettlementData(isBuy, amountString, priceString, settlementParams);
             ((Map<String, Object>)request).put("settlement", new HashMap<String, Object>() {{
         put( "signature", new HashMap<String, Object>() {{
             put( "r", ((Map<String, Object>)settlement).get("r") );
@@ -3874,7 +3874,7 @@ public class Extended extends ExtendedApi
                     String stopLossTriggerPriceType = this.safeString(stopLoss, "triggerPriceType");
                     String stopLossExecutionPrice = this.safeString(stopLoss, "price");
                     String stopLossType = this.safeString(stopLoss, "type");
-                    Object stopLossSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), ((String)amountString), stopLossExecutionPrice, settlementParams);
+                    Object stopLossSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, stopLossExecutionPrice, settlementParams);
                     Map<String, Object> requestStopLoss = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, stopLossTrigger) );
                         put( "price", Extended.this.priceToPrecision(symbol, stopLossExecutionPrice) );
@@ -3903,7 +3903,7 @@ public class Extended extends ExtendedApi
                     String takeProfitTriggerPriceType = this.safeString(takeProfit, "triggerPriceType");
                     String takeProfitExecutionPrice = this.safeString(takeProfit, "price");
                     String takeProfitType = this.safeString(takeProfit, "type");
-                    Object takeProfitSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), ((String)amountString), takeProfitExecutionPrice, settlementParams);
+                    Object takeProfitSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, takeProfitExecutionPrice, settlementParams);
                     Map<String, Object> requestTakeProfit = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, takeProfitTrigger) );
                         put( "price", Extended.this.priceToPrecision(symbol, takeProfitExecutionPrice) );

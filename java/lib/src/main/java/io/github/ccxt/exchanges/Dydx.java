@@ -1811,9 +1811,9 @@ public class Dydx extends DydxApi
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(takeProfitPrice, null);
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringUpper(parameters, "timeInForce", "GTT");
-        Object postOnly = this.isPostOnly(isMarket, null, parameters);
-        Object amountStr = this.amountToPrecision(symbol, amount);
-        Object priceStr = this.priceToPrecision(symbol, price);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
+        String amountStr = this.amountToPrecision(symbol, amount);
+        String priceStr = this.priceToPrecision(symbol, price);
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         Object atomicResolution = ((Map<String, Object>)marketInfo).get("atomicResolution");
         String quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
@@ -1823,7 +1823,7 @@ public class Dydx extends DydxApi
         String subticks = Precise.stringMul(priceStr, priceScale);
         Integer clientMetadata = 0;
         Integer conditionalType = 0;
-        Object conditionalOrderTriggerSubticks = "0";
+        String conditionalOrderTriggerSubticks = "0";
         Object orderFlag = null;
         Object timeInForceNumber = null;
         if (java.util.Objects.equals(timeInForce, "FOK"))
@@ -1846,7 +1846,7 @@ public class Dydx extends DydxApi
             {
                 // long-term
                 orderFlag = 64;
-                if (Boolean.TRUE.equals(postOnly))
+                if (postOnly)
                 {
                     timeInForceNumber = 2;
                 } else

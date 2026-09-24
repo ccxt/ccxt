@@ -73,7 +73,7 @@ func (this *Bitfinex) subscribeBody(ch chan any, channel any, symbol any, option
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
 	var request map[string]any = map[string]any{
@@ -118,7 +118,7 @@ func (this *Bitfinex) unSubscribeBody(ch chan any, channel any, topic any, symbo
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), marketId)
@@ -155,7 +155,7 @@ func (this *Bitfinex) subscribePrivateBody(ch chan any, messageHash any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, 1)))
 	return nil
@@ -203,7 +203,7 @@ func (this *Bitfinex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"channel": channel,
 		"key":     key,
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	// not using subscribe here because this message has a different format
 
 	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))))
@@ -246,7 +246,7 @@ func (this *Bitfinex) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var channel string = "candles"
 	var subMessageHash any = ccxt.Add(channel+":"+*interval+":", market["id"])
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var subId any = ccxt.Add("unsubscribe:trade:"+*interval+":", market["id"]) // trade here because we use the key
 	var channelId *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), subId)
@@ -1322,7 +1322,7 @@ func (this *Bitfinex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)

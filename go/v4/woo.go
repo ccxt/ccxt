@@ -1435,22 +1435,22 @@ func (this *Woo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var maker *string = this.SafeString(data, "makerFeeRate")
 	var taker *string = this.SafeString(data, "takerFeeRate")
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
+	var symbols []string = this.Symbols
 	if IsEqual(symbols, nil) {
 
 		ch <- result
 		return nil
 	}
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
 			"taker":      this.ParseNumber(Precise.StringDiv(taker, "10000")),
 			"percentage": true,
 			"tierBased":  true,
-		})
+		}
 	}
 
 	ch <- result
@@ -4216,7 +4216,7 @@ func (this *Woo) RepayMarginAsync(code any, amount any, optionalArgs ...any) <-c
 func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4227,7 +4227,7 @@ func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -4722,7 +4722,7 @@ func (this *Woo) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -4748,7 +4748,7 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	symbol = market["symbol"]
+	symbol = SafeStringPtr(market["symbol"])
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}

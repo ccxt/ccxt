@@ -73,7 +73,7 @@ func (this *Dydx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("trade:", market["symbol"])
 	var request map[string]any = map[string]any{
@@ -114,7 +114,7 @@ func (this *Dydx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("trade:", market["symbol"])
 	var request map[string]any = map[string]any{
@@ -226,7 +226,7 @@ func (this *Dydx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
 	var request map[string]any = map[string]any{
@@ -264,7 +264,7 @@ func (this *Dydx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
 	var request map[string]any = map[string]any{
@@ -361,7 +361,7 @@ func (this *Dydx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var market map[string]any = this.Market(symbol)
 	var messageHash any = ccxt.Add("ohlcv:", market["symbol"])
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -407,7 +407,7 @@ func (this *Dydx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var market map[string]any = this.Market(symbol)
 	var messageHash any = ccxt.Add("ohlcv:", market["symbol"])
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)

@@ -1090,7 +1090,7 @@ public class Lighter extends LighterApi
         Boolean isConditional = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
         Boolean isMarketOrder = (java.util.Objects.equals(orderType, "MARKET"));
         String timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
-        Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, null, parameters));
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce"))));
         Object orderTypeNum = null;
         Object timeInForceNum = null;
@@ -1109,7 +1109,7 @@ public class Lighter extends LighterApi
         {
             ((Map<String, Object>)request).put("is_ask", 1);
         }
-        if (Boolean.TRUE.equals(postOnly))
+        if (postOnly)
         {
             timeInForceNum = 2;
             orderExpiry = -1;
@@ -1129,11 +1129,11 @@ public class Lighter extends LighterApi
             }
         }
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-        Object amountStr = null;
-        Object priceStr = this.priceToPrecision(symbol, price);
+        String amountStr = null;
+        String priceStr = this.priceToPrecision(symbol, price);
         String amountScale = this.pow("10", ((Map<String, Object>)marketInfo).get("size_decimals"));
         String priceScale = this.pow("10", ((Map<String, Object>)marketInfo).get("price_decimals"));
-        Object triggerPriceStr = "0"; // default is 0
+        String triggerPriceStr = "0"; // default is 0
         Object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
         Long clientOrderId = (Long) this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"))));
@@ -1460,9 +1460,9 @@ public class Lighter extends LighterApi
             String priceScale = this.pow("10", ((Map<String, Object>)marketInfo).get("price_decimals"));
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
-            Object amountStr = null;
-            Object priceStr = this.priceToPrecision(symbol, price);
-            Object triggerPriceStr = "0"; // default is 0
+            String amountStr = null;
+            String priceStr = this.priceToPrecision(symbol, price);
+            String triggerPriceStr = "0"; // default is 0
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 amountStr = this.numberToString(amount);
@@ -1472,8 +1472,8 @@ public class Lighter extends LighterApi
                 amountStr = this.amountToPrecision(symbol, amount);
             }
             Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
-            final Object finalAmountStr = amountStr;
-            final Object finalTriggerPriceStr = triggerPriceStr;
+            final String finalAmountStr = amountStr;
+            final String finalTriggerPriceStr = triggerPriceStr;
             final Long finalApiKeyIndex = apiKeyIndex;
             final Long finalAccountIndex = accountIndex;
             Map<String, Object> signRaw = new HashMap<String, Object>() {{

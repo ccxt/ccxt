@@ -197,7 +197,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	_ = symbol
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 1, false)
 	_ = isPrivate
-	method := ccxt.GetArg(optionalArgs, 2, nil)
+	var method *string = ccxt.GetArgStringPtr(optionalArgs, 2, nil)
 	_ = method
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -208,7 +208,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 		return "public"
 	}()
 	if method == nil {
-		method = ""
+		method = ccxt.SafeStringPtr("")
 	}
 	var isUsdcSettled any = nil
 	var isSpot any = nil

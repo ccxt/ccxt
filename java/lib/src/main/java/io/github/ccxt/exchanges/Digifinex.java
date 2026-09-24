@@ -2540,7 +2540,7 @@ public class Digifinex extends DigifinexApi
             }
             ((Map<String, Object>)request).put("type", (side + suffix));
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
-            Object quantity = null;
+            String quantity = null;
             Boolean createMarketBuyOrderRequiresPrice = true;
             List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));

@@ -72,7 +72,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var name string = "SubscribeLevel1"
 	var messageHash any = ccxt.Add(name+":", market["id"])
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":        omsId,
@@ -161,7 +161,7 @@ func (this *Ndax) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	symbol = market["symbol"]
 	var name string = "SubscribeTrades"
 	var messageHash any = ccxt.Add(name+":", market["id"])
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":            omsId,
@@ -280,7 +280,7 @@ func (this *Ndax) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	symbol = market["symbol"]
 	var name string = "SubscribeTicker"
 	var messageHash any = ccxt.Add(name+":"+timeframe+":", market["id"])
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":            omsId,
@@ -494,7 +494,7 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = market["symbol"]
 	var name string = "SubscribeLevel2"
 	var messageHash any = ccxt.Add(name+":", market["id"])
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId()
 	limit = func() any {
 		if limit == nil {

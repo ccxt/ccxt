@@ -3432,7 +3432,7 @@ public class Phemex extends PhemexApi
                     ((Map<String, Object>)request).put("quoteQtyEv", this.toEv(costString, market));
                 } else
                 {
-                    Object amountString = this.amountToPrecision(symbol, amount);
+                    String amountString = this.amountToPrecision(symbol, amount);
                     ((Map<String, Object>)request).put("baseQtyEv", this.toEv(amountString, market));
                 }
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))

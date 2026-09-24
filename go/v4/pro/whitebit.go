@@ -352,7 +352,7 @@ func (this *Whitebit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var method string = "market_subscribe"
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var id any = this.Nonce()
 	var messageHashes []any = []any{}
 	var args []any = []any{}
@@ -909,7 +909,7 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		method = "balanceMargin_subscribe"
 		messageHash += "margin"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar, messageHash)
 	var fetchBalanceSnapshot any = nil
@@ -1067,7 +1067,7 @@ func (this *Whitebit) watchPublicBody(ch chan any, messageHash any, method any, 
 	_ = reqParams
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var id any = this.Nonce()
 	var request map[string]any = map[string]any{
 		"id":     id,
@@ -1095,7 +1095,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var id any = this.Nonce()
 	var client any = this.SafeValue(this.Clients, url)
 	var request any = nil
@@ -1173,7 +1173,7 @@ func (this *Whitebit) watchPrivateBody(ch chan any, messageHash any, method any,
 	this.CheckRequiredCredentials()
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var id any = this.Nonce()
 	var request map[string]any = map[string]any{
 		"id":     id,
@@ -1196,7 +1196,7 @@ func (this *Whitebit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var subscribeHash string = "authenticated"
 	// handleAuthenticate () resolves the handshake future with 1, so 1 is

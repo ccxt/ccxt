@@ -827,7 +827,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 (this.loadMarkets()).join();
             }
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             Map<String, Object> market = null;
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
@@ -850,7 +850,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList("all@ticker"));
-            final Object finalMarketIds = marketIds;
+            final List<Object> finalMarketIds = marketIds;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "state.subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1637,7 +1637,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 (this.loadMarkets()).join();
             }
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> market = null;
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));

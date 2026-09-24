@@ -561,7 +561,7 @@ public class Bithumb extends BithumbApi
         return this.safeMarket(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, null), Helpers.getArgString(optionalArgs, 2, null), Helpers.getArgString(optionalArgs, 3, null));
     }
 
-    public Object amountToPrecision(Object symbol, Object amount)
+    public String amountToPrecision(Object symbol, Object amount)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         return this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), DECIMAL_PLACES);

@@ -915,7 +915,7 @@ public class Bitmex extends BitmexApi
         return Precise.stringMul(amount, precision);
     }
 
-    public Object amountToPrecision(Object symbol, Object amount)
+    public String amountToPrecision(Object symbol, Object amount)
     {
         symbol = this.safeSymbol(symbol);
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);

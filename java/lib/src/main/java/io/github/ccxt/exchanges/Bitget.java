@@ -8682,7 +8682,7 @@ final Object finalMinNotional = minNotional;
                 throw new InvalidOrder((this.id + " createOrder() does not support stop loss/take profit orders on spot markets, only swap markets")) ;
             }
             ((Map<String, Object>)request).put("side", side);
-            Object quantity = null;
+            String quantity = null;
             String planType = null;
             Boolean createMarketBuyOrderRequiresPrice = true;
             List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);

@@ -3018,7 +3018,7 @@ public class Coinex extends CoinexApi
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         String option = this.safeString(parameters, "option");
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-        Object postOnly = this.isPostOnly(isMarketOrder, java.util.Objects.equals(option, "maker_only"), parameters);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, java.util.Objects.equals(option, "maker_only"), parameters));
         String timeInForceRaw = this.safeStringUpper(parameters, "timeInForce");
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
         if (java.util.Objects.equals(reduceOnly, true))
@@ -3047,7 +3047,7 @@ public class Coinex extends CoinexApi
                 ((Map<String, Object>)request).put("side", side);
             }
             String requestType = type;
-            if (Boolean.TRUE.equals(postOnly))
+            if (postOnly)
             {
                 requestType = "maker_only";
             } else if (!java.util.Objects.equals(timeInForceRaw, null))
@@ -5040,13 +5040,13 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object rawAmount = this.amountToPrecision(symbol, amount);
-            Object requestAmount = rawAmount;
+            String rawAmount = this.amountToPrecision(symbol, amount);
+            String requestAmount = rawAmount;
             if (java.util.Objects.equals(addOrReduce, "reduce"))
             {
                 requestAmount = Precise.stringNeg(rawAmount);
             }
-            final Object finalRequestAmount = requestAmount;
+            final String finalRequestAmount = requestAmount;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "market_type", "FUTURES" );

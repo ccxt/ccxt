@@ -4614,9 +4614,9 @@ func (this *Pacifica) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var isTestnet any = this.IsSandboxModeEnabled
+	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = func() string {
-		if isTestnet == true {
+		if isTestnet {
 			return "test"
 		}
 		return "api"

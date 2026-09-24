@@ -2026,12 +2026,12 @@ public class Woo extends WooApi
             Boolean isConditional = Boolean.TRUE.equals(isTrailing) || !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
             Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
             String timeInForce = this.safeStringLower(parameters, "timeInForce");
-            Object postOnly = this.isPostOnly(isMarket, null, parameters);
+            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
             String clientOrderIdKey = ((Boolean.TRUE.equals(isConditional))) ? "clientAlgoOrderId" : "clientOrderId";
             ((Map<String, Object>)request).put("type", orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             if (!Boolean.TRUE.equals(isConditional))
             {
-                if (Boolean.TRUE.equals(postOnly))
+                if (postOnly)
                 {
                     ((Map<String, Object>)request).put("type", "POST_ONLY");
                 } else if (java.util.Objects.equals(timeInForce, "fok"))

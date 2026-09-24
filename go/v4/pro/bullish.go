@@ -127,7 +127,7 @@ func (this *Bullish) watchPrivateBody(ch chan any, messageHash any, subscribeHas
 	_ = request
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 
 	token := (<-this.HandleTokenAsync())
 	ccxt.PanicOnError(token)

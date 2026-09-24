@@ -341,10 +341,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Object getStockWsUrl(String streamType)
     {
-        Object baseUrl = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "stock");
+        String baseUrl = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "stock");
         if (java.util.Objects.equals(streamType, "combined"))
         {
-            return Helpers.replace(((String)baseUrl), "/ws", "/stream");
+            return Helpers.replace(baseUrl, (String)"/ws", (String)"/stream");
         }
         return baseUrl;
     }
@@ -4077,7 +4077,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
+            String url = (String)Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, marketType, new HashMap<String, Object>() {{}});
             Long lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
             Long listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
@@ -4202,7 +4202,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object type = this.safeString(parameters, "type", "margin");
+            String type = this.safeString(parameters, "type", "margin");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, type, new HashMap<String, Object>() {{}});
             String symbol = this.safeString(options, "symbol");
             Boolean isIsolated = (Boolean) this.safeBool(options, "isIsolated", false);

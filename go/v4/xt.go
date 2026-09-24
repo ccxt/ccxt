@@ -6488,9 +6488,9 @@ func (this *Xt) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var fee map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var matchesSubType any = func() any {
 			if isInverse {
@@ -6499,7 +6499,7 @@ func (this *Xt) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 			return market["linear"]
 		}()
 		if (GetValue(market, "contract") == true) && (matchesSubType == true) {
-			AddElementToObject(result, symbol, this.ParseTradingFee(fee, market))
+			result[symbol] = this.ParseTradingFee(fee, market)
 		}
 	}
 

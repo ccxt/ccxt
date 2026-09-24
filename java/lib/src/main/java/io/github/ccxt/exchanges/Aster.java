@@ -3921,8 +3921,8 @@ public class Aster extends AsterApi
                 uppercaseType = "TAKE_PROFIT";
             }
         }
-        Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
-        if (Boolean.TRUE.equals(postOnly))
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, null, parameters));
+        if (postOnly)
         {
             ((Map<String, Object>)request).put("timeInForce", "GTX");
         }

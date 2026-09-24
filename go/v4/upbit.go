@@ -1049,8 +1049,8 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		// ticker/all returns every market of the requested quote currencies with a single request
 		var quoteIds []any = []any{}
-		var marketSymbols any = this.Symbols
-		for i := 0; i < GetArrayLength(marketSymbols); i++ {
+		var marketSymbols []string = this.Symbols
+		for i := 0; i < len(marketSymbols); i++ {
 			var market map[string]any = MapTyped(this.Market(GetValue(marketSymbols, i)))
 			var quoteId *string = SafeStringPtr(market["quoteId"])
 			if !this.InArray(quoteId, quoteIds) {

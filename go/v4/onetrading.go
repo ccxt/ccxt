@@ -819,9 +819,9 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 	var firstSpotTier any = this.SafeDict(spotTiers, 0, map[string]any{})
 	var firstFuturesTier any = this.SafeDict(futuresTiers, 0, map[string]any{})
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var tierObject any = func() any {
 			if GetValue(market, "spot") == true {
@@ -829,7 +829,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 			}
 			return firstFuturesTier
 		}()
-		AddElementToObject(result, symbol, map[string]any{
+		result[symbol] = map[string]any{
 			"info":       spotFees,
 			"symbol":     symbol,
 			"maker":      this.SafeNumber(tierObject, "maker_fee"),
@@ -837,7 +837,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 			"percentage": true,
 			"tierBased":  true,
 			"tiers":      spotTiers,
-		})
+		}
 	}
 
 	ch <- result
@@ -905,9 +905,9 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	futuresTakerFee = Precise.StringDiv(futuresTakerFee, "100")
 	var result map[string]any = map[string]any{}
 	// const tiers = this.parseFeeTiers (feeTiers);
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var makerFee *string = func() *string {
 			if GetValue(market, "spot") == true {
@@ -921,7 +921,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 			}
 			return futuresTakerFee
 		}()
-		AddElementToObject(result, symbol, map[string]any{
+		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(makerFee),
@@ -929,7 +929,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 			"percentage": true,
 			"tierBased":  true,
 			"tiers":      nil,
-		})
+		}
 	}
 
 	ch <- result

@@ -510,10 +510,10 @@ public class Nado extends NadoApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
             }
             Long productId = this.parseToInt(((Map<String, Object>)market).get("id"));
-            Object priceString = this.priceToPrecision(symbol, price);
-            Object amountString = this.amountToPrecision(symbol, amount);
-            String priceX18 = this.convertToX18((String) (priceString));
-            String amountX18 = this.convertToX18((String) (amountString));
+            String priceString = this.priceToPrecision(symbol, price);
+            String amountString = this.amountToPrecision(symbol, amount);
+            String priceX18 = this.convertToX18(priceString);
+            String amountX18 = this.convertToX18(amountString);
             if (java.util.Objects.equals(side, "sell"))
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
@@ -763,10 +763,10 @@ public class Nado extends NadoApi
                 throw new ArgumentsRequired((this.id + " editOrder() requires a price argument")) ;
             }
             Long productId = this.parseToInt(((Map<String, Object>)market).get("id"));
-            Object priceString = this.priceToPrecision(symbol, price);
-            Object amountString = this.amountToPrecision(symbol, amount);
-            String priceX18 = this.convertToX18((String) (priceString));
-            String amountX18 = this.convertToX18((String) (amountString));
+            String priceString = this.priceToPrecision(symbol, price);
+            String amountString = this.amountToPrecision(symbol, amount);
+            String priceX18 = this.convertToX18(priceString);
+            String amountX18 = this.convertToX18(amountString);
             if (java.util.Objects.equals(side, "sell"))
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
@@ -4020,7 +4020,7 @@ public class Nado extends NadoApi
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-        Object postOnly = this.isPostOnly(false, null, parameters);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(false, null, parameters));
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Integer orderType = 0;
         if (java.util.Objects.equals(timeInForce, "IOC"))
@@ -4029,7 +4029,7 @@ public class Nado extends NadoApi
         } else if (java.util.Objects.equals(timeInForce, "FOK"))
         {
             orderType = 2;
-        } else if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
+        } else if (postOnly || (java.util.Objects.equals(timeInForce, "PO")))
         {
             orderType = 3;
         } else if ((!java.util.Objects.equals(timeInForce, null)) && (!java.util.Objects.equals(timeInForce, "GTC")))

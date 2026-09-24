@@ -2184,7 +2184,7 @@ public class Ndax extends NdaxApi
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
-            Object amountString = this.amountToPrecision(symbol, amount);
+            String amountString = this.amountToPrecision(symbol, amount);
             final Object finalAmountString = amountString;
             final Long finalOrderType = orderType;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2199,7 +2199,7 @@ public class Ndax extends NdaxApi
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (!java.util.Objects.equals(price, null))
             {
-                Object limitPriceString = this.priceToPrecision(symbol, price);
+                String limitPriceString = this.priceToPrecision(symbol, price);
                 if (java.util.Objects.equals(limitPriceString, null))
                 {
                     limitPriceString = "0";
@@ -2281,7 +2281,7 @@ public class Ndax extends NdaxApi
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
-            Object amountString = this.amountToPrecision(symbol, amount);
+            String amountString = this.amountToPrecision(symbol, amount);
             final Object finalAmountString = amountString;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "OrderIdToReplace", Helpers.parseInt(id) );
@@ -2296,7 +2296,7 @@ public class Ndax extends NdaxApi
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (!java.util.Objects.equals(price, null))
             {
-                Object limitPriceString = this.priceToPrecision(symbol, price);
+                String limitPriceString = this.priceToPrecision(symbol, price);
                 if (java.util.Objects.equals(limitPriceString, null))
                 {
                     limitPriceString = "0";

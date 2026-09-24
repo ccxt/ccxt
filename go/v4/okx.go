@@ -8940,7 +8940,7 @@ func (this *Okx) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -8961,7 +8961,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 		if GetValue(market, "contract") == true {
 			if GetValue(market, "linear") == true {
 				request["ctType"] = "linear"
@@ -9550,9 +9550,9 @@ func (this *Okx) FetchBorrowRateHistoryAsync(code any, optionalArgs ...any) <-ch
 func (this *Okx) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params

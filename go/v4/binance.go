@@ -7434,7 +7434,7 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -9156,7 +9156,7 @@ func (this *Binance) createOrderBody(ch chan any, symbol any, typeVar any, side 
  * @returns {object} request to be sent to the exchange
  */
 func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -13564,7 +13564,7 @@ func (this *Binance) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan an
 func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -13592,7 +13592,7 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 		request["symbol"] = GetValue(market, "id")
 	}
 	var subType *string = nil
@@ -15901,7 +15901,7 @@ func (this *Binance) FetchLedgerEntryAsync(id any, optionalArgs ...any) <-chan a
 func (this *Binance) fetchLedgerEntryBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -15969,7 +15969,7 @@ func (this *Binance) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Binance) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -16885,9 +16885,9 @@ func (this *Binance) FetchBorrowRateHistoryAsync(code any, optionalArgs ...any) 
 func (this *Binance) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -16896,8 +16896,8 @@ func (this *Binance) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if limit == nil {
-		limit = 93
-	} else if IsGreaterThan(limit, 93) {
+		limit = Int64PtrTyped(93)
+	} else if limit != nil && *limit > 93 {
 		panic(BadRequest(this.Id + " fetchBorrowRateHistory() limit parameter cannot exceed 92"))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
@@ -19166,7 +19166,7 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	timeframe := GetArg(optionalArgs, 1, nil)
+	var timeframe *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = since
@@ -19180,7 +19180,7 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if timeframe == nil {
-		timeframe = "1d"
+		timeframe = SafeStringPtr("1d")
 	}
 	var request map[string]any = map[string]any{
 		"period": timeframe,

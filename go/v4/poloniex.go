@@ -3268,17 +3268,17 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      this.SafeNumber(response, "makerRate"),
 			"taker":      this.SafeNumber(response, "takerRate"),
 			"percentage": true,
 			"tierBased":  true,
-		})
+		}
 	}
 
 	ch <- result
@@ -3304,7 +3304,7 @@ func (this *Poloniex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-cha
 func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

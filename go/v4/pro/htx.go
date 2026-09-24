@@ -1043,7 +1043,7 @@ func (this *Htx) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1065,7 +1065,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		typeVar = ccxt.GetValue(market, "type")
 		subType = func() string {
 			if ccxt.GetValue(market, "linear") == true {
@@ -1223,7 +1223,7 @@ func (this *Htx) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1241,7 +1241,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var suffix any = "*" // wildcard
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		typeVar = ccxt.GetValue(market, "type")
 		suffix = ccxt.GetValue(market, "lowercaseId")
 		subType = func() string {

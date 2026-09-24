@@ -3631,7 +3631,7 @@ func (this *Hitbtc) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any
 func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -3660,7 +3660,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 		request["symbols"] = GetValue(market, "id")
 	}
 	if since != nil {

@@ -1787,17 +1787,17 @@ func (this *Gemini) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var maker *float64 = Float64PtrTyped(this.ParseNumber(makerString))
 	var taker *float64 = Float64PtrTyped(this.ParseNumber(takerString))
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      maker,
 			"taker":      taker,
 			"percentage": true,
 			"tierBased":  true,
-		})
+		}
 	}
 
 	ch <- result

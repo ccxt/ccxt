@@ -88,7 +88,7 @@ func (this *Cex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
 	var messageHash string = this.RequestId()
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var subscribe map[string]any = map[string]any{
 		"e":    "get-balance",
 		"data": map[string]any{},
@@ -178,7 +178,7 @@ func (this *Cex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash string = "trades"
 	var subscriptionHash any = ccxt.Add("old:", symbol)
 	var client any = this.SafeValue(this.Clients, url)
@@ -315,7 +315,7 @@ func (this *Cex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var method *string = this.SafeString(params, "method", "private") // default to private because the specified ticker is received quicker
 	var message map[string]any = map[string]any{
@@ -365,7 +365,7 @@ func (this *Cex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash string = "tickers"
 	var message map[string]any = map[string]any{
 		"e":     "subscribe",
@@ -417,7 +417,7 @@ func (this *Cex) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...any)
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash string = this.RequestId()
 	var request map[string]any = this.Extend(map[string]any{
 		"e":    "ticker",
@@ -546,7 +546,7 @@ func (this *Cex) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash string = this.RequestId()
 	var request map[string]any = this.Extend(map[string]any{
 		"e":   "get-balance",
@@ -593,7 +593,7 @@ func (this *Cex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("orders:", symbol)
@@ -651,7 +651,7 @@ func (this *Cex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("myTrades:", market["symbol"])
 	var subscriptionHash any = ccxt.Add("orders:", market["symbol"])
@@ -1116,7 +1116,7 @@ func (this *Cex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var depth any = func() any {
 		if limit == nil {
@@ -1269,7 +1269,7 @@ func (this *Cex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"e":     "init-ohlcv",
 		"i":     timeframe,
@@ -1458,7 +1458,7 @@ func (this *Cex) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any 
 	var data map[string]any = this.Extend(map[string]any{
 		"order_id": ccxt.ToString(id),
 	}, params)
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"e":    "get-order",
@@ -1510,7 +1510,7 @@ func (this *Cex) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash string = this.RequestId()
 	var data map[string]any = this.Extend(map[string]any{
 		"pair": []any{market["baseId"], market["quoteId"]},
@@ -1564,7 +1564,7 @@ func (this *Cex) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash string = this.RequestId()
 	var data map[string]any = this.Extend(map[string]any{
 		"pair":   []any{market["baseId"], market["quoteId"]},
@@ -1634,7 +1634,7 @@ func (this *Cex) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 		"order_id": id,
 	}, params)
 	var messageHash string = this.RequestId()
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"e":    "cancel-replace-order",
 		"oid":  messageHash,
@@ -1684,7 +1684,7 @@ func (this *Cex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any
 		"order_id": id,
 	}, params)
 	var messageHash string = this.RequestId()
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"e":    "cancel-order",
 		"oid":  messageHash,
@@ -1733,7 +1733,7 @@ func (this *Cex) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) a
 	var data map[string]any = this.Extend(map[string]any{
 		"cancel-orders": ids,
 	}, params)
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"e":    "mass-cancel-place-orders",
 		"oid":  messageHash,
@@ -1887,7 +1887,7 @@ func (this *Cex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import ts from 'typescript6';
+import { urlsDescribeStringProducer } from './csharp-local-types.js';
 
 // CCXT-side extension of the Go printer's local-variable typing.
 //
@@ -1157,6 +1158,41 @@ function ccxtGoTypeOfParseNumberInitializer (goTranspiler, initializer, printedV
     return typeNameIsUsable (goTranspiler, initializer, CCXT_GO_PARSE_NUMBER_LOCAL_TYPE) ? CCXT_GO_PARSE_NUMBER_LOCAL_TYPE : undefined;
 }
 
+// `var url *string = SafeStringPtr(GetValue(GetValue(this.Urls, "api"), "ws"))`: the C#
+// describe()-literal url proof (csharp-local-types.js urlsDescribeStringProducer) makes the box a
+// Go string or nil, which SafeStringPtr carries unchanged, like a SafeString local. Declarations only.
+function ccxtGoTypeOfUrlsInitializer (goTranspiler, initializer, printedValue) {
+    if ((initializer?.parent?.kind !== ts.SyntaxKind.VariableDeclaration) || (initializer.parent.initializer !== initializer)
+        || (initializer.parent.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)
+        || !/^GetValue\(/.test ((printedValue ?? '').trim ()) || !urlsDescribeStringProducer (initializer)) {
+        return undefined;
+    }
+    const declaration = initializer.parent;
+    const scope = (typeof goTranspiler.goEnclosingFunction === 'function') ? goTranspiler.goEnclosingFunction (declaration) : undefined;
+    if ((scope === undefined) || (declaration.name?.kind !== ts.SyntaxKind.Identifier)) {
+        return undefined;
+    }
+    const varName = declaration.name.escapedText;
+    let unproven = false;
+    const visit = (n) => {
+        if (!unproven && (n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)) {
+            unproven = !ccxtGoClosureReadIsSafe (goTranspiler, n, varName);
+        } else if (!unproven) {
+            ts.forEachChild (n, visit);
+        }
+    };
+    ts.forEachChild (scope, visit);
+    return unproven ? undefined : typeNameIsUsable (goTranspiler, initializer, '*string') ? '*string' : undefined;
+}
+
+export function ccxtGoWrapUrlsDeclaration (printed) {
+    if (typeof printed !== 'string') {
+        return printed;
+    }
+    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ \*string = )(GetValue\(GetValue\([^\n]*this\.Urls[^\n]*\))(\s*)$/.exec (printed);
+    return (match === null) ? printed : match[1] + 'SafeStringPtr(' + match[2] + ')' + match[3];
+}
+
 export function ccxtGoUnboxParseNumberDeclaration (goTranspiler, printed) {
     if (typeof printed !== 'string') {
         return printed;
@@ -1184,7 +1220,7 @@ function installCcxtGoCurrencyUnbox (goTranspiler) {
     const upstream = goTranspiler.printVariableDeclarationList;
     goTranspiler.printVariableDeclarationList = function (node, identation) {
         const printed = upstream.call (this, node, identation);
-        return ccxtGoUnboxSumDeclaration (this, ccxtGoUnboxParseNumberDeclaration (this, ccxtGoUnboxCurrencyDeclaration (this, printed)));
+        return ccxtGoWrapUrlsDeclaration (ccxtGoUnboxSumDeclaration (this, ccxtGoUnboxParseNumberDeclaration (this, ccxtGoUnboxCurrencyDeclaration (this, printed))));
     };
     goTranspiler.__ccxtGoCurrencyUnboxInstalled = true;
 }
@@ -3565,11 +3601,39 @@ function ccxtGoWriteSiteIsIntegerProducer (right) {
         || ((a.kind === ts.SyntaxKind.Identifier) && (left?.kind === ts.SyntaxKind.Identifier) && (a.escapedText === left.escapedText)));
 }
 
+// a string literal, or an element read the checker types exactly string (market['symbol']);
+// SafeStringPtr stores that string behind a pointer, an absent read stays a nil pointer
+function ccxtGoWriteSiteIsStringProducer (goTranspiler, right) {
+    if ((right?.kind === ts.SyntaxKind.StringLiteral) || (right?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral)) {
+        return true;
+    }
+    if ((right?.kind !== ts.SyntaxKind.ElementAccessExpression) || (typeof goTranspiler.checkerOrUndefined !== 'function')) {
+        return false;
+    }
+    const checker = goTranspiler.checkerOrUndefined ();
+    const type = checker?.getTypeAtLocation (right);
+    if ((type === undefined) || ((type.flags & ts.TypeFlags.String) === 0)) {
+        return false;
+    }
+    for (let node = right; node?.kind === ts.SyntaxKind.ElementAccessExpression; node = node.expression) {
+        const containerType = checker.getTypeAtLocation (node.expression);
+        const parts = (containerType?.isUnion?. ()) ? containerType.types : [ containerType ];
+        if (parts.some ((t) => ((t?.flags ?? ts.TypeFlags.Any) & (ts.TypeFlags.StringLike | ts.TypeFlags.Any | ts.TypeFlags.Unknown)) !== 0)
+            || ccxtGoElementReadIsObject (checker, containerType)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // the write-site conversion admitted for a declared Go type, or undefined when the right-hand
 // side is not a whole admitted producer call
 function ccxtGoWriteSiteConversion (goTranspiler, goType, right, nilJoin = false) {
     if ((goType === '*int64') && ccxtGoWriteSiteIsIntegerProducer (right)) {
         return 'Int64PtrTyped';
+    }
+    if ((goType === '*string') && ccxtGoWriteSiteIsStringProducer (goTranspiler, right)) {
+        return 'SafeStringPtr';
     }
     const callee = ccxtGoWriteSiteCallee (goTranspiler, right);
     if (callee === undefined) {
@@ -4302,6 +4366,11 @@ export const CCXT_GO_GETARG_SAFE_CONSUMERS = {
     // consumers that decide on the nil-ness of the box (container argument only)
     'DeepExtend': {'*': 'container'},
     'SubstituteString': '*',
+    // bodies read the value only through derefScalar-ing helpers (IsGreaterThan/IsEqual/
+    // InArray/NumberToString/FilterByCurrencySinceLimit)
+    'GetClosestLimit': {'0': 'deref'}, 'CheckRequiredArgument': {'1': 'deref'},
+    'FindNearestCeiling': {'1': 'deref'}, 'ParseToInt': {'0': 'deref'}, 'ParseToNumeric': {'0': 'deref'},
+    'ParseBorrowRateHistory': {'1': 'deref', '2': 'deref', '3': 'deref'},
 };
 
 // Typed async receive: `x := <-this.FooAsync(..)` + PanicOnError(x) becomes
@@ -5649,6 +5718,58 @@ function installCcxtGoAsyncReceiveUnbox (goTranspiler) {
     goTranspiler.__ccxtGoAsyncReceiveUnboxInstalled = true;
 }
 
+// R-FIELD: `this.<field>` reads of BaseExchange fields declared concretely in go/v4/exchange.go
+// (`IsSandboxModeEnabled bool`, `Symbols []string`); the value already has that Go type.
+const CCXT_GO_BASE_FIELD_TYPES = { 'isSandboxModeEnabled': 'bool', 'symbols': '[]string' };
+
+function ccxtGoBaseFieldType (goTranspiler, initializer, printedValue) {
+    const value = initializer;
+    if (value === undefined || !ts.isPropertyAccessExpression (value) || value.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const field = String (value.name.escapedText);
+    const goType = CCXT_GO_BASE_FIELD_TYPES[field];
+    if (goType === undefined || (printedValue ?? '').trim () !== 'this.' + field.charAt (0).toUpperCase () + field.slice (1)) {
+        return undefined;
+    }
+    try {
+        const decls = goTranspiler.getChecker ().getSymbolAtLocation (value.name)?.declarations ?? [];
+        const ok = decls.length > 0 && decls.every ((d) => ts.isPropertyDeclaration (d) && /[\\/]base[\\/]Exchange\.ts$/.test (d.getSourceFile ().fileName));
+        return ok ? goType : undefined;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// `request[k] = c ? Math.min (x, m) : x`: a pointer arm of a ternary stored as a value lands in
+// the same `any` dictionary as the bare store, so it reads like goGetArgPointerStoredAsValue
+function installCcxtGoGetArgTernaryStore (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoGetArgTernaryStoreInstalled
+        || (typeof goTranspiler.goGetArgPointerStoredAsValue !== 'function')) {
+        return;
+    }
+    const shipped = goTranspiler.goGetArgPointerStoredAsValue;
+    goTranspiler.goGetArgPointerStoredAsValue = function (n, param) {
+        if (shipped.call (this, n, param)) {
+            return true;
+        }
+        let arm = n;
+        while (arm.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            arm = arm.parent;
+        }
+        const ternary = arm.parent;
+        if ((ternary?.kind !== ts.SyntaxKind.ConditionalExpression) || (ternary.condition === arm)) {
+            return false;
+        }
+        let whole = ternary;
+        while (whole.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            whole = whole.parent;
+        }
+        return shipped.call (this, whole, param);
+    };
+    goTranspiler.__ccxtGoGetArgTernaryStoreInstalled = true;
+}
+
 export function installCcxtGoLocalTypes (goTranspiler) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
@@ -5660,6 +5781,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     // the typed optional-argument locals read both tables
     goTranspiler.CCXT_GO_GETARG_DECLARED_TYPES = CCXT_GO_GETARG_DECLARED_TYPES;
     goTranspiler.CCXT_GO_GETARG_SAFE_CONSUMERS = CCXT_GO_GETARG_SAFE_CONSUMERS;
+    installCcxtGoGetArgTernaryStore (goTranspiler);
     installCcxtGoTypedConcat (goTranspiler);
     const upstream = goTranspiler.goTypeOfInitializer;
     goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {
@@ -5685,7 +5807,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         }
         // the pro-tree-only callees are gated on the source file, so the same
         // transpiler instance can serve the REST, ws and prediction runs unchanged
-        const familyType = ccxtGoFamilyCallType (this, initializer, printedValue);
+        const familyType = ccxtGoFamilyCallType (this, initializer, printedValue) ?? ccxtGoBaseFieldType (this, initializer, printedValue);
         if (familyType !== undefined) {
             return familyType;
         }
@@ -5724,6 +5846,10 @@ export function installCcxtGoLocalTypes (goTranspiler) {
             const parseNumberType = ccxtGoTypeOfParseNumberInitializer (this, initializer, printedValue);
             if (parseNumberType !== undefined) {
                 return parseNumberType;
+            }
+            const urlsType = ccxtGoTypeOfUrlsInitializer (this, initializer, printedValue);
+            if (urlsType !== undefined) {
+                return urlsType;
             }
             return ccxtGoTypeOfCopiedLocal (this, initializer, printedValue);
         }

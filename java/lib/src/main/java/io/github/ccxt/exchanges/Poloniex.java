@@ -2725,7 +2725,7 @@ public class Poloniex extends PoloniexApi
         }
         String upperCaseType = ((String)type).toUpperCase();
         Boolean isMarket = java.util.Objects.equals(upperCaseType, "MARKET");
-        Object isPostOnly = this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), parameters);
+        boolean isPostOnly = Helpers.isTrue(this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), parameters));
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice"))));
         if (!java.util.Objects.equals(triggerPrice, null))
         {
@@ -2735,7 +2735,7 @@ public class Poloniex extends PoloniexApi
             }
             upperCaseType = (((java.util.Objects.equals(price, null)))) ? "STOP" : "STOP_LIMIT";
             ((Map<String, Object>)request).put("stopPrice", triggerPrice);
-        } else if (Boolean.TRUE.equals(isPostOnly))
+        } else if (isPostOnly)
         {
             upperCaseType = "LIMIT_MAKER";
         }

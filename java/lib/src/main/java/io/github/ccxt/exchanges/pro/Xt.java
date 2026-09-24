@@ -488,7 +488,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Object market = this.market(symbol);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "unWatchTicker");
-            Object defaultMethod = this.safeString(options, "method", "ticker");
+            String defaultMethod = this.safeString(options, "method", "ticker");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object name = ((method + "@") + ((Map<String, Object>)market).get("id"));
             String messageHash = ("unsubscribe::" + name);
@@ -534,7 +534,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTickers");
             String defaultMethod = this.safeString(options, "method", "tickers");
-            Object name = this.safeString(parameters, "method", defaultMethod);
+            String name = this.safeString(parameters, "method", defaultMethod);
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -587,7 +587,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "unWatchTickers");
             String defaultMethod = this.safeString(options, "method", "tickers");
-            Object name = this.safeString(parameters, "method", defaultMethod);
+            String name = this.safeString(parameters, "method", defaultMethod);
             if (!java.util.Objects.equals(symbols, null))
             {
                 throw new NotSupported((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
@@ -936,7 +936,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "order";
+            String name = "order";
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -991,7 +991,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "trade";
+            String name = "trade";
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1041,7 +1041,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "balance";
+            String name = "balance";
             return (this.subscribe(name, "private", "watchBalance", null, null, parameters)).join();
         }).thenApply(Balances::new);
 
@@ -1091,7 +1091,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
-            Object name = "position";
+            String name = "position";
             Object newPositions = (this.subscribe(name, "private", "watchPositions", null, null, parameters)).join();
             if (this.newUpdates)
             {

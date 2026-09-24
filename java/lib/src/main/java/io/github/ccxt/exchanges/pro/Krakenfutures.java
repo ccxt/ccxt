@@ -795,7 +795,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "fills";
+            String name = "fills";
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -845,8 +845,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "balances";
-            Object messageHash = name;
+            String name = "balances";
+            String messageHash = name;
             Object account = null;
             List<Object> accountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "account");
             account = ((List<Object>) accountparametersVariable).get(0);

@@ -1380,15 +1380,15 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	var feeTiers []any = SafeListTypedDefault(data, "tariff_steps", []any{})
 	var result map[string]any = map[string]any{}
 	var tiers map[string]any = this.ParseFeeTiers(feeTiers)
-	var symbols any = this.Symbols
+	var symbols []string = this.Symbols
 	if IsEqual(symbols, nil) {
 
 		ch <- result
 		return nil
 	}
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(makerFee),
@@ -1396,7 +1396,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 			"percentage": true,
 			"tierBased":  true,
 			"tiers":      tiers,
-		})
+		}
 	}
 
 	ch <- result

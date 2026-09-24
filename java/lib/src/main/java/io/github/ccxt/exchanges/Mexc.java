@@ -3347,7 +3347,7 @@ public class Mexc extends MexcApi
             {
                 type = 6;
             }
-            Object volString = this.amountToPrecision(symbol, amount);
+            String volString = this.amountToPrecision(symbol, amount);
             if (java.util.Objects.equals(volString, null))
             {
                 volString = "0";
@@ -3363,7 +3363,7 @@ public class Mexc extends MexcApi
             }};
             if ((!Helpers.isEqual(type, 5)) && (!Helpers.isEqual(type, 6)) && (!java.util.Objects.equals(type, "market")))
             {
-                Object priceString = this.priceToPrecision(symbol, price);
+                String priceString = this.priceToPrecision(symbol, price);
                 if (java.util.Objects.equals(priceString, null))
                 {
                     priceString = "0";

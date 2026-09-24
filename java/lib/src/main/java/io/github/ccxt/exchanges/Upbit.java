@@ -1140,7 +1140,7 @@ public class Upbit extends UpbitApi
                 tickers = (this.publicGetTickerAll(this.extend(request, parameters))).join();
             } else
             {
-                Object ids = this.marketIds(symbols);
+                List<Object> ids = this.marketIds(symbols);
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 Object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
@@ -1776,11 +1776,11 @@ public class Upbit extends UpbitApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             String customType = this.safeString2(parameters, "ordType", "ord_type");
-            Object postOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
+            boolean postOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters));
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
-            if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
+            if (postOnly && (!java.util.Objects.equals(selfTradePrevention, null)))
             {
                 throw new ExchangeError((this.id + " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
@@ -1850,7 +1850,7 @@ public class Upbit extends UpbitApi
             {
                 ((Map<String, Object>)request).put("identifier", clientOrderId);
             }
-            if (Boolean.TRUE.equals(postOnly))
+            if (postOnly)
             {
                 if (!java.util.Objects.equals(((Map<String, Object>)request).get("ord_type"), "limit"))
                 {
@@ -2035,10 +2035,10 @@ public class Upbit extends UpbitApi
             String prevClientOrderId = this.safeString(parameters, "clientOrderId");
             String customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
             String clientOrderId = this.safeString(parameters, "newClientOrderId");
-            Object postOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
+            boolean postOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters));
             String timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
-            if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
+            if (postOnly && (!java.util.Objects.equals(selfTradePrevention, null)))
             {
                 throw new ExchangeError((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
@@ -2107,7 +2107,7 @@ public class Upbit extends UpbitApi
             {
                 ((Map<String, Object>)request).put("new_smp_type", selfTradePrevention);
             }
-            if (Boolean.TRUE.equals(postOnly))
+            if (postOnly)
             {
                 if (!java.util.Objects.equals(((Map<String, Object>)request).get("new_ord_type"), "limit"))
                 {

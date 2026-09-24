@@ -851,7 +851,7 @@ public class Bitfinex extends BitfinexApi
         throw new NotSupported((Helpers.add((this.id + " "), code) + " not supported for withdrawal")) ;
     }
 
-    public Object amountToPrecision(Object symbol, Object amount)
+    public String amountToPrecision(Object symbol, Object amount)
     {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
@@ -861,7 +861,7 @@ public class Bitfinex extends BitfinexApi
         return this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), DECIMAL_PLACES);
     }
 
-    public Object priceToPrecision(Object symbol, Object price)
+    public String priceToPrecision(Object symbol, Object price)
     {
         symbol = this.safeSymbol(symbol);
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);

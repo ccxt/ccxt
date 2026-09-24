@@ -2309,7 +2309,7 @@ final Object finalMarketSymbol = marketSymbol;
         return this.fetchQuote(request, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object priceToPrecision(Object outcome, Object price)
+    public String priceToPrecision(Object outcome, Object price)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);
@@ -2321,7 +2321,7 @@ final Object finalMarketSymbol = marketSymbol;
         return this.decimalToPrecision(price, ROUND, decimals, DECIMAL_PLACES, this.paddingMode);
     }
 
-    public Object amountToPrecision(Object outcome, Object amount)
+    public String amountToPrecision(Object outcome, Object amount)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new HashMap<String, Object>() {{}}), "amount", 0.01);

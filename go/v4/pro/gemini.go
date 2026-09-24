@@ -805,7 +805,7 @@ func (this *Gemini) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Gemini) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -825,7 +825,7 @@ func (this *Gemini) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync(authParams)))
 	if symbol != nil {
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		symbol = market["symbol"]
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 	var messageHash string = "orders"
 

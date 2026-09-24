@@ -6555,9 +6555,9 @@ final String finalPointFee = pointFee;
                 amount = 0;
             } else
             {
-                Object amountToPrecision = this.amountToPrecision(symbol, amount);
-                Object signedAmount = (((java.util.Objects.equals(side, "sell")))) ? Precise.stringNeg(amountToPrecision) : amountToPrecision;
-                amount = Helpers.parseInt(((String)signedAmount));
+                String amountToPrecision = this.amountToPrecision(symbol, amount);
+                String signedAmount = (((java.util.Objects.equals(side, "sell")))) ? Precise.stringNeg(amountToPrecision) : amountToPrecision;
+                amount = Helpers.parseInt(signedAmount);
             }
         }
         Map<String, Object> request = null;

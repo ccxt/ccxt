@@ -987,7 +987,7 @@ func (this *Bithumb) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateGen2")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateGen2"))
 	var messageHash string = "myAsset"
 	var request any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{
 		"type": messageHash,
@@ -1099,7 +1099,7 @@ func (this *Bithumb) authenticateBody(ch chan any, optionalArgs ...any) any {
 		})
 		this.Options.Store("ws", wsOptions)
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateGen2")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateGen2"))
 	var client ccxt.ClientInterface = this.Client(url)
 
 	ch <- client
@@ -1148,7 +1148,7 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateGen2")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateGen2"))
 	var messageHash any = "myOrder"
 	var codes []any = ccxt.SafeListTypedDefault(params, "codes", []any{})
 	var request any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{

@@ -7110,7 +7110,7 @@ public class Htx extends HtxApi
             }
             if ((java.util.Objects.equals(orderType, "market")) && (java.util.Objects.equals(side, "buy")))
             {
-                Object quoteAmount = null;
+                String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));

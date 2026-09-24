@@ -1195,19 +1195,19 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 		}
 	}
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var fee map[string]any = SafeMapTyped(fees, market["base"])
-		AddElementToObject(result, symbol, map[string]any{
+		result[symbol] = map[string]any{
 			"info":       this.SafeDict(fee, "info"),
 			"symbol":     symbol,
 			"maker":      this.SafeNumber(fee, "fee"),
 			"taker":      this.SafeNumber(fee, "fee"),
 			"percentage": true,
 			"tierBased":  true,
-		})
+		}
 	}
 
 	ch <- result

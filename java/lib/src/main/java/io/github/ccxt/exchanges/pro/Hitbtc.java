@@ -118,7 +118,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials();
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
@@ -166,7 +166,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Boolean isBatch = ((String)name).indexOf("batch") >= 0;
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbols, null) && !Boolean.TRUE.equals(isBatch))
             {
@@ -184,7 +184,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "ch", name );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -218,7 +218,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_subscribe"))));
             String messageHash = this.safeString(splitName, 0, "");
             if (!java.util.Objects.equals(symbol, null))
@@ -262,7 +262,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             String messageHash = String.valueOf(this.nonce());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );
@@ -308,7 +308,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook");
             String defaultMethod = this.safeString(options, "method", "orderbook/full");
-            Object name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
+            String name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
             String depth = this.safeString(parameters, "depth", "20");
             String speed = this.safeString(parameters, "depth", "100");
             if (java.util.Objects.equals(name, "orderbook/{depth}/{speed}"))
@@ -703,7 +703,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "speed", speed );
             }});
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "params", new HashMap<String, Object>() {{
                     put( "symbols", marketIds );
@@ -823,7 +823,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object name = "trades";
+            String name = "trades";
             Object trades = (this.subscribePublic(name, "trades", new ArrayList<Object>(Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
             if (this.newUpdates)
             {

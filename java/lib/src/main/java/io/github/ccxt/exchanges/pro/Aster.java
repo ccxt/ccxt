@@ -2293,7 +2293,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 (this.loadMarkets()).join();
             }
-            Object type = "swap";
+            String type = "swap";
             (this.authenticate(type, parameters)).join();
             Object url = this.getPrivateUrl(type);
             Client client = this.client(url);

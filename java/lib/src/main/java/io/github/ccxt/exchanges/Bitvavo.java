@@ -2033,7 +2033,7 @@ final String finalBase = base;
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || (java.util.Objects.equals(type, "stopLossLimit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
         String timeInForce = this.safeString(parameters, "timeInForce");
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
-        Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, false, parameters));
         String stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"))));
@@ -2091,7 +2091,7 @@ final String finalBase = base;
         {
             ((Map<String, Object>)request).put("timeInForce", timeInForce);
         }
-        if (Boolean.TRUE.equals(postOnly))
+        if (postOnly)
         {
             ((Map<String, Object>)request).put("postOnly", true);
         }

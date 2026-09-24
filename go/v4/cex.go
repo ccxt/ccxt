@@ -1072,18 +1072,12 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 			AddElementToObject(result, GetValue(parsed, "symbol"), parsed)
 		}
 	}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		if !(func() bool {
-			if symbol == nil {
-				return false
-			}
-			_, ok := result[*symbol]
-			return ok
-		}()) {
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		if !(func() bool { _, ok := result[symbol]; return ok }()) {
 			var market any = this.Market(symbol)
-			AddElementToObject(result, symbol, this.ParseTradingFee(response, market))
+			result[symbol] = this.ParseTradingFee(response, market)
 		}
 	}
 	return result

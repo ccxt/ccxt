@@ -75,7 +75,7 @@ func (this *Derive) WatchPublicAsync(messageHash any, message any, subscription 
 func (this *Derive) watchPublicBody(ch chan any, messageHash any, message any, subscription any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
@@ -413,7 +413,7 @@ func (this *Derive) UnWatchPublicAsync(messageHash any, message any, subscriptio
 func (this *Derive) unWatchPublicBody(ch chan any, messageHash any, message any, subscription any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,
@@ -566,7 +566,7 @@ func (this *Derive) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -607,7 +607,7 @@ func (this *Derive) watchPrivateBody(ch chan any, messageHash any, message any, 
 	defer ccxt.ReturnPanicError(ch)
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = this.Extend(message, map[string]any{
 		"id": requestId,

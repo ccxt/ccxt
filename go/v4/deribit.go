@@ -2345,9 +2345,9 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 	var parsedFees map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = map[string]any{
 			"info":       market,
@@ -2364,7 +2364,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		} else if market["option"] == true {
 			fee = this.Extend(fee, optionFee)
 		}
-		AddElementToObject(parsedFees, symbol, fee)
+		parsedFees[symbol] = fee
 	}
 
 	ch <- parsedFees

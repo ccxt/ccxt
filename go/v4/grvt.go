@@ -1334,7 +1334,7 @@ func (this *Grvt) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Grvt) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1346,9 +1346,9 @@ func (this *Grvt) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"instrument": this.MarketId(symbol),
 	}
 	if limit == nil {
-		limit = 100
+		limit = Int64PtrTyped(100)
 	}
-	if IsLessThanOrEqual(limit, 500) {
+	if limit == nil || *limit <= 500 {
 		request["depth"] = this.FindNearestCeiling([]any{10, 50, 100, 500}, limit)
 	}
 

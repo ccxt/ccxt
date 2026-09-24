@@ -1637,7 +1637,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 throw new ArgumentsRequired((this.id + " createOrder() requires a limit price for outcome markets in between 0 and 1.")) ;
             }
-            Object px = null;
+            String px = null;
             if (Boolean.TRUE.equals(isMarket))
             {
                 String priceStr = this.numberToString(price);
@@ -1651,13 +1651,13 @@ public class Hyperliquid extends HyperliquidApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() could not determine price")) ;
             }
-            Object sz = this.amountToPrecision(marketSymbol, amount);
+            String sz = this.amountToPrecision(marketSymbol, amount);
             Map<String, Object> orderType = new HashMap<String, Object>() {{
                 put( "limit", new HashMap<String, Object>() {{
                     put( "tif", tif );
                 }} );
             }};
-            final Object finalPx = px;
+            final String finalPx = px;
             Map<String, Object> orderObj = new HashMap<String, Object>() {{
                 put( "a", assetId );
                 put( "b", isBuy );
@@ -2799,7 +2799,7 @@ public class Hyperliquid extends HyperliquidApi
         }});
     }
 
-    public Object amountToPrecision(Object outcome, Object amount)
+    public String amountToPrecision(Object outcome, Object amount)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "amount", 0.0001);
@@ -2816,7 +2816,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.decimalToPrecision(amount, 1, decimals, 2, this.paddingMode);
     }
 
-    public Object priceToPrecision(Object outcome, Object price)
+    public String priceToPrecision(Object outcome, Object price)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);

@@ -1051,8 +1051,8 @@ final Object finalOi = oi;
             {
                 throw new ArgumentsRequired((((this.id + " approve() has no RPC endpoint configured for chainId ") + this.numberToString(chainId)) + " - pass params.rpcUrl")) ;
             }
-            Object owner = this.walletAddress;
-            String nonceCallData = ("0x7ecebe00" + this.padHexAddress((String) (owner))); // nonces(address)
+            String owner = this.walletAddress;
+            String nonceCallData = ("0x7ecebe00" + this.padHexAddress(owner)); // nonces(address)
             final String finalTokenAddress = tokenAddress;
             Object nonceResult = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "to", finalTokenAddress );
@@ -1229,7 +1229,7 @@ final Object finalOi = oi;
             {
                 throw new InvalidOrder((this.id + " createOrder() market orders cannot be GTC - use type 'limit' for a resting order")) ;
             }
-            Object maker = this.walletAddress;
+            String maker = this.walletAddress;
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Order", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "marketHash" );

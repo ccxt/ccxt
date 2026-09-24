@@ -94,7 +94,7 @@ func (this *Alpaca) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
@@ -199,7 +199,7 @@ func (this *Alpaca) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
@@ -273,7 +273,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
@@ -374,7 +374,7 @@ func (this *Alpaca) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
@@ -451,7 +451,7 @@ func (this *Alpaca) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var messageHash any = "myTrades"
@@ -505,7 +505,7 @@ func (this *Alpaca) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {

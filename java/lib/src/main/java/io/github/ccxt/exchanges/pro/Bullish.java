@@ -185,7 +185,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ("trades::" + ((Map<String, Object>)market).get("symbol"));
-            Object url = "/trading-api/v1/market-data/trades";
+            String url = "/trading-api/v1/market-data/trades";
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "anonymousTrades" );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -387,7 +387,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object url = "/trading-api/v1/market-data/orderbook";
+            String url = "/trading-api/v1/market-data/orderbook";
             String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "l2Orderbook" );
@@ -509,8 +509,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets()).join();
             }
-            Object subscribeHash = "orders";
-            Object messageHash = subscribeHash;
+            String subscribeHash = "orders";
+            String messageHash = subscribeHash;
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbol = this.symbol(symbol);
@@ -665,8 +665,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets()).join();
             }
-            Object subscribeHash = "myTrades";
-            Object messageHash = subscribeHash;
+            String subscribeHash = "myTrades";
+            String messageHash = subscribeHash;
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbol = this.symbol(symbol);
@@ -934,8 +934,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets()).join();
             }
-            Object subscribeHash = "positions";
-            Object messageHash = subscribeHash;
+            String subscribeHash = "positions";
+            String messageHash = subscribeHash;
             if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 symbols = Helpers.toStringListArg(this.marketSymbols(symbols));

@@ -1451,7 +1451,7 @@ func (this *Modetrade) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan 
 func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1476,7 +1476,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		var market map[string]any = MapTyped(this.Market(symbol))
-		symbol = market["symbol"]
+		symbol = SafeStringPtr(market["symbol"])
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
@@ -1718,18 +1718,18 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	var maker *string = this.SafeString(data, "futures_maker_fee_rate")
 	var taker *string = this.SafeString(data, "futures_taker_fee_rate")
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
+	var symbols []string = this.Symbols
 	if !IsEqual(symbols, nil) {
-		for i := 0; i < GetArrayLength(symbols); i++ {
-			var symbol *string = SafeStringPtr(GetValue(symbols, i))
-			AddElementToObject(result, symbol, map[string]any{
+		for i := 0; i < len(symbols); i++ {
+			var symbol string = GetValue(symbols, i).(string)
+			result[symbol] = map[string]any{
 				"info":       response,
 				"symbol":     symbol,
 				"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
 				"taker":      this.ParseNumber(Precise.StringDiv(taker, "10000")),
 				"percentage": true,
 				"tierBased":  true,
-			})
+			}
 		}
 	}
 

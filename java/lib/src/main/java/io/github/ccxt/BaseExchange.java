@@ -8025,7 +8025,7 @@ public Object describe()
         return this.fetchWebEndpoint(method, endpointMethod, returnAsJson, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null));
     }
 
-    public Object marketIds(Object symbols)
+    public List<Object> marketIds(Object symbols)
     {
         /**
          * @param {string[]|undefined} symbols list of unified symbols
@@ -8034,7 +8034,7 @@ public Object describe()
          */
         if (java.util.Objects.equals(symbols, null))
         {
-            return symbols;
+            return (List<Object>) symbols;
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -8047,7 +8047,7 @@ public Object describe()
         }
         return result;
     }
-    public Object marketIds(Object... optionalArgs)
+    public List<Object> marketIds(Object... optionalArgs)
     {
         return this.marketIds(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
@@ -10942,7 +10942,7 @@ public Object describe()
         return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(((Map<String, Object>)market).get("precision"), "cost", "price"), this.precisionMode, this.paddingMode);
     }
 
-    public Object priceToPrecision(Object symbol, Object price)
+    public String priceToPrecision(Object symbol, Object price)
     {
         if (java.util.Objects.equals(price, null))
         {
@@ -10957,7 +10957,7 @@ public Object describe()
         return result;
     }
 
-    public Object amountToPrecision(Object symbol, Object amount)
+    public String amountToPrecision(Object symbol, Object amount)
     {
         if (java.util.Objects.equals(amount, null))
         {
@@ -11488,11 +11488,11 @@ public Object describe()
     {
         //
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        Object triggerPriceStr = null;
+        String triggerPriceStr = null;
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
-        Object stopLossPriceStr = null;
+        String stopLossPriceStr = null;
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        Object takeProfitPriceStr = null;
+        String takeProfitPriceStr = null;
         //
         if (!java.util.Objects.equals(triggerPrice, null))
         {

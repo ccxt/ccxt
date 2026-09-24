@@ -8125,8 +8125,8 @@ public class Binance extends BinanceApi
         }};
         String initialUppercaseType = ((String)type).toUpperCase();
         String uppercaseType = initialUppercaseType;
-        Object postOnly = this.isPostOnly(java.util.Objects.equals(initialUppercaseType, "MARKET"), java.util.Objects.equals(initialUppercaseType, "LIMIT_MAKER"), parameters);
-        if (Boolean.TRUE.equals(postOnly))
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(initialUppercaseType, "MARKET"), java.util.Objects.equals(initialUppercaseType, "LIMIT_MAKER"), parameters));
+        if (postOnly)
         {
             uppercaseType = "LIMIT_MAKER";
         }
@@ -9730,7 +9730,7 @@ public class Binance extends BinanceApi
         Boolean isPriceMatch = !java.util.Objects.equals(priceMatch, null);
         Boolean priceRequiredForTrailing = true;
         String uppercaseType = ((String)type).toUpperCase();
-        Object stopPrice = null;
+        String stopPrice = null;
         if (Boolean.TRUE.equals(isTrailingPercentOrder))
         {
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))

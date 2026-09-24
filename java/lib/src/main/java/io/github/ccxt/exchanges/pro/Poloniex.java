@@ -201,7 +201,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 put( "event", "subscribe" );
                 put( "channel", new ArrayList<Object>(Arrays.asList(finalName)) );
             }};
-            Object marketIds = new ArrayList<Object>(Arrays.asList());
+            List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             if (this.isEmpty(symbols))
             {
                 ((List<Object>)marketIds).add("all");
@@ -212,7 +212,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     throw new ArgumentsRequired((this.id + " subscribe() symbols is required")) ;
                 }
                 messageHash = ((messageHash + "::") + String.join(",", (List<String>)symbols));
-                Object ids = this.marketIds(symbols);
+                List<Object> ids = this.marketIds(symbols);
                 marketIds = (((java.util.Objects.equals(ids, null)))) ? new ArrayList<Object>(Arrays.asList()) : ids;
             }
             if (!java.util.Objects.equals(name, "balances"))
@@ -320,8 +320,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 throw new ArgumentsRequired((this.id + " createOrderWs() side is required")) ;
             }
             String uppercaseSide = ((String)side).toUpperCase();
-            Object isPostOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), java.util.Objects.equals(uppercaseType, "LIMIT_MAKER"), parameters);
-            if (Boolean.TRUE.equals(isPostOnly))
+            boolean isPostOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), java.util.Objects.equals(uppercaseType, "LIMIT_MAKER"), parameters));
+            if (isPostOnly)
             {
                 uppercaseType = "LIMIT_MAKER";
             }
@@ -573,7 +573,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 (this.loadMarkets()).join();
             }
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
-            Object channel = this.safeString(timeframes, timeframe, timeframe);
+            String channel = this.safeString(timeframes, timeframe, timeframe);
             if (java.util.Objects.equals(channel, null))
             {
                 throw new BadRequest(((this.id + " watchOHLCV cannot take a timeframe of ") + timeframe)) ;
@@ -660,7 +660,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "ticker";
+            String name = "ticker";
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Object newTickers = (this.subscribe(name, name, false, symbols, parameters)).join();
             if (this.newUpdates)
@@ -746,7 +746,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             symbols = this.marketSymbols(symbols, null, false, true, true);
             String name = "trades";
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             final String finalName = name;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
@@ -855,7 +855,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "orders";
+            String name = "orders";
             (this.authenticate()).join();
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -909,7 +909,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "orders";
+            String name = "orders";
             String messageHash = "myTrades";
             (this.authenticate()).join();
             if (!java.util.Objects.equals(symbol, null))
@@ -959,7 +959,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "balances";
+            String name = "balances";
             (this.authenticate()).join();
             return (this.subscribe(name, name, true, null, parameters)).join();
         }).thenApply(Balances::new);

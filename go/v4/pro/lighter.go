@@ -97,7 +97,7 @@ func (this *Lighter) subscribePublicBody(ch chan any, messageHash any, optionalA
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
@@ -119,7 +119,7 @@ func (this *Lighter) subscribePublicMultipleBody(ch chan any, messageHashes any,
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
@@ -141,7 +141,7 @@ func (this *Lighter) unsubscribeBody(ch chan any, messageHash any, optionalArgs 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"type": "unsubscribe",
 	}
@@ -1060,7 +1060,7 @@ func (this *Lighter) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Lighter) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1079,7 +1079,7 @@ func (this *Lighter) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = this.GetMessageHash("myTrades")
 	if symbol != nil {
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		symbol = market["symbol"]
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		messageHash = this.GetMessageHash("myTrades", symbol)
 	}
 	var request map[string]any = map[string]any{
@@ -1574,7 +1574,7 @@ func (this *Lighter) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId any = this.RequestId(url)
 	var messageHash any = ccxt.Add("jsonapi/sendtx:", requestId)
 	var txTypetxInfoordermarketVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.SignAndCreateOrderAsync("createOrderWs", symbol, typeVar, side, amount, price, params))))
@@ -1626,7 +1626,7 @@ func (this *Lighter) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId any = this.RequestId(url)
 	var messageHash any = ccxt.Add("jsonapi/sendtx:", requestId)
 	var txTypetxInfomarketVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.SignAndCancelOrderAsync("cancelOrderWs", id, symbol, params))))
@@ -1676,7 +1676,7 @@ func (this *Lighter) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId any = this.RequestId(url)
 	var messageHash any = ccxt.Add("jsonapi/sendtx:", requestId)
 	var txTypetxInfoVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.SignAndCancelAllOrdersAsync("cancelAllOrdersWs", symbol, params))))

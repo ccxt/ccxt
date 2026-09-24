@@ -570,7 +570,7 @@ func (this *Gate) FetchOrdersByStatusWsAsync(status any, optionalArgs ...any) <-
 func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -585,7 +585,7 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status any, optionalArg
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		if ccxt.GetValue(market, "swap") != true {
 			panic(ccxt.NotSupported(this.Id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets"))
 		}
@@ -2070,7 +2070,7 @@ func (this *Gate) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2086,7 +2086,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		var marketResolved map[string]any = this.Market(symbol)
 		market = marketResolved
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	}
 	var typeVar any = nil
 	var query any = nil

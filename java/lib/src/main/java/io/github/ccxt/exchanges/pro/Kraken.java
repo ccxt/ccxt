@@ -352,7 +352,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
             Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Object request = new HashMap<String, Object>() {{
@@ -446,7 +446,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
             Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Object request = new HashMap<String, Object>() {{
@@ -505,7 +505,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
             Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -556,7 +556,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
             Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -624,7 +624,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
             Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1143,7 +1143,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             String name = "ohlc";
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
             Long requestId = this.requestId();
             String messageHash = this.getMessageHash("ohlcv", null, symbol);
             final String finalSymbol = symbol;
@@ -1243,7 +1243,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
             (this.loadMarkets()).join();
             String eventVar = "heartbeat";
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
             return (this.watch(url, eventVar, null, null, null)).join();
         });
 
@@ -1472,7 +1472,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             Client client = this.client(url);
             String authenticated = "authenticated";
             Object subscription = this.safeValue(client.subscriptions, authenticated);
@@ -1563,7 +1563,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 symbol = this.symbol(symbol);
                 messageHash = (messageHash + (":" + symbol));
             }
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
             Long requestId = this.requestId();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
@@ -1996,8 +1996,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "req_id", Kraken.this.requestId() );
             }};
             ((Map<String, Object>)request).put("params", this.deepExtend(((Map<String, Object>)request).get("params"), parameters));
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, subscriptionArgs)).join();
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs)).join();
         });
 
     }
@@ -2022,7 +2022,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
             String messageHash = "balances";
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
+            String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
             Long requestId = this.requestId();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );

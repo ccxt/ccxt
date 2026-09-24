@@ -3555,11 +3555,11 @@ func (this *Gate) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Gate) ParseTradingFees(response any) any {
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
-		AddElementToObject(result, symbol, this.ParseTradingFee(response, market))
+		result[symbol] = this.ParseTradingFee(response, market)
 	}
 	return result
 }
@@ -7206,7 +7206,7 @@ func (this *Gate) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -7235,7 +7235,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 	}
 	var res []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 	var typeVar *string = this.SafeString(res, 0)
@@ -7271,7 +7271,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) any {
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -7282,7 +7282,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 	}
 	var trigger any = nil
 	var triggerparamsVariable []any = this.HandleParamBool2(params, "trigger", "stop")
@@ -7338,7 +7338,7 @@ func (this *Gate) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-ch
 func (this *Gate) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -7355,7 +7355,7 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs 
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 	}
 	// don't omit here, omits done in prepareOrdersByStatusRequest
 	var trigger *bool = this.SafeBool2(params, "trigger", "stop")
@@ -9747,7 +9747,7 @@ func (this *Gate) FetchMySettlementHistoryAsync(optionalArgs ...any) <-chan any 
 func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -9762,7 +9762,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMySettlementHistory", market, params)

@@ -1015,9 +1015,9 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 		}
 	}
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var uid *string = this.SafeString(market["info"], "feeScheduleUid")
 		var schedule any = this.SafeDict(schedulesByUid, uid)
@@ -1025,7 +1025,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 			continue
 		}
 		var volume *string = this.SafeString(volumes, uid, "0")
-		AddElementToObject(result, symbol, this.ParseTradingFee(schedule, market, volume))
+		result[symbol] = this.ParseTradingFee(schedule, market, volume)
 	}
 
 	ch <- result

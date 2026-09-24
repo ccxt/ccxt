@@ -4184,7 +4184,7 @@ func (this *Bybit) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any 
 func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -4217,7 +4217,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var fundingTimeFrameMins *int64 = this.SafeInteger(market["info"], "fundingInterval")
-	symbol = market["symbol"]
+	symbol = SafeStringPtr(market["symbol"])
 	request["symbol"] = market["id"]
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchFundingRateHistory", market, params)
@@ -4655,7 +4655,7 @@ func (this *Bybit) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Bybit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -9821,7 +9821,7 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArg
 	defer ReturnPanicError(ch)
 	since := GetArg(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -12452,7 +12452,7 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	timeframe := GetArg(optionalArgs, 1, nil)
+	var timeframe *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = since
@@ -12473,7 +12473,7 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...a
 		panic(NotSupported(this.Id + " fetchLongShortRatioHistory() only support linear and inverse markets"))
 	}
 	if timeframe == nil {
-		timeframe = "1d"
+		timeframe = SafeStringPtr("1d")
 	}
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],

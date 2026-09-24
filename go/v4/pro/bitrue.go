@@ -237,7 +237,7 @@ func (this *Bitrue) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bitrue) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -251,7 +251,7 @@ func (this *Bitrue) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if symbol != nil {
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		symbol = market["symbol"]
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 
 	url := (<-this.AuthenticateAsync())
@@ -572,7 +572,7 @@ func (this *Bitrue) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
 	var channel any = ccxt.Add(ccxt.Add("market_", wsId), "_trade_ticker")
 	var messageHash any = ccxt.Add("trades:", symbol)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic"))
 	var message map[string]any = map[string]any{
 		"event": "sub",
 		"params": map[string]any{
@@ -716,7 +716,7 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
 	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("market_", wsId), "_kline_"), interval)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic"))
 	var message map[string]any = map[string]any{
 		"event": "sub",
 		"params": map[string]any{
@@ -834,7 +834,7 @@ func (this *Bitrue) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
 	var channel any = ccxt.Add(ccxt.Add("market_", wsId), "_ticker")
 	var messageHash any = ccxt.Add("ticker:", symbol)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic"))
 	var message map[string]any = map[string]any{
 		"event": "sub",
 		"params": map[string]any{

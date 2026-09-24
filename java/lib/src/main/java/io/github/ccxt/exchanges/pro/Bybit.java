@@ -605,11 +605,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             parameters = this.cleanParams((Map<String, Object>) (parameters));
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTickers", new HashMap<String, Object>() {{}});
             String topic = this.safeString(options, "name", "tickers");
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)topics).add(((topic + ".") + marketId));
                 ((List<Object>)messageHashes).add(("ticker:" + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
             }
@@ -663,11 +663,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String topic = this.safeString(options, "name", "tickers");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((List<Object>)topics).add(((topic + ".") + marketId));
                 ((List<Object>)subMessageHashes).add(("ticker:" + symbol));
@@ -911,11 +911,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object url = (this.getUrlByMarketType((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)), false, "watchBidsAsks", parameters)).join();
             parameters = this.cleanParams((Map<String, Object>) (parameters));
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 String topic = ("orderbook.1." + marketId);
                 ((List<Object>)topics).add(topic);
                 ((List<Object>)messageHashes).add(("bidask:" + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
@@ -1939,7 +1939,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String symbol = symbol3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
-            Object method = "watchMyTrades";
+            String method = "watchMyTrades";
             String messageHash = "myTrades";
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2013,7 +2013,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Object parameters = parameters3;
-            Object method = "watchMyTrades";
+            String method = "watchMyTrades";
             String messageHash = "unsubscribe:myTrades";
             String subHash = "myTrades";
             if (java.util.Objects.equals(this.markets, null))
@@ -2245,14 +2245,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchPositions";
+            String method = "watchPositions";
             String messageHash = "";
             if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 messageHash = ("::" + String.join(",", (List<String>)symbols));
             }
-            Object firstSymbol = this.safeString(symbols, 0);
+            String firstSymbol = this.safeString(symbols, 0);
             Object url = (this.getUrlByMarketType(firstSymbol, true, method, parameters)).join();
             messageHash = ("positions" + messageHash);
             Client client = this.client(url);
@@ -2459,7 +2459,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchPositions";
+            String method = "watchPositions";
             String messageHash = "unsubscribe:positions";
             String subHash = "positions";
             if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
@@ -2683,7 +2683,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchOrders";
+            String method = "watchOrders";
             String messageHash = "orders";
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2742,7 +2742,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchOrders";
+            String method = "watchOrders";
             String messageHash = "unsubscribe:orders";
             String subHash = "orders";
             if (!java.util.Objects.equals(symbol, null))
@@ -2951,7 +2951,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchBalance";
+            String method = "watchBalance";
             String messageHash = "balances";
             String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);

@@ -83,7 +83,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": ccxt.Add(market["id"], "-orderbook"),
@@ -164,7 +164,7 @@ func (this *Coincheck) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("trade:", market["symbol"])
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": ccxt.Add(market["id"], "-trades"),

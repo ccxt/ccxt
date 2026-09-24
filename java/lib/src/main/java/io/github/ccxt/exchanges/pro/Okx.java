@@ -2612,7 +2612,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.authenticate(new HashMap<String, Object>() {{
                 put( "access", access );
             }})).join();
-            Object channel = (((java.util.Objects.equals(isTrigger, true)))) ? "orders-algo" : "orders";
+            String channel = (((java.util.Objects.equals(isTrigger, true)))) ? "orders-algo" : "orders";
             Object messageHash = (channel + "::myTrades");
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -2699,7 +2699,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", "ANY" );
             }};
-            Object channel = "positions";
+            String channel = "positions";
             Object newPositions = null;
             if (java.util.Objects.equals(symbols, null))
             {
@@ -2712,7 +2712,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     put( "op", "subscribe" );
                     put( "args", args );
                 }};
-                String url = this.getUrl((String) (channel), "private");
+                String url = this.getUrl(channel, "private");
                 newPositions = (this.watch(url, channel, nonSymbolRequest, channel, null)).join();
             } else
             {
@@ -2914,7 +2914,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", finalUppercaseType );
             }};
-            Object channel = (((java.util.Objects.equals(isTrigger, true)))) ? "orders-algo" : "orders";
+            String channel = (((java.util.Objects.equals(isTrigger, true)))) ? "orders-algo" : "orders";
             Object orders = (this.subscribe("private", channel, channel, (String) (symbol), this.extend(request, parameters))).join();
             if (this.newUpdates)
             {

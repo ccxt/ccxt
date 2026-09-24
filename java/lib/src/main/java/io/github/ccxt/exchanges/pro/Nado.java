@@ -787,7 +787,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
             Object market = null;
             String messageHash = "ticker";
-            Object streamType = "all_bbo";
+            String streamType = "all_bbo";
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
@@ -798,7 +798,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            Object ticker = (this.watchPublic((String) (streamType), market, messageHash, parameters)).join();
+            Object ticker = (this.watchPublic(streamType, market, messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 if (java.util.Objects.equals(messageHash, "ticker"))
@@ -845,7 +845,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
             Object market = null;
             String messageHash = "ticker";
-            Object streamType = "all_bbo";
+            String streamType = "all_bbo";
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
@@ -856,7 +856,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            return (this.unWatchPublic((String) (streamType), (Map<String, Object>) (market), messageHash, parameters)).join();
+            return (this.unWatchPublic(streamType, (Map<String, Object>) (market), messageHash, parameters)).join();
         });
 
     }
@@ -896,7 +896,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
             Object market = null;
             String messageHash = "bidask";
-            Object streamType = "all_bbo";
+            String streamType = "all_bbo";
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
@@ -907,7 +907,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            Object ticker = (this.watchPublic((String) (streamType), market, messageHash, parameters)).join();
+            Object ticker = (this.watchPublic(streamType, market, messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 if (java.util.Objects.equals(messageHash, "bidask"))
@@ -954,7 +954,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
             Object market = null;
             String messageHash = "bidask";
-            Object streamType = "all_bbo";
+            String streamType = "all_bbo";
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
@@ -965,7 +965,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            return (this.unWatchPublic((String) (streamType), (Map<String, Object>) (market), messageHash, parameters)).join();
+            return (this.unWatchPublic(streamType, (Map<String, Object>) (market), messageHash, parameters)).join();
         });
 
     }
@@ -1435,7 +1435,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             parameters = this.extend(new HashMap<String, Object>() {{
                 put( "id", Nado.this.requestId() );
             }}, parameters);
-            Object requestIdString = this.safeString(parameters, "id");
+            String requestIdString = this.safeString(parameters, "id");
             if (java.util.Objects.equals(requestIdString, null))
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
@@ -1528,7 +1528,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             parameters = this.extend(new HashMap<String, Object>() {{
                 put( "id", Nado.this.requestId() );
             }}, parameters);
-            Object requestIdString = this.safeString(parameters, "id");
+            String requestIdString = this.safeString(parameters, "id");
             if (java.util.Objects.equals(requestIdString, null))
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
@@ -1663,7 +1663,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             parameters = this.extend(new HashMap<String, Object>() {{
                 put( "id", Nado.this.requestId() );
             }}, parameters);
-            Object requestIdString = this.safeString(parameters, "id");
+            String requestIdString = this.safeString(parameters, "id");
             if (java.util.Objects.equals(requestIdString, null))
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;
@@ -1747,7 +1747,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             parameters = this.extend(new HashMap<String, Object>() {{
                 put( "id", Nado.this.requestId() );
             }}, parameters);
-            Object requestIdString = this.safeString(parameters, "id");
+            String requestIdString = this.safeString(parameters, "id");
             if (java.util.Objects.equals(requestIdString, null))
             {
                 throw new ArgumentsRequired((this.id + " ws execute requires params.id")) ;

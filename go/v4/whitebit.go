@@ -1368,23 +1368,23 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	//      }
 	//
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var fee map[string]any = MapTyped(this.SafeDict(response, market["baseId"], map[string]any{}))
 		var makerFee *string = this.SafeString(fee, "maker_fee")
 		var takerFee *string = this.SafeString(fee, "taker_fee")
 		makerFee = Precise.StringDiv(makerFee, "100")
 		takerFee = Precise.StringDiv(takerFee, "100")
-		AddElementToObject(result, symbol, map[string]any{
+		result[symbol] = map[string]any{
 			"info":       fee,
 			"symbol":     market["symbol"],
 			"percentage": true,
 			"tierBased":  false,
 			"maker":      this.ParseNumber(makerFee),
 			"taker":      this.ParseNumber(takerFee),
-		})
+		}
 	}
 
 	ch <- result
@@ -3315,7 +3315,7 @@ func (this *Whitebit) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -3331,7 +3331,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 		request["market"] = GetValue(market, "id")
 	}
 	if limit != nil {

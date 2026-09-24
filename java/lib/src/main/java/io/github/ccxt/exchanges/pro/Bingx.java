@@ -273,11 +273,11 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object dataType = (((Map<String, Object>)market).get("id") + "@ticker");
+            String dataType = (((Map<String, Object>)market).get("id") + "@ticker");
             Object subMessageHash = this.getMessageHash("ticker", ((Map<String, Object>)market).get("symbol"));
             String messageHash = ("unsubscribe::" + subMessageHash);
-            Object topic = "ticker";
-            Object methodName = "unWatchTicker";
+            String topic = "ticker";
+            String methodName = "unWatchTicker";
             return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
@@ -598,11 +598,11 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object dataType = (((Map<String, Object>)market).get("id") + "@trade");
+            String dataType = (((Map<String, Object>)market).get("id") + "@trade");
             Object subMessageHash = this.getMessageHash("trade", ((Map<String, Object>)market).get("symbol"));
             String messageHash = ("unsubscribe::" + subMessageHash);
-            Object topic = "trades";
-            Object methodName = "unWatchTrades";
+            String topic = "trades";
+            String methodName = "unWatchTrades";
             return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
@@ -859,8 +859,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Long depth = this.safeInteger(options, "depth", 100);
             String subMessageHash = (((((Map<String, Object>)market).get("id") + "@") + "depth") + this.numberToString(depth));
             String messageHash = ("unsubscribe::" + subMessageHash);
-            Object topic = "orderbook";
-            Object methodName = "unWatchOrderBook";
+            String topic = "orderbook";
+            String methodName = "unWatchOrderBook";
             return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
@@ -1281,8 +1281,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
             Object subMessageHash = Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), rawTimeframe);
             String messageHash = ("unsubscribe::" + subMessageHash);
-            Object topic = "ohlcv";
-            Object methodName = "unWatchOHLCV";
+            String topic = "ohlcv";
+            String methodName = "unWatchOHLCV";
             List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe))));
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", symbolsAndTimeframes);
             return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, (Map<String, Object>) (market), methodName, parameters)).join();

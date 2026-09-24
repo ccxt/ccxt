@@ -645,7 +645,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object topic = (((Map<String, Object>)market).get("id") + "@trade");
+            String topic = (((Map<String, Object>)market).get("id") + "@trade");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );

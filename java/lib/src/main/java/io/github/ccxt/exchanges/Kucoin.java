@@ -5412,7 +5412,7 @@ public class Kucoin extends KucoinApi
             put( "type", finalType );
         }};
         Double quoteAmount = this.safeNumber2(parameters, "cost", "funds");
-        Object amountString = null;
+        String amountString = null;
         Object costString = null;
         Object marginMode = null;
         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
@@ -5666,7 +5666,7 @@ public class Kucoin extends KucoinApi
             {
                 throw new InvalidOrder((this.id + " createOrder() minimum contract order amount is 1")) ;
             }
-            Object sizeString = this.amountToPrecision(symbol, amount);
+            String sizeString = this.amountToPrecision(symbol, amount);
             if (!java.util.Objects.equals(sizeString, null))
             {
                 ((Map<String, Object>)request).put("size", Helpers.parseInt(sizeString));
@@ -9082,12 +9082,12 @@ public class Kucoin extends KucoinApi
         Long lastUpdateTimestamp = this.safeIntegerProduct(order, "updatedTime", 0.000001);
         String rawTimeInForce = this.safeString(order, "timeInForce");
         String amount = null;
-        Object cost = null;
+        String cost = null;
         String sizeUnit = this.safeString(order, "sizeUnit");
         String size = this.safeString(order, "size");
         String rawStatus = this.safeString(order, "status");
         String average = this.safeString(order, "avgPrice");
-        Object filled = this.safeString(order, "filledSize"); // might be in base or quote, need to check sizeUnit
+        String filled = this.safeString(order, "filledSize"); // might be in base or quote, need to check sizeUnit
         if ((java.util.Objects.equals(sizeUnit, "BASECCY")) || (java.util.Objects.equals(sizeUnit, "UNIT")))
         {
             amount = size;
@@ -9102,8 +9102,8 @@ public class Kucoin extends KucoinApi
             put( "cost", Kucoin.this.safeString(order, "fee") );
         }};
         final String finalAmount = amount;
-        final Object finalCost = cost;
-        final Object finalFilled = filled;
+        final String finalCost = cost;
+        final String finalFilled = filled;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Kucoin.this.safeString(order, "orderId") );
             put( "clientOrderId", Kucoin.this.safeString(order, "clientOid") );
@@ -15103,7 +15103,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object amountString = this.amountToPrecision(symbol, amount);
+            String amountString = this.amountToPrecision(symbol, amount);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "withdrawAmount", amountString );

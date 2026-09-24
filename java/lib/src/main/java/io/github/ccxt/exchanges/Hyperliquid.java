@@ -2060,7 +2060,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public Object amountToPrecision(Object symbol, Object amount)
+    public String amountToPrecision(Object symbol, Object amount)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         String result = this.decimalToPrecision(amount, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), this.precisionMode, this.paddingMode);
@@ -2074,7 +2074,7 @@ public class Hyperliquid extends HyperliquidApi
         return result;
     }
 
-    public Object priceToPrecision(Object symbol, Object price)
+    public String priceToPrecision(Object symbol, Object price)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         String priceStr = this.numberToString(price);
@@ -3011,11 +3011,11 @@ public class Hyperliquid extends HyperliquidApi
         }
         String timeInForce = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
         timeInForce = this.capitalize(timeInForce);
-        Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         Boolean isTrigger = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
-        Object px = null;
+        String px = null;
         if (Boolean.TRUE.equals(isMarket))
         {
             if (java.util.Objects.equals(price, null))
@@ -3028,7 +3028,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             px = this.priceToPrecision(symbol, price);
         }
-        Object sz = this.amountToPrecision(symbol, amount);
+        String sz = this.amountToPrecision(symbol, amount);
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
         Map<String, Object> orderType = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(isTrigger))
@@ -3043,7 +3043,7 @@ public class Hyperliquid extends HyperliquidApi
                 triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
             }
             String tpSlType = ((Boolean.TRUE.equals(isTp))) ? "tp" : "sl";
-            final Object finalTriggerPrice = triggerPrice;
+            final String finalTriggerPrice = triggerPrice;
             ((Map<String, Object>)orderType).put("trigger", new HashMap<String, Object>() {{
     put( "isMarket", isMarket );
     put( "triggerPx", finalTriggerPrice );
@@ -3057,7 +3057,7 @@ public class Hyperliquid extends HyperliquidApi
 }});
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "client_id", "reduceOnly", "postOnly"))));
-        final Object finalPx = px;
+        final String finalPx = px;
         Map<String, Object> orderObj = new HashMap<String, Object>() {{
             put( "a", Hyperliquid.this.parseToInt(((Map<String, Object>)market).get("baseId")) );
             put( "b", isBuy );
@@ -3768,13 +3768,13 @@ final Object finalClientOrderId = clientOrderId;
             String timeInForce = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
             timeInForce = this.capitalize(timeInForce);
             String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
-            Object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
+            String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             String stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);
             String takeProfitPrice = this.safeString(orderParams, "takeProfitPrice");
             Boolean isTrigger = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
             Boolean reduceOnly = (Boolean) this.safeBool(orderParams, "reduceOnly", false);
             orderParams = this.omit(orderParams, new ArrayList<Object>(Arrays.asList("slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly")));
-            Object px = this.numberToString(price);
+            String px = this.numberToString(price);
             if (Boolean.TRUE.equals(isMarket))
             {
                 px = ((Boolean.TRUE.equals(isBuy))) ? Precise.stringMul(px, Precise.stringAdd("1", slippage)) : Precise.stringMul(px, Precise.stringSub("1", slippage));
@@ -3783,7 +3783,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 px = this.priceToPrecision(symbol, px);
             }
-            Object sz = this.amountToPrecision(symbol, amount);
+            String sz = this.amountToPrecision(symbol, amount);
             Map<String, Object> orderType = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isTrigger))
             {
@@ -3797,7 +3797,7 @@ final Object finalClientOrderId = clientOrderId;
                     triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
                 }
                 String tpSlType = ((Boolean.TRUE.equals(isTp))) ? "tp" : "sl";
-                final Object finalTriggerPrice = triggerPrice;
+                final String finalTriggerPrice = triggerPrice;
                 ((Map<String, Object>)orderType).put("trigger", new HashMap<String, Object>() {{
     put( "isMarket", isMarket );
     put( "triggerPx", finalTriggerPrice );
@@ -3814,7 +3814,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 triggerPrice = "0";
             }
-            final Object finalPx = px;
+            final String finalPx = px;
             Map<String, Object> orderReq = new HashMap<String, Object>() {{
                 put( "a", Hyperliquid.this.parseToInt(((Map<String, Object>)market).get("baseId")) );
                 put( "b", isBuy );

@@ -374,7 +374,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 	var now int64 = this.Milliseconds()
 	var expired bool = ccxt.IsGreaterThanOrEqual((ccxt.Subtract(now, lastUpdate)), refreshInterval)
 	var messageHash string = "utaToken"
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var client ccxt.ClientInterface = this.Client(url)
 	if (utaToken == nil) || expired {
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
@@ -2943,7 +2943,7 @@ func (this *Kucoin) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2959,7 +2959,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
 	}
 	var marketType *string = nil

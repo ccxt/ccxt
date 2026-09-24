@@ -104,7 +104,7 @@ func (this *Poloniex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var timestamp *string = this.NumberToString(this.Milliseconds())
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -231,7 +231,7 @@ func (this *Poloniex) tradeRequestBody(ch chan any, name any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var messageHash string = ccxt.ToString(this.Nonce())
 	var subscribe map[string]any = map[string]any{
 		"id":     messageHash,
@@ -647,7 +647,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var name string = "trades"
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var marketIds any = this.MarketIds(symbols)
 	var subscribe map[string]any = map[string]any{
 		"event":   "subscribe",

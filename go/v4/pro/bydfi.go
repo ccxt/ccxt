@@ -114,7 +114,7 @@ func (this *Bydfi) watchPublicBody(ch chan any, messageHashes any, channels any,
 	_ = params
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subscription
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var id int64 = this.RequestId()
 	var subscriptionParams map[string]any = map[string]any{
 		"id": id,
@@ -147,7 +147,7 @@ func (this *Bydfi) watchPrivateBody(ch chan any, messageHashes any, optionalArgs
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var subHash string = "private"
 	var client ccxt.ClientInterface = this.Client(url)
 	var privateSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subHash)
@@ -1166,7 +1166,7 @@ func (this *Bydfi) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.FetchBalanceSnapshot(client)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")

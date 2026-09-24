@@ -4887,7 +4887,7 @@ public class Okx extends OkxApi
                 {
                     throw new InvalidOrder((this.id + " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
                 }
-                Object slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                String slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 Map<String, Object> slOrder = new HashMap<String, Object>() {{}};
                 ((Map<String, Object>)slOrder).put("slTriggerPx", slTriggerPx);
                 Object stopLossLimitPrice = this.safeValueN(stopLoss, new ArrayList<Object>(Arrays.asList("price", "stopLossPrice", "slOrdPx")));
@@ -5018,7 +5018,7 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(takeProfitPrice, null))
             {
                 ((Map<String, Object>)request).put("tpTriggerPx", this.priceToPrecision(symbol, takeProfitPrice));
-                Object tpOrdPxReq = "-1";
+                String tpOrdPxReq = "-1";
                 if (!java.util.Objects.equals(tpOrdPx, null))
                 {
                     tpOrdPxReq = this.priceToPrecision(symbol, tpOrdPx);
@@ -5029,7 +5029,7 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(stopLossPrice, null))
             {
                 ((Map<String, Object>)request).put("slTriggerPx", this.priceToPrecision(symbol, stopLossPrice));
-                Object slOrdPxReq = "-1";
+                String slOrdPxReq = "-1";
                 if (!java.util.Objects.equals(slOrdPx, null))
                 {
                     slOrdPxReq = this.priceToPrecision(symbol, slOrdPx);

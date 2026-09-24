@@ -82,7 +82,7 @@ func (this *Blockchaincom) watchBalanceBody(ch chan any, optionalArgs ...any) an
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
 	var messageHash string = "balance"
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var subscribe map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "balances",
@@ -194,7 +194,7 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		"granularity": this.ParseNumber(interval),
 	}
 	request = this.DeepExtend(request, params)
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 
 	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, request))))
 	if this.NewUpdates {
@@ -275,7 +275,7 @@ func (this *Blockchaincom) watchTickerBody(ch chan any, symbol any, optionalArgs
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
@@ -405,7 +405,7 @@ func (this *Blockchaincom) watchTradesBody(ch chan any, symbol any, optionalArgs
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var request map[string]any = map[string]any{
 		"action":  "subscribe",
@@ -514,7 +514,7 @@ func (this *Blockchaincom) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Blockchaincom) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -530,9 +530,9 @@ func (this *Blockchaincom) watchOrdersBody(ch chan any, optionalArgs ...any) any
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	if symbol != nil {
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		symbol = market["symbol"]
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var message map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "trading",
@@ -767,7 +767,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol any, optionalA
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var typeVar *string = this.SafeString(params, "type", "l2")
 	params = this.Omit(params, "type")
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), typeVar)
@@ -903,7 +903,7 @@ func (this *Blockchaincom) authenticateBody(ch chan any, optionalArgs ...any) an
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)

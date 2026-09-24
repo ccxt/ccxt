@@ -259,7 +259,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             parameters = ((List<Object>) methodparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object subHash = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
-            Object topic = "orderbook";
+            String topic = "orderbook";
             return (this.unwatchPublic(subHash, (String) (((Map<String, Object>)market).get("symbol")), topic, parameters)).join();
         });
 
@@ -533,7 +533,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             parameters = ((List<Object>) methodparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object subHash = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
-            Object topic = "ticker";
+            String topic = "ticker";
             return (this.unwatchPublic(subHash, (String) (((Map<String, Object>)market).get("symbol")), topic, parameters)).join();
         });
 
@@ -695,8 +695,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 throw new NotSupported((this.id + " unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once")) ;
             }
-            Object topic = "ticker";
-            Object subHash = "tickers";
+            String topic = "ticker";
+            String subHash = "tickers";
             return (this.unwatchPublic(subHash, (String) (null), topic, parameters)).join();
         });
 
@@ -834,8 +834,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 throw new NotSupported((this.id + " unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once")) ;
             }
-            Object subHash = "bbos";
-            Object topic = "bidsasks";
+            String subHash = "bbos";
+            String topic = "bidsasks";
             return (this.unwatchPublic(subHash, (String) (null), topic, parameters)).join();
         });
 
@@ -1007,7 +1007,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object topic = "ohlcv";
+            String topic = "ohlcv";
             String name = "kline";
             String subHash = ((((((Map<String, Object>)market).get("id") + "@") + name) + "_") + interval);
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe)))));
@@ -1098,7 +1098,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object topic = (((Map<String, Object>)market).get("id") + "@trade");
+            String topic = (((Map<String, Object>)market).get("id") + "@trade");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -1148,8 +1148,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object topic = "trades";
-            Object subHash = (((Map<String, Object>)market).get("id") + "@trade");
+            String topic = "trades";
+            String subHash = (((Map<String, Object>)market).get("id") + "@trade");
             return (this.unwatchPublic(subHash, (String) (((Map<String, Object>)market).get("symbol")), topic, parameters)).join();
         });
 
@@ -2101,7 +2101,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object topic = (((Map<String, Object>)market).get("id") + "@estfundingrate");
+            String topic = (((Map<String, Object>)market).get("id") + "@estfundingrate");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );

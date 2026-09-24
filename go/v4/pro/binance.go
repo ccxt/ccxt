@@ -300,7 +300,7 @@ func (this *Binance) GetPrivateWsUrl(typeVar any, listenKey any) any {
 func (this *Binance) GetStockWsUrl(optionalArgs ...any) any {
 	var streamType string = ccxt.GetArgString(optionalArgs, 0, "market")
 	_ = streamType
-	var baseUrl any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "stock")
+	var baseUrl *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "stock"))
 	if streamType == "combined" {
 		return ccxt.Replace(baseUrl, "/ws", "/stream")
 	}
@@ -3661,7 +3661,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan any,
 	_ = marketType
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot"))
 	var options any = this.SafeDict(this.Options, marketType, map[string]any{})
 	var lastAuthenticatedTime *int64 = this.SafeInteger(options, "lastAuthenticatedTime", 0)
 	var listenTokenRefreshRate *int64 = this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
