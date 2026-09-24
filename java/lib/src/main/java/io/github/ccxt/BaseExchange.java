@@ -3489,8 +3489,8 @@ public class BaseExchange {
 
     public Object retrieveStarkAccount(Object signature, Object accountClassHash, Object accountProxyClassHash)
     {
-        // throw new RuntimeException("Not implemented");
-        return "";
+        // Starknet signing is not ported to Java; keep the base's account-map shape with no keys set
+        return new HashMap<String, Object>();
     }
 
     public void checkRequiredDependencies()
