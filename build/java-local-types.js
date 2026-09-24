@@ -11454,6 +11454,9 @@ function nullScalarWriteType (printer, node) {
     if (isNullishInitializer (value)) {
         return 'null';
     }
+    if (ts.isIdentifier (value)) {
+        return handleTypedBindingReadType (printer, value); // an element binding section 4/28 typed
+    }
     const numeric = numericFamilyCallType (printer, value);
     if (numeric === 'Long' || numeric === 'Double') {
         return numeric;
