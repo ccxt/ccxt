@@ -1752,7 +1752,7 @@ export default class okx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         let types = [ 'spot', 'future', 'swap', 'option' ];
@@ -1950,7 +1950,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async fetchMarketsByType (type: any, params: Dict = {}): Promise<Market[]> {
+    async fetchMarketsByType (type: string, params: Dict = {}): Promise<Market[]> {
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };

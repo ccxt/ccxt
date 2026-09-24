@@ -928,8 +928,9 @@ export default class mercado extends Exchange {
             request['from'] = this.parseToInt (since / 1000);
             request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe));
         } else {
-            request['to'] = this.seconds ();
-            request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
+            const to = this.seconds ();
+            request['to'] = to;
+            request['from'] = to - (limit * this.parseTimeframe (timeframe));
         }
         const response = await this.v4PublicNetGetCandles (this.extend (request, params));
         // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
