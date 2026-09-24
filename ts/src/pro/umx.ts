@@ -2,9 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import umxRest from '../umx.js';
-import { ExchangeError } from '../base/errors.js';
+import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Dict, Int, Trade } from '../base/types.js';
+import type { Dict, Int, OrderBook, Str, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -18,7 +18,10 @@ export default class umx extends umxRest {
                 'watchBidsAsks': false,
                 'watchMyTrades': false,
                 'watchOHLCV': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
                 'watchOrders': false,
                 'watchPositions': false,
                 'watchTicker': false,
@@ -38,6 +41,10 @@ export default class umx extends umxRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'watchOrderBook': {
+                    'intervals': [ '100ms', '500ms', '1000ms' ],
+                    'levels': [ 5, 10, 20, 30 ],
+                },
             },
             'streaming': {
                 // the venue probes an idle connection with a text PING after thirty
@@ -153,6 +160,317 @@ export default class umx extends umxRest {
     }
 
     /**
+     * @method
+     * @name umx#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/depth-channel
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/limited-order-book-snapshot-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] leave it out for the full incremental book, or 5, 10, 20 or 30 for the snapshot flavour that pushes only the top of the book
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.interval] the push frequency, "100ms" (default), "500ms" or "1000ms"
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    /**
+     * @method
+     * @name umx#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/depth-channel
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/limited-order-book-snapshot-channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] leave it out for the full incremental book, or 5, 10, 20 or 30 for the snapshot flavour that pushes only the top of the book
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.interval] the push frequency, "100ms" (default), "500ms" or "1000ms"
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        let interval: Str = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', '100ms');
+        const stream = this.orderBookStream (limit, interval);
+        const messageHashes = [];
+        const topics = [];
+        const uniqueSymbols = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = 'orderbook::' + symbol;
+            if (!this.inArray (messageHash, messageHashes)) {
+                messageHashes.push (messageHash);
+                uniqueSymbols.push (symbol);
+                const topic = this.subscriptionTopic (stream, symbol);
+                if (limit !== undefined) {
+                    topic['levels'] = limit;
+                }
+                topics.push (topic);
+            }
+        }
+        const url = this.urls['api']['ws']['public'];
+        const message: Dict = {
+            'event': 'subscribe',
+            'data': topics,
+        };
+        const subscription: Dict = {
+            'symbols': uniqueSymbols,
+            'limit': limit,
+            'params': params,
+        };
+        if (limit === undefined) {
+            // the incremental flavour carries no snapshot of its own, one is fetched over
+            // rest as soon as the venue acknowledges the subscription, binance style
+            subscription['method'] = this.handleOrderBookSubscription;
+        }
+        const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
+        return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchOrderBook
+     * @description unsubscribes from the order book channel of a market
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/depth-channel
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] the levels of the snapshot flavour the subscription was opened with, leave it out for the incremental flavour
+     * @param {string} [params.interval] the push frequency the subscription was opened with
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchOrderBookForSymbols
+     * @description unsubscribes from the order book channel of multiple markets
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/depth-channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] the levels of the snapshot flavour the subscription was opened with, leave it out for the incremental flavour
+     * @param {string} [params.interval] the push frequency the subscription was opened with
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        let limit: Int = undefined;
+        [ limit, params ] = this.handleOptionAndParams (params, 'unWatchOrderBook', 'limit');
+        let interval: Str = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', '100ms');
+        const stream = this.orderBookStream (limit, interval);
+        const subMessageHashes = [];
+        const messageHashes = [];
+        const topics = [];
+        const uniqueSymbols = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const subMessageHash = 'orderbook::' + symbol;
+            if (!this.inArray (subMessageHash, subMessageHashes)) {
+                subMessageHashes.push (subMessageHash);
+                messageHashes.push ('unsubscribe::orderbook::' + symbol);
+                uniqueSymbols.push (symbol);
+                const topic = this.subscriptionTopic (stream, symbol);
+                if (limit !== undefined) {
+                    topic['levels'] = limit;
+                }
+                topics.push (topic);
+            }
+        }
+        const url = this.urls['api']['ws']['public'];
+        const message: Dict = {
+            'event': 'unsubscribe',
+            'data': topics,
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'symbols': uniqueSymbols,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'topic': 'orderbook',
+        };
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name umx#orderBookStream
+     * @description build the order book stream name from the flavour and the push interval
+     * @param {int} [limit] undefined selects the incremental depth channel, a number the snapshot flavour
+     * @param {string} [interval] the push frequency
+     * @returns {string} the stream name
+     */
+    orderBookStream (limit: Int = undefined, interval: Str = undefined): string {
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
+        const intervals = this.safeList (options, 'intervals', []);
+        if (!this.inArray (interval, intervals)) {
+            throw new BadRequest (this.id + ' watchOrderBook() interval must be one of ' + this.json (intervals));
+        }
+        if (limit === undefined) {
+            return 'depth#' + interval;
+        }
+        const levels = this.safeList (options, 'levels', []);
+        if (!this.inArray (limit, levels)) {
+            throw new BadRequest (this.id + ' watchOrderBook() limit must be one of ' + this.json (levels));
+        }
+        return 'depthlevels#' + interval;
+    }
+
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
+        const symbol = this.safeString (subscription, 'symbol') as string;
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({});
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+    }
+
+    async fetchOrderBookSnapshot (client: Client, message: Dict, subscription: Dict) {
+        const symbol = this.safeString (subscription, 'symbol') as string;
+        const messageHash = 'orderbook::' + symbol;
+        try {
+            const params = this.safeDict (subscription, 'params', {});
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, undefined, params);
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
+                // the orderbook was dropped before the snapshot arrived
+                return;
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset (snapshot);
+            // unroll the buffered deltas onto the snapshot
+            const messages = orderbook.cache;
+            orderbook.cache = [];
+            for (let i = 0; i < messages.length; i++) {
+                this.handleOrderBookUpdate (client, messages[i], orderbook, symbol);
+            }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            delete client.subscriptions[messageHash];
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleOrderBookUpdate (client: Client, update: Dict, orderbook: any, symbol: string) {
+        //
+        //     {
+        //         "symbol": "ETH-USDT-PERP",
+        //         "lastUpdateId": "12479869385",
+        //         "preUpdateId": "12479869374",
+        //         "bids": [ [ "2614.8", "0.001" ] ],
+        //         "asks": [ [ "2641.4", "215.821" ], [ "2707", "0.002" ] ]
+        //     }
+        //
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce === undefined) {
+            orderbook.cache.push (update);
+            return;
+        }
+        const lastUpdateId = this.safeInteger (update, 'lastUpdateId');
+        const preUpdateId = this.safeInteger (update, 'preUpdateId');
+        if ((lastUpdateId === undefined) || (preUpdateId === undefined)) {
+            return;
+        }
+        if (lastUpdateId <= nonce) {
+            // the update predates the snapshot
+            return;
+        }
+        if ((preUpdateId <= (nonce + 1)) && ((nonce + 1) <= lastUpdateId)) {
+            // the venue rule, an update applies when preUpdateId <= nonce + 1 <= lastUpdateId
+            this.handleDeltas (orderbook['asks'], this.safeList (update, 'asks', []));
+            this.handleDeltas (orderbook['bids'], this.safeList (update, 'bids', []));
+            orderbook['nonce'] = lastUpdateId;
+            client.resolve (orderbook, 'orderbook::' + symbol);
+        } else {
+            // a gap in the sequence, the venue asks for a fresh snapshot in that case
+            this.orderbooks[symbol] = this.orderBook ({});
+            this.orderbooks[symbol].cache.push (update);
+            const resubscription: Dict = {
+                'symbol': symbol,
+                'params': {},
+            };
+            this.spawn (this.fetchOrderBookSnapshot, client, {}, resubscription);
+        }
+    }
+
+    override handleDelta (bookside: any, delta: any) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    override handleDeltas (bookside: any, deltas: any) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
+    handleOrderBook (client: Client, message: Dict) {
+        //
+        // incremental flavour, deltas only, see handleOrderBookUpdate for a row
+        // snapshot flavour, a full book every push:
+        //
+        //     {
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "stream": "depthlevels#100ms#5#none",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "lastUpdateId": "12479875811",
+        //                 "bids": [ [ "2641.62", "93.017" ] ],
+        //                 "asks": [ [ "2641.81", "44.501" ] ],
+        //                 "group": "none"
+        //             }
+        //         ],
+        //         "ts": 1790254308446
+        //     }
+        //
+        const stream = this.safeString (message, 'stream', '');
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (message, 'ts');
+        const data = this.safeList (message, 'data', []);
+        if (stream.startsWith ('depthlevels')) {
+            // every push is a full snapshot of the top of the book
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({});
+            }
+            const book = this.orderbooks[symbol];
+            const dataLength = data.length;
+            const row = this.safeDict (data, dataLength - 1, {});
+            const snapshot = this.parseOrderBook (row, symbol, timestamp);
+            snapshot['nonce'] = this.safeInteger (row, 'lastUpdateId');
+            book.reset (snapshot);
+            client.resolve (book, 'orderbook::' + symbol);
+            return;
+        }
+        if (!(symbol in this.orderbooks)) {
+            // the first deltas can beat the subscription acknowledgement, at that point the
+            // orderbook is not initialized yet and the messages are safe to drop
+            return;
+        }
+        const orderbook = this.orderbooks[symbol];
+        for (let i = 0; i < data.length; i++) {
+            const update = this.safeDict (data, i, {});
+            const nonce = this.safeInteger (orderbook, 'nonce');
+            if (nonce === undefined) {
+                // buffer the deltas until the rest snapshot arrives
+                orderbook.cache.push (update);
+            } else {
+                orderbook['timestamp'] = timestamp;
+                orderbook['datetime'] = this.iso8601 (timestamp);
+                this.handleOrderBookUpdate (client, update, orderbook, symbol);
+            }
+        }
+    }
+
+    /**
      * @ignore
      * @method
      * @name umx#subscriptionTopic
@@ -234,16 +552,28 @@ export default class umx extends umxRest {
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            const stream = this.safeString (entry, 'stream');
+            const stream = this.safeString (entry, 'stream', '');
             const marketId = this.safeString (entry, 'symbol');
             const symbol = this.safeSymbol (marketId);
-            const messageHash = stream + '::' + symbol;
+            let channel = stream;
+            if (stream.startsWith ('depth')) {
+                channel = 'orderbook';
+            }
+            const messageHash = channel + '::' + symbol;
             const code = this.safeString (entry, 'code');
             if ((code !== undefined) && (code !== '0')) {
                 const feedback = this.id + ' ' + this.json (entry);
                 const error = new ExchangeError (feedback);
                 client.reject (error, messageHash);
                 client.reject (error, 'unsubscribe::' + messageHash);
+            } else if (event === 'subscribe') {
+                const subscription = this.safeDict (client.subscriptions, messageHash);
+                if (subscription !== undefined) {
+                    const method = this.safeValue (subscription, 'method');
+                    if (method !== undefined) {
+                        method.call (this, client, message, this.extend (subscription, { 'symbol': symbol }));
+                    }
+                }
             } else if (event === 'unsubscribe') {
                 const unsubHash = 'unsubscribe::' + messageHash;
                 const subscription = this.safeDict (client.subscriptions, unsubHash);
@@ -282,9 +612,11 @@ export default class umx extends umxRest {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        const stream = this.safeString (message, 'stream');
+        const stream = this.safeString (message, 'stream', '');
         if (stream === 'trade') {
             this.handleTrades (client, message);
+        } else if (stream.startsWith ('depth')) {
+            this.handleOrderBook (client, message);
         }
     }
 }

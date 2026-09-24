@@ -84,6 +84,341 @@
                     ]
                 ]
             }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "the incremental depth flavour, deltas that predate the rest snapshot are dropped and the book equals the snapshot",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "url": "wss://stream.umx.com/ws/public/v1/market",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP",
+                                "stream": "depth#100ms",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790254894898
+                    },
+                    {
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "stream": "depth#100ms",
+                        "data": [
+                            {
+                                "symbol": "ETH-USDT-PERP",
+                                "lastUpdateId": "12480048886",
+                                "preUpdateId": "12480048870",
+                                "bids": [
+                                    [
+                                        "2624.49",
+                                        "0.001"
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        "2677.52",
+                                        "0"
+                                    ]
+                                ]
+                            }
+                        ],
+                        "ts": 1790254896036
+                    },
+                    {
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "stream": "depth#100ms",
+                        "data": [
+                            {
+                                "symbol": "ETH-USDT-PERP",
+                                "lastUpdateId": "12480048901",
+                                "preUpdateId": "12480048887",
+                                "bids": [
+                                    [
+                                        "2624.49",
+                                        "0.001"
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        "2677.52",
+                                        "0.001"
+                                    ]
+                                ]
+                            }
+                        ],
+                        "ts": 1790254896141
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "bids": [
+                            [
+                                "2650.96",
+                                "83.059"
+                            ],
+                            [
+                                "2650.88",
+                                "80.791"
+                            ],
+                            [
+                                "2650.79",
+                                "233.53"
+                            ],
+                            [
+                                "2650.68",
+                                "243.492"
+                            ],
+                            [
+                                "2650.63",
+                                "81.16"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "2651.05",
+                                "93.372"
+                            ],
+                            [
+                                "2651.13",
+                                "82.71"
+                            ],
+                            [
+                                "2651.22",
+                                "230.298"
+                            ],
+                            [
+                                "2651.33",
+                                "266.955"
+                            ],
+                            [
+                                "2651.38",
+                                "80.659"
+                            ]
+                        ],
+                        "lastUpdateId": "12480048901"
+                    },
+                    "ts": "1790254896182"
+                },
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "depth#100ms",
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                2650.96,
+                                83.059
+                            ],
+                            [
+                                2650.88,
+                                80.791
+                            ],
+                            [
+                                2650.79,
+                                233.53
+                            ],
+                            [
+                                2650.68,
+                                243.492
+                            ],
+                            [
+                                2650.63,
+                                81.16
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                2651.05,
+                                93.372
+                            ],
+                            [
+                                2651.13,
+                                82.71
+                            ],
+                            [
+                                2651.22,
+                                230.298
+                            ],
+                            [
+                                2651.33,
+                                266.955
+                            ],
+                            [
+                                2651.38,
+                                80.659
+                            ]
+                        ],
+                        "timestamp": 1790254896182,
+                        "datetime": "2026-09-24T13:01:36.182Z",
+                        "nonce": 12480048901,
+                        "symbol": "ETH/USDT:USDT"
+                    }
+                ]
+            },
+            {
+                "description": "the snapshot flavour, every push is the full top of the book",
+                "input": [
+                    "ETH/USDT",
+                    5
+                ],
+                "url": "wss://stream.umx.com/ws/public/v1/market",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "spot",
+                                "symbol": "ETH-USDT",
+                                "stream": "depthlevels#100ms#5#none",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790254894898
+                    },
+                    {
+                        "businessType": "spot",
+                        "symbol": "ETH-USDT",
+                        "stream": "depthlevels#100ms#5#none",
+                        "data": [
+                            {
+                                "symbol": "ETH-USDT",
+                                "lastUpdateId": "1966179103",
+                                "bids": [
+                                    [
+                                        "2652.02",
+                                        "64.2004"
+                                    ],
+                                    [
+                                        "2651.9",
+                                        "103.2769"
+                                    ],
+                                    [
+                                        "2651.58",
+                                        "0.0175"
+                                    ],
+                                    [
+                                        "2651.55",
+                                        "0.0238"
+                                    ],
+                                    [
+                                        "2651.54",
+                                        "0.009"
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        "2652.03",
+                                        "66.3353"
+                                    ],
+                                    [
+                                        "2652.15",
+                                        "97.5925"
+                                    ],
+                                    [
+                                        "2652.32",
+                                        "0.0207"
+                                    ],
+                                    [
+                                        "2652.35",
+                                        "0.0161"
+                                    ],
+                                    [
+                                        "2652.36",
+                                        "0.0239"
+                                    ]
+                                ],
+                                "group": "none"
+                            }
+                        ],
+                        "ts": 1790254894898
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "depthlevels#100ms",
+                                "businessType": "spot",
+                                "symbol": "ETH-USDT",
+                                "levels": 5
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "ETH/USDT",
+                        "bids": [
+                            [
+                                2652.02,
+                                64.2004
+                            ],
+                            [
+                                2651.9,
+                                103.2769
+                            ],
+                            [
+                                2651.58,
+                                0.0175
+                            ],
+                            [
+                                2651.55,
+                                0.0238
+                            ],
+                            [
+                                2651.54,
+                                0.009
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                2652.03,
+                                66.3353
+                            ],
+                            [
+                                2652.15,
+                                97.5925
+                            ],
+                            [
+                                2652.32,
+                                0.0207
+                            ],
+                            [
+                                2652.35,
+                                0.0161
+                            ],
+                            [
+                                2652.36,
+                                0.0239
+                            ]
+                        ],
+                        "timestamp": 1790254894898,
+                        "datetime": "2026-09-24T13:01:34.898Z",
+                        "nonce": 1966179103
+                    }
+                ]
+            }
         ]
     }
 }
