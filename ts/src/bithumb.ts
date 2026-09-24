@@ -788,8 +788,8 @@ export default class bithumb extends Exchange {
             const result = this.safeDict (response, 0, {});
             timestamp = this.safeInteger (result, 'timestamp');
             const orderBookUnits: Dict[] = this.safeList (result, 'orderbook_units', []);
-            const bids = [];
-            const asks = [];
+            const bids: Dict[] = [];
+            const asks: Dict[] = [];
             for (let i = 0; i < orderBookUnits.length; i++) {
                 const entry = orderBookUnits[i];
                 bids.push ({

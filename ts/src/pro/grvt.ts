@@ -824,7 +824,7 @@ export default class grvt extends grvtRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined): Position {
         // same as REST api
         return this.parsePosition (position, market);
     }
