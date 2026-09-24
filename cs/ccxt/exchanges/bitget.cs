@@ -6317,11 +6317,11 @@ public partial class bitget : Exchange
                 }
             } else if ((marketType == "swap") || (marketType == "future"))
             {
-                object productType = null;
-                IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
-                productType = productTypeparametersVariable[0];
-                parameters = productTypeparametersVariable[1];
-                request["category"] = productType;
+                string? utaProductType = null;
+                IList<object> utaProductTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
+                utaProductType = (string)utaProductTypeparametersVariable[0];
+                parameters = utaProductTypeparametersVariable[1];
+                request["category"] = utaProductType;
             } else
             {
                 throw new NotSupported ((((this.id + " does not support ") + marketType) + " market")) ;
@@ -6374,9 +6374,9 @@ public partial class bitget : Exchange
             }
         } else if ((marketType == "swap") || (marketType == "future"))
         {
-            object productType = null;
+            string? productType = null;
             IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
-            productType = productTypeparametersVariable[0];
+            productType = (string)productTypeparametersVariable[0];
             parameters = productTypeparametersVariable[1];
             ((IDictionary<string,object>)parameters)["productType"] = productType;
             response = await this.publicMixGetV2MixMarketContracts(parameters);
@@ -10401,11 +10401,11 @@ public partial class bitget : Exchange
                     }
                 } else
                 {
-                    object productType = null;
-                    IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
-                    productType = productTypeparametersVariable[0];
-                    parameters = productTypeparametersVariable[1];
-                    request["category"] = productType;
+                    string? utaProductType = null;
+                    IList<object> utaProductTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
+                    utaProductType = (string)utaProductTypeparametersVariable[0];
+                    parameters = utaProductTypeparametersVariable[1];
+                    request["category"] = utaProductType;
                 }
                 if ((symbol != null))
                 {
@@ -10426,9 +10426,9 @@ public partial class bitget : Exchange
             {
                 request["symbol"] = this.safeString(market, "id");
             }
-            object productType = null;
+            string? productType = null;
             IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
-            productType = productTypeparametersVariable[0];
+            productType = (string)productTypeparametersVariable[0];
             parameters = productTypeparametersVariable[1];
             request["productType"] = productType;
             response = await this.privateMixGetV2MixAccountBill(this.extend(request, parameters));

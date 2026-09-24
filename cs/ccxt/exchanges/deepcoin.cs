@@ -1659,11 +1659,11 @@ public partial class deepcoin : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object userId = null;
-        IList<object> userIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "transfer", "userId");
-        userId = userIdparametersVariable[0];
+        string? userId = null;
+        IList<object> userIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "transfer", "userId");
+        userId = (string)userIdparametersVariable[0];
         parameters = userIdparametersVariable[1];
-        userId = ((userId != null) && !isEqual(userId, "")) ? userId : this.safeString(parameters, "uid");
+        userId = ((userId != null) && userId != "") ? userId : this.safeString(parameters, "uid");
         if ((userId == null))
         {
             throw new ArgumentsRequired ((this.id + " transfer() requires a userId parameter")) ;

@@ -903,9 +903,9 @@ public partial class sxbet : PredictionExchange
         {
             throw new BadRequest ((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
         }
-        object spender = null;
-        IList<object> spenderparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
-        spender = spenderparametersVariable[0];
+        string? spender = null;
+        IList<object> spenderparametersVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
+        spender = (string)spenderparametersVariable[0];
         parameters = spenderparametersVariable[1];
         if ((spender == null))
         {
@@ -1059,14 +1059,14 @@ public partial class sxbet : PredictionExchange
         {
             defaultTif = "GTC";
         }
-        object timeInForce = null;
-        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce", defaultTif);
-        timeInForce = timeInForceparametersVariable[0];
+        string? timeInForce = null;
+        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
+        timeInForce = (string)timeInForceparametersVariable[0];
         parameters = timeInForceparametersVariable[1];
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
-        if (((type == "market")) && (isEqual(timeInForce, "GTC")))
+        if (((type == "market")) && (timeInForce == "GTC"))
         {
             throw new InvalidOrder ((this.id + " createOrder() market orders cannot be GTC - use type 'limit' for a resting order")) ;
         }

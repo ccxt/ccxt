@@ -2140,21 +2140,21 @@ public partial class grvt : Exchange
      */
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
-        object fromAccountVar = fromAccount;
-        object toAccountVar = toAccount;
+        string fromAccountVar = fromAccount;
+        string toAccountVar = toAccount;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> currency = this.currency(code);
         string? defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
         if (this.inArray(fromAccountVar, new List<object>() {"trading", "funding"}) && this.inArray(toAccountVar, new List<object>() {"trading", "funding"}))
         {
-            object tradingAccountId = null;
-            IList<object> tradingAccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "transfer", "tradingAccountId");
-            tradingAccountId = tradingAccountIdparametersVariable[0];
+            string? tradingAccountId = null;
+            IList<object> tradingAccountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId");
+            tradingAccountId = (string)tradingAccountIdparametersVariable[0];
             parameters = tradingAccountIdparametersVariable[1];
-            object fundingAccountId = null;
-            IList<object> fundingAccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "transfer", "fundingAccountId");
-            fundingAccountId = fundingAccountIdparametersVariable[0];
+            string? fundingAccountId = null;
+            IList<object> fundingAccountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "transfer", "fundingAccountId");
+            fundingAccountId = (string)fundingAccountIdparametersVariable[0];
             parameters = fundingAccountIdparametersVariable[1];
             if ((tradingAccountId == null) || (fundingAccountId == null))
             {

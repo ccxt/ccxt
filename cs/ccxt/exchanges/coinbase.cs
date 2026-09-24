@@ -4483,13 +4483,13 @@ public partial class coinbase : Exchange
         {
             request["limit"] = mathMin(limit, 1000);
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
-            request["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
+            request["end"] = this.numberToString(this.parseToInt((until / 1000)));
         } else if ((since != null))
         {
             throw new ArgumentsRequired ((this.id + " fetchTrades() requires a `until` parameter when you use `since` argument")) ;

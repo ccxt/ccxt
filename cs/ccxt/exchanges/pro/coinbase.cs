@@ -91,7 +91,7 @@ public partial class coinbase : ccxt.coinbase
         {
             market = this.market(symbol);
             messageHash = add(add(name, "::"), symbol);
-            productIds = new List<object>() {(market.ContainsKey("id") ? market["id"] : null)};
+            productIds = new List<object> {this.safeString(market, "id")};
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -150,7 +150,7 @@ public partial class coinbase : ccxt.coinbase
             market = this.market(symbol);
             watchMessageHash = add(add(name, "::"), symbol);
             unWatchMessageHash = add(add(unWatchMessageHash, "::"), symbol);
-            productIds = new List<object>() {(market.ContainsKey("id") ? market["id"] : null)};
+            productIds = new List<object> {this.safeString(market, "id")};
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'

@@ -479,7 +479,7 @@ public partial class htx : ccxt.htx
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
         }
-        IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick"));
+        IDictionary<string, object> tick = this.safeDict(message, "tick");
         IList<object> parsed = this.parseOHLCV(tick, market);
         stored.append(parsed);
         client.resolve(stored, ch);
@@ -1778,7 +1778,7 @@ public partial class htx : ccxt.htx
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         string? type = null;
-        object subType = null;
+        string? subType = null;
         if ((market != null))
         {
             type = this.safeString(market, "type");
@@ -1792,8 +1792,8 @@ public partial class htx : ccxt.htx
             {
                 type = "future";
             }
-            IList<object> subTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchPositions", "subType", subType);
-            subType = subTypeparametersVariable[0];
+            IList<object> subTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchPositions", "subType", subType);
+            subType = (string)subTypeparametersVariable[0];
             parameters = subTypeparametersVariable[1];
         }
         symbols = this.marketSymbols(symbols);
@@ -1801,11 +1801,11 @@ public partial class htx : ccxt.htx
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("watchPositions", parameters, "cross");
         marginMode = marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        bool linear = (isEqual(subType, "linear"));
+        bool linear = (subType == "linear");
         bool swap = (type == "swap");
         bool future = (type == "future");
         bool isV5Linear = (linear && (swap || future));
-        bool isLinear = (isEqual(subType, "linear"));
+        bool isLinear = (subType == "linear");
         object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
         messageHash = add(add(marginMode, ":positions"), messageHash);
         string? channel = "positions.*";

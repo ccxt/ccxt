@@ -1432,7 +1432,7 @@ public partial class okx : ccxt.okx
         }
         symbols = this.marketSymbols(symbols);
         object depth = null;
-        IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
+        IList<object> depthparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
         depth = depthparametersVariable[0];
         parameters = depthparametersVariable[1];
         if ((limit != null))
@@ -1503,7 +1503,7 @@ public partial class okx : ccxt.okx
         }
         symbols = this.marketSymbols(symbols, null, false);
         object depth = null;
-        IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
+        IList<object> depthparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
         depth = depthparametersVariable[0];
         parameters = depthparametersVariable[1];
         Int64? limit = this.safeInteger(parameters, "limit");

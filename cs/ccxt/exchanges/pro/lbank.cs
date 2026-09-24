@@ -511,7 +511,7 @@ public partial class lbank : ccxt.lbank
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object rawTrade = this.safeValue(message, "trade");
+        IDictionary<string, object> rawTrade = this.safeDict(message, "trade");
         List<object> rawTrades = this.safeList(message, "trades", new List<object>() {rawTrade});
         for (int i = 0; i < rawTrades.Count; i++)
         {

@@ -920,7 +920,7 @@ public partial class bitso : Exchange
             { "book", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
-        object ticker = this.safeValue(response, "payload");
+        IDictionary<string, object> ticker = this.safeDict(response, "payload");
         //
         //     {
         //         "success":true,

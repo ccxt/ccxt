@@ -2422,9 +2422,9 @@ public partial class kalshi : PredictionExchange
         {
             defaultTif = "good_till_canceled";
         }
-        object timeInForce = null;
-        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "time_in_force", defaultTif);
-        timeInForce = timeInForceparametersVariable[0];
+        string? timeInForce = null;
+        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "time_in_force", defaultTif);
+        timeInForce = (string)timeInForceparametersVariable[0];
         parameters = timeInForceparametersVariable[1];
         string? stp = null;
         IList<object> stpparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
