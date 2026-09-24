@@ -536,7 +536,7 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
 	}
-	var tick any = this.SafeValue(message, "tick")
+	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	var parsed any = this.ParseOHLCV(tick, market)
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, ch)
@@ -1888,7 +1888,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		if ccxt.IsEqual(typeVar, "spot") {
 			typeVar = "future"
 		}
-		var subTypeparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "subType", subType)
+		var subTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "watchPositions", "subType", subType)
 		subType = ccxt.GetValue(subTypeparamsVariable, 0)
 		params = ccxt.GetValue(subTypeparamsVariable, 1)
 	}

@@ -1857,7 +1857,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         elif unifiedTif == 'GTC':
             defaultTif = 'good_till_canceled'
         timeInForce = None
-        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'time_in_force', defaultTif)
+        timeInForce, params = self.handle_option_string_and_params(params, 'createOrder', 'time_in_force', defaultTif)
         stp = None
         stp, params = self.handle_option_string_and_params(params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross')
         request = {

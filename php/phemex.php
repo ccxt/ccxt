@@ -1166,7 +1166,7 @@ class phemex extends Exchange {
         $minAmount = null;
         $maxAmount = null;
         $precision = null;
-        if ($valueScale !== null) {
+        if ($valueScaleString !== null) {
             $precisionString = $this->parse_precision($valueScaleString);
             $precision = $this->parse_number($precisionString);
             $minAmount = $this->parse_number(Precise::string_mul($minValueEv, $precisionString));

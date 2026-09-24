@@ -1764,7 +1764,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		// bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
 		// the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
 		var timeZone any = nil
-		var timeZoneparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "timeZone", 0)
+		var timeZoneparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "timeZone", 0)
 		timeZone = GetValue(timeZoneparamsVariable, 0)
 		params = MapTyped(GetValue(timeZoneparamsVariable, 1))
 		if !IsEqual(timeZone, nil) {
@@ -2891,7 +2891,7 @@ func (this *Bingx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	if !IsEqual(data, nil) {
+	if data != nil {
 		var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 		ch <- this.ParseTicker(first, market)
@@ -3377,7 +3377,7 @@ func (this *Bingx) ParseBalance(response any) any {
 	}
 	var contractBalances []any = SafeListTyped(response, "data")
 	var firstContractBalances map[string]any = SafeMapTyped(contractBalances, 0)
-	var isContract bool = !IsEqual(firstContractBalances, nil)
+	var isContract bool = (firstContractBalances != nil)
 	var spotData map[string]any = SafeMapTyped(response, "data")
 	var spotBalances []any = SafeList2Typed(spotData, "balances", "assets")
 	if isContract {
@@ -3962,8 +3962,8 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var isTrailing bool = isTrailingAmountOrder || isTrailingPercentOrder
 		var stopLossDict map[string]any = SafeMapTyped(params, "stopLoss")
 		var takeProfitDict map[string]any = SafeMapTyped(params, "takeProfit")
-		var hasStopLoss bool = !IsEqual(stopLossDict, nil)
-		var hasTakeProfit bool = !IsEqual(takeProfitDict, nil)
+		var hasStopLoss bool = (stopLossDict != nil)
+		var hasTakeProfit bool = (takeProfitDict != nil)
 		// only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
 		if hasStopLoss {
 			params = MapTyped(this.Omit(params, "stopLoss"))
@@ -6397,7 +6397,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var data map[string]any = SafeMapTyped(transaction, "data")
 	var dataId *string = func() *string {
-		if IsEqual(data, nil) {
+		if data == nil {
 			return nil
 		}
 		return this.SafeString(data, "id")
@@ -7597,13 +7597,10 @@ func (this *Bingx) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(marginMode, "symbol")
-	var marginType any = this.SafeStringLower(marginMode, "marginType")
-	marginType = func() any {
-		if IsEqual(marginType, "crossed") {
-			return "cross"
-		}
-		return marginType
-	}()
+	var marginType *string = this.SafeStringLower(marginMode, "marginType")
+	if marginType != nil && *marginType == "crossed" {
+		marginType = SafeStringPtr("cross")
+	}
 	return map[string]any{
 		"info":       marginMode,
 		"symbol":     this.SafeSymbol(marketId, market, "-", "swap"),

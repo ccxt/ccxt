@@ -1388,6 +1388,25 @@ public partial class BaseExchange
         throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
     }
 
+    // any JS number box (int, Int64, double) with an integral value reads as Int64; fractions, strings and others throw
+    public Int64? checkOptionInteger(object methodName, object optionName, object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        switch (value)
+        {
+            case Int64 l:
+                return l;
+            case int i:
+                return i;
+            case double d when Math.Floor(d) == d && !double.IsInfinity(d):
+                return Convert.ToInt64(d);
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be an integer");
+    }
+
     public IDictionary<string, object> createSafeDictionary(bool isWs = false)
     {
         return !isWs ? new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new ccxt.pro.CustomConcurrentDictionary<string, object>();;

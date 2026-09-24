@@ -513,7 +513,9 @@ export default class whitebit extends Exchange {
         const id = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         let quoteId = this.safeString (market, 'money');
-        quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
+        if (quoteId === 'PERP') {
+            quoteId = 'USDT';
+        }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const active = this.safeBool (market, 'tradesEnabled');
@@ -1550,7 +1552,7 @@ export default class whitebit extends Exchange {
             onlyContractSymbols = false;
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        const [ methodOption, paramsMethod ] = this.handleOptionAndParams (paramsMarketType, 'fetchTickers', 'method');
+        const [ methodOption, paramsMethod ] = this.handleOptionStringAndParams (paramsMarketType, 'fetchTickers', 'method');
         let method: Str = methodOption;
         if (method === undefined) {
             // if the user did not specify a method, choose it based on market type and symbols

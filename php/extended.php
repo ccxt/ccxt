@@ -2657,7 +2657,7 @@ class extended extends Exchange {
             $params = $this->omit($params, array( 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ));
         } else {
             list($builderFeeRate, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'builderFeeRate', '0.0001');
-            list($builderId, $params) = $this->handle_option_and_params($params, 'createOrder', 'builderId');
+            list($builderId, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'builderId');
         }
         $totalFee = $fee;
         if ($builderFeeRate !== null) {
@@ -2793,7 +2793,11 @@ class extended extends Exchange {
                 $request['type'] = 'CONDITIONAL';
                 $request['trigger'] = $trigger;
             } elseif ($isStopLossOrder || $isTakeProfitOrder) {
-                $triggerPriceStr = $isStopLossOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+                if ($isStopLossOrder) {
+                    $triggerPriceStr = $stopLossTriggerPrice;
+                } else {
+                    $triggerPriceStr = $takeProfitTriggerPrice;
+                }
                 $trigger = array(
                     'triggerPrice' => $this->price_to_precision($symbol, $triggerPriceStr),
                 );

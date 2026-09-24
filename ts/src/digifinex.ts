@@ -1355,7 +1355,9 @@ export default class digifinex extends Exchange {
             const tradeRole = this.safeString (trade, 'match_role');
             const direction = this.safeString (trade, 'direction');
             if (orderType !== undefined) {
-                type = (orderType === '0') ? 'limit' : undefined;
+                if (orderType === '0') {
+                    type = 'limit';
+                }
             }
             if (tradeRole === '1') {
                 takerOrMaker = 'taker';

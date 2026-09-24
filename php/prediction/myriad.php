@@ -2074,7 +2074,7 @@ class myriad extends Exchange {
     public function hex_to_decimal_string(string $hexValue): ?string {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         $stripped = $this->remove0x_prefix($hexValue);
-        if (($stripped === null) || ($stripped === '')) {
+        if ($stripped === '') {
             return null;
         }
         $chars = $this->string_to_chars_array(strtolower($stripped));
@@ -3465,7 +3465,7 @@ class myriad extends Exchange {
         $this->orderbooks[$sym] = $orderbook;
     }
 
-    public function handle_order_book(mixed $client, mixed $data) {
+    public function handle_order_book(mixed $client, array $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3569,7 +3569,7 @@ class myriad extends Exchange {
         return null;
     }
 
-    public function handle_trades(mixed $client, mixed $data) {
+    public function handle_trades(mixed $client, array $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3768,7 +3768,7 @@ class myriad extends Exchange {
         return $this->filter_by_since_limit($result, $since, $limit, 0, true);
     }
 
-    public function handle_ticker(mixed $client, mixed $data) {
+    public function handle_ticker(mixed $client, array $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3848,7 +3848,7 @@ class myriad extends Exchange {
         return $this->filter_by_value_since_limit($orders, 'outcome', $outcome, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_order(mixed $client, mixed $data) {
+    public function handle_order(mixed $client, array $data) {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheByOutcomeById($limit);
@@ -3955,7 +3955,7 @@ class myriad extends Exchange {
         $this->options['positionBalances'] = $balances;
     }
 
-    public function handle_position(mixed $client, mixed $data) {
+    public function handle_position(mixed $client, array $data) {
         if ($this->positions === null) {
             $limit = $this->safe_integer($this->options, 'positionsLimit', 1000);
             $this->positions = new ArrayCacheByOutcomeById($limit);

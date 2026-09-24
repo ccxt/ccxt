@@ -1394,6 +1394,23 @@ public class BaseExchange {
         throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
     }
 
+    // any JS number box (Integer, Long, Double) with an integral value reads as Long; fractions, strings and others throw
+    public Long checkOptionInteger(Object methodName, Object optionName, Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long l) {
+            return l;
+        }
+        if (value instanceof Integer i) {
+            return i.longValue();
+        }
+        if (value instanceof Double d && Math.floor(d) == d && !Double.isInfinite(d)) {
+            return d.longValue();
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be an integer");
+    }
+
     public boolean valueIsDefined(Object value) {
         return value != null;
     }
@@ -8044,7 +8061,7 @@ public Object describe()
         return this.fetchWebEndpoint(method, endpointMethod, returnAsJson, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null));
     }
 
-    public List<Object> marketIds(Object symbols)
+    public List<String> marketIds(Object symbols)
     {
         /**
          * @param {string[]|undefined} symbols list of unified symbols
@@ -8053,20 +8070,20 @@ public Object describe()
          */
         if (java.util.Objects.equals(symbols, null))
         {
-            return (List<Object>) symbols;
+            return (List<String>) symbols;
         }
-        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        List<String> result = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             String id = this.marketId((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             if (!java.util.Objects.equals(id, null))
             {
-                ((List<Object>)result).add(id);
+                result.add(id);
             }
         }
         return result;
     }
-    public List<Object> marketIds(Object... optionalArgs)
+    public List<String> marketIds(Object... optionalArgs)
     {
         return this.marketIds(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
@@ -9200,11 +9217,11 @@ public Object describe()
                 (this.throttle(cost)).join();
             }
             Object retries = 0;
-            List<Object> retriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailure", retries);
+            List<Object> retriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (path), "maxRetriesOnFailure", retries);
             retries = ((List<Object>) retriesparametersVariable).get(0);
             parameters = ((List<Object>) retriesparametersVariable).get(1);
             Object retryDelay = 0;
-            List<Object> retryDelayparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
+            List<Object> retryDelayparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (path), "maxRetriesOnFailureDelay", retryDelay);
             retryDelay = ((List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((List<Object>) retryDelayparametersVariable).get(1);
             Boolean fetchDataCacheEnabled = Helpers.isGreaterThan(this.fetchHistoryCacheSize, 0);
@@ -9978,7 +9995,7 @@ public Object describe()
         // handleOptionAndParams read as a string; the statically typed ports throw on another type
         List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = ((List<Object>) valuenewParamsVariable).get(0);
-        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
         return new ArrayList<Object>(Arrays.asList(this.checkOptionString((String) (methodName), optionName, value), newParams));
     }
     /* eslint-disable no-unused-vars */
@@ -9994,7 +10011,7 @@ public Object describe()
     {
         List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = ((List<Object>) valuenewParamsVariable).get(0);
-        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
         return new ArrayList<Object>(Arrays.asList(this.checkOptionString((String) (methodName), optionName1, value), newParams));
     }
     /* eslint-disable no-unused-vars */
@@ -10011,7 +10028,7 @@ public Object describe()
         // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
         List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = ((List<Object>) valuenewParamsVariable).get(0);
-        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
         return new ArrayList<Object>(Arrays.asList(this.checkOptionBool((String) (methodName), optionName, value), newParams));
     }
     /* eslint-disable no-unused-vars */
@@ -10027,7 +10044,7 @@ public Object describe()
     {
         List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = ((List<Object>) valuenewParamsVariable).get(0);
-        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
         return new ArrayList<Object>(Arrays.asList(this.checkOptionBool((String) (methodName), optionName1, value), newParams));
     }
     /* eslint-disable no-unused-vars */
@@ -10035,6 +10052,39 @@ public Object describe()
     public Object handleOptionBoolAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object... optionalArgs)
     {
         return this.handleOptionBoolAndParams2(parameters, methodName, optionName1, optionName2, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams(Object parameters, String methodName, Object optionName, Long defaultValue)
+    {
+        // handleOptionAndParams read as an integer; the statically typed ports throw on another type
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionInteger((String) (methodName), optionName, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams(Object parameters, String methodName, Object optionName, Object... optionalArgs)
+    {
+        return this.handleOptionIntegerAndParams(parameters, methodName, optionName, Helpers.getArgLong(optionalArgs, 0, null));
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Long defaultValue)
+    {
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionInteger((String) (methodName), optionName1, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object... optionalArgs)
+    {
+        return this.handleOptionIntegerAndParams2(parameters, methodName, optionName1, optionName2, Helpers.getArgLong(optionalArgs, 0, null));
     }
 
     public Object handleOption(Object methodName, Object optionName, Object defaultValue)
@@ -12387,9 +12437,9 @@ public Object describe()
 
     public Object handleMaxEntriesPerRequestAndParams(Object method, Long maxEntriesPerRequest, Map<String, Object> parameters)
     {
-        Object newMaxEntriesPerRequest = null;
-        List<Object> newMaxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxEntriesPerRequest");
-        newMaxEntriesPerRequest = ((List<Object>) newMaxEntriesPerRequestparametersVariable).get(0);
+        Long newMaxEntriesPerRequest = null;
+        List<Object> newMaxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxEntriesPerRequest");
+        newMaxEntriesPerRequest = (Long) ((List<Object>) newMaxEntriesPerRequestparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) newMaxEntriesPerRequestparametersVariable).get(1);
         if ((!java.util.Objects.equals(newMaxEntriesPerRequest, null)) && (!Helpers.isEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)))
         {
@@ -12418,11 +12468,11 @@ public Object describe()
             Object parameters = parameters3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             Object paginationDirection = null;
@@ -12557,7 +12607,7 @@ public Object describe()
             Object timeframe = timeframe3;
             Object parameters = parameters3;
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             Object errors = 0;
@@ -12606,7 +12656,7 @@ public Object describe()
             Object parameters = parameters3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -12700,11 +12750,11 @@ public Object describe()
             Object cursorIncrement = cursorIncrement3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -12832,11 +12882,11 @@ public Object describe()
             Object parameters = parameters3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);

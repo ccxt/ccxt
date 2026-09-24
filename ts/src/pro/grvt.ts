@@ -166,7 +166,7 @@ export default class grvt extends grvtRest {
         }
         const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
         const interval = 500;
-        const [ intervalOption, paramsInterval ] = this.handleOptionAndParams (paramsChannel, 'watchTickers', 'interval', interval);
+        const [ intervalOption, paramsInterval ] = this.handleOptionIntegerAndParams (paramsChannel, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -536,14 +536,14 @@ export default class grvt extends grvtRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        const [ limitOption, paramsLimitOption ] = this.handleOptionAndParams (paramsChannel, 'watchOrderBook', 'limit', 100);
+        const [ limitOption, paramsLimitOption ] = this.handleOptionIntegerAndParams (paramsChannel, 'watchOrderBook', 'limit', 100);
         let limitResolved = limitOption;
         let paramsLimit: Dict = paramsLimitOption;
         if (limit !== undefined) {
             limitResolved = limit;
             paramsLimit = paramsChannel;
         }
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsLimit, 'watchOrderBook', 'interval', 500);
+        const [ interval, paramsInterval ] = this.handleOptionIntegerAndParams (paramsLimit, 'watchOrderBook', 'interval', 500);
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
         let extraPart: Str = undefined;
         if (isSnapshot) {

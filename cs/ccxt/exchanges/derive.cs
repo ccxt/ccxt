@@ -1642,9 +1642,9 @@ public partial class derive : Exchange
         string? maxFeeString = this.numberToString(maxFee);
         string? amountString = this.numberToString(amount);
         byte[] tradeModuleDataHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_address"), this.parseToNumeric(getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary"));
-        object deriveWalletAddress = null;
+        string? deriveWalletAddress = null;
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("createOrder", parameters);
-        deriveWalletAddress = deriveWalletAddressparametersVariable[0];
+        deriveWalletAddress = (string)deriveWalletAddressparametersVariable[0];
         parameters = deriveWalletAddressparametersVariable[1];
         string? signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1831,9 +1831,9 @@ public partial class derive : Exchange
         string? maxFeeString = this.safeString(parameters, "max_fee", "0");
         string? amountString = this.numberToString(amount);
         byte[] tradeModuleDataHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_address"), this.parseToNumeric(getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary"));
-        object deriveWalletAddress = null;
+        string? deriveWalletAddress = null;
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("editOrder", parameters);
-        deriveWalletAddress = deriveWalletAddressparametersVariable[0];
+        deriveWalletAddress = (string)deriveWalletAddressparametersVariable[0];
         parameters = deriveWalletAddressparametersVariable[1];
         string? signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2938,9 +2938,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        object deriveWalletAddress = null;
+        string? deriveWalletAddress = null;
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("fetchBalance", parameters);
-        deriveWalletAddress = deriveWalletAddressparametersVariable[0];
+        deriveWalletAddress = (string)deriveWalletAddressparametersVariable[0];
         parameters = deriveWalletAddressparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "wallet", deriveWalletAddress },

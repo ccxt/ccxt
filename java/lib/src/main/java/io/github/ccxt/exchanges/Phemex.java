@@ -1489,7 +1489,7 @@ public class Phemex extends PhemexApi
         Double minAmount = null;
         Double maxAmount = null;
         Double precision = null;
-        if (!java.util.Objects.equals(valueScale, null))
+        if (!java.util.Objects.equals(valueScaleString, null))
         {
             Object precisionString = this.parsePrecision(valueScaleString);
             precision = this.parseNumber(precisionString);
@@ -1499,7 +1499,6 @@ public class Phemex extends PhemexApi
         final Double finalPrecision = precision;
         final Double finalMinAmount = minAmount;
         final Double finalMaxAmount = maxAmount;
-        final Object finalValueScale = valueScale;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", rawCurrency );
@@ -1520,7 +1519,7 @@ public class Phemex extends PhemexApi
                     put( "max", null );
                 }} );
             }} );
-            put( "valueScale", finalValueScale );
+            put( "valueScale", valueScale );
             put( "networks", null );
             put( "type", "crypto" );
         }}));
@@ -4863,7 +4862,7 @@ public class Phemex extends PhemexApi
         //
         String id = this.safeString(transaction, "id");
         String address = this.safeString(transaction, "address");
-        Object tag = null;
+        List<String> tag = null;
         String txid = this.safeString(transaction, "txHash");
         String currencyId = this.safeString(transaction, "currency");
         currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));

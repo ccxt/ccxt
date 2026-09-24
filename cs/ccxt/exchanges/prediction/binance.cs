@@ -1033,9 +1033,9 @@ public partial class binance : PredictionExchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object type = null;
-        IList<object> typeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "type", "SPOT");
-        type = typeparametersVariable[0];
+        string? type = null;
+        IList<object> typeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
+        type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
         Dictionary<string, object> response = await this.sapiPrivateGetBalancePaymentOptions(parameters);
         //
@@ -1057,7 +1057,7 @@ public partial class binance : PredictionExchange
         {
             IDictionary<string, object> balance = this.safeDict(balances, i);
             string? accountType = this.safeString(balance, "accountType");
-            if (isEqual(accountType, type))
+            if ((accountType == type))
             {
                 string? free = this.safeString(balance, "availableBalanceDisplay");
                 Dictionary<string, object> account = this.account();
@@ -1194,7 +1194,7 @@ public partial class binance : PredictionExchange
         paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = null;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", 100);
+        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", 100);
         maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
         parameters = maxEntriesPerRequestparametersVariable[1];
         string pageKey = "ccxtPageKey";
@@ -1287,7 +1287,7 @@ public partial class binance : PredictionExchange
         paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = null;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "maxEntriesPerRequest", 100);
+        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrders", "maxEntriesPerRequest", 100);
         maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
         parameters = maxEntriesPerRequestparametersVariable[1];
         string pageKey = "ccxtPageKey";
@@ -1577,7 +1577,7 @@ public partial class binance : PredictionExchange
         paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = null;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", 100);
+        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", 100);
         maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
         parameters = maxEntriesPerRequestparametersVariable[1];
         string pageKey = "ccxtPageKey";
@@ -1763,9 +1763,9 @@ public partial class binance : PredictionExchange
         {
             return ccxt.BaseExchange.ToDict(cachedWallet);
         }
-        object walletAddress = null;
-        IList<object> walletAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "walletAddress", this.walletAddress);
-        walletAddress = walletAddressparametersVariable[0];
+        string? walletAddress = null;
+        IList<object> walletAddressparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "walletAddress", this.walletAddress);
+        walletAddress = (string)walletAddressparametersVariable[0];
         parameters = walletAddressparametersVariable[1];
         Dictionary<string, object> response = await this.sapiPrivateGetWalletList();
         //
@@ -1790,7 +1790,7 @@ public partial class binance : PredictionExchange
         for (int i = 0; i < walletLength; i++)
         {
             string? w = this.safeString(getValue(wallets, i), "walletAddress", "");
-            if (isEqual(w, walletAddress))
+            if ((w == walletAddress))
             {
                 cachedWallet = getValue(wallets, i);
                 break;
@@ -1798,7 +1798,7 @@ public partial class binance : PredictionExchange
         }
         if ((cachedWallet == null))
         {
-            throw new NotSupported ((string)((this.id + "fetchWallet could'n find wallet ") + (walletAddress))) ;
+            throw new NotSupported (((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
         }
         this.options["wallet"] = cachedWallet;
         return ccxt.BaseExchange.ToDict(cachedWallet);

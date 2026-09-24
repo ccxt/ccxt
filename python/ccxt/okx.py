@@ -5673,7 +5673,10 @@ class okx(Exchange, ImplicitAPI):
         addressTo = self.safe_string(transaction, 'to')
         address = addressTo
         tagTo = self.safe_string_2(transaction, 'tag', 'memo')
-        tagTo = self.safe_string(transaction, 'pmtId') if (tagTo is None) else self.safe_string_2(transaction, 'pmtId', tagTo)
+        if tagTo is None:
+            tagTo = self.safe_string(transaction, 'pmtId')
+        else:
+            tagTo = self.safe_string_2(transaction, 'pmtId', tagTo)
         if withdrawalId is not None:
             type = 'withdrawal'
             id = withdrawalId
@@ -5689,8 +5692,7 @@ class okx(Exchange, ImplicitAPI):
             chainParts = chain.split('-')
             networkParts = self.array_slice(chainParts, 1)
             networkId = '-'.join(networkParts)
-            if networkId is not None:
-                network = self.network_id_to_code(networkId, code)
+            network = self.network_id_to_code(networkId, code)
         amount = self.safe_number(transaction, 'amt')
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         txid = self.safe_string(transaction, 'txId')

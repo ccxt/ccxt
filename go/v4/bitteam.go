@@ -1588,7 +1588,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed")
 	var fee map[string]any = nil
-	if !IsEqual(feeRaw, nil) {
+	if feeRaw != nil {
 		var feeCost *string = this.SafeString(feeRaw, "amount")
 		var feeCurrencyId *string = this.SafeString(feeRaw, "symbol")
 		fee = map[string]any{

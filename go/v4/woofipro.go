@@ -2338,7 +2338,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var takeProfitPrice *float64 = nil
 	var stopLossPrice *float64 = nil
 	var childOrders []any = SafeListTyped(order, "childOrders")
-	if !IsEqual(childOrders, nil) {
+	if childOrders != nil {
 		var first map[string]any = SafeMapTyped(childOrders, 0)
 		var innerChildOrders []any = SafeListTyped(first, "childOrders")
 		var innerChildOrdersLength int = len(innerChildOrders)
@@ -2452,8 +2452,8 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	var algoType *string = this.SafeString(params, "algoType")
 	var isConditional bool = (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
 	var isMarket bool = (orderType == "MARKET")

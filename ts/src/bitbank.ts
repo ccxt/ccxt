@@ -732,7 +732,7 @@ export default class bitbank extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: NullableDict, market: Market = undefined): Order {
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'pair');
         const marketResolved: Market = this.safeMarket (marketId, market);
@@ -845,7 +845,7 @@ export default class bitbank extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data);
     }
 

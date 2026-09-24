@@ -607,7 +607,7 @@ export default class paradex extends paradexRest {
             if (errorCode !== undefined) {
                 const feedback = this.id + ' ' + this.json (error);
                 this.throwExactlyMatchedException (this.exceptions['exact'], '-32600', feedback);
-                const messageString = this.safeValue (error, 'message');
+                const messageString = this.safeString (error, 'message');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }

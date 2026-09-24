@@ -985,7 +985,7 @@ class whitebit(ccxt.async_support.whitebit):
         future.resolve(1)
         return message
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     {
         #         "error": { code: 1, message: "invalid argument" },
@@ -993,7 +993,7 @@ class whitebit(ccxt.async_support.whitebit):
         #         "id": 1656090882
         #     }
         #
-        error = self.safe_value(message, 'error')
+        error = self.safe_dict(message, 'error')
         try:
             if error is not None:
                 code = self.safe_string(message, 'code')

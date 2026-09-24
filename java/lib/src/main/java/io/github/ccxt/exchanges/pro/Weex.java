@@ -2541,7 +2541,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             ((Map<String, Object>)account).put("free", this.safeString2(entry, "available", "amount"));
             ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
             ((Map<String, Object>)account).put("total", this.safeString2(entry, "equity", "legacyAmount"));
-            if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
             }

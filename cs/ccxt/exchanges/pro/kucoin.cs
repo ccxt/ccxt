@@ -3173,7 +3173,7 @@ public partial class kucoin : ccxt.kucoin
         account["free"] = this.safeString(data, "a");
         account["used"] = this.safeString(data, "h");
         account["total"] = this.safeString(data, "b");
-        if (((type != null)) && ((code != null)))
+        if ((code != null))
         {
             ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         }

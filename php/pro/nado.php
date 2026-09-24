@@ -1226,7 +1226,7 @@ class nado extends \ccxt\async\nado {
             return $authenticated;
         }
         $recvWindow = null;
-        list($recvWindow, $params) = $this->handle_option_and_params($params, 'authenticate', 'recvWindow', 5000);
+        list($recvWindow, $params) = $this->handle_option_integer_and_params($params, 'authenticate', 'recvWindow', 5000);
         $subaccount = null;
         list($subaccount, $params) = $this->handle_option_string_and_params($params, 'authenticate', 'subaccount', 'default');
         $id = $this->request_id();

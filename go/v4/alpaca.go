@@ -1064,7 +1064,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var paginationCalls any = 10
-	var paginationCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginationCalls", 10)
+	var paginationCallsparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "paginationCalls", 10)
 	paginationCalls = GetValue(paginationCallsparamsVariable, 0)
 	params = MapTyped(GetValue(paginationCallsparamsVariable, 1))
 	var request map[string]any = map[string]any{

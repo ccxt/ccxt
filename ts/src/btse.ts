@@ -840,7 +840,7 @@ export default class btse extends Exchange {
             // the endpoint accepts timestamps in seconds
             request['start'] = this.parseToInt (since / 1000);
         }
-        const [ until, paramsUntil ] = this.handleOptionAndParams (paramsPaginate, 'fetchOHLCV', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             if (since !== undefined) {
                 // check if the requested time range is too large for one request
@@ -966,7 +966,7 @@ export default class btse extends Exchange {
         }
         let period = undefined;
         let paramsPeriod = undefined;
-        [ period, paramsPeriod ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'period');
+        [ period, paramsPeriod ] = this.handleOptionStringAndParams (params, 'fetchFundingRateHistory', 'period');
         if (period === undefined) {
             period = '7D';
             if (since !== undefined) {
@@ -983,7 +983,7 @@ export default class btse extends Exchange {
             'symbol': market['id'],
             'period': period,
         };
-        const [ until, paramsUntil ] = this.handleOptionAndParams (paramsPeriod, 'fetchFundingRateHistory', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (paramsPeriod, 'fetchFundingRateHistory', 'until');
         const response = await this.publicGetPublicApiMarketV1RecentFundingHistory (this.extend (request, paramsUntil));
         //
         //     {
@@ -1589,7 +1589,7 @@ export default class btse extends Exchange {
             request['limit'] = Math.min (limit, 500); // the endpoint supports a maximum of 500 trades
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchTrades', 'until');
         const response = await this.publicGetPublicApiMarketV1Trades (this.extend (request, paramsUntil));
         //
         //     {
@@ -2865,7 +2865,7 @@ export default class btse extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const [ until, paramsUntil ] = this.handleOptionAndParams (paramsOmitted, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (paramsOmitted, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -3082,7 +3082,7 @@ export default class btse extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const [ until, paramsUntil ] = this.handleOptionAndParams (paramsOmitted, 'fetchLedger', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (paramsOmitted, 'fetchLedger', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }

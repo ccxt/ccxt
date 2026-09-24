@@ -409,8 +409,8 @@ export default class nado extends Exchange {
             amountX18 = Precise.stringMul (amountX18, '-1');
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'createOrder', 'subaccount', 'default');
-        const [ expiration, paramsExpiration ] = this.handleOptionAndParams (paramsSubaccount, 'createOrder', 'expiration', '4294967295');
-        const [ recvWindow, paramsRecvWindow ] = this.handleOptionAndParams (paramsExpiration, 'createOrder', 'recvWindow', 5000);
+        const [ expiration, paramsExpiration ] = this.handleOptionStringAndParams (paramsSubaccount, 'createOrder', 'expiration', '4294967295');
+        const [ recvWindow, paramsRecvWindow ] = this.handleOptionIntegerAndParams (paramsExpiration, 'createOrder', 'recvWindow', 5000);
         const nonce = this.createOrderNonce (recvWindow);
         const requestId = this.safeInteger (paramsRecvWindow, 'id');
         const spotLeverage = this.safeBool2 (paramsRecvWindow, 'spotLeverage', 'spot_leverage');
@@ -457,16 +457,20 @@ export default class nado extends Exchange {
             };
             placeOrder['trigger'] = trigger;
         } else if (isStopLossOrder || isTakeProfitOrder) {
-            let triggerDirection = '';
+            let oracleSide = '';
             if (isBuy) {
-                triggerDirection = isStopLossOrder ? 'above' : 'below';
+                oracleSide = isStopLossOrder ? 'above' : 'below';
             } else {
-                triggerDirection = isStopLossOrder ? 'below' : 'above';
+                oracleSide = isStopLossOrder ? 'below' : 'above';
             }
-            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            if (isStopLossOrder) {
+                triggerPrice = stopLossTriggerPrice;
+            } else {
+                triggerPrice = takeProfitTriggerPrice;
+            }
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
-            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18;
+            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18;
             const trigger: Dict = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -576,7 +580,7 @@ export default class nado extends Exchange {
         const editOrderOptions = this.safeDict (this.options, 'editOrder', {});
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'editOrder', 'subaccount', 'default');
         const [ expiration, paramsExpiration ] = this.handleOptionStringAndParams (paramsSubaccount, 'editOrder', 'expiration', '4294967295');
-        const [ recvWindow, paramsRecvWindow ] = this.handleOptionAndParams (paramsExpiration, 'editOrder', 'recvWindow', 5000);
+        const [ recvWindow, paramsRecvWindow ] = this.handleOptionIntegerAndParams (paramsExpiration, 'editOrder', 'recvWindow', 5000);
         const cancelNonce = this.createOrderNonce (recvWindow);
         const orderNonce = Precise.stringAdd (cancelNonce, '1');
         let appendix = this.safeString (paramsRecvWindow, 'appendix');
@@ -737,7 +741,7 @@ export default class nado extends Exchange {
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'cancelAllOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
-        const [ recvWindow, paramsRecvWindow ] = this.handleOptionAndParams (paramsSubaccount, 'cancelAllOrders', 'recvWindow', 5000);
+        const [ recvWindow, paramsRecvWindow ] = this.handleOptionIntegerAndParams (paramsSubaccount, 'cancelAllOrders', 'recvWindow', 5000);
         const nonce = this.createOrderNonce (recvWindow);
         const tx: Dict = {
             'sender': sender,
@@ -856,7 +860,7 @@ export default class nado extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             productIds.push (productId);
         }
-        const [ recvWindow, paramsRecvWindow ] = this.handleOptionAndParams (paramsSubaccount, 'cancelOrders', 'recvWindow', 5000);
+        const [ recvWindow, paramsRecvWindow ] = this.handleOptionIntegerAndParams (paramsSubaccount, 'cancelOrders', 'recvWindow', 5000);
         const nonce = this.createOrderNonce (recvWindow);
         const tx: Dict = {
             'sender': sender,
@@ -966,7 +970,7 @@ export default class nado extends Exchange {
         if (trigger !== true) {
             throw new NotSupported (this.id + ' fetchOrders only support trigger');
         }
-        const [ recvWindow, paramsRecvWindow ] = this.handleOptionAndParams (paramsOmitted, 'fetchOrders', 'recvWindow', 5000);
+        const [ recvWindow, paramsRecvWindow ] = this.handleOptionIntegerAndParams (paramsOmitted, 'fetchOrders', 'recvWindow', 5000);
         const tx: Dict = {
             'sender': sender,
             'recvTime': this.numberToString (this.milliseconds () + recvWindow),

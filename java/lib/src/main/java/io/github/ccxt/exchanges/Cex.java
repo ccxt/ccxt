@@ -1790,9 +1790,9 @@ public class Cex extends CexApi
             String type = type3;
             String side = side3;
             Map<String, Object> parameters = parameters3;
-            Object accountId = null;
-            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "accountId");
-            accountId = ((List<Object>) accountIdparametersVariable).get(0);
+            String accountId = null;
+            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+            accountId = (String) ((List<Object>) accountIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (java.util.Objects.equals(accountId, null))
             {
@@ -1807,7 +1807,7 @@ public class Cex extends CexApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
-            final Object finalAccountId = accountId;
+            final String finalAccountId = accountId;
             final String finalType = type;
             final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2502,9 +2502,9 @@ public class Cex extends CexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            Object accountId = null;
-            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "accountId");
-            accountId = ((List<Object>) accountIdparametersVariable).get(0);
+            String accountId = null;
+            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+            accountId = (String) ((List<Object>) accountIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (java.util.Objects.equals(accountId, null))
             {
@@ -2519,7 +2519,7 @@ public class Cex extends CexApi
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            final Object finalAccountId = accountId;
+            final String finalAccountId = accountId;
             final String finalNetworkCode = networkCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", finalAccountId );

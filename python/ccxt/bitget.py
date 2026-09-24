@@ -4391,9 +4391,9 @@ class bitget(Exchange, ImplicitAPI):
                 else:
                     request['category'] = 'SPOT'
             elif (marketType == 'swap') or (marketType == 'future'):
-                productType = None
-                productType, params = self.handle_product_type_and_params(None, params)
-                request['category'] = productType
+                utaProductType = None
+                utaProductType, params = self.handle_product_type_and_params(None, params)
+                request['category'] = utaProductType
             else:
                 raise NotSupported(self.id + ' does not support ' + marketType + ' market')
             utaResponse = self.privateUtaGetV3AccountAllFeeRate(self.extend(request, params))
@@ -7675,9 +7675,9 @@ class bitget(Exchange, ImplicitAPI):
                     else:
                         request['category'] = 'SPOT'
                 else:
-                    productType = None
-                    productType, params = self.handle_product_type_and_params(market, params)
-                    request['category'] = productType
+                    utaProductType = None
+                    utaProductType, params = self.handle_product_type_and_params(market, params)
+                    request['category'] = utaProductType
                 if symbol is not None:
                     request['symbol'] = self.safe_string(market, 'id')
                 response = self.privateUtaGetV3AccountFinancialRecords(self.extend(request, params))
@@ -10897,7 +10897,8 @@ class bitget(Exchange, ImplicitAPI):
 
     def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marginType = self.safe_string(marginMode, 'marginMode')
-        marginType = 'cross' if (marginType == 'crossed') else marginType
+        if marginType == 'crossed':
+            marginType = 'cross'
         return {
             'info': marginMode,
             'symbol': self.safe_string(market, 'symbol'),

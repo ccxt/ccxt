@@ -240,7 +240,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             channel = (String) ((List<Object>) channelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             Object interval = 500;
-            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
+            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTickers", "interval", interval);
             interval = ((List<Object>) intervalparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) intervalparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
@@ -784,12 +784,12 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             }
             if (java.util.Objects.equals(limit, null))
             {
-                List<Object> limitparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "limit", 100);
+                List<Object> limitparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "limit", 100);
                 limit = ((List<Object>) limitparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) limitparametersVariable).get(1);
             }
             Object interval = 500;
-            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
+            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "interval", interval);
             interval = ((List<Object>) intervalparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) intervalparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);

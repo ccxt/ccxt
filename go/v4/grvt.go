@@ -2366,11 +2366,11 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 	var defaultFromAccountId *string = this.SafeString(this.Options, "userMainAccountId")
 	if this.InArray(fromAccount, []any{"trading", "funding"}) && this.InArray(toAccount, []any{"trading", "funding"}) {
 		var tradingAccountId any = nil
-		var tradingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "tradingAccountId")
+		var tradingAccountIdparamsVariable []any = this.HandleOptionStringAndParams(params, "transfer", "tradingAccountId")
 		tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
 		params = MapTyped(GetValue(tradingAccountIdparamsVariable, 1))
 		var fundingAccountId any = nil
-		var fundingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "fundingAccountId")
+		var fundingAccountIdparamsVariable []any = this.HandleOptionStringAndParams(params, "transfer", "fundingAccountId")
 		fundingAccountId = GetValue(fundingAccountIdparamsVariable, 0)
 		params = MapTyped(GetValue(fundingAccountIdparamsVariable, 1))
 		if (tradingAccountId == nil) || (fundingAccountId == nil) {
@@ -3899,7 +3899,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	var avgPrices []any = SafeListTyped(stateObj, "avg_fill_price")
 	var primaryOrderIndex int = 0
 	var firstLeg map[string]any = SafeMapTyped(legs, primaryOrderIndex)
-	if !IsEqual(firstLeg, nil) {
+	if firstLeg != nil {
 		var marketId *string = this.SafeString(firstLeg, "instrument")
 		market = MapTyped(this.SafeMarket(marketId, market))
 		size = this.SafeString(firstLeg, "size")

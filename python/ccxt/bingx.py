@@ -1226,7 +1226,7 @@ class bingx(Exchange, ImplicitAPI):
             # bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             # the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             timeZone = None
-            timeZone, params = self.handle_option_and_params(params, 'fetchOHLCV', 'timeZone', 0)
+            timeZone, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'timeZone', 0)
             if timeZone is not None:
                 request['timeZone'] = timeZone
             response = self.spotV1PublicGetMarketKline(self.extend(request, params))
@@ -6555,7 +6555,8 @@ class bingx(Exchange, ImplicitAPI):
     def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         marginType = self.safe_string_lower(marginMode, 'marginType')
-        marginType = 'cross' if (marginType == 'crossed') else marginType
+        if marginType == 'crossed':
+            marginType = 'cross'
         return {
             'info': marginMode,
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),

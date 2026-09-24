@@ -3148,7 +3148,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseAccounts (data);
     }
 
@@ -3408,8 +3408,8 @@ export default class htx extends Exchange {
             throw new NotSupported (this.id + ' fetchBalance() unified account has been deprecated on htx');
         }
         const [ type, paramsType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsUnified);
-        const [ subTypeOption, paramsSubType ] = this.handleOptionAndParams2 (paramsType, 'fetchBalance', 'defaultSubType', 'subType');
-        const subType: SubType = (subTypeOption === undefined) ? 'linear' : subTypeOption;
+        const [ subTypeOption, paramsSubType ] = this.handleOptionStringAndParams2 (paramsType, 'fetchBalance', 'defaultSubType', 'subType');
+        const subType: Str = (subTypeOption === undefined) ? 'linear' : subTypeOption;
         const [ isMultiAssetMode, paramsMultiAsset ] = this.handleOptionBoolAndParams (paramsSubType, 'fetchBalance', 'multiAssetMode', false);
         const request: Dict = {};
         const spot = (type === 'spot');
@@ -7403,8 +7403,8 @@ export default class htx extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const defaultSubType: SubType = 'linear';
-        const [ subTypeOption, paramsSubType ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
-        let subType: SubType = subTypeOption;
+        const [ subTypeOption, paramsSubType ] = this.handleOptionStringAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
+        let subType: Str = subTypeOption;
         if (symbolsNormalized !== undefined) {
             const firstSymbol = this.safeString (symbolsNormalized, 0);
             const market = this.market (firstSymbol);
@@ -9131,7 +9131,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'Data', []);
-        const loan = this.safeValue (data, 0);
+        const loan = this.safeDict (data, 0);
         const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
             'amount': amount,
@@ -9173,14 +9173,14 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'Data', []);
-        const loan = this.safeValue (data, 0);
+        const loan = this.safeDict (data, 0);
         const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
             'amount': amount,
         });
     }
 
-    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: NullableDict, currency: Currency = undefined): MarginLoan {
         //
         // borrowMargin cross
         //

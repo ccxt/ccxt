@@ -865,7 +865,7 @@ export default class bydfi extends Exchange {
         const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
         let until: Int = undefined;
         let paramsUntil = undefined;
-        [ until, paramsUntil ] = this.handleOptionAndParams (paramsPaginate, 'fetchOHLCV', 'until');
+        [ until, paramsUntil ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
         const timeDelta = duration * numberOfCandles;
@@ -1135,7 +1135,7 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchFundingRateHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -1776,7 +1776,7 @@ export default class bydfi extends Exchange {
     handleSinceAndUntil (methodName: string, since: Int = undefined, params: Dict = {}): Dict {
         let until: Int = undefined;
         let paramsUntil = undefined;
-        [ until, paramsUntil ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
+        [ until, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
@@ -2703,7 +2703,7 @@ export default class bydfi extends Exchange {
         const request: Dict = {
             'asset': currency['id'],
         };
-        const [ until, paramsUntil ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         // exchange requires endTime, and startTime but allows any value
         const sinceResolved = (since === undefined) ? 1 : since;
         request['startTime'] = sinceResolved;
@@ -2840,7 +2840,7 @@ export default class bydfi extends Exchange {
         };
         let until: Int = undefined;
         let paramsUntil = undefined;
-        [ until, paramsUntil ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        [ until, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;

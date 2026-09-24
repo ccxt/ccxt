@@ -3356,7 +3356,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 			code = DerefScalar(this.SafeString(currency, "code"))
 		}
 		feeCost = this.SafeString(data, 8)
-		if !IsEqual(feeCost, nil) {
+		if feeCost != nil {
 			feeCost = Precise.StringAbs(feeCost)
 		}
 		amount = DerefScalar(this.SafeNumber(data, 5))
@@ -3389,7 +3389,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 			}
 		}
 		feeCost = this.SafeString(transaction, 13)
-		if !IsEqual(feeCost, nil) {
+		if feeCost != nil {
 			feeCost = Precise.StringAbs(feeCost)
 		}
 		addressTo = this.SafeString(transaction, 16)

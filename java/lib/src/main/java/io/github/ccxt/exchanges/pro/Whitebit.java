@@ -1455,7 +1455,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //         "id": 1656090882
         //     }
         //
-        Object error = this.safeValue(message, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
         try
         {
             if (!java.util.Objects.equals(error, null))

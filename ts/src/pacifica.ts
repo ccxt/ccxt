@@ -1087,7 +1087,7 @@ export default class pacifica extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ aggLevel, paramsAggLevel ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
+        const [ aggLevel, paramsAggLevel ] = this.handleOptionIntegerAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
         const request: Dict = {
             'symbol': market['id'],
             'agg_level': aggLevel,
@@ -3365,7 +3365,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
         const [ timestamp, paramsTimestamp ] = this.handleParamInteger (paramsSubAccountPrivateKey, 'timestamp', this.milliseconds ());
-        const [ expiryWindow, paramsExpiryWindow ] = this.handleOptionAndParams2 (paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
+        const [ expiryWindow, paramsExpiryWindow ] = this.handleOptionIntegerAndParams2 (paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader: Dict = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3613,7 +3613,7 @@ export default class pacifica extends Exchange {
                 }
             }
         }
-        const [ expiryWindow, paramsExpiryWindow ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
+        const [ expiryWindow, paramsExpiryWindow ] = this.handleOptionIntegerAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
         const timestamp = this.safeInteger (paramsExpiryWindow, 'timestamp', this.milliseconds ());
         const signatureHeader: Dict = {
             'timestamp': timestamp,

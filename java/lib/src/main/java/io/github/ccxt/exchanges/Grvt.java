@@ -2507,13 +2507,13 @@ public class Grvt extends GrvtApi
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
             if (this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))) && this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))))
             {
-                Object tradingAccountId = null;
-                List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "transfer", "tradingAccountId");
-                tradingAccountId = ((List<Object>) tradingAccountIdparametersVariable).get(0);
+                String tradingAccountId = null;
+                List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId");
+                tradingAccountId = (String) ((List<Object>) tradingAccountIdparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) tradingAccountIdparametersVariable).get(1);
-                Object fundingAccountId = null;
-                List<Object> fundingAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "transfer", "fundingAccountId");
-                fundingAccountId = ((List<Object>) fundingAccountIdparametersVariable).get(0);
+                String fundingAccountId = null;
+                List<Object> fundingAccountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "transfer", "fundingAccountId");
+                fundingAccountId = (String) ((List<Object>) fundingAccountIdparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) fundingAccountIdparametersVariable).get(1);
                 if (java.util.Objects.equals(tradingAccountId, null) || java.util.Objects.equals(fundingAccountId, null))
                 {

@@ -465,7 +465,7 @@ export default class mudrex extends Exchange {
                 items = this.safeList (data, 'items', []);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let itemsLength = items.length;
-                if ((itemsLength === undefined) || (itemsLength === 0)) {
+                if (itemsLength === 0) {
                     items = this.safeList (data, 'results', []);
                     itemsLength = items.length;
                 }
@@ -476,7 +476,7 @@ export default class mudrex extends Exchange {
                 items = this.toArray (data);
             }
             const numItems = items.length;
-            if ((numItems === undefined) || (numItems === 0)) {
+            if (numItems === 0) {
                 paging = false;
                 break;
             }
@@ -1289,7 +1289,7 @@ export default class mudrex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ maxCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
+        const [ maxCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
         let pageSize = 0;
         if (limit !== undefined) {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied

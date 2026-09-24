@@ -1685,12 +1685,9 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 		var tradeRole *string = this.SafeString(trade, "match_role")
 		var direction *string = this.SafeString(trade, "direction")
 		if orderType != nil {
-			typeVar = func() any {
-				if orderType != nil && *orderType == "0" {
-					return "limit"
-				}
-				return nil
-			}()
+			if orderType != nil && *orderType == "0" {
+				typeVar = "limit"
+			}
 		}
 		if tradeRole != nil && *tradeRole == "1" {
 			takerOrMaker = "taker"
@@ -2457,8 +2454,8 @@ func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan any, symbol any,
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes197515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes197515)
+	var retRes197715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes197715)
 	return nil
 }
 
@@ -2861,7 +2858,7 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	} else {
 		request["market"] = marketType
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		var marketIdRequest string = "symbol"
 		if swap {
 			marketIdRequest = "instrument_id"
@@ -2993,7 +2990,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["start_time"] = this.ParseToInt(Divide(since, 1000)) // default 3 days from now, max 30 days
 		}
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		var marketIdRequest string = "symbol"
 		if IsEqual(marketType, "swap") {
 			marketIdRequest = "instrument_id"
@@ -3116,7 +3113,7 @@ func (this *Digifinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"order_id": id,
 	}
 	if IsEqual(marketType, "swap") {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			request["instrument_id"] = GetValue(market, "id")
 		}
 	} else {
@@ -3676,8 +3673,8 @@ func (this *Digifinex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes297015 []any = ListTyped(PanicOnError((<-this.FetchTransactionsByTypeAsync("deposit", code, since, limit, params))))
-	ch <- BoxAbsent(retRes297015)
+	var retRes297215 []any = ListTyped(PanicOnError((<-this.FetchTransactionsByTypeAsync("deposit", code, since, limit, params))))
+	ch <- BoxAbsent(retRes297215)
 	return nil
 }
 
@@ -3709,8 +3706,8 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes298515 []any = ListTyped(PanicOnError((<-this.FetchTransactionsByTypeAsync("withdrawal", code, since, limit, params))))
-	ch <- BoxAbsent(retRes298515)
+	var retRes298715 []any = ListTyped(PanicOnError((<-this.FetchTransactionsByTypeAsync("withdrawal", code, since, limit, params))))
+	ch <- BoxAbsent(retRes298715)
 	return nil
 }
 func (this *Digifinex) ParseTransactionStatus(status *string) *string {
@@ -4313,8 +4310,8 @@ func (this *Digifinex) fetchFundingIntervalBody(ch chan any, symbol any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes346415 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
-	ch <- BoxAbsent(retRes346415)
+	var retRes346615 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
+	ch <- BoxAbsent(retRes346615)
 	return nil
 }
 func (this *Digifinex) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -4579,7 +4576,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	if marginMode != nil {
 		marketType = SafeStringPtr("margin")
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		var marketIdRequest string = "symbol"
 		if marketType != nil && *marketType == "swap" {
 			marketIdRequest = "instrument_id"
@@ -4987,7 +4984,7 @@ func (this *Digifinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		if IsEqual(currency, nil) {
+		if currency == nil {
 			panic(ExchangeError(this.Id + " fetchTransfers() could not resolve currency"))
 		}
 		request["currency"] = this.SafeString(currency, "id")
@@ -5324,7 +5321,7 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			var depositWithdrawFee map[string]any = SafeMapTyped(depositWithdrawFees, code)
-			if IsEqual(depositWithdrawFee, nil) {
+			if depositWithdrawFee == nil {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 				AddElementToObject(GetValue(depositWithdrawFees, code), "info", []any{})
 			}
@@ -5397,8 +5394,8 @@ func (this *Digifinex) addMarginBody(ch chan any, symbol any, amount any, option
 	var side *string = this.SafeString(params, "side")
 	this.CheckRequiredArgument("addMargin", side, "side", []any{"long", "short"})
 
-	var retRes435315 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
-	ch <- BoxAbsent(retRes435315)
+	var retRes435515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
+	ch <- BoxAbsent(retRes435515)
 	return nil
 }
 
@@ -5426,8 +5423,8 @@ func (this *Digifinex) reduceMarginBody(ch chan any, symbol any, amount any, opt
 	var side *string = this.SafeString(params, "side")
 	this.CheckRequiredArgument("reduceMargin", side, "side", []any{"long", "short"})
 
-	var retRes437015 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
-	ch <- BoxAbsent(retRes437015)
+	var retRes437215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
+	ch <- BoxAbsent(retRes437215)
 	return nil
 }
 func (this *Digifinex) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {

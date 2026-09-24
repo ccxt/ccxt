@@ -1925,7 +1925,7 @@ func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any
 	}
 	order = this.SafeString(party, "hash")
 	var rawFee map[string]any = ccxt.SafeMapTyped(party, "fee")
-	if !ccxt.IsEqual(rawFee, nil) {
+	if rawFee != nil {
 		var feeType *string = this.SafeString(rawFee, "type")
 		var feeCost *string = this.SafeString(rawFee, "amount")
 		fee = map[string]any{
@@ -4480,7 +4480,7 @@ func (this *Predictfun) ParseWalletEventTrade(event any, order any) any {
 	}
 	var rawFee map[string]any = ccxt.SafeMapTyped(event, "fee")
 	var fee map[string]any = nil
-	if !ccxt.IsEqual(rawFee, nil) {
+	if rawFee != nil {
 		var feeType *string = this.SafeString(rawFee, "type")
 		fee = map[string]any{
 			"currency": func() any {

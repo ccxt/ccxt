@@ -1223,7 +1223,9 @@ export default class deepcoin extends Exchange {
         let network = this.safeString (params, 'network');
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         const defaultNetwork = this.safeString (defaultNetworks, code);
-        network = (network !== undefined && network !== '') ? network : defaultNetwork;
+        if ((network === undefined) || (network === '')) {
+            network = defaultNetwork;
+        }
         const paramsOmitted = (network !== undefined) ? this.omit (params, 'network') : params;
         const addressess = await this.fetchDepositAddresses ([ code ], paramsOmitted);
         const length = addressess.length;
@@ -1405,7 +1407,7 @@ export default class deepcoin extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
-        const [ userIdOption, paramsUserId ] = this.handleOptionAndParams (params, 'transfer', 'userId');
+        const [ userIdOption, paramsUserId ] = this.handleOptionStringAndParams (params, 'transfer', 'userId');
         let userId = undefined;
         if (userIdOption !== undefined && userIdOption !== '') {
             userId = userIdOption;

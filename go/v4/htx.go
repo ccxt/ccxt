@@ -4294,7 +4294,7 @@ func (this *Htx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data")
+	var data []any = SafeListTyped(response, "data")
 
 	ch <- this.ParseAccounts(data)
 	return nil
@@ -4612,13 +4612,13 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var isMultiAssetMode any = nil
-	var subTypeparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBalance", "defaultSubType", "subType")
-	subType = GetValue(subTypeparamsVariable, 0)
+	var subTypeparamsVariable []any = this.HandleOptionStringAndParams2(params, "fetchBalance", "defaultSubType", "subType")
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	if subType == nil {
-		subType = "linear"
+		subType = SafeStringPtr("linear")
 	}
 	var isMultiAssetModeparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchBalance", "multiAssetMode", false)
 	isMultiAssetMode = GetValue(isMultiAssetModeparamsVariable, 0)
@@ -4627,8 +4627,8 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var spot bool = (IsEqual(typeVar, "spot"))
 	var future bool = (IsEqual(typeVar, "future"))
 	var swap bool = (IsEqual(typeVar, "swap"))
-	var inverse bool = (IsEqual(subType, "inverse"))
-	var linear bool = (IsEqual(subType, "linear"))
+	var inverse bool = (subType != nil && *subType == "inverse")
+	var linear bool = (subType != nil && *subType == "linear")
 	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
@@ -6747,7 +6747,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 		var takeProfitOrderPrice *float64 = this.SafeNumber(takeProfit, "price")
 		var takeProfitType *string = this.SafeString(takeProfit, "type")
 		// on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
-		if !IsEqual(stopLoss, nil) {
+		if stopLoss != nil {
 			if stopLossTriggerPriceAttached != nil {
 				request["sl_trigger_price"] = this.PriceToPrecision(symbol, stopLossTriggerPriceAttached)
 			}
@@ -6759,7 +6759,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 			}
 			params = MapTyped(this.Omit(params, "stopLoss"))
 		}
-		if !IsEqual(takeProfit, nil) {
+		if takeProfit != nil {
 			if takeProfitTriggerPriceAttached != nil {
 				request["tp_trigger_price"] = this.PriceToPrecision(symbol, takeProfitTriggerPriceAttached)
 			}
@@ -8232,7 +8232,7 @@ func (this *Htx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"direct": "next",
 		"from":   0,
 	}
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -8315,7 +8315,7 @@ func (this *Htx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		"direct": "next",
 		"from":   0,
 	}
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -9213,7 +9213,7 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var defaultSubType string = "linear"
 	var subType any = nil
-	var subTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRates", "subType", defaultSubType)
+	var subTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchFundingRates", "subType", defaultSubType)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	if symbols != nil {
@@ -9625,7 +9625,7 @@ func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, hea
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var errorsList []any = SafeListTyped(data, "errors")
-	if !IsEqual(errorsList, nil) {
+	if errorsList != nil {
 		var first map[string]any = SafeMapTyped(errorsList, 0)
 		var errcode *string = this.SafeString(first, "err_code")
 		var errmessage *string = this.SafeString(first, "err_msg")
@@ -11009,7 +11009,7 @@ func (this *Htx) repayIsolatedMarginBody(ch chan any, symbol any, code any, amou
 	//     }
 	//
 	var data []any = SafeListTyped(response, "Data")
-	var loan any = this.SafeValue(data, 0)
+	var loan map[string]any = SafeMapTyped(data, 0)
 	var transaction any = this.ParseMarginLoan(loan, currency)
 
 	ch <- this.Extend(transaction, map[string]any{
@@ -11066,7 +11066,7 @@ func (this *Htx) repayCrossMarginBody(ch chan any, code any, amount any, optiona
 	//     }
 	//
 	var data []any = SafeListTyped(response, "Data")
-	var loan any = this.SafeValue(data, 0)
+	var loan map[string]any = SafeMapTyped(data, 0)
 	var transaction any = this.ParseMarginLoan(loan, currency)
 
 	ch <- this.Extend(transaction, map[string]any{
@@ -11459,7 +11459,7 @@ func (this *Htx) ParseSettlements(settlements any, market map[string]any) []any 
 		if market["linear"] == true {
 			var parsedSettlement any = this.ParseSettlement(settlement, market)
 			result = append(result, parsedSettlement)
-		} else if !IsEqual(list, nil) {
+		} else if list != nil {
 			var timestamp *int64 = this.SafeInteger(settlement, "settlement_time")
 			var timestampDetails map[string]any = map[string]any{
 				"timestamp": timestamp,

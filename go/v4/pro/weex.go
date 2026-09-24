@@ -2152,7 +2152,7 @@ func (this *Weex) HandleBalance(client any, message any) {
 		account["free"] = this.SafeString2(entry, "available", "amount")
 		account["used"] = this.SafeString(entry, "frozen")
 		account["total"] = this.SafeString2(entry, "equity", "legacyAmount")
-		if (!ccxt.IsEqual(accountType, nil)) && (code != nil) {
+		if code != nil {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
 		}
 	}

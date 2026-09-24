@@ -2414,6 +2414,11 @@ export class BaseExchange {
         return value;
     }
 
+    checkOptionInteger (methodName: Str, optionName: string, value: any): Int {
+        // the statically typed ports throw on a present value that is not an integral number; here it passes through unchanged
+        return value;
+    }
+
     randomBytes (length: number): string {
         const x = new Uint8Array (length);
         crypto.getRandomValues (x);
@@ -5532,7 +5537,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' watchOHLCV() is not supported yet');
     }
 
-    convertTradingViewToOHLCV (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false): OHLCV[] {
+    convertTradingViewToOHLCV (ohlcvs: NullableDict, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false): OHLCV[] {
         const result: OHLCV[] = [];
         const timestamps = this.safeList (ohlcvs, timestamp, []);
         const opens = this.safeList (ohlcvs, open, []);
@@ -6162,7 +6167,7 @@ export class BaseExchange {
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
     }
 
-    parseAccounts (accounts: List, params: Dict = {}): Account[] {
+    parseAccounts (accounts: NullableList, params: Dict = {}): Account[] {
         const accountsArray = this.toArray (accounts);
         const result: Account[] = [];
         for (let i = 0; i < accountsArray.length; i++) {
@@ -6452,9 +6457,9 @@ export class BaseExchange {
         const retries = 0;
         // implicit endpoints may pass a list body as params: keep it an untyped box
         const requestParams: object = params;
-        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionAndParams (requestParams, path, 'maxRetriesOnFailure', retries);
+        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionIntegerAndParams (requestParams, path, 'maxRetriesOnFailure', retries);
         const retryDelay = 0;
-        const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
+        const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionIntegerAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retriesMaxRetriesOnFailure + 1; i++) {
             let fetchData: NullableDict = undefined;
@@ -6920,6 +6925,25 @@ export class BaseExchange {
     handleOptionBoolAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue: Bool = undefined): [Bool, Dict] {
         const [ value, newParams ] = this.handleOptionAndParams2 (params, methodName, optionName1, optionName2, defaultValue);
         return [ this.checkOptionBool (methodName, optionName1, value), newParams ];
+    }
+
+    /* eslint-disable no-unused-vars */
+    handleOptionIntegerAndParams (params: object, methodName: Str, optionName: string, defaultValue: number): [number, Dict];
+    handleOptionIntegerAndParams (params: object, methodName: Str, optionName: string, defaultValue?: Int): [Int, Dict];
+    /* eslint-enable no-unused-vars */
+    handleOptionIntegerAndParams (params: object, methodName: Str, optionName: string, defaultValue: Int = undefined): [Int, Dict] {
+        // handleOptionAndParams read as an integer; the statically typed ports throw on another type
+        const [ value, newParams ] = this.handleOptionAndParams (params, methodName, optionName, defaultValue);
+        return [ this.checkOptionInteger (methodName, optionName, value), newParams ];
+    }
+
+    /* eslint-disable no-unused-vars */
+    handleOptionIntegerAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue: number): [number, Dict];
+    handleOptionIntegerAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue?: Int): [Int, Dict];
+    /* eslint-enable no-unused-vars */
+    handleOptionIntegerAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue: Int = undefined): [Int, Dict] {
+        const [ value, newParams ] = this.handleOptionAndParams2 (params, methodName, optionName1, optionName2, defaultValue);
+        return [ this.checkOptionInteger (methodName, optionName1, value), newParams ];
     }
 
     handleOption (methodName: string, optionName: string, defaultValue: any = undefined) {
@@ -8357,7 +8381,7 @@ export class BaseExchange {
     }
 
     handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params: Dict = {}): [Int, any] {
-        const [ newMaxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
+        const [ newMaxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (params, method, 'maxEntriesPerRequest');
         const maxEntriesPerRequestOption = (newMaxEntriesPerRequest !== undefined) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
         const maxEntriesPerRequestResolved = (maxEntriesPerRequestOption === undefined) ? 1000 : maxEntriesPerRequestOption; // default to 1000
         return [ maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest ];
@@ -8365,9 +8389,9 @@ export class BaseExchange {
 
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
         const maxCalls = 10;
-        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
-        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
         const [ paginationDirection, paramsPaginationDirection ] = this.handleOptionAndParams (paramsMaxRetries, method, 'paginationDirection', 'backward');
         let paginationTimestamp: Int = undefined;
         const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionAndParams (paramsPaginationDirection, method, 'removeRepeated', removeRepeated);
@@ -8458,7 +8482,7 @@ export class BaseExchange {
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}): Promise<any> {
         const maxRetries = 3;
-        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (params, method, 'maxRetries', maxRetries);
         let errors = 0;
         while (errors <= maxRetriesOption) {
             try {
@@ -8482,7 +8506,7 @@ export class BaseExchange {
 
     async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined): Promise<any> {
         const maxCalls = 10;
-        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsPaginationCalls);
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
@@ -8541,9 +8565,9 @@ export class BaseExchange {
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
     async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         const maxCalls = 10;
-        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
-        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsMaxRetries);
         let cursorValue: Int = undefined;
         let i = 0;
@@ -8631,9 +8655,9 @@ export class BaseExchange {
 
     async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         const maxCalls = 10;
-        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
-        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsMaxRetries);
         let i = 0;
         let errors = 0;

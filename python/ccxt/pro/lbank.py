@@ -467,7 +467,7 @@ class lbank(ccxt.async_support.lbank):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        rawTrade = self.safe_value(message, 'trade')
+        rawTrade = self.safe_dict(message, 'trade')
         rawTrades = self.safe_list(message, 'trades', [rawTrade])
         for i in range(0, len(rawTrades)):
             trade = self.parse_ws_trade(rawTrades[i], market)
@@ -884,7 +884,7 @@ class lbank(ccxt.async_support.lbank):
         error = ExchangeError(self.id + ' ' + errMsg)
         client.reject(error)
 
-    async def handle_ping(self, client: Client, message: object):
+    async def handle_ping(self, client: Client, message: dict):
         #
         #  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         #

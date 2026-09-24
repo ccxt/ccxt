@@ -1920,7 +1920,7 @@ public class Luno extends LunoApi
             {
                 limit = 1L;
             }
-            Object since = null;
+            List<String> since = null;
             final Object finalEntry = entry;
             final Long finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{

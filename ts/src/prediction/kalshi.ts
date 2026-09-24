@@ -2053,7 +2053,7 @@ export default class kalshi extends Exchange {
         } else if (unifiedTif === 'GTC') {
             defaultTif = 'good_till_canceled';
         }
-        const [ timeInForce, paramsTimeInForce ] = this.handleOptionAndParams (paramsOmitted, 'createOrder', 'time_in_force', defaultTif);
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionStringAndParams (paramsOmitted, 'createOrder', 'time_in_force', defaultTif);
         const [ stp, paramsSelfTradePreventionType ] = this.handleOptionStringAndParams (paramsTimeInForce, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
         const request: Dict = {
             'ticker': ticker,

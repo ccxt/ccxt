@@ -94,7 +94,7 @@ class coinbase extends \ccxt\async\coinbase {
         } elseif ($symbol !== null) {
             $market = $this->market($symbol);
             $messageHash = $name . '::' . $symbol;
-            $productIds = array( $market['id'] );
+            $productIds = array( $this->safe_string($market, 'id') );
         }
         $url = $this->urls['api']['ws'];
         $subscribe = array(
@@ -153,7 +153,7 @@ class coinbase extends \ccxt\async\coinbase {
             $market = $this->market($symbol);
             $watchMessageHash = $name . '::' . $symbol;
             $unWatchMessageHash = $unWatchMessageHash . '::' . $symbol;
-            $productIds = array( $market['id'] );
+            $productIds = array( $this->safe_string($market, 'id') );
         }
         $url = $this->urls['api']['ws'];
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'

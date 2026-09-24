@@ -5525,7 +5525,10 @@ public class Binance extends BinanceApi
         {
             contract = true;
             option = true;
-            settleId = (((java.util.Objects.equals(settleId, null)))) ? "USDT" : settleId;
+            if (java.util.Objects.equals(settleId, null))
+            {
+                settleId = "USDT";
+            }
         } else if (!java.util.Objects.equals(expiry, null))
         {
             future = true;
@@ -12748,12 +12751,12 @@ public class Binance extends BinanceApi
                 priceString = Precise.stringDiv(costString, amountString);
             }
         }
-        Object id = null;
+        List<String> id = null;
         Double amount = this.parseNumber(amountString);
         Double price = this.parseNumber(priceString);
         Double cost = this.parseNumber(costString);
-        Object type = null;
-        Object takerOrMaker = null;
+        List<String> type = null;
+        List<String> takerOrMaker = null;
         final String finalSymbol = symbol;
         final String finalSide = side;
         return new HashMap<String, Object>() {{
@@ -15407,10 +15410,7 @@ public class Binance extends BinanceApi
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     Object leftSide = Precise.stringAdd(inner, entryPriceSignString);
                     Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
-                    if (!java.util.Objects.equals(quotePrecision, null))
-                    {
-                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
-                    }
+                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
                 } else
                 {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
@@ -15427,10 +15427,7 @@ public class Binance extends BinanceApi
                     Object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
                     Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
-                    if (!java.util.Objects.equals(basePrecision, null))
-                    {
-                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
-                    }
+                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
                 }
             }
         } else

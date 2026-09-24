@@ -2073,7 +2073,7 @@ public partial class bingx : ccxt.bingx
             account["info"] = balance;
             account["used"] = this.safeString(balance, "lk");
             account["free"] = this.safeString(balance, "wb");
-            if (((type != null)) && ((code != null)))
+            if ((code != null))
             {
                 ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
             }

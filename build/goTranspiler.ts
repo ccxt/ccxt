@@ -611,6 +611,58 @@ function goBoxedPointerSelfTest (): string[] {
     return problems;
 }
 
+// IsEqual(x, nil) on a name declared once in the block as a map, []any or scalar pointer is
+// `x == nil`: derefScalar folds exactly those typed nils to nil. A `var x string` against a
+// string literal is plain `==`. Any other or repeated declaration keeps the helper.
+const GO_NIL_COMPARABLE_TYPES = new Set (['map[string]any', '[]any', '*string', '*float64', '*int64', '*bool', '*int']);
+
+function goTypedNilCompareText (fn: string, isEqualFn: string): string {
+    const helper = isEqualFn.replace (/[.(]/g, '\\$&');
+    const sigEnd = fn.indexOf ('{');
+    if ((sigEnd < 0) || (fn.indexOf (isEqualFn) < 0)) {
+        return fn;
+    }
+    const signature = fn.slice (0, sigEnd);
+    const typeOf = (name: string): string | undefined => {
+        const decls = fn.match (new RegExp ('\\bvar ' + name + ' ([^=\\n]+?) =', 'g')) || [];
+        const bare = fn.match (new RegExp ('\\bvar ' + name + ' [^=\\n]+\\n', 'g')) || [];
+        const rebinds = fn.match (new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ', 'g')) || [];
+        const inSignature = new RegExp ('[(,]\\s*' + name + ' ').test (signature);
+        if ((decls.length !== 1) || bare.length || rebinds.length || inSignature) {
+            return undefined;
+        }
+        return decls[0].slice (('var ' + name + ' ').length, -2).trim ();
+    };
+    return fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + '(\\w+), (nil|"[^"\\\\]*")\\)', 'g'), ((m: string, not: string, name: string, rhs: string) => {
+        const type = typeOf (name);
+        const exact = (rhs === 'nil') ? GO_NIL_COMPARABLE_TYPES.has (type) : (type === 'string');
+        if (!exact) {
+            return m;
+        }
+        return '(' + name + ((not === '!') ? ' != ' : ' == ') + rhs + ')';
+    }) as any);
+}
+
+export function goTypedNativeNilCompares (content: string, isEqualFn: string): string {
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goTypedNilCompareText (fn, isEqualFn)) as any);
+}
+
+function goTypedNilSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const pass = (text: string): string => goTypedNativeNilCompares (text, 'IsEqual(');
+    const typed = pass ('\nfunc (this *X) f(p any) any {\n\tvar m map[string]any = SafeMapTyped(p, "a")\n\tvar s *string = this.SafeString(p, "b")\n\tvar t string = "spot"\n\tif !IsEqual(m, nil) && IsEqual(s, nil) && IsEqual(t, "swap") {\n\t\treturn m\n\t}\n\treturn nil\n}\n');
+    ok (typed.indexOf ('if (m != nil) && (s == nil) && (t == "swap") {') >= 0, 'typed locals must compare natively: ' + typed);
+    const other = pass ('\nfunc (this *X) f(p any, q map[string]any) any {\n\tvar a any = p\n\tvar l []string = nil\n\tvar n int = 1\n\tif IsEqual(a, nil) || IsEqual(l, nil) || IsEqual(n, nil) || IsEqual(q, nil) || IsEqual(p, "x") {\n\t\treturn nil\n\t}\n\treturn a\n}\n');
+    ok (other.indexOf ('IsEqual(a, nil) || IsEqual(l, nil) || IsEqual(n, nil) || IsEqual(q, nil) || IsEqual(p, "x")') >= 0, 'any/[]string/int/params keep the helper');
+    const shadow = pass ('\nfunc (this *X) f(p any) any {\n\tvar m map[string]any = nil\n\tif true {\n\t\tvar m any = p\n\t\t_ = m\n\t}\n\tm, ok := p.(map[string]any)\n\tif IsEqual(m, nil) {\n\t\treturn ok\n\t}\n\treturn nil\n}\n');
+    ok (shadow.indexOf ('IsEqual(m, nil)') >= 0, 'a redeclared name keeps the helper');
+    const ws = goTypedNativeNilCompares ('\nfunc (this *X) f(p any) any {\n\tvar l []any = nil\n\tif !ccxt.IsEqual(l, nil) {\n\t\treturn l\n\t}\n\treturn nil\n}\n', 'ccxt.IsEqual(');
+    ok (ws.indexOf ('if (l != nil) {') >= 0, 'the package-qualified helper must be rewritten too');
+    ok (pass (typed) === typed, 'a second application must be a no-op');
+    return problems;
+}
+
 // Self-test for the same-file pointer-returning method rule: the boxed local keeps the
 // deref-aware helper, a scalar-returning or unknown method and a typed local keep the native
 // comparison, the reassignment form is caught too and a second application is a no-op.
@@ -5395,7 +5447,7 @@ ${caseStatements.join('\n')}
     // AppendToArray, SafeValue/GetValue receiver), and no call site compares the result to a literal.
     coerceTupleHelperSignatures (content: string): string {
         // F04: the `[]any` retag spells the single space before `{` too
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleOptionStringAndParams|HandleOptionStringAndParams2|HandleOptionBoolAndParams|HandleOptionBoolAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleSubTypeAndParams|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {');
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleOptionStringAndParams|HandleOptionStringAndParams2|HandleOptionBoolAndParams|HandleOptionBoolAndParams2|HandleOptionIntegerAndParams|HandleOptionIntegerAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleSubTypeAndParams|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {');
     }
 
     // ------------------------------------------------------------------
@@ -5616,6 +5668,8 @@ ${caseStatements.join('\n')}
         // (`var timeInForce any = this.ParseOrderTimeInForce(…)`): the printer cannot see that
         // signature, so its native `timeInForce == nil` never fires on the boxed (*string)(nil).
         content = goPointerLocalNativeNilCompares (content, isWs ? 'ccxt.IsEqual(' : 'IsEqual(');
+        // typed locals compare natively (goTypedNativeNilCompares)
+        content = goTypedNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -6887,7 +6941,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

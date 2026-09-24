@@ -1274,7 +1274,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
-        const depthOption = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books')[0];
+        const depthOption = this.handleOptionStringAndParams (params, 'watchOrderBook', 'depth', 'books')[0];
         let depth: Str = depthOption;
         if (limit !== undefined) {
             if (limit === 1) {
@@ -1332,7 +1332,7 @@ export default class okx extends okxRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         let depth: Str = undefined;
         let paramsDepth = undefined;
-        [ depth, paramsDepth ] = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books');
+        [ depth, paramsDepth ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'depth', 'books');
         const limit = this.safeInteger (paramsDepth, 'limit');
         if (limit !== undefined) {
             if (limit === 1) {

@@ -3779,7 +3779,9 @@ export default class binance extends Exchange {
         } else if (underlying !== undefined) {
             contract = true;
             option = true;
-            settleId = (settleId === undefined) ? 'USDT' : settleId;
+            if (settleId === undefined) {
+                settleId = 'USDT';
+            }
         } else if (expiry !== undefined) {
             future = true;
         }
@@ -11524,9 +11526,7 @@ export default class binance extends Exchange {
                     const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     const leftSide = Precise.stringAdd (inner, entryPriceSignString);
                     const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
-                    if (quotePrecision !== undefined) {
-                        collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
-                    }
+                    collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
                 } else {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     let onePlusMaintenanceMarginPercentageString: Str = undefined;
@@ -11540,9 +11540,7 @@ export default class binance extends Exchange {
                     const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                     const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
                     const basePrecision = this.precisionFromString (this.safeString (precision, 'base'));
-                    if (basePrecision !== undefined) {
-                        collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
-                    }
+                    collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
                 }
             }
         } else {

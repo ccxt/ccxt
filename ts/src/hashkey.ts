@@ -1371,7 +1371,7 @@ export default class hashkey extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const [ accountId, paramsAccountId ] = this.handleOptionAndParams (paramsUntil, methodName, 'accountId');
+        const [ accountId, paramsAccountId ] = this.handleOptionStringAndParams (paramsUntil, methodName, 'accountId');
         let response: Dict | List | undefined = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
@@ -3331,7 +3331,7 @@ export default class hashkey extends Exchange {
         let market: Market = undefined;
         const request: Dict = {};
         let response: NullableDict = undefined;
-        const [ accountId, paramsAccountId ] = this.handleOptionAndParams (paramsMethodName, methodNameOption, 'accountId');
+        const [ accountId, paramsAccountId ] = this.handleOptionStringAndParams (paramsMethodName, methodNameOption, 'accountId');
         if (accountId !== undefined) {
             request['subAccountId'] = accountId;
             response = await this.privateGetApiV1SpotSubAccountOpenOrders (this.extend (request, paramsAccountId));
@@ -3414,7 +3414,7 @@ export default class hashkey extends Exchange {
             request['limit'] = limit;
         }
         let response: NullableDict = undefined;
-        const [ accountId, paramsAccountId ] = this.handleOptionAndParams (paramsTrigger, methodNameOption, 'accountId');
+        const [ accountId, paramsAccountId ] = this.handleOptionStringAndParams (paramsTrigger, methodNameOption, 'accountId');
         if (accountId !== undefined) {
             request['subAccountId'] = accountId;
             response = await this.privateGetApiV1FuturesSubAccountOpenOrders (this.extend (request, paramsAccountId));
@@ -3505,7 +3505,7 @@ export default class hashkey extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const [ accountId, paramsAccountId ] = this.handleOptionAndParams (paramsUntil, methodName, 'accountId');
+        const [ accountId, paramsAccountId ] = this.handleOptionStringAndParams (paramsUntil, methodName, 'accountId');
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);

@@ -1979,7 +1979,9 @@ impl DeepcoinCore {
     m
 })]);
         let mut defaultNetwork: Value = self.safe_string(defaultNetworks, code.clone(), &[]);
-        network = (if ((network != Value::Null) && (network.as_str() != Some(""))) { network.clone() } else { defaultNetwork });
+        if (network == Value::Null) || (network.as_str() == Some("")) {
+            network = defaultNetwork;
+        }
         if (network != Value::Null) {
             params = self.omit(params.clone(), Value::Str("network".into()), &[]);
         }
@@ -2204,7 +2206,7 @@ impl DeepcoinCore {
     m
 }));
         let mut userId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("transfer".into()), Value::Str("userId".into()), &[]); userId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("transfer".into()), Value::Str("userId".into()), &[]); userId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         userId = (if ((userId != Value::Null) && (userId.as_str() != Some(""))) { userId.clone() } else { self.safe_string_k(params.clone(), "uid", &[]) });
         if (userId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a userId parameter".into()))));

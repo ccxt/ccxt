@@ -431,7 +431,7 @@ export default class pacifica extends pacificaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ aggLevel, paramsAggLevel ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
+        const [ aggLevel, paramsAggLevel ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const messageHash = 'orderbook:' + symbol;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
@@ -467,7 +467,7 @@ export default class pacifica extends pacificaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ aggLevel, paramsAggLevel ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
+        const [ aggLevel, paramsAggLevel ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;

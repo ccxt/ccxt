@@ -1073,7 +1073,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "error": { code: 1, message: "invalid argument" },
@@ -1081,7 +1081,7 @@ export default class whitebit extends whitebitRest {
         //         "id": 1656090882
         //     }
         //
-        const error = this.safeValue (message, 'error');
+        const error = this.safeDict (message, 'error');
         try {
             if (error !== undefined) {
                 const code = this.safeString (message, 'code');

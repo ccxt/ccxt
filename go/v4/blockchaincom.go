@@ -1281,7 +1281,7 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 		return nil
 	}()
 	var fee map[string]any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
@@ -1577,7 +1577,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var balances []any = SafeListTyped(response, accountName)
-	if IsEqual(balances, nil) {
+	if balances == nil {
 		panic(ExchangeError(this.Id + " fetchBalance() could not find the \"" + *accountName + "\" account"))
 	}
 	var result map[string]any = map[string]any{

@@ -415,7 +415,7 @@ class htx(ccxt.async_support.htx):
             stored = ArrayCacheByTimestamp(limit)
             if symbol is not None and timeframe is not None:
                 self.ohlcvs[symbol][timeframe] = stored
-        tick = self.safe_value(message, 'tick')
+        tick = self.safe_dict(message, 'tick')
         parsed = self.parse_ohlcv(tick, market)
         stored.append(parsed)
         client.resolve(stored, ch)
@@ -1520,7 +1520,7 @@ class htx(ccxt.async_support.htx):
             type, params = self.handle_market_type_and_params('watchPositions', market, params)
             if type == 'spot':
                 type = 'future'
-            subType, params = self.handle_option_and_params(params, 'watchPositions', 'subType', subType)
+            subType, params = self.handle_option_string_and_params(params, 'watchPositions', 'subType', subType)
         symbols = self.market_symbols(symbols)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchPositions', params, 'cross')

@@ -182,7 +182,7 @@ public partial class grvt : ccxt.grvt
         channel = (string)channelparametersVariable[0];
         parameters = channelparametersVariable[1];
         object interval = 500;
-        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
+        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchTickers", "interval", interval);
         interval = intervalparametersVariable[0];
         parameters = intervalparametersVariable[1];
         if ((this.markets == null))
@@ -599,12 +599,12 @@ public partial class grvt : ccxt.grvt
         }
         if ((limitVar == null))
         {
-            IList<object> limitparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "limit", 100);
+            IList<object> limitparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "limit", 100);
             limitVar = limitparametersVariable[0];
             parameters = limitparametersVariable[1];
         }
         object interval = 500;
-        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
+        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "interval", interval);
         interval = intervalparametersVariable[0];
         parameters = intervalparametersVariable[1];
         symbols = this.marketSymbols(symbols);

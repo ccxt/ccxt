@@ -3686,7 +3686,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'Content-Type': 'application/json',
         }
         if method == 'GET':
-            if (queryLength is not None) and (queryLength != 0):
+            if queryLength != 0:
                 getRequest = '?' + self.urlencode(query)
                 url = url + getRequest
         else:

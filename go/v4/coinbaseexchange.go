@@ -2417,7 +2417,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 	var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
-	if IsEqual(account, nil) {
+	if account == nil {
 		panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
 	}
 	var request map[string]any = map[string]any{

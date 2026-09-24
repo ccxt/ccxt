@@ -1160,7 +1160,7 @@ export default class onetrading extends Exchange {
         //     }
         //
         const feeInfo = this.safeDict (trade, 'fee', {});
-        const tradeValue: Dict = this.safeValue (trade, 'trade', trade);
+        const tradeValue: Dict = this.safeDict (trade, 'trade', trade);
         let timestamp = this.safeInteger (tradeValue, 'trade_timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (tradeValue, 'time'));
@@ -1335,7 +1335,7 @@ export default class onetrading extends Exchange {
         //         ]
         //     }
         //
-        const rawOrder = this.safeValue (order, 'order', order);
+        const rawOrder = this.safeDict (order, 'order', order);
         const id = this.safeString (rawOrder, 'order_id');
         const clientOrderId = this.safeString (rawOrder, 'client_id');
         const timestamp = this.parse8601 (this.safeString (rawOrder, 'time'));

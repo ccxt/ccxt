@@ -1599,7 +1599,10 @@ public partial class digifinex : Exchange
             string? direction = this.safeString(trade, "direction");
             if ((orderType != null))
             {
-                type = (orderType == "0") ? "limit" : null;
+                if (orderType == "0")
+                {
+                    type = "limit";
+                }
             }
             if (tradeRole == "1")
             {

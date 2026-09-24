@@ -2453,7 +2453,7 @@ export default class upbit extends Exchange {
             if (hasBody) {
                 privateHeaders['Content-Type'] = 'application/json';
             }
-            if ((hasQuery !== undefined) && (hasQuery !== 0)) {
+            if (hasQuery !== 0) {
                 auth = this.rawencode (query);
             }
             if (auth !== undefined) {

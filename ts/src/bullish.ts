@@ -1315,7 +1315,7 @@ export default class bullish extends Exchange {
     }
 
     override async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}) {
-        const [ maxRetries, paramsMaxRetries ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        const [ maxRetries, paramsMaxRetries ] = this.handleOptionIntegerAndParams (params, method, 'maxRetries', 3);
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
@@ -2271,7 +2271,7 @@ export default class bullish extends Exchange {
     async loadAccount (params: Dict = {}): Promise<string> {
         let tradingAccountId: Str = undefined;
         let paramsTradingAccountId = undefined;
-        [ tradingAccountId, paramsTradingAccountId ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
+        [ tradingAccountId, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (paramsTradingAccountId);
             const accounts = this.toArray (response);

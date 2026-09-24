@@ -747,7 +747,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if tokenAddress is None:
             raise BadRequest(self.id + ' approve() could not resolve the base token address from /metadata/obv3')
         spender = None
-        spender, params = self.handle_option_and_params_2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress)
+        spender, params = self.handle_option_string_and_params_2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress)
         if spender is None:
             raise BadRequest(self.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender')
         chains = self.safe_dict(self.options, 'chains', {})
@@ -861,7 +861,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if type == 'limit':
             defaultTif = 'GTC'
         timeInForce = None
-        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce', defaultTif)
+        timeInForce, params = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce', defaultTif)
         # an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         # that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         # contradicting the immediate-fill semantics the type promises

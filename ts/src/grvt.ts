@@ -1802,8 +1802,8 @@ export default class grvt extends Exchange {
         let toSubAccount: string = toAccount;
         let paramsFundingAccountId: Dict = params;
         if (isInternal) {
-            const [ tradingAccountId, paramsTradingAccountId ] = this.handleOptionAndParams (params, 'transfer', 'tradingAccountId');
-            const [ fundingAccountId, paramsFunding ] = this.handleOptionAndParams (paramsTradingAccountId, 'transfer', 'fundingAccountId');
+            const [ tradingAccountId, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'transfer', 'tradingAccountId');
+            const [ fundingAccountId, paramsFunding ] = this.handleOptionStringAndParams (paramsTradingAccountId, 'transfer', 'fundingAccountId');
             if (tradingAccountId === undefined || fundingAccountId === undefined) {
                 throw new ArgumentsRequired (this.id + ' transfer(): you should set (in the options or params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }

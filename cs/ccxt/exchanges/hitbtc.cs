@@ -4327,7 +4327,7 @@ public partial class hitbtc : Exchange
         };
         if (isEqual(method, "GET"))
         {
-            if ((!isEqual(queryLength, null)) && ((queryLength != 0)))
+            if ((queryLength != 0))
             {
                 getRequest = ("?" + this.urlencode(query));
                 url = add(url, getRequest);

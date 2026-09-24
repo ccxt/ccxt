@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, SubType, Ticker, Trade, NullableDict, FeeString } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, NullableDict, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -436,7 +436,7 @@ export default class htx extends htxRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
         }
-        const tick = this.safeValue (message, 'tick');
+        const tick = this.safeDict (message, 'tick');
         const parsed = this.parseOHLCV (tick, market);
         stored.append (parsed);
         client.resolve (stored, ch);
@@ -1619,7 +1619,7 @@ export default class htx extends htxRest {
             messageHash = '::' + symbols.join (',');
         }
         let type: Str = undefined;
-        let subType: SubType = undefined;
+        let subType: Str = undefined;
         let paramsSubType: Dict = {};
         if (market !== undefined) {
             type = this.safeString (market, 'type');
@@ -1627,7 +1627,7 @@ export default class htx extends htxRest {
         } else {
             const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
             type = (marketType === 'spot') ? 'future' : marketType;
-            [ subType, paramsSubType ] = this.handleOptionAndParams (paramsMarketType, 'watchPositions', 'subType', subType);
+            [ subType, paramsSubType ] = this.handleOptionStringAndParams (paramsMarketType, 'watchPositions', 'subType', subType);
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const paramsPositions: Dict = (market !== undefined) ? params : paramsSubType;

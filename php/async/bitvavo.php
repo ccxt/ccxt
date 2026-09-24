@@ -1907,7 +1907,7 @@ class bitvavo extends Exchange {
             Async\await($this->load_markets());
         }
         $codGroupId = null;
-        list($codGroupId, $params) = $this->handle_option_and_params($params, 'cancelAllOrdersAfter', 'codGroupId', 1);
+        list($codGroupId, $params) = $this->handle_option_integer_and_params($params, 'cancelAllOrdersAfter', 'codGroupId', 1);
         $request = array(
             'codGroupId' => $codGroupId,
             'expiryAfterSeconds' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,

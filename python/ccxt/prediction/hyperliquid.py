@@ -287,7 +287,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                             thresholds.append(trimmed)
                     thresholdsLength = len(thresholds)
                     index = self.parse_to_int(indexStr)
-                    if thresholdsLength > 0 and index is not None:
+                    if thresholdsLength > 0:
                         bucketLabel: str
                         if index <= 0:
                             bucketLabel = 'BELOW_' + thresholds[0]
@@ -1070,9 +1070,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if isNumericInput:
             candidates.append('#' + outcomeInput)  # encoding id without #
             numeric = self.parse_to_int(outcomeInput)
-            if numeric is not None:
-                candidates.append(self.outcome_coin(self.outcome_encoding(numeric, 0)))  # raw outcome id -> YES encoding
-                candidates.append(self.outcome_coin(self.outcome_encoding(numeric, 1)))  # raw outcome id -> NO encoding
+            candidates.append(self.outcome_coin(self.outcome_encoding(numeric, 0)))  # raw outcome id -> YES encoding
+            candidates.append(self.outcome_coin(self.outcome_encoding(numeric, 1)))  # raw outcome id -> NO encoding
         for i in range(0, len(candidates)):
             key = candidates[i]
             if key in self.outcomes:
@@ -2000,11 +1999,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return None
 
-    def handle_public_address(self, methodName: str, params: dict) -> object:
+    def handle_public_address(self, methodName: str, params: dict) -> list:
         userAux = None
         userAux, params = self.handle_option_string_and_params_2(params, methodName, 'user', 'subAccountAddress')
         user = userAux
-        user, params = self.handle_option_and_params(params, methodName, 'address', userAux)
+        user, params = self.handle_option_string_and_params(params, methodName, 'address', userAux)
         if user is not None and user != '':
             return [user, params]
         if self.walletAddress is not None and self.walletAddress != '':

@@ -79,7 +79,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             String url = (String) this.implodeParams(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), new HashMap<String, Object>() {{
                 put( "hostname", Upbit.this.hostname );
             }});
@@ -93,7 +93,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 String messageHash = Helpers.add((channel + ":"), symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -571,7 +571,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) (((Map<String, Object>)market).get("symbol"));
                 List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbol));
-                List<Object> marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("codes", marketIds);
                 messageHash = ((messageHash + ":") + symbol);
             }

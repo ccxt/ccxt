@@ -487,7 +487,7 @@ export default class lbank extends lbankRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const rawTrade = this.safeValue (message, 'trade');
+        const rawTrade = this.safeDict (message, 'trade');
         const rawTrades = this.safeList (message, 'trades', [ rawTrade ]);
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseWsTrade (rawTrades[i], market);
@@ -929,7 +929,7 @@ export default class lbank extends lbankRest {
         client.reject (error);
     }
 
-    async handlePing (client: Client, message: any) {
+    async handlePing (client: Client, message: Dict) {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //

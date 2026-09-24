@@ -1316,7 +1316,7 @@ func (this *Whitebit) HandleErrorMessage(client any, message any) any {
 	//         "id": 1656090882
 	//     }
 	//
-	var error any = this.SafeValue(message, "error")
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 
 	{
 		func(this *Whitebit) (ret_ any) {

@@ -4510,7 +4510,11 @@ export default class bybit extends Exchange {
             } else {
                 request['triggerDirection'] = isStopLossOrder ? 2 : 1;
             }
-            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            if (isStopLossOrder) {
+                triggerPrice = stopLossTriggerPrice;
+            } else {
+                triggerPrice = takeProfitTriggerPrice;
+            }
             request['triggerPrice'] = this.getPrice (symbolValue, triggerPrice);
             request['reduceOnly'] = true;
         }
@@ -4710,7 +4714,11 @@ export default class bybit extends Exchange {
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         if (isStopLossOrder || isTakeProfitOrder) {
-            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            if (isStopLossOrder) {
+                triggerPrice = stopLossTriggerPrice;
+            } else {
+                triggerPrice = takeProfitTriggerPrice;
+            }
         }
         if (triggerPrice !== undefined) {
             const triggerPriceRequest = (triggerPrice === '0') ? triggerPrice : this.getPrice (symbol, triggerPrice);

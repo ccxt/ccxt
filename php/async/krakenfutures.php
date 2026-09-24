@@ -3010,14 +3010,22 @@ class krakenfutures extends Exchange {
             $type = $symbol;
         }
         if ($type === null) {
-            $type = ($symbol === null) ? 'flex' : $symbol;
+            if ($symbol === null) {
+                $type = 'flex';
+            } else {
+                $type = $symbol;
+            }
         }
         $accountName = $this->parse_account($type);
         $accounts = $this->safe_dict($response, 'accounts');
         $account = $this->safe_dict($accounts, $accountName);
         if ($account === null) {
-            $type = ($type === null) ? '' : $type;
-            $symbol = ($symbol === null) ? '' : $symbol;
+            if ($type === null) {
+                $type = '';
+            }
+            if ($symbol === null) {
+                $symbol = '';
+            }
             throw new BadRequest($this->id . ' fetchBalance has no $account for ' . $type);
         }
         $balance = $this->parse_balance($account);

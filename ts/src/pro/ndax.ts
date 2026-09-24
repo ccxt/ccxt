@@ -325,7 +325,7 @@ export default class ndax extends ndaxRest {
                         parsed[4],
                         this.sum (parsed[5], previous[5]),
                     ];
-                    if ((marketId !== undefined) && (timeframe !== undefined)) {
+                    if (marketId !== undefined) {
                         updates[marketId][timeframe] = true;
                     }
                 } else {
@@ -337,7 +337,7 @@ export default class ndax extends ndaxRest {
                         if (length >= limit) {
                             stored.shift ();
                         }
-                        if ((marketId !== undefined) && (timeframe !== undefined)) {
+                        if (marketId !== undefined) {
                             updates[marketId][timeframe] = true;
                         }
                     }

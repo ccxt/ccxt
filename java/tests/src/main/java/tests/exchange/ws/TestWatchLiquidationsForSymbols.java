@@ -23,7 +23,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
 
         String method = "watchLiquidationsForSymbols";
         // we have to skip some exchanges here due to the frequency of trading
-        List<Object> skippedExchanges = new ArrayList<Object>(Arrays.asList());
+        List<String> skippedExchanges = new ArrayList<String>(Arrays.asList());
         if (Helpers.isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
             String m1 = ((((exchange.id + " ") + method) + "() test skipped"));

@@ -1625,7 +1625,7 @@ func (this *Bullish) safeDeterministicCallBody(ch chan any, method any, optional
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
 	var maxRetries any = nil
-	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", 3)
+	var maxRetriesparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "maxRetries", 3)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = MapTyped(GetValue(maxRetriesparamsVariable, 1))
 	if (!IsEqual(method, "fetchOHLCV")) && (!IsEqual(method, "fetchFundingRateHistory")) && (!IsEqual(method, "fetchTrades")) {
@@ -2909,7 +2909,7 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tradingAccountId any = nil
-	var tradingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "loadAccount", "tradingAccountId")
+	var tradingAccountIdparamsVariable []any = this.HandleOptionStringAndParams(params, "loadAccount", "tradingAccountId")
 	tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
 	params = MapTyped(GetValue(tradingAccountIdparamsVariable, 1))
 	if IsEqual(tradingAccountId, nil) {

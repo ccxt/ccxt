@@ -4496,9 +4496,9 @@ export default class bitget extends Exchange {
                     request['category'] = 'SPOT';
                 }
             } else if ((marketType === 'swap') || (marketType === 'future')) {
-                let productType: Str = undefined;
-                [ productType, paramsMarginMode ] = this.handleProductTypeAndParams (undefined, paramsMarginMode);
-                request['category'] = productType;
+                let utaProductType: Str = undefined;
+                [ utaProductType, paramsMarginMode ] = this.handleProductTypeAndParams (undefined, paramsMarginMode);
+                request['category'] = utaProductType;
             } else {
                 throw new NotSupported (this.id + ' does not support ' + marketType + ' market');
             }
@@ -8093,9 +8093,9 @@ export default class bitget extends Exchange {
                         request['category'] = 'SPOT';
                     }
                 } else {
-                    let productType: Str = undefined;
-                    [ productType, paramsOmitted ] = this.handleProductTypeAndParams (market, paramsOmitted);
-                    request['category'] = productType;
+                    let utaProductType: Str = undefined;
+                    [ utaProductType, paramsOmitted ] = this.handleProductTypeAndParams (market, paramsOmitted);
+                    request['category'] = utaProductType;
                 }
                 if (symbol !== undefined) {
                     request['symbol'] = this.safeString (market, 'id');
@@ -11487,7 +11487,9 @@ export default class bitget extends Exchange {
 
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         let marginType = this.safeString (marginMode, 'marginMode');
-        marginType = (marginType === 'crossed') ? 'cross' : marginType;
+        if (marginType === 'crossed') {
+            marginType = 'cross';
+        }
         return {
             'info': marginMode,
             'symbol': this.safeString (market, 'symbol'),

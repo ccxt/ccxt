@@ -3411,7 +3411,7 @@ export default class kucoin extends Exchange {
             request['tradeType'] = 'FUTURES';
         }
         const priceType: Str = undefined;
-        const [ priceTypePrice, paramsPrice ] = this.handleOptionAndParams (paramsMarketType, 'fetchOHLCV', 'price', priceType);
+        const [ priceTypePrice, paramsPrice ] = this.handleOptionStringAndParams (paramsMarketType, 'fetchOHLCV', 'price', priceType);
         if (priceTypePrice !== undefined) {
             const priceTypes: Dict = {
                 'mark': 'mark-price',

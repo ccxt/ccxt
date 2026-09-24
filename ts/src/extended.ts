@@ -2663,7 +2663,7 @@ export default class extended extends Exchange {
         } else {
             let paramsBuilderFeeRate = undefined;
             [ builderFeeRate, paramsBuilderFeeRate ] = this.handleOptionStringAndParams (params, 'createOrder', 'builderFeeRate', '0.0001');
-            [ builderId, paramsBuilder ] = this.handleOptionAndParams (paramsBuilderFeeRate, 'createOrder', 'builderId');
+            [ builderId, paramsBuilder ] = this.handleOptionStringAndParams (paramsBuilderFeeRate, 'createOrder', 'builderId');
         }
         let totalFee = fee;
         if (builderFeeRate !== undefined) {
@@ -2799,7 +2799,11 @@ export default class extended extends Exchange {
                 request['type'] = 'CONDITIONAL';
                 request['trigger'] = trigger;
             } else if (isStopLossOrder || isTakeProfitOrder) {
-                triggerPriceStr = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                if (isStopLossOrder) {
+                    triggerPriceStr = stopLossTriggerPrice;
+                } else {
+                    triggerPriceStr = takeProfitTriggerPrice;
+                }
                 const trigger: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
                 };

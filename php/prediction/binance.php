@@ -952,7 +952,7 @@ class binance extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
         $type = null;
-        list($type, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'type', 'SPOT');
+        list($type, $params) = $this->handle_option_string_and_params($params, 'fetchBalance', 'type', 'SPOT');
         $response = Async\await($this->sapiPrivateGetBalancePaymentOptions($params));
         //
         // {
@@ -1102,7 +1102,7 @@ class binance extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchOpenOrders', $outcome, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
@@ -1189,7 +1189,7 @@ class binance extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchOrders', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $outcome, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
@@ -1464,7 +1464,7 @@ class binance extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         $maxEntriesPerRequest = null;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $outcome, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
@@ -1638,7 +1638,7 @@ class binance extends Exchange {
             return $cachedWallet;
         }
         $walletAddress = null;
-        list($walletAddress, $params) = $this->handle_option_and_params($params, $methodName, 'walletAddress', $this->walletAddress);
+        list($walletAddress, $params) = $this->handle_option_string_and_params($params, $methodName, 'walletAddress', $this->walletAddress);
         $response = Async\await($this->sapiPrivateGetWalletList());
         //
         // {

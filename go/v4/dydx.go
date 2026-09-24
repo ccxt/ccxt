@@ -1648,7 +1648,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	}
 	var orderSide string = ToUpper(side)
 	var subaccountId any = 0
-	var subaccountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "subAccountId", subaccountId)
+	var subaccountIdparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createOrder", "subAccountId", subaccountId)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountIdparamsVariable, 1))
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
@@ -1717,7 +1717,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var goodTillBlock any = DerefScalar(this.SafeInteger(params, "goodTillBlock"))
 	var goodTillBlockTime any = nil
 	var goodTillBlockTimeInSeconds any = 2592000
-	var goodTillBlockTimeInSecondsparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
+	var goodTillBlockTimeInSecondsparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = MapTyped(GetValue(goodTillBlockTimeInSecondsparamsVariable, 1)) // default is 30 days
 	if IsEqual(orderFlag, 0) {
@@ -1863,7 +1863,7 @@ func (this *Dydx) fetchLatestBlockHeightBody(ch chan any, optionalArgs ...any) a
  * @param {bool} [params.postOnly] true or false whether the order is post-only
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
  * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
- * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+ * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Dydx) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
@@ -1939,7 +1939,7 @@ func (this *Dydx) createOrderBody(ch chan any, symbol any, typeVar any, side any
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
  * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
- * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+ * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
  * @param {int} [params.subAccountId] sub account id, default is 0
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1975,7 +1975,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var goodTillBlock any = DerefScalar(this.SafeInteger(params, "goodTillBlock"))
 	var goodTillBlockTimeInSeconds any = 2592000
-	var goodTillBlockTimeInSecondsparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
+	var goodTillBlockTimeInSecondsparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = MapTyped(GetValue(goodTillBlockTimeInSecondsparamsVariable, 1)) // default is 30 days
 	var goodTillBlockTime any = nil
@@ -1987,7 +1987,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}()
 	var orderFlags *int64 = this.SafeInteger(params, "orderFlags", defaultOrderFlags)
 	var subAccountId any = 0
-	var subAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "subAccountId", subAccountId)
+	var subAccountIdparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelOrder", "subAccountId", subAccountId)
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
 	params = MapTyped(GetValue(subAccountIdparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId"}))
@@ -2089,11 +2089,11 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
-	if IsEqual(clientOrderIds, nil) {
+	if clientOrderIds == nil {
 		panic(NotSupported(this.Id + " cancelOrders only support clientOrderIds."))
 	}
 	var subAccountId any = 0
-	var subAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "subAccountId", subAccountId)
+	var subAccountIdparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelOrders", "subAccountId", subAccountId)
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
 	params = MapTyped(GetValue(subAccountIdparamsVariable, 1))
 	var goodTillBlock any = DerefScalar(this.SafeInteger(params, "goodTillBlock"))
@@ -2340,7 +2340,7 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
 	// }
 	//
 	var gasInfo map[string]any = SafeMapTyped(response, "gas_info")
-	if IsEqual(gasInfo, nil) {
+	if gasInfo == nil {
 		panic(ExchangeError(this.Id + " failed to simulate transaction."))
 	}
 	var gasUsed *string = this.SafeString(gasInfo, "gas_used")
@@ -3059,7 +3059,7 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
 	var subaccountNumber any = nil
-	var subaccountNumberparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "subaccountNumber", 0)
+	var subaccountNumberparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchBalance", "subaccountNumber", 0)
 	subaccountNumber = GetValue(subaccountNumberparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountNumberparamsVariable, 1))
 	var request map[string]any = map[string]any{
@@ -3540,7 +3540,7 @@ func (this *Dydx) FetchLatestBlockHeight(params ...any) (float64, error) {
  * @param {bool} [params.postOnly] true or false whether the order is post-only
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
  * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
- * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+ * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Dydx) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -3569,7 +3569,7 @@ func (this *Dydx) CreateOrder(symbol string, typeVar string, side string, amount
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
  * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
- * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+ * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
  * @param {int} [params.subAccountId] sub account id, default is 0
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */

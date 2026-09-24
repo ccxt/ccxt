@@ -1921,9 +1921,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object depth = null;
-            List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
-            depth = ((List<Object>) depthparametersVariable).get(0);
+            String depth = null;
+            List<Object> depthparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
+            depth = (String) ((List<Object>) depthparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) depthparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1958,7 +1958,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(((depth + ":") + symbol));
                 String marketId = this.marketId((String) (symbol));
-                final Object finalDepth = depth;
+                final String finalDepth = depth;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalDepth );
                     put( "instId", marketId );
@@ -1969,7 +1969,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
-            String url = this.getUrl((String) (depth), "public");
+            String url = this.getUrl(depth, "public");
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
@@ -2014,9 +2014,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object depth = null;
-            List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
-            depth = ((List<Object>) depthparametersVariable).get(0);
+            String depth = null;
+            List<Object> depthparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
+            depth = (String) ((List<Object>) depthparametersVariable).get(0);
             parameters = ((List<Object>) depthparametersVariable).get(1);
             Long limit = this.safeInteger(parameters, "limit");
             if (!java.util.Objects.equals(limit, null))
@@ -2044,7 +2044,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 ((List<Object>)subMessageHashes).add(((depth + ":") + symbol));
                 messageHashes.add(("unsubscribe:orderbook:" + symbol));
                 String marketId = this.marketId((String) (symbol));
-                final Object finalDepth = depth;
+                final String finalDepth = depth;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalDepth );
                     put( "instId", marketId );
@@ -2055,7 +2055,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "unsubscribe" );
                 put( "args", topics );
             }};
-            String url = this.getUrl((String) (depth), "public");
+            String url = this.getUrl(depth, "public");
             return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 

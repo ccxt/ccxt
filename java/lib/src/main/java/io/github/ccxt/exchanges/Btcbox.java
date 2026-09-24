@@ -674,7 +674,7 @@ public class Btcbox extends BtcboxApi
         String id = this.safeString(trade, "tid");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
-        Object type = null;
+        List<String> type = null;
         String side = this.safeString(trade, "type");
         final Map<String, Object> finalMarket = market;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -917,7 +917,7 @@ public class Btcbox extends BtcboxApi
                 status = "closed";
             }
         }
-        Object trades = null; // todo: this.parseTrades (order['trades']);
+        List<String> trades = null; // todo: this.parseTrades (order['trades']);
         market = (Map<String, Object>) (this.safeMarket(null, market));
         String side = this.safeString(order, "type");
         final Long finalTimestamp = timestamp;

@@ -550,7 +550,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
             Object interval = null;
-            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
+            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
             interval = ((List<Object>) intervalparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) intervalparametersVariable).get(1);
             if (java.util.Objects.equals(interval, "raw"))
@@ -799,9 +799,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            Object interval = null;
-            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
-            interval = ((List<Object>) intervalparametersVariable).get(0);
+            String interval = null;
+            List<Object> intervalparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
+            interval = (String) ((List<Object>) intervalparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) intervalparametersVariable).get(1);
             if (java.util.Objects.equals(interval, "raw"))
             {
@@ -814,9 +814,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             parameters = (Map<String, Object>) ((List<Object>) useDepthEndpointparametersVariable).get(1);
             if (Boolean.TRUE.equals(useDepthEndpoint))
             {
-                Object depth = null;
-                List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", "20");
-                depth = ((List<Object>) depthparametersVariable).get(0);
+                String depth = null;
+                List<Object> depthparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", "20");
+                depth = (String) ((List<Object>) depthparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) depthparametersVariable).get(1);
                 String group = null;
                 List<Object> groupparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "group", "none");

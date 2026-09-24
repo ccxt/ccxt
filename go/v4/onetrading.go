@@ -1382,7 +1382,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var feeInfo map[string]any = SafeMapTyped(trade, "fee")
-	trade = this.SafeValue(trade, "trade", trade)
+	trade = this.SafeDict(trade, "trade", trade)
 	var timestamp *int64 = this.SafeInteger(trade, "trade_timestamp")
 	if timestamp == nil {
 		timestamp = this.Parse8601(this.SafeString(trade, "time"))
@@ -1571,7 +1571,7 @@ func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var rawOrder any = this.SafeValue(order, "order", order)
+	var rawOrder any = this.SafeDict(order, "order", order)
 	var id *string = this.SafeString(rawOrder, "order_id")
 	var clientOrderId *string = this.SafeString(rawOrder, "client_id")
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrder, "time"))

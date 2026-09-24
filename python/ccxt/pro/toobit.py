@@ -663,8 +663,6 @@ class toobit(ccxt.async_support.toobit):
         subscriptionHash = swapSubHash
         if isSpot:
             subscriptionHash = spotSubHash
-        if subscriptionHash is None:
-            raise ArgumentsRequired(self.id + ' watchBalance() requires a subscription hash')
         url = self.get_user_stream_url()
         client = self.client(url)
         self.set_balance_cache(client, marketType, subscriptionHash, params)
@@ -735,7 +733,7 @@ class toobit(ccxt.async_support.toobit):
             account['info'] = balance
             account['used'] = self.safe_string(balance, 'l')
             account['free'] = self.safe_string(balance, 'f')
-            if (type is not None) and (code is not None):
+            if code is not None:
                 self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')

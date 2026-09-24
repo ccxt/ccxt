@@ -912,7 +912,7 @@ export default class binance extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
-        const [ type, paramsType ] = this.handleOptionAndParams (params, 'fetchBalance', 'type', 'SPOT');
+        const [ type, paramsType ] = this.handleOptionStringAndParams (params, 'fetchBalance', 'type', 'SPOT');
         const response = await this.sapiPrivateGetBalancePaymentOptions (paramsType);
         //
         // {
@@ -1061,7 +1061,7 @@ export default class binance extends Exchange {
         let paginate = false;
         let paramsPaginate: Dict = {};
         [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
-        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as PredictionOrder[];
@@ -1144,7 +1144,7 @@ export default class binance extends Exchange {
         let paginate = false;
         let paramsPaginate: Dict = {};
         [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
-        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as PredictionOrder[];
@@ -1410,7 +1410,7 @@ export default class binance extends Exchange {
         let paginate = false;
         let paramsPaginate: Dict = {};
         [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
-        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as PredictionTrade[];
@@ -1582,7 +1582,7 @@ export default class binance extends Exchange {
         if (cachedWallet !== undefined) {
             return cachedWallet;
         }
-        const walletAddress = this.handleOptionAndParams (params, methodName, 'walletAddress', this.walletAddress)[0];
+        const walletAddress = this.handleOptionStringAndParams (params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList ();
         //
         // {
