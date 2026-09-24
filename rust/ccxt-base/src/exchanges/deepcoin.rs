@@ -1979,7 +1979,9 @@ impl DeepcoinCore {
     m
 })]);
         let mut defaultNetwork: Value = self.safe_string(defaultNetworks, code.clone(), &[]);
-        network = (if ((network != Value::Null) && (network.as_str() != Some(""))) { network.clone() } else { defaultNetwork });
+        if (network == Value::Null) || (network.as_str() == Some("")) {
+            network = defaultNetwork;
+        }
         if (network != Value::Null) {
             params = self.omit(params.clone(), Value::Str("network".into()), &[]);
         }

@@ -1344,7 +1344,9 @@ impl WhitebitCore {
         let mut id: Value = self.safe_string_k(market.clone(), "name", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "stock", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "money", &[]);
-        quoteId = (if (quoteId.as_str() == Some("PERP")) { Value::Str("USDT".into()) } else { quoteId.clone() });
+        if (quoteId.as_str() == Some("PERP")) {
+            quoteId = Value::Str("USDT".into());
+        }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut active: Value = self.safe_bool_k(market.clone(), "tradesEnabled", &[]);
