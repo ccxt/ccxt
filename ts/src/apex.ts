@@ -1131,7 +1131,7 @@ export default class apex extends Exchange {
         //
         const rates: FundingRateHistory[] = [];
         const data = this.safeDict (response, 'data', {});
-        const resultList = this.safeList (data, 'historyFunds', []);
+        const resultList: Dict[] = this.safeList (data, 'historyFunds', []);
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger (entry, 'fundingTimestamp');

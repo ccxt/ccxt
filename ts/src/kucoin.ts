@@ -2214,7 +2214,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
      * @returns {any} ignore
      */
-    async loadMigrationStatus (force: boolean = false) {
+    async loadMigrationStatus (force: boolean = false): Promise<boolean> {
         if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
             const result: Dict = await this.privateGetHfAccountsOpened ();
             this.options['hf'] = this.safeBool (result, 'data');
@@ -8501,7 +8501,7 @@ export default class kucoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const accounts = this.safeList (data, 'accounts', []);
+        const accounts: Dict[] = this.safeList (data, 'accounts', []);
         if (isIsolated) {
             for (let i = 0; i < accounts.length; i++) {
                 const entry = accounts[i];
@@ -10139,7 +10139,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const rates: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

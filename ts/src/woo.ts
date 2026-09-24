@@ -2481,7 +2481,7 @@ export default class woo extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const rows: Dict[] = this.safeList (data, 'rows', []);
         const timestamp = this.safeInteger (response, 'timestamp');
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const marketId = this.safeString (row, 'symbol');
@@ -3788,7 +3788,7 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         const first = this.safeDict (rows, 0, {});
         return this.parseFundingRate (first, market);
     }
@@ -4053,7 +4053,7 @@ export default class woo extends Exchange {
         }
         let longLeverage = spotLeverage;
         let shortLeverage = spotLeverage;
-        const details = this.safeList (leverage, 'details', []);
+        const details: Dict[] = this.safeList (leverage, 'details', []);
         for (let i = 0; i < details.length; i++) {
             const position = this.safeDict (details, i, {});
             const positionLeverage = this.safeInteger (position, 'leverage');
@@ -4207,7 +4207,7 @@ export default class woo extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'data', {});
-        const positions = this.safeList (result, 'positions', []);
+        const positions: Dict[] = this.safeList (result, 'positions', []);
         const first = this.safeDict (positions, 0, {});
         return this.parsePosition (first, market);
     }

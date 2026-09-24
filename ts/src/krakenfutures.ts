@@ -830,7 +830,7 @@ export default class krakenfutures extends Exchange {
             //
             volumes = this.safeDict (volumesResponse, 'volumesByFeeSchedule', {});
         }
-        const feeSchedules = this.safeList (response, 'feeSchedules', []);
+        const feeSchedules: Dict[] = this.safeList (response, 'feeSchedules', []);
         const schedulesByUid: Dict = {};
         for (let i = 0; i < feeSchedules.length; i++) {
             const schedule = feeSchedules[i];
@@ -2321,7 +2321,7 @@ export default class krakenfutures extends Exchange {
                 'trades': undefined,
             });
         }
-        const orderEvents = this.safeList (order, 'orderEvents', []);
+        const orderEvents: Dict[] = this.safeList (order, 'orderEvents', []);
         const errorStatus = this.safeString (order, 'status');
         const orderEventsLength = orderEvents.length;
         if (('orderEvents' in order) && (errorStatus !== undefined) && (orderEventsLength === 0)) {
@@ -2583,7 +2583,7 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        const logs = this.safeList (response, 'logs', []);
+        const logs: Dict[] = this.safeList (response, 'logs', []);
         // each execution emits two rows: a cash leg(asset is a currency) and
         // a position-size leg(asset equals the contract id) - keep the cash legs only
         const rows: List = [];
@@ -3625,7 +3625,7 @@ export default class krakenfutures extends Exchange {
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transferOut (code: string, amount: number, params: Dict = {}) {
+    async transferOut (code: string, amount: number, params: Dict = {}): Promise<TransferEntry> {
         return await this.transfer (code, amount, 'future', 'spot', params);
     }
 

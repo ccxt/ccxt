@@ -978,7 +978,7 @@ export default class bitget extends bitgetRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
+    async handleCheckSumError (client: Client, symbol: string, messageHash: string): Promise<void> {
         await this.unWatchOrderBook (symbol);
         const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
         client.reject (error, messageHash);
@@ -2427,7 +2427,7 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
             if (instType === 'uta') {

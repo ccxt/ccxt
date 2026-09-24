@@ -43,7 +43,7 @@ export default class bithumb extends bithumbRest {
         });
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: any): Promise<void> {
         const ping = this.safeInteger (message, 'ping');
         if (ping !== undefined) {
             await client.send ({ 'pong': ping });

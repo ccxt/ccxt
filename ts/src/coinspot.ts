@@ -582,11 +582,11 @@ export default class coinspot extends Exchange {
         //          },
         //      ]
         // }
-        const buyTrades = this.safeList (response, 'buyorders', []);
+        const buyTrades: Dict[] = this.safeList (response, 'buyorders', []);
         for (let i = 0; i < buyTrades.length; i++) {
             buyTrades[i]['side'] = 'buy';
         }
-        const sellTrades = this.safeList (response, 'sellorders', []);
+        const sellTrades: Dict[] = this.safeList (response, 'sellorders', []);
         for (let i = 0; i < sellTrades.length; i++) {
             sellTrades[i]['side'] = 'sell';
         }

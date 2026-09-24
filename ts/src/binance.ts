@@ -3331,7 +3331,7 @@ export default class binance extends Exchange {
         const name = this.safeString (entry, 'name');
         const code = this.safeCurrencyCode (id);
         const isFiat = this.safeBool (entry, 'isLegalMoney');
-        const networkList = this.safeList (entry, 'networkList', []);
+        const networkList: Dict[] = this.safeList (entry, 'networkList', []);
         const fees: Dict = {};
         let fee: Num = undefined;
         const networks: Dict = {};
@@ -9215,7 +9215,7 @@ export default class binance extends Exchange {
         const rows = this.safeInteger (response, 'total', 0);
         const data: List = [];
         for (let i = 0; i < rows; i++) {
-            const logs = this.safeList (results[i], 'userAssetDribbletDetails', []);
+            const logs: Dict[] = this.safeList (results[i], 'userAssetDribbletDetails', []);
             for (let j = 0; j < logs.length; j++) {
                 logs[j]['isDustTrade'] = true;
                 data.push (logs[j]);
@@ -11740,7 +11740,7 @@ export default class binance extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
-        const brackets = this.safeList (info, 'brackets', []);
+        const brackets: Dict[] = this.safeList (info, 'brackets', []);
         const tiers: List = [];
         for (let j = 0; j < brackets.length; j++) {
             const bracket = brackets[j];
@@ -13116,7 +13116,7 @@ export default class binance extends Exchange {
             let query: Str = undefined;
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
-                const batchOrders = this.safeList (params, 'batchOrders', []);
+                const batchOrders: Dict[] = this.safeList (params, 'batchOrders', []);
                 let checkedBatchOrders = batchOrders;
                 if (method === 'POST' && api === 'fapiPrivate') {
                     // check broker id if batchOrders are called with fapiPrivatePostBatchOrders

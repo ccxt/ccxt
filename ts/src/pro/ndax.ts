@@ -155,7 +155,7 @@ export default class ndax extends ndaxRest {
     }
 
     handleTrades (client: Client, message: Dict) {
-        const payload = this.safeList (message, 'o', []);
+        const payload: Dict[] = this.safeList (message, 'o', []);
         //
         // initial snapshot
         //

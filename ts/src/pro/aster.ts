@@ -1271,7 +1271,7 @@ export default class aster extends asterRest {
         ];
     }
 
-    async authenticate (type: string = 'spot', params: Dict = {}) {
+    async authenticate (type: string = 'spot', params: Dict = {}): Promise<void> {
         const time = this.milliseconds ();
         const lastAuthenticatedTimeOptions = this.safeDict (this.options, 'lastAuthenticatedTime', {});
         const lastAuthenticatedTime = this.safeInteger (lastAuthenticatedTimeOptions, type, 0);
@@ -1329,7 +1329,7 @@ export default class aster extends asterRest {
         }
     }
 
-    async keepAliveListenKey (params: Dict = {}) {
+    async keepAliveListenKey (params: Dict = {}): Promise<void> {
         const type = this.safeString (params, 'type', 'spot');
         const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
         const listenKey = this.safeString (listenKeyOptions, type);
@@ -1415,7 +1415,7 @@ export default class aster extends asterRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: any): Promise<void> {
         const params: Dict = {
             'type': type,
         };
@@ -1572,7 +1572,7 @@ export default class aster extends asterRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string) {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;

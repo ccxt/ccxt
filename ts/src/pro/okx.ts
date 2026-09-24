@@ -341,7 +341,7 @@ export default class okx extends okxRest {
         const channel = this.safeString (arg, 'channel');
         const marketId = this.safeString (arg, 'instId');
         const symbol = this.safeSymbol (marketId);
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i]);
@@ -625,7 +625,7 @@ export default class okx extends okxRest {
             // mark-price and index frames lack them and must not overwrite the bid-ask cache
             this.handleBidAsk (client, message);
         }
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);

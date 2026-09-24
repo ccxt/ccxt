@@ -1204,7 +1204,7 @@ export default class btse extends Exchange {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             if (symbols === undefined || this.inArray (symbol, symbols)) {
-                const levels = this.safeList (entry, 'riskLimits', []);
+                const levels: Dict[] = this.safeList (entry, 'riskLimits', []);
                 const tiers = [];
                 for (let j = 0; j < levels.length; j++) {
                     const level = levels[j];
@@ -1425,7 +1425,7 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetPublicApiMarketV1Ticker24hr (params);
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const rows = [];
         for (let i = 0; i < data.length; i++) {
             const row = data[i];
@@ -1494,7 +1494,7 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetPublicApiMarketV1Ticker24hr (params);
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const rows = [];
         for (let i = 0; i < data.length; i++) {
             const row = data[i];
@@ -2902,7 +2902,7 @@ export default class btse extends Exchange {
         //         "success": true
         //     }
         //
-        const rawRows = this.safeList (response, 'data', response as any);
+        const rawRows: Dict[] = this.safeList (response, 'data', response as any);
         // the requested types are also filtered client side over both the legacy
         // and the unified enum vocabularies as the legacy endpoint ignored the
         // filter and returned the whole mixed ledger

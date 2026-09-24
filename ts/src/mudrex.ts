@@ -1333,7 +1333,7 @@ export default class mudrex extends Exchange {
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
         const rebateKeys = [];
-        const rebateAmounts = [];
+        const rebateAmounts: string[] = [];
         const transactions: Dict[] = [];
         const transactionKeys: string[] = [];
         for (let i = 0; i < allRows.length; i++) {
