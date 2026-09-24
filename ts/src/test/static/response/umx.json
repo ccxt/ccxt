@@ -1871,6 +1871,205 @@
                         "USDT": 0
                     }
                 }
+            },
+            {
+                "description": "trading balance while a contract order rests, its margin sits in initialMargin and orderInitialMargin stays null",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "totalEquity": "29.98098392",
+                        "totalMarginBalance": "29.98098392",
+                        "totalAvailableBalance": "29.79003392",
+                        "totalEffectiveMargin": "29.98003392",
+                        "totalPositionValue": "0",
+                        "totalIm": "0.19",
+                        "totalMm": "0.0114",
+                        "totalOpenLoss": "0.00095",
+                        "mmr": "0.00038025",
+                        "imr": "0.00633755",
+                        "accountLeverage": "0",
+                        "contractUpl": "0",
+                        "flexibleEquity": "0.0",
+                        "flexiblePnl": "0.0",
+                        "autoSubscribe": false,
+                        "flexibleCurrency": null,
+                        "details": [
+                            {
+                                "currency": "ETH",
+                                "equity": "0.0000979",
+                                "totalBalance": "0.0000979",
+                                "cashBalance": "0.0000979",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000309880000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0",
+                                "intLiability": "0",
+                                "fixedBalance": "0"
+                            },
+                            {
+                                "currency": "USDT",
+                                "equity": "29.72050139",
+                                "totalBalance": "29.72050139",
+                                "cashBalance": "29.72050139",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.031138680000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0.19",
+                                "intLiability": "0",
+                                "fixedBalance": "0"
+                            }
+                        ],
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001"
+                    },
+                    "ts": "1790239777305"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "Success",
+                        "data": {
+                            "accountName": "1000000000000000000",
+                            "totalEquity": "29.98098392",
+                            "totalMarginBalance": "29.98098392",
+                            "totalAvailableBalance": "29.79003392",
+                            "totalEffectiveMargin": "29.98003392",
+                            "totalPositionValue": "0",
+                            "totalIm": "0.19",
+                            "totalMm": "0.0114",
+                            "totalOpenLoss": "0.00095",
+                            "mmr": "0.00038025",
+                            "imr": "0.00633755",
+                            "accountLeverage": "0",
+                            "contractUpl": "0",
+                            "flexibleEquity": "0.0",
+                            "flexiblePnl": "0.0",
+                            "autoSubscribe": false,
+                            "flexibleCurrency": null,
+                            "details": [
+                                {
+                                    "currency": "ETH",
+                                    "equity": "0.0000979",
+                                    "totalBalance": "0.0000979",
+                                    "cashBalance": "0.0000979",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000309880000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0",
+                                    "intLiability": "0",
+                                    "fixedBalance": "0"
+                                },
+                                {
+                                    "currency": "USDT",
+                                    "equity": "29.72050139",
+                                    "totalBalance": "29.72050139",
+                                    "cashBalance": "29.72050139",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.031138680000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0.19",
+                                    "intLiability": "0",
+                                    "fixedBalance": "0"
+                                }
+                            ],
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001"
+                        },
+                        "ts": "1790239777305"
+                    },
+                    "timestamp": 1790239777305,
+                    "datetime": "2026-09-24T08:49:37.305Z",
+                    "ETH": {
+                        "free": 9.79e-05,
+                        "used": 0,
+                        "total": 9.79e-05,
+                        "debt": 0
+                    },
+                    "USDT": {
+                        "free": 29.53050139,
+                        "used": 0.19,
+                        "total": 29.72050139,
+                        "debt": 0
+                    },
+                    "free": {
+                        "ETH": 9.79e-05,
+                        "USDT": 29.53050139
+                    },
+                    "used": {
+                        "ETH": 0,
+                        "USDT": 0.19
+                    },
+                    "total": {
+                        "ETH": 9.79e-05,
+                        "USDT": 29.72050139
+                    },
+                    "debt": {
+                        "ETH": 0,
+                        "USDT": 0
+                    }
+                }
             }
         ],
         "fetchCrossBorrowRates": [
@@ -4834,7 +5033,7 @@
                         "status": "closed",
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0.00134567"
+                            "cost": 0.00134567
                         },
                         "trades": [],
                         "fees": [
@@ -5108,7 +5307,7 @@
                         "status": "closed",
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0.00134567"
+                            "cost": 0.00134567
                         },
                         "trades": [],
                         "fees": [

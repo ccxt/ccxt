@@ -1042,6 +1042,35 @@
                 ],
                 "output": "{\"orderCreateReq\":[{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"3538122818192056320\"}]}"
             }
+        ],
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "attached take profit and stop loss with non-default mark and index price types",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900,
+                    3500,
+                    1500,
+                    {
+                        "takeProfitPriceType": "mark",
+                        "stopLossPriceType": "index",
+                        "takeProfit": {
+                            "triggerPrice": 3500,
+                            "priceType": "mark"
+                        },
+                        "stopLoss": {
+                            "triggerPrice": 1500,
+                            "priceType": "index"
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.001\",\"tpslOrder\":{\"takeProfit\":\"3500\",\"takeProfitType\":\"mark_price\",\"tpOrderType\":\"market\",\"stopLoss\":\"1500\",\"stopLossType\":\"index_price\",\"slOrderType\":\"market\"}}"
+            }
         ]
     },
     "outputType": "both"

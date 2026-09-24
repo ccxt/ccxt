@@ -475,8 +475,6 @@ export default class umx extends Exchange {
                     'fetchCurrencies': {
                         'private': true, // /v2/asset/currencies requires an api key
                     },
-                    // the trigger family lives on the orderComplex endpoint, which is not wired
-                    // up yet, so every trigger capability stays false for now
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,
@@ -516,6 +514,7 @@ export default class umx extends Exchange {
                         'marginMode': false,
                         'daysBack': undefined,
                         'limit': 100,
+                        'untilDays': undefined,
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -2860,7 +2859,7 @@ export default class umx extends Exchange {
         const tpslOrder: Dict = {};
         if (takeProfitObject !== undefined) {
             const tpTriggerPrice = this.safeString (takeProfitObject, 'triggerPrice');
-            const tpPriceType = this.safeString (takeProfitObject, 'triggerPriceType', 'last');
+            const tpPriceType = this.safeString2 (takeProfitObject, 'triggerPriceType', 'priceType', 'last');
             const tpLimitPrice = this.safeString (takeProfitObject, 'price');
             tpslOrder['takeProfit'] = this.priceToPrecision (symbol, tpTriggerPrice);
             tpslOrder['takeProfitType'] = this.safeString (priceTypes, tpPriceType, tpPriceType);
@@ -2873,7 +2872,7 @@ export default class umx extends Exchange {
         }
         if (stopLossObject !== undefined) {
             const slTriggerPrice = this.safeString (stopLossObject, 'triggerPrice');
-            const slPriceType = this.safeString (stopLossObject, 'triggerPriceType', 'last');
+            const slPriceType = this.safeString2 (stopLossObject, 'triggerPriceType', 'priceType', 'last');
             const slLimitPrice = this.safeString (stopLossObject, 'price');
             tpslOrder['stopLoss'] = this.priceToPrecision (symbol, slTriggerPrice);
             tpslOrder['stopLossType'] = this.safeString (priceTypes, slPriceType, slPriceType);
@@ -3247,12 +3246,12 @@ export default class umx extends Exchange {
         if ((quoteFee !== undefined) && (!Precise.stringEq (quoteFee, '0'))) {
             fee = {
                 'currency': market['quote'],
-                'cost': Precise.stringNeg (quoteFee),
+                'cost': this.parseNumber (Precise.stringNeg (quoteFee)),
             };
         } else if ((baseFee !== undefined) && (!Precise.stringEq (baseFee, '0'))) {
             fee = {
                 'currency': market['base'],
-                'cost': Precise.stringNeg (baseFee),
+                'cost': this.parseNumber (Precise.stringNeg (baseFee)),
             };
         }
         return this.safeOrder ({
@@ -3532,7 +3531,7 @@ export default class umx extends Exchange {
      * @param {string} [params.businessType] the exchange instrument type to narrow the sweep to, e.g. "spot"
      * @returns {object[]} a list with the raw response, the venue answers no order details
      */
-    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
         if (symbol !== undefined) {
