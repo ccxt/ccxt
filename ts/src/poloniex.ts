@@ -963,7 +963,7 @@ export default class poloniex extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         const status = this.safeString (market, 'status');
         const active = status === 'OPEN';
-        const linear = market['ctType'] === 'LINEAR';
+        const linear = this.safeString (market, 'ctType') === 'LINEAR';
         let symbol = base + '/' + quote;
         if (linear) {
             symbol += ':' + settle;
@@ -3677,7 +3677,7 @@ export default class poloniex extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api']['spot'];
+        let url: string = this.urls['api']['spot'];
         if (this.inArray (api, [ 'swapPublic', 'swapPrivate' ])) {
             url = this.urls['api']['swap'];
         }

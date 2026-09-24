@@ -2948,7 +2948,8 @@ export default class woofipro extends Exchange {
     }
 
     hashMessage (message: any) {
-        return '0x' + this.hash (message, keccak, 'hex');
+        const hashed: string = this.hash (message, keccak, 'hex');
+        return '0x' + hashed;
     }
 
     signHash (hash: string, privateKey: string): string {

@@ -879,7 +879,7 @@ export default class xt extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -1062,7 +1062,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
             await this.loadTimeDifference ();
         }
         const promisesUnresolved = [
@@ -2677,7 +2677,7 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type: any, side: any, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    async createContractOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3177,7 +3177,7 @@ export default class xt extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOrdersByStatus (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4520,7 +4520,7 @@ export default class xt extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: string, params: Dict = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
         const methodName = (addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
         this.checkRequiredArgument (methodName, positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);

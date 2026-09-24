@@ -479,7 +479,7 @@ export default class whitebit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
             await this.loadTimeDifference ();
         }
         const markets = await this.v4PublicGetMarkets ();
@@ -1087,7 +1087,7 @@ export default class whitebit extends Exchange {
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
-            const symbol = market['symbol'];
+            const symbol = marketSymbol;
             // Filter by symbols if specified
             if (symbols !== undefined) {
                 let symbolFound = false;
@@ -1227,7 +1227,7 @@ export default class whitebit extends Exchange {
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
                 const fee = this.safeDict (feesData, feeKey);
-                if ((fee !== undefined && fee !== null) && fee['ticker'] === code) {
+                if ((fee !== undefined && fee !== null) && this.safeString (fee, 'ticker') === code) {
                     feeData = fee;
                     break;
                 }
@@ -4266,7 +4266,7 @@ export default class whitebit extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
