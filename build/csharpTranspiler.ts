@@ -1540,6 +1540,10 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
 // cs90 U23 census: the `limit` core-arg copies (`object limitVar = limit;`, 305 sites) keep
 // `object` -- each is reassigned an `object` producer (204 callDynamically(getLimit): CS0266 and an
 // Int32 box on the ArrayCache min path; 76 int literals; 9 mathMin; 10 ternaries; 6 others).
+// Body text with C# string literal contents blanked, so a parameter name inside a message
+// (`"accepts limit = 150 only"`) is not read as an assignment to that parameter.
+const stripCsStringLiterals = (body: string): string => body.replace (/"(?:[^"\\\n]|\\.)*"/g, '""');
+
 const CORE_ARG_SHADOW_TYPES = [ 'string', 'Int64?', 'double?', 'bool?' ];
 
 // cs90 U65: the `limit` core-arg shadow (`object limitVar = limit;`). The escalation the user
@@ -3877,7 +3881,7 @@ class NewTranspiler {
                 // the parameter. The PUBLIC parameter keeps its original name and gains the
                 // narrowed type — no `<name>Typed` appears in any signature. `ref name` counts
                 // as an assignment: the helper mutates in place and needs an `object` slot.
-                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body)
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (stripCsStringLiterals (body))
                     || new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
                 params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
                 // a list target keeps the parameter's own type when every write already produces
@@ -3963,7 +3967,7 @@ class NewTranspiler {
                 if (VENUE_NUMERIC_ARG_NAMES.indexOf (paramName) === -1) {
                     continue;
                 }
-                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body)
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (stripCsStringLiterals (body))
                     || new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
                 params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
                 if (reassigned) {
@@ -4068,7 +4072,7 @@ class NewTranspiler {
                     continue;
                 }
                 const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
-                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body);
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (stripCsStringLiterals (body));
                 params[pos] = param.replace ('object ' + paramName, 'string? ' + paramName);
                 if (reassigned) {
                     const alias = paramName + 'Var';

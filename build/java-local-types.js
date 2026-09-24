@@ -3940,7 +3940,30 @@ function handleElement1Type (printer, callNode) {
     if (declaration === undefined || !HANDLE_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
         return undefined;
     }
-    return HANDLE_ELEMENT_1_TYPE;
+    // element 1 passes the params argument through: only a statically Dict argument proves a map
+    return handleParamsArgumentIsDict (printer, callNode.arguments?.[0], 0) ? HANDLE_ELEMENT_1_TYPE : undefined;
+}
+
+function handleParamsArgumentIsDict (printer, arg, depth) {
+    let type, argDeclaration;
+    try {
+        type = arg && printer.getChecker ().getTypeAtLocation (arg);
+        argDeclaration = printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration;
+    } catch (e) {
+        return false;
+    }
+    if (type === undefined || (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) !== 0) {
+        return false;
+    }
+    // an element-1 binding of another handle call is proven only by that call's own argument
+    const pattern = argDeclaration?.kind === ts.SyntaxKind.BindingElement ? argDeclaration.parent : undefined;
+    const call = pattern?.parent?.initializer;
+    if (pattern?.elements?.indexOf (argDeclaration) === 1 && call?.kind === ts.SyntaxKind.CallExpression
+            && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && HANDLE_ELEMENT_1_PARAMS.has (String (call.expression.name.escapedText))) {
+        return depth < 8 && handleParamsArgumentIsDict (printer, call.arguments?.[0], depth + 1);
+    }
+    return true;
 }
 
 // the audited element type of `this.handleX (...)`[index], or undefined

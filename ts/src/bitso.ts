@@ -410,7 +410,7 @@ export default class bitso extends Exchange {
         const amount = this.safeString (firstBalance, 'amount');
         const currencyId = this.safeString (firstBalance, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const details = this.safeDict (item, 'details', {});
         let referenceId = this.safeString2 (details, 'fid', 'wid');
         if (referenceId === undefined) {
@@ -427,7 +427,7 @@ export default class bitso extends Exchange {
             const cost = Precise.stringAbs (amount);
             fee = {
                 'cost': cost,
-                'currency': currency,
+                'currency': currencyResolved,
             };
         }
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
@@ -447,7 +447,7 @@ export default class bitso extends Exchange {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     /**
@@ -1145,11 +1145,9 @@ export default class bitso extends Exchange {
             throw new ExchangeError (this.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
+        let paramsMarker: Dict = params;
         if (markerInParams) {
-            const marker = parseInt (params['marker']);
-            params = this.extend (params, {
-                'marker': marker,
-            });
+            paramsMarker = this.extend (params, { 'marker': parseInt (params['marker']) });
         }
         const request: Dict = {
             'book': market['id'],
@@ -1157,7 +1155,7 @@ export default class bitso extends Exchange {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetUserTrades (this.extend (request, params));
+        const response = await this.privateGetUserTrades (this.extend (request, paramsMarker));
         const payload = this.safeList (response, 'payload', []);
         return this.parseTrades (payload, market, since, limit);
     }
@@ -1380,11 +1378,9 @@ export default class bitso extends Exchange {
             throw new ExchangeError (this.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
+        let paramsMarker: Dict = params;
         if (markerInParams) {
-            const marker = parseInt (params['marker']);
-            params = this.extend (params, {
-                'marker': marker,
-            });
+            paramsMarker = this.extend (params, { 'marker': parseInt (params['marker']) });
         }
         const request: Dict = {
             'book': market['id'],
@@ -1392,7 +1388,7 @@ export default class bitso extends Exchange {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        const response = await this.privateGetOpenOrders (this.extend (request, paramsMarker));
         const payload = this.safeList (response, 'payload', []);
         const orders = this.parseOrders (payload, market, since, limit);
         return orders;
@@ -1834,7 +1830,7 @@ export default class bitso extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1854,10 +1850,10 @@ export default class bitso extends Exchange {
         const request: Dict = {
             'amount': amount,
             'address': address,
-            'destination_tag': tag,
+            'destination_tag': tagWithdrawTag,
         };
         const classMethod = 'privatePost' + method + 'Withdrawal';
-        const response = await this[classMethod] (this.extend (request, params));
+        const response = await this[classMethod] (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "success": true,
@@ -1920,7 +1916,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const currencyId = this.safeString2 (transaction, 'currency', 'asset');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const details = this.safeDict (transaction, 'details', {});
         const datetime = this.safeString (transaction, 'created_at');
         const withdrawalAddress = this.safeString (details, 'withdrawal_address');
@@ -1928,7 +1924,7 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2 (transaction, 'network', 'method');
         const status = this.safeString (transaction, 'status');
         const withdrawId = this.safeString (transaction, 'wid');
-        const networkCode = this.networkIdToCode (networkId, currency['code']);
+        const networkCode = this.networkIdToCode (networkId, currencyResolved['code']);
         const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
         return {
             'id': this.safeString2 (transaction, 'wid', 'fid'),
@@ -1941,7 +1937,7 @@ export default class bitso extends Exchange {
             'addressTo': withdrawalAddress,
             'amount': this.safeNumber (transaction, 'amount'),
             'type': (withdrawId === undefined) ? 'deposit' : 'withdrawal',
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': this.safeCurrencyCode (currencyId, currencyResolved),
             'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'tagFrom': undefined,
@@ -1969,6 +1965,8 @@ export default class bitso extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET' || method === 'DELETE') {
@@ -1986,18 +1984,18 @@ export default class bitso extends Exchange {
             let request = content.join ('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    request += body;
+                    requestBody = this.json (query);
+                    request += requestBody;
                 }
             }
             const signature = this.hmac (this.encode (request), this.encode (this.secret), sha256);
             const auth = this.apiKey + ':' + nonce + ':' + signature;
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Bitso ' + auth,
                 // 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

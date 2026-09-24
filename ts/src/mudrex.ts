@@ -287,7 +287,6 @@ export default class mudrex extends Exchange {
         }
         const market = this.market (symbol);
         const priceType = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
         const assetPair = market['baseId'] + '/' + market['quoteId'];
         const request: Dict = {
@@ -312,8 +311,8 @@ export default class mudrex extends Exchange {
         }
         let endTime = startTime + duration * requestLimit;
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             endTime = this.parseToInt (until / 1000);
         } else if (endTime > now) {
             endTime = now;
@@ -322,9 +321,9 @@ export default class mudrex extends Exchange {
         request['end_time'] = endTime;
         let response = undefined;
         if (priceType === 'mark') {
-            response = await this.marketGetPriceMarkKline (this.extend (request, params));
+            response = await this.marketGetPriceMarkKline (this.extend (request, paramsOmitted));
         } else {
-            response = await this.marketGetPriceKline (this.extend (request, params));
+            response = await this.marketGetPriceKline (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -417,8 +416,8 @@ export default class mudrex extends Exchange {
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const ms = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (ms, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (ms, market);
+        const symbol = marketResolved['symbol'];
         const pct = this.safeNumber (ticker, 'change_perc');
         return this.safeTicker ({
             'symbol': symbol,
@@ -441,7 +440,7 @@ export default class mudrex extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -576,22 +575,21 @@ export default class mudrex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'swap');
-        const requested = this.safeStringN (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
-        params = this.omit (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'swap');
+        const requested = this.safeStringN (paramsMarketType, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
+        const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         const request: Dict = {};
         let response: NullableDict = undefined;
         if (type === 'spot') {
             if (requested !== undefined) {
                 request['currency'] = requested;
             }
-            response = await this.privateGetWalletFunds (this.extend (request, params));
+            response = await this.privateGetWalletFunds (this.extend (request, paramsOmitted));
         } else {
             if (requested !== undefined) {
                 request['trade_currency'] = requested;
             }
-            response = await this.privateGetFuturesFunds (this.extend (request, params));
+            response = await this.privateGetFuturesFunds (this.extend (request, paramsOmitted));
         }
         let currency = requested;
         if (currency === undefined) {
@@ -680,8 +678,8 @@ export default class mudrex extends Exchange {
             'margin_type': marginType,
             'leverage': leverage,
         };
-        params = this.omit (params, [ 'marginType' ]);
-        const response = await this.privatePostFuturesAssetIdLeverage (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'marginType' ]);
+        const response = await this.privatePostFuturesAssetIdLeverage (this.extend (request, paramsOmitted));
         return response;
     }
 
@@ -722,7 +720,7 @@ export default class mudrex extends Exchange {
             if (positionId === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order');
             }
-            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id' ]);
+            const paramsOmitted: Dict = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'positionId', 'position_id' ]);
             const riskRequest: Dict = {
                 'position_id': positionId,
             };
@@ -734,7 +732,7 @@ export default class mudrex extends Exchange {
                 riskRequest['is_stoploss'] = true;
                 riskRequest['stoploss_price'] = this.priceToPrecision (symbol, stopLossPrice);
             }
-            const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder (this.extend (riskRequest, params));
+            const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder (this.extend (riskRequest, paramsOmitted));
             const riskData = this.safeDict (riskResponse, 'data', riskResponse);
             return this.parseOrder (riskData, market);
         }
@@ -763,8 +761,8 @@ export default class mudrex extends Exchange {
             request['is_stoploss'] = true;
             request['stoploss_price'] = this.priceToPrecision (symbol, this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice', 'price' ]));
         }
-        params = this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ]);
-        const response = await this.privatePostFuturesAssetIdOrder (this.extend (request, params));
+        const orderParams: Dict = this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ]);
+        const response = await this.privatePostFuturesAssetIdOrder (this.extend (request, orderParams));
         const data = this.safeDict (response, 'data', response);
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
         const merged = this.extend (data, { 'order_type': request['order_type'], 'trigger_type': request['trigger_type'] });
@@ -828,7 +826,7 @@ export default class mudrex extends Exchange {
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
         const oms = this.safeString (order, 'symbol');
-        market = this.safeMarket (oms, market);
+        const marketResolved: Market = this.safeMarket (oms, market);
         const oid = this.safeString2 (order, 'order_id', 'id');
         const rawSide = this.safeStringUpper (order, 'order_type');
         let side: Str = undefined;
@@ -862,7 +860,7 @@ export default class mudrex extends Exchange {
         }
         const ts = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeStringLower (order, 'status'));
-        const sym = market['symbol'];
+        const sym = marketResolved['symbol'];
         return this.safeOrder ({
             'info': order,
             'id': oid,
@@ -890,7 +888,7 @@ export default class mudrex extends Exchange {
             'fees': [],
             'lastUpdateTimestamp': this.parse8601 (this.safeString (order, 'updated_at')),
             'reduceOnly': this.safeBool (order, 'reduce_only'),
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1078,7 +1076,7 @@ export default class mudrex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1106,14 +1104,14 @@ export default class mudrex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const positions = this.parsePositions (data, symbols);
+        const positions = this.parsePositions (data, symbolsNormalized);
         return this.filterBySinceLimit (positions, since, limit);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const ms = this.safeString (position, 'symbol');
-        const symbol = this.safeSymbol (ms, market);
+        const symbol = this.safeSymbol (ms, marketResolved);
         // open positions use "order_type", closed positions (history) use "position_type"
         const rawSide = this.safeStringUpper2 (position, 'order_type', 'position_type');
         let side: Str = undefined;
@@ -1128,7 +1126,7 @@ export default class mudrex extends Exchange {
         }
         const quantityString = this.safeString (position, 'quantity');
         const entryPriceString = this.safeString (position, 'entry_price');
-        const contractSizeString = this.safeString (market, 'contractSize', '1');
+        const contractSizeString = this.safeString (marketResolved, 'contractSize', '1');
         let notional: Num = undefined;
         if ((quantityString !== undefined) && (entryPriceString !== undefined)) {
             notional = this.parseNumber (Precise.stringMul (Precise.stringMul (quantityString, entryPriceString), contractSizeString));
@@ -1144,7 +1142,7 @@ export default class mudrex extends Exchange {
             'hedged': false,
             'side': side,
             'contracts': this.safeNumber (position, 'quantity'),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'markPrice': undefined,
             'lastPrice': this.safeNumber (position, 'closed_price'), // exit price for closed positions
@@ -1209,12 +1207,12 @@ export default class mudrex extends Exchange {
             if (orderType === 'LIMIT' && lp !== undefined) {
                 request['limit_price'] = lp;
             }
-            params = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
-            const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, params));
+            const partialParams: Dict = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
+            const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, partialParams));
             return partialResponse as Order;
         }
-        params = this.omit (params, [ 'position_id' ]);
-        const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, params));
+        const closeParams: Dict = this.omit (params, [ 'position_id' ]);
+        const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, closeParams));
         return response as Order;
     }
 
@@ -1251,8 +1249,8 @@ export default class mudrex extends Exchange {
             'position_id': positionId,
             'margin': this.costToPrecision (symbol, amount),
         };
-        params = this.omit (params, [ 'position_id' ]);
-        const response: Dict = await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'position_id' ]);
+        const response: Dict = await this.privatePostFuturesPositionsPositionIdAddMargin (this.extend (request, paramsOmitted));
         return response as MarginModification;
     }
 
@@ -1291,8 +1289,7 @@ export default class mudrex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let maxCalls = undefined;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
+        const [ maxCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
         let pageSize = 0;
         if (limit !== undefined) {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
@@ -1309,7 +1306,7 @@ export default class mudrex extends Exchange {
                 request['limit'] = pageSize;
                 request['offset'] = offset;
             }
-            const response = await this.privateGetFuturesFeeHistory (this.extend (request, params));
+            const response = await this.privateGetFuturesFeeHistory (this.extend (request, paramsPaginationCalls));
             const data = this.safeList (response, 'data', []);
             const dataLength = data.length;
             for (let i = 0; i < dataLength; i++) {
@@ -1385,8 +1382,8 @@ export default class mudrex extends Exchange {
         //     }
         //
         const ms = this.safeString (trade, 'symbol');
-        market = this.safeMarket (ms, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (ms, market);
+        const symbol = marketResolved['symbol'];
         const ts = this.parse8601 (this.safeString (trade, 'created_at'));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         const side = this.safeStringLower (trade, 'order_type');
@@ -1429,7 +1426,7 @@ export default class mudrex extends Exchange {
             'amount': undefined,
             'cost': this.safeString (trade, 'transaction_amount'),
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**

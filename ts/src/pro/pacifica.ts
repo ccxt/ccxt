@@ -108,10 +108,6 @@ export default class pacifica extends pacificaRest {
             await this.loadMarkets ();
         }
         const [ request, operationType ] = this.createOrderRequest (symbol, type, side, amount, price, params);
-        params = this.omit (params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
-            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'agentAddress', 'originAddress',
-        ]);
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
         if (isTestnet) {
@@ -195,7 +191,6 @@ export default class pacifica extends pacificaRest {
         }
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, market, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId' ]);
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
         if (isTestnet) {
@@ -257,7 +252,6 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired (this.id + 'cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest (ids, symbol, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds' ]);
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
         if (isTestnet) {
@@ -336,7 +330,6 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const request = this.cancelOrderRequest (id, symbol, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
         if (isTestnet) {
@@ -395,7 +388,6 @@ export default class pacifica extends pacificaRest {
         }
         const operationType = 'cancel_all_orders';
         const request = this.cancelAllOrdersRequest (symbol, params);
-        params = this.omit (params, [ 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ]);
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
         if (isTestnet) {
@@ -439,8 +431,7 @@ export default class pacifica extends pacificaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let aggLevel: Int = undefined;
-        [ aggLevel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
+        const [ aggLevel, paramsAggLevel ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const messageHash = 'orderbook:' + symbol;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
@@ -456,7 +447,7 @@ export default class pacifica extends pacificaRest {
                 'agg_level': aggLevel,
             },
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsAggLevel);
         const orderbook = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
@@ -471,13 +462,12 @@ export default class pacifica extends pacificaRest {
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let aggLevel: Int = undefined;
-        [ aggLevel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
+        const [ aggLevel, paramsAggLevel ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
@@ -494,7 +484,7 @@ export default class pacifica extends pacificaRest {
                 'agg_level': aggLevel,
             },
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsAggLevel);
         return await this.watch (url, messageHash, message, messageHash);
     }
 
@@ -585,7 +575,7 @@ export default class pacifica extends pacificaRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true);
         const messageHash = 'tickers';
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
@@ -601,7 +591,7 @@ export default class pacifica extends pacificaRest {
         };
         const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
-            return this.filterByArrayTickers (tickers, 'symbol', symbols);
+            return this.filterByArrayTickers (tickers, 'symbol', symbolsNormalized);
         }
         return this.tickers;
     }
@@ -615,11 +605,11 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true);
+        this.marketSymbols (symbols, undefined, true);
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
@@ -650,15 +640,15 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchMyTrades', params);
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('watchMyTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let messageHash = 'myTrades';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            symbolResolved = this.symbol (symbol);
+            messageHash += ':' + symbolResolved;
         }
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
@@ -673,12 +663,13 @@ export default class pacifica extends pacificaRest {
                 'account': userAddress,
             },
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOriginAndSingleAddress);
         const trades = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -691,15 +682,14 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
-        let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handleOriginAndSingleAddress ('unWatchMyTrades', params);
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('unWatchMyTrades', params);
         const messageHash = 'unsubscribe:myTrades';
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
@@ -714,7 +704,7 @@ export default class pacifica extends pacificaRest {
                 'account': userAddress,
             },
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOriginAndSingleAddress);
         return await this.watch (url, messageHash, message, messageHash);
     }
 
@@ -830,8 +820,8 @@ export default class pacifica extends pacificaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'trade:' + symbolValue;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
         if (isTestnet) {
@@ -847,10 +837,11 @@ export default class pacifica extends pacificaRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -862,13 +853,13 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const subMessageHash = 'trade:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const subMessageHash = 'trade:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
@@ -964,8 +955,8 @@ export default class pacifica extends pacificaRest {
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'a');
         const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString (trade, 'h');
         const fee = this.safeString (trade, 'f');
         let side = this.safeString2 (trade, 'ts', 'd');
@@ -1002,7 +993,7 @@ export default class pacifica extends pacificaRest {
             'amount': amount,
             'cost': undefined,
             'fee': { 'cost': fee, 'currency': 'USDC' },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1022,7 +1013,7 @@ export default class pacifica extends pacificaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
         const parsedTf = this.safeString (this.timeframes, timeframe, timeframe);
         let urlKey: Str = 'api';
@@ -1038,13 +1029,14 @@ export default class pacifica extends pacificaRest {
                 'interval': parsedTf,
             },
         };
-        const messageHash = 'candles:' + parsedTf + ':' + symbol;
+        const messageHash = 'candles:' + parsedTf + ':' + symbolValue;
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -1057,12 +1049,12 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
         if (isTestnet) {
@@ -1077,7 +1069,7 @@ export default class pacifica extends pacificaRest {
                 'interval': timeframe,
             },
         };
-        const subMessageHash = 'candles:' + timeframe + ':' + symbol;
+        const subMessageHash = 'candles:' + timeframe + ':' + symbolValue;
         const messagehash = 'unsubscribe:' + subMessageHash;
         const message = this.extend (request, params);
         return await this.watch (url, messagehash, message, messagehash);
@@ -1141,14 +1133,14 @@ export default class pacifica extends pacificaRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchOrders', params);
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('watchOrders', params);
         let market: Market = undefined;
         let messageHash = 'order';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            symbolResolved = market['symbol'];
+            messageHash = messageHash + ':' + symbolResolved;
         }
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
@@ -1163,12 +1155,13 @@ export default class pacifica extends pacificaRest {
                 'account': userAddress,
             },
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOriginAndSingleAddress);
         const orders = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1181,7 +1174,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1195,8 +1188,7 @@ export default class pacifica extends pacificaRest {
             urlKey = 'test';
         }
         const url = this.urls[urlKey]['ws']['public'];
-        let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handleOriginAndSingleAddress ('unWatchOrders', params);
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('unWatchOrders', params);
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -1204,7 +1196,7 @@ export default class pacifica extends pacificaRest {
                 'account': userAddress,
             },
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOriginAndSingleAddress);
         return await this.watch (url, messageHash, message, messageHash);
     }
 

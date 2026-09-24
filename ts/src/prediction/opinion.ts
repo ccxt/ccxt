@@ -2193,7 +2193,7 @@ export default class opinion extends Exchange {
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = this.extend ({
+        const headersExtended: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
@@ -2206,9 +2206,9 @@ export default class opinion extends Exchange {
                 const actionByMethod: Dict = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
                 const action = this.safeString (actionByMethod, method, 'get');
                 const timestamp = this.numberToString (this.seconds ());
-                headers['OPINION_ADDRESS'] = this.walletAddress;
-                headers['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, action, timestamp);
-                headers['OPINION_TIMESTAMP'] = timestamp;
+                headersExtended['OPINION_ADDRESS'] = this.walletAddress;
+                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, action, timestamp);
+                headersExtended['OPINION_TIMESTAMP'] = timestamp;
             } else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
@@ -2217,16 +2217,17 @@ export default class opinion extends Exchange {
                 if (apiKey === undefined) {
                     throw new AuthenticationError (this.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
                 }
-                headers['apikey'] = apiKey;
+                headersExtended['apikey'] = apiKey;
             }
         }
+        let bodyValue: any = body;
         if (method === 'GET') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
-            body = this.json (query);
+            bodyValue = this.json (query);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }

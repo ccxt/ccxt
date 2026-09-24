@@ -824,11 +824,12 @@ export default class bitvavo extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
             // "limit": 500, // default 500, max 1000
             // "start": since,
@@ -842,8 +843,8 @@ export default class bitvavo extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this.publicGetMarketTrades (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, paramsPaginate);
+        const response = await this.publicGetMarketTrades (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -1114,7 +1115,7 @@ export default class bitvavo extends Exchange {
 
     fetchOHLCVRequest (symbol: Str, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             // "limit": 1440, // default 1440, max 1440
@@ -1125,18 +1126,18 @@ export default class bitvavo extends Exchange {
             // https://github.com/ccxt/ccxt/issues/9227
             const duration = this.parseTimeframe (timeframe);
             request['start'] = since;
-            if (limit === undefined) {
-                limit = 1440;
-            } else {
-                limit = Math.min (limit, 1440);
-            }
-            request['end'] = this.sum (since, limit * duration * 1000);
+            const sinceLimit: Int = (limit === undefined) ? 1440 : Math.min (limit, 1440);
+            request['end'] = this.sum (since, sinceLimit * duration * 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end', request, params);
-        if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 1440); // default 1440, max 1440
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
+        let limitResolved: Int = limit;
+        if ((since !== undefined) && (limit === undefined)) {
+            limitResolved = 1440;
         }
-        return this.extend (request, params);
+        if (limitResolved !== undefined) {
+            requestUntil['limit'] = Math.min (limitResolved, 1440); // default 1440, max 1440
+        }
+        return this.extend (requestUntil, paramsUntil);
     }
 
     /**
@@ -1159,11 +1160,12 @@ export default class bitvavo extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1440) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1440) as OHLCV[];
         }
-        const request = this.fetchOHLCVRequest (symbol, timeframe, since, limit, params);
+        const request = this.fetchOHLCVRequest (symbol, timeframe, since, limit, paramsPaginate);
         const response = await this.publicGetMarketCandles (request);
         //
         //     [
@@ -1281,7 +1283,7 @@ export default class bitvavo extends Exchange {
         }
         const currency = this.currency (code);
         let subaccountId = this.safeString (params, 'subaccountId');
-        params = this.omit (params, 'subaccountId');
+        const paramsOmitted: Dict = this.omit (params, 'subaccountId');
         let direction: Str = undefined;
         if ((fromAccount === 'master') && (toAccount === 'master')) {
             throw new ArgumentsRequired (this.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
@@ -1307,7 +1309,7 @@ export default class bitvavo extends Exchange {
             'symbol': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSubaccountsTransfers (this.extend (request, params));
+        const response = await this.privatePostSubaccountsTransfers (this.extend (request, paramsOmitted));
         //
         //     {
         //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -1340,7 +1342,7 @@ export default class bitvavo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1356,8 +1358,8 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this.privateGetSubaccountsTransfers (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
+        const response = await this.privateGetSubaccountsTransfers (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "items": [
@@ -1514,7 +1516,11 @@ export default class bitvavo extends Exchange {
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const stopLossPrice = this.safeString (params, 'stopLossPrice'); // trigger when price crosses from above to below this value
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
-        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        let paramsCost: Dict = paramsOmitted;
+        if (isMarketOrder) {
+            paramsCost = this.omit (paramsOmitted, [ 'cost' ]);
+        }
         if (isMarketOrder) {
             let cost: Num = undefined;
             if (price !== undefined) {
@@ -1523,7 +1529,7 @@ export default class bitvavo extends Exchange {
                 const quoteAmount = Precise.stringMul (amountString, priceString);
                 cost = this.parseNumber (quoteAmount);
             } else {
-                cost = this.safeNumber (params, 'cost');
+                cost = this.safeNumber (paramsOmitted, 'cost');
             }
             if (cost !== undefined) {
                 const precision = this.currency (market['quote'])['precision'];
@@ -1531,7 +1537,6 @@ export default class bitvavo extends Exchange {
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
-            params = this.omit (params, [ 'cost' ]);
         } else if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
             request['amount'] = this.amountToPrecision (symbol, amount);
@@ -1560,15 +1565,13 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        let operatorId: Str = undefined;
-        [ operatorId, params ] = this.handleOptionAndParams (params, 'createOrder', 'operatorId');
+        const [ operatorId, paramsOperatorId ] = this.handleOptionAndParams (paramsCost, 'createOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'selfTradePrevention');
+        const [ selfTradePrevention, paramsSelfTradePrevention ] = this.handleOptionStringAndParams (paramsOperatorId, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_BOTH') {
                 request['selfTradePrevention'] = 'cancelBoth';
@@ -1576,7 +1579,7 @@ export default class bitvavo extends Exchange {
                 request['selfTradePrevention'] = selfTradePrevention;
             }
         }
-        return this.extend (request, params);
+        return this.extend (request, paramsSelfTradePrevention);
     }
 
     /**
@@ -1658,7 +1661,7 @@ export default class bitvavo extends Exchange {
         const market = this.market (symbol);
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
-        params = this.omit (params, [ 'amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'amountRemaining', 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1671,16 +1674,15 @@ export default class bitvavo extends Exchange {
         if (triggerPrice !== undefined) {
             request['triggerAmount'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        request = this.extend (request, params);
+        request = this.extend (request, paramsOmitted);
         if (this.isEmpty (request)) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params');
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (paramsOmitted, 'clientOrderId');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        let operatorId: Str = undefined;
-        [ operatorId, params ] = this.handleOptionAndParams (params, 'editOrder', 'operatorId');
+        const operatorId = this.handleOptionAndParams (paramsOmitted, 'editOrder', 'operatorId')[0];
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
@@ -1726,14 +1728,13 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        let operatorId: Str = undefined;
-        [ operatorId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'operatorId');
+        const [ operatorId, paramsOperatorId ] = this.handleOptionAndParams (params, 'cancelOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        return this.extend (request, params);
+        return this.extend (request, paramsOperatorId);
     }
 
     /**
@@ -1780,14 +1781,13 @@ export default class bitvavo extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let operatorId: Str = undefined;
-        [ operatorId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'operatorId');
+        const [ operatorId, paramsOperatorId ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
             throw new ArgumentsRequired (this.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
-        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, paramsOperatorId));
         //
         //     [
         //         {
@@ -1818,13 +1818,12 @@ export default class bitvavo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let codGroupId: Int = undefined;
-        [ codGroupId, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'codGroupId', 1);
+        const [ codGroupId, paramsCodGroupId ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'codGroupId', 1);
         const request: Dict = {
             'codGroupId': codGroupId,
             'expiryAfterSeconds': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,
         };
-        const response = await this.privatePostCancelOrdersAfter (this.extend (request, params));
+        const response = await this.privatePostCancelOrdersAfter (this.extend (request, paramsCodGroupId));
         //
         //     {
         //         "codGroupId": 1,
@@ -1899,7 +1898,7 @@ export default class bitvavo extends Exchange {
 
     fetchOrdersRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
             // "limit": 500,
             // "start": since,
@@ -1913,8 +1912,8 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        [ request, params ] = this.handleUntilOption ('end', request, params);
-        return this.extend (request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
+        return this.extend (requestUntil, paramsUntil);
     }
 
     /**
@@ -1938,12 +1937,13 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
         const market = this.market (symbol);
-        const request = this.fetchOrdersRequest (symbol, since, limit, params);
+        const request = this.fetchOrdersRequest (symbol, since, limit, paramsPaginate);
         const response = await this.privateGetOrders (request);
         //
         //     [
@@ -2115,8 +2115,8 @@ export default class bitvavo extends Exchange {
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'created');
         const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
@@ -2166,12 +2166,12 @@ export default class bitvavo extends Exchange {
             'status': status,
             'fee': fee,
             'trades': rawTrades,
-        }, market);
+        }, marketResolved);
     }
 
     fetchMyTradesRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
             // "limit": 500,
             // "start": since,
@@ -2185,8 +2185,8 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        [ request, params ] = this.handleUntilOption ('end', request, params);
-        return this.extend (request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
+        return this.extend (requestUntil, paramsUntil);
     }
 
     /**
@@ -2210,12 +2210,13 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
         const market = this.market (symbol);
-        const request = this.fetchMyTradesRequest (symbol, since, limit, params);
+        const request = this.fetchMyTradesRequest (symbol, since, limit, paramsPaginate);
         const response = await this.privateGetTrades (request);
         //
         //     [
@@ -2254,7 +2255,7 @@ export default class bitvavo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2265,8 +2266,8 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['maxItems'] = Math.min (limit, 100);
         }
-        [ request, params ] = this.handleUntilOption ('toDate', request, params);
-        const response = await this.privateGetAccountHistory (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('toDate', request, params);
+        const response = await this.privateGetAccountHistory (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "items": [
@@ -2319,7 +2320,7 @@ export default class bitvavo extends Exchange {
             direction = 'out';
         }
         const code = this.safeCurrencyCode (currencyId);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.parse8601 (this.safeString (item, 'executedAt'));
         let fee: FeeString = undefined;
         const feeCost = this.safeString (item, 'feesAmount');
@@ -2347,7 +2348,7 @@ export default class bitvavo extends Exchange {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     withdrawRequest (code: Str, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Dict {
@@ -2378,13 +2379,13 @@ export default class bitvavo extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const request = this.withdrawRequest (code, amount, address, tag, params);
+        const request = this.withdrawRequest (code, amount, address, tagWithdrawTag, paramsWithdrawTag);
         const response = await this.privatePostWithdrawal (request);
         //
         //     {
@@ -2691,6 +2692,8 @@ export default class bitvavo extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2704,26 +2707,26 @@ export default class bitvavo extends Exchange {
             let payload = '';
             if (!getOrDelete) {
                 if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    payload = body;
+                    requestBody = this.json (query);
+                    payload = requestBody;
                 }
             }
             const timestamp = this.milliseconds ().toString ();
             const auth = timestamp + method + url + payload;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const accessWindow = this.safeString2 (this.options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000');
-            headers = {
+            requestHeaders = {
                 'BITVAVO-ACCESS-KEY': this.apiKey,
                 'BITVAVO-ACCESS-SIGNATURE': signature,
                 'BITVAVO-ACCESS-TIMESTAMP': timestamp,
                 'BITVAVO-ACCESS-WINDOW': accessWindow,
             };
             if (!getOrDelete) {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
             }
         }
         url = this.urls['api'][api] + url;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

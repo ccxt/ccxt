@@ -726,15 +726,15 @@ export default class coinspot extends Exchange {
         if (side !== 'buy' && side !== 'sell') {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
-        params = this.omit (params, 'side');
+        const paramsOmitted: Dict = this.omit (params, 'side');
         const request: Dict = {
             'id': id,
         };
         let response: Dict;
         if (side === 'buy') {
-            response = await this.privatePostMyBuyCancel (this.extend (request, params));
+            response = await this.privatePostMyBuyCancel (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privatePostMySellCancel (this.extend (request, params));
+            response = await this.privatePostMySellCancel (this.extend (request, paramsOmitted));
         }
         //
         // status - ok, error
@@ -762,6 +762,8 @@ export default class coinspot extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         const isVersionedApi = Array.isArray (api);
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;
@@ -775,13 +777,13 @@ export default class coinspot extends Exchange {
             this.checkRequiredCredentials ();
             // coinspot requires an increasing nonce
             const nonce = this.incrementingNonce ();
-            body = this.json (this.extend ({ 'nonce': nonce }, params));
-            headers = {
+            requestBody = this.json (this.extend ({ 'nonce': nonce }, params));
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
+                'sign': this.hmac (this.encode (requestBody), this.encode (this.secret), sha512),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }

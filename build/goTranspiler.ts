@@ -5111,20 +5111,21 @@ ${caseStatements.join('\n')}
      * @returns The content with the two coerced signatures
      */
     coerceTypedStringAccessors (content: string): string {
-        // method name → the one expression its transpiled body returns today
-        const stringish: [string, string][] = [
-            [ 'SafeCurrencyCode', 'GetValue(currency, "code")' ],
-            [ 'SafeSymbol', 'GetValue(market, "symbol")' ],
+        // method name → the expressions its transpiled body may return (pre/post TS-P1 local)
+        const stringish: [string, string[]][] = [
+            [ 'SafeCurrencyCode', [ 'GetValue(currency, "code")', 'currencyResolved["code"]' ] ],
+            [ 'SafeSymbol', [ 'GetValue(market, "symbol")', 'marketResolved["symbol"]' ] ],
         ];
         for (let i = 0; i < stringish.length; i++) {
             const method = stringish[i][0];
-            const returnExpr = stringish[i][1];
+            const returnExprs = stringish[i][1];
             // the printer emits single spaces around the signature now (F04); the regex stays
             // whitespace-loose so it also matches pre-existing padding (`any  {`)
             const fnRegex = new RegExp ('func\\s+\\(this \\*BaseExchange\\)\\s+' + method + '\\(([^)]*)\\)\\s+any\\s*\\{([\\s\\S]*?)\\n\\}', 'g');
             content = content.replace (fnRegex, ((match: string, params: string, body: string) => {
                 const returns = body.match (/^[ \t]*return .*$/gm) || [];
-                if ((returns.length !== 1) || (returns[0].trim ().replace (/\s+/g, ' ') !== ('return ' + returnExpr))) {
+                const returnExpr = returnExprs.find ((e) => returns.length === 1 && returns[0].trim ().replace (/\s+/g, ' ') === ('return ' + e));
+                if (returnExpr === undefined) {
                     return match; // unexpected body shape: keep the transpiled `any` signature
                 }
                 const returnIndent = (returns[0].match (/^[ \t]*/) as RegExpMatchArray)[0];

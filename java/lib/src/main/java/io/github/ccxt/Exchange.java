@@ -65,7 +65,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
                 Object stored = Helpers.GetValue(this.orderbooks, symbol);
                 while (tries < maxRetries) {
                     java.util.List<Object> cache = (java.util.List<Object>) Helpers.GetValue(stored, "cache");
-                    Object orderBook = this.fetchRestOrderBookSafe(symbol, limit, params != null ? params : new java.util.HashMap<String, Object>()).join();
+                    Object orderBook = this.fetchRestOrderBookSafe(symbol, Helpers.toLongOrNull(limit), params != null ? Helpers.toMapArg(params) : new java.util.HashMap<String, Object>()).join();
                     Object index = this.getCacheIndex(orderBook, cache);
                     if (Helpers.isGreaterThanOrEqual(index, 0)) {
                         Helpers.callDynamically(stored, "reset", new Object[]{orderBook});

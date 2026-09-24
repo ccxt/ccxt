@@ -142,10 +142,11 @@ export default class lbank extends lbankRest {
         };
         const request = this.deepExtend (subscribe, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -408,14 +409,12 @@ export default class lbank extends lbankRest {
         this.checkContractMarket (market, 'fetchTradesWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTrades:' + market['symbol'];
-        if (limit === undefined) {
-            limit = 10;
-        }
+        const limitResolved: Int = (limit === undefined) ? 10 : limit;
         const message: Dict = {
             'action': 'request',
             'request': 'trade',
             'pair': market['id'],
-            'size': limit,
+            'size': limitResolved,
         };
         const request = this.deepExtend (message, params);
         const requestId = this.requestId ();
@@ -570,11 +569,11 @@ export default class lbank extends lbankRest {
         const url = this.urls['api']['ws'];
         let messageHash: Str = undefined;
         let pair = 'all';
+        const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
         if (symbol === undefined) {
             messageHash = 'orders:all';
         } else {
             const market = this.market (symbol);
-            symbol = this.symbol (symbol);
             messageHash = 'orders:' + market['symbol'];
             pair = market['id'] as string;
         }
@@ -586,7 +585,7 @@ export default class lbank extends lbankRest {
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limit, true);
     }
 
     handleOrders (client: Client, message: Dict) {
@@ -798,13 +797,11 @@ export default class lbank extends lbankRest {
         this.checkContractMarket (market, 'fetchOrderBookWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchOrderbook:' + market['symbol'];
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const subscribe: Dict = {
             'action': 'request',
             'request': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         };
         const request = this.deepExtend (subscribe, params);
@@ -830,17 +827,15 @@ export default class lbank extends lbankRest {
         this.checkContractMarket (market, 'watchOrderBook');
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];
-        params = this.omit (params, 'aggregation');
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const paramsOmitted: Dict = this.omit (params, 'aggregation');
+        const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const subscribe: Dict = {
             'action': 'subscribe',
             'subscribe': 'depth',
-            'depth': limit,
+            'depth': limitResolved,
             'pair': market['id'],
         };
-        const request = this.deepExtend (subscribe, params);
+        const request = this.deepExtend (subscribe, paramsOmitted);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }

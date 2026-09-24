@@ -119,37 +119,34 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        if ((limit === undefined) || (limit === 0)) {
-            limit = 50;
+        let limitResolved: number = 50;
+        if ((limit !== undefined) && (limit !== 0)) {
+            limitResolved = limit;
         }
         const topicParams = this.safeValue (params, 'params');
         if (topicParams === undefined) {
             params['params'] = {};
         }
-        let bookSubscriptionType: Str = undefined;
-        let bookSubscriptionType2: Str = undefined;
-        [ bookSubscriptionType, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        [ bookSubscriptionType2, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
-        let bookUpdateFrequency: Str = undefined;
-        let bookUpdateFrequency2: Str = undefined;
-        [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
-        [ bookUpdateFrequency2, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        const [ bookSubscriptionType, paramsBookSubscriptionType ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        const [ bookSubscriptionType2, paramsBookSubscriptionType2 ] = this.handleOptionStringAndParams (paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        const [ bookUpdateFrequency, paramsBookUpdateFrequency ] = this.handleOptionAndParams (paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        const [ bookUpdateFrequency2, paramsBookUpdateFrequency2 ] = this.handleOptionStringAndParams (paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2;
         }
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const currentTopic = 'book' + '.' + market['id'] + '.' + limit.toString ();
+            const currentTopic = 'book' + '.' + market['id'] + '.' + limitResolved.toString ();
             const messageHash = 'orderbook:' + market['symbol'];
             messageHashes.push (messageHash);
             topics.push (currentTopic);
         }
-        const orderbook = await this.watchPublicMultiple (messageHashes, topics, params);
+        const orderbook = await this.watchPublicMultiple (messageHashes, topics, paramsBookUpdateFrequency2);
         return orderbook.limit ();
     }
 
@@ -169,7 +166,7 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const topics: string[] = [];
         const subMessageHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -178,20 +175,16 @@ export default class cryptocom extends cryptocomRest {
         if (topicParams === undefined) {
             params['params'] = {};
         }
-        let bookSubscriptionType: Str = undefined;
-        let bookSubscriptionType2: Str = undefined;
-        [ bookSubscriptionType, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        [ bookSubscriptionType2, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
-        let bookUpdateFrequency: Str = undefined;
-        let bookUpdateFrequency2: Str = undefined;
-        [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
-        [ bookUpdateFrequency2, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        const [ bookSubscriptionType, paramsBookSubscriptionType ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        const [ bookSubscriptionType2, paramsBookSubscriptionType2 ] = this.handleOptionStringAndParams (paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        const [ bookUpdateFrequency, paramsBookUpdateFrequency ] = this.handleOptionAndParams (paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        const [ bookUpdateFrequency2, paramsBookUpdateFrequency2 ] = this.handleOptionStringAndParams (paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2;
         }
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const currentTopic = 'book' + '.' + market['id'] + '.' + limit.toString ();
             const messageHash = 'orderbook:' + market['symbol'];
@@ -199,7 +192,7 @@ export default class cryptocom extends cryptocomRest {
             messageHashes.push ('unsubscribe:' + messageHash);
             topics.push (currentTopic);
         }
-        return await this.unWatchPublicMultiple ('orderbook', symbols, messageHashes, subMessageHashes, topics, params);
+        return await this.unWatchPublicMultiple ('orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsBookUpdateFrequency2);
     }
 
     override handleDelta (bookside: any, delta: any) {
@@ -353,21 +346,22 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const topics: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const currentTopic = 'trade' + '.' + market['id'];
             topics.push (currentTopic);
         }
         const trades = await this.watchPublicMultiple (topics, topics, params);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -379,21 +373,21 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const currentTopic = 'trade' + '.' + market['id'];
             messageHashes.push ('unsubscribe:trades:' + market['symbol']);
             topics.push (currentTopic);
         }
-        return await this.unWatchPublicMultiple ('trades', symbols, messageHashes, topics, topics, params);
+        return await this.unWatchPublicMultiple ('trades', symbolsNormalized, messageHashes, topics, topics, params);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -463,17 +457,19 @@ export default class cryptocom extends cryptocomRest {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = market['symbol'];
         }
         let messageHash = 'user.trade';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
         const trades = await this.watchPrivateSubscribe (messageHash, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -503,7 +499,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -526,9 +522,9 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
-        const marketIds = this.marketIds (symbols);
+        const marketIds = this.marketIds (symbolsNormalized);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             messageHashes.push ('ticker.' + marketId);
@@ -548,7 +544,7 @@ export default class cryptocom extends cryptocomRest {
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -560,21 +556,21 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
-        const marketIds = this.marketIds (symbols);
+        const marketIds = this.marketIds (symbolsNormalized);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const symbol = symbols[i];
+            const symbol = symbolsNormalized[i];
             subMessageHashes.push ('ticker.' + marketId);
             messageHashes.push ('unsubscribe:ticker:' + symbol);
         }
-        return await this.unWatchPublicMultiple ('ticker', symbols, messageHashes, subMessageHashes, subMessageHashes, params);
+        return await this.unWatchPublicMultiple ('ticker', symbolsNormalized, messageHashes, subMessageHashes, subMessageHashes, params);
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -638,11 +634,11 @@ export default class cryptocom extends cryptocomRest {
         //
         const timestamp = this.safeInteger (ticker, 't');
         const marketId = this.safeString (ticker, 'i');
-        market = this.safeMarket (marketId, market, '_');
-        const quote = this.safeString (market, 'quote');
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
+        const quote = this.safeString (marketResolved, 'quote');
         const last = this.safeString (ticker, 'a');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'h'),
@@ -662,7 +658,7 @@ export default class cryptocom extends cryptocomRest {
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': (quote === 'USD') ? this.safeString (ticker, 'vv') : undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -678,13 +674,13 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const topics: string[] = [];
-        const marketIds = this.marketIds (symbols);
+        const marketIds = this.marketIds (symbolsNormalized);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            messageHashes.push ('bidask.' + symbols[i]);
+            messageHashes.push ('bidask.' + symbolsNormalized[i]);
             topics.push ('ticker.' + marketId);
         }
         const url = this.urls['api']['ws']['public'];
@@ -702,7 +698,7 @@ export default class cryptocom extends cryptocomRest {
             tickers[newTickers['symbol']] = newTickers;
             return tickers;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -719,8 +715,8 @@ export default class cryptocom extends cryptocomRest {
 
     parseWsBidAsk (ticker: any, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'i');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 't');
         return this.safeTicker ({
             'symbol': symbol,
@@ -731,7 +727,7 @@ export default class cryptocom extends cryptocomRest {
             'bid': this.safeString (ticker, 'b'),
             'bidVolume': this.safeString (ticker, 'bs'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -751,14 +747,15 @@ export default class cryptocom extends cryptocomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'candlestick' + '.' + interval + '.' + market['id'];
         const ohlcv = await this.watchPublic (messageHash, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -771,12 +768,11 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const subMessageHash = 'candlestick' + '.' + interval + '.' + market['id'];
         const messageHash = 'unsubscribe:ohlcv:' + market['symbol'] + ':' + timeframe;
@@ -837,17 +833,19 @@ export default class cryptocom extends cryptocomRest {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = market['symbol'];
         }
         let messageHash = 'user.order';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
         const orders = await this.watchPrivateSubscribe (messageHash, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: Dict, subscription: Dict | undefined = undefined) {
@@ -928,26 +926,26 @@ export default class cryptocom extends cryptocomRest {
             'nonce': id,
         };
         let messageHash = 'positions';
-        symbols = this.marketSymbols (symbols);
-        if (!this.isEmpty (symbols)) {
-            if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbolsNormalized)) {
+            if (symbolsNormalized === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
             }
-            messageHash = 'positions::' + symbols.join (',');
+            messageHash = 'positions::' + symbolsNormalized.join (',');
         }
         const client = this.client (url);
-        this.setPositionsCache (client, symbols);
+        this.setPositionsCache (client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const newPositions = await this.watch (url, messageHash, this.extend (request, params));
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
@@ -1136,10 +1134,10 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        params = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const paramsValue: Dict = this.createOrderRequest (symbol, type, side, amount, price, params);
         const request: Dict = {
             'method': 'private/create-order',
-            'params': params,
+            'params': paramsValue,
         };
         const messageHash = this.incrementingNonce ();
         return await this.watchPrivateRequest (messageHash, request);
@@ -1164,10 +1162,10 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        params = this.editOrderRequest (id, symbol, amount, price, params);
+        const paramsValue: Dict = this.editOrderRequest (id, symbol, amount, price, params);
         const request: Dict = {
             'method': 'private/amend-order',
-            'params': params,
+            'params': paramsValue,
         };
         const messageHash = this.incrementingNonce ();
         return await this.watchPrivateRequest (messageHash, request);
@@ -1205,12 +1203,12 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        params = this.extend ({
+        const paramsExtended: Dict = this.extend ({
             'order_id': id,
         }, params);
         const request: Dict = {
             'method': 'private/cancel-order',
-            'params': params,
+            'params': paramsExtended,
         };
         const messageHash = this.incrementingNonce ();
         return await this.watchPrivateRequest (messageHash, request);

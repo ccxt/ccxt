@@ -1569,10 +1569,10 @@ export default class limitless extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires an outcome argument');
         }
         await this.loadOutcome (outcome);
-        params = this.extend (params, {
+        const paramsExtended: Dict = this.extend (params, {
             'statuses': [ 'LIVE' ],
         });
-        return await this.fetchOrders (outcome, since, limit, params);
+        return await this.fetchOrders (outcome, since, limit, paramsExtended);
     }
 
     /**
@@ -1591,10 +1591,10 @@ export default class limitless extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires an outcome argument');
         }
         await this.loadOutcome (outcome);
-        params = this.extend (params, {
+        const paramsExtended: Dict = this.extend (params, {
             'statuses': [ 'MATCHED' ],
         });
-        return await this.fetchOrders (outcome, since, limit, params);
+        return await this.fetchOrders (outcome, since, limit, paramsExtended);
     }
 
     /**
@@ -2078,7 +2078,8 @@ export default class limitless extends Exchange {
         if (this.walletAddress !== '') {
             maker = this.walletAddress;
         }
-        [ maker, params ] = this.handleOptionAndParams (params, 'createOrder', 'maker', maker);
+        let paramsValue: Dict = params;
+        [ maker, paramsValue ] = this.handleOptionAndParams (paramsValue, 'createOrder', 'maker', maker);
         try {
             this.checkAddress (maker);
         } catch (e) {
@@ -2093,14 +2094,14 @@ export default class limitless extends Exchange {
         if (isSmartWallet) {
             signer = embeddedAddress;
         }
-        [ signer, params ] = this.handleOptionAndParams (params, 'createOrder', 'signer', signer);
+        [ signer, paramsValue ] = this.handleOptionAndParams (paramsValue, 'createOrder', 'signer', signer);
         try {
             this.checkAddress (signer);
         } catch (e) {
             throw new InvalidAddress (this.id + ' createOrder requires a valid signer address. Set the "signer" parameter to a valid address or set the "walletAddress" property in the constructor options.');
         }
         let taker = this.safeString (this.options, 'nullAddress', '0x0000000000000000000000000000000000000000');
-        [ taker, params ] = this.handleOptionAndParams (params, 'createOrder', 'taker', taker);
+        [ taker, paramsValue ] = this.handleOptionAndParams (paramsValue, 'createOrder', 'taker', taker);
         try {
             this.checkAddress (taker);
         } catch (e) {
@@ -2118,7 +2119,7 @@ export default class limitless extends Exchange {
         const rank = this.safeDict (accountInfo, 'rank');
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
         let signatureType = isSmartWallet ? 2 : 0;
-        [ signatureType, params ] = this.handleOptionAndParams (params, 'createOrder', 'signatureType', signatureType);
+        [ signatureType, paramsValue ] = this.handleOptionAndParams (paramsValue, 'createOrder', 'signatureType', signatureType);
         const signRequest: Dict = {
             'salt': nonce,
             'maker': maker,
@@ -2131,9 +2132,9 @@ export default class limitless extends Exchange {
             'signatureType': signatureType,
         };
         // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
-        const expirationInt = this.safeInteger (params, 'expiration');
+        const expirationInt = this.safeInteger (paramsValue, 'expiration');
         if (expirationInt !== undefined) {
-            params = this.omit (params, 'expiration');
+            paramsValue = this.omit (paramsValue, 'expiration');
             signRequest['expiration'] = this.numberToString (expirationInt);
         } else {
             signRequest['expiration'] = '0';
@@ -2144,18 +2145,18 @@ export default class limitless extends Exchange {
         let takerAmount: Str = undefined;
         const isMarket = type === 'market';
         let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
-        let timeInForce = this.safeString (params, 'timeInForce');
-        params = this.omit (params, 'timeInForce');
+        [ postOnly, paramsValue ] = this.handlePostOnly (isMarket, false, paramsValue);
+        let timeInForce = this.safeString (paramsValue, 'timeInForce');
+        paramsValue = this.omit (paramsValue, 'timeInForce');
         if (timeInForce === undefined) {
             timeInForce = isMarket ? 'FOK' : 'GTC';
         }
         const marketSymbol = this.safeString (outcomeObj, 'market');
         if (isMarket && (side === 'buy')) {
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber (params, 'cost');
-            params = this.omit (params, 'cost');
+            [ createMarketBuyOrderRequiresPrice, paramsValue ] = this.handleOptionBoolAndParams (paramsValue, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (paramsValue, 'cost');
+            paramsValue = this.omit (paramsValue, 'cost');
             if (createMarketBuyOrderRequiresPrice) {
                 if ((price === undefined) && (cost === undefined)) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -2198,7 +2199,7 @@ export default class limitless extends Exchange {
         if (postOnly) {
             request['postOnly'] = postOnly;
         }
-        const response = await this.limitlessPrivatePostOrders (this.extend (request, params));
+        const response = await this.limitlessPrivatePostOrders (this.extend (request, paramsValue));
         const parsedOrder = this.parsePredictionOrder (response, outcomeObj);
         // the create-order response omits a status field; a freshly accepted order is open
         if (parsedOrder['status'] === undefined) {
@@ -2441,22 +2442,23 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelAllOrders (outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
+        let paramsValue: Dict = params;
         if (outcome !== undefined) {
             let warn = true;
-            [ warn, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
+            [ warn, paramsValue ] = this.handleOptionAndParams (paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
             if (warn) {
                 throw new BadRequest (this.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
             }
         }
         const request: Dict = {};
-        const slug = this.safeString (params, 'slug');
+        const slug = this.safeString (paramsValue, 'slug');
         if (outcome !== undefined) {
             const outcomeObj = await this.loadOutcome (outcome);
             request['slug'] = this.safeString (outcomeObj['info'], 'slug');
         } else if (slug === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders requires either an outcome argument or a slug parameter');
         }
-        const response = await this.limitlessPrivateDeleteOrdersAllSlug (this.extend (request, params));
+        const response = await this.limitlessPrivateDeleteOrdersAllSlug (this.extend (request, paramsValue));
         //
         //     {
         //         "message": "Orders canceled successfully"
@@ -2485,16 +2487,17 @@ export default class limitless extends Exchange {
         }
         let paginate = false;
         const maxLimit = 100;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', paginate);
+        let paramsValue: Dict = params;
+        [ paginate, paramsValue ] = this.handleOptionAndParams (paramsValue, 'fetchMyTrades', 'paginate', paginate);
         if (paginate) {
-            params = this.omit (params, 'paginate');
-            return await this.fetchPaginatedCallCursor ('fetchMyTrades', outcome, since, limit, params, 'nextCursor', 'cursor', undefined, maxLimit);
+            paramsValue = this.omit (paramsValue, 'paginate');
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', undefined, maxLimit);
         }
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, maxLimit);
         }
-        const response = await this.limitlessPrivateGetPortfolioHistory (this.extend (request, params));
+        const response = await this.limitlessPrivateGetPortfolioHistory (this.extend (request, paramsValue));
         //
         //     {
         //         "data": [
@@ -3180,16 +3183,18 @@ export default class limitless extends Exchange {
         if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
+        let headersValue: any = headers;
+        let bodyValue: any = body;
         if (access === 'private') {
             let bodyString = '';
-            if (headers === undefined) {
-                headers = {};
+            if (headersValue === undefined) {
+                headersValue = {};
             }
             if (method === 'POST' && (querystring !== '')) {
                 bodyString = this.json (query);
-                body = bodyString;
-                const headerDefaults = (headers !== undefined) ? headers : {};
-                headers = this.extend ({
+                bodyValue = bodyString;
+                const headerDefaults = (headersValue !== undefined) ? headersValue : {};
+                headersValue = this.extend ({
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 }, headerDefaults);
@@ -3199,17 +3204,17 @@ export default class limitless extends Exchange {
             const newline = "\n"; // eslint-disable-line quotes
             const payload = timestamp + newline + method + newline + url + newline + bodyString;
             const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), sha256, 'base64');
-            headers = this.extend (headers, {
+            headersValue = this.extend (headersValue, {
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             });
             const headerKey = 'lmts-api' + '-key'; // concatenating because of the php version
             const headersKey: Dict = {};
             headersKey[headerKey] = this.apiKey;
-            headers = this.extend (headers, headersKey);
+            headersValue = this.extend (headersValue, headersKey);
         }
         url = baseUrl + url;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 
     /**

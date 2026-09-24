@@ -892,13 +892,12 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         if (type === 'spot') {
             const request: Dict = {
                 'asset_pair_name': market['id'],
             };
-            const response = await this.publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
+            const response = await this.publicGetAssetPairsAssetPairNameTicker (this.extend (request, paramsMarketType));
             //
             //     {
             //         "code":0,
@@ -918,7 +917,7 @@ export default class bigone extends Exchange {
             const ticker = this.safeDict (response, 'data', {});
             return this.parseTicker (ticker, market);
         } else {
-            const tickers = await this.fetchTickers ([ symbol ], params);
+            const tickers = await this.fetchTickers ([ symbol ], paramsMarketType);
             return this.safeValue (tickers, symbol);
         }
     }
@@ -941,18 +940,17 @@ export default class bigone extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const isSpot = type === 'spot';
         const request: Dict = {};
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         let data: NullableList = undefined;
         if (isSpot) {
-            if (symbols !== undefined) {
-                const ids = this.marketIds (symbols);
+            if (symbolsNormalized !== undefined) {
+                const ids = this.marketIds (symbolsNormalized);
                 request['pair_names'] = ids.join (',');
             }
-            const response = await this.publicGetAssetPairsTickers (this.extend (request, params));
+            const response = await this.publicGetAssetPairsTickers (this.extend (request, paramsMarketType));
             //
             //    {
             //        "code": 0,
@@ -982,7 +980,7 @@ export default class bigone extends Exchange {
             //
             data = this.safeList (response, 'data', []);
         } else {
-            const instruments = await this.contractPublicGetInstruments (params);
+            const instruments = await this.contractPublicGetInstruments (paramsMarketType);
             data = this.toArray (instruments);
             //
             //    [
@@ -1010,8 +1008,8 @@ export default class bigone extends Exchange {
             //    ]
             //
         }
-        const tickers = this.parseTickers (data, symbols);
-        return this.filterByArrayTickers (tickers, 'symbol', symbols);
+        const tickers = this.parseTickers (data, symbolsNormalized);
+        return this.filterByArrayTickers (tickers, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1187,7 +1185,7 @@ export default class bigone extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'asset_pair_name');
-        market = this.safeMarket (marketId, market, '-');
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
         let side = this.safeString (trade, 'side');
         const takerSide = this.safeString (trade, 'taker_side');
         let takerOrMaker: Str = undefined;
@@ -1218,7 +1216,7 @@ export default class bigone extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': orderId,
             'type': 'limit',
             'side': side,
@@ -1233,28 +1231,28 @@ export default class bigone extends Exchange {
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
-                    makerCurrencyCode = this.safeString (market, 'base');
-                    takerCurrencyCode = this.safeString (market, 'quote');
+                    makerCurrencyCode = this.safeString (marketResolved, 'base');
+                    takerCurrencyCode = this.safeString (marketResolved, 'quote');
                 } else {
-                    makerCurrencyCode = this.safeString (market, 'quote');
-                    takerCurrencyCode = this.safeString (market, 'base');
+                    makerCurrencyCode = this.safeString (marketResolved, 'quote');
+                    takerCurrencyCode = this.safeString (marketResolved, 'base');
                 }
             } else {
                 if (takerOrMaker === 'maker') {
-                    makerCurrencyCode = this.safeString (market, 'quote');
-                    takerCurrencyCode = this.safeString (market, 'base');
+                    makerCurrencyCode = this.safeString (marketResolved, 'quote');
+                    takerCurrencyCode = this.safeString (marketResolved, 'base');
                 } else {
-                    makerCurrencyCode = this.safeString (market, 'base');
-                    takerCurrencyCode = this.safeString (market, 'quote');
+                    makerCurrencyCode = this.safeString (marketResolved, 'base');
+                    takerCurrencyCode = this.safeString (marketResolved, 'quote');
                 }
             }
         } else if (side === 'SELF_TRADING') {
             if (takerSide === 'BID') {
-                makerCurrencyCode = this.safeString (market, 'quote');
-                takerCurrencyCode = this.safeString (market, 'base');
+                makerCurrencyCode = this.safeString (marketResolved, 'quote');
+                takerCurrencyCode = this.safeString (marketResolved, 'base');
             } else if (takerSide === 'ASK') {
-                makerCurrencyCode = this.safeString (market, 'base');
-                takerCurrencyCode = this.safeString (market, 'quote');
+                makerCurrencyCode = this.safeString (marketResolved, 'base');
+                takerCurrencyCode = this.safeString (marketResolved, 'quote');
             }
         }
         const makerFeeCost = this.safeString (trade, 'maker_fee');
@@ -1276,7 +1274,7 @@ export default class bigone extends Exchange {
         } else {
             result['fee'] = undefined;
         }
-        return this.safeTrade (result, market);
+        return this.safeTrade (result, marketResolved);
     }
 
     /**
@@ -1372,18 +1370,21 @@ export default class bigone extends Exchange {
         const until = this.safeInteger (params, 'until');
         const untilIsDefined = (until !== undefined);
         const sinceIsDefined = (since !== undefined);
-        if (limit === undefined) {
-            limit = (sinceIsDefined && untilIsDefined) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
+        // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
+        let defaultLimit = 100;
+        if (sinceIsDefined && untilIsDefined) {
+            defaultLimit = 500;
         }
+        const limitResolved: Int = (limit === undefined) ? defaultLimit : limit;
         const request: Dict = {
             'asset_pair_name': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (sinceIsDefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
-            const endByLimit = this.sum (since, limit * duration * 1000);
+            const endByLimit = this.sum (since, limitResolved * duration * 1000);
             if (untilIsDefined) {
                 request['time'] = this.iso8601 (Math.min (endByLimit, until + 1));
             } else {
@@ -1392,8 +1393,8 @@ export default class bigone extends Exchange {
         } else if (untilIsDefined) {
             request['time'] = this.iso8601 (until + 1);
         }
-        params = this.omit (params, 'until');
-        const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'until');
+        const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, paramsOmitted));
         //
         //     {
         //         "code": 0,
@@ -1418,7 +1419,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market, timeframe, since, limitResolved);
     }
 
     override parseBalance (response: any): Balances {
@@ -1456,12 +1457,12 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const type = this.safeString (params, 'type', '');
-        params = this.omit (params, 'type');
+        const paramsOmitted: Dict = this.omit (params, 'type');
         let response: Dict;
         if (type === 'funding' || type === 'fund') {
-            response = await this.privateGetFundAccounts (params);
+            response = await this.privateGetFundAccounts (paramsOmitted);
         } else {
-            response = await this.privateGetAccounts (params);
+            response = await this.privateGetAccounts (paramsOmitted);
         }
         //
         //     {
@@ -1618,8 +1619,9 @@ export default class bigone extends Exchange {
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
-        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        let query = undefined;
+        [ postOnly, query ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
+        const triggerPrice = this.safeStringN (query, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
             'side': requestSide, // order side one of "ASK"/"BID", required
@@ -1632,7 +1634,7 @@ export default class bigone extends Exchange {
         if (isLimit || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
             if (isLimit) {
-                const timeInForce = this.safeString (params, 'timeInForce');
+                const timeInForce = this.safeString (query, 'timeInForce');
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
@@ -1644,9 +1646,9 @@ export default class bigone extends Exchange {
         } else {
             if (isBuy) {
                 let createMarketBuyOrderRequiresPrice: Bool = undefined;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
+                [ createMarketBuyOrderRequiresPrice, query ] = this.handleOptionBoolAndParams (query, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber (query, 'cost');
+                query = this.omit (query, 'cost');
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (cost === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -1674,12 +1676,12 @@ export default class bigone extends Exchange {
             }
         }
         request['type'] = uppercaseType;
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (query, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ]);
-        const response = await this.privatePostOrders (this.extend (request, params));
+        query = this.omit (query, [ 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ]);
+        const response = await this.privatePostOrders (this.extend (request, query));
         //
         //    {
         //        "id": 10,
@@ -1973,10 +1975,11 @@ export default class bigone extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
-        headers = {};
+        const headersValue: NullableDict = {};
         if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
@@ -1991,18 +1994,19 @@ export default class bigone extends Exchange {
                 // 'recv_window': '30', // default 30
             };
             const token = jwt (request, this.encode (this.secret), sha256);
-            headers['Authorization'] = 'Bearer ' + token;
+            headersValue['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
                 if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json (query);
+                headersValue['Content-Type'] = 'application/json';
+                bodySigned = this.json (query);
             }
         }
-        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        headersValue['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
 
     /**
@@ -2364,7 +2368,7 @@ export default class bigone extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2374,16 +2378,15 @@ export default class bigone extends Exchange {
             'target_address': address,
             'amount': this.currencyToPrecision (code, amount),
         };
-        if (tag !== undefined) {
-            request['memo'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['memo'] = tagWithdrawTag;
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
             request['gateway_name'] = this.networkCodeToId (networkCode, currency['code']);
         }
         // requires write permission on the wallet
-        const response = await this.privatePostWithdrawals (this.extend (request, params));
+        const response = await this.privatePostWithdrawals (this.extend (request, paramsNetworkCode));
         //
         //     {
         //         "code":0,

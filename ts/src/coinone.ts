@@ -579,14 +579,14 @@ export default class coinone extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'quote_currency': 'KRW',
         };
         let market: Market = undefined;
         let response = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString (symbols, 0);
+        if (symbolsNormalized !== undefined) {
+            const first = this.safeString (symbolsNormalized, 0);
             market = this.market (first);
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
@@ -628,7 +628,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'tickers', []);
-        return this.parseTickers (data, symbols);
+        return this.parseTickers (data, symbolsNormalized);
     }
 
     /**
@@ -772,7 +772,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (trade, 'timestamp');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
         let side: Str = undefined;
         if (isSellerMaker !== undefined) {
@@ -789,9 +789,9 @@ export default class coinone extends Exchange {
             feeRateString = Precise.stringAbs (feeRateString);
             let feeCurrencyCode: Str = undefined;
             if (side === 'sell') {
-                feeCurrencyCode = market['quote'];
+                feeCurrencyCode = marketResolved['quote'];
             } else {
-                feeCurrencyCode = market['base'];
+                feeCurrencyCode = marketResolved['base'];
             }
             fee = {
                 'cost': feeCostString,
@@ -805,7 +805,7 @@ export default class coinone extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': orderId,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -813,7 +813,7 @@ export default class coinone extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1025,8 +1025,8 @@ export default class coinone extends Exchange {
         let symbol: Str = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            market = this.safeMarket (symbol, market, '/');
         }
+        const marketResolved = (symbol !== undefined) ? this.safeMarket (symbol, market, '/') : market;
         let timestamp = this.safeTimestamp2 (order, 'timestamp', 'updatedAt');
         if (timestamp === undefined) {
             timestamp = this.safeInteger2 (order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
@@ -1088,7 +1088,7 @@ export default class coinone extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1291,15 +1291,17 @@ export default class coinone extends Exchange {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/';
+        const isPublic = (api === 'public') || (api === 'v2Public');
         if (api === 'v2Public') {
             url = this.urls['api']['v2Public'] + '/';
-            api = 'public';
         } else if (api === 'v2Private') {
             url = this.urls['api']['v2Private'] + '/';
         } else if (api === 'v2_1Private') {
             url = this.urls['api']['v2_1Private'] + '/';
         }
-        if (api === 'public') {
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
+        if (isPublic) {
             url += request;
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
@@ -1319,16 +1321,18 @@ export default class coinone extends Exchange {
                 'nonce': nonce,
             }, params));
             const payload = this.stringToBase64 (json);
-            body = payload;
+            requestBody = payload;
             const secret = this.secret.toUpperCase ();
             const signature = this.hmac (this.encode (payload), this.encode (secret), sha512);
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
                 'X-COINONE-SIGNATURE': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

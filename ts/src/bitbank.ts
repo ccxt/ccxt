@@ -456,7 +456,7 @@ export default class bitbank extends Exchange {
         //    }
         //
         const timestamp = this.safeInteger (trade, 'executed_at');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
@@ -465,7 +465,7 @@ export default class bitbank extends Exchange {
         const feeCostString = this.safeString (trade, 'fee_amount_quote');
         if (feeCostString !== undefined) {
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCostString,
             };
         }
@@ -475,7 +475,7 @@ export default class bitbank extends Exchange {
         return this.safeTrade ({
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': id,
             'order': orderId,
             'type': type,
@@ -486,7 +486,7 @@ export default class bitbank extends Exchange {
             'cost': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -609,13 +609,11 @@ export default class bitbank extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        if (since === undefined) {
-            if (limit === undefined) {
-                limit = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
-            }
-            const duration = this.parseTimeframe (timeframe);
-            since = this.milliseconds () - duration * 1000 * limit;
-        }
+        // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
+        const windowLimit = (limit === undefined) ? 1000 : limit;
+        const limitResolved = (since === undefined) ? windowLimit : limit;
+        const duration = this.parseTimeframe (timeframe);
+        const sinceResolved = (since === undefined) ? this.milliseconds () - duration * 1000 * windowLimit : since;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -623,7 +621,7 @@ export default class bitbank extends Exchange {
         const request: Dict = {
             'pair': market['id'],
             'candletype': this.safeString (this.timeframes, timeframe, timeframe),
-            'yyyymmdd': this.yyyymmdd (since, ''),
+            'yyyymmdd': this.yyyymmdd (sinceResolved, ''),
         };
         const response = await this.publicGetPairCandlestickCandletypeYyyymmdd (this.extend (request, params));
         //
@@ -648,7 +646,7 @@ export default class bitbank extends Exchange {
         const candlestick = this.safeList (data, 'candlestick', []);
         const first = this.safeDict (candlestick, 0, {});
         const ohlcv = this.safeList (first, 'ohlcv', []);
-        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcv, market, timeframe, sinceResolved, limitResolved);
     }
 
     override parseBalance (response: any): Balances {
@@ -737,7 +735,7 @@ export default class bitbank extends Exchange {
     override parseOrder (order: Dict, market: Market = undefined): Order {
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'pair');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'ordered_at');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'start_amount');
@@ -754,7 +752,7 @@ export default class bitbank extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -769,7 +767,7 @@ export default class bitbank extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1006,8 +1004,9 @@ export default class bitbank extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        if (!('uuid' in params)) {
+        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+        const paramsWithdrawTag: Dict = tagAndParams[1];
+        if (!('uuid' in paramsWithdrawTag)) {
             throw new ExchangeError (this.id + ' uuid is required for withdrawal');
         }
         if (this.markets === undefined) {
@@ -1018,7 +1017,7 @@ export default class bitbank extends Exchange {
             'asset': currency['id'],
             'amount': amount,
         };
-        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -1058,7 +1057,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const txid = this.safeString (transaction, 'txid');
-        currency = this.safeCurrency (undefined, currency);
+        const currencyResolved: Currency = this.safeCurrency (undefined, currency);
         return {
             'id': txid,
             'txid': txid,
@@ -1070,7 +1069,7 @@ export default class bitbank extends Exchange {
             'addressTo': undefined,
             'amount': undefined,
             'type': undefined,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': undefined,
             'updated': undefined,
             'tagFrom': undefined,
@@ -1090,6 +1089,8 @@ export default class bitbank extends Exchange {
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let query = this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api'][api]) + '/';
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length > 0) {
@@ -1114,8 +1115,8 @@ export default class bitbank extends Exchange {
             }
             url += this.version + '/' + this.implodeParams (path, params);
             if (method === 'POST') {
-                body = this.json (query);
-                auth += body;
+                requestBody = this.json (query);
+                auth += requestBody;
             } else {
                 auth += '/' + this.version + '/' + path;
                 if (Object.keys (query).length > 0) {
@@ -1124,19 +1125,21 @@ export default class bitbank extends Exchange {
                     auth += '?' + query;
                 }
             }
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
             };
             if (isTimeWindow) {
-                headers['ACCESS-REQUEST-TIME'] = requestTime;
-                headers['ACCESS-TIME-WINDOW'] = timeWindow;
+                requestHeaders['ACCESS-REQUEST-TIME'] = requestTime;
+                requestHeaders['ACCESS-TIME-WINDOW'] = timeWindow;
             } else {
-                headers['ACCESS-NONCE'] = nonce;
+                requestHeaders['ACCESS-NONCE'] = nonce;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

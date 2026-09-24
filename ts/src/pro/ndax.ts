@@ -130,7 +130,7 @@ export default class ndax extends ndaxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const name = 'SubscribeTrades';
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
@@ -148,10 +148,11 @@ export default class ndax extends ndaxRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -221,7 +222,7 @@ export default class ndax extends ndaxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const name = 'SubscribeTicker';
         const messageHash = name + ':' + timeframe + ':' + market['id'];
         const url = this.urls['api']['ws'];
@@ -240,10 +241,11 @@ export default class ndax extends ndaxRest {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -375,17 +377,17 @@ export default class ndax extends ndaxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const name = 'SubscribeLevel2';
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
-        limit = (limit === undefined) ? 100 : limit;
+        const limitValue: Int = (limit === undefined) ? 100 : limit;
         const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': this.safeInteger (market, 'id'), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
-            'Depth': limit, // default 100
+            'Depth': limitValue, // default 100
         };
         const request: Dict = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
@@ -397,10 +399,10 @@ export default class ndax extends ndaxRest {
             'id': requestId,
             'messageHash': messageHash,
             'name': name,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'marketId': market['id'],
             'method': this.handleOrderBookSubscription,
-            'limit': limit,
+            'limit': limitValue,
             'params': params,
         };
         const message = this.extend (request, params);

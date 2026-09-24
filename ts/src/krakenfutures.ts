@@ -743,8 +743,8 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const open = this.safeString (ticker, 'open24h');
         const last = this.safeString (ticker, 'last');
@@ -754,11 +754,11 @@ export default class krakenfutures extends Exchange {
         const volume = this.safeString (ticker, 'vol24h');
         let baseVolume: Str = undefined;
         let quoteVolume: Str = undefined;
-        const isIndex = this.safeBool (market, 'index', false);
+        const isIndex = this.safeBool (marketResolved, 'index', false);
         if (isIndex !== true) {
-            if (market['linear'] === true) {
+            if (marketResolved['linear'] === true) {
                 baseVolume = volume;
-            } else if (market['inverse'] === true) {
+            } else if (marketResolved['inverse'] === true) {
                 quoteVolume = volume;
             }
         }
@@ -911,11 +911,12 @@ export default class krakenfutures extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 2000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 2000) as OHLCV[];
         }
-        let priceType = this.safeString (params, 'price', 'trade');
+        let priceType = this.safeString (paramsPaginate, 'price', 'trade');
         if (priceType === 'index') {
             priceType = 'spot'; // the venue's name for index-price candles
         } else if ((priceType !== 'trade') && (priceType !== 'mark') && (priceType !== 'spot')) {
@@ -926,24 +927,24 @@ export default class krakenfutures extends Exchange {
             'price_type': priceType,
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        params = this.omit (params, 'price');
+        const paramsOmitted: Dict = this.omit (paramsPaginate, 'price');
+        const windowLimit = (limit === undefined) ? 2000 : Math.min (limit, 2000);
+        let limitResolved = undefined;
+        if ((since !== undefined) || (limit !== undefined)) {
+            limitResolved = windowLimit;
+        }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = this.parseToInt (since / 1000);
-            if (limit === undefined) {
-                limit = 2000;
-            }
-            limit = Math.min (limit, 2000);
-            const toTimestamp = this.sum (request['from'], limit * duration - 1);
+            const toTimestamp = this.sum (request['from'], windowLimit * duration - 1);
             const currentTimestamp = this.seconds ();
             request['to'] = Math.min (toTimestamp, currentTimestamp);
-        } else if (limit !== undefined) {
-            limit = Math.min (limit, 2000);
+        } else if (limitResolved !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['to'] = this.seconds ();
-            request['from'] = this.parseToInt (request['to'] - (duration * limit));
+            request['from'] = this.parseToInt (request['to'] - (duration * limitResolved));
         }
-        const response = await this.chartsGetPriceTypeSymbolInterval (this.extend (request, params));
+        const response = await this.chartsGetPriceTypeSymbolInterval (this.extend (request, paramsOmitted));
         //
         //    {
         //        "candles": [
@@ -960,7 +961,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const candles = this.safeList (response, 'candles');
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1004,28 +1005,28 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
         };
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
+        const [ method, paramsMethod ] = this.handleOptionStringAndParams (paramsPaginate, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
         let rawTrades: Dict[] = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
-            [ request, params ] = this.handleUntilOption ('before', request, params);
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('before', request, paramsMethod);
             if (since !== undefined) {
-                request['since'] = since;
-                request['sort'] = 'asc';
+                requestUntil['since'] = since;
+                requestUntil['sort'] = 'asc';
             }
             if (limit !== undefined) {
-                request['count'] = limit;
+                requestUntil['count'] = limit;
             }
-            const response = await this.historyGetMarketSymbolExecutions (this.extend (request, params));
+            const response = await this.historyGetMarketSymbolExecutions (this.extend (requestUntil, paramsUntil));
             //
             //    {
             //        "elements": [
@@ -1088,8 +1089,8 @@ export default class krakenfutures extends Exchange {
                 rawTrades.push (rawTrade);
             }
         } else {
-            [ request, params ] = this.handleUntilOption ('lastTime', request, params);
-            const response = await this.publicGetHistory (this.extend (request, params));
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('lastTime', request, paramsMethod);
+            const response = await this.publicGetHistory (this.extend (requestUntil, paramsUntil));
             //
             //    {
             //        "result": "success",
@@ -1206,16 +1207,16 @@ export default class krakenfutures extends Exchange {
         if (type !== undefined) {
             type = this.parseOrderType (type);
         }
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let cost: Str = undefined;
-        const linear = this.safeBool (market, 'linear');
-        if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
+        const linear = this.safeBool (marketResolved, 'linear');
+        if ((amount !== undefined) && (price !== undefined) && (marketResolved !== undefined)) {
             if (linear === true) {
                 cost = Precise.stringMul (amount, price); // in quote
             } else {
                 cost = Precise.stringDiv (amount, price); // in base
             }
-            const contractSize = this.safeString (market, 'contractSize');
+            const contractSize = this.safeString (marketResolved, 'contractSize');
             cost = Precise.stringMul (cost, contractSize);
         }
         let takerOrMaker: Str = undefined;
@@ -1238,12 +1239,12 @@ export default class krakenfutures extends Exchange {
         }
         let fee: FeeString = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
-            const feeRate = this.safeString (market, takerOrMaker);
+            const feeRate = this.safeString (marketResolved, takerOrMaker);
             // fees are charged in the settlement currency: the quote currency
             // for linear contracts, the base currency for inverse contracts
-            let feeCurrency = this.safeString (market, 'settle');
+            let feeCurrency = this.safeString (marketResolved, 'settle');
             if (feeCurrency === undefined) {
-                feeCurrency = this.safeString (market, 'quote');
+                feeCurrency = this.safeString (marketResolved, 'quote');
             }
             fee = {
                 'cost': Precise.stringMul (cost, feeRate),
@@ -1254,7 +1255,7 @@ export default class krakenfutures extends Exchange {
         return this.safeTrade ({
             'info': trade,
             'id': id,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': order,
@@ -1276,70 +1277,69 @@ export default class krakenfutures extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        type = this.safeString (params, 'orderType', type);
+        const symbolValue: Str = market['symbol'];
+        let typeValue: Str = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
-        let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post', params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (typeValue === 'market', typeValue === 'post', params);
         if (postOnly) {
-            type = 'post';
+            typeValue = 'post';
         } else if (timeInForce === 'ioc') {
-            type = 'ioc';
-        } else if (type === 'limit') {
-            type = 'lmt';
-        } else if (type === 'market') {
-            type = 'mkt';
+            typeValue = 'ioc';
+        } else if (typeValue === 'limit') {
+            typeValue = 'lmt';
+        } else if (typeValue === 'market') {
+            typeValue = 'mkt';
         }
         const request: Dict = {
             'symbol': market['id'],
             'side': side,
-            'size': this.amountToPrecision (symbol, amount),
+            'size': this.amountToPrecision (symbolValue, amount),
         };
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cliOrdId');
+        const clientOrderId = this.safeString2 (paramsPostOnly, 'clientOrderId', 'cliOrdId');
         if (clientOrderId !== undefined) {
             request['cliOrdId'] = clientOrderId;
         }
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (paramsPostOnly, 'triggerPrice', 'stopPrice');
         const isTriggerOrder = triggerPrice !== undefined;
-        const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
+        const stopLossTriggerPrice = this.safeString (paramsPostOnly, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString (paramsPostOnly, 'takeProfitPrice');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        const triggerSignal = this.safeString (params, 'triggerSignal', 'last');
-        let reduceOnly = this.safeBool (params, 'reduceOnly');
+        const triggerSignal = this.safeString (paramsPostOnly, 'triggerSignal', 'last');
+        let reduceOnly = this.safeBool (paramsPostOnly, 'reduceOnly');
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
         }
         if (isTriggerOrder) {
-            type = 'stp';
-            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            typeValue = 'stp';
+            request['stopPrice'] = this.priceToPrecision (symbolValue, triggerPrice);
         } else if (isStopLossOrTakeProfitTrigger) {
             reduceOnly = true;
             if (isStopLossTriggerOrder) {
-                type = 'stp';
-                request['stopPrice'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                typeValue = 'stp';
+                request['stopPrice'] = this.priceToPrecision (symbolValue, stopLossTriggerPrice);
             } else if (isTakeProfitTriggerOrder) {
-                type = 'take_profit';
-                request['stopPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                typeValue = 'take_profit';
+                request['stopPrice'] = this.priceToPrecision (symbolValue, takeProfitTriggerPrice);
             }
         }
         if (reduceOnly === true) {
             request['reduceOnly'] = true;
         }
-        request['orderType'] = type;
-        price = this.parseNumber (price); // some callers pass null instead of undefined, normalize it
-        const isLimitOrder = (type === 'lmt') || (type === 'post') || (type === 'ioc');
-        const limitPriceParam = this.safeString (params, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
-        if (isLimitOrder && (price === undefined) && (limitPriceParam === undefined)) {
-            throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for ' + type + ' orders');
+        request['orderType'] = typeValue;
+        const priceValue: Num = this.parseNumber (price); // some callers pass null instead of undefined, normalize it
+        const isLimitOrder = (typeValue === 'lmt') || (typeValue === 'post') || (typeValue === 'ioc');
+        const limitPriceParam = this.safeString (paramsPostOnly, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
+        if (isLimitOrder && (priceValue === undefined) && (limitPriceParam === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for ' + typeValue + ' orders');
         }
-        const isMarketOrder = (type === 'mkt');
-        if ((price !== undefined) && !isMarketOrder) {
-            request['limitPrice'] = this.priceToPrecision (symbol, price);
+        const isMarketOrder = (typeValue === 'mkt');
+        if ((priceValue !== undefined) && !isMarketOrder) {
+            request['limitPrice'] = this.priceToPrecision (symbolValue, priceValue);
         }
-        params = this.omit (params, [ 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        return this.extend (request, params);
+        const paramsOmitted: Dict = this.omit (paramsPostOnly, [ 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     /**
@@ -1811,9 +1811,9 @@ export default class krakenfutures extends Exchange {
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         let response: Dict;
+        const paramsOmitted = this.omit (params, [ 'trigger', 'stop' ]);
         if (isTrigger === true) {
-            params = this.omit (params, [ 'trigger', 'stop' ]);
-            response = await this.historyGetTriggers (this.extend (request, params));
+            response = await this.historyGetTriggers (this.extend (request, paramsOmitted));
         } else {
             response = await this.historyGetOrders (this.extend (request, params));
         }
@@ -1872,9 +1872,9 @@ export default class krakenfutures extends Exchange {
         }
         let response: Dict;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
+        const paramsOmitted = this.omit (params, [ 'trigger', 'stop' ]);
         if (isTrigger === true) {
-            params = this.omit (params, [ 'trigger', 'stop' ]);
-            response = await this.historyGetTriggers (this.extend (request, params));
+            response = await this.historyGetTriggers (this.extend (request, paramsOmitted));
         } else {
             response = await this.historyGetOrders (this.extend (request, params));
         }
@@ -2377,8 +2377,8 @@ export default class krakenfutures extends Exchange {
         let status = this.parseOrderStatus (statusId);
         let isClosed = this.inArray (status, [ 'canceled', 'rejected', 'closed' ]);
         const marketId = this.safeString2 (details, 'symbol', 'tradeable');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.parse8601 (this.safeString2 (details, 'timestamp', 'receivedTime'));
         const lastUpdateTimestamp = this.parse8601 (this.safeString (details, 'lastUpdateTime'));
         let amount = this.safeString (details, 'quantity');
@@ -2422,13 +2422,13 @@ export default class krakenfutures extends Exchange {
             amount = Precise.stringAdd (filled, remaining);
         }
         let cost: Str = undefined;
-        if ((filled !== undefined) && (market !== undefined)) {
+        if ((filled !== undefined) && (marketResolved !== undefined)) {
             let whichPrice: Str = price;
             if (average !== undefined) {
                 whichPrice = average;
             }
             if (whichPrice !== undefined) {
-                if (market['linear'] === true) {
+                if (marketResolved['linear'] === true) {
                     cost = Precise.stringMul (filled, whichPrice); // in quote
                 } else {
                     cost = Precise.stringDiv (filled, whichPrice); // in base
@@ -2556,10 +2556,10 @@ export default class krakenfutures extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['before'] = until;
         }
-        const response = await this.historyGetAccountLog (this.extend (request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit (params, 'until') : params;
+        const response = await this.historyGetAccountLog (this.extend (request, paramsOmitted));
         //
         //    {
         //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -2634,10 +2634,10 @@ export default class krakenfutures extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['before'] = until;
         }
-        const response = await this.historyGetAccountLog (this.extend (request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit (params, 'until') : params;
+        const response = await this.historyGetAccountLog (this.extend (request, paramsOmitted));
         //
         //    {
         //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -2757,7 +2757,7 @@ export default class krakenfutures extends Exchange {
         const timestamp = this.parse8601 (this.safeString (item, 'date'));
         const currencyId = this.safeString (item, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const before = this.safeString (item, 'old_balance');
         const after = this.safeString (item, 'new_balance');
         const feeCost = this.safeString (item, 'fee');
@@ -2797,7 +2797,7 @@ export default class krakenfutures extends Exchange {
                 'cost': this.parseNumber (feeCost),
                 'currency': code,
             },
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     /**
@@ -2810,14 +2810,14 @@ export default class krakenfutures extends Exchange {
      * @param {string} [params.symbol] A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
      * @returns A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let type = this.safeString2 (params, 'type', 'account');
         let symbol = this.safeString (params, 'symbol');
-        params = this.omit (params, [ 'type', 'account', 'symbol' ]);
-        const response = await this.privateGetAccounts (params);
+        const paramsOmitted = this.omit (params, [ 'type', 'account', 'symbol' ]);
+        const response = await this.privateGetAccounts (paramsOmitted);
         //
         //    {
         //        "result": "success",
@@ -3251,7 +3251,7 @@ export default class krakenfutures extends Exchange {
      * @param {string} [params.continuation_token] the token of a previous response, to fetch the next page
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbols !== undefined) {
@@ -3275,10 +3275,10 @@ export default class krakenfutures extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['before'] = until;
         }
-        const response = await this.historyGetPositions (this.extend (request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit (params, 'until') : params;
+        const response = await this.historyGetPositions (this.extend (request, paramsOmitted));
         //
         //    {
         //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -3408,11 +3408,11 @@ export default class krakenfutures extends Exchange {
             }
         }
         const marketId = this.safeString2 (position, 'symbol', 'tradeable');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         return {
             'info': position,
             'id': this.safeString (position, 'executionUid'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': datetime,
             'initialMargin': undefined,
@@ -3425,7 +3425,7 @@ export default class krakenfutures extends Exchange {
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
             'realizedPnl': this.safeNumber (position, 'realizedPnL'),
             'contracts': this.parseNumber (contracts),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': undefined,
             'markPrice': undefined,
@@ -3541,7 +3541,7 @@ export default class krakenfutures extends Exchange {
         //
         const marginLevels = this.safeList (info, 'marginLevels');
         const marketId = this.safeString (info, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const tiers: LeverageTier[] = [];
         if (marginLevels === undefined) {
             return tiers;
@@ -3557,8 +3557,8 @@ export default class krakenfutures extends Exchange {
             }
             tiers.push ({
                 'tier': this.sum (i, 1),
-                'symbol': this.safeSymbol (marketId, market),
-                'currency': market['quote'],
+                'symbol': this.safeSymbol (marketId, marketResolved),
+                'currency': marketResolved['quote'],
                 'minNotional': minNotional,
                 'maxNotional': undefined,
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
@@ -3645,7 +3645,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3821,26 +3821,27 @@ export default class krakenfutures extends Exchange {
         const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
-        params = this.omit (params, 'version');
+        const paramsOmitted: Dict = this.omit (params, 'version');
         const apiAccess = this.safeDict (this.options['access'], api, {});
         const methodAccess = this.safeDict (apiAccess, method, {});
         const access = this.safeString (methodAccess, path, 'public');
-        const endpoint = version + '/' + this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
+        const endpoint = version + '/' + this.implodeParams (path, paramsOmitted);
+        const paramsOmitted2: Dict = this.omit (paramsOmitted, this.extractParams (path));
         let query = endpoint;
         let postData = '';
         if (path === 'batchorder') {
-            postData = 'json=' + this.json (params);
-            body = postData;
-        } else if (Object.keys (params).length > 0) {
-            if ('orderIds' in params) {
-                postData = this.urlencodeWithArrayRepeat (params);
+            postData = 'json=' + this.json (paramsOmitted2);
+        } else if (Object.keys (paramsOmitted2).length > 0) {
+            if ('orderIds' in paramsOmitted2) {
+                postData = this.urlencodeWithArrayRepeat (paramsOmitted2);
             } else {
-                postData = this.urlencode (params);
+                postData = this.urlencode (paramsOmitted2);
             }
             query += '?' + postData;
         }
         const url = this.urls['api'][api] + query;
+        const requestBody = (path === 'batchorder') ? postData : body;
+        let privateHeaders = undefined;
         if (api === 'private' || access === 'private') {
             this.checkRequiredCredentials ();
             let auth = postData + '/api/';
@@ -3851,13 +3852,14 @@ export default class krakenfutures extends Exchange {
             const hash = this.hash (this.encode (auth), sha256, 'binary'); // 2
             const secret = this.base64ToBinary (this.secret); // 3
             const signature = this.hmac (hash, secret, sha512, 'base64'); // 4-5
-            headers = {
+            privateHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
                 'APIKey': this.apiKey,
                 'Authent': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }

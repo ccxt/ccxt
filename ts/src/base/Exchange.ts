@@ -875,12 +875,13 @@ export class BaseExchange {
         if (protobufMexc === undefined) {
             throw new NotSupported (this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
         }
+        // browser case: ArrayBuffer -> Uint8Array
+        let dataBytes = data;
         if (data instanceof ArrayBuffer) {
-            // browser case
-            data = new Uint8Array (data);
+            dataBytes = new Uint8Array (data);
         }
-        if (data instanceof Uint8Array) {
-            const decoded = (protobufMexc.default as any).PushDataV3ApiWrapper.decode (data);
+        if (dataBytes instanceof Uint8Array) {
+            const decoded = (protobufMexc.default as any).PushDataV3ApiWrapper.decode (dataBytes);
             const dict = decoded.toJSON ();
             //  {
             //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
@@ -901,7 +902,7 @@ export class BaseExchange {
             // }
             return dict;
         }
-        return data;
+        return dataBytes;
     }
 
     /**
@@ -1250,19 +1251,19 @@ export class BaseExchange {
 
     async fetch (url: any, method = 'GET', headers: any = undefined, body: any = undefined) {
         // ##### PROXY & HEADERS #####
-        headers = this.extend (this.headers, headers);
+        let requestHeaders: any = this.extend (this.headers, headers);
         // proxy-url
-        const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
+        const proxyUrl = this.checkProxyUrlSettings (url, method, requestHeaders, body);
+        if ((proxyUrl !== undefined) && isNode) {
+            // in node-js we need to set header to *
+            requestHeaders = this.extend ({ 'Origin': this.origin }, requestHeaders);
+        }
+        let requestUrl = url;
         if (proxyUrl !== undefined) {
-            // part only for node-js
-            if (isNode) {
-                // in node-js we need to set header to *
-                headers = this.extend ({ 'Origin': this.origin }, headers);
-            }
-            url = proxyUrl + this.urlEncoderForProxyUrl (url);
+            requestUrl = proxyUrl + this.urlEncoderForProxyUrl (url);
         }
         // proxy agents
-        const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
+        const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (requestUrl, method, requestHeaders, body);
         let anyProxySet: Str = undefined;
         if ((httpProxy !== undefined) && (httpProxy !== '')) {
             anyProxySet = httpProxy;
@@ -1284,19 +1285,20 @@ export class BaseExchange {
         }
         if ((userAgent !== undefined) && (userAgent !== null) && (userAgent !== '') && isNode) {
             if (typeof userAgent === 'string') {
-                headers = this.extend ({ 'User-Agent': userAgent }, headers);
+                requestHeaders = this.extend ({ 'User-Agent': userAgent }, requestHeaders);
             } else if (this.isDictionary (userAgent) && ('User-Agent' in userAgent)) {
-                headers = this.extend (userAgent, headers);
+                requestHeaders = this.extend (userAgent, requestHeaders);
             }
         }
         // set final headers
-        headers = this.setHeaders (headers);
+        requestHeaders = this.setHeaders (requestHeaders);
         // multipart/form-data
-        const headersKeys = Object.keys (headers);
+        let multipartBody: Str = undefined;
+        const headersKeys = Object.keys (requestHeaders);
         for (let i = 0; i < headersKeys.length; i++) {
             const key = headersKeys[i];
             if (key.toLowerCase () === 'content-type') {
-                let value = headers[key];
+                let value = requestHeaders[key];
                 if (value === 'multipart/form-data') {
                     const bodyKeys = Object.keys (body);
                     const boundary = '--------------------------' + this.randomBytes (12);
@@ -1308,22 +1310,23 @@ export class BaseExchange {
                     }
                     newBody += '--' + boundary + '--' + eol;
                     value += '; boundary=' + boundary;
-                    headers[key] = value;
-                    body = newBody;
+                    requestHeaders[key] = value;
+                    multipartBody = newBody;
                     break;
                 }
             }
         }
+        const requestBody: any = (multipartBody !== undefined) ? multipartBody : body;
         // log
         if (this.verbose) {
-            this.log ('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
+            this.log ('fetch Request:\n', this.id, method, requestUrl, '\nRequestHeaders:\n', requestHeaders, '\nRequestBody:\n', requestBody, '\n');
         }
         // end of proxies & headers
         if (this.fetchImplementationLoading === undefined || this.fetchImplementation === undefined) {
             await this.loadFetchImplementation ();
         }
         const fetchImplementation = this.fetchImplementation;
-        const params: Dict = { method, headers, body };
+        const params: Dict = { 'method': method, 'headers': requestHeaders, 'body': requestBody };
         if (this.fetchIsNative) {
             // never follow redirects: the whatwg-fetch paths (browser / bun / global-fetch
             // fallback) reject with TypeError on a redirect response, which the catch below
@@ -1354,29 +1357,29 @@ export class BaseExchange {
         let response: any = undefined;
         try {
             if (this.fetchIsNative && (this.undiciModule !== undefined)) {
-                response = await this.undiciRequest (url, params);
+                response = await this.undiciRequest (requestUrl, params);
             } else {
-                response = await fetchImplementation (url, params);
+                response = await fetchImplementation (requestUrl, params);
             }
         } catch (e: any) {
             if ((e instanceof this.AbortError) || ((e !== undefined) && ((e.name === 'AbortError') || (e.name === 'TimeoutError')))) {
-                throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
+                throw new RequestTimeout (this.id + ' ' + method + ' ' + requestUrl + ' request timed out (' + this.timeout + ' ms)');
             }
             // undici wraps the underlying transport error into TypeError('fetch failed') with a cause
             const causeMessage = ((e !== undefined) && (e.cause !== undefined) && (e.cause !== null) && (e.cause.message !== undefined)) ? (': ' + e.cause.message) : '';
             if ((e instanceof this.FetchError) || (e instanceof TypeError)) {
-                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed' + causeMessage);
+                throw new NetworkError (this.id + ' ' + method + ' ' + requestUrl + ' fetch failed' + causeMessage);
             }
             // undici.request and other runtimes signal connection failures with error classes carrying a string code
             const networkErrorCodes = [ 'ConnectionRefused', 'ConnectionClosed', 'ConnectionReset', 'DNSError', 'FailedToOpenSocket', 'ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 'EPIPE', 'EAI_AGAIN', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT' ];
             if ((e !== undefined) && (typeof e.code === 'string') && (networkErrorCodes.indexOf (e.code) !== -1)) {
-                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed: ' + e.message);
+                throw new NetworkError (this.id + ' ' + method + ' ' + requestUrl + ' fetch failed: ' + e.message);
             }
             throw e;
         } finally {
             clearTimeout (timeout);
         }
-        return await this.handleRestResponse (response, url, method, headers, body);
+        return await this.handleRestResponse (response, requestUrl, method, requestHeaders, requestBody);
     }
 
     jsonStringifyWithNull (obj: any): string {
@@ -1435,8 +1438,8 @@ export class BaseExchange {
         if (typeof headers.forEach === 'function') {
             // fetch Headers object
             headers.forEach ((value: any, key: string) => {
-                key = key.split ('-').map ((word: string) => this.capitalize (word)).join ('-');
-                result[key] = value;
+                const headerName = key.split ('-').map ((word: string) => this.capitalize (word)).join ('-');
+                result[headerName] = value;
             });
             return result;
         }
@@ -2327,13 +2330,12 @@ export class BaseExchange {
         }
         const messages = [ message ];
         const sequence = this.milliseconds ();
-        if (fee === undefined) {
-            const emptyAmount: Dict[] = [];
-            fee = {
-                'amount': emptyAmount,
-                'gasLimit': 1000000,
-            };
-        }
+        const emptyAmount: Dict[] = [];
+        const defaultFee: Dict = {
+            'amount': emptyAmount,
+            'gasLimit': 1000000,
+        };
+        const feeResolved = (fee === undefined) ? defaultFee : fee;
         const encodedMessages = messages.map ((msg) => encodeFn (msg));
         const nonCriticalExtensionOptions = [
             encodeFn ({
@@ -2350,7 +2352,7 @@ export class BaseExchange {
             'nonCriticalExtensionOptions': nonCriticalExtensionOptions,
         })).finish ();
         const authInfoBytes = AuthInfo.encode (AuthInfo.fromPartial ({
-            'fee': fee,
+            'fee': feeResolved,
             'signerInfos': [
                 {
                     'publicKey': encodeFn ({
@@ -3374,13 +3376,11 @@ export class BaseExchange {
     }
 
     findTimeframe (timeframe: any, timeframes: NullableDict = undefined): Str {
-        if (timeframes === undefined) {
-            timeframes = this.timeframes;
-        }
-        const keys = Object.keys (timeframes);
+        const timeframesResolved: Dict = (timeframes === undefined) ? this.timeframes : timeframes;
+        const keys = Object.keys (timeframesResolved);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (timeframes[key] === timeframe) {
+            if (timeframesResolved[key] === timeframe) {
                 return key;
             }
         }
@@ -3564,23 +3564,16 @@ export class BaseExchange {
                     }
                 }
                 if (fromStart) {
-                    if (limit > arrayLength) {
-                        limit = arrayLength;
-                    }
-                    // array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit);
+                    const limitResolved = (limit > arrayLength) ? arrayLength : limit;
                     if (ascending) {
-                        array = this.arraySlice (array, 0, limit);
-                    } else {
-                        array = this.arraySlice (array, -limit);
+                        return this.arraySlice (array, 0, limitResolved);
                     }
-                } else {
-                    // array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
-                    if (ascending) {
-                        array = this.arraySlice (array, -limit);
-                    } else {
-                        array = this.arraySlice (array, 0, limit);
-                    }
+                    return this.arraySlice (array, -limitResolved);
                 }
+                if (ascending) {
+                    return this.arraySlice (array, -limit);
+                }
+                return this.arraySlice (array, 0, limit);
             }
         }
         return array;
@@ -4325,7 +4318,7 @@ export class BaseExchange {
     }
 
     safeLedgerEntry (entry: object, currency: Currency = undefined): LedgerEntry {
-        currency = this.safeCurrency (undefined, currency);
+        const currencyResolved: Currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
         let before = this.safeString (entry, 'before');
         let after = this.safeString (entry, 'after');
@@ -4362,7 +4355,7 @@ export class BaseExchange {
             'referenceId': this.safeString (entry, 'referenceId'),
             'referenceAccount': this.safeString (entry, 'referenceAccount'),
             'type': this.safeString (entry, 'type'),
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'amount': this.parseNumber (amount),
             'before': this.parseNumber (before),
             'after': this.parseNumber (after),
@@ -4753,33 +4746,34 @@ export class BaseExchange {
     safeOrder (order: Dict, market: Market = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
+        let orderDict: Dict = order;
         if (order === undefined) {
-            order = {};
+            orderDict = {};
         }
-        let amount = this.omitZero (this.safeString (order, 'amount'));
-        let remaining = this.safeString (order, 'remaining');
-        let filled = this.safeString (order, 'filled');
-        let cost = this.safeString (order, 'cost');
-        let average = this.omitZero (this.safeString (order, 'average'));
-        let price = this.omitZero (this.safeString (order, 'price'));
-        let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
-        let symbol = this.safeString (order, 'symbol');
-        let side = this.safeString (order, 'side');
-        const status = this.safeString (order, 'status');
+        let amount = this.omitZero (this.safeString (orderDict, 'amount'));
+        let remaining = this.safeString (orderDict, 'remaining');
+        let filled = this.safeString (orderDict, 'filled');
+        let cost = this.safeString (orderDict, 'cost');
+        let average = this.omitZero (this.safeString (orderDict, 'average'));
+        let price = this.omitZero (this.safeString (orderDict, 'price'));
+        let lastTradeTimeTimestamp = this.safeInteger (orderDict, 'lastTradeTimestamp');
+        let symbol = this.safeString (orderDict, 'symbol');
+        let side = this.safeString (orderDict, 'side');
+        const status = this.safeString (orderDict, 'status');
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
         const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
-        const fee = this.safeValue (order, 'fee');
+        const fee = this.safeValue (orderDict, 'fee');
         const parseFee = (fee === undefined);
-        const parseFees = this.safeValue (order, 'fees') === undefined;
+        const parseFees = this.safeValue (orderDict, 'fees') === undefined;
         const parseSymbol = symbol === undefined;
         const parseSide = side === undefined;
         const shouldParseFees = parseFee || parseFees;
-        const fees = this.safeList (order, 'fees', []);
+        const fees = this.safeList (orderDict, 'fees', []);
         let trades: any[] = [];
-        const isTriggerOrSLTpOrder = ((this.safeString (order, 'triggerPrice') !== undefined || (this.safeString (order, 'stopLossPrice') !== undefined)) || (this.safeString (order, 'takeProfitPrice') !== undefined));
+        const isTriggerOrSLTpOrder = ((this.safeString (orderDict, 'triggerPrice') !== undefined || (this.safeString (orderDict, 'stopLossPrice') !== undefined)) || (this.safeString (orderDict, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
-            const rawTrades = this.safeValue (order, 'trades', trades);
+            const rawTrades = this.safeValue (orderDict, 'trades', trades);
             // const oldNumber = this.number;
             // we parse trades as strings here!
             // i don't think this is needed anymore
@@ -4800,17 +4794,17 @@ export class BaseExchange {
             }
             if (isArray && (tradesLength > 0)) {
                 // move properties that are defined in trades up into the order
-                if (order['symbol'] === undefined) {
-                    order['symbol'] = trades[0]['symbol'];
+                if (orderDict['symbol'] === undefined) {
+                    orderDict['symbol'] = trades[0]['symbol'];
                 }
-                if (order['side'] === undefined) {
-                    order['side'] = trades[0]['side'];
+                if (orderDict['side'] === undefined) {
+                    orderDict['side'] = trades[0]['side'];
                 }
-                if (order['type'] === undefined) {
-                    order['type'] = trades[0]['type'];
+                if (orderDict['type'] === undefined) {
+                    orderDict['type'] = trades[0]['type'];
                 }
-                if (order['id'] === undefined) {
-                    order['id'] = trades[0]['order'];
+                if (orderDict['id'] === undefined) {
+                    orderDict['id'] = trades[0]['order'];
                 }
                 if (parseFilled) {
                     filled = '0';
@@ -4883,9 +4877,9 @@ export class BaseExchange {
                 }
                 reducedFees.push (feeCopy);
             }
-            order['fees'] = reducedFees;
+            orderDict['fees'] = reducedFees;
             if (parseFee && (reducedLength === 1)) {
-                order['fee'] = reducedFees[0];
+                orderDict['fee'] = reducedFees[0];
             }
         }
         if (amount === undefined) {
@@ -4951,7 +4945,7 @@ export class BaseExchange {
             }
         }
         // support for market orders
-        const orderType = this.safeValue (order, 'type');
+        const orderType = this.safeValue (orderDict, 'type');
         const emptyPrice = (price === undefined) || Precise.stringEquals (price, '0');
         if (emptyPrice && (orderType === 'market')) {
             price = average;
@@ -4974,11 +4968,11 @@ export class BaseExchange {
             entry['fees'] = entryFees;
             entry['fee'] = tradeFee;
         }
-        let timeInForce = this.safeString (order, 'timeInForce');
-        let postOnly = this.safeValue (order, 'postOnly');
+        let timeInForce = this.safeString (orderDict, 'timeInForce');
+        let postOnly = this.safeValue (orderDict, 'postOnly');
         // timeInForceHandling
         if (timeInForce === undefined) {
-            if (!isTriggerOrSLTpOrder && (this.safeString (order, 'type') === 'market')) {
+            if (!isTriggerOrSLTpOrder && (this.safeString (orderDict, 'type') === 'market')) {
                 timeInForce = 'IOC';
             }
             // allow postOnly override
@@ -4989,22 +4983,22 @@ export class BaseExchange {
             // timeInForce is not undefined here
             postOnly = timeInForce === 'PO';
         }
-        const timestamp = this.safeInteger (order, 'timestamp');
-        const lastUpdateTimestamp = this.safeInteger (order, 'lastUpdateTimestamp');
-        let datetime = this.safeString (order, 'datetime');
+        const timestamp = this.safeInteger (orderDict, 'timestamp');
+        const lastUpdateTimestamp = this.safeInteger (orderDict, 'lastUpdateTimestamp');
+        let datetime = this.safeString (orderDict, 'datetime');
         if (datetime === undefined) {
             datetime = this.iso8601 (timestamp);
         }
-        const triggerPrice = this.parseNumber (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
-        const takeProfitPrice = this.parseNumber (this.safeString (order, 'takeProfitPrice'));
-        const stopLossPrice = this.parseNumber (this.safeString (order, 'stopLossPrice'));
-        return this.extend (order, {
-            'id': this.safeString (order, 'id'),
-            'clientOrderId': this.safeString (order, 'clientOrderId'),
+        const triggerPrice = this.parseNumber (this.safeString2 (orderDict, 'triggerPrice', 'stopPrice'));
+        const takeProfitPrice = this.parseNumber (this.safeString (orderDict, 'takeProfitPrice'));
+        const stopLossPrice = this.parseNumber (this.safeString (orderDict, 'stopLossPrice'));
+        return this.extend (orderDict, {
+            'id': this.safeString (orderDict, 'id'),
+            'clientOrderId': this.safeString (orderDict, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'type': this.safeString (order, 'type'),
+            'type': this.safeString (orderDict, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
@@ -5017,13 +5011,13 @@ export class BaseExchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'trades': trades,
-            'reduceOnly': this.safeValue (order, 'reduceOnly'),
+            'reduceOnly': this.safeValue (orderDict, 'reduceOnly'),
             'stopPrice': triggerPrice,  // ! deprecated, use triggerPrice instead
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'status': status,
-            'fee': this.safeValue (order, 'fee'),
+            'fee': this.safeValue (orderDict, 'fee'),
         });
     }
 
@@ -5109,13 +5103,11 @@ export class BaseExchange {
             key = 'settle';
         }
         // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
-        if (type === 'market') {
-            takerOrMaker = 'taker';
-        }
-        const rate = (feeRate !== undefined) ? this.numberToString (feeRate) : this.safeString (market, takerOrMaker);
+        const takerOrMakerResolved = (type === 'market') ? 'taker' : takerOrMaker;
+        const rate = (feeRate !== undefined) ? this.numberToString (feeRate) : this.safeString (market, takerOrMakerResolved);
         cost = Precise.stringMul (cost, rate);
         return {
-            'type': takerOrMaker,
+            'type': takerOrMakerResolved,
             'currency': market[key as string],
             'rate': this.parseNumber (rate),
             'cost': this.parseNumber (cost),
@@ -5765,10 +5757,10 @@ export class BaseExchange {
     }
 
     parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): Num[][] {
-        bidasks = this.toArray (bidasks);
+        const bidasksValue: any = this.toArray (bidasks);
         const result: Num[][] = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.parseOrderBookBidAsk (bidasks[i], priceKey, amountKey, countOrIdKey));
+        for (let i = 0; i < bidasksValue.length; i++) {
+            result.push (this.parseOrderBookBidAsk (bidasksValue[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -5964,11 +5956,9 @@ export class BaseExchange {
 
     handleNetworkCodeAndParams (params: any): any[] {
         const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
-        if (networkCodeInParams !== undefined) {
-            params = this.omit (params, [ 'networkCode', 'network' ]);
-        }
+        const paramsOmitted = (networkCodeInParams !== undefined) ? this.omit (params, [ 'networkCode', 'network' ]) : params;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
-        return [ networkCodeInParams, params ];
+        return [ networkCodeInParams, paramsOmitted ];
     }
 
     defaultNetworkCode (currencyCode: string): Str {
@@ -6037,9 +6027,6 @@ export class BaseExchange {
     }
 
     parseOrderBook (orderbook: object | undefined, symbol: Str, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBook {
-        if (orderbook === undefined) {
-            orderbook = {};
-        }
         const bids = this.parseOrderBookBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
         const asks = this.parseOrderBookBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
@@ -6066,13 +6053,13 @@ export class BaseExchange {
 
     parseLeverageTiers (response: any, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         // marketIdKey should only be undefined when response is a dictionary.
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const tiers: Dict = {};
         let symbolsLength = 0;
-        if (symbols !== undefined) {
-            symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
         }
-        const noSymbols = (symbols === undefined) || (symbolsLength === 0);
+        const noSymbols = (symbolsNormalized === undefined) || (symbolsLength === 0);
         if (Array.isArray (response)) {
             for (let i = 0; i < response.length; i++) {
                 const item = response[i];
@@ -6080,7 +6067,7 @@ export class BaseExchange {
                 const market = this.safeMarket (id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbols !== undefined) && this.inArray (symbol, symbols)))) {
+                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -6092,7 +6079,7 @@ export class BaseExchange {
                 const market = this.safeMarket (marketId, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbols !== undefined) && this.inArray (symbol, symbols)))) {
+                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -6147,14 +6134,14 @@ export class BaseExchange {
     }
 
     parsePositions (positions: List, symbols: Strings = undefined, params: Dict = {}): Position[] {
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const positionsArray = this.toArray (positions);
         const result: Position[] = [];
         for (let i = 0; i < positionsArray.length; i++) {
             const position = this.extend (this.parsePosition (positionsArray[i]), params);
             result.push (position);
         }
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
     }
 
     parseADLRank (info: Dict, market: Market = undefined): ADL {
@@ -6165,14 +6152,14 @@ export class BaseExchange {
     }
 
     parseADLRanks (ranks: List, symbols: Strings = undefined, params: Dict = {}): ADL[] {
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const ranksArray = this.toArray (ranks);
         const result: ADL[] = [];
         for (let i = 0; i < ranksArray.length; i++) {
             const rank = this.extend (this.parseADLRank (ranksArray[i]), params);
             result.push (rank);
         }
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
     }
 
     parseAccounts (accounts: List, params: Dict = {}): Account[] {
@@ -6314,10 +6301,8 @@ export class BaseExchange {
     /* eslint-enable no-unused-vars */
     handleParamString (params: object, paramName: string, defaultValue: Str = undefined): [Str, object] {
         const value = this.safeString (params, paramName, defaultValue);
-        if (value !== undefined) {
-            params = this.omit (params, paramName);
-        }
-        return [ value, params ];
+        const paramsOmitted = (value !== undefined) ? this.omit (params, paramName) : params;
+        return [ value, paramsOmitted ];
     }
 
     /* eslint-disable no-unused-vars */
@@ -6326,42 +6311,32 @@ export class BaseExchange {
     /* eslint-enable no-unused-vars */
     handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [Str, object] {
         const value = this.safeString2 (params, paramName1, paramName2, defaultValue);
-        if (value !== undefined) {
-            params = this.omit (params, [ paramName1, paramName2 ]);
-        }
-        return [ value, params ];
+        const paramsOmitted = (value !== undefined) ? this.omit (params, [ paramName1, paramName2 ]) : params;
+        return [ value, paramsOmitted ];
     }
 
     handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, object] {
         const value = this.safeInteger (params, paramName, defaultValue);
-        if (value !== undefined) {
-            params = this.omit (params, paramName);
-        }
-        return [ value, params ];
+        const paramsOmitted = (value !== undefined) ? this.omit (params, paramName) : params;
+        return [ value, paramsOmitted ];
     }
 
     handleParamInteger2 (params: object, paramName1: string, paramName2: string, defaultValue: Int = undefined): [Int, object] {
         const value = this.safeInteger2 (params, paramName1, paramName2, defaultValue);
-        if (value !== undefined) {
-            params = this.omit (params, [ paramName1, paramName2 ]);
-        }
-        return [ value, params ];
+        const paramsOmitted = (value !== undefined) ? this.omit (params, [ paramName1, paramName2 ]) : params;
+        return [ value, paramsOmitted ];
     }
 
     handleParamBool (params: object, paramName: string, defaultValue: Bool = undefined): [Bool, object] {
         const value = this.safeBool (params, paramName, defaultValue);
-        if (value !== undefined) {
-            params = this.omit (params, paramName);
-        }
-        return [ value, params ];
+        const paramsOmitted = (value !== undefined) ? this.omit (params, paramName) : params;
+        return [ value, paramsOmitted ];
     }
 
     handleParamBool2 (params: object, paramName1: string, paramName2: string, defaultValue: Bool = undefined): [Bool, object] {
         const value = this.safeBool2 (params, paramName1, paramName2, defaultValue);
-        if (value !== undefined) {
-            params = this.omit (params, [ paramName1, paramName2 ]);
-        }
-        return [ value, params ];
+        const paramsOmitted = (value !== undefined) ? this.omit (params, [ paramName1, paramName2 ]) : params;
+        return [ value, paramsOmitted ];
     }
 
     /**
@@ -6373,14 +6348,13 @@ export class BaseExchange {
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
     handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean = false): Dict[] {
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request[exchangeSpecificKey] = this.networkCodeToId (networkCode, currencyCode);
         } else if (isRequired) {
             throw new ArgumentsRequired (this.id + ' - "network" param is required for this request');
         }
-        return [ request, params ];
+        return [ request, paramsNetworkCode ];
     }
 
     resolvePath (path: any, params: any): any[] {
@@ -6423,20 +6397,20 @@ export class BaseExchange {
     }
 
     filterByArray (objects: any, key: IndexType, values: any = undefined, indexed = true) {
-        objects = this.toArray (objects);
+        const objectsValue: any = this.toArray (objects);
         // return all of them if no values were passed
         if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
-                return this.indexBy (objects, key);
+                return this.indexBy (objectsValue, key);
             } else {
-                return objects;
+                return objectsValue;
             }
         }
         const results: Dict[] = [];
-        for (let i = 0; i < objects.length; i++) {
-            if (this.inArray (objects[i][key], values)) {
-                results.push (objects[i]);
+        for (let i = 0; i < objectsValue.length; i++) {
+            if (this.inArray (objectsValue[i][key], values)) {
+                results.push (objectsValue[i]);
             }
         }
         // return indexed ? this.indexBy (results, key) : results;
@@ -6447,20 +6421,20 @@ export class BaseExchange {
     }
 
     filterOutByArray (objects: any, key: IndexType, values: any = undefined, indexed = true) {
-        objects = this.toArray (objects);
+        const objectsValue: any = this.toArray (objects);
         // return all of them if no values were passed
         if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
-                return this.indexBy (objects, key);
+                return this.indexBy (objectsValue, key);
             } else {
-                return objects;
+                return objectsValue;
             }
         }
         const results: Dict[] = [];
-        for (let i = 0; i < objects.length; i++) {
-            if (!this.inArray (objects[i][key], values)) {
-                results.push (objects[i]);
+        for (let i = 0; i < objectsValue.length; i++) {
+            if (!this.inArray (objectsValue[i][key], values)) {
+                results.push (objectsValue[i]);
             }
         }
         // return indexed ? this.indexBy (results, key) : results;
@@ -6475,19 +6449,21 @@ export class BaseExchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
         }
-        let retries = 0;
-        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', retries);
-        let retryDelay = 0;
-        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', retryDelay);
+        const retries = 0;
+        // implicit endpoints may pass a list body as params: keep it an untyped box
+        const requestParams: object = params;
+        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionAndParams (requestParams, path, 'maxRetriesOnFailure', retries);
+        const retryDelay = 0;
+        const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
-        for (let i = 0; i < retries + 1; i++) {
+        for (let i = 0; i < retriesMaxRetriesOnFailure + 1; i++) {
             let fetchData: NullableDict = undefined;
             if (fetchDataCacheEnabled) {
                 fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
             }
             try {
                 this.setLastRestRequestTimestamp ();
-                const request = this.sign (path, api, method, params, headers, body);
+                const request = this.sign (path, api, method, paramsMaxRetriesOnFailureDelay, headers, body);
                 if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
@@ -6504,13 +6480,13 @@ export class BaseExchange {
                     this.addFetchCache (fetchData);
                 }
                 if (e instanceof OperationFailed) {
-                    if (i < retries) {
+                    if (i < retriesMaxRetriesOnFailure) {
                         if (this.verbose) {
                             const index = i + 1;
-                            this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + index.toString () + ' of ' + retries.toString () + '...');
+                            this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + index.toString () + ' of ' + retriesMaxRetriesOnFailure.toString () + '...');
                         }
-                        if ((retryDelay !== undefined) && (retryDelay !== 0)) {
-                            await this.sleep (retryDelay);
+                        if ((retryDelayMaxRetriesOnFailureDelay !== undefined) && (retryDelayMaxRetriesOnFailureDelay !== 0)) {
+                            await this.sleep (retryDelayMaxRetriesOnFailureDelay);
                         }
                     } else {
                         throw e;
@@ -6664,16 +6640,13 @@ export class BaseExchange {
                 if (numMarkets === 1) {
                     return markets[0];
                 } else {
-                    if (marketType === undefined) {
-                        if (market === undefined) {
-                            throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
-                        } else {
-                            marketType = market['type'];
-                        }
+                    if ((marketType === undefined) && (market === undefined)) {
+                        throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
                     }
+                    const marketTypeResolved: string = (marketType === undefined) ? this.safeString (market, 'type', '') : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (currentMarket[marketType] === true) {
+                        if (currentMarket[marketTypeResolved] === true) {
                             return currentMarket;
                         }
                     }
@@ -6875,12 +6848,13 @@ export class BaseExchange {
         // check if params contain the key
         let value = this.safeValue2 (params, optionName, defaultOptionName);
         if (value !== undefined) {
-            params = this.omit (params, [ optionName, defaultOptionName ]);
+            const paramsOmitted = this.omit (params, [ optionName, defaultOptionName ]);
+            return [ value, paramsOmitted ];
         } else {
             // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
-            [ methodName, params ] = this.handleParamString (params, 'callerMethodName', methodName);
+            const [ callerMethodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', methodName);
             // check if exchange has properties for this method
-            const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
+            const exchangeWideMethodOptions = this.safeValue (this.options, callerMethodName);
             if (exchangeWideMethodOptions !== undefined) {
                 // check if the option is defined inside this method's props
                 value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
@@ -6891,8 +6865,8 @@ export class BaseExchange {
             }
             // if it's still undefined, use the default value
             value = (value !== undefined) ? value : defaultValue;
+            return [ value, paramsCallerMethodName ];
         }
-        return [ value, params ];
     }
 
     /* eslint-disable no-unused-vars */
@@ -6900,17 +6874,14 @@ export class BaseExchange {
     handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [any, Dict];
     /* eslint-enable no-unused-vars */
     handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined): [any, Dict] {
-        let value = undefined;
-        [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1);
+        const [ value, paramsOption1 ] = this.handleOptionAndParams (params, methodName1, optionName1);
         if (value !== undefined) {
             // omit optionName2 too from params
-            params = this.omit (params, optionName2);
-            return [ value, params ];
+            const paramsOmitted = this.omit (paramsOption1, optionName2);
+            return [ value, paramsOmitted ];
         }
         // if still undefined, try optionName2
-        let value2 = undefined;
-        [ value2, params ] = this.handleOptionAndParams (params, methodName1, optionName2, defaultValue);
-        return [ value2, params ];
+        return this.handleOptionAndParams (paramsOption1, methodName1, optionName2, defaultValue);
     }
 
     /* eslint-disable no-unused-vars */
@@ -6972,8 +6943,8 @@ export class BaseExchange {
         // type from param
         const type = this.safeString2 (params, 'defaultType', 'type');
         if (type !== undefined) {
-            params = this.omit (params, [ 'defaultType', 'type' ]);
-            return [ type, params ];
+            const paramsOmitted = this.omit (params, [ 'defaultType', 'type' ]);
+            return [ type, paramsOmitted ];
         }
         // type from market
         if (market !== undefined) {
@@ -7007,7 +6978,8 @@ export class BaseExchange {
             if ((subTypeInParams === 'linear') || (subTypeInParams === 'inverse')) {
                 subType = subTypeInParams;
             }
-            params = this.omit (params, [ 'subType', 'defaultSubType' ]);
+            const paramsOmitted = this.omit (params, [ 'subType', 'defaultSubType' ]);
+            return [ subType, paramsOmitted ];
         } else {
             // at first, check from market object
             if (market !== undefined) {
@@ -7128,11 +7100,11 @@ export class BaseExchange {
         if (this.has['fetchPositionsADLRank'] !== undefined && this.has['fetchPositionsADLRank'] !== false) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            const ranks = await this.fetchPositionsADLRank ([ symbol ], params);
+            const symbolResolved: string = market['symbol'];
+            const ranks = await this.fetchPositionsADLRank ([ symbolResolved ], params);
             const rank = this.safeDict (ranks, 0);
             if (rank === undefined) {
-                throw new NullResponse (this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol);
+                throw new NullResponse (this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbolResolved);
             } else {
                 return rank as ADL;
             }
@@ -7187,8 +7159,8 @@ export class BaseExchange {
         if (stopLossAmount !== undefined) {
             params['stopLoss']['amount'] = this.parseToNumeric (stopLossAmount);
         }
-        params = this.omit (params, [ 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ]);
-        return params;
+        const paramsOmitted: Dict = this.omit (params, [ 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ]);
+        return paramsOmitted;
     }
 
     async createSpotOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
@@ -7304,8 +7276,8 @@ export class BaseExchange {
             }
         } else if (this.has['fetchDepositAddressesByNetwork'] !== undefined && this.has['fetchDepositAddressesByNetwork'] !== false) {
             const network = this.safeString (params, 'network');
-            params = this.omit (params, 'network');
-            const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+            const paramsOmitted: Dict = this.omit (params, 'network');
+            const addressStructures = await this.fetchDepositAddressesByNetwork (code, paramsOmitted);
             if (network !== undefined) {
                 return this.safeDict (addressStructures, network) as DepositAddress;
             } else {
@@ -7442,17 +7414,19 @@ export class BaseExchange {
     }
 
     handleWithdrawTagAndParams (tag: any, params: any): any {
+        let paramsExtended = params;
+        let tagValue = tag;
         if (this.isDictionary (tag)) {
-            params = this.extend (tag, params);
-            tag = undefined;
+            paramsExtended = this.extend (tag, params);
+            tagValue = undefined;
         }
-        if (tag === undefined) {
-            tag = this.safeString (params, 'tag');
-            if (tag !== undefined) {
-                params = this.omit (params, 'tag');
-            }
+        const tagResolved = (tagValue === undefined) ? this.safeString (paramsExtended, 'tag') : tagValue;
+        const tagFromParams = (tagValue === undefined) && (tagResolved !== undefined);
+        let paramsOmitted = paramsExtended;
+        if (tagFromParams) {
+            paramsOmitted = this.omit (paramsExtended, 'tag');
         }
-        return [ tag, params ];
+        return [ tagResolved, paramsOmitted ];
     }
 
     costToPrecision (symbol: Str, cost: any): Str {
@@ -7631,8 +7605,8 @@ export class BaseExchange {
     }
 
     safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
-        currency = this.safeCurrency (currencyId, currency);
-        return currency['code'];
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
+        return currencyResolved['code'];
     }
 
     filterBySymbolSinceLimit (array: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
@@ -7683,8 +7657,8 @@ export class BaseExchange {
                 results.push (priceData);
             }
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbolsNormalized);
     }
 
     parseTickers (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
@@ -7727,8 +7701,8 @@ export class BaseExchange {
                 results.push (ticker);
             }
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbolsNormalized);
     }
 
     parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
@@ -7793,8 +7767,8 @@ export class BaseExchange {
     }
 
     safeSymbol (marketId: Str, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): string {
-        market = this.safeMarket (marketId, market, delimiter, marketType);
-        return market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, delimiter, marketType);
+        return marketResolved['symbol'];
     }
 
     parseFundingRate (contract: string, market: Market = undefined): FundingRate {
@@ -7837,25 +7811,29 @@ export class BaseExchange {
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         let takeProfitPriceStr: Str = undefined;
         //
+        const keysToOmit: string[] = [];
         if (triggerPrice !== undefined) {
             if (omitParams) {
-                params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+                keysToOmit.push ('triggerPrice');
+                keysToOmit.push ('stopPrice');
             }
             triggerPriceStr = this.priceToPrecision (symbol, parseFloat (triggerPrice));
         }
         if (stopLossPrice !== undefined) {
             if (omitParams) {
-                params = this.omit (params, 'stopLossPrice');
+                keysToOmit.push ('stopLossPrice');
             }
             stopLossPriceStr = this.priceToPrecision (symbol, parseFloat (stopLossPrice));
         }
         if (takeProfitPrice !== undefined) {
             if (omitParams) {
-                params = this.omit (params, 'takeProfitPrice');
+                keysToOmit.push ('takeProfitPrice');
             }
             takeProfitPriceStr = this.priceToPrecision (symbol, parseFloat (takeProfitPrice));
         }
-        return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params ];
+        const keysToOmitLength = keysToOmit.length;
+        const paramsOmitted = (keysToOmitLength > 0) ? this.omit (params, keysToOmit) : params;
+        return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted ];
     }
 
     handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): any[] {
@@ -7866,9 +7844,7 @@ export class BaseExchange {
          */
         let triggerDirection = this.safeString (params, 'triggerDirection');
         const exchangeSpecificDefined = (exchangeSpecificKey !== undefined) && (exchangeSpecificKey in params);
-        if (triggerDirection !== undefined) {
-            params = this.omit (params, 'triggerDirection');
-        }
+        const paramsOmitted = (triggerDirection !== undefined) ? this.omit (params, 'triggerDirection') : params;
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
@@ -7881,15 +7857,13 @@ export class BaseExchange {
         } else if (triggerDirection === 'down' || triggerDirection === 'below') {
             triggerDirection = 'descending';
         }
-        return [ triggerDirection, params ];
+        return [ triggerDirection, paramsOmitted ];
     }
 
     handleTriggerAndParams (params: any): any[] {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
-        if (isTrigger === true) {
-            params = this.omit (params, [ 'trigger', 'stop' ]);
-        }
-        return [ isTrigger, params ];
+        const paramsOmitted = (isTrigger === true) ? this.omit (params, [ 'trigger', 'stop' ]) : params;
+        return [ isTrigger, paramsOmitted ];
     }
 
     isTriggerOrder (params: any): any[] {
@@ -7931,7 +7905,7 @@ export class BaseExchange {
         }
     }
 
-    handlePostOnly (isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params: any = {}): any[] {
+    handlePostOnly (isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params: any = {}): [boolean, Dict] {
         /**
          * @ignore
          * @method
@@ -7957,11 +7931,14 @@ export class BaseExchange {
             } else if (isMarketOrder) {
                 throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
             } else {
+                let keysToOmit = undefined;
                 if (po) {
-                    params = this.omit (params, 'timeInForce');
+                    keysToOmit = [ 'timeInForce', 'postOnly' ];
+                } else {
+                    keysToOmit = [ 'postOnly' ];
                 }
-                params = this.omit (params, 'postOnly');
-                return [ true, params ];
+                const paramsOmitted = this.omit (params, keysToOmit);
+                return [ true, paramsOmitted ];
             }
         }
         return [ false, params ];
@@ -8015,14 +7992,14 @@ export class BaseExchange {
         if (this.has['fetchFundingRates'] !== undefined && this.has['fetchFundingRates'] !== false) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            symbol = market['symbol'];
+            const symbolResolved: string = market['symbol'];
             if (market['contract'] !== true) {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }
-            const rates = await this.fetchFundingRates ([ symbol ], params);
-            const rate = this.safeValue (rates, symbol);
+            const rates = await this.fetchFundingRates ([ symbolResolved ], params);
+            const rate = this.safeValue (rates, symbolResolved);
             if (rate === undefined) {
-                throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbol);
+                throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbolResolved);
             } else {
                 return rate;
             }
@@ -8035,14 +8012,14 @@ export class BaseExchange {
         if (this.has['fetchFundingIntervals'] !== undefined && this.has['fetchFundingIntervals'] !== false) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            symbol = market['symbol'];
+            const symbolResolved: string = market['symbol'];
             if (market['contract'] !== true) {
                 throw new BadSymbol (this.id + ' fetchFundingInterval() supports contract markets only');
             }
-            const rates = await this.fetchFundingIntervals ([ symbol ], params);
-            const rate = this.safeValue (rates, symbol);
+            const rates = await this.fetchFundingIntervals ([ symbolResolved ], params);
+            const rate = this.safeValue (rates, symbolResolved);
             if (rate === undefined) {
-                throw new NullResponse (this.id + ' fetchFundingInterval() returned no data for ' + symbol);
+                throw new NullResponse (this.id + ' fetchFundingInterval() returned no data for ' + symbolResolved);
             } else {
                 return rate;
             }
@@ -8380,48 +8357,41 @@ export class BaseExchange {
     }
 
     handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params: Dict = {}): [Int, any] {
-        let newMaxEntriesPerRequest: Int = undefined;
-        [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
-        if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
-            maxEntriesPerRequest = newMaxEntriesPerRequest;
-        }
-        if (maxEntriesPerRequest === undefined) {
-            maxEntriesPerRequest = 1000; // default to 1000
-        }
-        return [ maxEntriesPerRequest, params ];
+        const [ newMaxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
+        const maxEntriesPerRequestOption = (newMaxEntriesPerRequest !== undefined) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
+        const maxEntriesPerRequestResolved = (maxEntriesPerRequestOption === undefined) ? 1000 : maxEntriesPerRequestOption; // default to 1000
+        return [ maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest ];
     }
 
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
-        let maxCalls = 10;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
-        let maxRetries = 3;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
-        let paginationDirection: Str = undefined;
-        [ paginationDirection, params ] = this.handleOptionAndParams (params, method, 'paginationDirection', 'backward');
+        const maxCalls = 10;
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const maxRetries = 3;
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
+        const [ paginationDirection, paramsPaginationDirection ] = this.handleOptionAndParams (paramsMaxRetries, method, 'paginationDirection', 'backward');
         let paginationTimestamp: Int = undefined;
-        let removeRepeatedOption = removeRepeated;
-        [ removeRepeatedOption, params ] = this.handleOptionAndParams (params, method, 'removeRepeated', removeRepeated);
+        const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionAndParams (paramsPaginationDirection, method, 'removeRepeated', removeRepeated);
         let calls = 0;
         let result: any[] = [];
         let errors = 0;
-        const until = this.safeIntegerN (params, [ 'until', 'untill', 'till' ]); // do not omit it from params here
-        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        const until = this.safeIntegerN (paramsRemoveRepeated, [ 'until', 'untill', 'till' ]); // do not omit it from params here
+        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsRemoveRepeated);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' pagination requires a since argument when paginationDirection set to forward');
             }
             paginationTimestamp = since;
         }
-        while ((calls < maxCalls)) {
+        while ((calls < maxCallsPaginationCalls)) {
             calls += 1;
             try {
                 if (paginationDirection === 'backward') {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
                     if (paginationTimestamp !== undefined) {
-                        params['until'] = paginationTimestamp - 1;
+                        paramsMaxEntriesPerRequest['until'] = paginationTimestamp - 1;
                     }
-                    const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
+                    const response = await this[method] (symbol, undefined, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength = response.length;
                     if (this.verbose) {
                         let backwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
@@ -8445,7 +8415,7 @@ export class BaseExchange {
                     }
                 } else {
                     // do it forwards, starting from the since
-                    const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequest, params);
+                    const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength = response.length;
                     if (this.verbose) {
                         let forwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
@@ -8472,7 +8442,7 @@ export class BaseExchange {
                 }
             } catch (e) {
                 errors += 1;
-                if (errors > maxRetries) {
+                if (errors > maxRetriesOption) {
                     throw e;
                 }
             }
@@ -8487,22 +8457,22 @@ export class BaseExchange {
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}): Promise<any> {
-        let maxRetries = 3;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
+        const maxRetries = 3;
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
         let errors = 0;
-        while (errors <= maxRetries) {
+        while (errors <= maxRetriesOption) {
             try {
                 if ((timeframe !== undefined && timeframe !== '') && method !== 'fetchFundingRateHistory') {
-                    return await this[method] (symbol, timeframe, since, limit, params);
+                    return await this[method] (symbol, timeframe, since, limit, paramsMaxRetries);
                 } else {
-                    return await this[method] (symbol, since, limit, params);
+                    return await this[method] (symbol, since, limit, paramsMaxRetries);
                 }
             } catch (e) {
                 if (e instanceof RateLimitExceeded) {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
                 errors += 1;
-                if (errors > maxRetries) {
+                if (errors > maxRetriesOption) {
                     throw e;
                 }
             }
@@ -8511,20 +8481,20 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls = 10;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
-        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        const maxCalls = 10;
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsPaginationCalls);
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
         // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
-        params = this.omit (params, 'paginationDirection');
+        const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'paginationDirection');
         const current = this.milliseconds ();
         const tasks: Promise<any>[] = [];
         const time = this.parseTimeframe (timeframe) * 1000;
-        maxEntriesPerRequest = this.requireValue (maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
-        const step = time * maxEntriesPerRequest;
-        const until = this.safeInteger2 (params, 'until', 'till'); // do not omit it here
-        let currentSince = current - (maxCalls * step) - 1;
+        const maxEntriesPerRequestValue: Int = this.requireValue (maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
+        const step = time * maxEntriesPerRequestValue;
+        const until = this.safeInteger2 (paramsOmitted, 'until', 'till'); // do not omit it here
+        let currentSince = current - (maxCallsPaginationCalls * step) - 1;
         if (since !== undefined) {
             if (until !== undefined) {
                 // the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -8543,18 +8513,18 @@ export class BaseExchange {
                 throw new ArgumentsRequired (this.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
             }
             const requiredCalls = Math.ceil ((until - since) / step);
-            if (requiredCalls > maxCalls) {
-                throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCalls.toString () + ' required calls is ' + requiredCalls.toString ());
+            if (requiredCalls > maxCallsPaginationCalls) {
+                throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCallsPaginationCalls.toString () + ' required calls is ' + requiredCalls.toString ());
             }
         }
-        for (let i = 0; i < maxCalls; i++) {
+        for (let i = 0; i < maxCallsPaginationCalls; i++) {
             if ((until !== undefined) && (currentSince >= until)) {
                 break;
             }
             if (currentSince >= current) {
                 break;
             }
-            tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
+            tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
             currentSince = this.sum (currentSince, step) - 1;
         }
         const results = await Promise.all (tasks);
@@ -8570,30 +8540,30 @@ export class BaseExchange {
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
     async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls = 10;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
-        let maxRetries = 3;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
-        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        const maxCalls = 10;
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const maxRetries = 3;
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
+        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsMaxRetries);
         let cursorValue: Int = undefined;
         let i = 0;
         let errors = 0;
         let result: any[] = [];
-        const timeframe = this.safeString (params, 'timeframe');
-        params = this.omit (params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
-        while (i < maxCalls) {
+        const timeframe = this.safeString (paramsMaxEntriesPerRequest, 'timeframe');
+        const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
+        while (i < maxCallsPaginationCalls) {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
                         cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
                     }
-                    params[cursorSent as string] = cursorValue;
+                    paramsOmitted[cursorSent as string] = cursorValue;
                 }
                 let response: NullableList = undefined;
                 if (method === 'fetchAccounts') {
-                    response = await this[method] (params);
+                    response = await this[method] (paramsOmitted);
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
-                    response = await this[method] (symbol, params);
+                    response = await this[method] (symbol, paramsOmitted);
                 } else if (method === 'fetchOpenInterestHistory') {
                     if (typeof symbol !== 'string') {
                         // fetchOpenInterestHistory takes a single symbol, never a list
@@ -8602,9 +8572,9 @@ export class BaseExchange {
                     if (timeframe === undefined) {
                         throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a timeframe argument');
                     }
-                    response = await this[method] (symbol, timeframe, since, maxEntriesPerRequest, params);
+                    response = await this[method] (symbol, timeframe, since, maxEntriesPerRequestOption, paramsOmitted);
                 } else {
-                    response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                    response = await this[method] (symbol, since, maxEntriesPerRequestOption, paramsOmitted);
                 }
                 errors = 0;
                 if (response === undefined) {
@@ -8648,7 +8618,7 @@ export class BaseExchange {
                 }
             } catch (e) {
                 errors += 1;
-                if (errors > maxRetries) {
+                if (errors > maxRetriesOption) {
                     throw e;
                 }
             }
@@ -8660,18 +8630,18 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls = 10;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
-        let maxRetries = 3;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
-        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        const maxCalls = 10;
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        const maxRetries = 3;
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
+        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsMaxRetries);
         let i = 0;
         let errors = 0;
         let result: any[] = [];
-        while (i < maxCalls) {
+        while (i < maxCallsPaginationCalls) {
             try {
-                params[pageKey as string] = i + 1;
-                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                paramsMaxEntriesPerRequest[pageKey as string] = i + 1;
+                const response = await this[method] (symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
@@ -8685,7 +8655,7 @@ export class BaseExchange {
                 result = this.arrayConcat (result, response);
             } catch (e) {
                 errors += 1;
-                if (errors > maxRetries) {
+                if (errors > maxRetriesOption) {
                     throw e;
                 }
             }
@@ -8767,9 +8737,9 @@ export class BaseExchange {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.parseToInt (until * multiplier);
-            params = this.omit (params, [ 'until', 'till' ]);
         }
-        return [ request, params ];
+        const paramsOmitted = (until !== undefined) ? this.omit (params, [ 'until', 'till' ]) : params;
+        return [ request, paramsOmitted ];
     }
 
     safeOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
@@ -8840,8 +8810,8 @@ export class BaseExchange {
                 results.push (greek);
             }
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbolsNormalized);
     }
 
     parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
@@ -8863,13 +8833,11 @@ export class BaseExchange {
 
     parseMarginModes (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): MarginModes {
         const marginModeStructures: Dict = {};
-        if (marketType === undefined) {
-            marketType = 'swap'; // default to swap
-        }
+        const marketTypeResolved: MarketType = (marketType === undefined) ? 'swap' : marketType; // default to swap
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
-            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            const market = this.safeMarket (marketId, undefined, undefined, marketTypeResolved);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 marginModeStructures[market['symbol']] = this.parseMarginMode (info, market);
             }
@@ -8883,13 +8851,11 @@ export class BaseExchange {
 
     parseLeverages (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): Leverages {
         const leverageStructures: Dict = {};
-        if (marketType === undefined) {
-            marketType = 'swap'; // default to swap
-        }
+        const marketTypeResolved: MarketType = (marketType === undefined) ? 'swap' : marketType; // default to swap
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
-            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            const market = this.safeMarket (marketId, undefined, undefined, marketTypeResolved);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
                 leverageStructures[market['symbol']] = this.parseLeverage (info, market);
             }
@@ -8920,19 +8886,16 @@ export class BaseExchange {
             result.push (conversion);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        let currency: Currency = undefined;
-        if (code !== undefined) {
-            currency = this.safeCurrency (code);
-            if (currency === undefined) {
-                throw new ExchangeError (this.id + ' parseConversions() could not resolve currency');
-            }
-            code = currency['code'];
-        }
         if (code === undefined) {
             return this.filterBySinceLimit (sorted, since, limit);
         }
-        const fromConversion = this.filterBy (sorted, 'fromCurrency', code);
-        const toConversion = this.filterBy (sorted, 'toCurrency', code);
+        const currency: Currency = this.safeCurrency (code);
+        if (currency === undefined) {
+            throw new ExchangeError (this.id + ' parseConversions() could not resolve currency');
+        }
+        const currencyCode = currency['code'];
+        const fromConversion = this.filterBy (sorted, 'fromCurrency', currencyCode);
+        const toConversion = this.filterBy (sorted, 'toCurrency', currencyCode);
         const both = this.arrayConcat (fromConversion, toConversion);
         return this.filterBySinceLimit (both, since, limit);
     }
@@ -9016,13 +8979,14 @@ export class BaseExchange {
             'DEC': '12',
         };
         // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
+        let datePadded = date;
         if (date.length === 6) {
-            date = '0' + date;
+            datePadded = '0' + date;
         }
-        const year = date.slice (0, 2);
-        const monthName = date.slice (2, 5);
+        const year = datePadded.slice (0, 2);
+        const monthName = datePadded.slice (2, 5);
         const month = this.safeString (monthMappping, monthName);
-        const day = date.slice (5, 7);
+        const day = datePadded.slice (5, 7);
         const reconstructedDate = day + month + year;
         return reconstructedDate;
     }
@@ -9390,11 +9354,11 @@ export default class Exchange extends BaseExchange {
         if (this.has['fetchMarkPrices'] !== undefined && this.has['fetchMarkPrices'] !== false) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            const tickers = await this.fetchMarkPrices ([ symbol ], params);
-            const ticker = this.safeDict (tickers, symbol);
+            const symbolResolved: string = market['symbol'];
+            const tickers = await this.fetchMarkPrices ([ symbolResolved ], params);
+            const ticker = this.safeDict (tickers, symbolResolved);
             if (ticker === undefined) {
-                throw new NullResponse (this.id + ' fetchMarkPrices() could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchMarkPrices() could not find a ticker for ' + symbolResolved);
             } else {
                 return ticker as Ticker;
             }
@@ -9523,9 +9487,9 @@ export default class Exchange extends BaseExchange {
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        params = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        const paramsValue: Dict = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
         if (this.has['createOrderWithTakeProfitAndStopLossWs'] !== undefined && this.has['createOrderWithTakeProfitAndStopLossWs'] !== false) {
-            return await this.createOrderWs (symbol, type, side, amount, price, params);
+            return await this.createOrderWs (symbol, type, side, amount, price, paramsValue);
         }
         throw new NotSupported (this.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
     }
@@ -9587,9 +9551,9 @@ export default class Exchange extends BaseExchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
         }
-        params = this.extend (params, { 'stopLossPrice': stopLossPrice });
+        const paramsExtended: Dict = this.extend (params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrderWs'] !== undefined && this.has['createStopLossOrderWs'] !== false) {
-            return await this.createOrderWs (symbol, type, side, amount, price, params);
+            return await this.createOrderWs (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createStopLossOrderWs() is not supported yet');
     }
@@ -9630,9 +9594,9 @@ export default class Exchange extends BaseExchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
         }
-        params = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
+        const paramsExtended: Dict = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrderWs'] !== undefined && this.has['createTakeProfitOrderWs'] !== false) {
-            return await this.createOrderWs (symbol, type, side, amount, price, params);
+            return await this.createOrderWs (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createTakeProfitOrderWs() is not supported yet');
     }
@@ -9710,9 +9674,9 @@ export default class Exchange extends BaseExchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
         }
-        params = this.extend (params, { 'triggerPrice': triggerPrice });
+        const paramsExtended: Dict = this.extend (params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrderWs'] !== undefined && this.has['createTriggerOrderWs'] !== false) {
-            return await this.createOrderWs (symbol, type, side, amount, price, params);
+            return await this.createOrderWs (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createTriggerOrderWs() is not supported yet');
     }
@@ -9766,11 +9730,11 @@ export default class Exchange extends BaseExchange {
         if (this.has['fetchTickersWs'] !== undefined && this.has['fetchTickersWs'] !== false) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            const tickers = await this.fetchTickersWs ([ symbol ], params);
-            const ticker = this.safeDict (tickers, symbol);
+            const symbolResolved: string = market['symbol'];
+            const tickers = await this.fetchTickersWs ([ symbolResolved ], params);
+            const ticker = this.safeDict (tickers, symbolResolved);
             if (ticker === undefined) {
-                throw new NullResponse (this.id + ' fetchTickerWs() could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchTickerWs() could not find a ticker for ' + symbolResolved);
             } else {
                 return ticker as Ticker;
             }
@@ -9915,11 +9879,11 @@ export default class Exchange extends BaseExchange {
         if (this.has['fetchTickers'] !== undefined && this.has['fetchTickers'] !== false) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            const tickers = await this.fetchTickers ([ symbol ], params);
-            const ticker = this.safeDict (tickers, symbol);
+            const symbolResolved: string = market['symbol'];
+            const tickers = await this.fetchTickers ([ symbolResolved ], params);
+            const ticker = this.safeDict (tickers, symbolResolved);
             if (ticker === undefined) {
-                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbolResolved);
             } else {
                 return ticker as Ticker;
             }
@@ -10095,9 +10059,9 @@ export default class Exchange extends BaseExchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrder() requires a triggerPrice argument');
         }
-        params = this.extend (params, { 'triggerPrice': triggerPrice });
+        const paramsExtended: Dict = this.extend (params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrder'] !== undefined && this.has['createTriggerOrder'] !== false) {
-            return await this.createOrder (symbol, type, side, amount, price, params);
+            return await this.createOrder (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createTriggerOrder() is not supported yet');
     }
@@ -10119,9 +10083,9 @@ export default class Exchange extends BaseExchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrder() requires a stopLossPrice argument');
         }
-        params = this.extend (params, { 'stopLossPrice': stopLossPrice });
+        const paramsExtended: Dict = this.extend (params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrder'] !== undefined && this.has['createStopLossOrder'] !== false) {
-            return await this.createOrder (symbol, type, side, amount, price, params);
+            return await this.createOrder (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createStopLossOrder() is not supported yet');
     }
@@ -10143,9 +10107,9 @@ export default class Exchange extends BaseExchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
         }
-        params = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
+        const paramsExtended: Dict = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrder'] !== undefined && this.has['createTakeProfitOrder'] !== false) {
-            return await this.createOrder (symbol, type, side, amount, price, params);
+            return await this.createOrder (symbol, type, side, amount, price, paramsExtended);
         }
         throw new NotSupported (this.id + ' createTakeProfitOrder() is not supported yet');
     }
@@ -10173,9 +10137,9 @@ export default class Exchange extends BaseExchange {
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        params = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        const paramsValue: Dict = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
         if (this.has['createOrderWithTakeProfitAndStopLoss'] !== undefined && this.has['createOrderWithTakeProfitAndStopLoss'] !== false) {
-            return await this.createOrder (symbol, type, side, amount, price, params);
+            return await this.createOrder (symbol, type, side, amount, price, paramsValue);
         }
         throw new NotSupported (this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
     }

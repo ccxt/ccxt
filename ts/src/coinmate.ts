@@ -554,11 +554,11 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetTickerAll (params);
         //
         //     {
@@ -587,7 +587,7 @@ export default class coinmate extends Exchange {
             const ticker = this.parseTicker (this.safeValue (data, keys[i]), market);
             result[market['symbol']] = ticker;
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -765,8 +765,8 @@ export default class coinmate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -783,10 +783,10 @@ export default class coinmate extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
         };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destinationTag'] = tagWithdrawTag;
         }
-        const requestParams = this.extend (request, params);
+        const requestParams = this.extend (request, paramsWithdrawTag);
         let response = undefined;
         if (method === 'privatePostBitcoinWithdrawal') {
             response = await this.privatePostBitcoinWithdrawal (requestParams);
@@ -825,7 +825,7 @@ export default class coinmate extends Exchange {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
-            transaction['tag'] = tag;
+            transaction['tag'] = tagWithdrawTag;
             transaction['type'] = 'withdrawal';
             transaction['status'] = 'pending';
         }
@@ -847,11 +847,9 @@ export default class coinmate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (limit === undefined) {
-            limit = 1000;
-        }
+        const limitResolved: Int = (limit === undefined) ? 1000 : limit;
         const request: Dict = {
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -862,7 +860,7 @@ export default class coinmate extends Exchange {
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseTrades (data, undefined, since, limit);
+        return this.parseTrades (data, undefined, since, limitResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -894,7 +892,7 @@ export default class coinmate extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'currencyPair');
-        market = this.safeMarket (marketId, market, '_');
+        const marketResolved: Market = this.safeMarket (marketId, market, '_');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const side = this.safeStringLower2 (trade, 'type', 'tradeType');
@@ -907,7 +905,7 @@ export default class coinmate extends Exchange {
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         }
         let takerOrMaker = this.safeString (trade, 'feeType');
@@ -917,7 +915,7 @@ export default class coinmate extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'order': orderId,
@@ -926,7 +924,7 @@ export default class coinmate extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1281,6 +1279,8 @@ export default class coinmate extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
+        let headersSigned: NullableDict = undefined;
         let url = (this.urls['api'] as Dict)['rest'] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length > 0) {
@@ -1292,17 +1292,19 @@ export default class coinmate extends Exchange {
             const nonce = this.incrementingNonce ().toString ();
             const auth = nonce + this.uid + this.apiKey;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            body = this.urlencode (this.extend ({
+            bodySigned = this.urlencode (this.extend ({
                 'clientId': this.uid,
                 'nonce': nonce,
                 'publicKey': this.apiKey,
                 'signature': signature.toUpperCase (),
             }, params));
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

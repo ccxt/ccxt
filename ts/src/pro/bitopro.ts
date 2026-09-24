@@ -74,8 +74,8 @@ export default class bitopro extends bitoproRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'ORDER_BOOK' + ':' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'ORDER_BOOK' + ':' + symbolValue;
         let endPart: Str = undefined;
         if (limit === undefined) {
             endPart = market['id'];
@@ -139,13 +139,14 @@ export default class bitopro extends bitoproRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'TRADE' + ':' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'TRADE' + ':' + symbolValue;
         const trades = await this.watchPublic ('trades', messageHash, market['id']);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -211,10 +212,11 @@ export default class bitopro extends bitoproRest {
         const url = this.urls['ws']['private'] + '/' + 'user-trades';
         this.authenticate (url);
         const trades = await this.watch (url, messageHash, undefined, messageHash);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleMyTrade (client: Client, message: Dict) {
@@ -286,7 +288,7 @@ export default class bitopro extends bitoproRest {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = this.symbol (base + '/' + quote);
-        market = this.safeMarket (symbol, market);
+        const marketResolved: Market = this.safeMarket (symbol, market);
         const price = this.safeString (trade, 'price');
         const type = this.safeStringLower (trade, 'orderType');
         let side = this.safeString (trade, 'side');
@@ -331,7 +333,7 @@ export default class bitopro extends bitoproRest {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -348,8 +350,8 @@ export default class bitopro extends bitoproRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'TICKER' + ':' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'TICKER' + ':' + symbolValue;
         return await this.watchPublic ('tickers', messageHash, market['id']);
     }
 

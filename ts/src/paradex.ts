@@ -726,16 +726,16 @@ export default class paradex extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const feeConfig = this.safeDict (fee, 'fee_config', {});
         const apiFee = this.safeDict (feeConfig, 'api_fee', {});
         const makerFee = this.safeDict (apiFee, 'maker_fee', {});
         const takerFee = this.safeDict (apiFee, 'taker_fee', {});
         return {
             'info': fee,
-            'symbol': market['symbol'],
-            'maker': this.safeNumber (makerFee, 'fee', this.safeNumber (market, 'maker')),
-            'taker': this.safeNumber (takerFee, 'fee', this.safeNumber (market, 'taker')),
+            'symbol': marketResolved['symbol'],
+            'maker': this.safeNumber (makerFee, 'fee', this.safeNumber (marketResolved, 'maker')),
+            'taker': this.safeNumber (takerFee, 'fee', this.safeNumber (marketResolved, 'taker')),
             'percentage': true,
             'tierBased': false,
         };
@@ -858,7 +858,7 @@ export default class paradex extends Exchange {
         if (price !== undefined) {
             request['price_kind'] = price;
         }
-        params = this.omit (params, [ 'until', 'till', 'price' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'until', 'till', 'price' ]);
         if (since !== undefined) {
             request['start_at'] = since;
             if (limit !== undefined) {
@@ -874,7 +874,7 @@ export default class paradex extends Exchange {
                 request['start_at'] = until - duration * 101 * 1000 + 1;
             }
         }
-        const response = await this.publicGetMarketsKlines (this.extend (request, params));
+        const response = await this.publicGetMarketsKlines (this.extend (request, paramsOmitted));
         //
         //     {
         //         "results": [
@@ -927,7 +927,7 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'market': 'ALL',
         };
@@ -954,7 +954,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'results', []);
-        return this.parseTickers (data, symbols);
+        return this.parseTickers (data, symbolsNormalized);
     }
 
     /**
@@ -1025,8 +1025,8 @@ export default class paradex extends Exchange {
         }
         const last = this.safeString (ticker, 'last_traded_price');
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (ticker, 'created_at');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1050,7 +1050,7 @@ export default class paradex extends Exchange {
             'quoteVolume': this.safeString (ticker, 'volume_24h'),
             'markPrice': this.safeString (ticker, 'mark_price'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1066,15 +1066,15 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         // the endpoint takes one market id, and ALL answers for every product on
         // the venue: a single symbol is asked for by name, which is 544 bytes
         // against 1.6 MB
         let target = 'ALL';
-        if (symbols !== undefined) {
-            const symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                target = this.market (symbols[0])['id'] as string;
+                target = this.market (symbolsNormalized[0])['id'] as string;
             }
         }
         const request: Dict = {
@@ -1082,7 +1082,7 @@ export default class paradex extends Exchange {
         };
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
         const data = this.safeList (response, 'results', []);
-        return this.parseFundingRates (data, symbols);
+        return this.parseFundingRates (data, symbolsNormalized);
     }
 
     /**
@@ -1126,17 +1126,17 @@ export default class paradex extends Exchange {
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger (contract, 'created_at');
         // the summary answers for every product, and only a perpetual funds: an
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         const rate = this.safeString (contract, 'funding_rate');
-        const funds = (market['swap'] === true) && (rate !== undefined) && (rate !== '');
+        const funds = (marketResolved['swap'] === true) && (rate !== undefined) && (rate !== '');
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
-        const hours = this.safeString (this.safeDict (market, 'info', {}), 'funding_period_hours');
+        const hours = this.safeString (this.safeDict (marketResolved, 'info', {}), 'funding_period_hours');
         // zero hours is not an interval, and a caller annualising a rate divides by it
         let interval: Str = undefined;
         if ((hours !== undefined) && Precise.stringGt (hours, '0')) {
@@ -1144,7 +1144,7 @@ export default class paradex extends Exchange {
         }
         return {
             'info': contract,
-            'symbol': funds ? market['symbol'] : undefined,
+            'symbol': funds ? marketResolved['symbol'] : undefined,
             'markPrice': this.safeNumber (contract, 'mark_price'),
             'indexPrice': this.safeNumber (contract, 'underlying_price'),
             'interestRate': undefined,
@@ -1227,12 +1227,13 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'next', 'cursor', undefined, 100) as Trade[];
+            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Trade[];
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -1241,8 +1242,8 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_at', request, params);
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
+        const response = await this.publicGetTrades (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "next": "...",
@@ -1300,7 +1301,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeInteger (trade, 'created_at');
         const priceString = this.safeString (trade, 'price');
@@ -1320,7 +1321,7 @@ export default class paradex extends Exchange {
             'order': this.safeString (trade, 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1332,7 +1333,7 @@ export default class paradex extends Exchange {
                 'currency': code,
                 'rate': undefined,
             },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1402,8 +1403,8 @@ export default class paradex extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 'created_at');
         const marketId = this.safeString (interest, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         return this.safeOpenInterest ({
             'symbol': symbol,
             'openInterestAmount': this.safeString (interest, 'open_interest'),
@@ -1411,7 +1412,7 @@ export default class paradex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        }, market);
+        }, marketResolved);
     }
 
     hashMessage (message: any) {
@@ -1616,8 +1617,8 @@ export default class paradex extends Exchange {
         const orderId = this.safeString (order, 'id');
         const clientOrderId = this.omitZero (this.safeString (order, 'client_id'));
         const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
         const orderType = this.safeString (order, 'type');
@@ -1669,7 +1670,7 @@ export default class paradex extends Exchange {
                 'currency': undefined,
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1793,8 +1794,8 @@ export default class paradex extends Exchange {
                 'REDUCE_ONLY',
             ];
         }
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        return this.extend (request, params);
+        const paramsOmitted: Dict = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        return this.extend (request, paramsOmitted);
     }
 
     async signOrderRequest (request: Dict, modify: boolean = false): Promise<Dict> {
@@ -2087,7 +2088,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
-        params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const hasOrderIds = (ids !== undefined) && (Array.isArray (ids));
         const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray (clientOrderIds));
         if (!hasOrderIds && !hasClientOrderIds) {
@@ -2100,7 +2101,7 @@ export default class paradex extends Exchange {
         if (hasClientOrderIds) {
             request['client_order_ids'] = clientOrderIds;
         }
-        const response = await this.privateDeleteOrdersBatch (this.extend (request, params));
+        const response = await this.privateDeleteOrdersBatch (this.extend (request, paramsOmitted));
         //
         // {
         //     "results": [
@@ -2198,14 +2199,14 @@ export default class paradex extends Exchange {
         }
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response: Dict;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
-            response = await this.privateGetOrdersByClientIdClientId (this.extend (request, params));
+            response = await this.privateGetOrdersByClientIdClientId (this.extend (request, paramsOmitted));
         } else {
             request['order_id'] = id;
-            response = await this.privateGetOrdersOrderId (this.extend (request, params));
+            response = await this.privateGetOrdersOrderId (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -2256,11 +2257,12 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'next', 'cursor', undefined, 50) as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 50) as Order[];
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2272,8 +2274,8 @@ export default class paradex extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('end_at', request, params);
-        const response = await this.privateGetOrdersHistory (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
+        const response = await this.privateGetOrdersHistory (this.extend (requestUntil, paramsUntil));
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -2441,11 +2443,12 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next', 'cursor', undefined, 100) as Trade[];
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Trade[];
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2457,8 +2460,8 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_at', request, params);
-        const response = await this.privateGetFills (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
+        const response = await this.privateGetFills (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "next": null,
@@ -2522,7 +2525,7 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.privateGetPositions ();
         //
         //     {
@@ -2550,7 +2553,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'results', []) as List;
-        return this.parsePositions (data, symbols);
+        return this.parsePositions (data, symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -2576,8 +2579,8 @@ export default class paradex extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'market');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower (position, 'side');
         let quantity = this.safeString (position, 'size');
         if (side !== 'long') {
@@ -2629,7 +2632,7 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['from'] = since;
         } else {
@@ -2639,8 +2642,8 @@ export default class paradex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        [ request, params ] = this.handleUntilOption ('to', request, params);
-        const response = await this.privateGetLiquidations (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('to', request, params);
+        const response = await this.privateGetLiquidations (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "results": [
@@ -2696,19 +2699,20 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'next', 'cursor', undefined, 100) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Transaction[];
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_at', request, params);
-        const response = await this.privateGetTransfers (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
+        const response = await this.privateGetTransfers (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "next": null,
@@ -2760,19 +2764,20 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'next', 'cursor', undefined, 100) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as Transaction[];
         }
-        let request: Dict = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_at', request, params);
-        const response = await this.privateGetTransfers (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
+        const response = await this.privateGetTransfers (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "next": null,
@@ -2824,11 +2829,12 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'next', 'cursor', undefined, 100) as TransferEntry[];
+            return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as TransferEntry[];
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.safeCurrency (code);
@@ -2839,8 +2845,8 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_at', request, params);
-        const response = await this.privateGetTransfers (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
+        const response = await this.privateGetTransfers (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "next": null,
@@ -3008,11 +3014,11 @@ export default class paradex extends Exchange {
 
     override parseMarginMode (rawMarginMode: Dict, market: Market = undefined): MarginMode {
         const marketId = this.safeString (rawMarginMode, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const marginMode = this.safeStringLower (rawMarginMode, 'margin_type');
         return {
             'info': rawMarginMode,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'marginMode': marginMode,
         } as MarginMode;
     }
@@ -3035,14 +3041,14 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market: Market = this.market (symbol);
-        let leverage = 1;
-        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', leverage);
+        const leverage = 1;
+        const [ leverageOption, paramsLeverage ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', leverage);
         const request: Dict = {
             'market': market['id'],
-            'leverage': leverage,
+            'leverage': leverageOption,
             'margin_type': this.encodeMarginMode (marginMode),
         };
-        return await this.privatePostAccountMarginMarket (this.extend (request, params));
+        return await this.privatePostAccountMarginMarket (this.extend (request, paramsLeverage));
     }
 
     /**
@@ -3082,11 +3088,11 @@ export default class paradex extends Exchange {
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const marginMode = this.safeStringLower (leverage, 'margin_type');
         return {
             'info': leverage,
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, marketResolved),
             'marginMode': marginMode,
             'longLeverage': this.safeInteger (leverage, 'leverage'),
             'shortLeverage': this.safeInteger (leverage, 'leverage'),
@@ -3119,14 +3125,13 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market: Market = this.market (symbol);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         const request: Dict = {
             'market': market['id'],
             'leverage': leverage,
             'margin_type': this.encodeMarginMode (marginMode),
         };
-        return await this.privatePostAccountMarginMarket (this.extend (request, params));
+        return await this.privatePostAccountMarginMarket (this.extend (request, paramsMarginMode));
     }
 
     /**
@@ -3199,7 +3204,7 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
         const request: Dict = {
             'market': 'ALL',
         };
@@ -3239,7 +3244,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const results = this.safeList (response, 'results', []);
-        return this.parseAllGreeks (results, symbols);
+        return this.parseAllGreeks (results, symbolsNormalized);
     }
 
     override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
@@ -3274,8 +3279,8 @@ export default class paradex extends Exchange {
         //     }
         //
         const marketId = this.safeString (greeks, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'option');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'option');
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (greeks, 'created_at');
         const greeksData = this.safeDict (greeks, 'greeks', {});
         return {
@@ -3326,12 +3331,13 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'next', 'cursor', undefined, 100) as FundingHistory[];
+            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100) as FundingHistory[];
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -3342,8 +3348,8 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_at', request, params);
-        const response = await this.privateGetFundingPayments (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, paramsPaginate);
+        const response = await this.privateGetFundingPayments (this.extend (requestUntil, paramsUntil));
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3378,12 +3384,12 @@ export default class paradex extends Exchange {
         //     }
         //
         const marketId = this.safeString (income, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (income, 'created_at');
         return {
             'info': income,
-            'symbol': market['symbol'],
-            'code': market['settle'],
+            'symbol': marketResolved['symbol'],
+            'code': marketResolved['settle'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'id': this.safeString (income, 'id'),
@@ -3423,11 +3429,11 @@ export default class paradex extends Exchange {
             request['start_at'] = since;
         }
         const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, 'until') : params;
         if (until !== undefined) {
-            params = this.omit (params, 'until');
             request['end_at'] = until;
         }
-        const response = await this.publicGetFundingData (this.extend (request, params));
+        const response = await this.publicGetFundingData (this.extend (request, paramsOmitted));
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3468,42 +3474,46 @@ export default class paradex extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let version = this.version;
+        let pathValue: any = path;
+        if (path.indexOf ('v2/') === 0) {
+            pathValue = path.replace ('v2/', '');
+        }
         if (path.indexOf ('v2/') === 0) {
             version = 'v2';
-            path = path.replace ('v2/', '');
         }
-        let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (path, params);
-        const query: Dict = this.omit (params, this.extractParams (path));
+        let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (pathValue, params);
+        const query: Dict = this.omit (params, this.extractParams (pathValue));
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
-            headers = {
+            const privateHeaders: Dict = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString (this.options, 'broker', 'CCXT'),
             };
+            let privateBody: Str = undefined;
             // TODO: optimize
-            if (path === 'auth') {
-                headers['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                headers['PARADEX-TIMESTAMP'] = query['timestamp'].toString ();
-                headers['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'].toString ();
-            } else if (path === 'onboarding') {
-                headers['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
-                headers['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                headers['PARADEX-TIMESTAMP'] = this.nonce ().toString ();
-                headers['Content-Type'] = 'application/json';
-                body = this.json ({
+            if (pathValue === 'auth') {
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
+                privateHeaders['PARADEX-TIMESTAMP'] = query['timestamp'].toString ();
+                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'].toString ();
+            } else if (pathValue === 'onboarding') {
+                privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
+                privateHeaders['PARADEX-TIMESTAMP'] = this.nonce ().toString ();
+                privateHeaders['Content-Type'] = 'application/json';
+                privateBody = this.json ({
                     'public_key': query['public_key'],
                 });
             } else {
                 const token = this.options['authToken'];
-                headers['Authorization'] = 'Bearer ' + token;
-                if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (path === 'orders/batch'))) {
-                    headers['Content-Type'] = 'application/json';
-                    body = this.json (query);
+                privateHeaders['Authorization'] = 'Bearer ' + token;
+                if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (pathValue === 'orders/batch'))) {
+                    privateHeaders['Content-Type'] = 'application/json';
+                    privateBody = this.json (query);
                 } else {
                     url = url + '?' + this.urlencode (query);
                 }
@@ -3520,6 +3530,8 @@ export default class paradex extends Exchange {
             //         url += '?' + this.urlencode (query);
             //     }
             // }
+            const bodyResolved: Str = (privateBody !== undefined) ? privateBody : body;
+            return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -85,16 +85,16 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        const symbolsLength = symbols.length;
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
+        const symbolsLength = symbolsNormalized.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const topic = 'recentlyTrade.H.' + (market as Dict)['id2'];
             topics.push (topic);
@@ -102,12 +102,13 @@ export default class apex extends apexRest {
             messageHashes.push (messageHash);
         }
         const trades = await this.watchTopics (url, messageHashes, topics, params);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -170,8 +171,8 @@ export default class apex extends apexRest {
         //
         const id = this.safeStringN (trade, [ 'i', 'id', 'v' ]);
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        market = this.safeMarket (marketId, market, undefined);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
         const side = this.safeStringLower2 (trade, 'S', 'side');
         const price = this.safeString2 (trade, 'p', 'price');
@@ -190,7 +191,7 @@ export default class apex extends apexRest {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -225,17 +226,15 @@ export default class apex extends apexRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const limitValue = (limit === undefined) ? 25 : limit;
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            if (limit === undefined) {
-                limit = 25;
-            }
-            const topic = 'orderBook' + limit.toString () + '.H.' + (market as Dict)['id2'];
+            const topic = 'orderBook' + limitValue.toString () + '.H.' + (market as Dict)['id2'];
             topics.push (topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
@@ -380,9 +379,9 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const url = this.getWsPublicUrl ();
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         const topic = 'instrumentInfo' + '.H.' + (market as Dict)['id2'];
         const topics = [ topic ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
@@ -401,12 +400,12 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
-        for (let i = 0; i < (symbols as string[]).length; i++) {
-            const symbol = (symbols as string[])[i];
+        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
+            const symbol = (symbolsNormalized as string[])[i];
             const market = this.market (symbol);
             const topic = 'instrumentInfo' + '.H.' + (market as Dict)['id2'];
             topics.push (topic);
@@ -419,7 +418,7 @@ export default class apex extends apexRest {
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -518,10 +517,11 @@ export default class apex extends apexRest {
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHashes, rawHashes, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
+            limitResolved = stored.getLimit (symbol, limit);
         }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -622,17 +622,19 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            symbolResolved = this.symbol (symbol);
+            messageHash += ':' + symbolResolved;
         }
         const url = this.getWsPrivateUrl ();
         await this.authenticate (url);
         const trades = await this.watchTopics (url, [ messageHash ], [ 'myTrades' ], params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -651,26 +653,31 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         let messageHash = '';
+        let symbolsNormalized2: Strings = undefined;
+        if (this.isEmpty (symbols)) {
+            symbolsNormalized2 = symbols;
+        } else {
+            symbolsNormalized2 = this.marketSymbols (symbols);
+        }
         if (!this.isEmpty (symbols)) {
-            symbols = this.marketSymbols (symbols);
-            messageHash = '::' + (symbols as string[]).join (',');
+            messageHash = '::' + (symbolsNormalized2 as string[]).join (',');
         }
         const url = this.getWsPrivateUrl ();
         messageHash = 'positions' + messageHash;
         const client = this.client (url);
         await this.authenticate (url);
-        this.setPositionsCache (client, symbols);
+        this.setPositionsCache (client, symbolsNormalized2);
         const cache = this.positions;
         if (cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized2, since, limit, true);
         }
         const topics = [ 'positions' ];
         const newPositions = await this.watchTopics (url, [ messageHash ], topics, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (cache, symbolsNormalized2, since, limit, true);
     }
 
     /**
@@ -689,18 +696,20 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         let messageHash = 'orders';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            symbolResolved = this.symbol (symbol);
+            messageHash += ':' + symbolResolved;
         }
         const url = this.getWsPrivateUrl ();
         await this.authenticate (url);
         const topics = [ 'orders' ];
         const orders = await this.watchTopics (url, [ messageHash ], topics, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, lists: any[]) {

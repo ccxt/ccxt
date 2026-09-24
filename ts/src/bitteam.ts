@@ -1329,7 +1329,7 @@ export default class bitteam extends Exchange {
         //
         const id = this.safeString (order, 'id');
         const marketId = this.safeString (order, 'pair');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const clientOrderId = this.safeString (order, 'orderCid');
         let timestamp: Int = undefined;
         const createdAt = this.safeString (order, 'createdAt');
@@ -1365,7 +1365,7 @@ export default class bitteam extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': 'GTC',
             'side': side,
@@ -1380,7 +1380,7 @@ export default class bitteam extends Exchange {
             'trades': undefined,
             'info': order,
             'postOnly': false,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str) {
@@ -1760,7 +1760,7 @@ export default class bitteam extends Exchange {
         //         "lowest_price_24h": 37574.894999
         //     }
         const marketId = this.safeStringLower (ticker, 'trading_pairs');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let bestBidPrice: Str = undefined;
         let bestAskPrice: Str = undefined;
         let bestBidVolume: Str = undefined;
@@ -1785,7 +1785,7 @@ export default class bitteam extends Exchange {
         const close = this.safeString2 (ticker, 'lastPrice', 'last_price');
         const changePcnt = this.safeString2 (ticker, 'change24', 'price_change_percent_24h');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'open': undefined,
@@ -1804,7 +1804,7 @@ export default class bitteam extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2070,8 +2070,8 @@ export default class bitteam extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'pair');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString2 (trade, 'id', 'trade_id');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'quantity', 'base_volume');
@@ -2118,7 +2118,7 @@ export default class bitteam extends Exchange {
             'cost': cost,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2435,24 +2435,28 @@ export default class bitteam extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'POST') {
-                body = this.json (request);
+                requestBody = this.json (request);
             } else if (query.length !== 0) {
                 url += '?' + query;
             }
             const auth = this.apiKey + ':' + this.secret;
             const auth64 = this.stringToBase64 (auth);
             const signature = 'Basic ' + auth64;
-            headers = {
+            requestHeaders = {
                 'Authorization': signature,
                 'Content-Type': 'application/json',
             };
         } else if (query.length !== 0) {
             url += '?' + query;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

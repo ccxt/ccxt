@@ -433,11 +433,10 @@ export default class bithumb extends Exchange {
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const result: Market[] = [];
         const request: Dict = {};
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchMarkets', 'generation', 2);
         if (generation === 2) {
             request['isDetails'] = true;
-            const response = await this.publicGetV1MarketAll (this.extend (request, params));
+            const response = await this.publicGetV1MarketAll (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -522,7 +521,7 @@ export default class bithumb extends Exchange {
             const promises: Promise<any>[] = [];
             for (let i = 0; i < quotes.length; i++) {
                 request['quoteId'] = quotes[i];
-                promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
+                promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, paramsGeneration)));
                 //
                 //    {
                 //        "status": "0000",
@@ -705,11 +704,10 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchBalance', 'generation', 2);
         let response: any = undefined;
         if (generation === 2) {
-            response = await this.privateGetV1Accounts (params);
+            response = await this.privateGetV1Accounts (paramsGeneration);
             //
             //     [
             //         {
@@ -726,7 +724,7 @@ export default class bithumb extends Exchange {
             const request: Dict = {
                 'currency': 'ALL',
             };
-            response = await this.privatePostInfoBalance (this.extend (request, params));
+            response = await this.privatePostInfoBalance (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status": "0000",
@@ -757,8 +755,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
         let response: any = undefined;
@@ -766,7 +763,7 @@ export default class bithumb extends Exchange {
         let timestamp: Int = undefined;
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId (market);
-            response = await this.publicGetV1Orderbook (this.extend (request, params));
+            response = await this.publicGetV1Orderbook (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -811,7 +808,7 @@ export default class bithumb extends Exchange {
             if (limit !== undefined) {
                 request['count'] = limit; // default 30, max 30
             }
-            response = await this.publicGetPublicOrderbookBaseIdQuoteId (this.extend (request, params));
+            response = await this.publicGetPublicOrderbookBaseIdQuoteId (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -990,8 +987,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchTickers', 'generation', 2);
         const request: Dict = {};
         const result: Dict = {};
         if (generation === 2) {
@@ -1013,7 +1009,7 @@ export default class bithumb extends Exchange {
             if (symbols !== undefined) {
                 request['markets'] = marketIds.join (',');
                 marketIdsChunks.push (marketIds);
-                promises.push (this.publicGetV1Ticker (this.extend (request, params)));
+                promises.push (this.publicGetV1Ticker (this.extend (request, paramsGeneration)));
             } else {
                 let maxMarketIdsPerRequest = this.safeInteger (this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
                 if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
@@ -1027,7 +1023,7 @@ export default class bithumb extends Exchange {
                     if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
                         marketIdsChunks.push (marketIdsChunk);
                         request['markets'] = marketIdsChunk.join (',');
-                        promises.push (this.publicGetV1Ticker (this.extend (request, params)));
+                        promises.push (this.publicGetV1Ticker (this.extend (request, paramsGeneration)));
                         marketIdsChunk = [];
                     }
                 }
@@ -1131,7 +1127,7 @@ export default class bithumb extends Exchange {
             const promises: Promise<any>[] = [];
             for (let i = 0; i < quotes.length; i++) {
                 request['quoteId'] = quotes[i];
-                promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, params)));
+                promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, paramsGeneration)));
                 //
                 //     {
                 //         "status":"0000",
@@ -1191,15 +1187,14 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchTicker', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
         let response: any = undefined;
         let data: Dict = {};
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId (market);
-            response = await this.publicGetV1Ticker (this.extend (request, params));
+            response = await this.publicGetV1Ticker (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -1236,7 +1231,7 @@ export default class bithumb extends Exchange {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTickerBaseIdQuoteId (this.extend (request, params));
+            response = await this.publicGetPublicTickerBaseIdQuoteId (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1327,8 +1322,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
         let response: any = undefined;
@@ -1339,18 +1333,18 @@ export default class bithumb extends Exchange {
                 request['count'] = limit;
             }
             if (timeframe === '1d') {
-                response = await this.publicGetV1CandlesDays (this.extend (request, params));
+                response = await this.publicGetV1CandlesDays (this.extend (request, paramsGeneration));
             } else if (timeframe === '1w') {
-                response = await this.publicGetV1CandlesWeeks (this.extend (request, params));
+                response = await this.publicGetV1CandlesWeeks (this.extend (request, paramsGeneration));
             } else if (timeframe === '1M') {
-                response = await this.publicGetV1CandlesMonths (this.extend (request, params));
+                response = await this.publicGetV1CandlesMonths (this.extend (request, paramsGeneration));
             } else {
                 const timeframeInteger = this.safeInteger (this.timeframes, timeframe);
                 if (timeframeInteger === undefined) {
                     throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe);
                 }
                 request['unit'] = timeframeInteger;
-                response = await this.publicGetV1CandlesMinutesUnit (this.extend (request, params));
+                response = await this.publicGetV1CandlesMinutesUnit (this.extend (request, paramsGeneration));
             }
             //
             //     [
@@ -1387,7 +1381,7 @@ export default class bithumb extends Exchange {
             request['interval'] = this.safeString (legacyTimeframes, timeframe, timeframe);
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicCandlestickBaseIdQuoteIdInterval (this.extend (request, params));
+            response = await this.publicGetPublicCandlestickBaseIdQuoteIdInterval (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status": "0000",
@@ -1505,7 +1499,7 @@ export default class bithumb extends Exchange {
         }
         const id = this.safeString2 (trade, 'cont_no', 'sequential_id');
         const marketId = this.safeString (trade, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const priceString = this.safeString2 (trade, 'price', 'trade_price');
         let amountString = this.safeString (trade, 'trade_volume');
         if (amountString === undefined) {
@@ -1527,7 +1521,7 @@ export default class bithumb extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': undefined,
             'type': type,
             'side': side,
@@ -1536,7 +1530,7 @@ export default class bithumb extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1556,8 +1550,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchTrades', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
         if (limit !== undefined) {
@@ -1567,7 +1560,7 @@ export default class bithumb extends Exchange {
         let data: List = [];
         if (generation === 2) {
             request['market'] = this.getGen2MarketId (market);
-            response = await this.publicGetV1TradesTicks (this.extend (request, params));
+            response = await this.publicGetV1TradesTicks (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -1588,7 +1581,7 @@ export default class bithumb extends Exchange {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId (this.extend (request, params));
+            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1625,8 +1618,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createOrders', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'createOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createOrders is only supported for the generation 2 API');
         }
@@ -1662,7 +1654,7 @@ export default class bithumb extends Exchange {
         const request: Dict = {
             'batch_orders': ordersRequests,
         };
-        const response = await this.privatePostV2OrdersBatch (this.extend (request, params));
+        const response = await this.privatePostV2OrdersBatch (this.extend (request, paramsGeneration));
         //
         //     {
         //         "batch_orders_response": [
@@ -1708,17 +1700,17 @@ export default class bithumb extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder() invalid side ' + side);
         }
         request['side'] = sideRequest;
-        let timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
-        if (timeInForce === undefined) {
-            timeInForce = 'GTC';
-        } else {
-            params = this.omit (params, 'timeInForce');
+        const timeInForceRaw = this.safeString2 (params, 'timeInForce', 'time_in_force');
+        const timeInForce = (timeInForceRaw === undefined) ? 'GTC' : timeInForceRaw;
+        const paramsTimeInForce = (timeInForceRaw === undefined) ? params : this.omit (params, 'timeInForce');
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', false, paramsTimeInForce);
+        const isPostOnly = postOnly || (timeInForce === 'PO');
+        let paramsOrder: Dict = paramsPostOnly;
+        if (isPostOnly) {
+            paramsOrder = this.omit (paramsPostOnly, 'postOnly');
         }
-        let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', false, params);
-        if (postOnly || (timeInForce === 'PO')) {
+        if (isPostOnly) {
             request['time_in_force'] = 'post_only';
-            params = this.omit (params, 'postOnly');
         } else if (timeInForce === 'FOK') {
             request['time_in_force'] = 'fok';
         } else if (timeInForce === 'IOC') {
@@ -1733,10 +1725,9 @@ export default class bithumb extends Exchange {
             if (side === 'buy') {
                 typeRequest = 'price';
                 // for market buy it requires the amount of quote currency to spend
-                let cost = this.safeString (params, 'cost');
-                params = this.omit (params, 'cost');
-                let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                let cost = this.safeString (paramsOrder, 'cost');
+                const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionBoolAndParams (this.omit (paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                paramsOrder = paramsRequiresPrice;
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (cost === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -1755,12 +1746,12 @@ export default class bithumb extends Exchange {
             }
             request['order_type'] = typeRequest;
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        const clientOrderId = this.safeString2 (paramsOrder, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
         }
-        return this.extend (request, params);
+        const paramsRequest = (clientOrderId !== undefined) ? this.omit (paramsOrder, 'clientOrderId') : paramsOrder;
+        return this.extend (request, paramsRequest);
     }
 
     /**
@@ -1789,13 +1780,12 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createOrder', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'createOrder', 'generation', 2);
         let request: Dict = {};
         const market = this.market (symbol);
         let response: any = undefined;
         if (generation === 2) {
-            request = this.createOrderRequest (symbol, type, side, amount, price, params);
+            request = this.createOrderRequest (symbol, type, side, amount, price, paramsGeneration);
             response = await this.privatePostV2Orders (request);
             //
             //     {
@@ -1820,11 +1810,11 @@ export default class bithumb extends Exchange {
                     typeRequest = 'ask';
                 }
                 request['type'] = typeRequest;
-                response = await this.privatePostTradePlace (this.extend (request, params));
+                response = await this.privatePostTradePlace (this.extend (request, paramsGeneration));
             } else if (side === 'buy') {
-                response = await this.privatePostTradeMarketBuy (this.extend (request, params));
+                response = await this.privatePostTradeMarketBuy (this.extend (request, paramsGeneration));
             } else {
-                response = await this.privatePostTradeMarketSell (this.extend (request, params));
+                response = await this.privatePostTradeMarketSell (this.extend (request, paramsGeneration));
             }
             //
             //     {
@@ -1861,13 +1851,12 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createMarketBuyOrderWithCost', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'createMarketBuyOrderWithCost', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createMarketBuyOrderWithCost() is only supported for the generation 2 API');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        paramsGeneration['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, paramsGeneration);
     }
 
     /**
@@ -1889,8 +1878,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createTwapOrder', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'createTwapOrder', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createTwapOrder() is only supported for the generation 2 API');
         }
@@ -1911,7 +1899,7 @@ export default class bithumb extends Exchange {
             sideRequest = 'ask';
         }
         request['side'] = sideRequest;
-        const response = await this.privatePostV1Twap (this.extend (request, params));
+        const response = await this.privatePostV1Twap (this.extend (request, paramsGeneration));
         //
         //     {
         //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
@@ -1940,14 +1928,13 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchOrder', 'generation', 2);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const twap = this.safeBool (params, 'twap', false);
-        params = this.omit (params, 'twap');
+        const twap = this.safeBool (paramsGeneration, 'twap', false);
+        const paramsOmitted = this.omit (paramsGeneration, 'twap');
         const request: Dict = {};
         let response: any = undefined;
         let data = undefined;
@@ -1957,7 +1944,7 @@ export default class bithumb extends Exchange {
                     request['market'] = this.getGen2MarketId (market);
                 }
                 request['uuids'] = [ id ];
-                response = await this.privateGetV1Twap (this.extend (request, params));
+                response = await this.privateGetV1Twap (this.extend (request, paramsOmitted));
                 //
                 //     {
                 //         "has_next": false,
@@ -1985,14 +1972,14 @@ export default class bithumb extends Exchange {
                 const orders = this.safeList (response, 'orders', []);
                 data = this.safeDict (orders, 0, {});
             } else {
-                const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+                const clientOrderId = this.safeString2 (paramsOmitted, 'clientOrderId', 'client_order_id');
+                const paramsClientOrderId = (clientOrderId !== undefined) ? this.omit (paramsOmitted, [ 'clientOrderId' ]) : paramsOmitted;
                 if (clientOrderId !== undefined) {
                     request['client_order_id'] = clientOrderId;
-                    params = this.omit (params, [ 'clientOrderId' ]);
                 } else {
                     request['uuid'] = id;
                 }
-                response = await this.privateGetV1Order (this.extend (request, params));
+                response = await this.privateGetV1Order (this.extend (request, paramsClientOrderId));
                 //
                 //     {
                 //         "uuid": "C0101000003152406454",
@@ -2030,7 +2017,7 @@ export default class bithumb extends Exchange {
             request['order_id'] = id;
             request['order_currency'] = base;
             request['payment_currency'] = quote;
-            response = await this.privatePostInfoOrderDetail (this.extend (request, params));
+            response = await this.privatePostInfoOrderDetail (this.extend (request, paramsOmitted));
             //
             //     {
             //         "status": "0000",
@@ -2251,10 +2238,10 @@ export default class bithumb extends Exchange {
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
         }
+        const marketId = this.safeString (order, 'market');
+        const marketResolved = (symbol === undefined) ? this.safeMarket (marketId, market) : market;
         if (symbol === undefined) {
-            const marketId = this.safeString (order, 'market');
-            market = this.safeMarket (marketId, market);
-            symbol = market['symbol'];
+            symbol = this.safeString (marketResolved, 'symbol');
         }
         const id = this.safeStringN (order, [ 'order_id', 'uuid', 'algo_order_id' ]);
         const rawTrades = this.safeList2 (order, 'contract', 'trades', []);
@@ -2262,8 +2249,8 @@ export default class bithumb extends Exchange {
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
             let currency: Str = undefined;
-            if (market !== undefined) {
-                currency = this.safeString (market, 'quote');
+            if (marketResolved !== undefined) {
+                currency = this.safeString (marketResolved, 'quote');
             }
             fee = {
                 'currency': currency,
@@ -2299,7 +2286,7 @@ export default class bithumb extends Exchange {
             'status': status,
             'fee': fee,
             'trades': rawTrades,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2322,19 +2309,19 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'generation', 2);
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const request: Dict = {};
         let market: Market = undefined;
         let response: any = undefined;
         if (generation === 2) {
-            const twap = this.safeBool (params, 'twap', false);
+            const twap = this.safeBool (paramsGeneration, 'twap', false);
             if (twap) {
-                params['state'] = 'progress';
+                paramsGeneration['state'] = 'progress';
             } else {
-                params['state'] = 'wait';
+                paramsGeneration['state'] = 'wait';
             }
-            const orders = await this.fetchOrders (symbol, since, limit, params);
+            const orders = await this.fetchOrders (symbol, since, limit, paramsGeneration);
             return this.filterBySinceLimit (orders, since, limit) as Order[];
         } else {
             if (symbol === undefined) {
@@ -2344,13 +2331,10 @@ export default class bithumb extends Exchange {
             if (since !== undefined) {
                 request['after'] = since;
             }
-            if (limit === undefined) {
-                limit = 100;
-            }
-            request['count'] = limit;
+            request['count'] = limitResolved;
             request['order_currency'] = market['base'];
             request['payment_currency'] = market['quote'];
-            response = await this.privatePostInfoOrders (this.extend (request, params));
+            response = await this.privatePostInfoOrders (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status": "0000",
@@ -2372,7 +2356,7 @@ export default class bithumb extends Exchange {
             //
         }
         const data = this.safeList (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (data, market, since, limitResolved);
     }
 
     /**
@@ -2395,20 +2379,22 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchOrders is only supported for the generation 2 API');
         }
         const request: Dict = {};
-        const twap = this.safeBool (params, 'twap', false);
-        params = this.omit (params, 'twap');
-        if (!twap) {
-            const clientOrderIds = this.safeList2 (params, 'client_order_ids', 'clientOrderIds');
-            if (clientOrderIds !== undefined) {
-                request['client_order_ids'] = clientOrderIds;
-                params = this.omit (params, [ 'clientOrderIds' ]);
-            }
+        const twap = this.safeBool (paramsGeneration, 'twap', false);
+        const paramsOmitted = this.omit (paramsGeneration, 'twap');
+        let clientOrderIds = undefined;
+        if (twap) {
+            clientOrderIds = undefined;
+        } else {
+            clientOrderIds = this.safeList2 (paramsOmitted, 'client_order_ids', 'clientOrderIds');
+        }
+        const paramsRequest = (clientOrderIds !== undefined) ? this.omit (paramsOmitted, [ 'clientOrderIds' ]) : paramsOmitted;
+        if (clientOrderIds !== undefined) {
+            request['client_order_ids'] = clientOrderIds;
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2421,7 +2407,7 @@ export default class bithumb extends Exchange {
         let response: any = undefined;
         let data = undefined;
         if (twap) {
-            response = await this.privateGetV1Twap (this.extend (request, params));
+            response = await this.privateGetV1Twap (this.extend (request, paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -2448,7 +2434,7 @@ export default class bithumb extends Exchange {
             //
             data = this.safeList (response, 'orders', []);
         } else {
-            response = await this.privateGetV1Orders (this.extend (request, params));
+            response = await this.privateGetV1Orders (this.extend (request, paramsRequest));
             //
             //     [
             //         {
@@ -2538,37 +2524,45 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'cancelOrder', 'generation', 2);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const request: Dict = {};
         let response: any = undefined;
-        const twap = this.safeBool (params, 'twap', false);
-        params = this.omit (params, 'twap');
+        const twap = this.safeBool (paramsGeneration, 'twap', false);
+        const paramsOmitted = this.omit (paramsGeneration, 'twap');
+        let clientOrderId = undefined;
+        if (twap) {
+            clientOrderId = undefined;
+        } else {
+            clientOrderId = this.safeString2 (paramsOmitted, 'clientOrderId', 'client_order_id');
+        }
+        const useClientOrderId = (generation === 2) && (clientOrderId !== undefined);
+        let paramsRequest = paramsOmitted;
+        if (useClientOrderId) {
+            paramsRequest = this.omit (paramsOmitted, [ 'clientOrderId' ]);
+        }
         if (twap) {
             request['algo_order_id'] = id;
         } else {
-            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
-            if ((generation === 2) && (clientOrderId !== undefined)) {
+            if (useClientOrderId) {
                 request['client_order_id'] = clientOrderId;
-                params = this.omit (params, [ 'clientOrderId' ]);
             } else {
                 request['order_id'] = id;
             }
         }
         if (generation === 2) {
             if (twap) {
-                response = await this.privateDeleteV1Twap (this.extend (request, params));
+                response = await this.privateDeleteV1Twap (this.extend (request, paramsRequest));
                 //
                 //     {
                 //         "algo_order_id": "TWAP-A01B02C03D04E05F06"
                 //     }
                 //
             } else {
-                response = await this.privateDeleteV2Order (this.extend (request, params));
+                response = await this.privateDeleteV2Order (this.extend (request, paramsRequest));
                 //
                 //     {
                 //         "order_id": "C0101000003152350309",
@@ -2586,22 +2580,22 @@ export default class bithumb extends Exchange {
             if ((base === undefined) || (quote === undefined)) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a market with defined base and quote');
             }
-            const side_in_params = ('side' in params);
+            const side_in_params = ('side' in paramsRequest);
             if (!side_in_params) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
             }
             let side: Str = undefined;
-            if (params['side'] === 'buy') {
+            if (paramsRequest['side'] === 'buy') {
                 side = 'bid';
             } else {
                 side = 'ask';
             }
-            params = this.omit (params, 'side');
+            const paramsSide = this.omit (paramsRequest, 'side');
             // https://github.com/ccxt/ccxt/issues/6771
             request['type'] = side;
             request['order_currency'] = base;
             request['payment_currency'] = quote;
-            response = await this.privatePostTradeCancel (this.extend (request, params));
+            response = await this.privatePostTradeCancel (this.extend (request, paramsSide));
             //
             //     {
             //         "status": "0000"
@@ -2629,8 +2623,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'cancelOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' cancelOrders is only supported for the generation 2 API');
         }
@@ -2639,14 +2632,14 @@ export default class bithumb extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {};
-        const clientOrderIds = this.safeList2 (params, 'client_order_ids', 'clientOrderIds');
+        const clientOrderIds = this.safeList2 (paramsGeneration, 'client_order_ids', 'clientOrderIds');
+        const paramsRequest = (clientOrderIds !== undefined) ? this.omit (paramsGeneration, [ 'clientOrderIds' ]) : paramsGeneration;
         if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds;
-            params = this.omit (params, [ 'clientOrderIds' ]);
         } else {
             request['order_ids'] = ids;
         }
-        const response = await this.privatePostV2OrdersCancel (this.extend (request, params));
+        const response = await this.privatePostV2OrdersCancel (this.extend (request, paramsRequest));
         //
         //     {
         //         "success": [
@@ -2699,37 +2692,40 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'withdraw', 'generation', 2);
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'withdraw', 'generation', 2);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, paramsGeneration);
         this.checkAddress (address);
-        const network = this.safeString2 (params, 'network', 'net_type');
-        params = this.omit (params, 'network');
+        const network = this.safeString2 (paramsWithdrawTag, 'network', 'net_type');
+        const paramsNetwork = this.omit (paramsWithdrawTag, 'network');
         const currency = this.currency (code);
         const request: Dict = {};
         let response: any = undefined;
         let destinationRequest: Str = undefined;
-        if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM' || code === 'TON') {
-            const destination = this.safeString2 (params, 'destination', 'secondary_address');
-            params = this.omit (params, [ 'destination', 'secondary_address' ]);
-            if ((tag === undefined) && (destination === undefined)) {
+        const requiresDestination = (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM' || code === 'TON');
+        let paramsDestination = paramsNetwork;
+        if (requiresDestination) {
+            paramsDestination = this.omit (paramsNetwork, [ 'destination', 'secondary_address' ]);
+        }
+        if (requiresDestination) {
+            const destination = this.safeString2 (paramsNetwork, 'destination', 'secondary_address');
+            if ((tagWithdrawTag === undefined) && (destination === undefined)) {
                 throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
-            } else if (tag !== undefined) {
-                destinationRequest = tag;
+            } else if (tagWithdrawTag !== undefined) {
+                destinationRequest = tagWithdrawTag;
             } else {
                 destinationRequest = destination;
             }
         }
-        const receiverType = this.safeString2 (params, 'receiver_type', 'cust_type_cd');
-        params = this.omit (params, [ 'receiver_type', 'cust_type_cd' ]);
+        const receiverType = this.safeString2 (paramsDestination, 'receiver_type', 'cust_type_cd');
+        const paramsReceiverType = this.omit (paramsDestination, [ 'receiver_type', 'cust_type_cd' ]);
         if (generation === 2) {
             if (code === 'KRW') {
-                const twoFactorType = this.safeString (params, 'two_factor_type');
+                const twoFactorType = this.safeString (paramsReceiverType, 'two_factor_type');
                 if (twoFactorType === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a two_factor_type parameter for withdrawing KRW');
                 }
                 const krwRequest: Dict = { 'amount': this.numberToString (amount) }; // KRW withdraw only accepts amount and two_factor_type parameters
-                response = await this.privatePostV1WithdrawsKrw (this.extend (krwRequest, params));
+                response = await this.privatePostV1WithdrawsKrw (this.extend (krwRequest, paramsReceiverType));
             } else {
                 if (network === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a network parameter');
@@ -2744,7 +2740,7 @@ export default class bithumb extends Exchange {
                 if (receiverType !== undefined) {
                     request['receiver_type'] = receiverType;
                 }
-                response = await this.privatePostV1WithdrawsCoin (this.extend (request, params));
+                response = await this.privatePostV1WithdrawsCoin (this.extend (request, paramsReceiverType));
             }
             //
             //     {
@@ -2781,7 +2777,7 @@ export default class bithumb extends Exchange {
                     request['cust_type_cd'] = receiverType;
                 }
             }
-            response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
+            response = await this.privatePostTradeBtcWithdrawal (this.extend (request, paramsReceiverType));
             //
             //     {
             //         "status": "0000"
@@ -2816,7 +2812,7 @@ export default class bithumb extends Exchange {
         //
         const type = this.safeString (transaction, 'type');
         const currencyId = this.safeString (transaction, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const datetime = this.safeString (transaction, 'created_at');
         let timestamp = this.parse8601 (datetime);
         if ((datetime !== undefined) && (datetime.indexOf ('+09:00') > -1)) {
@@ -2837,7 +2833,7 @@ export default class bithumb extends Exchange {
             'addressTo': undefined,
             'amount': this.safeNumber (transaction, 'amount'),
             'type': type,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': this.parseTransactionStatusByType (this.safeString (transaction, 'state'), type),
             'updated': undefined,
             'tagFrom': undefined,
@@ -2893,12 +2889,11 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawalWhitelist', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchWithdrawalWhitelist', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchWithdrawalWhitelist() is only supported for the generation 2 API');
         }
-        const response = await this.privateGetV1WithdrawsCoinAddresses (params);
+        const response = await this.privateGetV1WithdrawsCoinAddresses (paramsGeneration);
         //
         //     [
         //         {
@@ -2932,8 +2927,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawal', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchWithdrawal', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchWithdrawal() is only supported for the generation 2 API');
         }
@@ -2947,7 +2941,7 @@ export default class bithumb extends Exchange {
         if (id !== undefined) {
             request['uuid'] = id;
         }
-        const response = await this.privateGetV1Withdraw (this.extend (request, params));
+        const response = await this.privateGetV1Withdraw (this.extend (request, paramsGeneration));
         //
         //     {
         //         "type": "withdraw",
@@ -2988,8 +2982,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchWithdrawals() is only supported for the generation 2 API');
         }
@@ -3001,13 +2994,13 @@ export default class bithumb extends Exchange {
         let currency: Currency = undefined;
         if (code === 'KRW') {
             currency = this.currency (code);
-            response = await this.privateGetV1WithdrawsKrw (this.extend (request, params));
+            response = await this.privateGetV1WithdrawsKrw (this.extend (request, paramsGeneration));
         } else {
             if (code !== undefined) {
                 currency = this.currency (code);
                 request['currency'] = currency['id'];
             }
-            response = await this.privateGetV1Withdraws (this.extend (request, params));
+            response = await this.privateGetV1Withdraws (this.extend (request, paramsGeneration));
         }
         //
         //     [
@@ -3045,8 +3038,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDeposit', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchDeposit', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDeposit() is only supported for the generation 2 API');
         }
@@ -3060,7 +3052,7 @@ export default class bithumb extends Exchange {
         if (id !== undefined) {
             request['uuid'] = id;
         }
-        const response = await this.privateGetV1Deposit (this.extend (request, params));
+        const response = await this.privateGetV1Deposit (this.extend (request, paramsGeneration));
         //
         //     {
         //         "type": "deposit",
@@ -3101,8 +3093,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchDeposits', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDeposits() is only supported for the generation 2 API');
         }
@@ -3114,13 +3105,13 @@ export default class bithumb extends Exchange {
         let currency: Currency = undefined;
         if (code === 'KRW') {
             currency = this.currency (code);
-            response = await this.privateGetV1DepositsKrw (this.extend (request, params));
+            response = await this.privateGetV1DepositsKrw (this.extend (request, paramsGeneration));
         } else {
             if (code !== undefined) {
                 currency = this.currency (code);
                 request['currency'] = currency['id'];
             }
-            response = await this.privateGetV1Deposits (this.extend (request, params));
+            response = await this.privateGetV1Deposits (this.extend (request, paramsGeneration));
         }
         //
         //     [
@@ -3157,8 +3148,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'createDepositAddress', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createDepositAddress() is only supported for the generation 2 API');
         }
@@ -3166,13 +3156,13 @@ export default class bithumb extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const network = this.safeString2 (params, 'network', 'net_type');
-        params = this.omit (params, 'network');
+        const network = this.safeString2 (paramsGeneration, 'network', 'net_type');
+        const paramsOmitted: Dict = this.omit (paramsGeneration, 'network');
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + code + ' createDepositAddress() requires a network parameter');
         }
         request['net_type'] = network;
-        const response = await this.privatePostV1DepositsGenerateCoinAddress (this.extend (request, params));
+        const response = await this.privatePostV1DepositsGenerateCoinAddress (this.extend (request, paramsOmitted));
         //
         //     {
         //         "currency": "BTC",
@@ -3199,8 +3189,7 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDepositAddress() is only supported for the generation 2 API');
         }
@@ -3208,13 +3197,13 @@ export default class bithumb extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const network = this.safeString2 (params, 'network', 'net_type');
-        params = this.omit (params, 'network');
+        const network = this.safeString2 (paramsGeneration, 'network', 'net_type');
+        const paramsOmitted: Dict = this.omit (paramsGeneration, 'network');
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + code + ' fetchDepositAddress() requires a network parameter');
         }
         request['net_type'] = network;
-        const response = await this.privateGetV1DepositsCoinAddress (this.extend (request, params));
+        const response = await this.privateGetV1DepositsCoinAddress (this.extend (request, paramsOmitted));
         //
         //     {
         //         "currency": "BTC",
@@ -3240,12 +3229,11 @@ export default class bithumb extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDepositAddresses', 'generation', 2);
+        const [ generation, paramsGeneration ] = this.handleOptionAndParams (params, 'fetchDepositAddresses', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDepositAddresses() is only supported for the generation 2 API');
         }
-        const response = await this.privateGetV1DepositsCoinAddresses (params);
+        const response = await this.privateGetV1DepositsCoinAddresses (paramsGeneration);
         //
         //     [
         //         {
@@ -3335,6 +3323,8 @@ export default class bithumb extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
         const query = this.omit (params, this.extractParams (path));
@@ -3342,7 +3332,7 @@ export default class bithumb extends Exchange {
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
         if (api === 'public') {
-            headers = {
+            requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             };
             if (hasQuery) {
@@ -3352,7 +3342,7 @@ export default class bithumb extends Exchange {
             this.checkRequiredCredentials ();
             const isVersionedApi = (endpoint.startsWith ('/v1/') || endpoint.startsWith ('/v2/'));
             if (isVersionedApi) {
-                headers = {
+                requestHeaders = {
                     'Accept': 'application/json',
                     'OPEN-API-PARTNER': 'CCXT',
                 };
@@ -3363,9 +3353,9 @@ export default class bithumb extends Exchange {
                 };
                 let auth: Str = undefined;
                 if ((method !== 'GET') && (method !== 'DELETE')) {
-                    headers['Content-Type'] = 'application/json';
+                    requestHeaders['Content-Type'] = 'application/json';
                     if (hasQuery) {
-                        body = this.json (query);
+                        requestBody = this.json (query);
                         auth = this.urlencodeWithArrayBrackets (query);
                     }
                 } else if (hasQuery) {
@@ -3378,19 +3368,19 @@ export default class bithumb extends Exchange {
                     request['query_hash_alg'] = 'SHA512';
                 }
                 const token = jwt (request, this.encode (this.secret), sha256);
-                headers['Authorization'] = 'Bearer ' + token;
+                requestHeaders['Authorization'] = 'Bearer ' + token;
             } else {
-                body = this.urlencode (this.extend ({
+                requestBody = this.urlencode (this.extend ({
                     'endpoint': endpoint,
                 }, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                const bodyParts = body.split ('%20');
-                body = bodyParts.join ('+');
+                const bodyParts = requestBody.split ('%20');
+                requestBody = bodyParts.join ('+');
                 const nonce = this.nonce ().toString ();
-                const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
+                const auth = endpoint + "\0" + requestBody + "\0" + nonce; // eslint-disable-line quotes
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);
                 const signature64 = this.stringToBase64 (signature);
-                headers = {
+                requestHeaders = {
                     'Accept': 'application/json',
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Api-Key': this.apiKey,
@@ -3400,7 +3390,9 @@ export default class bithumb extends Exchange {
                 };
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

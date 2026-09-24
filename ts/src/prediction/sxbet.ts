@@ -807,14 +807,13 @@ export default class sxbet extends Exchange {
         if (tokenAddress === undefined) {
             throw new BadRequest (this.id + ' approve() could not resolve the base token address from /metadata/obv3');
         }
-        let spender = undefined;
-        [ spender, params ] = this.handleOptionAndParams2 (params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
+        const [ spender, paramsSpender ] = this.handleOptionAndParams2 (params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
         if (spender === undefined) {
             throw new BadRequest (this.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender');
         }
         const chains = this.safeDict (this.options, 'chains', {});
         const chainConfig = this.safeDict (chains, this.numberToString (chainId), {});
-        const rpcUrl = this.safeString (params, 'rpcUrl', this.safeString (chainConfig, 'rpcUrl'));
+        const rpcUrl = this.safeString (paramsSpender, 'rpcUrl', this.safeString (chainConfig, 'rpcUrl'));
         if (rpcUrl === undefined) {
             throw new ArgumentsRequired (this.id + ' approve() has no RPC endpoint configured for chainId ' + this.numberToString (chainId) + ' - pass params.rpcUrl');
         }
@@ -830,7 +829,7 @@ export default class sxbet extends Exchange {
         }
         const tokenName = await this.fetchErc20Name (rpcUrl, tokenAddress);
         const defaultDeadlineSeconds = this.safeInteger (this.options, 'approveDeadlineSeconds', 7200);
-        const deadline = this.safeInteger (params, 'deadline', this.sum (this.seconds (), defaultDeadlineSeconds));
+        const deadline = this.safeInteger (paramsSpender, 'deadline', this.sum (this.seconds (), defaultDeadlineSeconds));
         const value = this.decimalToPrecision (Precise.stringMul (this.numberToString (amount), '1000000'), ROUND, 0, DECIMAL_PLACES);
         const domain: Dict = { 'name': tokenName, 'version': '1', 'chainId': chainId, 'verifyingContract': tokenAddress };
         const messageTypes: Dict = {
@@ -854,7 +853,7 @@ export default class sxbet extends Exchange {
             'deadline': this.numberToString (deadline),
             'signature': signature,
         };
-        const rest = this.omit (params, [ 'amount', 'tokenAddress', 'deadline', 'rpcUrl' ]);
+        const rest = this.omit (paramsSpender, [ 'amount', 'tokenAddress', 'deadline', 'rpcUrl' ]);
         const response = await this.sxbetPrivatePostUserTransferToProxy (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
         return {
@@ -939,8 +938,7 @@ export default class sxbet extends Exchange {
         if (type === 'limit') {
             defaultTif = 'GTC';
         }
-        let timeInForce = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', defaultTif);
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -985,22 +983,22 @@ export default class sxbet extends Exchange {
             'timeInForce': timeInForce,
             'orderSignature': orderSignature,
         };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (paramsTimeInForce, 'clientOrderId');
         if (clientOrderId !== undefined) {
             orderItem['clientOrderId'] = clientOrderId;
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        const useBetCredits = this.safeBool (params, 'useBetCredits');
+        const useBetCredits = this.safeBool (paramsTimeInForce, 'useBetCredits');
         if (useBetCredits !== undefined) {
             orderItem['useBetCredits'] = useBetCredits;
         }
-        const externalUserId = this.safeString (params, 'externalUserId');
+        const externalUserId = this.safeString (paramsTimeInForce, 'externalUserId');
         if (externalUserId !== undefined) {
             orderItem['externalUserId'] = externalUserId;
         }
-        const waitForOutcome = this.safeBool (params, 'waitForOutcome', true);
-        const rest = this.omit (params, [ 'salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId' ]);
+        const waitForOutcome = this.safeBool (paramsTimeInForce, 'waitForOutcome', true);
+        const rest = this.omit (paramsTimeInForce, [ 'salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId' ]);
         const request: Dict = { 'orders': [ orderItem ], 'waitForOutcome': waitForOutcome };
         const response = await this.sxbetPrivatePostOrdersV3 (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
@@ -2775,12 +2773,12 @@ export default class sxbet extends Exchange {
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = this.extend ({
+        const headersExtended: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
         if (this.apiKey !== undefined) {
-            headers['x-sx-api-key'] = this.apiKey;
+            headersExtended['x-sx-api-key'] = this.apiKey;
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
@@ -2789,6 +2787,7 @@ export default class sxbet extends Exchange {
             const hasOrdersList = ('orders' in query);
             sendAsQuery = !hasOrdersList;
         }
+        let bodyValue: any = body;
         if (sendAsQuery) {
             const querystring = this.urlencode (query);
             if (querystring !== '') {
@@ -2798,9 +2797,9 @@ export default class sxbet extends Exchange {
             const queryKeys = Object.keys (query);
             const queryKeysLength = queryKeys.length;
             if (queryKeysLength > 0) {
-                body = this.json (query);
+                bodyValue = this.json (query);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }

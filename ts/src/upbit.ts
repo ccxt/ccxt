@@ -764,10 +764,10 @@ export default class upbit extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'trade_timestamp');
         const marketId = this.safeString2 (ticker, 'market', 'code');
-        market = this.safeMarket (marketId, market, '-');
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
         const last = this.safeString (ticker, 'trade_price');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high_price'),
@@ -788,7 +788,7 @@ export default class upbit extends Exchange {
             'baseVolume': this.safeString (ticker, 'acc_trade_volume_24h'),
             'quoteVolume': this.safeString (ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -808,9 +808,9 @@ export default class upbit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         let tickers: List = [];
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             // ticker/all returns every market of the requested quote currencies with a single request
             const quoteIds: List = [];
             const marketSymbols = this.symbols;
@@ -834,7 +834,7 @@ export default class upbit extends Exchange {
             };
             tickers = await this.publicGetTickerAll (this.extend (request, params));
         } else {
-            const ids = this.marketIds (symbols);
+            const ids = this.marketIds (symbolsNormalized);
             const promises: List = [];
             const queries = this.idsQueryStrings (ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (let i = 0; i < queries.length; i++) {
@@ -872,7 +872,7 @@ export default class upbit extends Exchange {
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        return this.parseTickers (tickers, symbols);
+        return this.parseTickers (tickers, symbolsNormalized);
     }
 
     idsQueryStrings (ids: Strings, maxQueryLength: number) {
@@ -959,12 +959,12 @@ export default class upbit extends Exchange {
         const price = this.safeString2 (trade, 'trade_price', 'price');
         const amount = this.safeString2 (trade, 'trade_volume', 'volume');
         const marketId = this.safeString2 (trade, 'market', 'code');
-        market = this.safeMarket (marketId, market, '-');
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, askOrBid + '_fee');
         if (feeCost !== undefined) {
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCost,
             };
         }
@@ -974,7 +974,7 @@ export default class upbit extends Exchange {
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -982,7 +982,7 @@ export default class upbit extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1002,12 +1002,10 @@ export default class upbit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 200;
-        }
+        const limitResolved: Int = (limit === undefined) ? 200 : limit;
         const request: Dict = {
             'market': market['id'],
-            'count': limit,
+            'count': limitResolved,
         };
         const response = await this.publicGetTradesTicks (this.extend (request, params));
         //
@@ -1032,7 +1030,7 @@ export default class upbit extends Exchange {
         //                    "ask_bid": "ASK",
         //              "sequential_id":  15428917910540000 }  ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limitResolved);
     }
 
     /**
@@ -1179,18 +1177,16 @@ export default class upbit extends Exchange {
         const market = this.market (symbol);
         const timeframePeriod = this.parseTimeframe (timeframe);
         const timeframeValue = this.safeString (this.timeframes, timeframe, timeframe);
-        if (limit === undefined) {
-            limit = 200;
-        }
+        const limitResolved: Int = (limit === undefined) ? 200 : limit;
         const request: Dict = {
             'market': market['id'],
             'timeframe': timeframeValue,
-            'count': limit,
+            'count': limitResolved,
         };
         let response: Dict | List;
         if (since !== undefined) {
             // convert `since` to `to` value
-            request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limit * 1000));
+            request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limitResolved * 1000));
         }
         if (timeframeValue === 'minutes') {
             const numMinutes = Math.round (timeframePeriod / 60);
@@ -1230,7 +1226,7 @@ export default class upbit extends Exchange {
         //     ]
         //
         const ohlcvs = this.toArray (response);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limitResolved);
     }
 
     calcOrderPrice (symbol: string, amount: Num, price: Num = undefined, params = {}): Str {
@@ -1329,11 +1325,11 @@ export default class upbit extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
+        const paramsOrdType = (customType === 'best') ? this.omit (params, [ 'ordType', 'ord_type' ]) : params;
         if (customType === 'best') {
-            params = this.omit (params, [ 'ordType', 'ord_type' ]);
             request['ord_type'] = 'best';
             if (side === 'buy') {
-                const orderPrice = this.calcOrderPrice (symbol, amount, price, params);
+                const orderPrice = this.calcOrderPrice (symbol, amount, price, paramsOrdType);
                 request['price'] = orderPrice;
             } else {
                 if (amount === undefined) {
@@ -1360,11 +1356,11 @@ export default class upbit extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a timeInForce parameter for best type orders');
         }
         let response: Dict;
-        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ]);
+        const paramsRequest = this.omit (paramsOrdType, [ 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ]);
         if (test === true) {
-            response = await this.privatePostOrdersTest (this.extend (request, params));
+            response = await this.privatePostOrdersTest (this.extend (request, paramsRequest));
         } else {
-            response = await this.privatePostOrders (this.extend (request, params));
+            response = await this.privatePostOrders (this.extend (request, paramsRequest));
         }
         //
         //     {
@@ -1465,7 +1461,7 @@ export default class upbit extends Exchange {
         if (postOnly && (selfTradePrevention !== undefined)) {
             throw new ExchangeError (this.id + ' editOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
-        params = this.omit (params, 'clientOrderId');
+        const paramsOmitted = this.omit (params, 'clientOrderId');
         if (id !== undefined) {
             request['prev_order_uuid'] = id;
         } else if (prevClientOrderId !== undefined) {
@@ -1483,7 +1479,7 @@ export default class upbit extends Exchange {
         } else if (type === 'market') {
             if (side === 'buy') {
                 request['new_ord_type'] = 'price';
-                const orderPrice = this.calcOrderPrice (symbol, amount, price, params);
+                const orderPrice = this.calcOrderPrice (symbol, amount, price, paramsOmitted);
                 request['new_price'] = orderPrice;
             } else {
                 if (amount === undefined) {
@@ -1495,11 +1491,11 @@ export default class upbit extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' editOrder() supports only limit or market types in the type argument.');
         }
+        const paramsOrdType = (customType === 'best') ? this.omit (paramsOmitted, [ 'newOrdType', 'new_ord_type' ]) : paramsOmitted;
         if (customType === 'best') {
-            params = this.omit (params, [ 'newOrdType', 'new_ord_type' ]);
             request['new_ord_type'] = 'best';
             if (side === 'buy') {
-                const orderPrice = this.calcOrderPrice (symbol, amount, price, params);
+                const orderPrice = this.calcOrderPrice (symbol, amount, price, paramsOrdType);
                 request['new_price'] = orderPrice;
             } else {
                 if (amount === undefined) {
@@ -1528,9 +1524,9 @@ export default class upbit extends Exchange {
         if (request['new_ord_type'] === 'best' && timeInForce === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a timeInForce parameter for best type orders');
         }
-        params = this.omit (params, [ 'newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type' ]);
-        // console.log ('check the each request params: ', request);
-        const response = await this.privatePostOrdersCancelAndNew (this.extend (request, params));
+        const paramsRequest = this.omit (paramsOrdType, [ 'newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type' ]);
+        // console.log ('check the each request paramsOmitted: ', request);
+        const response = await this.privatePostOrdersCancelAndNew (this.extend (request, paramsRequest));
         //   {
         //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
         //     side: 'bid',                                         //previous order data
@@ -1932,9 +1928,9 @@ export default class upbit extends Exchange {
         let fee: FeeString = undefined;
         let feeCost = this.safeString (order, 'paid_fee');
         const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let trades = this.safeList (order, 'trades', []);
-        trades = this.parseTrades (trades, market, undefined, undefined, {
+        trades = this.parseTrades (trades, marketResolved, undefined, undefined, {
             'order': id,
             'type': type,
         });
@@ -1963,7 +1959,7 @@ export default class upbit extends Exchange {
         }
         if (feeCost !== undefined) {
             fee = {
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'cost': feeCost,
             };
         }
@@ -1974,7 +1970,7 @@ export default class upbit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': this.safeStringUpper (order, 'time_in_force'),
             'postOnly': undefined,
@@ -2061,7 +2057,7 @@ export default class upbit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {
+        const request: Dict = {
             'state': 'done',
         };
         let market: Market = undefined;
@@ -2075,8 +2071,8 @@ export default class upbit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params);
-        const response = await this.privateGetOrdersClosed (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, params);
+        const response = await this.privateGetOrdersClosed (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -2120,7 +2116,7 @@ export default class upbit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {
+        const request: Dict = {
             'state': 'cancel',
         };
         let market: Market = undefined;
@@ -2134,8 +2130,8 @@ export default class upbit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params);
-        const response = await this.privateGetOrdersClosed (this.extend (request, params));
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, params);
+        const response = await this.privateGetOrdersClosed (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -2304,15 +2300,14 @@ export default class upbit extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
         const response = await this.privateGetDepositsCoinAddress (this.extend ({
             'currency': currency['id'],
             'net_type': this.networkCodeToId (networkCode, currency['code']),
-        }, params));
+        }, paramsNetworkCode));
         //
         //    {
         //        currency: 'XRP',
@@ -2380,7 +2375,7 @@ export default class upbit extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagResolved, paramsTag ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2392,21 +2387,20 @@ export default class upbit extends Exchange {
         if (code !== 'KRW') {
             this.checkAddress (address);
             // 2023-05-23 Change to required parameters for digital assets
-            const network = this.safeStringUpper2 (params, 'network', 'net_type');
+            const network = this.safeStringUpper2 (paramsTag, 'network', 'net_type');
             if (network === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a network argument');
             }
-            params = this.omit (params, [ 'network' ]);
+            const paramsOmitted = this.omit (paramsTag, [ 'network' ]);
             request['net_type'] = network;
             request['currency'] = currency['id'];
             request['address'] = address;
-            if (tag !== undefined) {
-                request['secondary_address'] = tag;
+            if (tagResolved !== undefined) {
+                request['secondary_address'] = tagResolved;
             }
-            params = this.omit (params, 'network');
-            response = await this.privatePostWithdrawsCoin (this.extend (request, params));
+            response = await this.privatePostWithdrawsCoin (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privatePostWithdrawsKrw (this.extend (request, params));
+            response = await this.privatePostWithdrawsKrw (this.extend (request, paramsTag));
         }
         //
         //     {
@@ -2440,9 +2434,15 @@ export default class upbit extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
+        const hasBody = (api === 'private') && (method !== 'GET') && (method !== 'DELETE');
+        let requestBody = body;
+        if (hasBody) {
+            requestBody = this.json (params);
+        }
+        let privateHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers = {};
+            privateHeaders = {};
             const nonce = this.uuid ();
             const request: Dict = {
                 'access_key': this.apiKey,
@@ -2450,9 +2450,8 @@ export default class upbit extends Exchange {
             };
             const hasQuery = Object.keys (query).length;
             let auth: Str = undefined;
-            if ((method !== 'GET') && (method !== 'DELETE')) {
-                body = this.json (params);
-                headers['Content-Type'] = 'application/json';
+            if (hasBody) {
+                privateHeaders['Content-Type'] = 'application/json';
             }
             if ((hasQuery !== undefined) && (hasQuery !== 0)) {
                 auth = this.rawencode (query);
@@ -2463,9 +2462,10 @@ export default class upbit extends Exchange {
                 request['query_hash_alg'] = 'SHA512';
             }
             const token = jwt (request, this.encode (this.secret), sha256);
-            headers['Authorization'] = 'Bearer ' + token;
+            privateHeaders['Authorization'] = 'Bearer ' + token;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const requestHeaders = (api === 'private') ? privateHeaders : headers;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

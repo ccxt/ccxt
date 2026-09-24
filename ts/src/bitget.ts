@@ -2039,7 +2039,8 @@ export default class bitget extends Exchange {
 
     handleProductTypeAndParams (market: Market = undefined, params: Dict = {}): [Str, Dict] {
         let subType: SubType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('handleProductTypeAndParams', undefined, params);
+        let paramsSubType = undefined;
+        [ subType, paramsSubType ] = this.handleSubTypeAndParams ('handleProductTypeAndParams', undefined, params);
         let defaultProductType: Str = undefined;
         if ((subType !== undefined) && (market === undefined)) {
             // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
@@ -2050,12 +2051,12 @@ export default class bitget extends Exchange {
             defaultProductType = (subType === 'linear') ? 'USDT-FUTURES' : 'COIN-FUTURES';
             // }
         }
-        let productType = this.safeString2 (params, 'productType', 'category', defaultProductType);
+        let productType = this.safeString2 (paramsSubType, 'productType', 'category', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
             const settle = market['settle'];
             if (market['spot'] === true) {
                 let marginMode: Str = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('handleProductTypeAndParams', params);
+                [ marginMode, paramsSubType ] = this.handleMarginModeAndParams ('handleProductTypeAndParams', paramsSubType);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 } else {
@@ -2078,15 +2079,14 @@ export default class bitget extends Exchange {
         if (productType === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a productType param, one of "USDT-FUTURES", "USDC-FUTURES", "COIN-FUTURES", "SUSDT-FUTURES", "SUSDC-FUTURES", "SCOIN-FUTURES" or for uta only "SPOT"');
         }
-        params = this.omit (params, [ 'productType', 'category' ]);
-        return [ productType, params ];
+        paramsSubType = this.omit (paramsSubType, [ 'productType', 'category' ]);
+        return [ productType, paramsSubType ];
     }
 
     async handleUTAAndParams (params: Dict, methodName: Str, defaultValue: boolean = false): Promise<[Bool, Dict]> {
-        let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, methodName, 'uta');
+        const [ uta, paramsUta ] = this.handleOptionAndParams (params, methodName, 'uta');
         if (uta !== undefined) {
-            return [ uta, params ];
+            return [ uta, paramsUta ];
         }
         if (this.checkRequiredCredentials (false)) {
             // use the api to determine if the account is uta or not
@@ -2098,9 +2098,9 @@ export default class bitget extends Exchange {
                 accountIsUTa = false;
             }
             this.options['uta'] = accountIsUTa;
-            return [ accountIsUTa, params ];
+            return [ accountIsUTa, paramsUta ];
         }
-        return [ defaultValue, params ];
+        return [ defaultValue, paramsUta ];
     }
 
     /**
@@ -2143,12 +2143,11 @@ export default class bitget extends Exchange {
         if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarkets', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchMarkets', false);
         if (uta === true) {
-            return await this.fetchUtaMarkets (params);
+            return await this.fetchUtaMarkets (paramsUTA);
         }
-        return await this.fetchDefaultMarkets (params);
+        return await this.fetchDefaultMarkets (paramsUTA);
     }
 
     async fetchDefaultMarkets (params: any): Promise<Market[]> {
@@ -2824,9 +2823,10 @@ export default class bitget extends Exchange {
         let marginMode: Str = undefined;
         let productType: Str = undefined;
         let uta: Bool = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params, 'isolated');
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarketLeverageTiers', false);
+        let paramsMarginMode = undefined;
+        [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params, 'isolated');
+        [ productType, paramsMarginMode ] = this.handleProductTypeAndParams (market, paramsMarginMode);
+        [ uta, paramsMarginMode ] = await this.handleUTAAndParams (paramsMarginMode, 'fetchMarketLeverageTiers', false);
         if (uta === true) {
             if (productType === 'SPOT') {
                 if (marginMode !== undefined) {
@@ -2835,23 +2835,23 @@ export default class bitget extends Exchange {
             }
             request['symbol'] = market['id'];
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketPositionTier (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketPositionTier (this.extend (request, paramsMarginMode));
         } else if ((market['swap'] === true) || (market['future'] === true)) {
             request['productType'] = productType;
             request['symbol'] = market['id'];
-            response = await this.publicMixGetV2MixMarketQueryPositionLever (this.extend (request, params));
+            response = await this.publicMixGetV2MixMarketQueryPositionLever (this.extend (request, paramsMarginMode));
         } else if (marginMode === 'isolated') {
             request['symbol'] = market['id'];
-            response = await this.privateMarginGetV2MarginIsolatedTierData (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginIsolatedTierData (this.extend (request, paramsMarginMode));
         } else if (marginMode === 'cross') {
-            const code = this.safeString (params, 'code');
+            const code = this.safeString (paramsMarginMode, 'code');
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMarketLeverageTiers() requires a code argument');
             }
-            params = this.omit (params, 'code');
+            paramsMarginMode = this.omit (paramsMarginMode, 'code');
             const currency = this.currency (code);
             request['coin'] = currency['id'];
-            response = await this.privateMarginGetV2MarginCrossedTierData (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginCrossedTierData (this.extend (request, paramsMarginMode));
         } else {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + market['symbol']);
         }
@@ -3027,25 +3027,20 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchDeposits', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchDeposits', false);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (paramsUTA, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             if (uta === true) {
-                return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, params, 'orderId', 'cursor', undefined, 100) as Transaction[];
+                return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, paramsPaginate, 'orderId', 'cursor', undefined, 100) as Transaction[];
             }
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, paramsPaginate, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
         }
-        if (since === undefined) {
-            if (uta === true) {
-                since = this.milliseconds () - 2592000000; // uta allows a window of 30 days at most
-            } else {
-                since = this.milliseconds () - 7776000000; // 90 days
-            }
-        }
-        let request: Dict = {
-            'startTime': since,
+        const defaultWindow = (uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        const sinceResolved: Int = (since === undefined) ? this.milliseconds () - defaultWindow : since;
+        const request: Dict = {
+            'startTime': sinceResolved,
             'endTime': this.milliseconds (),
         };
         let currency: Currency = undefined;
@@ -3056,12 +3051,12 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
         let response = undefined;
         if (uta === true) {
-            response = await this.privateUtaGetV3AccountDepositRecords (this.extend (request, params));
+            response = await this.privateUtaGetV3AccountDepositRecords (this.extend (requestUntil, paramsUntil));
         } else {
-            response = await this.privateSpotGetV2SpotWalletDepositRecords (this.extend (request, params));
+            response = await this.privateSpotGetV2SpotWalletDepositRecords (this.extend (requestUntil, paramsUntil));
         }
         //
         //     {
@@ -3112,7 +3107,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const rawTransactions = this.safeList (response, 'data', []);
-        return this.parseTransactions (rawTransactions, undefined, since, limit);
+        return this.parseTransactions (rawTransactions, undefined, sinceResolved, limit);
     }
 
     /**
@@ -3151,16 +3146,14 @@ export default class bitget extends Exchange {
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         this.checkAddress (address);
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'withdraw', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsNetworkCode, 'withdraw', false);
         const currency = this.currency (code);
         const networkId = this.networkCodeToId (networkCode, code);
         const request: Dict = {
@@ -3175,9 +3168,9 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         if (uta === true) {
-            response = await this.privateUtaPostV3AccountWithdrawal (this.extend (request, params));
+            response = await this.privateUtaPostV3AccountWithdrawal (this.extend (request, paramsUTA));
         } else {
-            response = await this.privateSpotPostV2SpotWalletWithdrawal (this.extend (request, params));
+            response = await this.privateSpotPostV2SpotWalletWithdrawal (this.extend (request, paramsUTA));
         }
         //
         //     {
@@ -3226,43 +3219,38 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchWithdrawals', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchWithdrawals', false);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (paramsUTA, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             if (uta === true) {
-                return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, params, 'orderId', 'cursor', undefined, 100) as Transaction[];
+                return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, paramsPaginate, 'orderId', 'cursor', undefined, 100) as Transaction[];
             }
-            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, paramsPaginate, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
         }
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        if (since === undefined) {
-            if (uta === true) {
-                since = this.milliseconds () - 2592000000; // uta allows a window of 30 days at most
-            } else {
-                since = this.milliseconds () - 7776000000; // 90 days
-            }
-        }
-        let request: Dict = {
-            'startTime': since,
+        const defaultWindow = (uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        const sinceResolved: Int = (since === undefined) ? this.milliseconds () - defaultWindow : since;
+        const request: Dict = {
+            'startTime': sinceResolved,
             'endTime': this.milliseconds (),
         };
         if (currency !== undefined) {
             request['coin'] = currency['id'];
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
         let response = undefined;
         if (uta === true) {
-            response = await this.privateUtaGetV3AccountWithdrawalRecords (this.extend (request, params));
+            response = await this.privateUtaGetV3AccountWithdrawalRecords (this.extend (requestUntil, paramsUntil));
         } else {
-            response = await this.privateSpotGetV2SpotWalletWithdrawalRecords (this.extend (request, params));
+            response = await this.privateSpotGetV2SpotWalletWithdrawalRecords (this.extend (requestUntil, paramsUntil));
         }
         //
         //     {
@@ -3318,7 +3306,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const rawTransactions = this.safeList (response, 'data', []);
-        return this.parseTransactions (rawTransactions, currency, since, limit);
+        return this.parseTransactions (rawTransactions, currency, sinceResolved, limit);
     }
 
     /**
@@ -3471,10 +3459,8 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchDepositAddress', false);
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchDepositAddress', false);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsUTA);
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -3484,9 +3470,9 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         if (uta === true) {
-            response = await this.privateUtaGetV3AccountDepositAddress (this.extend (request, params));
+            response = await this.privateUtaGetV3AccountDepositAddress (this.extend (request, paramsNetworkCode));
         } else {
-            response = await this.privateSpotGetV2SpotWalletDepositAddress (this.extend (request, params));
+            response = await this.privateSpotGetV2SpotWalletDepositAddress (this.extend (request, paramsNetworkCode));
         }
         //
         //     {
@@ -3556,19 +3542,17 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrderBook', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'fetchOrderBook', false);
         if (uta === true) {
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketOrderbook (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketOrderbook (this.extend (request, paramsUTA));
         } else if (market['spot'] === true) {
-            response = await this.publicSpotGetV2SpotMarketOrderbook (this.extend (request, params));
+            response = await this.publicSpotGetV2SpotMarketOrderbook (this.extend (request, paramsUTA));
         } else {
             request['productType'] = productType;
-            response = await this.publicMixGetV2MixMarketMergeDepth (this.extend (request, params));
+            response = await this.publicMixGetV2MixMarketMergeDepth (this.extend (request, paramsUTA));
         }
         //
         //     {
@@ -3771,19 +3755,17 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTicker', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'fetchTicker', false);
         if (uta === true) {
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketTickers (this.extend (request, paramsUTA));
         } else if (market['spot'] === true) {
-            response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
+            response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, paramsUTA));
         } else {
             request['productType'] = productType;
-            response = await this.publicMixGetV2MixMarketTicker (this.extend (request, params));
+            response = await this.publicMixGetV2MixMarketTicker (this.extend (request, paramsUTA));
         }
         //
         // spot
@@ -3933,10 +3915,9 @@ export default class bitget extends Exchange {
         if (market['spot'] === true) {
             throw new NotSupported (this.id + ' fetchMarkPrice() is not supported for spot markets');
         } else {
-            let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            response = await this.publicMixGetV2MixMarketSymbolPrice (this.extend (request, params));
+            response = await this.publicMixGetV2MixMarketSymbolPrice (this.extend (request, paramsProductType));
         }
         const data = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
@@ -3967,17 +3948,14 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         const request: Dict = {};
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
         // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         // with higher priority and only default to spot, if `subType` is not set in params
-        const passedSubType = this.safeString (params, 'subType');
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const passedSubType = this.safeString (paramsMarketType, 'subType');
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, paramsMarketType);
         // only if passedSubType && productType is undefined, then use spot
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTickers', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'fetchTickers', false);
         if (uta === true) {
             if (symbols !== undefined) {
                 const symbolsLength = symbols.length;
@@ -3986,12 +3964,12 @@ export default class bitget extends Exchange {
                 }
             }
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketTickers (this.extend (request, paramsUTA));
         } else if (type === 'spot' && passedSubType === undefined) {
-            response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
+            response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, paramsUTA));
         } else {
             request['productType'] = productType;
-            response = await this.publicMixGetV2MixMarketTickers (this.extend (request, params));
+            response = await this.publicMixGetV2MixMarketTickers (this.extend (request, paramsUTA));
         }
         //
         // spot
@@ -4290,16 +4268,17 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
+        let paramsPaginate = undefined;
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'idLessThan', 'idLessThan') as Trade[];
+            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, paramsPaginate, 'idLessThan', 'idLessThan') as Trade[];
         }
         const market = this.market (symbol);
         let request: Dict = {
             'symbol': market['id'],
         };
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTrades', false);
+        [ uta, paramsPaginate ] = await this.handleUTAAndParams (paramsPaginate, 'fetchTrades', false);
         if (limit !== undefined) {
             if (uta === true) {
                 request['limit'] = Math.min (limit, 100);
@@ -4312,45 +4291,45 @@ export default class bitget extends Exchange {
         const options = this.safeDict (this.options, 'fetchTrades', {});
         let response = undefined;
         let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        [ productType, paramsPaginate ] = this.handleProductTypeAndParams (market, paramsPaginate);
         if (uta === true) {
             if (productType === 'SPOT') {
                 let marginMode: Str = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTrades', params);
+                [ marginMode, paramsPaginate ] = this.handleMarginModeAndParams ('fetchTrades', paramsPaginate);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 }
             }
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketFills (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketFills (this.extend (request, paramsPaginate));
         } else if (market['spot'] === true) {
             const spotOptions = this.safeDict (options, 'spot', {});
             const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory');
-            const spotMethod = this.safeString (params, 'method', defaultSpotMethod);
-            params = this.omit (params, 'method');
+            const spotMethod = this.safeString (paramsPaginate, 'method', defaultSpotMethod);
+            paramsPaginate = this.omit (paramsPaginate, 'method');
             if (spotMethod === 'publicSpotGetV2SpotMarketFillsHistory') {
-                [ request, params ] = this.handleUntilOption ('endTime', request, params);
+                [ request, paramsPaginate ] = this.handleUntilOption ('endTime', request, paramsPaginate);
                 if (since !== undefined) {
                     request['startTime'] = since;
                 }
-                response = await this.publicSpotGetV2SpotMarketFillsHistory (this.extend (request, params));
+                response = await this.publicSpotGetV2SpotMarketFillsHistory (this.extend (request, paramsPaginate));
             } else if (spotMethod === 'publicSpotGetV2SpotMarketFills') {
-                response = await this.publicSpotGetV2SpotMarketFills (this.extend (request, params));
+                response = await this.publicSpotGetV2SpotMarketFills (this.extend (request, paramsPaginate));
             }
         } else {
             const swapOptions = this.safeDict (options, 'swap', {});
             const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetV2MixMarketFillsHistory');
-            const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
-            params = this.omit (params, 'method');
+            const swapMethod = this.safeString (paramsPaginate, 'method', defaultSwapMethod);
+            paramsPaginate = this.omit (paramsPaginate, 'method');
             request['productType'] = productType;
             if (swapMethod === 'publicMixGetV2MixMarketFillsHistory') {
-                [ request, params ] = this.handleUntilOption ('endTime', request, params);
+                [ request, paramsPaginate ] = this.handleUntilOption ('endTime', request, paramsPaginate);
                 if (since !== undefined) {
                     request['startTime'] = since;
                 }
-                response = await this.publicMixGetV2MixMarketFillsHistory (this.extend (request, params));
+                response = await this.publicMixGetV2MixMarketFillsHistory (this.extend (request, paramsPaginate));
             } else if (swapMethod === 'publicMixGetV2MixMarketFills') {
-                response = await this.publicMixGetV2MixMarketFills (this.extend (request, params));
+                response = await this.publicMixGetV2MixMarketFills (this.extend (request, paramsPaginate));
             }
         }
         //
@@ -4432,12 +4411,13 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTradingFee', false);
+        let paramsUTA = undefined;
+        [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchTradingFee', false);
         if (uta === true) {
             let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            [ productType, paramsUTA ] = this.handleProductTypeAndParams (market, paramsUTA);
             request['category'] = productType;
-            const utaResponse = await this.privateUtaGetV3AccountFeeRate (this.extend (request, params));
+            const utaResponse = await this.privateUtaGetV3AccountFeeRate (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -4453,7 +4433,7 @@ export default class bitget extends Exchange {
             return this.parseTradingFee (utaData, market);
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFee', params);
+        [ marginMode, paramsUTA ] = this.handleMarginModeAndParams ('fetchTradingFee', paramsUTA);
         if (market['spot'] === true) {
             if (marginMode !== undefined) {
                 request['businessType'] = 'margin';
@@ -4463,7 +4443,7 @@ export default class bitget extends Exchange {
         } else {
             request['businessType'] = 'mix';
         }
-        const response = await this.privateCommonGetV2CommonTradeRate (this.extend (request, params));
+        const response = await this.privateCommonGetV2CommonTradeRate (this.extend (request, paramsUTA));
         //
         //     {
         //         "code": "00000",
@@ -4500,13 +4480,14 @@ export default class bitget extends Exchange {
         let response = undefined;
         let marginMode: Str = undefined;
         let marketType: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFees', params);
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+        let paramsMarginMode = undefined;
+        [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchTradingFees', params);
+        [ marketType, paramsMarginMode ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, paramsMarginMode);
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTradingFees', false);
+        [ uta, paramsMarginMode ] = await this.handleUTAAndParams (paramsMarginMode, 'fetchTradingFees', false);
         if (uta === true) {
-            const utaMargin = this.safeBool (params, 'margin', false);
-            params = this.omit (params, 'margin');
+            const utaMargin = this.safeBool (paramsMarginMode, 'margin', false);
+            paramsMarginMode = this.omit (paramsMarginMode, 'margin');
             const request: Dict = {};
             if (marketType === 'spot') {
                 if ((marginMode !== undefined) || (utaMargin === true)) {
@@ -4516,12 +4497,12 @@ export default class bitget extends Exchange {
                 }
             } else if ((marketType === 'swap') || (marketType === 'future')) {
                 let productType: Str = undefined;
-                [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
+                [ productType, paramsMarginMode ] = this.handleProductTypeAndParams (undefined, paramsMarginMode);
                 request['category'] = productType;
             } else {
                 throw new NotSupported (this.id + ' does not support ' + marketType + ' market');
             }
-            const utaResponse = await this.privateUtaGetV3AccountAllFeeRate (this.extend (request, params));
+            const utaResponse = await this.privateUtaGetV3AccountAllFeeRate (this.extend (request, paramsMarginMode));
             //
             //     {
             //         "code": "00000",
@@ -4554,18 +4535,18 @@ export default class bitget extends Exchange {
             return utaResult;
         }
         if (marketType === 'spot') {
-            const margin = this.safeBool (params, 'margin', false);
-            params = this.omit (params, 'margin');
+            const margin = this.safeBool (paramsMarginMode, 'margin', false);
+            paramsMarginMode = this.omit (paramsMarginMode, 'margin');
             if ((marginMode !== undefined) || (margin === true)) {
-                response = await this.publicMarginGetV2MarginCurrencies (params);
+                response = await this.publicMarginGetV2MarginCurrencies (paramsMarginMode);
             } else {
-                response = await this.publicSpotGetV2SpotPublicSymbols (params);
+                response = await this.publicSpotGetV2SpotPublicSymbols (paramsMarginMode);
             }
         } else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
-            params['productType'] = productType;
-            response = await this.publicMixGetV2MixMarketContracts (params);
+            [ productType, paramsMarginMode ] = this.handleProductTypeAndParams (undefined, paramsMarginMode);
+            paramsMarginMode['productType'] = productType;
+            response = await this.publicMixGetV2MixMarketContracts (paramsMarginMode);
         } else {
             throw new NotSupported (this.id + ' does not support ' + marketType + ' market');
         }
@@ -4723,10 +4704,11 @@ export default class bitget extends Exchange {
         const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
         const useHistoryEndpointForPagination = this.safeBool (params, 'useHistoryEndpointForPagination', true);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             const limitForPagination = (useHistoryEndpointForPagination === true) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, limitForPagination);
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -4735,8 +4717,7 @@ export default class bitget extends Exchange {
         let marketType: Str = undefined;
         let timeframes: NullableDict = undefined;
         const timeframesOption = this.handleOption ('fetchOHLCV', 'timeframes');
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOHLCV', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsPaginate, 'fetchOHLCV', false);
         if (uta === true) {
             timeframes = timeframesOption['uta'];
             request['interval'] = this.safeString (timeframes, timeframe, timeframe);
@@ -4748,11 +4729,11 @@ export default class bitget extends Exchange {
         const msInDay = 86400000;
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsUTA, 'until');
         const limitDefined = limit !== undefined;
         const sinceDefined = since !== undefined;
         const untilDefined = until !== undefined;
-        params = this.omit (params, [ 'until' ]);
+        const paramsOmitted: Dict = this.omit (paramsUTA, [ 'until' ]);
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -4766,13 +4747,12 @@ export default class bitget extends Exchange {
         const recentEndpointDaysMap = this.safeDict (this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
         const recentEndpointBoundaryTs = now - ((recentEndpointAvailableDays as number) - 1) * msInDay;
+        let limitResolved: Int = defaultLimit;
         if (limitDefined) {
-            limit = Math.min (limit as number, maxLimitForRecentEndpoint);
-            limit = Math.min (limit, maxLimitForThisTimeframe as number);
-        } else {
-            limit = defaultLimit;
+            const limitCapped = Math.min (limit as number, maxLimitForRecentEndpoint);
+            limitResolved = Math.min (limitCapped, maxLimitForThisTimeframe as number);
         }
-        let limitMultipliedDuration = limit * duration;
+        let limitMultipliedDuration = limitResolved * duration;
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         let calculatedStartTime: Int = undefined;
@@ -4804,8 +4784,8 @@ export default class bitget extends Exchange {
         if ((calculatedStartTime !== undefined && calculatedStartTime <= recentEndpointBoundaryTs) || (useHistoryEndpoint === true)) {
             historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit
-            limit = Math.min (limit, maxLimitForHistoryEndpoint);
-            limitMultipliedDuration = limit * duration;
+            limitResolved = Math.min (limitResolved, maxLimitForHistoryEndpoint);
+            limitMultipliedDuration = limitResolved * duration;
             calculatedStartTime = (calculatedEndTime as number) - limitMultipliedDuration;
             request['startTime'] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
@@ -4819,13 +4799,11 @@ export default class bitget extends Exchange {
             }
         }
         // we need to set limit to safely cover the period
-        request['limit'] = limit;
+        request['limit'] = limitResolved;
         // make request
         let response = undefined;
-        let productType: Str = undefined;
-        let priceType: Str = undefined;
-        [ priceType, params ] = this.handleParamString (params, 'price');
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ priceType, paramsPrice ] = this.handleParamString (paramsOmitted, 'price');
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, paramsPrice);
         if (uta === true) {
             if (priceType !== undefined) {
                 if (priceType === 'mark') {
@@ -4835,25 +4813,25 @@ export default class bitget extends Exchange {
                 }
             }
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketCandles (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketCandles (this.extend (request, paramsProductType));
         } else if (market['spot'] === true) {
             // checks if we need history endpoint
             if (historicalEndpointNeeded) {
-                response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
+                response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, paramsProductType));
             } else {
                 if (!limitDefined) {
                     request['limit'] = 1000;
-                    limit = 1000;
+                    limitResolved = 1000;
                 }
-                response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
+                response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, paramsProductType));
             }
         } else {
             request['productType'] = productType;
-            const extended = this.extend (request, params);
+            const extended = this.extend (request, paramsProductType);
             if (!historicalEndpointNeeded && (priceType === 'mark' || priceType === 'index')) {
                 if (!limitDefined) {
                     extended['limit'] = 1000;
-                    limit = 1000;
+                    limitResolved = 1000;
                 }
                 // Recent endpoint for mark/index prices
                 // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
@@ -4868,7 +4846,7 @@ export default class bitget extends Exchange {
                 } else {
                     if (!limitDefined) {
                         extended['limit'] = 1000;
-                        limit = 1000;
+                        limitResolved = 1000;
                     }
                     response = await this.publicMixGetV2MixMarketCandles (extended);
                 }
@@ -4884,7 +4862,7 @@ export default class bitget extends Exchange {
         } else {
             candles = this.safeList (response, 'data', []);
         }
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market, timeframe, since, limitResolved);
     }
 
     /**
@@ -4914,27 +4892,28 @@ export default class bitget extends Exchange {
         let marginMode: Str = undefined;
         let response = undefined;
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchBalance', false);
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        let paramsUTA = undefined;
+        [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchBalance', false);
+        [ marketType, paramsUTA ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsUTA);
+        [ marginMode, paramsUTA ] = this.handleMarginModeAndParams ('fetchBalance', paramsUTA);
         if (uta === true) {
             let assets: NullableList = undefined;
             if (marketType === 'funding') {
-                response = await this.privateUtaGetV3AccountFundingAssets (this.extend (request, params));
+                response = await this.privateUtaGetV3AccountFundingAssets (this.extend (request, paramsUTA));
                 assets = this.safeList (response, 'data', []);
             } else {
-                response = await this.privateUtaGetV3AccountAssets (this.extend (request, params));
+                response = await this.privateUtaGetV3AccountAssets (this.extend (request, paramsUTA));
                 const results = this.safeDict (response, 'data', {});
                 assets = this.safeList (results, 'assets', []);
             }
             return this.parseUtaBalance (assets);
         } else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
+            [ productType, paramsUTA ] = this.handleProductTypeAndParams (undefined, paramsUTA);
             request['productType'] = productType;
-            response = await this.privateMixGetV2MixAccountAccounts (this.extend (request, params));
+            response = await this.privateMixGetV2MixAccountAccounts (this.extend (request, paramsUTA));
         } else if (marginMode === 'isolated') {
-            response = await this.privateMarginGetV2MarginIsolatedAccountAssets (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginIsolatedAccountAssets (this.extend (request, paramsUTA));
             //
             //    {
             //        "code": "00000",
@@ -4958,7 +4937,7 @@ export default class bitget extends Exchange {
             //    }
             //
         } else if (marginMode === 'cross') {
-            response = await this.privateMarginGetV2MarginCrossedAccountAssets (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginCrossedAccountAssets (this.extend (request, paramsUTA));
             //
             //    {
             //        "code": "00000",
@@ -4981,7 +4960,7 @@ export default class bitget extends Exchange {
             //    }
             //
         } else if (marketType === 'spot') {
-            response = await this.privateSpotGetV2SpotAccountAssets (this.extend (request, params));
+            response = await this.privateSpotGetV2SpotAccountAssets (this.extend (request, paramsUTA));
         } else {
             throw new NotSupported (this.id + ' fetchBalance() does not support ' + marketType + ' accounts');
         }
@@ -5457,7 +5436,7 @@ export default class bitget extends Exchange {
             marketType = market['type'];
         }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, marketType);
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const timestamp = this.safeIntegerN (order, [ 'cTime', 'ctime', 'createdTime' ]);
         const updateTimestamp = this.safeInteger2 (order, 'uTime', 'updatedTime');
         const rawStatus = this.safeStringN (order, [ 'status', 'state', 'orderStatus', 'planStatus' ]);
@@ -5467,7 +5446,7 @@ export default class bitget extends Exchange {
             // swap
             fee = {
                 'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
-                'currency': market['settle'],
+                'currency': marketResolved['settle'],
             };
         }
         const feeDetail = this.safeValue (order, 'feeDetail');
@@ -5477,7 +5456,7 @@ export default class bitget extends Exchange {
             const utaFee = this.safeString (feeResult, 'fee');
             fee = {
                 'cost': this.parseNumber (Precise.stringNeg (utaFee)),
-                'currency': market['settle'],
+                'currency': marketResolved['settle'],
             };
         } else {
             if (feeDetail !== undefined) {
@@ -5539,7 +5518,7 @@ export default class bitget extends Exchange {
         }
         const orderType = this.safeString (order, 'orderType');
         const isBuyMarket = (side === 'buy') && (orderType === 'market');
-        if ((market['spot'] === true) && isBuyMarket) {
+        if ((marketResolved['spot'] === true) && isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = this.safeString (order, 'baseVolume');
         }
@@ -5551,7 +5530,7 @@ export default class bitget extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': updateTimestamp,
             'lastUpdateTimestamp': updateTimestamp,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': orderType,
             'side': side,
             'price': price,
@@ -5569,7 +5548,7 @@ export default class bitget extends Exchange {
             'status': this.parseOrderStatus (rawStatus),
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -5660,17 +5639,16 @@ export default class bitget extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         let response = undefined;
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'createOrder', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'createOrder', false);
         if (uta === true) {
-            const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
+            const request = this.createUtaOrderRequest (symbol, type, side, amount, price, paramsUTA);
             if (isStopLossOrTakeProfitTrigger) {
                 response = await this.privateUtaPostV3TradePlaceStrategyOrder (request);
             } else {
                 response = await this.privateUtaPostV3TradePlaceOrder (request);
             }
         } else {
-            const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+            const request = this.createOrderRequest (symbol, type, side, amount, price, paramsUTA);
             if (market['spot'] === true) {
                 if (isTriggerOrder) {
                     response = await this.privateSpotPostV2SpotTradePlacePlanOrder (request);
@@ -5715,10 +5693,11 @@ export default class bitget extends Exchange {
         }
         const market = this.market (symbol);
         let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        let paramsProductType = undefined;
+        [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         if (productType === 'SPOT') {
             let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+            [ marginMode, paramsProductType ] = this.handleMarginModeAndParams ('createOrder', paramsProductType);
             if (marginMode !== undefined) {
                 productType = 'MARGIN';
             }
@@ -5729,15 +5708,15 @@ export default class bitget extends Exchange {
             'qty': this.amountToPrecision (symbol, amount),
             'side': side,
         };
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        const clientOrderId = this.safeString2 (paramsProductType, 'clientOid', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
+            paramsProductType = this.omit (paramsProductType, 'clientOrderId');
         }
-        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
-        const stopLoss = this.safeDict (params, 'stopLoss');
-        const takeProfit = this.safeDict (params, 'takeProfit');
+        const stopLossTriggerPrice = this.safeNumber (paramsProductType, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber (paramsProductType, 'takeProfitPrice');
+        const stopLoss = this.safeDict (paramsProductType, 'stopLoss');
+        const takeProfit = this.safeDict (paramsProductType, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         const isStopLossTrigger = stopLossTriggerPrice !== undefined;
@@ -5745,27 +5724,27 @@ export default class bitget extends Exchange {
         const isStopLossOrTakeProfitTrigger = isStopLossTrigger || isTakeProfitTrigger;
         if (isStopLossOrTakeProfitTrigger) {
             if (isStopLossTrigger) {
-                const slType = this.safeString (params, 'slTriggerBy', 'mark');
+                const slType = this.safeString (paramsProductType, 'slTriggerBy', 'mark');
                 request['slTriggerBy'] = slType;
                 request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
                 if (price !== undefined) {
                     request['slLimitPrice'] = this.priceToPrecision (symbol, price);
-                    request['slOrderType'] = this.safeString (params, 'slOrderType', 'limit');
+                    request['slOrderType'] = this.safeString (paramsProductType, 'slOrderType', 'limit');
                 } else {
-                    request['slOrderType'] = this.safeString (params, 'slOrderType', 'market');
+                    request['slOrderType'] = this.safeString (paramsProductType, 'slOrderType', 'market');
                 }
             } else if (isTakeProfitTrigger) {
-                const tpType = this.safeString (params, 'tpTriggerBy', 'mark');
+                const tpType = this.safeString (paramsProductType, 'tpTriggerBy', 'mark');
                 request['tpTriggerBy'] = tpType;
                 request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
                 if (price !== undefined) {
                     request['tpLimitPrice'] = this.priceToPrecision (symbol, price);
-                    request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'limit');
+                    request['tpOrderType'] = this.safeString (paramsProductType, 'tpOrderType', 'limit');
                 } else {
-                    request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'market');
+                    request['tpOrderType'] = this.safeString (paramsProductType, 'tpOrderType', 'market');
                 }
             }
-            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+            paramsProductType = this.omit (paramsProductType, [ 'stopLossPrice', 'takeProfitPrice' ]);
         } else {
             if (hasStopLoss) {
                 const slTriggerPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'stopPrice');
@@ -5773,9 +5752,9 @@ export default class bitget extends Exchange {
                 request['stopLoss'] = this.priceToPrecision (symbol, slTriggerPrice);
                 if (slLimitPrice !== undefined) {
                     request['slLimitPrice'] = this.priceToPrecision (symbol, slLimitPrice);
-                    request['slOrderType'] = this.safeString (params, 'slOrderType', 'limit');
+                    request['slOrderType'] = this.safeString (paramsProductType, 'slOrderType', 'limit');
                 } else {
-                    request['slOrderType'] = this.safeString (params, 'slOrderType', 'market');
+                    request['slOrderType'] = this.safeString (paramsProductType, 'slOrderType', 'market');
                 }
             }
             if (hasTakeProfit) {
@@ -5784,9 +5763,9 @@ export default class bitget extends Exchange {
                 request['takeProfit'] = this.priceToPrecision (symbol, tpTriggerPrice);
                 if (tpLimitPrice !== undefined) {
                     request['tpLimitPrice'] = this.priceToPrecision (symbol, tpLimitPrice);
-                    request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'limit');
+                    request['tpOrderType'] = this.safeString (paramsProductType, 'tpOrderType', 'limit');
                 } else {
-                    request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'market');
+                    request['tpOrderType'] = this.safeString (paramsProductType, 'tpOrderType', 'market');
                 }
             }
             const isMarketOrder = type === 'market';
@@ -5794,11 +5773,11 @@ export default class bitget extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
             request['orderType'] = type;
-            const exchangeSpecificTifParam = this.safeString (params, 'timeInForce');
+            const exchangeSpecificTifParam = this.safeString (paramsProductType, 'timeInForce');
             let postOnly: Bool = undefined;
-            [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
+            [ postOnly, paramsProductType ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', paramsProductType);
             let timeInForce: Str = undefined;
-            [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
+            [ timeInForce, paramsProductType ] = this.handleOptionStringAndParams (paramsProductType, 'createOrder', 'timeInForce');
             if (timeInForce !== undefined) {
                 timeInForce = timeInForce.toUpperCase ();
             }
@@ -5812,9 +5791,9 @@ export default class bitget extends Exchange {
                 request['timeInForce'] = 'ioc';
             }
         }
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool (paramsProductType, 'reduceOnly', false);
         let hedged: Bool = undefined;
-        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+        [ hedged, paramsProductType ] = this.handleParamBool (paramsProductType, 'hedged', false);
         if (reduceOnly === true) {
             if ((hedged === true) || isStopLossOrTakeProfitTrigger) {
                 let reduceOnlyPosSide: Str = 'short';
@@ -5834,8 +5813,8 @@ export default class bitget extends Exchange {
                 request['posSide'] = posSide;
             }
         }
-        params = this.omit (params, [ 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'hedged' ]);
-        return this.extend (request, params);
+        paramsProductType = this.omit (paramsProductType, [ 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'hedged' ]);
+        return this.extend (request, paramsProductType);
     }
 
     createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
@@ -5848,26 +5827,27 @@ export default class bitget extends Exchange {
         const market = this.market (symbol);
         let marketType: Str = undefined;
         let marginMode: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        let paramsMarketType = undefined;
+        [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        [ marginMode, paramsMarketType ] = this.handleMarginModeAndParams ('createOrder', paramsMarketType);
         const request: Dict = {
             'symbol': market['id'],
             'orderType': type,
         };
         let hedged: Bool = undefined;
-        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+        [ hedged, paramsMarketType ] = this.handleParamBool (paramsMarketType, 'hedged', false);
         // backward compatibility for `oneWayMode`
         let oneWayMode: Bool = undefined;
-        [ oneWayMode, params ] = this.handleParamBool (params, 'oneWayMode');
+        [ oneWayMode, paramsMarketType ] = this.handleParamBool (paramsMarketType, 'oneWayMode');
         if (oneWayMode !== undefined) {
             hedged = !oneWayMode;
         }
         const isMarketOrder = type === 'market';
-        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
-        const stopLoss = this.safeDict (params, 'stopLoss');
-        const takeProfit = this.safeDict (params, 'takeProfit');
+        const triggerPrice = this.safeNumber2 (paramsMarketType, 'stopPrice', 'triggerPrice');
+        const stopLossTriggerPrice = this.safeNumber (paramsMarketType, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber (paramsMarketType, 'takeProfitPrice');
+        const stopLoss = this.safeDict (paramsMarketType, 'stopLoss');
+        const takeProfit = this.safeDict (paramsMarketType, 'takeProfit');
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
@@ -5875,8 +5855,8 @@ export default class bitget extends Exchange {
         const hasTakeProfit = takeProfit !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const isStopLossOrTakeProfit = hasStopLoss || hasTakeProfit;
-        const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', this.numberToString (price));
-        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRatio');
+        const trailingTriggerPrice = this.safeString (paramsMarketType, 'trailingTriggerPrice', this.numberToString (price));
+        const trailingPercent = this.safeString2 (paramsMarketType, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         // const multipleTriggers = (isTriggerOrder && (isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder))
         //     || (isStopLossTriggerOrder && (isTakeProfitTriggerOrder || isTrailingPercentOrder))
@@ -5891,14 +5871,14 @@ export default class bitget extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const triggerPriceType = this.safeString2 (params, 'triggerPriceType', 'triggerType', 'mark_price');
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const exchangeSpecificTifParam = this.safeString2 (params, 'force', 'timeInForce');
+        const triggerPriceType = this.safeString2 (paramsMarketType, 'triggerPriceType', 'triggerType', 'mark_price');
+        const reduceOnly = this.safeBool (paramsMarketType, 'reduceOnly', false);
+        const clientOrderId = this.safeString2 (paramsMarketType, 'clientOid', 'clientOrderId');
+        const exchangeSpecificTifParam = this.safeString2 (paramsMarketType, 'force', 'timeInForce');
         let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
+        [ postOnly, paramsMarketType ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', paramsMarketType);
         let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
+        [ timeInForce, paramsMarketType ] = this.handleOptionStringAndParams (paramsMarketType, 'createOrder', 'timeInForce');
         if (timeInForce !== undefined) {
             timeInForce = timeInForce.toUpperCase ();
         }
@@ -5911,12 +5891,12 @@ export default class bitget extends Exchange {
         } else if (timeInForce === 'IOC') {
             request['force'] = 'IOC';
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'clientOrderId', 'trailingPercent', 'trailingTriggerPrice' ]);
+        paramsMarketType = this.omit (paramsMarketType, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'clientOrderId', 'trailingPercent', 'trailingTriggerPrice' ]);
         if ((marketType === 'swap') || (marketType === 'future')) {
             request['marginCoin'] = market['settleId'];
             request['size'] = this.amountToPrecision (symbol, amount);
             let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            [ productType, paramsMarketType ] = this.handleProductTypeAndParams (market, paramsMarketType);
             request['productType'] = productType;
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
@@ -6034,11 +6014,11 @@ export default class bitget extends Exchange {
             let quantity: Str = undefined;
             let planType: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, paramsMarketType ] = this.handleOptionBoolAndParams (paramsMarketType, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             if (isMarketOrder && (side === 'buy')) {
                 planType = 'total';
-                const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
+                const cost = this.safeNumber (paramsMarketType, 'cost');
+                paramsMarketType = this.omit (paramsMarketType, 'cost');
                 if (cost !== undefined) {
                     quantity = this.costToPrecision (symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice) {
@@ -6083,7 +6063,7 @@ export default class bitget extends Exchange {
         } else {
             throw new NotSupported (this.id + ' createOrder() does not support ' + marketType + ' orders');
         }
-        return this.extend (request, params);
+        return this.extend (request, paramsMarketType);
     }
 
     async createUtaOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
@@ -6160,9 +6140,10 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'createOrders', false);
+        let paramsUTA = undefined;
+        [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'createOrders', false);
         if (uta === true) {
-            return await this.createUtaOrders (orders, params);
+            return await this.createUtaOrders (orders, paramsUTA);
         }
         const ordersRequests: List = [];
         let symbol: Str = undefined;
@@ -6213,7 +6194,7 @@ export default class bitget extends Exchange {
             request['marginMode'] = marginModeRequest;
             request['marginCoin'] = market['settleId'];
             let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            [ productType, paramsUTA ] = this.handleProductTypeAndParams (market, paramsUTA);
             request['productType'] = productType;
             response = await this.privateMixPostV2MixOrderBatchPlaceOrder (request);
         } else if (marginMode === 'isolated') {
@@ -6298,7 +6279,6 @@ export default class bitget extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
         if (clientOrderId !== undefined) {
-            params = this.omit (params, [ 'clientOrderId' ]);
             request['clientOid'] = clientOrderId;
         } else {
             request['orderId'] = id;
@@ -6326,49 +6306,49 @@ export default class bitget extends Exchange {
         if (this.sum (isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1) {
             throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ]);
+        let paramsOmitted: Dict = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ]);
         let response = undefined;
         let productType: Str = undefined;
         let uta: Bool = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = await this.handleUTAAndParams (params, 'editOrder', false);
+        [ productType, paramsOmitted ] = this.handleProductTypeAndParams (market, paramsOmitted);
+        [ uta, paramsOmitted ] = await this.handleUTAAndParams (paramsOmitted, 'editOrder', false);
         if (uta === true) {
             if (amount !== undefined) {
                 request['qty'] = this.amountToPrecision (symbol, amount);
             }
             if (isStopLossOrder || isTakeProfitOrder) {
                 if (isStopLossOrder) {
-                    const slType = this.safeString (params, 'slTriggerBy', 'mark');
+                    const slType = this.safeString (paramsOmitted, 'slTriggerBy', 'mark');
                     request['slTriggerBy'] = slType;
                     request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
                     if (price !== undefined) {
                         request['slLimitPrice'] = this.priceToPrecision (symbol, price);
-                        request['slOrderType'] = this.safeString (params, 'slOrderType', 'limit');
+                        request['slOrderType'] = this.safeString (paramsOmitted, 'slOrderType', 'limit');
                     } else {
-                        request['slOrderType'] = this.safeString (params, 'slOrderType', 'market');
+                        request['slOrderType'] = this.safeString (paramsOmitted, 'slOrderType', 'market');
                     }
                 } else if (isTakeProfitOrder) {
-                    const tpType = this.safeString (params, 'tpTriggerBy', 'mark');
+                    const tpType = this.safeString (paramsOmitted, 'tpTriggerBy', 'mark');
                     request['tpTriggerBy'] = tpType;
                     request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
                     if (price !== undefined) {
                         request['tpLimitPrice'] = this.priceToPrecision (symbol, price);
-                        request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'limit');
+                        request['tpOrderType'] = this.safeString (paramsOmitted, 'tpOrderType', 'limit');
                     } else {
-                        request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'market');
+                        request['tpOrderType'] = this.safeString (paramsOmitted, 'tpOrderType', 'market');
                     }
                 }
-                params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
-                response = await this.privateUtaPostV3TradeModifyStrategyOrder (this.extend (request, params));
+                paramsOmitted = this.omit (paramsOmitted, [ 'stopLossPrice', 'takeProfitPrice' ]);
+                response = await this.privateUtaPostV3TradeModifyStrategyOrder (this.extend (request, paramsOmitted));
             } else {
                 if (price !== undefined) {
                     request['price'] = this.priceToPrecision (symbol, price);
                 }
-                response = await this.privateUtaPostV3TradeModifyOrder (this.extend (request, params));
+                response = await this.privateUtaPostV3TradeModifyOrder (this.extend (request, paramsOmitted));
             }
         } else if (market['spot'] === true) {
-            const cost = this.safeString (params, 'cost');
-            params = this.omit (params, 'cost');
+            const cost = this.safeString (paramsOmitted, 'cost');
+            paramsOmitted = this.omit (paramsOmitted, 'cost');
             const editMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (((editMarketBuyOrderRequiresPrice === true) || (cost !== undefined)) && isMarketOrder && (side === 'buy')) {
                 if (price === undefined && cost === undefined) {
@@ -6397,10 +6377,10 @@ export default class bitget extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
             if (triggerPrice !== undefined) {
-                response = await this.privateSpotPostV2SpotTradeModifyPlanOrder (this.extend (request, params));
+                response = await this.privateSpotPostV2SpotTradeModifyPlanOrder (this.extend (request, paramsOmitted));
             } else {
                 request['symbol'] = market['id'];
-                response = await this.privateSpotPostV2SpotTradeCancelReplaceOrder (this.extend (request, params));
+                response = await this.privateSpotPostV2SpotTradeCancelReplaceOrder (this.extend (request, paramsOmitted));
             }
         } else {
             if ((market['swap'] !== true) && (market['future'] !== true)) {
@@ -6424,7 +6404,7 @@ export default class bitget extends Exchange {
                     request['newTriggerPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
                 }
                 request['newCallbackRatio'] = trailingPercent;
-                response = await this.privateMixPostV2MixOrderModifyPlanOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderModifyPlanOrder (this.extend (request, paramsOmitted));
             } else if (isTakeProfitOrder || isStopLossOrder) {
                 request['marginCoin'] = market['settleId'];
                 request['size'] = this.amountToPrecision (symbol, amount);
@@ -6436,7 +6416,7 @@ export default class bitget extends Exchange {
                 } else if (isTakeProfitOrder) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
                 }
-                response = await this.privateMixPostV2MixOrderModifyTpslOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderModifyTpslOrder (this.extend (request, paramsOmitted));
             } else if (isTriggerOrder) {
                 request['newTriggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 if (hasStopLoss) {
@@ -6455,11 +6435,11 @@ export default class bitget extends Exchange {
                     const tpType = this.safeString (takeProfit, 'type', 'mark_price');
                     request['newStopSurplusTriggerType'] = tpType;
                 }
-                response = await this.privateMixPostV2MixOrderModifyPlanOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderModifyPlanOrder (this.extend (request, paramsOmitted));
             } else {
                 const defaultNewClientOrderId = this.uuid ();
-                const newClientOrderId = this.safeString2 (params, 'newClientOid', 'newClientOrderId', defaultNewClientOrderId);
-                params = this.omit (params, 'newClientOrderId');
+                const newClientOrderId = this.safeString2 (paramsOmitted, 'newClientOid', 'newClientOrderId', defaultNewClientOrderId);
+                paramsOmitted = this.omit (paramsOmitted, 'newClientOrderId');
                 request['newClientOid'] = newClientOrderId;
                 if (hasStopLoss) {
                     const slTriggerPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'stopPrice');
@@ -6469,7 +6449,7 @@ export default class bitget extends Exchange {
                     const tpTriggerPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'stopPrice');
                     request['newPresetStopSurplusPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
                 }
-                response = await this.privateMixPostV2MixOrderModifyOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderModifyOrder (this.extend (request, paramsOmitted));
             }
         }
         //
@@ -6520,25 +6500,26 @@ export default class bitget extends Exchange {
         const market = this.market (symbol);
         let marginMode: Str = undefined;
         let response: Dict = {};
-        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        let paramsMarginMode = undefined;
+        [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const request: Dict = {};
-        const trailing = this.safeBool (params, 'trailing');
-        const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger', 'trailing' ]);
+        const trailing = this.safeBool (paramsMarginMode, 'trailing');
+        const trigger = this.safeBool2 (paramsMarginMode, 'stop', 'trigger');
+        paramsMarginMode = this.omit (paramsMarginMode, [ 'stop', 'trigger', 'trailing' ]);
         if (!((market['spot'] === true) && (trigger === true))) {
             request['symbol'] = market['id'];
         }
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrder', false);
+        [ uta, paramsMarginMode ] = await this.handleUTAAndParams (paramsMarginMode, 'cancelOrder', false);
         const isPlanOrder = (trigger === true) || (trailing === true);
         const isContract = (market['swap'] === true) || (market['future'] === true);
         const isContractTriggerEndpoint = isContract && isPlanOrder && (uta !== true);
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
+        const clientOrderId = this.safeString2 (paramsMarginMode, 'clientOrderId', 'clientOid');
         if (isContractTriggerEndpoint) {
             const orderIdList: List = [];
             const orderId: Dict = {};
             if (clientOrderId !== undefined) {
-                params = this.omit (params, 'clientOrderId');
+                paramsMarginMode = this.omit (paramsMarginMode, 'clientOrderId');
                 orderId['clientOid'] = clientOrderId;
             } else {
                 orderId['orderId'] = id;
@@ -6547,7 +6528,7 @@ export default class bitget extends Exchange {
             request['orderIdList'] = orderIdList;
         } else {
             if (clientOrderId !== undefined) {
-                params = this.omit (params, 'clientOrderId');
+                paramsMarginMode = this.omit (paramsMarginMode, 'clientOrderId');
                 request['clientOid'] = clientOrderId;
             } else {
                 request['orderId'] = id;
@@ -6555,35 +6536,35 @@ export default class bitget extends Exchange {
         }
         if (uta === true) {
             if (trigger === true) {
-                response = await this.privateUtaPostV3TradeCancelStrategyOrder (this.extend (request, params));
+                response = await this.privateUtaPostV3TradeCancelStrategyOrder (this.extend (request, paramsMarginMode));
             } else {
-                response = await this.privateUtaPostV3TradeCancelOrder (this.extend (request, params));
+                response = await this.privateUtaPostV3TradeCancelOrder (this.extend (request, paramsMarginMode));
             }
         } else if ((market['swap'] === true) || (market['future'] === true)) {
             let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            [ productType, paramsMarginMode ] = this.handleProductTypeAndParams (market, paramsMarginMode);
             request['productType'] = productType;
             if (trailing === true) {
-                const planType = this.safeString (params, 'planType', 'track_plan');
+                const planType = this.safeString (paramsMarginMode, 'planType', 'track_plan');
                 request['planType'] = planType;
-                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, paramsMarginMode));
             } else if (trigger === true) {
-                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, paramsMarginMode));
             } else {
-                response = await this.privateMixPostV2MixOrderCancelOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderCancelOrder (this.extend (request, paramsMarginMode));
             }
         } else if (market['spot'] === true) {
             if (marginMode !== undefined) {
                 if (marginMode === 'isolated') {
-                    response = await this.privateMarginPostV2MarginIsolatedCancelOrder (this.extend (request, params));
+                    response = await this.privateMarginPostV2MarginIsolatedCancelOrder (this.extend (request, paramsMarginMode));
                 } else if (marginMode === 'cross') {
-                    response = await this.privateMarginPostV2MarginCrossedCancelOrder (this.extend (request, params));
+                    response = await this.privateMarginPostV2MarginCrossedCancelOrder (this.extend (request, paramsMarginMode));
                 }
             } else {
                 if (trigger === true) {
-                    response = await this.privateSpotPostV2SpotTradeCancelPlanOrder (this.extend (request, params));
+                    response = await this.privateSpotPostV2SpotTradeCancelPlanOrder (this.extend (request, paramsMarginMode));
                 } else {
-                    response = await this.privateSpotPostV2SpotTradeCancelOrder (this.extend (request, params));
+                    response = await this.privateSpotPostV2SpotTradeCancelOrder (this.extend (request, paramsMarginMode));
                 }
             }
         } else {
@@ -6662,8 +6643,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const productType = this.handleProductTypeAndParams (market, params)[0];
         const requestList: List = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = ids[i];
@@ -6719,14 +6699,15 @@ export default class bitget extends Exchange {
         }
         const market = this.market (symbol);
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrders', false);
+        let paramsUTA = undefined;
+        [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'cancelOrders', false);
         if (uta === true) {
-            return await this.cancelUtaOrders (ids, symbol, params);
+            return await this.cancelUtaOrders (ids, symbol, paramsUTA);
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
-        const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        [ marginMode, paramsUTA ] = this.handleMarginModeAndParams ('cancelOrders', paramsUTA);
+        const trigger = this.safeBool2 (paramsUTA, 'stop', 'trigger');
+        paramsUTA = this.omit (paramsUTA, [ 'stop', 'trigger' ]);
         const orderIdList: List = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = ids[i];
@@ -6747,21 +6728,21 @@ export default class bitget extends Exchange {
         if (market['spot'] === true) {
             if (marginMode !== undefined) {
                 if (marginMode === 'cross') {
-                    response = await this.privateMarginPostV2MarginCrossedBatchCancelOrder (this.extend (request, params));
+                    response = await this.privateMarginPostV2MarginCrossedBatchCancelOrder (this.extend (request, paramsUTA));
                 } else {
-                    response = await this.privateMarginPostV2MarginIsolatedBatchCancelOrder (this.extend (request, params));
+                    response = await this.privateMarginPostV2MarginIsolatedBatchCancelOrder (this.extend (request, paramsUTA));
                 }
             } else {
-                response = await this.privateSpotPostV2SpotTradeBatchCancelOrder (this.extend (request, params));
+                response = await this.privateSpotPostV2SpotTradeBatchCancelOrder (this.extend (request, paramsUTA));
             }
         } else {
             let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            [ productType, paramsUTA ] = this.handleProductTypeAndParams (market, paramsUTA);
             request['productType'] = productType;
             if (trigger === true) {
-                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, paramsUTA));
             } else {
-                response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, paramsUTA));
             }
         }
         //
@@ -6810,17 +6791,18 @@ export default class bitget extends Exchange {
         }
         const market = this.market (symbol);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        let paramsMarginMode = undefined;
+        [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        [ productType, paramsMarginMode ] = this.handleProductTypeAndParams (market, paramsMarginMode);
         const request: Dict = {
             'symbol': market['id'],
         };
-        const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const trigger = this.safeBool2 (paramsMarginMode, 'stop', 'trigger');
+        paramsMarginMode = this.omit (paramsMarginMode, [ 'stop', 'trigger' ]);
         let response = undefined;
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'cancelAllOrders', false);
+        [ uta, paramsMarginMode ] = await this.handleUTAAndParams (paramsMarginMode, 'cancelAllOrders', false);
         if (uta === true) {
             if (productType === 'SPOT') {
                 if (marginMode !== undefined) {
@@ -6828,7 +6810,7 @@ export default class bitget extends Exchange {
                 }
             }
             request['category'] = productType;
-            response = await this.privateUtaPostV3TradeCancelSymbolOrder (this.extend (request, params));
+            response = await this.privateUtaPostV3TradeCancelSymbolOrder (this.extend (request, paramsMarginMode));
             //
             //     {
             //         "code": "00000",
@@ -6852,9 +6834,9 @@ export default class bitget extends Exchange {
                     const stopRequest: Dict = {
                         'symbolList': [ market['id'] ],
                     };
-                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder (this.extend (stopRequest, params));
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder (this.extend (stopRequest, paramsMarginMode));
                 } else {
-                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, params));
+                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, paramsMarginMode));
                 }
                 //
                 //     {
@@ -6881,9 +6863,9 @@ export default class bitget extends Exchange {
         } else {
             request['productType'] = productType;
             if (trigger === true) {
-                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, paramsMarginMode));
             } else {
-                response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, paramsMarginMode));
             }
             //     {
             //         "code": "00000",
@@ -6939,24 +6921,22 @@ export default class bitget extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
         if (clientOrderId !== undefined) {
-            params = this.omit (params, [ 'clientOrderId' ]);
             request['clientOid'] = clientOrderId;
         } else {
             request['orderId'] = id;
         }
+        const paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (params, [ 'clientOrderId' ]) : params;
         let response = undefined;
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrder', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsOmitted, 'fetchOrder', false);
         if (uta === true) {
-            response = await this.privateUtaGetV3TradeOrderInfo (this.extend (request, params));
+            response = await this.privateUtaGetV3TradeOrderInfo (this.extend (request, paramsUTA));
         } else if (market['spot'] === true) {
-            response = await this.privateSpotGetV2SpotTradeOrderInfo (this.extend (request, params));
+            response = await this.privateSpotGetV2SpotTradeOrderInfo (this.extend (request, paramsUTA));
         } else if ((market['swap'] === true) || (market['future'] === true)) {
             request['symbol'] = market['id'];
-            let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, paramsUTA);
             request['productType'] = productType;
-            response = await this.privateMixGetV2MixOrderDetail (this.extend (request, params));
+            response = await this.privateMixGetV2MixOrderDetail (this.extend (request, paramsProductType));
         } else {
             throw new NotSupported (this.id + ' fetchOrder() does not support ' + market['type'] + ' orders');
         }
@@ -7123,9 +7103,10 @@ export default class bitget extends Exchange {
         let type: Str = undefined;
         let request: Dict = {};
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        let paramsMarginMode = undefined;
+        [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOpenOrders', false);
+        [ uta, paramsMarginMode ] = await this.handleUTAAndParams (paramsMarginMode, 'fetchOpenOrders', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -7134,13 +7115,13 @@ export default class bitget extends Exchange {
             if ('type' in market) {
                 marketType = market['type'];
             }
-            type = this.safeString (params, 'type', marketType);
+            type = this.safeString (paramsMarginMode, 'type', marketType);
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', defaultType);
+            type = this.safeString (paramsMarginMode, 'type', defaultType);
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
+        [ paginate, paramsMarginMode ] = this.handleOptionBoolAndParams (paramsMarginMode, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             let cursorReceived: Str = undefined;
             let cursorSent: Str = undefined;
@@ -7156,30 +7137,31 @@ export default class bitget extends Exchange {
                 cursorReceived = 'endId';
                 cursorSent = 'idLessThan';
             }
-            return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, cursorReceived, cursorSent) as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, paramsMarginMode, cursorReceived, cursorSent) as Order[];
         }
         let response = undefined;
-        const trailing = this.safeBool (params, 'trailing');
-        const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        const planTypeDefined = this.safeString (params, 'planType') !== undefined;
+        const trailing = this.safeBool (paramsMarginMode, 'trailing');
+        const trigger = this.safeBool2 (paramsMarginMode, 'stop', 'trigger');
+        const planTypeDefined = this.safeString (paramsMarginMode, 'planType') !== undefined;
         const isTrigger = (trigger === true) || planTypeDefined;
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        [ request, paramsMarginMode ] = this.handleUntilOption ('endTime', request, paramsMarginMode);
         if (since !== undefined) {
             request['startTime'] = since;
         }
+        let sinceDefault: Int = undefined;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         if ((uta !== true) && ((type === 'swap') || (type === 'future') || (marginMode !== undefined))) {
-            const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-            params = this.omit (params, 'clientOrderId');
+            const clientOrderId = this.safeString2 (paramsMarginMode, 'clientOid', 'clientOrderId');
+            paramsMarginMode = this.omit (paramsMarginMode, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
         }
         let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        params = this.omit (params, [ 'type', 'stop', 'trigger', 'trailing' ]);
+        [ productType, paramsMarginMode ] = this.handleProductTypeAndParams (market, paramsMarginMode);
+        paramsMarginMode = this.omit (paramsMarginMode, [ 'type', 'stop', 'trigger', 'trailing' ]);
         if (uta === true) {
             if (type === 'spot') {
                 if (marginMode !== undefined) {
@@ -7190,42 +7172,43 @@ export default class bitget extends Exchange {
             }
             request['category'] = productType;
             if (trigger === true) {
-                response = await this.privateUtaGetV3TradeUnfilledStrategyOrders (this.extend (request, params));
+                response = await this.privateUtaGetV3TradeUnfilledStrategyOrders (this.extend (request, paramsMarginMode));
             } else {
-                response = await this.privateUtaGetV3TradeUnfilledOrders (this.extend (request, params));
+                response = await this.privateUtaGetV3TradeUnfilledOrders (this.extend (request, paramsMarginMode));
             }
         } else if (type === 'spot') {
             if (marginMode !== undefined) {
                 if (since === undefined) {
-                    since = this.milliseconds () - 7776000000;
-                    request['startTime'] = since;
+                    sinceDefault = this.milliseconds () - 7776000000;
+                    request['startTime'] = sinceDefault;
                 }
                 if (marginMode === 'isolated') {
-                    response = await this.privateMarginGetV2MarginIsolatedOpenOrders (this.extend (request, params));
+                    response = await this.privateMarginGetV2MarginIsolatedOpenOrders (this.extend (request, paramsMarginMode));
                 } else if (marginMode === 'cross') {
-                    response = await this.privateMarginGetV2MarginCrossedOpenOrders (this.extend (request, params));
+                    response = await this.privateMarginGetV2MarginCrossedOpenOrders (this.extend (request, paramsMarginMode));
                 }
             } else {
                 if (trigger === true) {
-                    response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder (this.extend (request, params));
+                    response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder (this.extend (request, paramsMarginMode));
                 } else {
-                    response = await this.privateSpotGetV2SpotTradeUnfilledOrders (this.extend (request, params));
+                    response = await this.privateSpotGetV2SpotTradeUnfilledOrders (this.extend (request, paramsMarginMode));
                 }
             }
         } else {
             request['productType'] = productType;
             if (trailing === true) {
-                const planType = this.safeString (params, 'planType', 'track_plan');
+                const planType = this.safeString (paramsMarginMode, 'planType', 'track_plan');
                 request['planType'] = planType;
-                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, params));
+                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, paramsMarginMode));
             } else if (isTrigger) {
-                const planType = this.safeString (params, 'planType', 'normal_plan');
+                const planType = this.safeString (paramsMarginMode, 'planType', 'normal_plan');
                 request['planType'] = planType;
-                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, params));
+                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, paramsMarginMode));
             } else {
-                response = await this.privateMixGetV2MixOrderOrdersPending (this.extend (request, params));
+                response = await this.privateMixGetV2MixOrderOrdersPending (this.extend (request, paramsMarginMode));
             }
         }
+        const sinceResolved: Int = (sinceDefault === undefined) ? since : sinceDefault;
         //
         // spot
         //
@@ -7486,17 +7469,17 @@ export default class bitget extends Exchange {
             } else {
                 result = this.safeList (data, 'list', []);
             }
-            return this.parseOrders (result, market, since, limit);
+            return this.parseOrders (result, market, sinceResolved, limit);
         } else if (type === 'spot') {
             if ((marginMode !== undefined) || (trigger === true)) {
                 const resultList = this.safeList (data, 'orderList', []);
-                return this.parseOrders (resultList, market, since, limit);
+                return this.parseOrders (resultList, market, sinceResolved, limit);
             }
         } else {
             const result = this.safeList (data, 'entrustedList', []);
-            return this.parseOrders (result, market, since, limit);
+            return this.parseOrders (result, market, sinceResolved, limit);
         }
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (data, market, sinceResolved, limit);
     }
 
     /**
@@ -7588,9 +7571,10 @@ export default class bitget extends Exchange {
      */
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchCanceledAndClosedOrders', false);
+        let paramsUTA = undefined;
+        [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchCanceledAndClosedOrders', false);
         if (uta === true) {
-            return await this.fetchUtaCanceledAndClosedOrders (symbol, since, limit, params);
+            return await this.fetchUtaCanceledAndClosedOrders (symbol, since, limit, paramsUTA);
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -7602,11 +7586,11 @@ export default class bitget extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
+        [ marketType, paramsUTA ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, paramsUTA);
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchCanceledAndClosedOrders', params);
+        [ marginMode, paramsUTA ] = this.handleMarginModeAndParams ('fetchCanceledAndClosedOrders', paramsUTA);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
+        [ paginate, paramsUTA ] = this.handleOptionBoolAndParams (paramsUTA, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if (paginate) {
             let cursorReceived: Str = undefined;
             if (marketType === 'spot') {
@@ -7616,22 +7600,23 @@ export default class bitget extends Exchange {
             } else {
                 cursorReceived = 'endId';
             }
-            return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, params, cursorReceived, 'idLessThan') as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsUTA, cursorReceived, 'idLessThan') as Order[];
         }
         let response = undefined;
-        const trailing = this.safeBool (params, 'trailing');
-        const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger', 'trailing' ]);
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const trailing = this.safeBool (paramsUTA, 'trailing');
+        const trigger = this.safeBool2 (paramsUTA, 'stop', 'trigger');
+        paramsUTA = this.omit (paramsUTA, [ 'stop', 'trigger', 'trailing' ]);
+        [ request, paramsUTA ] = this.handleUntilOption ('endTime', request, paramsUTA);
         if (since !== undefined) {
             request['startTime'] = since;
         }
+        let sinceDefault: Int = undefined;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         if ((marketType === 'swap') || (marketType === 'future') || (marginMode !== undefined)) {
-            const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-            params = this.omit (params, 'clientOrderId');
+            const clientOrderId = this.safeString2 (paramsUTA, 'clientOid', 'clientOrderId');
+            paramsUTA = this.omit (paramsUTA, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
@@ -7640,48 +7625,49 @@ export default class bitget extends Exchange {
         if (marketType === 'spot') {
             if (marginMode !== undefined) {
                 if (since === undefined) {
-                    since = now - 7776000000;
-                    request['startTime'] = since;
+                    sinceDefault = now - 7776000000;
+                    request['startTime'] = sinceDefault;
                 }
                 if (marginMode === 'isolated') {
-                    response = await this.privateMarginGetV2MarginIsolatedHistoryOrders (this.extend (request, params));
+                    response = await this.privateMarginGetV2MarginIsolatedHistoryOrders (this.extend (request, paramsUTA));
                 } else if (marginMode === 'cross') {
-                    response = await this.privateMarginGetV2MarginCrossedHistoryOrders (this.extend (request, params));
+                    response = await this.privateMarginGetV2MarginCrossedHistoryOrders (this.extend (request, paramsUTA));
                 }
             } else if (trigger === true) {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                 }
-                const endTime = this.safeInteger2 (params, 'endTime', 'until');
-                params = this.omit (params, [ 'until' ]);
+                const endTime = this.safeInteger2 (paramsUTA, 'endTime', 'until');
+                paramsUTA = this.omit (paramsUTA, [ 'until' ]);
                 if (since === undefined) {
-                    since = now - 7776000000;
-                    request['startTime'] = since;
+                    sinceDefault = now - 7776000000;
+                    request['startTime'] = sinceDefault;
                 }
                 if (endTime === undefined) {
                     request['endTime'] = now;
                 }
-                response = await this.privateSpotGetV2SpotTradeHistoryPlanOrder (this.extend (request, params));
+                response = await this.privateSpotGetV2SpotTradeHistoryPlanOrder (this.extend (request, paramsUTA));
             } else {
-                response = await this.privateSpotGetV2SpotTradeHistoryOrders (this.extend (request, params));
+                response = await this.privateSpotGetV2SpotTradeHistoryOrders (this.extend (request, paramsUTA));
             }
         } else {
             let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            [ productType, paramsUTA ] = this.handleProductTypeAndParams (market, paramsUTA);
             request['productType'] = productType;
-            const planTypeDefined = this.safeString (params, 'planType') !== undefined;
+            const planTypeDefined = this.safeString (paramsUTA, 'planType') !== undefined;
             if (trailing === true) {
-                const planType = this.safeString (params, 'planType', 'track_plan');
+                const planType = this.safeString (paramsUTA, 'planType', 'track_plan');
                 request['planType'] = planType;
-                response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
+                response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, paramsUTA));
             } else if ((trigger === true) || planTypeDefined) {
-                const planType = this.safeString (params, 'planType', 'normal_plan');
+                const planType = this.safeString (paramsUTA, 'planType', 'normal_plan');
                 request['planType'] = planType;
-                response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
+                response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, paramsUTA));
             } else {
-                response = await this.privateMixGetV2MixOrderOrdersHistory (this.extend (request, params));
+                response = await this.privateMixGetV2MixOrderOrdersHistory (this.extend (request, paramsUTA));
             }
         }
+        const sinceResolved: Int = (sinceDefault === undefined) ? since : sinceDefault;
         //
         // spot
         //
@@ -7863,16 +7849,16 @@ export default class bitget extends Exchange {
         const data = this.safeDict (response, 'data', {});
         if (marketType === 'spot') {
             if ((marginMode !== undefined) || (trigger === true)) {
-                return this.parseOrders (this.safeList (data, 'orderList'), market, since, limit);
+                return this.parseOrders (this.safeList (data, 'orderList'), market, sinceResolved, limit);
             }
         } else {
-            return this.parseOrders (this.safeList (data, 'entrustedList'), market, since, limit);
+            return this.parseOrders (this.safeList (data, 'entrustedList'), market, sinceResolved, limit);
         }
         if (typeof response === 'string') {
             response = JSON.parse (response);
         }
         const orders = this.safeList (response, 'data', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders (orders, market, sinceResolved, limit);
     }
 
     async fetchUtaCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -7884,10 +7870,11 @@ export default class bitget extends Exchange {
             market = this.market (symbol);
         }
         let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        let paramsProductType = undefined;
+        [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         if (productType === 'SPOT') {
             let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchCanceledAndClosedOrders', params);
+            [ marginMode, paramsProductType ] = this.handleMarginModeAndParams ('fetchCanceledAndClosedOrders', paramsProductType);
             if (marginMode !== undefined) {
                 productType = 'MARGIN';
             }
@@ -7896,11 +7883,11 @@ export default class bitget extends Exchange {
             'category': productType,
         };
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
+        [ paginate, paramsProductType ] = this.handleOptionBoolAndParams (paramsProductType, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'cursor', 'cursor') as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsProductType, 'cursor', 'cursor') as Order[];
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        [ request, paramsProductType ] = this.handleUntilOption ('endTime', request, paramsProductType);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -7908,12 +7895,12 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const trigger = this.safeBool2 (paramsProductType, 'stop', 'trigger');
+        paramsProductType = this.omit (paramsProductType, [ 'stop', 'trigger' ]);
         if (trigger === true) {
-            response = await this.privateUtaGetV3TradeHistoryStrategyOrders (this.extend (request, params));
+            response = await this.privateUtaGetV3TradeHistoryStrategyOrders (this.extend (request, paramsProductType));
         } else {
-            response = await this.privateUtaGetV3TradeHistoryOrders (this.extend (request, params));
+            response = await this.privateUtaGetV3TradeHistoryOrders (this.extend (request, paramsProductType));
         }
         //
         // uta
@@ -8028,35 +8015,35 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const symbol = this.safeString (params, 'symbol');
-        params = this.omit (params, 'symbol');
+        let paramsOmitted: Dict = this.omit (params, 'symbol');
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', market, params);
+        [ marketType, paramsOmitted ] = this.handleMarketTypeAndParams ('fetchLedger', market, paramsOmitted);
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchLedger', false);
+        [ uta, paramsOmitted ] = await this.handleUTAAndParams (paramsOmitted, 'fetchLedger', false);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
+        [ paginate, paramsOmitted ] = this.handleOptionBoolAndParams (paramsOmitted, 'fetchLedger', 'paginate', false);
         if (paginate) {
             if (uta === true) {
                 // re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
-                params = this.extend (params, { 'uta': true, 'type': marketType });
+                paramsOmitted = this.extend (paramsOmitted, { 'uta': true, 'type': marketType });
                 if (symbol !== undefined) {
-                    params = this.extend (params, { 'symbol': symbol });
+                    paramsOmitted = this.extend (paramsOmitted, { 'symbol': symbol });
                 }
-                return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'id', 'cursor', undefined, 100) as LedgerEntry[];
+                return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, paramsOmitted, 'id', 'cursor', undefined, 100) as LedgerEntry[];
             }
             let cursorReceived: Str = undefined;
             if (marketType !== 'spot') {
                 cursorReceived = 'endId';
             }
-            params = this.extend (params, { 'type': marketType });
+            paramsOmitted = this.extend (paramsOmitted, { 'type': marketType });
             if (symbol !== undefined) {
-                params = this.extend (params, { 'symbol': symbol });
+                paramsOmitted = this.extend (paramsOmitted, { 'symbol': symbol });
             }
-            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, cursorReceived, 'idLessThan') as LedgerEntry[];
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, paramsOmitted, cursorReceived, 'idLessThan') as LedgerEntry[];
         }
         let currency: Currency = undefined;
         let request: Dict = {};
@@ -8064,7 +8051,7 @@ export default class bitget extends Exchange {
             currency = this.currency (code);
             request['coin'] = currency['id'];
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        [ request, paramsOmitted ] = this.handleUntilOption ('endTime', request, paramsOmitted);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -8074,7 +8061,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         if (uta === true) {
             if (marketType === 'funding') {
-                response = await this.privateUtaGetV3AccountFundingFinancialRecords (this.extend (request, params));
+                response = await this.privateUtaGetV3AccountFundingFinancialRecords (this.extend (request, paramsOmitted));
                 //
                 //     {
                 //         "code": "00000",
@@ -8098,7 +8085,7 @@ export default class bitget extends Exchange {
                 //
             } else {
                 let marginMode: Str = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
+                [ marginMode, paramsOmitted ] = this.handleMarginModeAndParams ('fetchLedger', paramsOmitted);
                 if (marketType === 'spot') {
                     if (marginMode !== undefined) {
                         request['category'] = 'MARGIN';
@@ -8107,13 +8094,13 @@ export default class bitget extends Exchange {
                     }
                 } else {
                     let productType: Str = undefined;
-                    [ productType, params ] = this.handleProductTypeAndParams (market, params);
+                    [ productType, paramsOmitted ] = this.handleProductTypeAndParams (market, paramsOmitted);
                     request['category'] = productType;
                 }
                 if (symbol !== undefined) {
                     request['symbol'] = this.safeString (market, 'id');
                 }
-                response = await this.privateUtaGetV3AccountFinancialRecords (this.extend (request, params));
+                response = await this.privateUtaGetV3AccountFinancialRecords (this.extend (request, paramsOmitted));
                 //
                 //     {
                 //         "code": "00000",
@@ -8146,15 +8133,15 @@ export default class bitget extends Exchange {
             return this.parseLedger (list, currency, since, limit);
         }
         if (marketType === 'spot') {
-            response = await this.privateSpotGetV2SpotAccountBills (this.extend (request, params));
+            response = await this.privateSpotGetV2SpotAccountBills (this.extend (request, paramsOmitted));
         } else {
             if (symbol !== undefined) {
                 request['symbol'] = this.safeString (market, 'id');
             }
             let productType: Str = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            [ productType, paramsOmitted ] = this.handleProductTypeAndParams (market, paramsOmitted);
             request['productType'] = productType;
-            response = await this.privateMixGetV2MixAccountBill (this.extend (request, params));
+            response = await this.privateMixGetV2MixAccountBill (this.extend (request, paramsOmitted));
         }
         //
         // spot
@@ -8267,7 +8254,7 @@ export default class bitget extends Exchange {
         //
         const currencyId = this.safeString (item, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger2 (item, 'cTime', 'ts');
         const balanceString = this.safeString (item, 'balance');
         const after = this.parseNumber (balanceString);
@@ -8305,7 +8292,7 @@ export default class bitget extends Exchange {
                 'currency': code,
                 'cost': feeCost,
             },
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     parseLedgerType (type: Str): Str {
@@ -8519,7 +8506,8 @@ export default class bitget extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMyTrades', false);
+        let paramsUTA = undefined;
+        [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchMyTrades', false);
         if ((uta !== true) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -8528,7 +8516,7 @@ export default class bitget extends Exchange {
         }
         const market = this.market (symbol);
         let request: Dict = {};
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        [ request, paramsUTA ] = this.handleUntilOption ('endTime', request, paramsUTA);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -8537,8 +8525,8 @@ export default class bitget extends Exchange {
         }
         let paginate = false;
         let marginMode: Str = undefined;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        [ paginate, paramsUTA ] = this.handleOptionBoolAndParams (paramsUTA, 'fetchMyTrades', 'paginate', false);
+        [ marginMode, paramsUTA ] = this.handleMarginModeAndParams ('fetchMyTrades', paramsUTA);
         if (paginate) {
             let cursorReceived: Str = undefined;
             let cursorSent: Str = undefined;
@@ -8554,11 +8542,11 @@ export default class bitget extends Exchange {
                 cursorReceived = 'endId';
                 cursorSent = 'idLessThan';
             }
-            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, cursorReceived, cursorSent) as Trade[];
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, paramsUTA, cursorReceived, cursorSent) as Trade[];
         }
         let response = undefined;
         if (uta === true) {
-            response = await this.privateUtaGetV3TradeFills (this.extend (request, params));
+            response = await this.privateUtaGetV3TradeFills (this.extend (request, paramsUTA));
         } else {
             request['symbol'] = market['id'];
             if (market['spot'] === true) {
@@ -8567,18 +8555,18 @@ export default class bitget extends Exchange {
                         request['startTime'] = this.milliseconds () - 7776000000;
                     }
                     if (marginMode === 'isolated') {
-                        response = await this.privateMarginGetV2MarginIsolatedFills (this.extend (request, params));
+                        response = await this.privateMarginGetV2MarginIsolatedFills (this.extend (request, paramsUTA));
                     } else if (marginMode === 'cross') {
-                        response = await this.privateMarginGetV2MarginCrossedFills (this.extend (request, params));
+                        response = await this.privateMarginGetV2MarginCrossedFills (this.extend (request, paramsUTA));
                     }
                 } else {
-                    response = await this.privateSpotGetV2SpotTradeFills (this.extend (request, params));
+                    response = await this.privateSpotGetV2SpotTradeFills (this.extend (request, paramsUTA));
                 }
             } else {
                 let productType: Str = undefined;
-                [ productType, params ] = this.handleProductTypeAndParams (market, params);
+                [ productType, paramsUTA ] = this.handleProductTypeAndParams (market, paramsUTA);
                 request['productType'] = productType;
-                response = await this.privateMixGetV2MixOrderFills (this.extend (request, params));
+                response = await this.privateMixGetV2MixOrderFills (this.extend (request, paramsUTA));
             }
         }
         //
@@ -8742,18 +8730,16 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
         let response = undefined;
-        let uta: Bool = undefined;
         let result: NullableList = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPosition', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'fetchPosition', false);
         if (uta === true) {
             request['category'] = productType;
-            response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, params));
+            response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -8797,7 +8783,7 @@ export default class bitget extends Exchange {
         } else {
             request['marginCoin'] = market['settleId'];
             request['productType'] = productType;
-            response = await this.privateMixGetV2MixPositionSinglePosition (this.extend (request, params));
+            response = await this.privateMixGetV2MixPositionSinglePosition (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -8856,16 +8842,17 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchPositions', 'paginate', false);
+        let paramsPaginate = undefined;
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchPositions', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchPositions', undefined, undefined, undefined, params, 'endId', 'idLessThan') as Position[];
+            return await this.fetchPaginatedCallCursor ('fetchPositions', undefined, undefined, undefined, paramsPaginate, 'endId', 'idLessThan') as Position[];
         }
         let method: Str = undefined;
-        const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
+        const useHistoryEndpoint = this.safeBool (paramsPaginate, 'useHistoryEndpoint', false);
         if (useHistoryEndpoint === true) {
             method = 'privateMixGetV2MixPositionHistoryPosition';
         } else {
-            [ method, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
+            [ method, paramsPaginate ] = this.handleOptionStringAndParams (paramsPaginate, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
         }
         let market: Market = undefined;
         if (symbols !== undefined) {
@@ -8876,17 +8863,17 @@ export default class bitget extends Exchange {
             }
         }
         let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        [ productType, paramsPaginate ] = this.handleProductTypeAndParams (market, paramsPaginate);
         const request: Dict = {};
         let response = undefined;
         let isHistory = false;
         let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPositions', false);
+        [ uta, paramsPaginate ] = await this.handleUTAAndParams (paramsPaginate, 'fetchPositions', false);
         if (uta === true) {
             request['category'] = productType;
-            response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, params));
+            response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, paramsPaginate));
         } else if (method === 'privateMixGetV2MixPositionAllPosition') {
-            let marginCoin = this.safeString (params, 'marginCoin', 'USDT');
+            let marginCoin = this.safeString (paramsPaginate, 'marginCoin', 'USDT');
             if (market !== undefined) {
                 marginCoin = market['settleId'] as string;
             } else if (productType === 'USDT-FUTURES') {
@@ -8904,14 +8891,14 @@ export default class bitget extends Exchange {
             }
             request['marginCoin'] = marginCoin;
             request['productType'] = productType;
-            response = await this.privateMixGetV2MixPositionAllPosition (this.extend (request, params));
+            response = await this.privateMixGetV2MixPositionAllPosition (this.extend (request, paramsPaginate));
         } else {
             isHistory = true;
             if (market !== undefined) {
                 request['symbol'] = market['id'];
             }
             request['productType'] = productType;
-            response = await this.privateMixGetV2MixPositionHistoryPosition (this.extend (request, params));
+            response = await this.privateMixGetV2MixPositionHistoryPosition (this.extend (request, paramsPaginate));
         }
         //
         // privateMixGetV2MixPositionAllPosition
@@ -9025,8 +9012,8 @@ export default class bitget extends Exchange {
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i], market));
         }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -9160,8 +9147,8 @@ export default class bitget extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeIntegerN (position, [ 'cTime', 'ctime', 'createdTime' ]);
         let marginMode = this.safeString (position, 'marginMode');
         let collateral: Str = undefined;
@@ -9183,7 +9170,7 @@ export default class bitget extends Exchange {
         }
         const side = this.safeString2 (position, 'holdSide', 'posSide');
         const leverage = this.safeString (position, 'leverage');
-        const contractSizeNumber = this.safeNumber (market, 'contractSize');
+        const contractSizeNumber = this.safeNumber (marketResolved, 'contractSize');
         const contractSize = this.numberToString (contractSizeNumber);
         const baseAmount = this.safeString2 (position, 'total', 'openTotalPos');
         const entryPrice = this.safeStringN (position, [ 'openPriceAvg', 'openAvgPrice', 'avgPrice' ]);
@@ -9282,14 +9269,15 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         let response = undefined;
         let result: NullableList = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingRateHistory', false);
+        let paramsProductType = undefined;
+        [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
+        [ uta, paramsProductType ] = await this.handleUTAAndParams (paramsProductType, 'fetchFundingRateHistory', false);
         if (uta === true) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketHistoryFundRate (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketHistoryFundRate (this.extend (request, paramsProductType));
             //
             //     {
             //         "code": "00000",
@@ -9310,15 +9298,15 @@ export default class bitget extends Exchange {
             result = this.safeList (data, 'resultList', []);
         } else {
             let paginate = false;
-            [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+            [ paginate, paramsProductType ] = this.handleOptionBoolAndParams (paramsProductType, 'fetchFundingRateHistory', 'paginate', false);
             if (paginate) {
-                return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'pageNo', 100) as FundingRateHistory[];
+                return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, paramsProductType, 'pageNo', 100) as FundingRateHistory[];
             }
             if (limit !== undefined) {
                 request['pageSize'] = limit;
             }
             request['productType'] = productType;
-            response = await this.publicMixGetV2MixMarketHistoryFundRate (this.extend (request, params));
+            response = await this.publicMixGetV2MixMarketHistoryFundRate (this.extend (request, paramsProductType));
             //
             //     {
             //         "code": "00000",
@@ -9375,15 +9363,16 @@ export default class bitget extends Exchange {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        let paramsProductType = undefined;
+        [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
         let uta: Bool = undefined;
         let response = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingRate', false);
+        [ uta, paramsProductType ] = await this.handleUTAAndParams (paramsProductType, 'fetchFundingRate', false);
         if (uta === true) {
-            response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, paramsProductType));
             //
             //     {
             //         "code": "00000",
@@ -9404,9 +9393,9 @@ export default class bitget extends Exchange {
         } else {
             request['productType'] = productType;
             let method: Str = undefined;
-            [ method, params ] = this.handleOptionStringAndParams (params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
+            [ method, paramsProductType ] = this.handleOptionStringAndParams (paramsProductType, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
             if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
-                response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, params));
+                response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, paramsProductType));
                 //
                 //     {
                 //         "code": "00000",
@@ -9425,7 +9414,7 @@ export default class bitget extends Exchange {
                 //     }
                 //
             } else if (method === 'publicMixGetV2MixMarketFundingTime') {
-                response = await this.publicMixGetV2MixMarketFundingTime (this.extend (request, params));
+                response = await this.publicMixGetV2MixMarketFundingTime (this.extend (request, paramsProductType));
                 //
                 //     {
                 //         "code": "00000",
@@ -9468,13 +9457,12 @@ export default class bitget extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {};
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        let method = 'publicMixGetV2MixMarketTickers';
-        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchFundingRates', 'method', method);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
+        const method = 'publicMixGetV2MixMarketTickers';
+        const [ methodOption, paramsMethod ] = this.handleOptionStringAndParams (paramsProductType, 'fetchFundingRates', 'method', method);
         let response = undefined;
         request['productType'] = productType;
-        if (method === 'publicMixGetV2MixMarketTickers') {
+        if (methodOption === 'publicMixGetV2MixMarketTickers') {
             // {
             //     "code": "00000",
             //     "msg": "success",
@@ -9507,8 +9495,8 @@ export default class bitget extends Exchange {
             //         },
             //     ]
             // }
-            response = await this.publicMixGetV2MixMarketTickers (this.extend (request, params));
-        } else if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
+            response = await this.publicMixGetV2MixMarketTickers (this.extend (request, paramsMethod));
+        } else if (methodOption === 'publicMixGetV2MixMarketCurrentFundRate') {
             //
             //     {
             //         "code": "00000",
@@ -9526,11 +9514,11 @@ export default class bitget extends Exchange {
             //         ]
             //     }
             //
-            response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, params));
+            response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, paramsMethod));
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, symbols);
+        return this.parseFundingRates (data, symbolsNormalized);
     }
 
     /**
@@ -9547,8 +9535,8 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        params = this.extend ({ 'method': 'publicMixGetV2MixMarketCurrentFundRate' }, params);
-        return await this.fetchFundingRates (symbols, params);
+        const paramsExtended: Dict = this.extend ({ 'method': 'publicMixGetV2MixMarketCurrentFundRate' }, params);
+        return await this.fetchFundingRates (symbols, paramsExtended);
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -9661,35 +9649,34 @@ export default class bitget extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingHistory', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchFundingHistory', false);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (paramsUTA, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             if (uta === true) {
-                return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor') as FundingHistory[];
+                return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor') as FundingHistory[];
             }
-            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan') as FundingHistory[];
+            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'endId', 'idLessThan') as FundingHistory[];
         }
         const market = this.market (symbol);
         if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        let request: Dict = {};
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, paramsPaginate);
+        const request: Dict = {};
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsProductType);
         if (since !== undefined) {
-            request['startTime'] = since;
+            requestUntil['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
         let response = undefined;
         if (uta === true) {
-            request['coin'] = market['settleId'];
-            request['category'] = productType;
-            response = await this.privateUtaGetV3AccountFinancialRecords (this.extend (request, params));
+            requestUntil['coin'] = market['settleId'];
+            requestUntil['category'] = productType;
+            response = await this.privateUtaGetV3AccountFinancialRecords (this.extend (requestUntil, paramsUntil));
             //
             // {
             //     "code": "00000",
@@ -9714,11 +9701,11 @@ export default class bitget extends Exchange {
             // }
             //
         } else {
-            request['symbol'] = market['id'];
-            request['marginCoin'] = market['settleId'];
-            request['businessType'] = 'contract_settle_fee';
-            request['productType'] = productType;
-            response = await this.privateMixGetV2MixAccountBill (this.extend (request, params));
+            requestUntil['symbol'] = market['id'];
+            requestUntil['marginCoin'] = market['settleId'];
+            requestUntil['businessType'] = 'contract_settle_fee';
+            requestUntil['productType'] = productType;
+            response = await this.privateMixGetV2MixAccountBill (this.extend (requestUntil, paramsUntil));
             //
             //     {
             //         "code": "00000",
@@ -9814,8 +9801,7 @@ export default class bitget extends Exchange {
         }
         const holdSide = this.safeString (params, 'holdSide');
         const market = this.market (symbol);
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
@@ -9823,8 +9809,8 @@ export default class bitget extends Exchange {
             'holdSide': holdSide, // long or short
             'productType': productType,
         };
-        params = this.omit (params, 'holdSide');
-        const response = await this.privateMixPostV2MixAccountSetMargin (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (paramsProductType, 'holdSide');
+        const response = await this.privateMixPostV2MixAccountSetMargin (this.extend (request, paramsOmitted));
         //
         //     {
         //         "code": "00000",
@@ -9922,14 +9908,13 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'productType': productType,
         };
-        const response = await this.privateMixGetV2MixAccountAccount (this.extend (request, params));
+        const response = await this.privateMixGetV2MixAccountAccount (this.extend (request, paramsProductType));
         //
         //     {
         //         "code": "00000",
@@ -10004,25 +9989,26 @@ export default class bitget extends Exchange {
         }
         const market = this.market (symbol);
         let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        let paramsProductType = undefined;
+        [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
             'leverage': this.numberToString (leverage),
         };
         let uta: Bool = undefined;
         let response: Dict = {};
-        [ uta, params ] = await this.handleUTAAndParams (params, 'setLeverage', false);
+        [ uta, paramsProductType ] = await this.handleUTAAndParams (paramsProductType, 'setLeverage', false);
         if (uta === true) {
             if (productType === 'SPOT') {
                 let marginMode: Str = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+                [ marginMode, paramsProductType ] = this.handleMarginModeAndParams ('setLeverage', paramsProductType);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 }
             }
             request['coin'] = market['settleId'];
             request['category'] = productType;
-            response = await this.privateUtaPostV3AccountSetLeverage (this.extend (request, params));
+            response = await this.privateUtaPostV3AccountSetLeverage (this.extend (request, paramsProductType));
             //
             //     {
             //         "code": "00000",
@@ -10034,7 +10020,7 @@ export default class bitget extends Exchange {
         } else {
             request['marginCoin'] = market['settleId'];
             request['productType'] = productType;
-            response = await this.privateMixPostV2MixAccountSetLeverage (this.extend (request, params));
+            response = await this.privateMixPostV2MixAccountSetLeverage (this.extend (request, paramsProductType));
             //
             //     {
             //         "code": "00000",
@@ -10068,26 +10054,25 @@ export default class bitget extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginMode = marginMode.toLowerCase ();
-        if (marginMode === 'cross') {
-            marginMode = 'crossed';
+        let marginModeValue: string = marginMode.toLowerCase ();
+        if (marginModeValue === 'cross') {
+            marginModeValue = 'crossed';
         }
-        if ((marginMode !== 'isolated') && (marginMode !== 'crossed')) {
+        if ((marginModeValue !== 'isolated') && (marginModeValue !== 'crossed')) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either isolated or crossed (cross)');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'marginMode': marginMode,
+            'marginMode': marginModeValue,
             'productType': productType,
         };
-        const response = await this.privateMixPostV2MixAccountSetMarginMode (this.extend (request, params));
+        const response = await this.privateMixPostV2MixAccountSetMarginMode (this.extend (request, paramsProductType));
         //
         //     {
         //         "code": "00000",
@@ -10131,14 +10116,12 @@ export default class bitget extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let productType: Str = undefined;
-        let uta: Bool = undefined;
         let response: Dict = {};
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = await this.handleUTAAndParams (params, 'setPositionMode', false);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'setPositionMode', false);
         if (uta === true) {
             request['holdMode'] = posMode;
-            response = await this.privateUtaPostV3AccountSetHoldMode (this.extend (request, params));
+            response = await this.privateUtaPostV3AccountSetHoldMode (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -10150,7 +10133,7 @@ export default class bitget extends Exchange {
         } else {
             request['posMode'] = posMode;
             request['productType'] = productType;
-            response = await this.privateMixPostV2MixAccountSetPositionMode (this.extend (request, params));
+            response = await this.privateMixPostV2MixAccountSetPositionMode (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -10184,17 +10167,15 @@ export default class bitget extends Exchange {
         if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
-        let uta: Bool = undefined;
         let response = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOpenInterest', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'fetchOpenInterest', false);
         if (uta === true) {
             request['category'] = productType;
-            response = await this.publicUtaGetV3MarketOpenInterest (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketOpenInterest (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -10213,7 +10194,7 @@ export default class bitget extends Exchange {
             //
         } else {
             request['productType'] = productType;
-            response = await this.publicMixGetV2MixMarketOpenInterest (this.extend (request, params));
+            response = await this.publicMixGetV2MixMarketOpenInterest (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -10294,9 +10275,10 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
-        const fromAccount = this.safeString (params, 'fromAccount', type);
-        params = this.omit (params, 'fromAccount');
+        let paramsMarketType = undefined;
+        [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
+        const fromAccount = this.safeString (paramsMarketType, 'fromAccount', type);
+        paramsMarketType = this.omit (paramsMarketType, 'fromAccount');
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         type = this.safeString (accountsByType, fromAccount);
         const currency = this.currency (code);
@@ -10310,8 +10292,8 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.privateSpotGetV2SpotAccountTransferRecords (this.extend (request, params));
+        [ request, paramsMarketType ] = this.handleUntilOption ('endTime', request, paramsMarketType);
+        const response = await this.privateSpotGetV2SpotAccountTransferRecords (this.extend (request, paramsMarketType));
         //
         //     {
         //         "code": "00000",
@@ -10357,8 +10339,7 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let uta = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'transfer', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'transfer', false);
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromType = this.safeString (accountsByType, fromAccount);
@@ -10369,8 +10350,8 @@ export default class bitget extends Exchange {
             'amount': amount,
             'coin': currency['id'],
         };
-        const symbol = this.safeString (params, 'symbol');
-        params = this.omit (params, 'symbol');
+        const symbol = this.safeString (paramsUTA, 'symbol');
+        const paramsOmitted: Dict = this.omit (paramsUTA, 'symbol');
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -10378,9 +10359,9 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         if (uta === true) {
-            response = await this.privateUtaPostV3AccountTransfer (this.extend (request, params));
+            response = await this.privateUtaPostV3AccountTransfer (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privateSpotPostV2SpotWalletTransfer (this.extend (request, params));
+            response = await this.privateSpotPostV2SpotWalletTransfer (this.extend (request, paramsOmitted));
         }
         //
         //     {
@@ -10783,40 +10764,39 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyLiquidations', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyLiquidations', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchMyLiquidations', symbol, since, limit, params, 'minId', 'idLessThan') as Liquidation[];
+            return await this.fetchPaginatedCallCursor ('fetchMyLiquidations', symbol, since, limit, paramsPaginate, 'minId', 'idLessThan') as Liquidation[];
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, paramsPaginate);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchMyLiquidations() supports spot margin markets only');
         }
-        let request: Dict = {};
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const request: Dict = {};
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsMarketType);
         if (since !== undefined) {
-            request['startTime'] = since;
+            requestUntil['startTime'] = since;
         } else {
-            request['startTime'] = this.milliseconds () - 7776000000;
+            requestUntil['startTime'] = this.milliseconds () - 7776000000;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            requestUntil['limit'] = limit;
         }
         let response = undefined;
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyLiquidations', params, 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchMyLiquidations', paramsUntil, 'cross');
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyLiquidations() requires a symbol argument');
             }
-            request['symbol'] = this.safeString (market, 'id');
-            response = await this.privateMarginGetV2MarginIsolatedLiquidationHistory (this.extend (request, params));
+            requestUntil['symbol'] = this.safeString (market, 'id');
+            response = await this.privateMarginGetV2MarginIsolatedLiquidationHistory (this.extend (requestUntil, paramsMarginMode));
         } else if (marginMode === 'cross') {
-            response = await this.privateMarginGetV2MarginCrossedLiquidationHistory (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginCrossedLiquidationHistory (this.extend (requestUntil, paramsMarginMode));
         }
         //
         // isolated
@@ -11062,12 +11042,11 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'coin': currency['id'],
         };
-        let uta: Bool = undefined;
         let response = undefined;
         let result: Dict = {};
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchCrossBorrowRate', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchCrossBorrowRate', false);
         if (uta === true) {
-            response = await this.publicUtaGetV3MarketMarginLoans (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketMarginLoans (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -11082,7 +11061,7 @@ export default class bitget extends Exchange {
             //
             result = this.safeDict (response, 'data', {});
         } else {
-            response = await this.privateMarginGetV2MarginCrossedInterestRateAndLimit (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginCrossedInterestRateAndLimit (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -11178,9 +11157,10 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchBorrowInterest', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchBorrowInterest', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchBorrowInterest', symbol, since, limit, params, 'minId', 'idLessThan') as BorrowInterest[];
+            return await this.fetchPaginatedCallCursor ('fetchBorrowInterest', symbol, since, limit, paramsPaginate, 'minId', 'idLessThan') as BorrowInterest[];
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -11201,16 +11181,15 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params, 'cross');
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBorrowInterest', paramsPaginate, 'cross');
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');
             }
             request['symbol'] = this.safeString (market, 'id');
-            response = await this.privateMarginGetV2MarginIsolatedInterestHistory (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginIsolatedInterestHistory (this.extend (request, paramsMarginMode));
         } else if (marginMode === 'cross') {
-            response = await this.privateMarginGetV2MarginCrossedInterestHistory (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginCrossedInterestHistory (this.extend (request, paramsMarginMode));
         }
         //
         // isolated
@@ -11298,7 +11277,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const marketId = this.safeString (info, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         let marginMode: Str = 'cross';
         if (marketId !== undefined) {
             marginMode = 'isolated';
@@ -11306,7 +11285,7 @@ export default class bitget extends Exchange {
         const timestamp = this.safeInteger (info, 'cTime');
         return {
             'info': info,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'currency': this.safeCurrencyCode (this.safeString (info, 'interestCoin')),
             'interest': this.safeNumber (info, 'interestAmount'),
             'interestRate': this.safeNumber (info, 'dailyInterestRate'),
@@ -11337,17 +11316,15 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let productType: Str = undefined;
-        let uta: Bool = undefined;
         let response = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = await this.handleUTAAndParams (params, 'closePosition', false);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'closePosition', false);
         if (uta === true) {
             if (side !== undefined) {
                 request['posSide'] = side;
             }
             request['category'] = productType;
-            response = await this.privateUtaPostV3TradeClosePositions (this.extend (request, params));
+            response = await this.privateUtaPostV3TradeClosePositions (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -11368,7 +11345,7 @@ export default class bitget extends Exchange {
                 request['holdSide'] = side;
             }
             request['productType'] = productType;
-            response = await this.privateMixPostV2MixOrderClosePositions (this.extend (request, params));
+            response = await this.privateMixPostV2MixOrderClosePositions (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -11408,14 +11385,12 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        let productType: Str = undefined;
-        let uta: Bool = undefined;
         let response = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
-        [ uta, params ] = await this.handleUTAAndParams (params, 'closeAllPositions', false);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (undefined, params);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'closeAllPositions', false);
         if (uta === true) {
             request['category'] = productType;
-            response = await this.privateUtaPostV3TradeClosePositions (this.extend (request, params));
+            response = await this.privateUtaPostV3TradeClosePositions (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -11433,7 +11408,7 @@ export default class bitget extends Exchange {
             //
         } else {
             request['productType'] = productType;
-            response = await this.privateMixPostV2MixOrderClosePositions (this.extend (request, params));
+            response = await this.privateMixPostV2MixOrderClosePositions (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -11454,7 +11429,7 @@ export default class bitget extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const orderInfo = this.safeList2 (data, 'successList', 'list', []);
-        return this.parsePositions (orderInfo, undefined, params);
+        return this.parsePositions (orderInfo, undefined, paramsUTA);
     }
 
     /**
@@ -11471,14 +11446,13 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'productType': productType,
         };
-        const response = await this.privateMixGetV2MixAccountAccount (this.extend (request, params));
+        const response = await this.privateMixGetV2MixAccountAccount (this.extend (request, paramsProductType));
         //
         //     {
         //         "code": "00000",
@@ -11540,10 +11514,8 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
-        let productType: Str = undefined;
-        let uta: Bool = undefined;
         let response = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -11558,12 +11530,12 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPositionsHistory', false);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, paramsUntil);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'fetchPositionsHistory', false);
         if (uta === true) {
-            request['category'] = productType;
-            response = await this.privateUtaGetV3PositionHistoryPosition (this.extend (request, params));
+            requestUntil['category'] = productType;
+            response = await this.privateUtaGetV3PositionHistoryPosition (this.extend (requestUntil, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -11597,7 +11569,7 @@ export default class bitget extends Exchange {
             //     }
             //
         } else {
-            response = await this.privateMixGetV2MixPositionHistoryPosition (this.extend (request, params));
+            response = await this.privateMixGetV2MixPositionHistoryPosition (this.extend (requestUntil, paramsUTA));
             //
             //    {
             //        code: '00000',
@@ -11630,7 +11602,7 @@ export default class bitget extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const responseList = this.safeList (data, 'list', []);
-        const positions = this.parsePositions (responseList, symbols, params);
+        const positions = this.parsePositions (responseList, symbols, paramsUTA);
         return this.filterBySinceLimit (positions, since, limit);
     }
 
@@ -11705,7 +11677,7 @@ export default class bitget extends Exchange {
         if (toAmount === undefined) {
             throw new ArgumentsRequired (this.id + ' createConvertTrade() requires a toAmount parameter');
         }
-        params = this.omit (params, [ 'price', 'toAmount' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'price', 'toAmount' ]);
         const request: Dict = {
             'traceId': id,
             'fromCoin': fromCode,
@@ -11714,7 +11686,7 @@ export default class bitget extends Exchange {
             'toCoinSize': toAmount,
             'cnvtPrice': price,
         };
-        const response = await this.privateConvertPostV2ConvertTrade (this.extend (request, params));
+        const response = await this.privateConvertPostV2ConvertTrade (this.extend (request, paramsOmitted));
         //
         //     {
         //         "code": "00000",
@@ -11766,8 +11738,8 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        params = this.omit (params, 'until');
-        const response = await this.privateConvertGetV2ConvertConvertRecord (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'until');
+        const response = await this.privateConvertGetV2ConvertConvertRecord (this.extend (request, paramsOmitted));
         //
         //     {
         //         "code": "00000",
@@ -11929,21 +11901,19 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingInterval (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let productType: Str = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
         let response = undefined;
-        let uta: Bool = undefined;
-        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingInterval', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsProductType, 'fetchFundingInterval', false);
         if (uta === true) {
-            response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, params));
+            response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -11963,7 +11933,7 @@ export default class bitget extends Exchange {
             //
         } else {
             request['productType'] = productType;
-            response = await this.publicMixGetV2MixMarketFundingTime (this.extend (request, params));
+            response = await this.publicMixGetV2MixMarketFundingTime (this.extend (request, paramsUTA));
             //
             //     {
             //         "code": "00000",
@@ -12126,13 +12096,15 @@ export default class bitget extends Exchange {
                 url = url + '?' + this.urlencode (query);
             }
         }
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (signed) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             let auth = timestamp + method + payload;
             if (method === 'POST') {
-                body = this.json (params);
-                auth += body;
+                requestBody = this.json (params);
+                auth += requestBody;
             } else {
                 if (Object.keys (params).length > 0) {
                     const sortedParams = this.keysort (params);
@@ -12151,7 +12123,7 @@ export default class bitget extends Exchange {
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             const broker = this.safeString (this.options, 'broker');
-            headers = {
+            requestHeaders = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
@@ -12159,20 +12131,22 @@ export default class bitget extends Exchange {
                 'X-CHANNEL-API-CODE': broker,
             };
             if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
             }
         }
+        let headersResult: NullableDict = (requestHeaders === undefined) ? headers : requestHeaders;
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if ((sandboxMode === true) && (path !== 'v2/public/time') && (path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
-            if (headers === undefined) {
-                headers = {};
+            if (headersResult === undefined) {
+                headersResult = {};
             }
             const productType = this.safeString (params, 'productType');
             if ((productType !== 'SCOIN-FUTURES') && (productType !== 'SUSDT-FUTURES') && (productType !== 'SUSDC-FUTURES')) {
-                headers['PAPTRADING'] = '1';
+                headersResult['PAPTRADING'] = '1';
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResult = (requestBody === undefined) ? body : requestBody;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 }

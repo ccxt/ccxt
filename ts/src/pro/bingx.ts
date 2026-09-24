@@ -105,8 +105,9 @@ export default class bingx extends bingxRest {
         let marketType: Str = undefined;
         let subType: Str = undefined;
         let url: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
-        [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params, 'linear');
+        let query = undefined;
+        [ marketType, query ] = this.handleMarketTypeAndParams (methodName, market, params);
+        [ subType, query ] = this.handleSubTypeAndParams (methodName, market, query, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -130,12 +131,12 @@ export default class bingx extends bingxRest {
             'symbols': symbols,
             'topic': topic,
         };
-        const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
+        const symbolsAndTimeframes = this.safeList (query, 'symbolsAndTimeframes');
         if (symbolsAndTimeframes !== undefined) {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
-            params = this.omit (params, 'symbolsAndTimeframes');
+            query = this.omit (query, 'symbolsAndTimeframes');
         }
-        return await this.watch ((url as string), messageHash, this.extend (request, params), subscribeHash, subscription);
+        return await this.watch ((url as string), messageHash, this.extend (request, query), subscribeHash, subscription);
     }
 
     /**
@@ -154,11 +155,9 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let marketType: Str = undefined;
-        let subType: Str = undefined;
         let url: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchTicker', market, params, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchTicker', market, paramsMarketType, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -178,7 +177,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        return await this.watch ((url as string), messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.watch ((url as string), messageHash, this.extend (request, paramsSubType), messageHash, subscription);
     }
 
     /**
@@ -192,7 +191,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -307,15 +306,20 @@ export default class bingx extends bingxRest {
         //
         const timestamp = this.safeInteger (message, 'C');
         const marketId = this.safeString (message, 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const close = this.safeString (message, 'c');
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        const inverse = (isInverse === undefined) ? (market['inverse'] === true) : isInverse;
+        let inverse: boolean = false;
+        if (isInverse === undefined) {
+            inverse = marketResolved['inverse'] === true;
+        } else {
+            inverse = isInverse;
+        }
         const baseVolumeKey = inverse ? 'm' : 'v';
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (message, 'h'),
@@ -335,18 +339,17 @@ export default class bingx extends bingxRest {
             'baseVolume': this.safeString (message, baseVolumeKey),
             'quoteVolume': this.safeString (message, 'q'),
             'info': message,
-        }, market);
+        }, marketResolved);
     }
 
     getOrderBookLimitByMarketType (marketType: string, limit: Int = undefined) {
         if (limit === undefined) {
-            limit = 100;
-        } else {
-            if (marketType === 'swap' || marketType === 'future') {
-                limit = this.findNearestCeiling ([ 5, 10, 20, 50, 100 ], limit);
-            } else if (marketType === 'spot') {
-                limit = this.findNearestCeiling ([ 20, 100 ], limit);
-            }
+            return 100;
+        }
+        if (marketType === 'swap' || marketType === 'future') {
+            return this.findNearestCeiling ([ 5, 10, 20, 50, 100 ], limit);
+        } else if (marketType === 'spot') {
+            return this.findNearestCeiling ([ 20, 100 ], limit);
         }
         return limit;
     }
@@ -382,19 +385,17 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        let marketType: Str = undefined;
-        let subType: Str = undefined;
+        const symbolValue: string = market['symbol'];
         let url: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchTrades', market, params, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchTrades', market, paramsMarketType, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const rawHash = market['id'] + '@trade';
-        const messageHash = 'trade::' + symbol;
+        const messageHash = 'trade::' + symbolValue;
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
@@ -407,11 +408,12 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const trades = await this.watch (url, messageHash, this.extend (request, paramsSubType), messageHash, subscription);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
         if (this.handleOption ('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray (result);
             filtered = this.sortBy (filtered, 'timestamp');
@@ -432,7 +434,7 @@ export default class bingx extends bingxRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -573,11 +575,9 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let marketType: Str = undefined;
-        let subType: Str = undefined;
         let url: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOrderBook', market, params, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchOrderBook', market, paramsMarketType, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -601,17 +601,17 @@ export default class bingx extends bingxRest {
                 'id': uuid,
                 'unsubscribe': false,
                 'count': limit,
-                'params': params,
+                'params': paramsSubType,
             };
         } else {
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': false,
                 'level': limit,
-                'params': params,
+                'params': paramsSubType,
             };
         }
-        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscriptionArgs);
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, paramsSubType), subscriptionHash, subscriptionArgs);
         return orderbook.limit ();
     }
 
@@ -626,7 +626,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -928,11 +928,9 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let marketType: Str = undefined;
-        let subType: Str = undefined;
         let url: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOHLCV', market, params, 'linear');
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchOHLCV', market, paramsMarketType, 'linear');
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -958,14 +956,15 @@ export default class bingx extends bingxRest {
             'id': uuid,
             'unsubscribe': false,
             'interval': rawTimeframe,
-            'params': params,
+            'params': paramsSubType,
         };
-        const result = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash, subscriptionArgs);
+        const result = await this.watch (url, messageHash, this.extend (request, paramsSubType), subscriptionHash, subscriptionArgs);
         const ohlcv = result[2];
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -1015,15 +1014,10 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        let type: Str = undefined;
-        let subType: Str = undefined;
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params, 'linear');
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const subType = this.handleSubTypeAndParams ('watchOrders', market, paramsMarketType, 'linear')[0];
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1038,7 +1032,7 @@ export default class bingx extends bingxRest {
             messageHash = spotMessageHash;
         }
         if (market !== undefined) {
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
@@ -1062,10 +1056,11 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const orders = await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1086,15 +1081,10 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        let type: Str = undefined;
-        let subType: Str = undefined;
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', market, params, 'linear');
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        const subType = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType, 'linear')[0];
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1109,7 +1099,7 @@ export default class bingx extends bingxRest {
             messageHash = spotMessageHash;
         }
         if (market !== undefined) {
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
@@ -1133,10 +1123,11 @@ export default class bingx extends bingxRest {
             'id': uuid,
         };
         const trades = await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1154,10 +1145,8 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        let type: Str = undefined;
-        let subType: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params, 'linear');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchBalance', undefined, paramsMarketType, 'linear');
         const isSpot = (type === 'spot');
         const spotSubHash = 'spot:balance';
         const swapSubHash = 'swap:private';
@@ -1190,11 +1179,9 @@ export default class bingx extends bingxRest {
         }
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
         const client = this.client (url);
-        this.setBalanceCache (client, type, subType, subscriptionHash, params);
-        let fetchBalanceSnapshot: Bool = undefined;
-        let awaitBalanceSnapshot: Bool = undefined;
-        [ fetchBalanceSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        [ awaitBalanceSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        this.setBalanceCache (client, type, subType, subscriptionHash, paramsSubType);
+        const [ fetchBalanceSnapshot, paramsFetchBalanceSnapshot ] = this.handleOptionBoolAndParams (paramsSubType, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const awaitBalanceSnapshot = this.handleOptionBoolAndParams (paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
@@ -1209,8 +1196,7 @@ export default class bingx extends bingxRest {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        let fetchBalanceSnapshot = false;
-        [ fetchBalanceSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const fetchBalanceSnapshot = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1251,15 +1237,13 @@ export default class bingx extends bingxRest {
         await this.authenticate ();
         let market: Market = undefined;
         let messageHash = '';
-        symbols = this.marketSymbols (symbols);
-        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
-            market = this.getMarketFromSymbols (symbols);
-            messageHash = '::' + symbols.join (',');
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if ((symbolsNormalized !== undefined) && !this.isEmpty (symbolsNormalized)) {
+            market = this.getMarketFromSymbols (symbolsNormalized);
+            messageHash = '::' + symbolsNormalized.join (',');
         }
-        let type: Str = undefined;
-        let subType: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params, 'swap');
-        [ subType, params ] = this.handleSubTypeAndParams ('watchPositions', market, params, 'linear');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchPositions', market, params, 'swap');
+        const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchPositions', market, paramsMarketType, 'linear');
         if (type === 'spot') {
             throw new NotSupported (this.id + ' watchPositions is not supported for spot markets');
         }
@@ -1271,11 +1255,9 @@ export default class bingx extends bingxRest {
         const baseUrl = this.safeString (this.urls['api']['ws'], subType);
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
         const client = this.client (url);
-        this.setPositionsCache (client, type, symbols);
-        let fetchPositionsSnapshot: Bool = undefined;
-        let awaitPositionsSnapshot: Bool = undefined;
-        [ fetchPositionsSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
-        [ awaitPositionsSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'awaitPositionsSnapshot', false);
+        this.setPositionsCache (client, type, symbolsNormalized);
+        const [ fetchPositionsSnapshot, paramsFetchPositionsSnapshot ] = this.handleOptionBoolAndParams (paramsSubType, 'watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOptionBoolAndParams (paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false)[0];
         const uuid = this.uuid ();
         const subscription: Dict = {
             'unsubscribe': false,
@@ -1283,13 +1265,13 @@ export default class bingx extends bingxRest {
         };
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const newPositions = await this.watch (url, messageHash, undefined, subscriptionHash, subscription);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, type: Str, symbols: Strings = undefined) {

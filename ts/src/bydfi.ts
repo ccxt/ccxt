@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -708,13 +708,11 @@ export default class bydfi extends Exchange {
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate === true) {
             const maxLimit = 500;
-            params = this.omit (params, 'paginate');
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'fetchMyTrades', 'contractType', contractType);
+        const [ contractType, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchMyTrades', 'contractType', 'FUTURE');
         const request: Dict = {
             'contractType': contractType,
         };
@@ -723,11 +721,11 @@ export default class bydfi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil ('fetchMyTrades', since, params);
+        const paramsSinceUntil = this.handleSinceAndUntil ('fetchMyTrades', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1FapiTradeHistoryTrade (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradeHistoryTrade (this.extend (request, paramsSinceUntil));
         //
         //     {
         //         "code": 200,
@@ -790,7 +788,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
         let fee: FeeString = undefined;
         const rawType = this.safeString (trade, 'type');
@@ -798,7 +796,7 @@ export default class bydfi extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['settle'],
+                'currency': marketResolved['settle'],
             };
         }
         const orderId = this.safeString (trade, 'orderId');
@@ -811,7 +809,7 @@ export default class bydfi extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': this.safeString (trade, 'id'),
             'order': orderId,
             'type': this.parseTradeType (rawType),
@@ -821,7 +819,7 @@ export default class bydfi extends Exchange {
             'amount': this.safeString2 (trade, 'quantity', 'dealVolume'),
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     parseTradeType (type: Str): Str {
@@ -852,9 +850,10 @@ export default class bydfi extends Exchange {
         }
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+            return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -865,7 +864,8 @@ export default class bydfi extends Exchange {
         let startTime = since;
         const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        let paramsUntil = undefined;
+        [ until, paramsUntil ] = this.handleOptionAndParams (paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
         const timeDelta = duration * numberOfCandles;
@@ -888,7 +888,7 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetV1FapiMarketKlines (this.extend (request, params));
+        const response = await this.publicGetV1FapiMarketKlines (this.extend (request, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -1007,11 +1007,11 @@ export default class bydfi extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (ticker, 'symbol', 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (ticker, 'time', 'E');
         const last = this.safeString2 (ticker, 'last', 'c');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, marketResolved),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString2 (ticker, 'high', 'h'),
@@ -1033,7 +1033,7 @@ export default class bydfi extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1045,7 +1045,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1135,12 +1135,11 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        const [ until, paramsUntil ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicGetV1FapiMarketFundingRateHistory (this.extend (request, params));
+        const response = await this.publicGetV1FapiMarketFundingRateHistory (this.extend (request, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -1211,9 +1210,9 @@ export default class bydfi extends Exchange {
         }
         const market = this.market (symbol);
         let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'wallet', wallet);
-        orderRequest = this.extend (orderRequest, { 'wallet': wallet });
+        const wallet = 'W001';
+        const walletOption = this.handleOptionStringAndParams (params, 'createOrder', 'wallet', wallet)[0];
+        orderRequest = this.extend (orderRequest, { 'wallet': walletOption });
         const response = await this.privatePostV1FapiTradePlaceOrder (orderRequest);
         //
         //     {
@@ -1283,78 +1282,82 @@ export default class bydfi extends Exchange {
         const trailingPercent = this.safeString (params, 'trailingPercent');
         const isTailingStopOrder = (trailingPercent !== undefined);
         let stopPrice: Str = undefined;
-        if (isStopLossOrder || isTakeProfitOrder) {
+        const isStopOrTakeProfit = isStopLossOrder || isTakeProfitOrder;
+        let query: Dict = params;
+        if (isStopOrTakeProfit) {
+            query = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+        }
+        if (isStopOrTakeProfit) {
             stopPrice = isStopLossOrder ? stopLossPrice : takeProfitPrice;
-            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         } else if (isTailingStopOrder) {
-            params = this.omit (params, [ 'trailingPercent' ]);
+            query = this.omit (query, [ 'trailingPercent' ]);
             request['callbackRate'] = trailingPercent;
             let trailingTriggerPrice = this.numberToString (price);
-            [ trailingTriggerPrice, params ] = this.handleParamString (params, 'trailingTriggerPrice', trailingTriggerPrice);
+            [ trailingTriggerPrice, query ] = this.handleParamString (query, 'trailingTriggerPrice', trailingTriggerPrice);
             if (trailingTriggerPrice !== undefined) {
                 request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
-                params = this.omit (params, [ 'trailingTriggerPrice' ]);
+                query = this.omit (query, [ 'trailingTriggerPrice' ]);
             }
         }
-        type = type.toUpperCase ();
-        const isMarketOrder = ((type === 'MARKET') || (type === 'STOP_MARKET') || (type === 'TAKE_PROFIT_MARKET') || (type === 'TRAILING_STOP_MARKET'));
+        let typeValue = type.toUpperCase ();
+        const isMarketOrder = ((typeValue === 'MARKET') || (typeValue === 'STOP_MARKET') || (typeValue === 'TAKE_PROFIT_MARKET') || (typeValue === 'TRAILING_STOP_MARKET'));
         if (isMarketOrder) {
-            if (type === 'MARKET') {
+            if (typeValue === 'MARKET') {
                 if (isStopLossOrder) {
-                    type = 'STOP_MARKET';
+                    typeValue = 'STOP_MARKET';
                 } else if (isTakeProfitOrder) {
-                    type = 'TAKE_PROFIT_MARKET';
+                    typeValue = 'TAKE_PROFIT_MARKET';
                 } else if (isTailingStopOrder) {
-                    type = 'TRAILING_STOP_MARKET';
+                    typeValue = 'TRAILING_STOP_MARKET';
                 }
             }
         } else {
             if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + typeValue + ' order');
             }
             request['price'] = this.priceToPrecision (symbol, price);
             if (isStopLossOrder) {
-                type = 'STOP';
+                typeValue = 'STOP';
             } else if (isTakeProfitOrder) {
-                type = 'TAKE_PROFIT';
+                typeValue = 'TAKE_PROFIT';
             }
         }
-        request['type'] = type;
+        request['type'] = typeValue;
         let hedged = false;
-        [ hedged, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'hedged', hedged);
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        [ hedged, query ] = this.handleOptionBoolAndParams (query, 'createOrder', 'hedged', hedged);
+        const reduceOnly = this.safeBool (query, 'reduceOnly', false);
         if (hedged) {
-            params = this.omit (params, 'reduceOnly');
+            query = this.omit (query, 'reduceOnly');
             if (side === 'buy') {
                 request['positionSide'] = (reduceOnly === true) ? 'SHORT' : 'LONG';
             } else if (side === 'sell') {
                 request['positionSide'] = (reduceOnly === true) ? 'LONG' : 'SHORT';
             }
         }
-        const closePosition = this.safeBool (params, 'closePosition', false);
+        const closePosition = this.safeBool (query, 'closePosition', false);
         if (closePosition !== true) {
-            params = this.omit (params, 'closePosition');
+            query = this.omit (query, 'closePosition');
             request['quantity'] = this.amountToPrecision (symbol, amount);
-        } else if ((type !== 'STOP_MARKET') && (type !== 'TAKE_PROFIT_MARKET')) {
+        } else if ((typeValue !== 'STOP_MARKET') && (typeValue !== 'TAKE_PROFIT_MARKET')) {
             throw new NotSupported (this.id + ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
         }
-        let timeInForce = this.handleTimeInForce (params);
+        let timeInForce = this.handleTimeInForce (query);
         let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'POST_ONLY', params);
+        [ postOnly, query ] = this.handlePostOnly (isMarketOrder, timeInForce === 'POST_ONLY', query);
         if (postOnly) {
             timeInForce = 'POST_ONLY';
         }
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
-            params = this.omit (params, 'timeInForce');
+            query = this.omit (query, 'timeInForce');
         }
         if (isStopLossOrder || isTakeProfitOrder || isTailingStopOrder) {
             let workingType = 'CONTRACT_PRICE';
-            [ workingType, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'triggerPriceType', workingType);
+            [ workingType, query ] = this.handleOptionStringAndParams (query, 'createOrder', 'triggerPriceType', workingType);
             request['workingType'] = this.encodeWorkingType (workingType);
         }
-        return this.extend (request, params);
+        return this.extend (request, query);
     }
 
     encodeWorkingType (workingType: Str): Str {
@@ -1398,13 +1401,13 @@ export default class bydfi extends Exchange {
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'createOrder', 'wallet', wallet);
         const request: Dict = {
-            'wallet': wallet,
+            'wallet': walletOption,
             'orders': ordersRequests,
         };
-        const response = await this.privatePostV1FapiTradeBatchPlaceOrder (this.extend (request, params));
+        const response = await this.privatePostV1FapiTradeBatchPlaceOrder (this.extend (request, paramsWallet));
         const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data);
     }
@@ -1430,9 +1433,9 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const request = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, params);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'editOrder', 'wallet', wallet);
-        request['wallet'] = wallet;
+        const wallet = 'W001';
+        const walletOption = this.handleOptionStringAndParams (params, 'editOrder', 'wallet', wallet)[0];
+        request['wallet'] = walletOption;
         const response = await this.privatePostV1FapiTradeEditOrder (request);
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
@@ -1468,13 +1471,13 @@ export default class bydfi extends Exchange {
             const orderRequest = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'editOrder', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'editOrder', 'wallet', wallet);
         const request: Dict = {
-            'wallet': wallet,
+            'wallet': walletOption,
             'editOrders': ordersRequests,
         };
-        const response = await this.privatePostV1FapiTradeBatchEditOrder (this.extend (request, params));
+        const response = await this.privatePostV1FapiTradeBatchEditOrder (this.extend (request, paramsWallet));
         const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data);
     }
@@ -1519,13 +1522,13 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'cancelAllOrders', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'cancelAllOrders', 'wallet', wallet);
         const request: Dict = {
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privatePostV1FapiTradeCancelAllOrder (this.extend (request, params));
+        const response = await this.privatePostV1FapiTradeCancelAllOrder (this.extend (request, paramsWallet));
         //
         //     {
         //         "code": 200,
@@ -1584,16 +1587,16 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'fetchOpenOrders', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'fetchOpenOrders', 'wallet', wallet);
         const request: Dict = {
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
         let response: Dict;
-        let trigger = false;
-        [ trigger, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'trigger', trigger);
-        if (!trigger) {
+        const trigger = false;
+        const [ triggerOption, paramsTrigger ] = this.handleOptionBoolAndParams (paramsWallet, 'fetchOpenOrders', 'trigger', trigger);
+        if (!triggerOption) {
             //
             //     {
             //         "code": 200,
@@ -1626,9 +1629,9 @@ export default class bydfi extends Exchange {
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1FapiTradeOpenOrder (this.extend (request, params));
+            response = await this.privateGetV1FapiTradeOpenOrder (this.extend (request, paramsTrigger));
         } else {
-            response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
+            response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, paramsTrigger));
         }
         const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
@@ -1665,16 +1668,16 @@ export default class bydfi extends Exchange {
         } else if (id !== undefined) {
             request['orderId'] = id;
         }
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'fetchOpenOrder', 'wallet', wallet);
-        request['wallet'] = wallet;
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'fetchOpenOrder', 'wallet', wallet);
+        request['wallet'] = walletOption;
         let response: Dict;
-        let trigger = false;
-        [ trigger, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrder', 'trigger', trigger);
-        if (!trigger) {
-            response = await this.privateGetV1FapiTradeOpenOrder (this.extend (request, params));
+        const trigger = false;
+        const [ triggerOption, paramsTrigger ] = this.handleOptionBoolAndParams (paramsWallet, 'fetchOpenOrder', 'trigger', trigger);
+        if (!triggerOption) {
+            response = await this.privateGetV1FapiTradeOpenOrder (this.extend (request, paramsTrigger));
         } else {
-            response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
+            response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, paramsTrigger));
         }
         const data = this.safeList (response, 'data', []);
         const order = this.safeDict (data, 0, {});
@@ -1703,13 +1706,11 @@ export default class bydfi extends Exchange {
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate === true) {
             const maxLimit = 500;
-            params = this.omit (params, 'paginate');
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'fetchCanceledAndClosedOrders', 'contractType', contractType);
+        const [ contractType, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchCanceledAndClosedOrders', 'contractType', 'FUTURE');
         const request: Dict = {
             'contractType': contractType,
         };
@@ -1718,11 +1719,11 @@ export default class bydfi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil ('fetchCanceledAndClosedOrders', since, params);
+        const paramsSinceUntil = this.handleSinceAndUntil ('fetchCanceledAndClosedOrders', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1FapiTradeHistoryOrder (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradeHistoryOrder (this.extend (request, paramsSinceUntil));
         //
         //     {
         //         "code": 200,
@@ -1774,7 +1775,8 @@ export default class bydfi extends Exchange {
 
     handleSinceAndUntil (methodName: string, since: Int = undefined, params: Dict = {}): Dict {
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
+        let paramsUntil = undefined;
+        [ until, paramsUntil ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
@@ -1800,7 +1802,7 @@ export default class bydfi extends Exchange {
             'startTime': startTime,
             'endTime': until,
         };
-        return this.extend (request, params);
+        return this.extend (request, paramsUntil);
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1869,7 +1871,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'createTime', 'ctime');
         const rawType = this.safeString (order, 'orderType');
         const stopPrice = this.safeStringN (order, [ 'stopPrice', 'activatePrice', 'triggerPrice' ]);
@@ -1877,7 +1879,7 @@ export default class bydfi extends Exchange {
         const isTakeProfitOrder = (rawType === 'TAKE_PROFIT') || (rawType === 'TAKE_PROFIT_MARKET');
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseOrderTimeInForce (rawTimeInForce);
-        let postOnly: Bool = undefined;
+        let postOnly = false;
         if (timeInForce === 'PO') {
             postOnly = true;
         }
@@ -1886,7 +1888,7 @@ export default class bydfi extends Exchange {
         const quoteFee = this.safeNumber (order, 'quoteFee');
         if (quoteFee !== undefined) {
             fee['cost'] = quoteFee;
-            fee['currency'] = market['quote'];
+            fee['currency'] = marketResolved['quote'];
         }
         return this.safeOrder ({
             'info': order,
@@ -1897,7 +1899,7 @@ export default class bydfi extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger2 (order, 'updateTime', 'mtime'),
             'status': this.parseOrderStatus (rawStatus),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType (rawType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1914,7 +1916,7 @@ export default class bydfi extends Exchange {
             'trades': undefined,
             'fee': fee,
             'average': this.omitZero (this.safeString (order, 'avgPrice')),
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderType (type: Str): Str {
@@ -1974,14 +1976,14 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'setLeverage', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'setLeverage', 'wallet', wallet);
         const request: Dict = {
             'symbol': market['id'],
             'leverage': leverage,
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privatePostV1FapiTradeLeverage (this.extend (request, params));
+        const response = await this.privatePostV1FapiTradeLeverage (this.extend (request, paramsWallet));
         const data = this.safeDict (response, 'data', {});
         return data;
     }
@@ -2004,13 +2006,13 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'fetchLeverage', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'fetchLeverage', 'wallet', wallet);
         const request: Dict = {
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privateGetV1FapiTradeLeverage (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradeLeverage (this.extend (request, paramsWallet));
         //
         //     {
         //         "code": 200,
@@ -2053,12 +2055,12 @@ export default class bydfi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'contractType', contractType);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
         };
-        const response = await this.privateGetV1FapiTradePositions (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradePositions (this.extend (request, paramsContractType));
         //
         //     {
         //         "code": 200,
@@ -2101,13 +2103,13 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'contractType', contractType);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
             'symbol': market['id'],
         };
-        const response = await this.privateGetV1FapiTradePositions (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradePositions (this.extend (request, paramsContractType));
         const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, [ market['symbol'] ]);
     }
@@ -2165,11 +2167,11 @@ export default class bydfi extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const buyOrSell = this.safeString (position, 'side');
         const rawPositionSide = this.safeStringLower (position, 'positionSide');
         let positionSide = this.parsePositionSide (buyOrSell);
-        let hedged: Bool = undefined;
+        let hedged = false;
         let isFetchPositionsHistory = false;
         if (rawPositionSide !== undefined) {
             isFetchPositionsHistory = true;
@@ -2180,7 +2182,7 @@ export default class bydfi extends Exchange {
                 hedged = false;
             }
         }
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
         let contracts = this.safeString2 (position, 'volume', 'openPositionVolume');
         if (!isFetchPositionsHistory) {
             // in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
@@ -2190,7 +2192,7 @@ export default class bydfi extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'entryPrice': this.parseNumber (this.safeString2 (position, 'avgOpenPositionPrice', 'avgPrice')),
             'markPrice': this.parseNumber (this.safeString (position, 'markPrice')),
             'lastPrice': this.parseNumber (this.safeString (position, 'avgClosePositionPrice')),
@@ -2244,17 +2246,17 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'fetchPositionHistory', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchPositionHistory', 'contractType', contractType);
         const request: Dict = {
             'symbol': market['id'],
-            'contractType': contractType,
+            'contractType': contractTypeOption,
         };
-        params = this.handleSinceAndUntil ('fetchPositionsHistory', since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil ('fetchPositionsHistory', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, paramsSinceAndUntil));
         //
         //
         const data = this.safeList (response, 'data', []);
@@ -2280,16 +2282,16 @@ export default class bydfi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'fetchPositionsHistory', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchPositionsHistory', 'contractType', contractType);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
         };
-        params = this.handleSinceAndUntil ('fetchPositionsHistory', since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil ('fetchPositionsHistory', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, paramsSinceAndUntil));
         //
         //     {
         //         "code": 200,
@@ -2353,16 +2355,16 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'fetchMarginMode', 'contractType', contractType);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'fetchMarginMode', 'wallet', wallet);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchMarginMode', 'contractType', contractType);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (paramsContractType, 'fetchMarginMode', 'wallet', wallet);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privateGetV1FapiUserDataAssetsMargin (this.extend (request, params));
+        const response = await this.privateGetV1FapiUserDataAssetsMargin (this.extend (request, paramsWallet));
         //
         //     {
         //         "code": 200,
@@ -2404,25 +2406,25 @@ export default class bydfi extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginMode = marginMode.toLowerCase ();
-        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+        const marginModeValue: string = marginMode.toLowerCase ();
+        if (marginModeValue !== 'isolated' && marginModeValue !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'setMarginMode', 'contractType', contractType);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'setMarginMode', 'wallet', wallet);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'setMarginMode', 'contractType', contractType);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (paramsContractType, 'setMarginMode', 'wallet', wallet);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
             'symbol': market['id'],
-            'marginType': marginMode.toUpperCase (),
-            'wallet': wallet,
+            'marginType': marginModeValue.toUpperCase (),
+            'wallet': walletOption,
         };
-        return await this.privatePostV1FapiUserDataMarginType (this.extend (request, params));
+        return await this.privatePostV1FapiUserDataMarginType (this.extend (request, paramsWallet));
     }
 
     /**
@@ -2449,17 +2451,17 @@ export default class bydfi extends Exchange {
         if (hedged) {
             positionType = 'HEDGE';
         }
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'setPositionMode', 'wallet', wallet);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'setPositionMode', 'contractType', contractType);
-        let settleCoin: Str = 'USDT';
-        [ settleCoin, params ] = this.handleOptionStringAndParams (params, 'setPositionMode', 'settleCoin', settleCoin);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'setPositionMode', 'wallet', wallet);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (paramsWallet, 'setPositionMode', 'contractType', contractType);
+        const settleCoin: Str = 'USDT';
+        const [ settleCoinOption, paramsSettleCoin ] = this.handleOptionStringAndParams (paramsContractType, 'setPositionMode', 'settleCoin', settleCoin);
         const request: Dict = {
-            'contractType': contractType,
-            'wallet': wallet,
+            'contractType': contractTypeOption,
+            'wallet': walletOption,
             'positionType': positionType,
-            'settleCoin': settleCoin,
+            'settleCoin': settleCoinOption,
         };
         //
         //     {
@@ -2468,7 +2470,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        return await this.privatePostV1FapiUserDataPositionSideDual (this.extend (request, params));
+        return await this.privatePostV1FapiUserDataPositionSideDual (this.extend (request, paramsSettleCoin));
     }
 
     /**
@@ -2487,13 +2489,12 @@ export default class bydfi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'fetchPositionMode', 'wallet', wallet);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionStringAndParams (params, 'fetchPositionMode', 'contractType', contractType);
+        const [ wallet, paramsWallet ] = this.handleOptionStringAndParams (params, 'fetchPositionMode', 'wallet', 'W001');
+        const [ contractType, paramsContractType ] = this.handleOptionStringAndParams (paramsWallet, 'fetchPositionMode', 'contractType', 'FUTURE');
         let settleCoin: Str = 'USDT';
+        let query: Dict = paramsContractType;
         if (symbol === undefined) {
-            [ settleCoin, params ] = this.handleOptionStringAndParams (params, 'fetchPositionMode', 'settleCoin', settleCoin);
+            [ settleCoin, query ] = this.handleOptionStringAndParams (paramsContractType, 'fetchPositionMode', 'settleCoin', settleCoin);
         } else {
             const market = this.market (symbol);
             settleCoin = market['settleId'];
@@ -2503,7 +2504,7 @@ export default class bydfi extends Exchange {
             'settleCoin': settleCoin,
             'wallet': wallet,
         };
-        const response = await this.privateGetV1FapiUserDataPositionSideDual (this.extend (request, params));
+        const response = await this.privateGetV1FapiUserDataPositionSideDual (this.extend (request, query));
         //
         //     {
         //         "code": 200,
@@ -2545,10 +2546,8 @@ export default class bydfi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let wallet: Str = undefined;
-        [ wallet, params ] = this.handleOptionStringAndParams (params, 'fetchBalance', 'wallet');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ wallet, paramsWallet ] = this.handleOptionStringAndParams (paramsMarketType, 'fetchBalance', 'wallet');
         const request: Dict = {};
         let response: Dict;
         if (wallet === undefined) {
@@ -2571,7 +2570,7 @@ export default class bydfi extends Exchange {
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1AccountAssets (this.extend (request, params));
+            response = await this.privateGetV1AccountAssets (this.extend (request, paramsWallet));
         } else {
             request['wallet'] = wallet;
             //
@@ -2602,7 +2601,7 @@ export default class bydfi extends Exchange {
             //         ],
             //         "success": true
             //     }
-            response = await this.privateGetV1FapiAccountBalance (this.extend (request, params));
+            response = await this.privateGetV1FapiAccountBalance (this.extend (request, paramsWallet));
         }
         const data = this.safeList (response, 'data', []) as List;
         return this.parseBalance (data);
@@ -2697,28 +2696,22 @@ export default class bydfi extends Exchange {
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate === true) {
             const maxLimit = 50;
-            params = this.omit (params, 'paginate');
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', currency['code'], since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', currency['code'], since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
         const request: Dict = {
             'asset': currency['id'],
         };
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
-        if (until === undefined) {
-            until = this.milliseconds (); // exchange requires endTime
-        }
-        if (since === undefined) {
-            since = 1; // exchange requires startTime but allows any value
-        }
-        request['startTime'] = since;
-        request['endTime'] = until;
+        const [ until, paramsUntil ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        // exchange requires endTime, and startTime but allows any value
+        const sinceResolved = (since === undefined) ? 1 : since;
+        request['startTime'] = sinceResolved;
+        request['endTime'] = (until === undefined) ? this.milliseconds () : until;
         if (limit !== undefined) {
             request['rows'] = limit;
         }
-        const response = await this.privateGetV1AccountTransferRecords (this.extend (request, params));
+        const response = await this.privateGetV1AccountTransferRecords (this.extend (request, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -2739,7 +2732,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseTransfers (data, currency, since, limit);
+        return this.parseTransfers (data, currency, sinceResolved, limit);
     }
 
     override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -2838,16 +2831,16 @@ export default class bydfi extends Exchange {
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate === true) {
             const maxLimit = 50;
-            params = this.omit (params, 'paginate');
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic (methodName, currency['code'], since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic (methodName, currency['code'], since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
         const request: Dict = {
             'asset': currency['id'],
         };
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        let paramsUntil = undefined;
+        [ until, paramsUntil ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
@@ -2897,19 +2890,19 @@ export default class bydfi extends Exchange {
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1SpotDepositRecords (this.extend (request, params));
+            response = await this.privateGetV1SpotDepositRecords (this.extend (request, paramsUntil));
         } else {
             //
             // todo check after withdrawal
             //
-            response = await this.privateGetV1SpotWithdrawRecords (this.extend (request, params));
+            response = await this.privateGetV1SpotWithdrawRecords (this.extend (request, paramsUntil));
         }
         const data = this.safeList (response, 'data', []) as List;
         const transactionParams: Dict = {
             'type': type,
         };
-        params = this.extend (params, transactionParams);
-        return this.parseTransactions (data, currency, since, limit, params);
+        const paramsTransaction = this.extend (paramsUntil, transactionParams);
+        return this.parseTransactions (data, currency, since, limit, paramsTransaction);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2984,22 +2977,24 @@ export default class bydfi extends Exchange {
                 endpoint += '?' + query;
             }
         }
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             if (method === 'GET') {
                 const payload = this.apiKey + timestamp + query;
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
-                headers = {
+                requestHeaders = {
                     'X-API-KEY': this.apiKey,
                     'X-API-TIMESTAMP': timestamp,
                     'X-API-SIGNATURE': signature,
                 };
             } else {
-                body = this.json (sortedParams);
-                const payload = this.apiKey + timestamp + body;
+                requestBody = this.json (sortedParams);
+                const payload = this.apiKey + timestamp + requestBody;
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
-                headers = {
+                requestHeaders = {
                     'Content-Type': 'application/json',
                     'X-API-KEY': this.apiKey,
                     'X-API-TIMESTAMP': timestamp,
@@ -3008,7 +3003,9 @@ export default class bydfi extends Exchange {
             }
         }
         url += endpoint;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

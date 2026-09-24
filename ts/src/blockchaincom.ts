@@ -642,7 +642,7 @@ export default class blockchaincom extends Exchange {
         const orderType = this.safeString (params, 'ordType', type);
         const uppercaseOrderType = orderType.toUpperCase ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
-        params = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
         }
@@ -657,8 +657,8 @@ export default class blockchaincom extends Exchange {
             'orderQty': this.amountToPrecision (symbol, amount),
             'clOrdId': clientOrderId,
         };
-        const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
-        params = this.omit (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        const triggerPrice = this.safeValueN (paramsOmitted, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
         if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
             if (triggerPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order');
@@ -685,7 +685,7 @@ export default class blockchaincom extends Exchange {
         if (stopPriceRequired) {
             request['stopPx'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, paramsOmitted2));
         return this.parseOrder (response, market);
     }
 
@@ -868,12 +868,12 @@ export default class blockchaincom extends Exchange {
         const amountString = this.safeString (trade, 'qty');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, '-');
+        const symbol = marketResolved['symbol'];
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrency = market['quote'];
+            const feeCurrency = marketResolved['quote'];
             fee = { 'cost': feeCostString, 'currency': feeCurrency };
         }
         return this.safeTrade ({
@@ -890,7 +890,7 @@ export default class blockchaincom extends Exchange {
             'cost': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1193,11 +1193,11 @@ export default class blockchaincom extends Exchange {
             await this.loadMarkets ();
         }
         const accountName = this.safeString (params, 'account', 'primary');
-        params = this.omit (params, 'account');
+        const paramsOmitted: Dict = this.omit (params, 'account');
         const request: Dict = {
             'account': accountName,
         };
-        const response = await this.privateGetAccounts (this.extend (request, params));
+        const response = await this.privateGetAccounts (this.extend (request, paramsOmitted));
         //
         //     {
         //         "primary": [
@@ -1275,25 +1275,34 @@ export default class blockchaincom extends Exchange {
         const requestPath = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
+        const isPrivate = (api === 'private');
+        const privateHeaders: Dict = {
+            'X-API-Token': this.secret,
+        };
+        let requestHeaders = headers;
+        if (isPrivate) {
+            requestHeaders = privateHeaders;
+        }
+        const isPrivatePost = isPrivate && (method !== 'GET');
+        let requestBody: Str = body;
+        if (isPrivatePost) {
+            requestBody = this.json (query);
+        }
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (isPrivate) {
             this.checkRequiredCredentials ();
-            headers = {
-                'X-API-Token': this.secret,
-            };
             if ((method === 'GET')) {
                 if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else {
-                body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                privateHeaders['Content-Type'] = 'application/json';
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

@@ -1412,7 +1412,7 @@ Console.WriteLine(formattedAmount + " " + formattedPrice);
 ```
 #### **Java**
 ```java
-exchange.loadMarkets();
+exchange.loadMarkets(false);
 String symbol = "BTC/USDT";
 double amount = 1.2345678;
 double price = 87654.321;
@@ -1618,7 +1618,7 @@ Console.WriteLine($"Symbols loaded: {binance2.symbols?.Count ?? 0}");
 #### **Java**
 ```java
 Exchange exchange1 = Exchange.dynamicallyCreateInstance("binance", null);
-exchange1.loadMarkets().join();
+exchange1.loadMarkets(false);
 
 Exchange exchange2 = Exchange.dynamicallyCreateInstance("binance", null);
 // share markets from exchange1 to exchange2
@@ -6694,7 +6694,7 @@ if ((bool)exchange.has["fetchOrderTrades"])
 ```
 #### **Java**
 ```java
-Object trades = exchange.fetchOrderTrades(orderId, symbol).join();
+List<Trade> trades = exchange.fetchOrderTrades(orderId, symbol);
 ```
 <!-- tabs:end -->
 

@@ -3,7 +3,7 @@ import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
-import type { Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, OrderSide, Endpoint } from '../base/types.js';
+import type { Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, OrderSide, OrderType, Endpoint } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1139,12 +1139,12 @@ export default class kalshi extends Exchange {
      */
     sortedOrders (outcome: Str, timestamp: Int, bids: any[], asks: any[]): PredictionOrderBook {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
-        bids = this.sortBy (bids, 0, true);
-        asks = this.sortBy (asks, 0);
+        const bidsValue: any[] = this.sortBy (bids, 0, true);
+        const asksValue: any[] = this.sortBy (asks, 0);
         return {
             'outcome': outcome,
-            'bids': bids,
-            'asks': asks,
+            'bids': bidsValue,
+            'asks': asksValue,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
@@ -2042,7 +2042,7 @@ export default class kalshi extends Exchange {
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         const unifiedTif = this.safeStringUpper (params, 'timeInForce');
-        params = this.omit (params, 'timeInForce');
+        const paramsOmitted: Dict = this.omit (params, 'timeInForce');
         let defaultTif: Str = 'good_till_canceled';
         if (isMarket) {
             defaultTif = 'immediate_or_cancel';
@@ -2056,10 +2056,8 @@ export default class kalshi extends Exchange {
         } else if (unifiedTif === 'GTC') {
             defaultTif = 'good_till_canceled';
         }
-        let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'time_in_force', defaultTif);
-        let stp: Str = undefined;
-        [ stp, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionAndParams (paramsOmitted, 'createOrder', 'time_in_force', defaultTif);
+        const [ stp, paramsSelfTradePreventionType ] = this.handleOptionStringAndParams (paramsTimeInForce, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
         const request: Dict = {
             'ticker': ticker,
             'side': bookSide,
@@ -2070,7 +2068,7 @@ export default class kalshi extends Exchange {
         if (yesPrice !== undefined) {
             request['price'] = this.numberToString (yesPrice);
         }
-        const response = await this.kalshiPrivatePostPortfolioEventsOrders (this.extend (request, params));
+        const response = await this.kalshiPrivatePostPortfolioEventsOrders (this.extend (request, paramsSelfTradePreventionType));
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
         const order = this.parsePredictionOrder (response, outcomeObj);
@@ -2114,7 +2112,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async editOrder (id: string, outcome: string, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    async editOrder (id: string, outcome: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
         // so edit = cancel the resting order then place a fresh one with the new terms. validate the
         // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
@@ -2221,8 +2219,8 @@ export default class kalshi extends Exchange {
             throw new ExchangeError (this.id + ' fetchEvents() missing queries');
         }
         const queriesLength = queries.length;
-        params = this.omit (params, [ 'query', 'queries' ]);
-        const userLimit = this.safeInteger (params, 'limit');
+        const paramsOmitted: fetchEventsParams = this.omit (params, [ 'query', 'queries' ]);
+        const userLimit = this.safeInteger (paramsOmitted, 'limit');
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
         // category='Crypto' (hundreds of series) doesn't page every one of them
         let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
@@ -2232,7 +2230,7 @@ export default class kalshi extends Exchange {
         // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         // silently rewritten to 'open'); 'all' sends no filter
-        const requestedStatus = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
+        const requestedStatus = this.safeString (paramsOmitted, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
         let status: Str = undefined;
         if ((requestedStatus === 'active') || (requestedStatus === 'open')) {
             status = 'open';
@@ -2242,11 +2240,11 @@ export default class kalshi extends Exchange {
             status = 'settled';
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-        const rest = this.omit (params, [ 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker' ]);
+        const rest = this.omit (paramsOmitted, [ 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker' ]);
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
-        const eventId = this.safeString2 (params, 'eventId', 'slug');
+        const eventId = this.safeString2 (paramsOmitted, 'eventId', 'slug');
         let rawEvents: any[] = [];
         if (queriesLength > 0) {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
@@ -2257,10 +2255,10 @@ export default class kalshi extends Exchange {
             rawEvents = [ fullEvent ];
         } else {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-            const seriesTickers = await this.resolveEventSeriesTickers (params);
+            const seriesTickers = await this.resolveEventSeriesTickers (paramsOmitted);
             const seriesTickersLength = seriesTickers.length;
             if (seriesTickersLength === 0) {
-                this.requireEventQuery (params);
+                this.requireEventQuery (paramsOmitted);
             }
             rawEvents = await this.fetchSeriesEvents (seriesTickers, status, fetchCap, rest);
         }
@@ -2282,7 +2280,7 @@ export default class kalshi extends Exchange {
         // scoping already happened server-side, so strip the resolved scopes before the client-side
         // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
         // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-        const postParams = this.omit (params, [ 'tags', 'category', 'series_ticker' ]);
+        const postParams = this.omit (paramsOmitted, [ 'tags', 'category', 'series_ticker' ]);
         return this.applyEventFetchParams (result, postParams, []);
     }
 
@@ -2682,10 +2680,11 @@ export default class kalshi extends Exchange {
             url += '?' + querystring;
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = this.extend ({
+        let headersValue: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
+        let bodyValue: any = body;
         if (access === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
@@ -2700,16 +2699,16 @@ export default class kalshi extends Exchange {
             const keyParts = this.privateKey.split ('\\n');
             const cleanPrivateKey = keyParts.join ('\n');
             const signature = rsa (payload, cleanPrivateKey, sha256, 'pss');
-            headers = this.extend (headers, {
+            headersValue = this.extend (headersValue, {
                 'KALSHI-ACCESS-KEY': this.apiKey,
                 'KALSHI-ACCESS-SIGNATURE': signature,
                 'KALSHI-ACCESS-TIMESTAMP': timestamp,
             });
             if (method !== 'GET' && (querystring !== '')) {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
-                body = this.json (query);
+                bodyValue = this.json (query);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 }

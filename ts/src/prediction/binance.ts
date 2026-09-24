@@ -3,7 +3,7 @@ import { Precise } from '../base/Precise.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound } from '../base/errors.js';
-import type { Int, int, Str, Dict, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint } from '../base/types.js';
+import type { Int, int, Str, Dict, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint, OrderSide } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -200,9 +200,7 @@ export default class binance extends Exchange {
      * @returns {object[]} raw market topic objects
      */
     async fetchRawTopics (maxTopics: Int, rest: Dict = {}): Promise<any[]> {
-        if (maxTopics === undefined) {
-            maxTopics = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
-        }
+        const maxTopicsResolved: Int = (maxTopics === undefined) ? this.safeInteger (this.options, 'maxFetchMarketsLimit', 200) : maxTopics;
         let pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 100);
         if (pageLimit > 100) {
             pageLimit = 100;
@@ -212,7 +210,7 @@ export default class binance extends Exchange {
         while (true) {
             let reqLimit = pageLimit;
             const collectedLength = collected.length;
-            const remaining = maxTopics - collectedLength;
+            const remaining = maxTopicsResolved - collectedLength;
             if (remaining < reqLimit) {
                 reqLimit = remaining;
             }
@@ -357,16 +355,17 @@ export default class binance extends Exchange {
             allQueries.push (tags[i]);
         }
         const allQueriesLength = allQueries.length;
-        params = this.omit (params, [ 'query', 'queries' ]);
-        const userLimit = this.safeInteger (params, 'limit');
+        const paramsOmitted: Dict = this.omit (params, [ 'query', 'queries' ]);
+        let paramsSorted: Dict = paramsOmitted;
+        const userLimit = this.safeInteger (paramsOmitted, 'limit');
         let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
         if (userLimit !== undefined) {
             fetchCap = userLimit;
         }
-        const rest = this.omit (params, [ 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category' ]);
-        const eventId = this.safeString (params, 'eventId');
-        const l1Category = this.safeString (params, 'l1Category');
-        const l2Category = this.safeString (params, 'l2Category');
+        const rest = this.omit (paramsOmitted, [ 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category' ]);
+        const eventId = this.safeString (paramsOmitted, 'eventId');
+        const l1Category = this.safeString (paramsOmitted, 'l1Category');
+        const l2Category = this.safeString (paramsOmitted, 'l2Category');
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
@@ -384,7 +383,7 @@ export default class binance extends Exchange {
             if (l2Category !== undefined) {
                 listingRequest['l2Category'] = l2Category;
             }
-            let sortBy = this.safeStringUpper2 (params, 'sortBy', 'sort');
+            let sortBy = this.safeStringUpper2 (paramsOmitted, 'sortBy', 'sort');
             if (sortBy !== undefined) {
                 // map the unified sort values onto the server enum, one of RECOMMENDED,
                 // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
@@ -397,7 +396,7 @@ export default class binance extends Exchange {
                 }
                 if (sortBy !== undefined) {
                     listingRequest['sortBy'] = sortBy;
-                    params = this.omit (params, [ 'sort', 'sortBy' ]);
+                    paramsSorted = this.omit (paramsOmitted, [ 'sort', 'sortBy' ]);
                 }
             }
             const listed = await this.fetchRawTopics (fetchCap, this.extend (listingRequest, rest));
@@ -423,7 +422,7 @@ export default class binance extends Exchange {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        const postParams = this.omit (params, [ 'tags', 'l1Category', 'l2Category' ]);
+        const postParams = this.omit (paramsSorted, [ 'tags', 'l1Category', 'l2Category' ]);
         return this.applyEventFetchParams (result, postParams, []);
     }
 
@@ -442,16 +441,17 @@ export default class binance extends Exchange {
         const seen: Dict = {};
         const collected: any[] = [];
         const queriesLength = queries.length;
+        let limitResolved: Int = limit;
         if (limit === undefined) {
-            limit = 20;
+            limitResolved = 20;
         } else if (limit > 50) {
-            limit = 50;
+            limitResolved = 50;
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
                 'query': queries[qi],
             };
-            request['topK'] = limit;
+            request['topK'] = limitResolved;
             const response = await this.sapiPrivateGetMarketSearch (this.extend (request, rest));
             //
             //     [
@@ -480,8 +480,8 @@ export default class binance extends Exchange {
         }
         let capped = collected;
         const collectedLength = collected.length;
-        if ((limit !== undefined) && (collectedLength > limit)) {
-            capped = this.arraySlice (collected, 0, limit);
+        if ((limitResolved !== undefined) && (collectedLength > limitResolved)) {
+            capped = this.arraySlice (collected, 0, limitResolved);
         }
         return await this.completeRawTopics (capped);
     }
@@ -912,9 +912,8 @@ export default class binance extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
-        let type = undefined;
-        [ type, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'type', 'SPOT');
-        const response = await this.sapiPrivateGetBalancePaymentOptions (params);
+        const [ type, paramsType ] = this.handleOptionAndParams (params, 'fetchBalance', 'type', 'SPOT');
+        const response = await this.sapiPrivateGetBalancePaymentOptions (paramsType);
         //
         // {
         //     "items": [
@@ -981,7 +980,8 @@ export default class binance extends Exchange {
         // }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if (outcomeObj === undefined) {
+        let outcomeObjResolved: Market = outcomeObj;
+        if (outcomeObjResolved === undefined) {
             const marketId = this.safeString (order, 'marketId');
             const outcome = this.safeStringUpper (order, 'outcome');
             const market = this.safeMarket (marketId);
@@ -990,7 +990,7 @@ export default class binance extends Exchange {
                 outcomeName = marketId;
             }
             outcomeName += ':' + outcome;
-            outcomeObj = this.safeOutcome (outcomeName);
+            outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const side = this.safeStringLower (order, 'side');
         const timestamp = this.safeInteger (order, 'createTime');
@@ -1002,10 +1002,10 @@ export default class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'outcome': this.safeString (outcomeObj, 'outcome'),
-            'outcomeId': this.safeString (outcomeObj, 'id'),
-            'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'market'),
+            'outcome': this.safeString (outcomeObjResolved, 'outcome'),
+            'outcomeId': this.safeString (outcomeObjResolved, 'id'),
+            'label': this.safeString (outcomeObjResolved, 'label'),
+            'market': this.safeString (outcomeObjResolved, 'market'),
             'type': this.safeStringLower (order, 'orderType'),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1020,7 +1020,7 @@ export default class binance extends Exchange {
             'remaining': undefined,
             'fee': undefined,
             'trades': [],
-        }, outcomeObj);
+        }, outcomeObjResolved);
     }
 
     parseOrderStatus (status: Str): Str {
@@ -1059,16 +1059,16 @@ export default class binance extends Exchange {
      */
     override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
+            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as PredictionOrder[];
         }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const page = this.safeInteger (paramsMaxEntriesPerRequest, pageKey, 1) - 1;
         const request: Dict = {};
-        const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger (paramsMaxEntriesPerRequest, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
         }
@@ -1082,9 +1082,9 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const wallet = await this.fetchWallet ('fetchOpenOrders', params);
+        const wallet = await this.fetchWallet ('fetchOpenOrders', paramsMaxEntriesPerRequest);
         request['walletAddress'] = wallet['walletAddress'];
-        const response = await this.sapiPrivateGetOrderList (this.extend (request, params));
+        const response = await this.sapiPrivateGetOrderList (this.extend (request, paramsMaxEntriesPerRequest));
         //
         // {
         //     "total": 2,
@@ -1142,16 +1142,16 @@ export default class binance extends Exchange {
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as PredictionOrder[];
         }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const page = this.safeInteger (paramsMaxEntriesPerRequest, pageKey, 1) - 1;
         const request: Dict = {};
-        const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger (paramsMaxEntriesPerRequest, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
         }
@@ -1166,14 +1166,14 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd (since);
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const until = this.safeInteger (paramsMaxEntriesPerRequest, 'until');
+        const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'until');
         if (until !== undefined) {
             request['endDate'] = this.yyyymmdd (until);
         }
-        const wallet = await this.fetchWallet ('fetchOrders', params);
+        const wallet = await this.fetchWallet ('fetchOrders', paramsOmitted);
         request['walletAddress'] = wallet['walletAddress'];
-        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, params));
+        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, paramsOmitted));
         //
         // {
         //     "total": 15,
@@ -1345,7 +1345,8 @@ export default class binance extends Exchange {
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     override parsePredictionPosition (position: Dict, outcomeObj: Market = undefined): PredictionPosition {
-        if (outcomeObj === undefined) {
+        let outcomeObjResolved: Market = outcomeObj;
+        if (outcomeObjResolved === undefined) {
             const marketId = this.safeString (position, 'marketId');
             const outcome = this.safeStringUpper (position, 'outcomeName');
             const market = this.safeMarket (marketId);
@@ -1354,15 +1355,15 @@ export default class binance extends Exchange {
                 outcomeName = marketId;
             }
             outcomeName += ':' + outcome;
-            outcomeObj = this.safeOutcome (outcomeName);
+            outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const timestamp = this.safeInteger (position, 'createdTime');
         const totalCost = this.parseNumber (this.safeString (position, 'totalCost'));
         return this.safePredictionPosition ({
             'id': this.safeInteger (position, 'positionId'),
-            'outcome': this.safeString (outcomeObj, 'outcome'),
-            'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
-            'market': this.safeString (outcomeObj, 'market'),
+            'outcome': this.safeString (outcomeObjResolved, 'outcome'),
+            'outcomeId': this.safeString2 (outcomeObjResolved, 'outcomeId', 'id'),
+            'market': this.safeString (outcomeObjResolved, 'market'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'isolated': false,
@@ -1407,18 +1408,18 @@ export default class binance extends Exchange {
      */
     override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionAndParams (paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionTrade[];
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as PredictionTrade[];
         }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const page = this.safeInteger (paramsMaxEntriesPerRequest, pageKey, 1) - 1;
         const request: Dict = {
             'status': 'FILLED',
         };
-        const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger (paramsMaxEntriesPerRequest, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
         }
@@ -1433,14 +1434,14 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd (since);
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const until = this.safeInteger (paramsMaxEntriesPerRequest, 'until');
+        const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'until');
         if (until !== undefined) {
             request['endDate'] = this.yyyymmdd (until);
         }
-        const wallet = await this.fetchWallet ('fetchMyTrades', params);
+        const wallet = await this.fetchWallet ('fetchMyTrades', paramsOmitted);
         request['walletAddress'] = wallet['walletAddress'];
-        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, params));
+        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, paramsOmitted));
         //
         // {
         //     "total": 15,
@@ -1518,7 +1519,8 @@ export default class binance extends Exchange {
         //     "networkFee": "0.000001"
         // }
         //
-        if (outcomeObj === undefined) {
+        let outcomeObjResolved: Market = outcomeObj;
+        if (outcomeObjResolved === undefined) {
             const marketId = this.safeString (trade, 'marketId');
             const outcome = this.safeStringUpper (trade, 'outcome');
             const market = this.safeMarket (marketId);
@@ -1527,7 +1529,7 @@ export default class binance extends Exchange {
                 outcomeName = marketId;
             }
             outcomeName += ':' + outcome;
-            outcomeObj = this.safeOutcome (outcomeName);
+            outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const timestamp = this.safeInteger (trade, 'createTime');
         const filled = this.safeString (trade, 'filledShareQty');
@@ -1550,10 +1552,10 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeInteger (trade, 'modifyTime'),
-            'outcome': this.safeString (outcomeObj, 'outcome'),
-            'outcomeId': this.safeString (outcomeObj, 'id'),
-            'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'market'),
+            'outcome': this.safeString (outcomeObjResolved, 'outcome'),
+            'outcomeId': this.safeString (outcomeObjResolved, 'id'),
+            'label': this.safeString (outcomeObjResolved, 'label'),
+            'market': this.safeString (outcomeObjResolved, 'market'),
             'order': this.safeString (trade, 'orderId'),
             'type': orderType,
             'side': this.safeStringLower (trade, 'side'),
@@ -1563,7 +1565,7 @@ export default class binance extends Exchange {
             'filled': filled,
             'cost': cost,
             'fee': fee,
-        }, outcomeObj);
+        }, outcomeObjResolved);
     }
 
     /**
@@ -1580,8 +1582,7 @@ export default class binance extends Exchange {
         if (cachedWallet !== undefined) {
             return cachedWallet;
         }
-        let walletAddress = undefined;
-        [ walletAddress, params ] = this.handleOptionAndParams (params, methodName, 'walletAddress', this.walletAddress);
+        const walletAddress = this.handleOptionAndParams (params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList ();
         //
         // {
@@ -1756,13 +1757,13 @@ export default class binance extends Exchange {
         if (accountType === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires accountType (SPOT, FUNDING)');
         }
-        params = this.omit (params, [ 'timeInForce', 'accountType', 'cost' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'timeInForce', 'accountType', 'cost' ]);
         const quoteRequest = this.extend (commonRequest, {
             'tokenId': outcomeObj['id'],
             'side': sideUpper,
             'amountIn': Precise.stringMul (this.amountToPrecision (marketSymbol, amountStr), '1000000000000000000'),
         });
-        const quote = await this.fetchQuote (quoteRequest, params);
+        const quote = await this.fetchQuote (quoteRequest, paramsOmitted);
         const quoteId = this.safeString (quote, 'quoteId');
         const orderRequest = this.extend (commonRequest, {
             'walletId': wallet['walletId'],
@@ -1770,7 +1771,7 @@ export default class binance extends Exchange {
             'timeInForce': timeInForce,
             'accountType': accountType,
         });
-        const response = await this.sapiPrivatePostTradePlaceOrderBundle (this.extend (orderRequest, params));
+        const response = await this.sapiPrivatePostTradePlaceOrderBundle (this.extend (orderRequest, paramsOmitted));
         return this.safePredictionOrder ({
             'id': this.safeString (response, 'orderId'),
             'clientOrderId': undefined,
@@ -1805,11 +1806,11 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketOrderWithCost (symbol: string, side: string, cost: number, params: Dict = {}) {
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}) {
         const req = {
             'cost': cost,
         };
-        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (req, params));
+        return await this.createOrder (symbol, 'market', side as string, cost, undefined, this.extend (req, params));
     }
 
     /**
@@ -1952,15 +1953,16 @@ export default class binance extends Exchange {
         querystring = querystring.replaceAll ('%5D', ']');
         const signature = this.hmac (this.encode (querystring), this.encode (this.secret), sha256);
         querystring = querystring + '&signature=' + signature;
-        headers = {
+        const headersValue: any = {
             'X-MBX-APIKEY': this.apiKey,
         };
+        let bodyValue: any = body;
         if ((method === 'GET') || (method === 'DELETE')) {
             url = url + '?' + querystring;
         } else {
-            body = querystring;
-            headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            bodyValue = querystring;
+            headersValue['Content-Type'] = 'application/x-www-form-urlencoded';
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 }

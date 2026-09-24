@@ -990,7 +990,7 @@ export default class coinsph extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const bid = this.safeString (ticker, 'bidPrice');
         const ask = this.safeString (ticker, 'askPrice');
@@ -1007,7 +1007,7 @@ export default class coinsph extends Exchange {
         let changePcnt = this.safeString (ticker, 'priceChangePercent');
         changePcnt = Precise.stringMul (changePcnt, '100');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'open': open,
@@ -1026,7 +1026,7 @@ export default class coinsph extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1093,9 +1093,7 @@ export default class coinsph extends Exchange {
             'symbol': market['id'],
             'interval': interval,
         };
-        if (limit === undefined) {
-            limit = 1000;
-        }
+        const limitResolved: Int = (limit === undefined) ? 1000 : limit;
         if (since !== undefined) {
             request['startTime'] = since;
             // since work properly only when it is "younger" than last "limit" candle
@@ -1103,7 +1101,7 @@ export default class coinsph extends Exchange {
                 request['endTime'] = until;
             } else {
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                const endTimeByLimit = this.sum (since, duration * (limit - 1));
+                const endTimeByLimit = this.sum (since, duration * (limitResolved - 1));
                 const now = this.milliseconds ();
                 request['endTime'] = Math.min (endTimeByLimit, now);
             }
@@ -1111,11 +1109,11 @@ export default class coinsph extends Exchange {
             request['endTime'] = until;
             // since work properly only when it is "younger" than last "limit" candle
             const duration = this.parseTimeframe (timeframe) * 1000;
-            request['startTime'] = until - (duration * (limit - 1));
+            request['startTime'] = until - (duration * (limitResolved - 1));
         }
-        request['limit'] = limit;
-        params = this.omit (params, 'until');
-        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
+        request['limit'] = limitResolved;
+        const paramsOmitted: Dict = this.omit (params, 'until');
+        const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, paramsOmitted));
         //
         //     [
         //         [
@@ -1134,7 +1132,7 @@ export default class coinsph extends Exchange {
         //     ]
         //
         const ohlcvs = this.toArray (response);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1286,8 +1284,8 @@ export default class coinsph extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString2 (trade, 'id', 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'time');
@@ -1331,7 +1329,7 @@ export default class coinsph extends Exchange {
             'cost': costString,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1414,10 +1412,11 @@ export default class coinsph extends Exchange {
         }
         const market = this.market (symbol);
         const testOrder = this.safeBool (params, 'test', false);
-        params = this.omit (params, 'test');
-        let orderType: Str = this.safeString (params, 'type', type);
+        const paramsOmitted: Dict = this.omit (params, 'test');
+        let orderType: Str = this.safeString (paramsOmitted, 'type', type);
         orderType = this.encodeOrderType (orderType);
-        params = this.omit (params, 'type');
+        const paramsType: Dict = this.omit (paramsOmitted, 'type');
+        let paramsQuote = undefined;
         const orderSide = this.encodeOrderSide (side);
         const request: Dict = {
             'symbol': market['id'],
@@ -1444,10 +1443,9 @@ export default class coinsph extends Exchange {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             } else if (orderSide === 'BUY') {
                 let quoteAmount: Str = undefined;
-                let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
-                params = this.omit (params, 'cost');
+                const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionBoolAndParams (paramsType, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber2 (paramsRequiresPrice, 'cost', 'quoteOrderQty');
+                paramsQuote = this.omit (paramsRequiresPrice, 'cost');
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice) {
@@ -1466,19 +1464,20 @@ export default class coinsph extends Exchange {
             }
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
-            const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+            const triggerPrice = this.safeString2 (paramsType, 'triggerPrice', 'stopPrice');
             if (triggerPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
-        params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
+        const paramsBase: Dict = (paramsQuote !== undefined) ? paramsQuote : paramsType;
+        const paramsRequest: Dict = this.omit (paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response: Dict = {};
         if (testOrder === true) {
-            response = await this.privatePostOpenapiV1OrderTest (this.extend (request, params));
+            response = await this.privatePostOpenapiV1OrderTest (this.extend (request, paramsRequest));
         } else {
-            response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+            response = await this.privatePostOpenapiV1Order (this.extend (request, paramsRequest));
         }
         //
         //     {
@@ -1531,8 +1530,8 @@ export default class coinsph extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.privateGetOpenapiV1Order (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this.privateGetOpenapiV1Order (this.extend (request, paramsOmitted));
         return this.parseOrder (response);
     }
 
@@ -1615,8 +1614,8 @@ export default class coinsph extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this.privateDeleteOpenapiV1Order (this.extend (request, paramsOmitted));
         return this.parseOrder (response);
     }
 
@@ -1717,7 +1716,7 @@ export default class coinsph extends Exchange {
         //
         const id = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
         const trades = this.safeList (order, 'fills');
         let triggerPrice = this.safeString (order, 'stopPrice');
@@ -1731,7 +1730,7 @@ export default class coinsph extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType (this.safeString (order, 'type')),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
@@ -1746,7 +1745,7 @@ export default class coinsph extends Exchange {
             'fees': undefined,
             'trades': trades,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderSide (status: Str) {
@@ -1909,8 +1908,8 @@ export default class coinsph extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         return {
             'info': fee,
             'symbol': symbol,
@@ -1957,8 +1956,8 @@ export default class coinsph extends Exchange {
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        params = this.omit (params, 'network');
-        const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'network');
+        const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, paramsOmitted));
         return this.parseTransaction (response, currency);
     }
 
@@ -2217,8 +2216,8 @@ export default class coinsph extends Exchange {
             'coin': currency['id'],
             'network': networkId,
         };
-        params = this.omit (params, 'network');
-        const response = await this.privateGetOpenapiWalletV1DepositAddress (this.extend (request, params));
+        const paramsOmitted: Dict = this.omit (params, 'network');
+        const response = await this.privateGetOpenapiWalletV1DepositAddress (this.extend (request, paramsOmitted));
         //
         //     {
         //         "coin": "ETH",
@@ -2250,6 +2249,7 @@ export default class coinsph extends Exchange {
 
     urlEncodeQuery (query: Dict = {}) {
         let encodedArrayParams = '';
+        let remainingQuery: Dict = query;
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -2258,12 +2258,12 @@ export default class coinsph extends Exchange {
                     encodedArrayParams += '&';
                 }
                 const innerArray = query[key];
-                query = this.omit (query, key);
+                remainingQuery = this.omit (remainingQuery, key);
                 const encodedArrayParam = this.parseArrayParam (innerArray, key);
                 encodedArrayParams += encodedArrayParam;
             }
         }
-        const encodedQuery = this.urlencode (query);
+        const encodedQuery = this.urlencode (remainingQuery);
         if (encodedQuery.length !== 0) {
             return encodedQuery + '&' + encodedArrayParams;
         } else {
@@ -2281,7 +2281,7 @@ export default class coinsph extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
         url = url + '/' + endpoint;
         if (api === 'private') {
@@ -2294,17 +2294,17 @@ export default class coinsph extends Exchange {
                     query['recvWindow'] = defaultRecvWindow;
                 }
             }
-            query = this.urlEncodeQuery (query);
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
-            url = url + '?' + query + '&signature=' + signature;
-            headers = {
+            const signedQuery = this.urlEncodeQuery (query);
+            const signature = this.hmac (this.encode (signedQuery), this.encode (this.secret), sha256);
+            url = url + '?' + signedQuery + '&signature=' + signature;
+            const signedHeaders: Dict = {
                 'X-COINS-APIKEY': this.apiKey,
             };
-        } else {
-            query = this.urlEncodeQuery (query);
-            if (query.length !== 0) {
-                url += '?' + query;
-            }
+            return { 'url': url, 'method': method, 'body': body, 'headers': signedHeaders };
+        }
+        const encodedQuery = this.urlEncodeQuery (query);
+        if (encodedQuery.length !== 0) {
+            url += '?' + encodedQuery;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -489,7 +489,7 @@ export default class cryptomus extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetV1ExchangeMarketTickers (params);
         //
         //     {
@@ -504,7 +504,7 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTickers (data, symbols);
+        return this.parseTickers (data, symbolsNormalized);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -517,8 +517,8 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'currency_pair');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': symbol,
@@ -541,7 +541,7 @@ export default class cryptomus extends Exchange {
             'baseVolume': this.safeString (ticker, 'base_volume'),
             'quoteVolume': this.safeString (ticker, 'quote_volume'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -563,10 +563,10 @@ export default class cryptomus extends Exchange {
         const request: Dict = {
             'currencyPair': market['id'],
         };
-        let level = 0;
-        [ level, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'level', level);
-        request['level'] = level;
-        const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair (this.extend (request, params));
+        const level = 0;
+        const [ levelOption, paramsLevel ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'level', level);
+        request['level'] = levelOption;
+        const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair (this.extend (request, paramsLevel));
         //
         //     {
         //         "data": {
@@ -746,20 +746,24 @@ export default class cryptomus extends Exchange {
             'tag': 'ccxt',
         };
         const clientOrderId = this.safeString (params, 'clientOrderId');
+        const paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (params, 'clientOrderId') : params;
         if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
         }
         const sideBuy = side === 'buy';
         const amountToString = this.numberToString (amount);
         const priceToString = this.numberToString (price);
-        let cost: Str = undefined;
-        [ cost, params ] = this.handleParamString (params, 'cost');
+        const [ costParam, paramsCost ] = this.handleParamString (paramsOmitted, 'cost');
+        let cost: Str = costParam;
         let response: Dict;
         if (type === 'market') {
+            const requiresPriceAndParams = this.handleOptionBoolAndParams (paramsCost, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            let paramsMarket = paramsCost;
             if (sideBuy) {
-                let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                paramsMarket = requiresPriceAndParams[1];
+            }
+            if (sideBuy) {
+                const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (cost === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
@@ -773,14 +777,14 @@ export default class cryptomus extends Exchange {
             } else {
                 request['quantity'] = amountToString;
             }
-            response = await this.privatePostV2UserApiExchangeOrdersMarket (this.extend (request, params));
+            response = await this.privatePostV2UserApiExchangeOrdersMarket (this.extend (request, paramsMarket));
         } else if (type === 'limit') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price parameter for a ' + type + ' order');
             }
             request['quantity'] = amountToString;
             request['price'] = price;
-            response = await this.privatePostV2UserApiExchangeOrders (this.extend (request, params));
+            response = await this.privatePostV2UserApiExchangeOrders (this.extend (request, paramsCost));
         } else {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a type parameter (limit or market)');
         }
@@ -1007,7 +1011,7 @@ export default class cryptomus extends Exchange {
         //
         const id = this.safeString2 (order, 'order_id', 'id');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const dateTime = this.safeString (order, 'createdAt');
         const timestamp = this.parse8601 (dateTime);
         const deal = this.safeDict (order, 'deal', {});
@@ -1038,7 +1042,7 @@ export default class cryptomus extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1055,7 +1059,7 @@ export default class cryptomus extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str = undefined): Str {
@@ -1177,20 +1181,19 @@ export default class cryptomus extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const endpoint = this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
+        const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let jsonParams = '';
-            headers = {
+            const privateHeaders: Dict = {
                 'userId': this.uid,
             };
             if (method !== 'GET') {
-                body = this.json (params);
-                jsonParams = body;
-                headers['Content-Type'] = 'application/json';
+                jsonParams = this.json (paramsOmitted);
+                privateHeaders['Content-Type'] = 'application/json';
             } else {
-                const query = this.urlencode (params);
+                const query = this.urlencode (paramsOmitted);
                 if (query.length !== 0) {
                     url += '?' + query;
                 }
@@ -1198,9 +1201,11 @@ export default class cryptomus extends Exchange {
             const jsonParamsBase64 = this.stringToBase64 (jsonParams);
             const stringToSign = jsonParamsBase64 + this.secret;
             const signature = this.hash (this.encode (stringToSign), md5);
-            headers['sign'] = signature;
+            privateHeaders['sign'] = signature;
+            const privateBody: Str = (method !== 'GET') ? jsonParams : body;
+            return { 'url': url, 'method': method, 'body': privateBody, 'headers': privateHeaders };
         } else {
-            const query = this.urlencode (params);
+            const query = this.urlencode (paramsOmitted);
             if (query.length !== 0) {
                 url += '?' + query;
             }

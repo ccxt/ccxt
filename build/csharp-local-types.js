@@ -10217,6 +10217,9 @@ function omitReceiverIsDictionary (csharp, receiver) {
         return false;
     }
     if (node.kind === ts.SyntaxKind.Identifier) {
+        if (element1ParamsRead (csharp, node)) {
+            return true;
+        }
         const type = identifierType (csharp, node);
         return (type === 'Dictionary<string, object>') || (type === 'IDictionary<string, object>');
     }
@@ -12356,6 +12359,82 @@ function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
     return printed.replace (match[0], match[1] + type + ' ' + match[2] + ' = (' + cast + ')' + match[3]);
 }
 
+// Element 1 of the base params-tuple helpers (`const [ v, p ] = this.handleX (...)`): every
+// base return path hands back the caller's params, its omit or an extend (a dict box); the
+// read is cast under the approved element convention (a list-valued params box throws here).
+const CSHARP_ELEMENT_1_PARAMS = new Set ([
+    'handleOptionAndParams', 'handleOptionAndParams2', 'handleMarketTypeAndParams',
+    'handleSubTypeAndParams', 'handleMarginModeAndParams', 'handleUntilOption',
+    'handleWithdrawTagAndParams', 'handleMaxEntriesPerRequestAndParams',
+    'handleTriggerAndParams', 'handleTriggerDirectionAndParams', 'handlePostOnly',
+    'handleParamString', 'handleParamString2', 'handleParamInteger', 'handleParamInteger2',
+    'handleParamBool', 'handleParamBool2', 'handleNetworkCodeAndParams',
+]);
+const CSHARP_ELEMENT_1_BASE_FILE = /[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/;
+const CSHARP_ELEMENT_1_TYPE = 'IDictionary<string, object>';
+
+function element1ParamsBinding (csharp, element) {
+    const pattern = element?.parent;
+    const declaration = pattern?.parent;
+    if (element?.kind !== ts.SyntaxKind.BindingElement || pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern
+            || pattern.elements.indexOf (element) !== 1 || element.dotDotDotToken !== undefined
+            || element.initializer !== undefined || element.name?.kind !== ts.SyntaxKind.Identifier
+            || declaration?.kind !== ts.SyntaxKind.VariableDeclaration
+            || (declaration.parent?.flags & ts.NodeFlags.Const) === 0) {
+        return false;
+    }
+    const call = declaration.initializer;
+    const name = destructuredHandleCallName (call);
+    if (name === undefined || !CSHARP_ELEMENT_1_PARAMS.has (name) || call.questionDotToken !== undefined
+            || typeof csharp.getChecker !== 'function') {
+        return false;
+    }
+    let signature;
+    try {
+        signature = csharp.getChecker ().getResolvedSignature (call)?.declaration;
+        // element 1 is (a copy of) the params argument: only a statically Dict argument proves a dict box
+        const argType = call.arguments?.[0] && csharp.getChecker ().getTypeAtLocation (call.arguments[0]);
+        if (argType === undefined || (argType.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) !== 0) {
+            return false;
+        }
+        // an argument that is itself an element-1 binding passes its own argument through unchanged
+        const argDeclaration = csharp.getChecker ().getSymbolAtLocation (call.arguments[0])?.valueDeclaration;
+        if (argDeclaration?.kind === ts.SyntaxKind.BindingElement && argDeclaration.parent?.elements?.indexOf (argDeclaration) === 1
+                && destructuredHandleCallName (argDeclaration.parent.parent?.initializer) !== undefined
+                && !element1ParamsBinding (csharp, argDeclaration)) {
+            return false;
+        }
+    } catch (e) {
+        return false;
+    }
+    return CSHARP_ELEMENT_1_BASE_FILE.test (signature?.getSourceFile?.()?.fileName ?? '');
+}
+
+// is this identifier a read of a typed element-1 binding (omit receiver proof)?
+function element1ParamsRead (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.Identifier || typeof csharp.getChecker !== 'function') {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = csharp.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return false;
+    }
+    return element1ParamsBinding (csharp, declaration);
+}
+
+function retypeElement1Params (csharp, declaration, printed) {
+    const element = declaration.name?.elements?.[1];
+    if (typeof printed !== 'string' || !element1ParamsBinding (csharp, element)) {
+        return printed;
+    }
+    const name = csharp.printNode (element.name, 0);
+    // the last tuple element is printed without its `;` (the statement printer adds it)
+    const re = new RegExp ('^([ \\t]*)var ' + name + ' = (\\w+Variable\\[1\\])(;?)$', 'm');
+    return printed.replace (re, (all, indent, read, semi) => indent + CSHARP_ELEMENT_1_TYPE + ' ' + name + ' = ((' + CSHARP_ELEMENT_1_TYPE + ')' + read + ')' + semi);
+}
+
 const DESTRUCTURING_TEMP_RE = /^([ \t]*)var ([A-Za-z_]\w*) = (.*);\n/;
 
 // a holder whose printed initializer is a `this.<name>(...)` call the collection table proves
@@ -13060,7 +13139,7 @@ export function installCsharpLocalTypes (transpiler) {
                 return printed;
             }
             const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
-            return retypeDestructuredElement0 (csharp, scope, declaration, retypeDestructuringTemp (csharp, scope, printed) ?? printed);
+            return retypeElement1Params (csharp, declaration, retypeDestructuredElement0 (csharp, scope, declaration, retypeDestructuringTemp (csharp, scope, printed) ?? printed));
         }
         const info = csharpLocalDeclaration (csharp, declaration);
         if (info === undefined) {

@@ -171,7 +171,6 @@ export default class woofipro extends woofiproRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
@@ -261,7 +260,7 @@ export default class woofipro extends woofiproRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const name = 'tickers';
         const topic = name;
         const request: Dict = {
@@ -270,7 +269,7 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbolsNormalized);
     }
 
     handleTickers (client: Client, message: Dict) {
@@ -320,7 +319,7 @@ export default class woofipro extends woofiproRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const name = 'bbos';
         const topic = name;
         const request: Dict = {
@@ -329,7 +328,7 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbolsNormalized);
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -364,8 +363,8 @@ export default class woofipro extends woofiproRest {
 
     parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 'ts');
         return this.safeTicker ({
             'symbol': symbol,
@@ -376,7 +375,7 @@ export default class woofipro extends woofiproRest {
             'bid': this.safeString (ticker, 'bid'),
             'bidVolume': this.safeString (ticker, 'bidSize'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -408,10 +407,11 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watchPublic (topic, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (market['symbol'], limit);
+            limitResolved = ohlcv.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -477,7 +477,7 @@ export default class woofipro extends woofiproRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const topic = market['id'] + '@trade';
         const request: Dict = {
             'event': 'subscribe',
@@ -485,10 +485,11 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watchPublic (topic, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
+            limitResolved = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -560,8 +561,8 @@ export default class woofipro extends woofiproRest {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2 (trade, 'executedPrice', 'price');
         const amount = this.safeString2 (trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul (price, amount);
@@ -594,7 +595,7 @@ export default class woofipro extends woofiproRest {
             'type': this.safeStringLower (trade, 'type'),
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
     handleAuth (client: Client, message: Dict) {
@@ -696,23 +697,24 @@ export default class woofipro extends woofiproRest {
         if (trigger === true) {
             topic = 'algoexecutionreport';
         }
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -737,23 +739,24 @@ export default class woofipro extends woofiproRest {
         if (trigger === true) {
             topic = 'algoexecutionreport';
         }
-        params = this.omit (params, 'stop');
+        const paramsOmitted: Dict = this.omit (params, 'stop');
         let messageHash = 'myTrades';
+        const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {
@@ -824,8 +827,8 @@ export default class woofipro extends woofiproRest {
         //
         const orderId = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.market (marketId);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.market (marketId);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
         const fee: Dict = {
             'cost': this.safeString (order, 'totalFee'),
@@ -1022,16 +1025,16 @@ export default class woofipro extends woofiproRest {
             await this.loadMarkets ();
         }
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols);
-        if (!this.isEmpty (symbols)) {
-            if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbolsNormalized)) {
+            if (symbolsNormalized === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
             }
-            for (let i = 0; i < symbols.length; i++) {
-                if (symbols === undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                if (symbolsNormalized === undefined) {
                     throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
                 }
-                const symbol = symbols[i];
+                const symbol = symbolsNormalized[i];
                 messageHashes.push ('positions::' + symbol);
             }
         } else {
@@ -1039,12 +1042,12 @@ export default class woofipro extends woofiproRest {
         }
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const client = this.client (url);
-        this.setPositionsCache (client, symbols);
+        this.setPositionsCache (client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -1054,7 +1057,7 @@ export default class woofipro extends woofiproRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {
@@ -1168,7 +1171,7 @@ export default class woofipro extends woofiproRest {
         //     }
         //
         const contract = this.safeString (position, 'symbol');
-        market = this.safeMarket (contract, market);
+        const marketResolved: Market = this.safeMarket (contract, market);
         let size = this.safeString (position, 'positionQty');
         let side: Str = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -1176,7 +1179,7 @@ export default class woofipro extends woofiproRest {
         } else {
             side = 'short';
         }
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
         const markPrice = this.safeString (position, 'markPrice');
         const timestamp = this.safeInteger (position, 'timestamp');
         const entryPrice = this.safeString (position, 'averageOpenPrice');
@@ -1186,7 +1189,7 @@ export default class woofipro extends woofiproRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,

@@ -411,7 +411,7 @@ public class BaseExchange {
         // handle options — keep this.options as a ConcurrentHashMap so concurrent
         // watchTrades / loadMarkets calls don't race (see Exchange.options field
         // comment + SharedStateRaceTest).
-        var extendedOptions = this.safeDict(extendedProperties, "options");
+        var extendedOptions = this.safeDict(extendedProperties, "options", null);
         Map<String, Object> initialOptions;
         if (extendedOptions != null) {
             extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
@@ -840,8 +840,8 @@ public class BaseExchange {
         return Encode.binaryConcatArray(arrays2);
     }
 
-    public Object exceptionMessage(Object exc, Object... optionalArgs) {
-        boolean includeStack = optionalArgs.length > 0 && optionalArgs[0] != null ? (boolean) optionalArgs[0] : true;
+    public Object exceptionMessage(Object exc, Object includeStackArg) {
+        boolean includeStack = !Boolean.FALSE.equals(includeStackArg);
         if (exc instanceof Throwable t) {
             // Walk the cause chain and include each level's class+message. Without
             // this, reflection-driven failures show as bare "InvocationTargetException"
@@ -1651,7 +1651,7 @@ public class BaseExchange {
 
         if (!reload && this.markets != null) {
             if (this.markets_by_id == null) {
-                return java.util.concurrent.CompletableFuture.completedFuture(this.setMarkets(this.markets));
+                return java.util.concurrent.CompletableFuture.completedFuture(this.setMarkets(this.markets, null));
             }
             return java.util.concurrent.CompletableFuture.completedFuture(this.markets);
         }
@@ -1668,7 +1668,7 @@ public class BaseExchange {
 
         java.util.concurrent.CompletableFuture<Object> currenciesFuture;
         if (hasFetchCurrencies) {
-            currenciesFuture = this.fetchCurrencies();
+            currenciesFuture = this.fetchCurrencies(new java.util.HashMap<String, Object>());
         } else {
             currenciesFuture = java.util.concurrent.CompletableFuture.completedFuture(null);
         }
@@ -1677,7 +1677,7 @@ public class BaseExchange {
             if (currencies != null) {
                 this.options.put("cachedCurrencies", currencies);
             }
-            return this.fetchMarkets().thenApply(markets -> {
+            return this.fetchMarkets(new java.util.HashMap<String, Object>()).thenApply(markets -> {
                 this.options.remove("cachedCurrencies");
                 // Pass currencies through so setMarkets() can merge fetched currencies
                 // (including ones not appearing as a base/quote/settle in any market —
@@ -1702,9 +1702,10 @@ public class BaseExchange {
         this.lastNonceReentrantLock.unlock();
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... args) {
+    // TS `loadMarkets (reload = false, params = {})`; venues override it with this signature
+    public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object reload2, Object params) {
 
-        var reload = (Boolean) Helpers.getArg(args, 0, false);
+        boolean reload = Boolean.TRUE.equals(reload2);
         if (this.marketsLoaded && !reload) {
             return this.marketsLoading;
         }
@@ -1746,11 +1747,11 @@ public class BaseExchange {
         }
     }
 
-    public CompletableFuture<Object> fetchCurrencies(Object... params) {
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> params) {
         return CompletableFuture.completedFuture(this.currencies);
     }
 
-    public CompletableFuture<Object> fetchMarkets(Object... params) {
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> params) {
         return CompletableFuture.completedFuture(new ArrayList<>(((Map<String, Object>)this.markets).values()));
     }
 
