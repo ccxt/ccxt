@@ -1243,7 +1243,7 @@ export default class coinone extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = walletAddress[key];
+            const value = this.safeString (walletAddress, key);
             if ((value === undefined) || (value === null) || (value === '') || (value === '-1')) {
                 continue;
             }

@@ -3622,7 +3622,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOrdersByStatus (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6193,15 +6193,15 @@ export default class coinex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = [], method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: any, api: any = [], method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         path = this.implodeParams (path, params);
-        const version = api[0];
-        const requestUrl = api[1];
+        const version: string = api[0];
+        const requestUrl: string = api[1];
         let url = this.urls['api'][requestUrl] + '/' + version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
         if (method === 'POST') {
-            const parts = path.split ('/');
+            const parts: string[] = path.split ('/');
             const firstPart = this.safeString (parts, 0, '');
             const numParts = parts.length;
             const lastPart = this.safeString (parts, numParts - 1, '');
@@ -6221,7 +6221,7 @@ export default class coinex extends Exchange {
                 const clientOrderId = this.safeString (params, 'client_id');
                 if (clientOrderId === undefined) {
                     const defaultId = 'x-167673045';
-                    const brokerId = this.safeValue (this.options, 'brokerId', defaultId);
+                    const brokerId = this.safeString (this.options, 'brokerId', defaultId);
                     query['client_id'] = brokerId + '_' + this.uuid16 ();
                 }
             }

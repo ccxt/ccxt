@@ -4134,7 +4134,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const tiers: LeverageTier[] = [];
-        const brackets = this.safeValue (info, 'open_max_limits', {});
+        const brackets = this.safeList (info, 'open_max_limits', []);
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString (info, 'instrument_id');
@@ -4489,8 +4489,8 @@ export default class digifinex extends Exchange {
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const signed = api[0] === 'private';
-        const endpoint = api[1];
+        const signed = this.safeString (api, 0) === 'private';
+        const endpoint = this.safeString (api, 1);
         const pathPart = (endpoint === 'spot') ? '/v3' : '/swap/v2';
         const request = '/' + this.implodeParams (path, params);
         const payload = pathPart + request;

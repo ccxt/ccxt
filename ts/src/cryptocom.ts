@@ -2524,7 +2524,7 @@ export default class cryptocom extends Exchange {
         if (execInst !== undefined) {
             postOnly = false;
             for (let i = 0; i < execInst.length; i++) {
-                const inst = execInst[i];
+                const inst = this.safeString (execInst, i);
                 if (inst === 'POST_ONLY') {
                     postOnly = true;
                     break;

@@ -1390,7 +1390,7 @@ export default class coinbase extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         const method = this.safeString (this.options, 'fetchMarkets', 'fetchMarketsV3');
@@ -5325,8 +5325,8 @@ export default class coinbase extends Exchange {
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const version = api[0];
-        const signed = api[1] === 'private';
+        const version = this.safeString (api, 0);
+        const signed = this.safeString (api, 1) === 'private';
         const isV3 = version === 'v3';
         const pathPart = (isV3) ? 'api/v3' : 'v2';
         let fullPath = '/' + pathPart + '/' + this.implodeParams (path, params);
@@ -5489,7 +5489,7 @@ export default class coinbase extends Exchange {
                 }
             }
         }
-        const advancedTrade = this.options['advanced'];
+        const advancedTrade = this.safeBool (this.options, 'advanced');
         if (!('data' in response) && (advancedTrade !== true)) {
             throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
