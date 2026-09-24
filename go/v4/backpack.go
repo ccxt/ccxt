@@ -1210,7 +1210,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"interval": interval,
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -1854,7 +1854,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit // default 100, max 1000
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDeposits", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -1911,7 +1911,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["limit"] = limit
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchWithdrawals", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {

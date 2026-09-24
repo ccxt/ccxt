@@ -1649,7 +1649,7 @@ class hibachi extends Exchange {
             $request['startTime'] = $since;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOrdersByStatus', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOrdersByStatus', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -1762,7 +1762,7 @@ class hibachi extends Exchange {
             $request['fromMs'] = $since;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         if ($until !== null) {
             $request['toMs'] = $until;
         }
@@ -2359,7 +2359,7 @@ class hibachi extends Exchange {
             $request['limit'] = $limit;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchMySettlementHistory', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchMySettlementHistory', 'until');
         if ($until !== null) {
             $request['endTime'] = $this->parse_to_int($until / 1000);
         }

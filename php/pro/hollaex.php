@@ -527,7 +527,7 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\await($this->watch($signedUrl, $messageHash, $message, $messageHash));
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     { error: "Bearer or HMAC authentication required" }
         //     { error: "Error: wrong input" }

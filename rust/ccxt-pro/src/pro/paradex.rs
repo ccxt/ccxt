@@ -1018,7 +1018,7 @@ impl ParadexCore {
             if (errorCode.is_some()) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&error)).into());
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::Str("-32600".into()), feedback.clone());
-                let mut messageString: Value = self.safe_value_k(error, "message", &[]);
+                let mut messageString: Value = self.safe_string_k(error, "message", &[]);
                 if (messageString != Value::Null) {
                     self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), messageString, feedback);
                 }

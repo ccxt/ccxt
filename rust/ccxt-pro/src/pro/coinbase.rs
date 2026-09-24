@@ -348,7 +348,7 @@ impl CoinbaseCore {
         }  else if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into());
-            productIds = Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]);
+            productIds = Value::from(vec![self.safe_string_k(market, "id", &[])]);
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut subscribe: Value = Value::Map({
@@ -405,7 +405,7 @@ impl CoinbaseCore {
             market = self.market(symbol.clone());
             watchMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into());
             unWatchMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", unWatchMessageHash, Value::Str("::".into())).into()), symbol).into());
-            productIds = Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]);
+            productIds = Value::from(vec![self.safe_string_k(market, "id", &[])]);
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'

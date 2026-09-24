@@ -3083,7 +3083,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut userAux: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params2(params.clone(), methodName.clone(), Value::Str("user".into()), Value::Str("subAccountAddress".into()), &[]); userAux = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut user: Value = userAux.clone();
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("address".into()), &[userAux]); user = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName.clone(), Value::Str("address".into()), &[userAux]); user = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (user != Value::Null) && (user.as_str() != Some("")) {
             return Value::from(vec![user, params.clone()]);
         }

@@ -1875,9 +1875,9 @@ class grvt extends Exchange {
         $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId');
         if ($this->in_array($fromAccount, array( 'trading', 'funding' )) && $this->in_array($toAccount, array( 'trading', 'funding' ))) {
             $tradingAccountId = null;
-            list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'transfer', 'tradingAccountId');
+            list($tradingAccountId, $params) = $this->handle_option_string_and_params($params, 'transfer', 'tradingAccountId');
             $fundingAccountId = null;
-            list($fundingAccountId, $params) = $this->handle_option_and_params($params, 'transfer', 'fundingAccountId');
+            list($fundingAccountId, $params) = $this->handle_option_string_and_params($params, 'transfer', 'fundingAccountId');
             if ($tradingAccountId === null || $fundingAccountId === null) {
                 throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or $params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }

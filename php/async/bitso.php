@@ -771,7 +771,7 @@ class bitso extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ticker(?array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"37446.85",
@@ -838,7 +838,7 @@ class bitso extends Exchange {
             'book' => $market['id'],
         );
         $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
-        $ticker = $this->safe_value($response, 'payload');
+        $ticker = $this->safe_dict($response, 'payload');
         //
         //     {
         //         "success":true,

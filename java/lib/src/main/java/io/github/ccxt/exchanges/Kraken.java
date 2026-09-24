@@ -1629,9 +1629,9 @@ public class Kraken extends KrakenApi
         //
         String id = this.safeString(item, "id");
         String direction = null;
-        Object account = null;
+        List<String> account = null;
         String referenceId = this.safeString(item, "refid");
-        Object referenceAccount = null;
+        List<String> referenceAccount = null;
         String type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String currencyId = this.safeString(item, "asset");
         String code = this.safeCurrencyCode(currencyId, currency);

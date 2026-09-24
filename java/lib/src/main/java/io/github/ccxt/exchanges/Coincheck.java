@@ -579,7 +579,7 @@ public class Coincheck extends CoincheckApi
         String amount = this.safeString(order, "pending_amount");
         String remaining = this.safeString(order, "pending_amount");
         String price = this.safeString(order, "rate");
-        Object status = null;
+        List<String> status = null;
         String marketId = this.safeString(order, "pair");
         String symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{

@@ -1473,7 +1473,7 @@ class deepcoin extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
          */
         $userId = null;
-        list($userId, $params) = $this->handle_option_and_params($params, 'transfer', 'userId');
+        list($userId, $params) = $this->handle_option_string_and_params($params, 'transfer', 'userId');
         $userId = ($userId !== null && $userId !== '') ? $userId : $this->safe_string($params, 'uid');
         if ($userId === null) {
             throw new ArgumentsRequired($this->id . ' $transfer() requires a $userId parameter');

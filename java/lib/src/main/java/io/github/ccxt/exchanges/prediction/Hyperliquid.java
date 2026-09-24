@@ -3109,7 +3109,7 @@ public class Hyperliquid extends HyperliquidApi
         userAux = (String) ((List<Object>) userAuxparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userAuxparametersVariable).get(1);
         Object user = userAux;
-        List<Object> userparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "address", userAux);
+        List<Object> userparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "address", userAux);
         user = ((List<Object>) userparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userparametersVariable).get(1);
         if (!java.util.Objects.equals(user, null) && !java.util.Objects.equals(user, ""))

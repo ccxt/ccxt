@@ -657,6 +657,8 @@ impl CoinoneCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "response_type": "ERROR",
@@ -664,7 +666,7 @@ impl CoinoneCore {
         //         "message": "Invalid Topic"
         //     }
         //
-        let mut type_var: Option<String> = self.safe_string_k(message, "response_type", &[Value::Str("".into())]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = (match message.get("response_type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("ERROR")) {
             return Value::Bool(true);
         }

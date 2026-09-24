@@ -2979,7 +2979,7 @@ public partial class extended : Exchange
         }
         string? fee = this.safeString(parameters, "fee", "0.0005");
         string? builderFeeRate = null;
-        object builderId = null;
+        string? builderId = null;
         if (this.isSandboxModeEnabled)
         {
             builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
@@ -2990,8 +2990,8 @@ public partial class extended : Exchange
             IList<object> builderFeeRateparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
             builderFeeRate = (string)builderFeeRateparametersVariable[0];
             parameters = builderFeeRateparametersVariable[1];
-            IList<object> builderIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "builderId");
-            builderId = builderIdparametersVariable[0];
+            IList<object> builderIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "builderId");
+            builderId = (string)builderIdparametersVariable[0];
             parameters = builderIdparametersVariable[1];
         }
         string? totalFee = fee;

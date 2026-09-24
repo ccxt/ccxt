@@ -1073,7 +1073,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             return;
         }
         Integer depth = 25; // covers the first 25 bids and asks
-        Object stringArray = new ArrayList<Object>(Arrays.asList());
+        List<String> stringArray = new ArrayList<String>(Arrays.asList());
         Object bids = ((Map<String, Object>)book).get("bids");
         Object asks = ((Map<String, Object>)book).get("asks");
         String prec = this.safeString(subscription, "prec", "P0");
@@ -1086,14 +1086,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             List<Object> ask = (List<Object>) this.safeList(asks, i);
             if (!java.util.Objects.equals(bid, null))
             {
-                ((List<Object>)stringArray).add(this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), idToCheck)));
-                ((List<Object>)stringArray).add(this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), 1)));
+                stringArray.add(this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), idToCheck)));
+                stringArray.add(this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), 1)));
             }
             if (!java.util.Objects.equals(ask, null))
             {
-                ((List<Object>)stringArray).add(this.numberToString(Helpers.GetValue(Helpers.GetValue(asks, i), idToCheck)));
+                stringArray.add(this.numberToString(Helpers.GetValue(Helpers.GetValue(asks, i), idToCheck)));
                 Object aski1 = Helpers.GetValue(Helpers.GetValue(asks, i), 1);
-                ((List<Object>)stringArray).add(this.numberToString(Helpers.opNeg(aski1)));
+                stringArray.add(this.numberToString(Helpers.opNeg(aski1)));
             }
         }
         String payload = String.join(":", (List<String>)stringArray);

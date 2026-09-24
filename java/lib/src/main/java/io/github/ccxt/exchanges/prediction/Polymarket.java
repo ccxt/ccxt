@@ -4456,24 +4456,24 @@ final Object finalClobTokenId = clobTokenId;
             String eventType = this.safeString(eventVar, "event_type");
             if (java.util.Objects.equals(eventType, "book"))
             {
-                this.handleOrderBookSnapshot(client, eventVar);
+                this.handleOrderBookSnapshot(client, (Map<String, Object>) (eventVar));
             } else if (java.util.Objects.equals(eventType, "price_change"))
             {
-                this.handleOrderBookDelta(client, eventVar);
+                this.handleOrderBookDelta(client, (Map<String, Object>) (eventVar));
             } else if (java.util.Objects.equals(eventType, "last_trade_price"))
             {
-                this.handleTrade(client, eventVar);
+                this.handleTrade(client, (Map<String, Object>) (eventVar));
             } else if (java.util.Objects.equals(eventType, "order"))
             {
-                this.handleOrder(client, eventVar);
+                this.handleOrder(client, (Map<String, Object>) (eventVar));
             } else if (java.util.Objects.equals(eventType, "trade"))
             {
-                this.handleMyTrade(client, eventVar);
+                this.handleMyTrade(client, (Map<String, Object>) (eventVar));
             }
         }
     }
 
-    public void handleOrderBookSnapshot(Client client, Object eventVar)
+    public void handleOrderBookSnapshot(Client client, Map<String, Object> eventVar)
     {
         String tokenId = this.safeString(eventVar, "asset_id");
         String outcome = this.tokenIdToSymbol((String) (tokenId));
@@ -4517,7 +4517,7 @@ final String finalOutcome = outcome;
         client.resolve(orderbook, ("ticker::" + outcome));
     }
 
-    public void handleOrderBookDelta(Client client, Object eventVar)
+    public void handleOrderBookDelta(Client client, Map<String, Object> eventVar)
     {
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         Object changes = (List<Object>)(this.safeList(eventVar, "price_changes", new ArrayList<Object>(Arrays.asList())));
@@ -4553,7 +4553,7 @@ final String finalOutcome = outcome;
         }
     }
 
-    public void handleTrade(Client client, Object eventVar)
+    public void handleTrade(Client client, Map<String, Object> eventVar)
     {
         String tokenId = this.safeString(eventVar, "asset_id");
         String outcome = this.tokenIdToSymbol((String) (tokenId));
@@ -4950,7 +4950,7 @@ final String finalOutcome = outcome;
         return this.subscribeUserChannel(messageHash, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public void handleOrder(Client client, Object eventVar)
+    public void handleOrder(Client client, Map<String, Object> eventVar)
     {
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -4968,7 +4968,7 @@ final String finalOutcome = outcome;
         }
     }
 
-    public void handleMyTrade(Client client, Object eventVar)
+    public void handleMyTrade(Client client, Map<String, Object> eventVar)
     {
         if (java.util.Objects.equals(this.myTrades, null))
         {

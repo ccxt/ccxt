@@ -1518,7 +1518,7 @@ public partial class mudrex : Exchange
             market = this.market(symbol);
         }
         object maxCalls = null;
-        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
+        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
         maxCalls = maxCallsparametersVariable[0];
         parameters = maxCallsparametersVariable[1];
         object pageSize = 0;

@@ -1822,7 +1822,7 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets ();
         }
         let codGroupId: Int = undefined;
-        [ codGroupId, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'codGroupId', 1);
+        [ codGroupId, params ] = this.handleOptionIntegerAndParams (params, 'cancelAllOrdersAfter', 'codGroupId', 1);
         const request: Dict = {
             'codGroupId': codGroupId,
             'expiryAfterSeconds': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,

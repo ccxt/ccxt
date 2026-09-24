@@ -672,7 +672,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		"currencyPair": market["id"],
 	}
 	var level any = 0
-	var levelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "level", level)
+	var levelparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "level", level)
 	level = GetValue(levelparamsVariable, 0)
 	params = MapTyped(GetValue(levelparamsVariable, 1))
 	request["level"] = level

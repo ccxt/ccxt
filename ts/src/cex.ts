@@ -1300,7 +1300,7 @@ export default class cex extends Exchange {
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
+        [ accountId, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
@@ -1784,7 +1784,7 @@ export default class cex extends Exchange {
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
+        [ accountId, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }

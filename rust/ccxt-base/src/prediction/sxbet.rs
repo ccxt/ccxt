@@ -1214,7 +1214,7 @@ impl SxbetCore {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the base token address from /metadata/obv3".into()))));
         }
         let mut spender: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("approve".into()), Value::Str("spender".into()), Value::Str("transferToProxySpender".into()), &[executorAddress]); spender = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params2(params.clone(), Value::Str("approve".into()), Value::Str("spender".into()), Value::Str("transferToProxySpender".into()), &[executorAddress]); spender = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (spender == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender".into()))));
         }
@@ -1404,7 +1404,7 @@ impl SxbetCore {
             defaultTif = Value::Str("GTC".into());
         }
         let mut timeInForce: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[defaultTif]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[defaultTif]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises

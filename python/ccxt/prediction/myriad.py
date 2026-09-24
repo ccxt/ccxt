@@ -3035,7 +3035,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         orderbook.reset(snapshot)
         self.orderbooks[sym] = orderbook
 
-    def handle_order_book(self, client: object, data: object):
+    def handle_order_book(self, client: object, data: dict):
         networkId = self.safe_string(data, 'networkId')
         marketId = self.safe_string(data, 'marketId')
         ts = self.safe_integer(data, 'ts')
@@ -3120,7 +3120,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             return self.eth_get_address_from_private_key(self.privateKey).lower()
         return None
 
-    def handle_trades(self, client: object, data: object):
+    def handle_trades(self, client: object, data: dict):
         networkId = self.safe_string(data, 'networkId')
         marketId = self.safe_string(data, 'marketId')
         ts = self.safe_integer(data, 'ts')
@@ -3289,7 +3289,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             result.append([candle[0], candle[1], candle[2], candle[3], candle[4], candle[5]])
         return self.filter_by_since_limit(result, since, limit, 0, True)
 
-    def handle_ticker(self, client: object, data: object):
+    def handle_ticker(self, client: object, data: dict):
         networkId = self.safe_string(data, 'networkId')
         marketId = self.safe_string(data, 'marketId')
         ts = self.safe_integer(data, 'ts')
@@ -3359,7 +3359,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         orders = await self.subscribe_myriad_channel(messageHash, channel, params)
         return self.filter_by_value_since_limit(orders, 'outcome', outcome, since, limit, 'timestamp', True)
 
-    def handle_order(self, client: object, data: object):
+    def handle_order(self, client: object, data: dict):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheByOutcomeById(limit)
@@ -3448,7 +3448,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 balances[id] = self.number_to_string(self.safe_number(p, 'contracts', 0))
         self.options['positionBalances'] = balances
 
-    def handle_position(self, client: object, data: object):
+    def handle_position(self, client: object, data: dict):
         if self.positions is None:
             limit = self.safe_integer(self.options, 'positionsLimit', 1000)
             self.positions = ArrayCacheByOutcomeById(limit)

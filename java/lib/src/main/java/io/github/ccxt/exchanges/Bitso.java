@@ -1051,7 +1051,7 @@ public class Bitso extends BitsoApi
                 put( "book", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            Object ticker = this.safeValue(response, "payload");
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "payload");
             //
             //     {
             //         "success":true,

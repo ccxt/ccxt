@@ -1017,9 +1017,9 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 	if tokenAddress == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the base token address from /metadata/obv3"))
 	}
-	var spender any = nil
-	var spenderparamsVariable []any = this.HandleOptionAndParams2(params, "approve", "spender", "transferToProxySpender", executorAddress)
-	spender = ccxt.GetValue(spenderparamsVariable, 0)
+	var spender *string = nil
+	var spenderparamsVariable []any = this.HandleOptionStringAndParams2(params, "approve", "spender", "transferToProxySpender", executorAddress)
+	spender = ccxt.SafeStringPtr(ccxt.GetValue(spenderparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(spenderparamsVariable, 1))
 	if spender == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender"))
@@ -1201,14 +1201,14 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	if ccxt.IsEqual(typeVar, "limit") {
 		defaultTif = "GTC"
 	}
-	var timeInForce any = nil
-	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce", defaultTif)
-	timeInForce = ccxt.GetValue(timeInForceparamsVariable, 0)
+	var timeInForce *string = nil
+	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", defaultTif)
+	timeInForce = ccxt.SafeStringPtr(ccxt.GetValue(timeInForceparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsVariable, 1))
 	// an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
 	// that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
 	// contradicting the immediate-fill semantics the type promises
-	if (ccxt.IsEqual(typeVar, "market")) && (ccxt.IsEqual(timeInForce, "GTC")) {
+	if (ccxt.IsEqual(typeVar, "market")) && (timeInForce != nil && *timeInForce == "GTC") {
 		panic(ccxt.InvalidOrder(this.Id + " createOrder() market orders cannot be GTC - use type 'limit' for a resting order"))
 	}
 	var maker any = this.WalletAddress

@@ -827,7 +827,7 @@ impl LbankCore {
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut rawTrade: Value = (match message.get("trade") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut rawTrade: Value = (match message.get("trade") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut rawTrades: Value = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade]) });
         {
                         let mut i: Value = Value::Int(0);
@@ -1344,13 +1344,15 @@ impl LbankCore {
 }
 
     pub async fn handle_ping(&mut self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
         // lbank closes the socket if this app-level ping is unanswered within a minute, but does not
         // reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
         crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
-        let mut pingId: Value = self.safe_string_k(message, "ping", &[]);
+        let mut pingId: Value = (match message.get("ping") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             client.send(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();

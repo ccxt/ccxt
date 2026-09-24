@@ -2051,7 +2051,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "method", method)
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchTickers", "method", method)
 	method = GetValue(methodparamsVariable, 0)
 	params = MapTyped(GetValue(methodparamsVariable, 1))
 	if method == nil {

@@ -1275,7 +1275,7 @@ class bingx extends Exchange {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             $timeZone = null;
-            list($timeZone, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'timeZone', 0);
+            list($timeZone, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'timeZone', 0);
             if ($timeZone !== null) {
                 $request['timeZone'] = $timeZone;
             }

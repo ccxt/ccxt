@@ -1210,7 +1210,7 @@ public partial class whitebit : ccxt.whitebit
         //         "id": 1656090882
         //     }
         //
-        object error = this.safeValue(message, "error");
+        IDictionary<string, object> error = this.safeDict(message, "error");
         try
         {
             if ((error != null))

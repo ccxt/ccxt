@@ -813,7 +813,7 @@ impl PacificaCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut aggLevel: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]); aggLevel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]); aggLevel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
@@ -860,7 +860,7 @@ impl PacificaCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut aggLevel: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]); aggLevel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]); aggLevel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();

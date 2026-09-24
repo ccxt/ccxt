@@ -393,7 +393,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trades:" + symbol);
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(message, "data"));
+        IDictionary<string, object> data = this.safeDict(message, "data");
         Dictionary<string, object> trade = this.parseWsTrade(data, market);
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))

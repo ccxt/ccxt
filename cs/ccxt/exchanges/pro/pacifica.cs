@@ -481,9 +481,9 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object aggLevel = null;
-        IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
-        aggLevel = aggLevelparametersVariable[0];
+        Int64? aggLevel = null;
+        IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+        aggLevel = (Int64?)aggLevelparametersVariable[0];
         parameters = aggLevelparametersVariable[1];
         string messageHash = ("orderbook:" + symbol);
         bool isTestnet = this.isSandboxModeEnabled;
@@ -524,9 +524,9 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object aggLevel = null;
-        IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
-        aggLevel = aggLevelparametersVariable[0];
+        Int64? aggLevel = null;
+        IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+        aggLevel = (Int64?)aggLevelparametersVariable[0];
         parameters = aggLevelparametersVariable[1];
         string subMessageHash = ("orderbook:" + (symbol));
         string messageHash = ("unsubscribe:" + subMessageHash);

@@ -4578,7 +4578,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            Object data = this.safeValue(response, "data");
+            List<Object> data = (List<Object>) this.safeList(response, "data");
             return this.parseAccounts(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
@@ -4945,10 +4945,10 @@ public class Htx extends HtxApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             Boolean isMultiAssetMode = null;
-            List<Object> subTypeparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            List<Object> subTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "fetchBalance", "defaultSubType", "subType");
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             if (java.util.Objects.equals(subType, null))
             {
@@ -10050,9 +10050,9 @@ public class Htx extends HtxApi
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             String defaultSubType = "linear";
-            Object subType = null;
-            List<Object> subTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            String subType = null;
+            List<Object> subTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -11919,7 +11919,7 @@ public class Htx extends HtxApi
             //         "data": 1000
             //     }
             //
-            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (response), currency);
+            Map<String, Object> transaction = this.parseMarginLoan(response, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -11978,7 +11978,7 @@ public class Htx extends HtxApi
             //         "data": null
             //     }
             //
-            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (response), currency);
+            Map<String, Object> transaction = this.parseMarginLoan(response, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -12041,8 +12041,8 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            Object loan = this.safeValue(data, 0);
-            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (loan), currency);
+            Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0);
+            Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -12105,8 +12105,8 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            Object loan = this.safeValue(data, 0);
-            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (loan), currency);
+            Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0);
+            Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -12128,7 +12128,7 @@ public class Htx extends HtxApi
         return this.repayCrossMargin(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Map<String, Object> currency)
+    public Map<String, Object> parseMarginLoan(Object info, Map<String, Object> currency)
     {
         //
         // borrowMargin cross
@@ -12162,7 +12162,7 @@ public class Htx extends HtxApi
             put( "info", info );
         }};
     }
-    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Object info, Object... optionalArgs)
     {
         return this.parseMarginLoan(info, Helpers.getArgMap(optionalArgs, 0, null));
     }

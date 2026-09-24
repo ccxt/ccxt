@@ -6549,11 +6549,11 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 				request["category"] = "SPOT"
 			}
 		} else if (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future")) {
-			var productType any = nil
-			productTypeparamsVariable := this.HandleProductTypeAndParams(nil, params)
-			productType = GetValue(productTypeparamsVariable, 0)
-			params = GetValue(productTypeparamsVariable, 1)
-			request["category"] = productType
+			var utaProductType any = nil
+			utaProductTypeparamsVariable := this.HandleProductTypeAndParams(nil, params)
+			utaProductType = GetValue(utaProductTypeparamsVariable, 0)
+			params = GetValue(utaProductTypeparamsVariable, 1)
+			request["category"] = utaProductType
 		} else {
 			panic(NotSupported(Add(Add(this.Id+" does not support ", marketType), " market")))
 		}
@@ -6609,9 +6609,9 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 			response = MapTyped(PanicOnError((<-this.PublicSpotGetV2SpotPublicSymbols(params)).Raw))
 		}
 	} else if (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future")) {
-		var productType any = nil
+		var productType *string = nil
 		productTypeparamsVariable := this.HandleProductTypeAndParams(nil, params)
-		productType = GetValue(productTypeparamsVariable, 0)
+		productType = SafeStringPtr(GetValue(productTypeparamsVariable, 0))
 		params = GetValue(productTypeparamsVariable, 1)
 		AddElementToObject(params, "productType", productType)
 
@@ -10656,11 +10656,11 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 					request["category"] = "SPOT"
 				}
 			} else {
-				var productType any = nil
-				productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
-				productType = GetValue(productTypeparamsVariable, 0)
-				params = GetValue(productTypeparamsVariable, 1)
-				request["category"] = productType
+				var utaProductType any = nil
+				utaProductTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
+				utaProductType = GetValue(utaProductTypeparamsVariable, 0)
+				params = GetValue(utaProductTypeparamsVariable, 1)
+				request["category"] = utaProductType
 			}
 			if symbol != nil {
 				request["symbol"] = this.SafeString(market, "id")

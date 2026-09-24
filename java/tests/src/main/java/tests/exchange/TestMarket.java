@@ -146,7 +146,7 @@ public class TestMarket extends BaseTest {
         List<String> validTypes = new ArrayList<String>(Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
-        List<Object> validSubTypes = new ArrayList<Object>(Arrays.asList("linear", "inverse", "quanto", null));
+        List<String> validSubTypes = new ArrayList<String>(Arrays.asList("linear", "inverse", "quanto", null));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
         List<String> checkedTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option"));

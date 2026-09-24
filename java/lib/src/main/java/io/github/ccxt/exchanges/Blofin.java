@@ -863,9 +863,9 @@ public class Blofin extends BlofinApi
         {
             symbol = ((symbol + ":") + settle);
         }
-        Object expiry = null;
-        Object strikePrice = null;
-        Object optionType = null;
+        List<String> expiry = null;
+        List<String> strikePrice = null;
+        List<String> optionType = null;
         String tickSize = this.safeString(market, "tickSize");
         Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
         Double taker = this.safeNumber(fees, "taker");

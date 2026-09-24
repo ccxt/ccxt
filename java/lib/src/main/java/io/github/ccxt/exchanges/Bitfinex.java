@@ -1814,7 +1814,7 @@ public class Bitfinex extends BitfinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object ids = this.marketIds(symbols);
+                List<String> ids = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("symbols", String.join(",", (List<String>)ids));
             } else
             {
@@ -4505,7 +4505,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "keys", String.join(",", (List<String>)marketIds) );
             }};
@@ -4811,12 +4811,12 @@ public class Bitfinex extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object marketIds = new ArrayList<Object>(Arrays.asList("ALL"));
+            List<String> marketIds = new ArrayList<String>(Arrays.asList("ALL"));
             if (!java.util.Objects.equals(symbols, null))
             {
                 marketIds = this.marketIds(symbols);
             }
-            final Object finalMarketIds = marketIds;
+            final List<String> finalMarketIds = marketIds;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "keys", String.join(",", (List<String>)finalMarketIds) );
             }};

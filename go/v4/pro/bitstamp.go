@@ -436,7 +436,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbol
-	var data any = this.SafeValue(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesArray, nil) {

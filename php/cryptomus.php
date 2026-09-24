@@ -558,7 +558,7 @@ class cryptomus extends Exchange {
             'currencyPair' => $market['id'],
         );
         $level = 0;
-        list($level, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'level', $level);
+        list($level, $params) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'level', $level);
         $request['level'] = $level;
         $response = $this->publicGetV1ExchangeMarketOrderBookCurrencyPair($this->extend($request, $params));
         //

@@ -2665,7 +2665,7 @@ export default class extended extends Exchange {
             params = this.omit (params, [ 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ]);
         } else {
             [ builderFeeRate, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'builderFeeRate', '0.0001');
-            [ builderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderId');
+            [ builderId, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'builderId');
         }
         let totalFee = fee;
         if (builderFeeRate !== undefined) {

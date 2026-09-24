@@ -834,7 +834,7 @@ class alpaca extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         $paginationCalls = 10;
-        list($paginationCalls, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginationCalls', 10);
+        list($paginationCalls, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'paginationCalls', 10);
         $request = array(
             'symbols' => $marketId,
             'loc' => $loc,

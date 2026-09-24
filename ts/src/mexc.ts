@@ -1949,7 +1949,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data');
+            const data = this.safeDict (response, 'data');
             candles = this.convertTradingViewToOHLCV (data, 'time', 'open', 'high', 'low', 'close', 'vol');
         }
         return this.parseOHLCVs (candles, market, timeframe, since, limit);

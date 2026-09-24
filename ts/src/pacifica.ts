@@ -1095,7 +1095,7 @@ export default class pacifica extends Exchange {
         }
         const market = this.market (symbol);
         let aggLevel: Int = undefined;
-        [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
+        [ aggLevel, params ] = this.handleOptionIntegerAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
         const request: Dict = {
             'symbol': market['id'],
             'agg_level': aggLevel,
@@ -3394,7 +3394,7 @@ export default class pacifica extends Exchange {
         let timestamp: Int = undefined;
         [ timestamp, params ] = this.handleParamInteger (params, 'timestamp', this.milliseconds ());
         let expiryWindow: Int = undefined;
-        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
+        [ expiryWindow, params ] = this.handleOptionIntegerAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader: Dict = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3643,7 +3643,7 @@ export default class pacifica extends Exchange {
             }
         }
         let expiryWindow: Int = undefined;
-        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
+        [ expiryWindow, params ] = this.handleOptionIntegerAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
         const timestamp = this.safeInteger (params, 'timestamp', this.milliseconds ());
         const signatureHeader: Dict = {
             'timestamp': timestamp,

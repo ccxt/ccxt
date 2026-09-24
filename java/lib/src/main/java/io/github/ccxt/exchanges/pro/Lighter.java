@@ -1120,7 +1120,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return this.parseWsOrderTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object handleMyTrades(Client client, Object message)
+    public Object handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1544,7 +1544,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return this.watchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object handleBalance(Client client, Object message)
+    public Object handleBalance(Client client, Map<String, Object> message)
     {
         //
         //    spot balance
@@ -1973,7 +1973,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         client.resolve(message, ("jsonapi/sendtx:" + id));
     }
 
-    public Object handleOrders(Client client, Object message)
+    public Object handleOrders(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2091,7 +2091,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String type = this.safeString(message, "type", "");
         if (java.util.Objects.equals(type, "ping"))
         {
-            this.handlePing(client, message);
+            this.handlePing(client, (Map<String, Object>) (message));
             return;
         }
         if (java.util.Objects.equals(type, "jsonapi/sendtx"))
@@ -2122,27 +2122,27 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
         if (((String)channel).indexOf("account_all_trades:") >= 0)
         {
-            this.handleMyTrades(client, message);
+            this.handleMyTrades(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)channel).indexOf("account_all_assets:") >= 0)
         {
-            this.handleBalance(client, message);
+            this.handleBalance(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)channel).indexOf("user_stats:") >= 0)
         {
-            this.handleBalance(client, message);
+            this.handleBalance(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)channel).indexOf("account_orders:") >= 0)
         {
-            this.handleOrders(client, message);
+            this.handleOrders(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)channel).indexOf("account_all_orders:") >= 0)
         {
-            this.handleOrders(client, message);
+            this.handleOrders(client, (Map<String, Object>) (message));
             return;
         }
         if (java.util.Objects.equals(channel, ""))
@@ -2307,7 +2307,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         this.cleanCache(ordersStructure);
     }
 
-    public void handlePing(Client client, Object message)
+    public void handlePing(Client client, Map<String, Object> message)
     {
         //
         //     { "type": "ping" }

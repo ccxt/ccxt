@@ -2775,7 +2775,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 self.handle_my_trade(client, event)
             # tick_size_change events are silently ignored for now
 
-    def handle_order_book_snapshot(self, client: object, event: object):
+    def handle_order_book_snapshot(self, client: object, event: dict):
         tokenId = self.safe_string(event, 'asset_id')
         outcome = self.token_id_to_symbol(tokenId)
         if outcome is None:
@@ -2808,7 +2808,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         client.resolve(orderbook, 'orderbook::' + outcome)
         client.resolve(orderbook, 'ticker::' + outcome)
 
-    def handle_order_book_delta(self, client: object, event: object):
+    def handle_order_book_delta(self, client: object, event: dict):
         timestamp = self.parse_poly_timestamp(self.safe_string(event, 'timestamp'))
         changes = self.safe_list(event, 'price_changes', [])
         updated = {}
@@ -2836,7 +2836,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             client.resolve(orderbook, 'orderbook::' + outcome)
             client.resolve(orderbook, 'ticker::' + outcome)
 
-    def handle_trade(self, client: object, event: object):
+    def handle_trade(self, client: object, event: dict):
         tokenId = self.safe_string(event, 'asset_id')
         outcome = self.token_id_to_symbol(tokenId)
         if outcome is None:
@@ -3046,7 +3046,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         subscribeHash = 'user'
         return await self.watch(url, messageHash, self.extend(subscribeMsg, params), subscribeHash)
 
-    def handle_order(self, client: object, event: object):
+    def handle_order(self, client: object, event: dict):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheByOutcomeById(limit)
@@ -3058,7 +3058,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             client.resolve(stored, 'orders::' + outcome)
 
-    def handle_my_trade(self, client: object, event: object):
+    def handle_my_trade(self, client: object, event: dict):
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheByOutcomeById(limit)

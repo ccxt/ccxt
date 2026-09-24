@@ -976,7 +976,7 @@ class backpack(Exchange, ImplicitAPI):
             'interval': interval,
         }
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'until')
         if until is not None:
             request['endTime'] = self.parse_to_int(until / 1000)  # convert milliseconds to seconds
         defaultLimit = 100
@@ -1418,7 +1418,7 @@ class backpack(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchDeposits', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchDeposits', 'until')
         if until is not None:
             request['endTime'] = until
         response = await self.privateGetWapiV1CapitalDeposits(self.extend(request, params))
@@ -1448,7 +1448,7 @@ class backpack(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchWithdrawals', 'until')
         if until is not None:
             request['to'] = until
         response = await self.privateGetWapiV1CapitalWithdrawals(self.extend(request, params))

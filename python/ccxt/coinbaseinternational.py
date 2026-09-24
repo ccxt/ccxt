@@ -543,7 +543,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         maxEntriesPerRequest = 100
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest)
+        maxEntriesPerRequest, params = self.handle_option_integer_and_params(params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
         if paginate:
             return self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
@@ -958,7 +958,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         paginate = None
         paginate, params = self.handle_option_bool_and_params(params, 'fetchDepositsWithdrawals', 'paginate')
         maxEntriesPerRequest = 100
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest)
+        maxEntriesPerRequest, params = self.handle_option_integer_and_params(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
         if paginate is True:
             return self.fetch_paginated_call_incremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest)
@@ -977,7 +977,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if portfolios is not None:
             request['portfolios'] = portfolios
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchDepositsWithdrawals', 'until')
         if until is not None:
             request['time_to'] = self.iso8601(until)
         response = self.v1PrivateGetTransfers(self.extend(request, params))
@@ -2057,7 +2057,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         maxEntriesPerRequest = 100
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest)
+        maxEntriesPerRequest, params = self.handle_option_integer_and_params(params, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
         if paginate:
             return self.fetch_paginated_call_incremental('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
@@ -2135,7 +2135,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         pageKey = 'ccxtPageKey'
         maxEntriesPerRequest = 100
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchMyTrades', 'maxEntriesPerRequest', maxEntriesPerRequest)
+        maxEntriesPerRequest, params = self.handle_option_integer_and_params(params, 'fetchMyTrades', 'maxEntriesPerRequest', maxEntriesPerRequest)
         if paginate:
             return self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
         market = None

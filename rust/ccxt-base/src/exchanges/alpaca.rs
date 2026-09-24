@@ -1449,7 +1449,7 @@ impl AlpacaCore {
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut paginationCalls: Value = Value::Int(10);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]); paginationCalls = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]); paginationCalls = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbols".to_string(), marketId.clone());

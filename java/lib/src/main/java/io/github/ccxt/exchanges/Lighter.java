@@ -533,9 +533,9 @@ public class Lighter extends LighterApi
             {
                 return signer;
             }
-            Object libraryPath = null;
-            List<Object> libraryPathparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "loadAccount", "libraryPath");
-            libraryPath = ((List<Object>) libraryPathparametersVariable).get(0);
+            String libraryPath = null;
+            List<Object> libraryPathparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "loadAccount", "libraryPath");
+            libraryPath = (String) ((List<Object>) libraryPathparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) libraryPathparametersVariable).get(1);
             Boolean lighterPrivateKeyIsSet = (!java.util.Objects.equals(privateKey, null)) && (!java.util.Objects.equals(privateKey, ""));
             if (Boolean.TRUE.equals(lighterPrivateKeyIsSet) && (!java.util.Objects.equals(libraryPath, null)) && (!java.util.Objects.equals(apiKeyIndex, null)) && (!java.util.Objects.equals(accountIndex, null)))
@@ -1071,7 +1071,7 @@ public class Lighter extends LighterApi
         List<Object> nonceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "nonce");
         nonce = ((List<Object>) nonceparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) nonceparametersVariable).get(1);
-        List<Object> orderExpiryparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "orderExpiry", 0);
+        List<Object> orderExpiryparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "orderExpiry", 0);
         orderExpiry = ((List<Object>) orderExpiryparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) orderExpiryparametersVariable).get(1);
         if (!java.util.Objects.equals(nonce, null))
@@ -1287,9 +1287,9 @@ public class Lighter extends LighterApi
             parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             ((Map<String, Object>)parameters).put("accountIndex", accountIndex);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object groupingType = null;
-            List<Object> groupingTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "groupingType", 3);
-            groupingType = ((List<Object>) groupingTypeparametersVariable).get(0);
+            Long groupingType = null;
+            List<Object> groupingTypeparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "groupingType", 3);
+            groupingType = (Long) ((List<Object>) groupingTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) groupingTypeparametersVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Integer totalOrderRequests = ((List<?>)orderRequests).size();
@@ -1317,7 +1317,7 @@ public class Lighter extends LighterApi
                 txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             } else
             {
-                final Object finalGroupingType = groupingType;
+                final Long finalGroupingType = groupingType;
                 final Object finalOrder = order;
                 final Object finalApiKeyIndex = apiKeyIndex;
                 final Long finalAccountIndex = accountIndex;
@@ -4069,9 +4069,9 @@ public class Lighter extends LighterApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 100));
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchMyTrades", "until", "from");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "fetchMyTrades", "until", "from");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {

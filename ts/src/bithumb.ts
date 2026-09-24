@@ -434,7 +434,7 @@ export default class bithumb extends Exchange {
         const result: Market[] = [];
         const request: Dict = {};
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchMarkets', 'generation', 2);
         if (generation === 2) {
             request['isDetails'] = true;
             const response = await this.publicGetV1MarketAll (this.extend (request, params));
@@ -709,7 +709,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchBalance', 'generation', 2);
         let response: any = undefined;
         if (generation === 2) {
             response = await this.privateGetV1Accounts (params);
@@ -761,7 +761,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchOrderBook', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
         let response: any = undefined;
@@ -994,7 +994,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchTickers', 'generation', 2);
         const request: Dict = {};
         const result: Dict = {};
         if (generation === 2) {
@@ -1195,7 +1195,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchTicker', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
         let response: any = undefined;
@@ -1331,7 +1331,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchOHLCV', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
         let response: any = undefined;
@@ -1560,7 +1560,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchTrades', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
         if (limit !== undefined) {
@@ -1629,7 +1629,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createOrders', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'createOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createOrders is only supported for the generation 2 API');
         }
@@ -1793,7 +1793,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createOrder', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'generation', 2);
         let request: Dict = {};
         const market = this.market (symbol);
         let response: any = undefined;
@@ -1865,7 +1865,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createMarketBuyOrderWithCost', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'createMarketBuyOrderWithCost', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createMarketBuyOrderWithCost() is only supported for the generation 2 API');
         }
@@ -1893,7 +1893,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createTwapOrder', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'createTwapOrder', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createTwapOrder() is only supported for the generation 2 API');
         }
@@ -1944,7 +1944,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchOrder', 'generation', 2);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2326,7 +2326,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchOpenOrders', 'generation', 2);
         const request: Dict = {};
         let market: Market = undefined;
         let response: any = undefined;
@@ -2399,7 +2399,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchOrders is only supported for the generation 2 API');
         }
@@ -2542,7 +2542,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'cancelOrder', 'generation', 2);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2633,7 +2633,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'cancelOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' cancelOrders is only supported for the generation 2 API');
         }
@@ -2703,7 +2703,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'withdraw', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'withdraw', 'generation', 2);
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         const network = this.safeString2 (params, 'network', 'net_type');
@@ -2897,7 +2897,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawalWhitelist', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchWithdrawalWhitelist', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchWithdrawalWhitelist() is only supported for the generation 2 API');
         }
@@ -2936,7 +2936,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawal', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchWithdrawal', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchWithdrawal() is only supported for the generation 2 API');
         }
@@ -2992,7 +2992,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchWithdrawals', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchWithdrawals() is only supported for the generation 2 API');
         }
@@ -3049,7 +3049,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDeposit', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchDeposit', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDeposit() is only supported for the generation 2 API');
         }
@@ -3105,7 +3105,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchDeposits', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDeposits() is only supported for the generation 2 API');
         }
@@ -3161,7 +3161,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'createDepositAddress', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createDepositAddress() is only supported for the generation 2 API');
         }
@@ -3203,7 +3203,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchDepositAddress', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDepositAddress() is only supported for the generation 2 API');
         }
@@ -3244,7 +3244,7 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDepositAddresses', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'fetchDepositAddresses', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDepositAddresses() is only supported for the generation 2 API');
         }

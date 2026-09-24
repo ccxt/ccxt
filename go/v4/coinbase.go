@@ -5016,7 +5016,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		request["limit"] = mathMin(limit, 1000)
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTrades", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {

@@ -2028,9 +2028,9 @@ public class Mudrex extends MudrexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object maxCalls = null;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
-            maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
+            Long maxCalls = null;
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
+            maxCalls = (Long) ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxCallsparametersVariable).get(1);
             Object pageSize = 0;
             if (!java.util.Objects.equals(limit, null))

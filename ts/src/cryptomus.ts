@@ -567,7 +567,7 @@ export default class cryptomus extends Exchange {
             'currencyPair': market['id'],
         };
         let level = 0;
-        [ level, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'level', level);
+        [ level, params ] = this.handleOptionIntegerAndParams (params, 'fetchOrderBook', 'level', level);
         request['level'] = level;
         const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair (this.extend (request, params));
         //

@@ -9522,7 +9522,7 @@ public class Okx extends OkxApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters) // "after": "id", // earlier than the requested bill ID
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters) //        "posBal": "0",
     {
         return this.fetchFundingRate(symbol, (Object) (parameters));
     }

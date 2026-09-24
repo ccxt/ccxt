@@ -3277,7 +3277,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                List<Object> marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("market", marketIds);
             }
             Map<String, Object> response = (this.v1PrivateGetUserPositions(this.extend(request, parameters))).join();
@@ -3398,7 +3398,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                List<Object> marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("market", marketIds);
             }
             Map<String, Object> response = (this.v1PrivateGetUserPositionsHistory(this.extend(request, parameters))).join();
@@ -3760,7 +3760,7 @@ public class Extended extends ExtendedApi
             }
             String fee = this.safeString(parameters, "fee", "0.0005");
             String builderFeeRate = null;
-            Object builderId = null;
+            String builderId = null;
             if (this.isSandboxModeEnabled)
             {
                 builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
@@ -3771,8 +3771,8 @@ public class Extended extends ExtendedApi
                 List<Object> builderFeeRateparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
                 builderFeeRate = (String) ((List<Object>) builderFeeRateparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) builderFeeRateparametersVariable).get(1);
-                List<Object> builderIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "builderId");
-                builderId = ((List<Object>) builderIdparametersVariable).get(0);
+                List<Object> builderIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "builderId");
+                builderId = (String) ((List<Object>) builderIdparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) builderIdparametersVariable).get(1);
             }
             String totalFee = fee;

@@ -1136,7 +1136,7 @@ class onetrading(Exchange, ImplicitAPI):
         #     }
         #
         feeInfo = self.safe_dict(trade, 'fee', {})
-        trade = self.safe_value(trade, 'trade', trade)
+        trade = self.safe_dict(trade, 'trade', trade)
         timestamp = self.safe_integer(trade, 'trade_timestamp')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'time'))
@@ -1302,7 +1302,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rawOrder = self.safe_value(order, 'order', order)
+        rawOrder = self.safe_dict(order, 'order', order)
         id = self.safe_string(rawOrder, 'order_id')
         clientOrderId = self.safe_string(rawOrder, 'client_id')
         timestamp = self.parse8601(self.safe_string(rawOrder, 'time'))

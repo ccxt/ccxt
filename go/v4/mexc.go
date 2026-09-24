@@ -2434,7 +2434,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "data")
+		var data map[string]any = SafeMapTyped(response, "data")
 		candles = this.ConvertTradingViewToOHLCV(data, "time", "open", "high", "low", "close", "vol")
 	}
 

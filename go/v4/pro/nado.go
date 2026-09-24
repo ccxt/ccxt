@@ -1649,7 +1649,7 @@ func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var recvWindow any = nil
-	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "authenticate", "recvWindow", 5000)
+	var recvWindowparamsVariable []any = this.HandleOptionIntegerAndParams(params, "authenticate", "recvWindow", 5000)
 	recvWindow = ccxt.GetValue(recvWindowparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(recvWindowparamsVariable, 1))
 	var subaccount any = nil

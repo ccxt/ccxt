@@ -411,9 +411,9 @@ export default class nado extends Exchange {
         let subaccount: Str = undefined;
         [ subaccount, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'subaccount', 'default');
         let expiration: Str = undefined;
-        [ expiration, params ] = this.handleOptionAndParams (params, 'createOrder', 'expiration', '4294967295');
+        [ expiration, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'expiration', '4294967295');
         let recvWindow: Int = undefined;
-        [ recvWindow, params ] = this.handleOptionAndParams (params, 'createOrder', 'recvWindow', 5000);
+        [ recvWindow, params ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'recvWindow', 5000);
         const nonce = this.createOrderNonce (recvWindow);
         const requestId = this.safeInteger (params, 'id');
         const spotLeverage = this.safeBool2 (params, 'spotLeverage', 'spot_leverage');
@@ -459,16 +459,16 @@ export default class nado extends Exchange {
             };
             placeOrder['trigger'] = trigger;
         } else if (isStopLossOrder || isTakeProfitOrder) {
-            let triggerDirection = '';
+            let oracleSide = '';
             if (isBuy) {
-                triggerDirection = isStopLossOrder ? 'above' : 'below';
+                oracleSide = isStopLossOrder ? 'above' : 'below';
             } else {
-                triggerDirection = isStopLossOrder ? 'below' : 'above';
+                oracleSide = isStopLossOrder ? 'below' : 'above';
             }
             triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
-            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18;
+            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18;
             const trigger: Dict = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -581,7 +581,7 @@ export default class nado extends Exchange {
         let expiration: Str = undefined;
         [ expiration, params ] = this.handleOptionStringAndParams (params, 'editOrder', 'expiration', '4294967295');
         let recvWindow: Int = undefined;
-        [ recvWindow, params ] = this.handleOptionAndParams (params, 'editOrder', 'recvWindow', 5000);
+        [ recvWindow, params ] = this.handleOptionIntegerAndParams (params, 'editOrder', 'recvWindow', 5000);
         const cancelNonce = this.createOrderNonce (recvWindow);
         const orderNonce = Precise.stringAdd (cancelNonce, '1');
         let appendix = this.safeString (params, 'appendix');
@@ -744,7 +744,7 @@ export default class nado extends Exchange {
         [ subaccount, params ] = this.handleOptionStringAndParams (params, 'cancelAllOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         let recvWindow: Int = undefined;
-        [ recvWindow, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'recvWindow', 5000);
+        [ recvWindow, params ] = this.handleOptionIntegerAndParams (params, 'cancelAllOrders', 'recvWindow', 5000);
         const nonce = this.createOrderNonce (recvWindow);
         const tx: Dict = {
             'sender': sender,
@@ -865,7 +865,7 @@ export default class nado extends Exchange {
             productIds.push (productId);
         }
         let recvWindow: Int = undefined;
-        [ recvWindow, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'recvWindow', 5000);
+        [ recvWindow, params ] = this.handleOptionIntegerAndParams (params, 'cancelOrders', 'recvWindow', 5000);
         const nonce = this.createOrderNonce (recvWindow);
         const tx: Dict = {
             'sender': sender,
@@ -977,7 +977,7 @@ export default class nado extends Exchange {
             throw new NotSupported (this.id + ' fetchOrders only support trigger');
         }
         let recvWindow: Int = undefined;
-        [ recvWindow, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'recvWindow', 5000);
+        [ recvWindow, params ] = this.handleOptionIntegerAndParams (params, 'fetchOrders', 'recvWindow', 5000);
         const tx: Dict = {
             'sender': sender,
             'recvTime': this.numberToString (this.milliseconds () + recvWindow),

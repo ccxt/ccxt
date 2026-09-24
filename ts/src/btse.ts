@@ -843,7 +843,7 @@ export default class btse extends Exchange {
             request['start'] = this.parseToInt (since / 1000);
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             if (since !== undefined) {
                 // check if the requested time range is too large for one request
@@ -968,7 +968,7 @@ export default class btse extends Exchange {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports contract markets only');
         }
         let period = undefined;
-        [ period, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'period');
+        [ period, params ] = this.handleOptionStringAndParams (params, 'fetchFundingRateHistory', 'period');
         if (period === undefined) {
             period = '7D';
             if (since !== undefined) {
@@ -986,7 +986,7 @@ export default class btse extends Exchange {
             'period': period,
         };
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchFundingRateHistory', 'until');
         const response = await this.publicGetPublicApiMarketV1RecentFundingHistory (this.extend (request, params));
         //
         //     {
@@ -1595,7 +1595,7 @@ export default class btse extends Exchange {
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchTrades', 'until');
         const response = await this.publicGetPublicApiMarketV1Trades (this.extend (request, params));
         //
         //     {
@@ -2874,7 +2874,7 @@ export default class btse extends Exchange {
             request['pageSize'] = limit;
         }
         let until = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -3092,7 +3092,7 @@ export default class btse extends Exchange {
             request['pageSize'] = limit;
         }
         let until = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchLedger', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }

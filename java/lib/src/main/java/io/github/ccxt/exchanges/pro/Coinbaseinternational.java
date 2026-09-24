@@ -117,7 +117,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             this.checkRequiredCredentials();
             Map<String, Object> market = null;
             Object messageHash = name;
-            List<Object> productIds = null;
+            List<String> productIds = null;
             if (java.util.Objects.equals(symbols, null))
             {
                 symbols = Helpers.toStringListArg(this.getActiveSymbols());
@@ -127,7 +127,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (Helpers.isGreaterThan(symbolsLength, 1))
             {
                 List<Object> parsedSymbols = this.marketSymbols(symbols);
-                List<Object> marketIds = this.marketIds(parsedSymbols);
+                List<String> marketIds = this.marketIds(parsedSymbols);
                 productIds = marketIds;
                 for (var i = 0; i < ((List<?>)parsedSymbols).size(); i++)
                 {
@@ -137,7 +137,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));
-                productIds = new ArrayList<Object>(Arrays.asList(((String)((Map<String, Object>)market).get("id"))));
+                productIds = new ArrayList<String>(Arrays.asList(((String)((Map<String, Object>)market).get("id"))));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             if (java.util.Objects.equals(url, null))
@@ -214,12 +214,12 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             }
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> productIds = new ArrayList<Object>(Arrays.asList());
+            List<String> productIds = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
                 String marketId = this.marketId((String) (Helpers.GetValue((List<String>)(symbols), i)));
                 String symbol = this.symbol(marketId);
-                ((List<Object>)productIds).add(marketId);
+                productIds.add(marketId);
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");

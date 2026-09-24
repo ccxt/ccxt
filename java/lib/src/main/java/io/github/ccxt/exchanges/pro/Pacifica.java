@@ -665,9 +665,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object aggLevel = null;
-            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
-            aggLevel = ((List<Object>) aggLevelparametersVariable).get(0);
+            Long aggLevel = null;
+            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+            aggLevel = (Long) ((List<Object>) aggLevelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) aggLevelparametersVariable).get(1);
             String messageHash = ("orderbook:" + symbol);
             Boolean isTestnet = this.isSandboxModeEnabled;
@@ -677,7 +677,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 urlKey = "test";
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
-            final Object finalAggLevel = aggLevel;
+            final Long finalAggLevel = aggLevel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -728,9 +728,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object aggLevel = null;
-            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
-            aggLevel = ((List<Object>) aggLevelparametersVariable).get(0);
+            Long aggLevel = null;
+            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+            aggLevel = (Long) ((List<Object>) aggLevelparametersVariable).get(0);
             parameters = ((List<Object>) aggLevelparametersVariable).get(1);
             String subMessageHash = ("orderbook:" + symbol);
             String messageHash = ("unsubscribe:" + subMessageHash);
@@ -741,7 +741,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 urlKey = "test";
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
-            final Object finalAggLevel = aggLevel;
+            final Long finalAggLevel = aggLevel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{

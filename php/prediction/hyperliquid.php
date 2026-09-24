@@ -2288,11 +2288,11 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function handle_public_address(string $methodName, array $params): mixed {
+    public function handle_public_address(string $methodName, array $params): array {
         $userAux = null;
         list($userAux, $params) = $this->handle_option_string_and_params_2($params, $methodName, 'user', 'subAccountAddress');
         $user = $userAux;
-        list($user, $params) = $this->handle_option_and_params($params, $methodName, 'address', $userAux);
+        list($user, $params) = $this->handle_option_string_and_params($params, $methodName, 'address', $userAux);
         if ($user !== null && $user !== '') {
             return array( $user, $params );
         }

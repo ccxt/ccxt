@@ -1779,7 +1779,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var maxCalls any = nil
-	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginationCalls", 10)
+	var maxCallsparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMyTrades", "paginationCalls", 10)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = MapTyped(GetValue(maxCallsparamsVariable, 1))
 	var pageSize any = 0

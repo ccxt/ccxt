@@ -1066,7 +1066,7 @@ class pacifica(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         aggLevel = None
-        aggLevel, params = self.handle_option_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
+        aggLevel, params = self.handle_option_integer_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
         request = {
             'symbol': market['id'],
             'agg_level': aggLevel,
@@ -3196,7 +3196,7 @@ class pacifica(Exchange, ImplicitAPI):
         timestamp = None
         timestamp, params = self.handle_param_integer(params, 'timestamp', self.milliseconds())
         expiryWindow = None
-        expiryWindow, params = self.handle_option_and_params_2(params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000)
+        expiryWindow, params = self.handle_option_integer_and_params_2(params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000)
         subaccountSignatureHeader = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3409,7 +3409,7 @@ class pacifica(Exchange, ImplicitAPI):
                 if isOperationSupportBuilder is True:
                     sigPayload['builder_code'] = builderCode
         expiryWindow = None
-        expiryWindow, params = self.handle_option_and_params_2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000)
+        expiryWindow, params = self.handle_option_integer_and_params_2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000)
         timestamp = self.safe_integer(params, 'timestamp', self.milliseconds())
         signatureHeader = {
             'timestamp': timestamp,

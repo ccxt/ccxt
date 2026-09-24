@@ -1271,7 +1271,7 @@ impl BitsoCore {
         });
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_3]).await;
-        let mut ticker: Value = self.safe_value_k(response, "payload", &[]);
+        let mut ticker: Value = self.safe_dict_k(response, "payload", &[]);
         return self.parse_ticker(ticker, &[market]);
 
     Value::Null

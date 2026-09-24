@@ -402,7 +402,7 @@ export default class lighter extends Exchange {
             return signer;
         }
         let libraryPath: Str = undefined;
-        [ libraryPath, params ] = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath');
+        [ libraryPath, params ] = this.handleOptionStringAndParams (params, 'loadAccount', 'libraryPath');
         const lighterPrivateKeyIsSet = (privateKey !== undefined) && (privateKey !== '');
         if (lighterPrivateKeyIsSet && (libraryPath !== undefined) && (apiKeyIndex !== undefined) && (accountIndex !== undefined)) {
             // load lighter library, and create lighter client
@@ -771,7 +771,7 @@ export default class lighter extends Exchange {
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'createOrder', 'apiKeyIndex', 'api_key_index');
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'accountIndex', 'account_index');
         [ nonce, params ] = this.handleOptionAndParams (params, 'createOrder', 'nonce');
-        [ orderExpiry, params ] = this.handleOptionAndParams (params, 'createOrder', 'orderExpiry', 0);
+        [ orderExpiry, params ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'orderExpiry', 0);
         if (nonce !== undefined) {
             request['nonce'] = nonce;
         }
@@ -926,7 +926,7 @@ export default class lighter extends Exchange {
         params['accountIndex'] = accountIndex;
         const market = this.market (symbol);
         let groupingType: Int = undefined;
-        [ groupingType, params ] = this.handleOptionAndParams (params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        [ groupingType, params ] = this.handleOptionIntegerAndParams (params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
         const totalOrderRequests = orderRequests.length;
         let apiKeyIndex: Int = undefined;
@@ -2947,7 +2947,7 @@ export default class lighter extends Exchange {
             request['limit'] = Math.min (limit, 100);
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'until', 'from');
+        [ until, params ] = this.handleOptionIntegerAndParams2 (params, 'fetchMyTrades', 'until', 'from');
         if (until !== undefined) {
             request['from'] = until;
         }

@@ -4294,7 +4294,7 @@ func (this *Htx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data")
+	var data []any = SafeListTyped(response, "data")
 
 	ch <- this.ParseAccounts(data)
 	return nil
@@ -4612,13 +4612,13 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var subType any = nil
+	var subType *string = nil
 	var isMultiAssetMode any = nil
-	var subTypeparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBalance", "defaultSubType", "subType")
-	subType = GetValue(subTypeparamsVariable, 0)
+	var subTypeparamsVariable []any = this.HandleOptionStringAndParams2(params, "fetchBalance", "defaultSubType", "subType")
+	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	if subType == nil {
-		subType = "linear"
+		subType = SafeStringPtr("linear")
 	}
 	var isMultiAssetModeparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchBalance", "multiAssetMode", false)
 	isMultiAssetMode = GetValue(isMultiAssetModeparamsVariable, 0)
@@ -4627,8 +4627,8 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var spot bool = (IsEqual(typeVar, "spot"))
 	var future bool = (IsEqual(typeVar, "future"))
 	var swap bool = (IsEqual(typeVar, "swap"))
-	var inverse bool = (IsEqual(subType, "inverse"))
-	var linear bool = (IsEqual(subType, "linear"))
+	var inverse bool = (subType != nil && *subType == "inverse")
+	var linear bool = (subType != nil && *subType == "linear")
 	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
@@ -9213,7 +9213,7 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var defaultSubType string = "linear"
 	var subType any = nil
-	var subTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRates", "subType", defaultSubType)
+	var subTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchFundingRates", "subType", defaultSubType)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	if symbols != nil {
@@ -11009,7 +11009,7 @@ func (this *Htx) repayIsolatedMarginBody(ch chan any, symbol any, code any, amou
 	//     }
 	//
 	var data []any = SafeListTyped(response, "Data")
-	var loan any = this.SafeValue(data, 0)
+	var loan map[string]any = SafeMapTyped(data, 0)
 	var transaction any = this.ParseMarginLoan(loan, currency)
 
 	ch <- this.Extend(transaction, map[string]any{
@@ -11066,7 +11066,7 @@ func (this *Htx) repayCrossMarginBody(ch chan any, code any, amount any, optiona
 	//     }
 	//
 	var data []any = SafeListTyped(response, "Data")
-	var loan any = this.SafeValue(data, 0)
+	var loan map[string]any = SafeMapTyped(data, 0)
 	var transaction any = this.ParseMarginLoan(loan, currency)
 
 	ch <- this.Extend(transaction, map[string]any{
