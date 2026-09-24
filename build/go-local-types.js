@@ -1270,7 +1270,8 @@ function ccxtGoTypeOfAddChainInitializerUncached (goTranspiler, initializer, pri
         || (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)) {
         return undefined;
     }
-    if (ccxtGoWholePrintedCallee (goTranspiler, printedValue) !== 'Add') {
+    // the declaration wrap must see the same whole `Add(...)` call, else the local stays `any`
+    if ((ccxtGoWholePrintedCallee (goTranspiler, printedValue) !== 'Add') || (ccxtGoWholeAddCallEnd ((printedValue ?? '').trim ()) < 0)) {
         return undefined;
     }
     if (!goAddChainLeafIsStringOrNil (goTranspiler, goAddChainLeftmostLeaf (initializer))) {
@@ -1296,12 +1297,22 @@ function ccxtGoTypeOfAddChainInitializerUncached (goTranspiler, initializer, pri
     return (unproven || goTranspiler.goTypeNameIsShadowed (scope, 'SafeStringPtr')) ? undefined : '*string';
 }
 
+// the index just past a printed initializer that is one whole `Add(...)` call (lines included), else -1
+function ccxtGoWholeAddCallEnd (value) {
+    if (!value.startsWith ('Add(')) {
+        return -1;
+    }
+    const close = ccxtGoPrintedCallEnd (value, 3);
+    return ((close > 0) && /^\s*$/.test (value.substring (close))) ? close : -1;
+}
+
 export function ccxtGoWrapAddChainDeclaration (printed) {
     if (typeof printed !== 'string') {
         return printed;
     }
-    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ \*string = )(Add\([^\n]*\))(\s*)$/.exec (printed);
-    return (match === null) ? printed : match[1] + 'SafeStringPtr(' + match[2] + ')' + match[3];
+    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ \*string = )(Add\([\s\S]*)$/.exec (printed);
+    const close = (match === null) ? -1 : ccxtGoWholeAddCallEnd (match[2]);
+    return (close < 0) ? printed : match[1] + 'SafeStringPtr(' + match[2].substring (0, close) + ')' + match[2].substring (close);
 }
 
 export function ccxtGoWrapUrlsDeclaration (printed) {
