@@ -1117,6 +1117,46 @@
                 ],
                 "output": "{\"countdown\":\"0\"}"
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "all open positions",
+                "method": "fetchPositions",
+                "url": "https://api.umx.com/api/v2/trade/positions",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "positions of a single market, the venue filter is used",
+                "method": "fetchPositions",
+                "url": "https://api.umx.com/api/v2/trade/positions?symbol=ETH-USDT-PERP",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "close the swap position of one symbol family",
+                "method": "closePosition",
+                "url": "https://api.umx.com/api/v2/trade/close-positions",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbolFamily\":\"ETH-USDT\",\"businessType\":\"linear_perpetual\"}"
+            }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "close every open position",
+                "method": "closeAllPositions",
+                "url": "https://api.umx.com/api/v2/trade/close-positions",
+                "input": [],
+                "output": "{}"
+            }
         ]
     },
     "outputType": "both"

@@ -5751,6 +5751,232 @@
                     "ts": "1790242661805"
                 }
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "a long swap position",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "accountName": "1000000000000000000",
+                            "positionId": "3538140386621575168",
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "positionQty": "0.001",
+                            "avgPrice": "2638.1",
+                            "upl": "0.00068",
+                            "lever": "10",
+                            "liquidationPrice": "0",
+                            "markPrice": "2638.78",
+                            "im": "0.263878",
+                            "indexPrice": "2640",
+                            "createTime": "1790243203643",
+                            "updateTime": "1790243203643",
+                            "takeProfit": null,
+                            "stopLoss": null,
+                            "bePrice": "2640.739419709854927463",
+                            "delta": "0.001",
+                            "gamma": null,
+                            "theta": null,
+                            "vega": null,
+                            "pid": "1000000000000000000",
+                            "cid": "100000000000002",
+                            "uid": "100000000000001"
+                        }
+                    ],
+                    "ts": "1790243242157"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "positionId": "3538140386621575168",
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "positionQty": "0.001",
+                            "avgPrice": "2638.1",
+                            "upl": "0.00068",
+                            "lever": "10",
+                            "liquidationPrice": "0",
+                            "markPrice": "2638.78",
+                            "im": "0.263878",
+                            "indexPrice": "2640",
+                            "createTime": "1790243203643",
+                            "updateTime": "1790243203643",
+                            "takeProfit": null,
+                            "stopLoss": null,
+                            "bePrice": "2640.739419709854927463",
+                            "delta": "0.001",
+                            "gamma": null,
+                            "theta": null,
+                            "vega": null,
+                            "pid": "1000000000000000000",
+                            "cid": "100000000000002",
+                            "uid": "100000000000001"
+                        },
+                        "id": "3538140386621575168",
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1790243203643,
+                        "datetime": "2026-09-24T09:46:43.643Z",
+                        "lastUpdateTimestamp": 1790243203643,
+                        "contracts": 0.001,
+                        "contractSize": 1,
+                        "side": "long",
+                        "notional": 2.63878,
+                        "leverage": 10,
+                        "unrealizedPnl": 0.00068,
+                        "realizedPnl": null,
+                        "collateral": null,
+                        "entryPrice": 2638.1,
+                        "markPrice": 2638.78,
+                        "lastPrice": null,
+                        "liquidationPrice": null,
+                        "marginMode": null,
+                        "hedged": false,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": 0.263878,
+                        "initialMarginPercentage": null,
+                        "marginRatio": null,
+                        "percentage": 0.25,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "the market order acknowledgement of the close",
+                "method": "closePosition",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "orderId": "3538140599423778816",
+                            "clientOrderId": "3538140599423778816",
+                            "symbol": "ETH-USDT-PERP",
+                            "qty": "0.001",
+                            "orderType": "market",
+                            "side": "sell",
+                            "code": "0",
+                            "msg": "Success"
+                        }
+                    ],
+                    "ts": "1790243254384"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538140599423778816",
+                        "clientOrderId": "3538140599423778816",
+                        "symbol": "ETH-USDT-PERP",
+                        "qty": "0.001",
+                        "orderType": "market",
+                        "side": "sell",
+                        "code": "0",
+                        "msg": "Success"
+                    },
+                    "id": "3538140599423778816",
+                    "clientOrderId": "3538140599423778816",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 0.001,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "acknowledgements of the closing market orders",
+                "method": "closeAllPositions",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "orderId": "3538140678075351040",
+                            "clientOrderId": "3538140678075351040",
+                            "symbol": "ETH-USDT-PERP",
+                            "qty": "0.001",
+                            "orderType": "market",
+                            "side": "sell",
+                            "code": "0",
+                            "msg": "Success"
+                        }
+                    ],
+                    "ts": "1790243273132"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "3538140678075351040",
+                            "clientOrderId": "3538140678075351040",
+                            "symbol": "ETH-USDT-PERP",
+                            "qty": "0.001",
+                            "orderType": "market",
+                            "side": "sell",
+                            "code": "0",
+                            "msg": "Success"
+                        },
+                        "id": null,
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": null,
+                        "contracts": null,
+                        "contractSize": 1,
+                        "side": null,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": null,
+                        "collateral": null,
+                        "entryPrice": null,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "liquidationPrice": null,
+                        "marginMode": null,
+                        "hedged": false,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "marginRatio": null,
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
         ]
     }
 }

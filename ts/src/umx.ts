@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -39,8 +39,8 @@ export default class umx extends Exchange {
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'closeAllPositions': false,
-                'closePosition': false,
+                'closeAllPositions': true,
+                'closePosition': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
@@ -86,7 +86,7 @@ export default class umx extends Exchange {
                 'fetchOrders': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchSettlementHistory': true,
                 'fetchStatus': false,
                 'fetchTicker': true,
@@ -2629,6 +2629,112 @@ export default class umx extends Exchange {
 
     /**
      * @method
+     * @name umx#fetchPositions
+     * @description fetch all open contract positions
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/position-information/get-trading-account-positions
+     * @param {string[]} [symbols] list of unified market symbols, the venue filter is applied when the list holds exactly one symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.businessType] the exchange instrument type to narrow the answer to, "linear_perpetual" or "linear_futures"
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.getMarketFromSymbols (symbols);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.privateGetV2TradePositions (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, symbols);
+    }
+
+    override parsePosition (position: Dict, market: Market = undefined): Position {
+        //
+        // {
+        //         "accountName": "1000000000000000000",
+        //         "positionId": "3538140386621575168",
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "positionQty": "0.001",
+        //         "avgPrice": "2638.1",
+        //         "upl": "0.00068",
+        //         "lever": "10",
+        //         "liquidationPrice": "0",
+        //         "markPrice": "2638.78",
+        //         "im": "0.263878",
+        //         "indexPrice": "2640",
+        //         "createTime": "1790243203643",
+        //         "updateTime": "1790243203643",
+        //         "takeProfit": null,
+        //         "stopLoss": null,
+        //         "bePrice": "2640.739419709854927463",
+        //         "delta": "0.001",
+        //         "gamma": null,
+        //         "theta": null,
+        //         "vega": null,
+        //         "pid": "1000000000000000000",
+        //         "cid": "100000000000002",
+        //         "uid": "100000000000001"
+        // }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const qty = this.safeString (position, 'positionQty');
+        let side: Str = undefined;
+        let contracts = qty;
+        if (qty !== undefined) {
+            if (Precise.stringLt (qty, '0')) {
+                side = 'short';
+                contracts = Precise.stringNeg (qty);
+            } else {
+                side = 'long';
+            }
+        }
+        const markPrice = this.safeString (position, 'markPrice');
+        let notional: Str = undefined;
+        if ((contracts !== undefined) && (markPrice !== undefined)) {
+            notional = Precise.stringMul (contracts, markPrice);
+        }
+        const timestamp = this.safeInteger (position, 'createTime');
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'positionId'),
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': this.safeInteger (position, 'updateTime'),
+            'contracts': this.parseNumber (contracts),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'side': side,
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber (position, 'lever'),
+            'unrealizedPnl': this.safeNumber (position, 'upl'),
+            'realizedPnl': undefined,
+            'collateral': undefined,
+            'entryPrice': this.safeNumber (position, 'avgPrice'),
+            'markPrice': this.parseNumber (markPrice),
+            'lastPrice': undefined,
+            'liquidationPrice': this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice'))),
+            'marginMode': undefined,
+            'hedged': false,
+            'maintenanceMargin': this.safeNumber (position, 'mm'),
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.safeNumber (position, 'im'),
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'percentage': undefined,
+            'stopLossPrice': this.parseNumber (this.omitZero (this.safeString (position, 'stopLoss'))),
+            'takeProfitPrice': this.parseNumber (this.omitZero (this.safeString (position, 'takeProfit'))),
+        });
+    }
+
+    /**
+     * @method
      * @name umx#fetchLeverage
      * @description fetch the leverage the account trades a contract market with
      * @see https://www.umx.com/docs/coin-apis/trading-account-information/position-information/get-current-leverage
@@ -3617,6 +3723,51 @@ export default class umx extends Exchange {
             'countdown': countdownString,
         };
         return await this.privatePostV1TradeCountdownCancelAll (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name umx#closePosition
+     * @description close the open position of a contract market with a market order
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/close-all-positions
+     * @param {string} symbol unified market symbol of the position, a dated futures symbol closes every position of its symbol family
+     * @param {string} [side] not used by umx.closePosition, the venue always closes the whole position
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if ((market['swap'] !== true) && (market['future'] !== true)) {
+            throw new NotSupported (this.id + ' closePosition() supports swap and future markets only');
+        }
+        const symbolFamily = market['base'] + '-' + market['quote'];
+        const businessType = (market['future'] === true) ? 'linear_futures' : 'linear_perpetual';
+        const request: Dict = {
+            'symbolFamily': symbolFamily,
+            'businessType': businessType,
+        };
+        const response = await this.privatePostV2TradeClosePositions (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseOrder (first, market);
+    }
+
+    /**
+     * @method
+     * @name umx#closeAllPositions
+     * @description close every open contract position with market orders
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/close-all-positions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.businessType] close only this instrument type, "linear_perpetual" or "linear_futures"
+     * @param {string} [params.symbolFamily] close only this symbol family, e.g. "BTC-USDT"
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    override async closeAllPositions (params: Dict = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const response = await this.privatePostV2TradeClosePositions (params);
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, undefined, params);
     }
 
     /**
